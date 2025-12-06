@@ -1,4 +1,4 @@
-//> gl_LaunchIDEXT: uint3 {50, 50, 0}
+//> gl_LaunchIDEXT: uint3 {50, 50, 0} | {0x32, 0x32, 0x0}
 no source
 
 //> (out): float4 {0.412000, 0.796000, 1.000000, 1.000000}
@@ -6,11 +6,11 @@ no source
 
 //---------------------------
 
-//> gl_LaunchIDEXT: uint3 {60, 40, 0}
+//> gl_LaunchIDEXT: uint3 {60, 40, 0} | {0x3c, 0x28, 0x0}
 no source
 
 //> uv: float2 {0.472656, 0.316406}
-//  gl_LaunchIDEXT: uint3 {60, 40, 0}
+//  gl_LaunchIDEXT: uint3 {60, 40, 0} | {0x3c, 0x28, 0x0}
 10. uv		 = vec2(gl_LaunchIDEXT.xy + 0.5) / vec2(gl_LaunchSizeEXT.xy);
 
 //> origin: float3 {0.472656, 0.683594, -1.000000}
@@ -32,7 +32,7 @@ no source
 22. color = payload.color;
 
 //> imageStore(): void
-//  gl_LaunchIDEXT: uint3 {60, 40, 0}
+//  gl_LaunchIDEXT: uint3 {60, 40, 0} | {0x3c, 0x28, 0x0}
 //  color: float4 {0.121094, 0.011719, 0.867188, 1.000000}
 23. 	imageStore( un_Output, ivec2(gl_LaunchIDEXT), color );
 

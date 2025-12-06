@@ -73,7 +73,7 @@ namespace
 	}
 
 
-	static void  DeserializeUIWidget (Serializing::Deserializer &des)
+	static void  DeserializeUIWidget (Serializing::Deserializer &)
 	{
 		// TODO
 	}

@@ -186,7 +186,7 @@ namespace
 			{
 				if ( out.inName.empty() )
 					continue;
-				
+
 				bool	is_ds	= out.rt->IsDepthOrStencil();
 				auto	state	= out.usage == EResourceUsage::InputAttachment ?
 									(is_ds ? EResourceState::InputDepthStencilAttachment : EResourceState::InputColorAttachment) :
@@ -366,7 +366,7 @@ namespace AE::ResEditor
 
 				att->format		= desc.format;
 				att->samples	= desc.samples;
-				
+
 				if ( not out.inName.empty() and out.usage == EResourceUsage::InputAttachment )
 				{
 					att->AddUsage2( subpass, EAttachment::Input,
@@ -397,7 +397,7 @@ namespace AE::ResEditor
 					att->AddUsage4( subpass, EAttachment::ShadingRate, packed_uint2(scale) );
 					continue;
 				}
-				
+
 				EAttachment		type = (out.rt->IsDepthOrStencil() ? EAttachment::DepthStencil : EAttachment::Color);
 				if ( out.usage == EResourceUsage::FragDensityMap )
 					type = EAttachment::FragmentDensity;
@@ -613,7 +613,7 @@ void Main ()
 				fs_line = uint(Parser::CalculateNumberOfLines( header )) - 1;
 			}
 		}
-		
+
 		const auto		flags	 = UIInteraction::Instance().graphics->shaderFlags;
 		EShaderOpt		sh_opt	 = Default;
 		EPipelineOpt	ppln_opt = Default;
@@ -628,10 +628,10 @@ void Main ()
 			sh_opt   = EShaderOpt::Optimize;
 			ppln_opt |= EPipelineOpt::Optimize;
 		}
-		
+
 		if ( flags.contains( UIInteraction::EShaderFlags::CaptureStatistics ))
 			ppln_opt |= EPipelineOpt::CaptureStatistics;
-		
+
 		if ( flags.contains( UIInteraction::EShaderFlags::CaptureInternalRepresentation ))
 			ppln_opt |= EPipelineOpt::CaptureInternalRepresentation;
 

@@ -130,7 +130,7 @@ namespace AE::ResEditor
 	void  ScaleBiasCamera::CopyTo (OUT AE::ShaderTypes::CameraData &camera) C_NE___
 	{
 		Frustum_t	frustum;
-		frustum.Setup( _matrix );
+		frustum.Setup( _matrix, GetClipPlanes() );
 
 		_CopyToCameraData( OUT camera, frustum );
 	}

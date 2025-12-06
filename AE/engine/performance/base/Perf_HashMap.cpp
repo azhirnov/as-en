@@ -28,7 +28,7 @@ namespace
 
 	using Value = uint;
 
-	
+
 	template <typename TMap, typename Iter>
 	ND_ ulong  SearchTest (const TMap &map, Iter keysBegin, Iter keysEnd, IntervalProfiler& profiler)
 	{
@@ -91,7 +91,7 @@ namespace
 			}
 
 			IntervalProfiler	profiler{ "map search test"s << (mode == 1 ? ", with reserve" : "") };
-			
+
 			profiler.BeginTest( "std::unordered_map" );
 			sum[1] += SearchTest( un_map, keys.begin(),  keys.end(),  profiler );
 			sum[1] += SearchTest( un_map, keys.rbegin(), keys.rend(), profiler );
@@ -170,14 +170,14 @@ namespace
 			}
 
 			IntervalProfiler	profiler{ "map insertion test"s << (mode == 1 ? ", with reserve" : "") };
-			
+
 			profiler.BeginTest( "std::unordered_map" );
 			sum[1] += InsertionTest( un_map, keys.begin(),  keys.end(),  profiler );
 			sum[1] += InsertionTest( un_map, keys.rbegin(), keys.rend(), profiler );
 			sum[1] += InsertionTest( un_map, keys2.begin(), keys2.end(), profiler );
 			sum[1] += InsertionTest( un_map, keys3.begin(), keys3.end(), profiler );
 			profiler.EndTest();
-			
+
 			profiler.BeginTest( "Absel-flat" );
 			sum[6] += InsertionTest( absl_map, keys.begin(),  keys.end(),  profiler );
 			sum[6] += InsertionTest( absl_map, keys.rbegin(), keys.rend(), profiler );
@@ -198,8 +198,8 @@ namespace
 	}
 //-----------------------------------------------------------------------------
 
-	
-	
+
+
 	template <typename TMap>
 	ND_ ulong  IterationTest2 (TMap &map, IntervalProfiler& profiler)
 	{
@@ -236,7 +236,7 @@ namespace
 		}
 		return IterationTest2( arr, profiler );
 	}
-	
+
 	static void  HashMap_Iterate ()
 	{
 		std::unordered_map< Elem, Value, ElemHash >		un_map;
@@ -244,7 +244,7 @@ namespace
 		absl::node_hash_map< Elem, Value, ElemHash >	absl_map2;
 		Array<Pair< Elem, Value >>						arr;
 		StaticArray< ulong, 9 >							sum = {};
-		
+
 		constexpr uint	count = 1'000'000;
 		Array< uint >	keys;
 		Array< uint >	keys2;
@@ -286,7 +286,7 @@ namespace
 		sum[7] += IterationTest( absl_map2, keys2.begin(), keys2.end(), profiler );
 		sum[7] += IterationTest( absl_map2, keys3.begin(), keys3.end(), profiler );
 		profiler.EndTest();
-		
+
 		profiler.BeginTest( "Array" );
 		sum[8] += IterationTest( arr, keys.begin(),  keys.end(),  profiler );
 		sum[8] += IterationTest( arr, keys.rbegin(), keys.rend(), profiler );

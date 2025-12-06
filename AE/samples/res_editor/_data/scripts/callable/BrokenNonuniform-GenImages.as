@@ -10,7 +10,7 @@
 	{
 		array<RC<Image>>	images;
 		const uint2			img_dim		= uint2(64);
-		
+
 		if ( @collection != null )
 		{
 			collection.ImageArray( "array", OUT images );
@@ -35,7 +35,7 @@
 				if ( tmp.size() >= max_storage_img )
 					break;
 			}
-			
+
 			RC<ComputePass>		pass = ComputePass();
 			pass.ArgInOut( "un_Images",		tmp );
 			pass.Constant( "iBaseLayer",	first );
@@ -54,13 +54,13 @@
 #ifdef SH_COMPUTE
 	#include "Color.glsl"
 	#include "InvocationID.glsl"
-	
+
 	void  Main ()
 	{
 		uint	layer	= GetGroupCoord().z;	// uniform
 		int2	pos		= GetGlobalCoord().xy;
 		float4	col		= Rainbow( float(layer + iBaseLayer) / float(iNumLayers) );
-		
+
 		gl.image.Store( un_Images[layer], pos, col );
 	}
 

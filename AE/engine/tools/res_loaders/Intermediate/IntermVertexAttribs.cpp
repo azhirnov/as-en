@@ -151,7 +151,7 @@ namespace AE::ResLoader
 		offset = it->second.offset;
 		return true;
 	}
-	
+
 /*
 =================================================
 	GetRawData
@@ -162,7 +162,7 @@ namespace AE::ResLoader
 		auto	it = _vertices.find( id );
 		if ( it == _vertices.end() )
 			return false;
-		
+
 		elemOffset	= it->second.offset;
 		elemSize	= EVertexType_SizeOf( it->second.type );
 		return true;

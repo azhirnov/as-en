@@ -8,6 +8,9 @@
 
 	void ASmain ()
 	{
+		Assert( GetFeatureSet().hasFragmentShaderBarycentric(),
+				"requires 'FragmentShaderBarycentric' feature" );
+
 		// initialize
 		RC<Image>		rt			= Image( EPixelFormat::RGBA8_UNorm, SurfaceSize() );		rt.Name( "RT" );
 		RC<Scene>		scene		= Scene();

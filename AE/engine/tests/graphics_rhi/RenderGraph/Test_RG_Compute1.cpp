@@ -108,7 +108,7 @@ namespace
 		CHECK_CE( lock.try_lock() );
 
 		Ctx		ctx{ RenderCoro_Get() };
-		
+
 		t.result0 = ctx.ReadbackImage( t.img0, Default ).Then( t,
 							[] (Promise<ImageMemView> readRes, CoSafe<C1_TestData &> t) -> InlineCoro<>
 							{
@@ -127,7 +127,7 @@ namespace
 								auto view = co_await readRes;
 								t->isOK_2 = C1_CheckImageData( view, 16 );
 							});
-		
+
 		ctx.AccumBarriers().MemoryBarrier( EResourceState::CopyDst, EResourceState::Host_Read );
 
 		RenderCoro_Execute( ctx );

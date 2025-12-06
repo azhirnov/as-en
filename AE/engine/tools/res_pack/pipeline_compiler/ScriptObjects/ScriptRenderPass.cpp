@@ -282,7 +282,7 @@ namespace
 				CHECK_THROW_MSG( All(IsPowerOfTwo( texelSize )));
 				iter->second.texelSize = texelSize;
 				break;
-				
+
 			case EAttachment::FragmentDensity :
 				CHECK_THROW_MSG( not inVar.has_value() and not outVar.has_value() );
 				break;
@@ -757,7 +757,7 @@ namespace
 							"add 'Preserve' usage for previous subpass '" << storage.GetName( prev_sp ) << "'" );
 						new_state = EResourceState::ShadingRateImage;
 						break;
-						
+
 					case EAttachment::FragmentDensity :
 						CHECK_THROW_MSG( rt->format == EPixelFormat::RG8_UNorm );
 						new_state = EResourceState::FragmentDensityMap;
@@ -783,7 +783,7 @@ namespace
 
 				new_state |= EResourceState::Invalidate;
 			}
-			
+
 			CHECK( EResourceState_Validate( new_state ));
 
 			rt_states.push_back( new_state );
@@ -1247,7 +1247,7 @@ namespace
 
 		_features.push_back( fs_it->second );
 	}
-	
+
 /*
 =================================================
 	AddMultiViewCorrelatedViewMask
@@ -1362,7 +1362,7 @@ namespace
 								}
 							}
 							break;
-						
+
 						case EAttachment::FragmentDensity :
 							TEST_FEATURE( _features, fragmentDensityMap );
 							TestFeature_PixelFormat( _features, &FeatureSet::attachmentFormats, att->format, "attachmentFormats",
@@ -1465,7 +1465,7 @@ namespace
 	{
 		return AddSubpass2( subpassName, ViewMask{} );
 	}
-	
+
 	void  CompatibleRenderPassDesc::AddSubpass2 (const String &subpassName, const ViewMask &mask) __Th___
 	{
 		CHECK_ERRV( _subpassMap.size() < GraphicsConfig::MaxSubpasses );
@@ -1573,7 +1573,7 @@ namespace
 				binder.Comment( "Fragment density (read-only) attachment.\n"
 								"Requires 'fragmentDensityMap' feature." );
 				binder.AddValue( "FragmentDensity",	EAttachment::FragmentDensity );
-				
+
 			case EAttachment::RasterOrder :
 				binder.Comment( "Used as input attachment and color attachment.\n"
 								"Allows to access framebuffer content in rasterization order, without explicit synchronization.\n"
@@ -1779,7 +1779,7 @@ namespace
 			binder.Comment( "Add FeatureSet to the render pass.\n"
 							"Render pass can use only features that are enabled in at least one FeatureSet." );
 			AS_METHOD( binder, CompatibleRenderPassDesc::AddFeatureSet,		"AddFeatureSet",		{"fsName"} );
-			
+
 			binder.Comment( "Add indices of view which can be rendered concurrently." );
 			AS_METHOD( binder, CompatibleRenderPassDesc::AddMultiViewCorrelatedViewMask, "AddMultiViewCorrelatedViewMask",	{"bitMask"} );
 

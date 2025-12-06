@@ -14,7 +14,7 @@ bool  Executor::Initialize ()
 {
 	using namespace Threading;
 	using namespace Graphics;
-	
+
 	TaskScheduler::InstanceCtor::Create();
 
 	TaskScheduler::Config	cfg;
@@ -23,9 +23,9 @@ bool  Executor::Initialize ()
 	VDeviceInitializer::InstanceCreateInfo	inst_ci;
 	inst_ci.appName			= "CoopMatTest";
 	inst_ci.instanceLayers	= vulkan.GetRecommendedInstanceLayers();
-	
+
 	CHECK_ERR( vulkan.CreateInstance( inst_ci ));
-	
+
 	vulkan.CreateDebugCallback( VDeviceInitializer::c_DefaultDebugMessageSeverity,
                                 VDeviceInitializer::c_DefaultDebugMessageTypes,
 								[] (const VDeviceInitializer::DebugReport &rep) { AE_LOGW(rep.message);  CHECK(not rep.isError); });
@@ -33,11 +33,11 @@ bool  Executor::Initialize ()
 	CHECK_ERR( vulkan.ChooseHighPerformanceDevice() );
 	CHECK_ERR( vulkan.CreateDefaultQueue() );
 	CHECK_ERR( vulkan.CreateLogicalDevice() );
-	
+
 	CHECK_ERR( vulkan.IsInitialized() );
 	CHECK_ERR( vulkan.CheckConstantLimits() );
 	CHECK_ERR( vulkan.CheckExtensions() );
-	
+
 	RenderTaskScheduler::InstanceCtor::Create( vulkan );
 	CHECK_ERR( GraphicsScheduler().Initialize( Default ));
 
@@ -110,7 +110,7 @@ bool  Executor::_RunPipe (ByteBuffer inputA, ByteBuffer inputB, ByteBuffer input
 	GAutorelease	buf_c	= res_mngr.CreateBuffer( BufferDesc{ Bytes{inputC.size()}, EBufferUsage::Storage | EBufferUsage::Transfer }, "InputC" );
 	GAutorelease	buf_out	= res_mngr.CreateBuffer( BufferDesc{ Bytes{output.size()}, EBufferUsage::Storage | EBufferUsage::Transfer }, "Output" );
 	CHECK_ERR( buf_a and buf_b and buf_c and buf_out );
-	
+
 	GAutorelease	ds = res_mngr.CreateDescriptorSet( pipe_id, DescriptorSetName{"ds0"} ).Get<0>();
 	CHECK_ERR( ds );
 
@@ -154,7 +154,7 @@ bool  Executor::_RunPipe (ByteBuffer inputA, ByteBuffer inputB, ByteBuffer input
 							ctx.BindPipeline( pipe_id );
 							ctx.BindDescriptorSet( DescSetBinding{0}, ds );
 							ctx.Dispatch( 1 );
-							
+
 							ctx.AccumBarriers()
 								.MemoryBarrier( EResourceState::ShaderAddress_RW | EResourceState::CoopVecConvertStage, EResourceState::CopySrc );
 
@@ -170,7 +170,7 @@ bool  Executor::_RunPipe (ByteBuffer inputA, ByteBuffer inputB, ByteBuffer input
 											Bytes size = view->CopyTo( OUT ByteBuffer{output} );
 											CHECK_Eq( size, output->size() );
 										});
-						
+
 							RenderCoro_Execute( ctx );
 						}
 					}(),
@@ -204,7 +204,7 @@ void  Executor::_Compile (StringView source, uint elementSize,
 						  OUT Graphics::RenderTechPipelinesPtr &outRTech) __Th___
 {
 	using namespace AE::PipelineCompiler;
-	
+
 	// init pipeline compiler
 	ObjectStorage	obj_storage;
 	PipelineStorage	ppln_storage;
@@ -226,9 +226,9 @@ void  Executor::_Compile (StringView source, uint elementSize,
 
 		cfg.SetDefaultLayout( EStructLayout::Std140 );
 		cfg.SetPreprocessor( EShaderPreprocessor::AEStyle );
-		
+
 		cfg.SetTarget( ECompilationTarget::Vulkan );
-		
+
 		cfg.SetPipelineOptions( EPipelineOpt::Optimize );
 		cfg.SetShaderOptions( EShaderOpt::Optimize );
 	}

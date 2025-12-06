@@ -8,8 +8,8 @@ void  ASmain ()
 {
 	RC<FeatureSet>	fs = GetDefaultFeatureSet();
 
-	Assert( fs.hasShaderStorageBufferArrayDynamicIndexing() );
-	Assert( fs.hasShaderSampledImageArrayDynamicIndexing() );
+	Assert( fs.hasShaderStorageBufferArrayDynamicIndexing(), "required 'ShaderStorageBufferArrayDynamicIndexing' feature" );
+	Assert( fs.hasShaderSampledImageArrayDynamicIndexing(), "required 'ShaderSampledImageArrayDynamicIndexing' feature" );
 
 	VertexBuffers();
 	BufferTypes( /*withFS*/false, fs.hasRayTracingPipeline() );

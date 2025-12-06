@@ -4,7 +4,7 @@
 
 namespace AE::ResLoader
 {
-	
+
 /*
 =================================================
 	InvertFrontFace
@@ -41,7 +41,7 @@ namespace AE::ResLoader
 		switch_end
 		return true;
 	}
-	
+
 /*
 =================================================
 	InvertNormals

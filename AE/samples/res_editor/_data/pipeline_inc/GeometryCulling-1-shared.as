@@ -75,7 +75,7 @@
 			spec.AddToRenderTech( "rtech", pass );  // in ScriptSceneGraphicsPass
 
 			RenderState	rs;
-			
+
 			if ( name != "WithoutDepthTest" and name != "VisibilityBuffer1Pass2" ) {
 				rs.depth.test				= true;
 				rs.depth.write				= true;
@@ -94,7 +94,7 @@
 			spec.SetRenderState( rs );
 		}
 	}
-	
+
 	void  CreatePipeline (string name)
 	{
 		CreatePipeline( name, "main" );
@@ -150,7 +150,7 @@
 	#include "Color.glsl"
 	#include "Normal.glsl"
 	#include "../3party_shaders/VisibilityBuffer.glsl"
-		
+
 	#ifdef VIS_BUF1_2
 		float3  LocalPosToWorldSpace (ObjectTransform obj, uint vertId)
 		{
@@ -201,13 +201,13 @@
 															WorldPosToClipSpace( wpos2 ),
 															ToSNorm( gl.FragCoord.xy * un_PerPass.invResolution.xy ),
 															2.0 * un_PerPass.invResolution.xy );
-			
+
 			GradientInterpolationResults uv_res = Interpolate2DWithDeriv( deriv, un_Geometry.uvs[idx.x], un_Geometry.uvs[idx.y], un_Geometry.uvs[idx.z] );
 
 			DerivativesOutput	wp_deriv	= Cal3DDeriv( deriv, wpos0, wpos1, wpos2 );
 			const float3		norm		= Normalize( Cross( wp_deriv.db_dx, wp_deriv.db_dy ));	// ComputeNormalInWS_dxdy
 			const float4		color		= unpackUnorm4x8( obj.color ) + float4(uv_res.dx, uv_res.dy) * 10.0;
-			
+
 		#else
 			const float4		color		= In.color;
 			const float3		norm		= ComputeNormalInWS_dxdy( In.worldPos );

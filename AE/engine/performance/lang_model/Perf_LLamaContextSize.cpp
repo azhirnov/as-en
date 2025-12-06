@@ -13,9 +13,9 @@ namespace
 		Path				modelPath;
 		uint				ctxSize;
 		uint				gpuLayers;
-		LLama::EBackend	backend;
+		LLama::EBackend		backend;
 	};
-	
+
 	struct PerfTestResult
 	{
 		Duration_t			modelLoading;
@@ -50,7 +50,7 @@ namespace
 			outTokens += count;
 			return true;
 		}
-		
+
 		void  OnComplete (U8StringView completeResponse, uint tokenCount) __NE_OV
 		{
 			response = completeResponse;
@@ -162,7 +162,7 @@ namespace
 
 			ctx = model->CreateContext( params );
 			CHECK_ERRV( ctx );
-			
+
 			result.ctxCreation = Clock_t::now() - begin;
 		}
 
@@ -170,7 +170,7 @@ namespace
 		{
 			auto	begin = Clock_t::now();
 			auto	listener = MakeRC<ResponseListener>();
-			
+
 			CHECK( ctx->Generate( RVRef(prompt), listener ));
 
 			result.timeToFirstToken		= listener->firstToken - begin;
@@ -178,7 +178,7 @@ namespace
 			result.inTokens				= listener->inTokens;
 			result.outTokens			= listener->outTokens;
 			result.hasErrors			= listener->hasErrors;
-			
+
 		/*	FileWStream		file { dstFolder / in.modelPath.filename().replace_extension(".md") };
 			if ( file.IsOpen() )
 			{

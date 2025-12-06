@@ -1,4 +1,4 @@
-//> gl_PrimitiveID: int {0}
+//> gl_PrimitiveID: int {0} | {0x0}
 //> gl_TessCoord: float3 {0.000000, 0.000000, 1.000000}
 //> gl_TessLevelInner: float2 {3.000000, 3.000000}
 //> gl_TessLevelOuter: float4 {1.100000, 1.100000, 1.100000, 1.100000}
@@ -17,7 +17,7 @@ no source
 
 //---------------------------
 
-//> gl_PrimitiveID: int {0}
+//> gl_PrimitiveID: int {0} | {0x0}
 //> gl_TessCoord: float3 {0.000000, 0.500000, 0.500000}
 //> gl_TessLevelInner: float2 {3.000000, 3.000000}
 //> gl_TessLevelOuter: float4 {1.100000, 1.100000, 1.100000, 1.100000}
@@ -36,7 +36,7 @@ no source
 
 //---------------------------
 
-//> gl_PrimitiveID: int {0}
+//> gl_PrimitiveID: int {0} | {0x0}
 //> gl_TessCoord: float3 {0.000000, 1.000000, 0.000000}
 //> gl_TessLevelInner: float2 {3.000000, 3.000000}
 //> gl_TessLevelOuter: float4 {1.100000, 1.100000, 1.100000, 1.100000}
@@ -55,7 +55,7 @@ no source
 
 //---------------------------
 
-//> gl_PrimitiveID: int {0}
+//> gl_PrimitiveID: int {0} | {0x0}
 //> gl_TessCoord: float3 {0.222214, 0.222214, 0.555573}
 //> gl_TessLevelInner: float2 {3.000000, 3.000000}
 //> gl_TessLevelOuter: float4 {1.100000, 1.100000, 1.100000, 1.100000}
@@ -74,7 +74,7 @@ no source
 
 //---------------------------
 
-//> gl_PrimitiveID: int {0}
+//> gl_PrimitiveID: int {0} | {0x0}
 //> gl_TessCoord: float3 {0.222214, 0.555557, 0.222229}
 //> gl_TessLevelInner: float2 {3.000000, 3.000000}
 //> gl_TessLevelOuter: float4 {1.100000, 1.100000, 1.100000, 1.100000}
@@ -93,7 +93,7 @@ no source
 
 //---------------------------
 
-//> gl_PrimitiveID: int {0}
+//> gl_PrimitiveID: int {0} | {0x0}
 //> gl_TessCoord: float3 {0.500000, 0.000000, 0.500000}
 //> gl_TessLevelInner: float2 {3.000000, 3.000000}
 //> gl_TessLevelOuter: float4 {1.100000, 1.100000, 1.100000, 1.100000}
@@ -112,7 +112,7 @@ no source
 
 //---------------------------
 
-//> gl_PrimitiveID: int {0}
+//> gl_PrimitiveID: int {0} | {0x0}
 //> gl_TessCoord: float3 {0.500000, 0.500000, 0.000000}
 //> gl_TessLevelInner: float2 {3.000000, 3.000000}
 //> gl_TessLevelOuter: float4 {1.100000, 1.100000, 1.100000, 1.100000}
@@ -131,7 +131,7 @@ no source
 
 //---------------------------
 
-//> gl_PrimitiveID: int {0}
+//> gl_PrimitiveID: int {0} | {0x0}
 //> gl_TessCoord: float3 {0.555557, 0.222229, 0.222214}
 //> gl_TessLevelInner: float2 {3.000000, 3.000000}
 //> gl_TessLevelOuter: float4 {1.100000, 1.100000, 1.100000, 1.100000}
@@ -150,7 +150,7 @@ no source
 
 //---------------------------
 
-//> gl_PrimitiveID: int {0}
+//> gl_PrimitiveID: int {0} | {0x0}
 //> gl_TessCoord: float3 {1.000000, 0.000000, 0.000000}
 //> gl_TessLevelInner: float2 {3.000000, 3.000000}
 //> gl_TessLevelOuter: float4 {1.100000, 1.100000, 1.100000, 1.100000}

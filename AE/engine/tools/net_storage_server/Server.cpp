@@ -140,16 +140,16 @@ namespace
 
 int main ()
 {
-	AE::Base::StaticLogger::LoggerDbgScope	log{};
-	
-	PlatformUtils::SetSystemSleepState( ESystemSleepState::DontSleep_AllowTurnDisplayOff );
+	StaticLogger::LoggerScope	log{};
+
+	Unused( PlatformUtils::SetSystemSleepState( ESystemSleepState::DontSleep_AllowTurnDisplayOff ));
 
 	Array<Path>	dirs;
-    dirs.push_back( R"(path)" );
+	dirs.push_back( AE_VFS_SERVER_FOLDER );
 
 	CHECK_ERR( not dirs.empty(), -1 );
 	CHECK_ERR( Initialize(), -2 );
-	CHECK_ERR( RunVFSServer( 4006, dirs ), -3 );
+	CHECK_ERR( RunVFSServer( AE_VFS_SERVER_PORT, dirs ), -3 );
 	Deinitialize();
 
 	return 0;

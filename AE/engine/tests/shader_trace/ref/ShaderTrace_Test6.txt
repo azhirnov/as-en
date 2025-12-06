@@ -1,5 +1,5 @@
-//> gl_InvocationID: int {0}
-//> gl_PrimitiveIDIn: int {1}
+//> gl_InvocationID: int {0} | {0x0}
+//> gl_PrimitiveIDIn: int {1} | {0x1}
 no source
 
 //> pos: float4 {0.750000, -0.400000, 0.100000, 1.000000}

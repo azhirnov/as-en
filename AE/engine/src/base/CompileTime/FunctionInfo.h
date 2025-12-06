@@ -9,7 +9,7 @@ namespace AE::Base::_hidden_
 
 	template <typename T>
 	struct _FuncInfo;
-	
+
 
 	#define _DECL_FUNC_INFO( _ptr_, _ex_qual_ )					\
 		template <typename Result, typename ...Args>			\
@@ -94,7 +94,7 @@ namespace AE::Base::_hidden_
 	_DECL_FUNC_INFO( const &&,			);
 	_DECL_FUNC_INFO( volatile &&,		);
 	_DECL_FUNC_INFO( const volatile &&,	);
-	
+
 	_DECL_FUNC_INFO( const,				noexcept );
 	_DECL_FUNC_INFO( volatile,			noexcept );
 	_DECL_FUNC_INFO( const volatile,	noexcept );
@@ -127,7 +127,7 @@ namespace AE::Base::_hidden_
 
 	template <typename T, typename ...Args>
 	struct _TmplFuncInfo2;
-	
+
 	template <typename T, typename ...Args>
 	struct _TmplFuncInfo2< T, TypeList< Args... >>{
 		using type = _FuncInfo< RemoveReference< decltype(&T::template operator()< Args... >) >>;
@@ -154,8 +154,8 @@ namespace AE::Base
 
 	template <typename T>
 	static constexpr bool	IsGlobalFunction = IsVoid< typename FunctionInfo<T>::clazz >;
-	
-	
+
+
 /*
 =================================================
 	FnUnsafeCast

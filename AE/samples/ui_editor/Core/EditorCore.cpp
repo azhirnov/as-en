@@ -111,7 +111,7 @@ namespace
 			ImGui::PushStyleColor( idx, AE::Base::BitCast<ImU32>(color) );
 		}
 	};
-	
+
 /*
 =================================================
 	ImGuiDrawTask::Run
@@ -132,7 +132,7 @@ namespace
 	{
 		EXLOCK( ui );
 		core->_CheckScriptDir( ui->scriptDir );
-		
+
 		auto	rtask = RenderCoro_Get();
 
 		DirectCtx::Transfer		copy_ctx {rtask};

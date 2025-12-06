@@ -32,7 +32,7 @@ namespace AE::Base
 			static bool		SetCurrentThreadPriority (EThreadPriority priority)				__NE___;
 
 		ND_	static uint		GetLogicalCoreIndex ()											__NE___;
-		
+
 		ND_ static bool		SetSystemSleepState (ESystemSleepState)							__NE___;
 
 
@@ -51,15 +51,17 @@ namespace AE::Base
 		ND_ static String		GetOSName ()												__NE___;
 		#endif
 
+		ND_ static String	GetUserName ()													__NE___;
+
 		ND_ static bool		GetEnvironmentVariable (NtStringView name, OUT String &value)	__NE___;
 		ND_ static bool		HasEnvironmentVariable (NtStringView name)						__NE___;
 		ND_ static bool		SetEnvironmentVariable (NtStringView name, NtStringView value)	__NE___;
 		ND_ static bool		DeleteEnvironmentVariable (NtStringView name)					__NE___;
-		
+
 
 		// Clipboard //
 		ND_ static bool		ClipboardExtract (OUT String &result, void* disp = null, void* wnd = null)	__NE___;
-		ND_ static bool		ClipboardPut (StringView str, void* disp = null, void* wnd = null)			__NE___;
+		ND_ static bool		ClipboardPut (NtStringView str, void* disp = null, void* wnd = null)		__NE___;
 		ND_ static bool		ClipboardClear (void* disp = null, void* wnd = null)						__NE___;
 	};
 

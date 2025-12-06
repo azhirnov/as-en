@@ -431,7 +431,7 @@ namespace AE::Scripting
 		{
 			T const*	src = static_cast< const T *>( gen->GetArgObject(0) );
 			T*			dst = static_cast< T *>( gen->GetObject() );
-			
+
 			NonNull( src );
 			NonNull( dst );
 

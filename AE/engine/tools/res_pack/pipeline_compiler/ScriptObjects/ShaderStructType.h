@@ -227,7 +227,7 @@ namespace AE::PipelineCompiler
 
 		ND_ bool  ToCPP (INOUT String &types, INOUT UniqueTypes_t &uniqueTypes)							const;
 		ND_ bool  ToCPP (INOUT String &types)															const;
-		
+
 		ND_ bool  ToHLSL (INOUT String &types, INOUT UniqueTypes_t &uniqueTypes, INOUT String* sizeCheck = null) const;
 		ND_ bool  ToHLSL (INOUT String &types, INOUT String* sizeCheck = null)							const;
 

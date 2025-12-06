@@ -147,7 +147,7 @@ namespace AE::Threading
 
 		// try to start task
 		ETaskStatus		status	= task->Status();
-		
+
 		if_likely( status == ETaskStatus::Pending								and
 				   (not fast_cancel)											and
 				   TaskApi::SetInProgress( *task, will_cancel, INOUT status )	and	// Pending -> InProgress / Cancellation

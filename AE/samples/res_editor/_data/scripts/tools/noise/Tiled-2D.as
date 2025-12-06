@@ -51,7 +51,7 @@
 //-----------------------------------------------------------------------------
 #if defined(VIEW_2D) or defined(VIEW_1D)
 	#include "Math.glsl"
-	
+
 	float  NoiseTex (float2 uv)
 	{
 		const float2	dim = gl.texture.GetSize( un_Noise, 0 );

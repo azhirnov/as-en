@@ -97,7 +97,7 @@ namespace AE::Threading
 		Result	res;
 		res.pos			= _offset;
 		res.status		= _status.load();
-		
+
 		if ( res.status == EStatus::Completed )
 		{
 			res.dataSize	= _actualSize.load();

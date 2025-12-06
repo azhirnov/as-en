@@ -52,7 +52,7 @@ namespace AE::App
 
 		void  _Init (Unique<IWndListener>	listener,
 					 IInputActions*			dstActions)		__NE___;
-		
+
 		bool  ProcessMessages ()							__NE_OV;
 
 		using WindowBase::_SetStateV2;

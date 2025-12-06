@@ -255,6 +255,11 @@ namespace _hidden_
 		return utf8proc_tolower( c );
 	}
 
+	Nd__IF bool  Utf32IsLower (CharUtf32 c) __NE___
+	{
+		return utf8proc_islower( c ) == 1;
+	}
+
 /*
 =================================================
 	Utf32ToTitle
@@ -268,7 +273,7 @@ namespace _hidden_
 	{
 		return utf8proc_totitle( c );
 	}
-	
+
 /*
 =================================================
 	IsUtf8BOM / SkipUtf8BOM
@@ -281,7 +286,7 @@ namespace _hidden_
 				str[1] == char(0xBB)	and
 				str[2] == char(0xBF);
 	}
-	
+
 	____IF void  SkipUtf8BOM (INOUT StringView &str) __NE___
 	{
 		if ( IsUtf8BOM( str ))

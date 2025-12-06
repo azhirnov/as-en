@@ -24,7 +24,7 @@ namespace
 		{
 			{
 				ASYNC_EXLOCK( data.mutex );
-				
+
 				DeferExLock lock {data.mutexCheck};
 				TEST( lock.try_lock() );
 

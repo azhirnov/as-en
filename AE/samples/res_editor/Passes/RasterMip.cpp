@@ -41,7 +41,7 @@ namespace AE::ResEditor
 
 		if ( not dbg )
 			ppln = _pipelines.find( IPass::EDebugMode::Unknown )->second;
-		
+
 
 		for (uint i = 0, cnt = _GetRepeatCount(); i < cnt; ++i)
 		{
@@ -79,7 +79,7 @@ namespace AE::ResEditor
 			{
 				RenderPassDesc	rp_desc	= _rpDesc;
 				const uint2		dim		= Max( _variables.front().image->GetImageDesc().Dimension2() >> (mip + 1), 1u );
-				
+
 				rp_desc.area = RectI{int2{dim}};
 				rp_desc.AddViewport( rp_desc.area );
 
@@ -90,13 +90,13 @@ namespace AE::ResEditor
 				ctx.CommitBarriers();
 
 				auto	dctx = ctx2.BeginRenderPass( rp_desc );
-				
+
 				dctx.BindPipeline( ppln );
 				dctx.BindDescriptorSet( _ds0Index, ds0 );
 				if ( dbg ) dctx.BindDescriptorSet( dbg.DSIndex(), dbg.DescSet() );
 
 				dctx.BindDescriptorSet( _ds1Index, _mipChainDS[mip] );
-				
+
 				ShaderTypes::ComputeMipPC	pc;
 				pc.invResolution	= 1.f / float2{dim};
 				pc.resolution		= dim;
@@ -123,7 +123,7 @@ namespace AE::ResEditor
 	bool  RasterMip::Update (TransferCtx_t &ctx, const UpdatePassData &pd) __Th___
 	{
 		CHECK_ERR( not _variables.empty() );
-		
+
 		// validate dimensions
 		const uint2		cur_dim = _variables.front().image->GetViewDesc().Dimension2();
 		{
@@ -174,7 +174,7 @@ namespace AE::ResEditor
 			CHECK_ERR( _resources.Bind( ctx.GetFrameId(), updater ));
 			CHECK_ERR( updater.Flush() );
 		}
-		
+
 		_ReadTimeQuery( ctx.GetFrameId() );
 		return true;
 	}
@@ -188,7 +188,7 @@ namespace AE::ResEditor
 	{
 		_resources.GetResourcesToResize( INOUT resources );
 	}
-	
+
 /*
 =================================================
 	_CreateMipChain
@@ -213,12 +213,12 @@ namespace AE::ResEditor
 			CHECK_ERR( it != _pipelines.end() );
 			ppln = it->second;
 		}
-		
+
 		auto&	res_mngr = GraphicsScheduler().GetResourceManager();
 		_mipChainDS.resize( mip_count );
 		CHECK_ERR( res_mngr.CreateDescriptorSets( OUT _ds1Index, OUT _mipChainDS.data(), _mipChainDS.size(),
 												  ppln, DescriptorSetName{"ds1"}, null, "RasterMip" ));
-		
+
 		for (auto& var : _variables)
 		{
 			ASSERT( var.inViews.empty() );
@@ -257,7 +257,7 @@ namespace AE::ResEditor
 
 		return true;
 	}
-	
+
 /*
 =================================================
 	_DestroyMipChain
@@ -275,7 +275,7 @@ namespace AE::ResEditor
 		{
 			for (auto& view : var.inViews)
 				res_mngr.ReleaseResource( INOUT view );
-			
+
 			for (auto& view : var.outViews)
 				res_mngr.ReleaseResource( INOUT view );
 

@@ -105,7 +105,7 @@ namespace {
 
 					required |= VK_FORMAT_FEATURE_FRAGMENT_SHADING_RATE_ATTACHMENT_BIT_KHR;
 					break;
-					
+
 				case EImageUsage::FragmentDensityMap :
 					if ( fs.fragmentDensityMap != FeatureSet::EFeature::RequireTrue )
 						return false;

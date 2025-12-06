@@ -89,7 +89,7 @@ namespace AE::LangModel
 		Library					_ggmlLib;
 		Functions				_fn;
 		RC<ILogListener>		_logger;
-		
+
 		bool					_loadedCPU	= false;
 		bool					_loadedGPU	= false;
 
@@ -148,7 +148,7 @@ namespace AE::LangModel
 		int							_prevLen		= 0;
 
 		RC<LLamaModel>				_modelRC;
-		
+
 		static constexpr uint		c_TokenSize		= 128;
 
 
@@ -160,9 +160,9 @@ namespace AE::LangModel
 		// ILanguageModelContext //
 		bool  Generate (U8String				prompt,
 						RC<IResponseListener>	listener)			__NE_OV;
-		
+
 		bool  Append (ERole role, U8String content)					__NE_OV;
-		
+
 		Array<Pair<ERole, U8String>>  GetMessages ()				__NE_OV;
 
 		uint  CurrentSize ()										__NE_OV;

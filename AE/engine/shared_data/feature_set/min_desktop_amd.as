@@ -4,19 +4,23 @@
 void ASmain ()
 {
 	// include:
-	//	AMD Radeon 780M driver 2.0.321 on Arch unknown
-	//	AMD Radeon Graphics (RADV PHOENIX) driver 25.0.1 on Ubuntu 22.04
-	//	AMD Radeon HD 7970M (RADV PITCAIRN) driver 23.3.3 on Manjaro unknown
-	//	AMD Radeon HD 8790M (RADV OLAND) driver 23.0.4 on Ubuntu 22.04
-	//	AMD Radeon RX 5700 XT driver 2.0.213 on Windows 10
-	//	AMD Radeon RX 6500 XT driver 2.0.220 on Windows 10
-	//	AMD Radeon RX 6750 XT (RADV NAVI22) driver 23.3.4 on Arch unknown
-	//	AMD Radeon RX 6800 XT driver 2.0.213 on Windows 10
-	//	AMD Radeon RX 6900 XT (RADV NAVI21) driver 22.2.99 on Debian unknown
-	//	AMD Radeon RX 7800 XT (RADV NAVI32) driver 24.0.99 on Arch unknown
-	//	AMD Radeon RX 7900 XTX (RADV GFX1100) driver 23.2.1 on Arch unknown
-	//	AMD Radeon RX Vega driver 2.0.213 on Ubuntu 22.01
-	//	Radeon RX 580 Series driver 2.0.207 on Ubuntu 20.04
+	//	Lin-AMD-RDNA3-780M-1.4.313
+	//	Mesa-AMD-GCN4-RX580-1.4.318
+	//	Mesa-AMD-RDNA3-780M-1.4.328
+	//	Mesa-AMD-RDNA3.5-890M-1.4.318
+	//	Mesa-AMD-RDNA4-1.4.328
+	//	Win-AMD-GCN4-RX580-1.4.264
+	//	Win-AMD-GCN5-IIV-1.3.260
+	//	Win-AMD-GCN5-RXVega10-1.3.260
+	//	Win-AMD-GCN5-RXVega56-1.3.264
+	//	Win-AMD-RDNA1-1.4.315
+	//	Win-AMD-RDNA2-1.4.315
+	//	Win-AMD-RDNA2-610M-1.4.315
+	//	Win-AMD-RDNA3-1.4.315
+	//	Win-AMD-RDNA3-780M-1.4.329
+	//	Win-AMD-RDNA3.5-8060S-1.4.325
+	//	Win-AMD-RDNA3.5-890M-1.4.329
+	//	Win-AMD-RDNA4-1.4.329
 
 	const EFeature  True = EFeature::RequireTrue;
 
@@ -47,6 +51,7 @@ void ASmain ()
 		ESubgroupTypes::Float32 | 
 		ESubgroupTypes::Int32 | 
 		ESubgroupTypes::Int8 | 
+		ESubgroupTypes::Int16 | 
 		ESubgroupTypes::Int64
 	));
 	fset.subgroupStages(EShaderStages(
@@ -63,6 +68,7 @@ void ASmain ()
 	fset.subgroupBroadcastDynamicId (True);
 	fset.subgroupSizeControl (True);
 	fset.shaderInt8 (True);
+	fset.shaderInt16 (True);
 	fset.shaderInt64 (True);
 	fset.shaderFloat64 (True);
 	fset.storageBuffer16BitAccess (True);
@@ -70,6 +76,7 @@ void ASmain ()
 	fset.storageBuffer8BitAccess (True);
 	fset.uniformAndStorageBuffer8BitAccess (True);
 	fset.uniformBufferStandardLayout (True);
+	fset.scalarBlockLayout (True);
 	fset.bufferDeviceAddress (True);
 	fset.fragmentStoresAndAtomics (True);
 	fset.vertexPipelineStoresAndAtomics (True);
@@ -84,6 +91,7 @@ void ASmain ()
 	fset.shaderOutputViewportIndex (True);
 	fset.shaderOutputLayer (True);
 	fset.shaderSubgroupClock (True);
+	fset.shaderDeviceClock (True);
 	fset.shaderIntegerDotProduct (True);
 	fset.shaderClipDistance (True);
 	fset.shaderCullDistance (True);
@@ -96,12 +104,14 @@ void ASmain ()
 	fset.shaderStorageBufferArrayDynamicIndexing (True);
 	fset.shaderStorageImageArrayDynamicIndexing (True);
 	fset.shaderUniformBufferArrayDynamicIndexing (True);
+	fset.shaderInputAttachmentArrayDynamicIndexing (True);
 	fset.shaderUniformTexelBufferArrayDynamicIndexing (True);
 	fset.shaderStorageTexelBufferArrayDynamicIndexing (True);
 	fset.shaderUniformBufferArrayNonUniformIndexing (True);
 	fset.shaderSampledImageArrayNonUniformIndexing (True);
 	fset.shaderStorageBufferArrayNonUniformIndexing (True);
 	fset.shaderStorageImageArrayNonUniformIndexing (True);
+	fset.shaderInputAttachmentArrayNonUniformIndexing (True);
 	fset.shaderUniformTexelBufferArrayNonUniformIndexing (True);
 	fset.shaderStorageTexelBufferArrayNonUniformIndexing (True);
 	fset.shaderStorageImageMultisample (True);
@@ -112,15 +122,18 @@ void ASmain ()
 	fset.shaderDemoteToHelperInvocation (True);
 	fset.shaderTerminateInvocation (True);
 	fset.shaderZeroInitializeWorkgroupMemory (True);
-	fset.maxSpirvVersion (150);
+	fset.maxSpirvVersion (160);
 	fset.drawIndirectFirstInstance (True);
 	fset.drawIndirectCount (True);
 	fset.maxDrawIndirectCount (4294967295);
 	fset.multiview (True);
+	fset.multiviewGeometryShader (True);
 	fset.multiviewTessellationShader (True);
 	fset.maxMultiviewViewCount (6);
 	fset.multiViewport (True);
 	fset.maxViewports (16);
+	fset.sampleLocations (True);
+	fset.variableSampleLocations (True);
 	fset.tessellationIsolines (True);
 	fset.tessellationPointMode (True);
 	fset.maxTexelBufferElements (4294967295);
@@ -163,22 +176,25 @@ void ASmain ()
 	fset.maxVertexAttributes (32);
 	fset.maxVertexBuffers (32);
 	fset.AddVertexFormats({
-		EVertexType::Byte, EVertexType::Byte2, EVertexType::Byte4, EVertexType::UByte, 
-		EVertexType::UByte2, EVertexType::UByte4, EVertexType::Short, EVertexType::Short2, 
-		EVertexType::Short4, EVertexType::UShort, EVertexType::UShort2, EVertexType::UShort4, 
-		EVertexType::Int, EVertexType::Int2, EVertexType::Int3, EVertexType::Int4, 
-		EVertexType::UInt, EVertexType::UInt2, EVertexType::UInt3, EVertexType::UInt4, 
-		EVertexType::Long2, EVertexType::Long3, EVertexType::Long4, EVertexType::ULong2, 
-		EVertexType::ULong3, EVertexType::ULong4, EVertexType::Half, EVertexType::Half2, 
-		EVertexType::Half4, EVertexType::Float, EVertexType::Float2, EVertexType::Float3, 
-		EVertexType::Float4, EVertexType::Double, EVertexType::Double2, EVertexType::Double3, 
-		EVertexType::Double4, EVertexType::UInt_2_10_10_10, EVertexType::Byte_Norm, EVertexType::Byte2_Norm, 
-		EVertexType::Byte4_Norm, EVertexType::UByte_Norm, EVertexType::UByte2_Norm, EVertexType::UByte4_Norm, 
-		EVertexType::Short_Norm, EVertexType::Short2_Norm, EVertexType::Short4_Norm, EVertexType::UShort_Norm, 
-		EVertexType::UShort2_Norm, EVertexType::UShort4_Norm, EVertexType::UInt_2_10_10_10_Norm, EVertexType::Byte_Scaled, 
-		EVertexType::Byte2_Scaled, EVertexType::Byte4_Scaled, EVertexType::UByte_Scaled, EVertexType::UByte2_Scaled, 
-		EVertexType::UByte4_Scaled, EVertexType::Short_Scaled, EVertexType::Short2_Scaled, EVertexType::Short4_Scaled, 
-		EVertexType::UShort_Scaled, EVertexType::UShort2_Scaled, EVertexType::UShort4_Scaled, EVertexType::UInt_2_10_10_10_Scaled
+		EVertexType::Byte, EVertexType::Byte2, EVertexType::Byte3, EVertexType::Byte4, 
+		EVertexType::UByte, EVertexType::UByte2, EVertexType::UByte3, EVertexType::UByte4, 
+		EVertexType::Short, EVertexType::Short2, EVertexType::Short4, EVertexType::UShort, 
+		EVertexType::UShort2, EVertexType::UShort4, EVertexType::Int, EVertexType::Int2, 
+		EVertexType::Int3, EVertexType::Int4, EVertexType::UInt, EVertexType::UInt2, 
+		EVertexType::UInt3, EVertexType::UInt4, EVertexType::Long2, EVertexType::Long3, 
+		EVertexType::Long4, EVertexType::ULong2, EVertexType::ULong3, EVertexType::ULong4, 
+		EVertexType::Half, EVertexType::Half2, EVertexType::Half4, EVertexType::Float, 
+		EVertexType::Float2, EVertexType::Float3, EVertexType::Float4, EVertexType::Double, 
+		EVertexType::Double2, EVertexType::Double3, EVertexType::Double4, EVertexType::UInt_2_10_10_10, 
+		EVertexType::Byte_Norm, EVertexType::Byte2_Norm, EVertexType::Byte3_Norm, EVertexType::Byte4_Norm, 
+		EVertexType::UByte_Norm, EVertexType::UByte2_Norm, EVertexType::UByte3_Norm, EVertexType::UByte4_Norm, 
+		EVertexType::Short_Norm, EVertexType::Short2_Norm, EVertexType::Short3_Norm, EVertexType::Short4_Norm, 
+		EVertexType::UShort_Norm, EVertexType::UShort2_Norm, EVertexType::UShort3_Norm, EVertexType::UShort4_Norm, 
+		EVertexType::UInt_2_10_10_10_Norm, EVertexType::Byte_Scaled, EVertexType::Byte2_Scaled, EVertexType::Byte3_Scaled, 
+		EVertexType::Byte4_Scaled, EVertexType::UByte_Scaled, EVertexType::UByte2_Scaled, EVertexType::UByte3_Scaled, 
+		EVertexType::UByte4_Scaled, EVertexType::Short_Scaled, EVertexType::Short2_Scaled, EVertexType::Short3_Scaled, 
+		EVertexType::Short4_Scaled, EVertexType::UShort_Scaled, EVertexType::UShort2_Scaled, EVertexType::UShort3_Scaled, 
+		EVertexType::UShort4_Scaled, EVertexType::UInt_2_10_10_10_Scaled
 	});
 	fset.AddTexelFormats( EFormatFeature::UniformTexelBuffer, {
 		EPixelFormat::RGBA16_SNorm, EPixelFormat::RGBA8_SNorm, EPixelFormat::RG16_SNorm, EPixelFormat::RG8_SNorm, 
@@ -280,6 +296,7 @@ void ASmain ()
 	fset.samplerFilterMinmax (True);
 	fset.samplerMipLodBias (True);
 	fset.samplerYcbcrConversion (True);
+	fset.nonSeamlessCubeMap (True);
 	fset.maxSamplerAnisotropy (16.00);
 	fset.maxSamplerLodBias (16.00);
 	fset.framebufferColorSampleCounts({ 1, 2, 4, 8 });

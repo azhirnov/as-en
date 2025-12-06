@@ -373,6 +373,7 @@ namespace AE::AppV2
 			AudioSystem().Deinitialize();
 		Audio::IAudioSystem::InstanceCtor::Destroy();
 	  #endif
+		Unused( enable_audio );
 
 		VFS::VirtualFileSystem::InstanceCtor::Destroy();
 		TaskScheduler::InstanceCtor::Destroy();

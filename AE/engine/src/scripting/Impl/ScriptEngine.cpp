@@ -240,7 +240,7 @@ namespace
 				// move to end of word
 				for (; IsWord( str[pos] ); ++pos) {}
 
-				StringView	macro_name	= SubString2( str, begin, pos );
+				StringView	macro_name	= SubStringBE( str, begin, pos );
 
 				for (auto def : defines) {
 					if ( def == macro_name ) {
@@ -257,7 +257,7 @@ namespace
 				// move to end of number
 				for (; IsNumber( str[pos] ); ++pos) {}
 
-				StringView	number_str	= SubString2( str, begin, pos );
+				StringView	number_str	= SubStringBE( str, begin, pos );
 				int			number		= StringToInt( number_str, 10 );
 
 				include = (number != 0);
@@ -373,7 +373,7 @@ namespace
 
 				if ( begin_block != UMax )
 				{
-					dst << SubString2( str, begin_block, p );
+					dst << SubStringBE( str, begin_block, p );
 					begin_block = pos-1;
 				}
 				continue;
@@ -391,7 +391,7 @@ namespace
 					usize tmp = pos;
 					Parser::ToBeginOfLine( str, INOUT tmp );
 
-					dst << SubString2( str, begin_block, tmp );
+					dst << SubStringBE( str, begin_block, tmp );
 					begin_block = UMax;
 				}
 
@@ -498,13 +498,13 @@ namespace
 
 					if ( is_ns )
 					{
-						dst << SubString2( str, begin_block, pos-1 ) << '_';
+						dst << SubStringBE( str, begin_block, pos-1 ) << '_';
 						begin_block = pos+1;
 					}
 
 					if ( is_rc )
 					{
-						dst << SubString2( str, begin_block, pos-1 );
+						dst << SubStringBE( str, begin_block, pos-1 );
 
 						SkipSpaces( str, INOUT pos += 2 );
 						CHECK_ERR( IsWordBegin( str[pos] ));
@@ -516,7 +516,7 @@ namespace
 						SkipSpaces( str, INOUT pos );
 						CHECK_ERR( str[pos] == '>' );
 
-						dst << SubString2( str, begin, end ) << '@';
+						dst << SubStringBE( str, begin, end ) << '@';
 						begin_block = ++pos;
 					}
 				}

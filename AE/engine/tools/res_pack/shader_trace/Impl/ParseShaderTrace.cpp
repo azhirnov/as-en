@@ -64,24 +64,20 @@ namespace
 		using Sources_t			= ShaderTrace::Sources_t;
 		using SourceLocation	= ShaderTrace::SourceLocation;
 		using ELogFormat		= ShaderTrace::ELogFormat;
-
-		union Value
-		{
-			StaticArray< int, 4 >		i;
-			StaticArray< uint, 4 >		u;
-			StaticArray< bool, 4 >		b;
-			StaticArray< float, 4 >		f;
-			StaticArray< double, 4 >	d;
-			StaticArray< slong, 4 >		i64;
-			StaticArray< ulong, 4 >		u64;
-		};
+		using Swizzle			= ShaderTrace::Swizzle;
+		using ActiveElems		= Bitfield< ushort >;
 
 		struct VariableState
 		{
-			Value			value		{};
-			TBasicType		type		= TBasicType::EbtVoid;
-			uint			count		= 0;
-			bool			modified	= false;
+			uint			valueOffset		= UMax;					// in '_storage'
+			Swizzle			lastSwizzle;							// only for write access
+			TBasicType		type			= TBasicType::EbtVoid;
+			ActiveElems		hasValue;								// max 4x4
+			bool			modified		= false;
+
+			explicit VariableState (TBasicType t) : type{t} {}
+
+			ND_ Tuple<Swizzle, uint, uint>  GetSwizzleRowsCols () const;
 		};
 
 		struct FnExecutionDuration
@@ -91,8 +87,8 @@ namespace
 			uint			count		= 0;
 		};
 
-		using VarStates_t	= HashMap< ulong, VariableState >;
-		using Pending_t		= Array< ulong >;
+		using VarStates_t	= HashMap< VariableID, VariableState >;
+		using Pending_t		= Array< VariableID >;
 		using Profiling_t	= HashMap< ExprInfo const*, FnExecutionDuration >;
 
 
@@ -104,8 +100,14 @@ namespace
 		Profiling_t			_profiling;
 		SourceLocation		_lastLoc;
 
+		Unique<ulong[]>		_storage;
+		uint				_storageSize	= 0;
+		const uint			_storageCapacity;
+
 
 	public:
+		Trace ();
+
 		ND_ bool  AddState (const ExprInfo &expr, TBasicType type, uint rows, uint cols, const uint* data,
 							const VarNames_t &varNames, const Sources_t &src, ELogFormat format, INOUT String &result);
 
@@ -118,48 +120,100 @@ namespace
 		ND_ bool  _FlushStates (const VarNames_t &varNames, const Sources_t &src, ELogFormat format, INOUT String &result);
 		ND_ bool  _FlushProfiling (const Sources_t &src, ELogFormat format, INOUT String &result);
 
-		ND_ static ulong		HashOf (VariableID id, uint col)	{ return (ulong(id) << 32) | col; }
-		ND_ static VariableID	VarFromHash (ulong h)				{ return VariableID(h >> 32); }
+		ND_ bool  _AllocValue (OUT void* &ptr, INOUT VariableState &var, usize elemCount);
 	};
+
+/*
+=================================================
+	Trace ctor
+=================================================
+*/
+	Trace::Trace () : _storageCapacity{4 << 20}
+	{
+		_storage.reset( new ulong[_storageCapacity] );
+	}
+
+/*
+=================================================
+	VariableState::GetSwizzleRowsCols
+=================================================
+*/
+	Tuple<Trace::Swizzle, uint, uint>  Trace::VariableState::GetSwizzleRowsCols () const
+	{
+		if ( modified )
+		{
+			uint	rows	= lastSwizzle.DstOrOriginRows();
+			uint	cols	= lastSwizzle.OriginCols();
+
+			if ( not lastSwizzle.IsIdentity() )
+				cols = 1;
+
+			ASSERT( rows > 0 and cols > 0 );
+			return Tuple{ lastSwizzle, rows, cols };
+		}
+		else
+		{
+			Swizzle	sw;
+			uint	rows	= lastSwizzle.OriginRows();
+			uint	cols	= lastSwizzle.OriginCols();
+
+			ASSERT( rows > 0 and cols > 0 );
+			sw.SetIdentityMatrix( cols, rows );
+
+			return Tuple{ sw, rows, cols };
+		}
+	}
+
+/*
+=================================================
+	BasicTypeSizeOf
+=================================================
+*/
+	inline uint  BasicTypeSizeOf (TBasicType type)
+	{
+		switch ( type )
+		{
+			case TBasicType::EbtBool :		return sizeof(bool);
+
+			case TBasicType::EbtInt :
+			case TBasicType::EbtUint :
+			case TBasicType::EbtFloat16 :
+			case TBasicType::EbtFloat :		return sizeof(int);
+
+			case TBasicType::EbtInt64 :
+			case TBasicType::EbtUint64 :
+			case TBasicType::EbtDouble :	return sizeof(ulong);
+
+			default :
+				CHECK_MSG( false, "not supported" );
+				return 0;
+		}
+	}
 
 /*
 =================================================
 	CopyValue
 =================================================
 */
-	inline void  CopyValue (TBasicType type, INOUT Trace::Value &value, uint valueIndex, const uint* data, INOUT uint &dataIndex)
+	inline void  CopyValue (TBasicType type, INOUT void* ptr, uint valueIndex, const uint* data, INOUT uint &dataIndex)
 	{
 		switch ( type )
 		{
 			case TBasicType::EbtInt :
-				std::memcpy( OUT &value.i[valueIndex], &data[dataIndex++], sizeof(int) );
+			case TBasicType::EbtUint :
+			case TBasicType::EbtFloat :
+			case TBasicType::EbtFloat16 :
+				std::memcpy( OUT ptr + Bytes{sizeof(int) * valueIndex}, &data[dataIndex++], sizeof(int) );
 				break;
 
 			case TBasicType::EbtBool :
-				value.b[valueIndex] = (data[dataIndex++] != 0);
-				break;
-
-			case TBasicType::EbtUint :
-			case TBasicType::EbtFloat16 :
-				value.u[valueIndex] = data[dataIndex++];
-				break;
-
-			case TBasicType::EbtFloat :
-				std::memcpy( OUT &value.f[valueIndex], &data[dataIndex++], sizeof(float) );
-				break;
-
-			case TBasicType::EbtDouble :
-				std::memcpy( OUT &value.d[valueIndex], &data[dataIndex], sizeof(double) );
-				dataIndex += 2;
+				Cast<bool>(ptr)[valueIndex] = (data[dataIndex++] != 0);
 				break;
 
 			case TBasicType::EbtInt64 :
-				std::memcpy( OUT &value.d[valueIndex], &data[dataIndex], sizeof(int64_t) );
-				dataIndex += 2;
-				break;
-
 			case TBasicType::EbtUint64 :
-				std::memcpy( OUT &value.u64[valueIndex], &data[dataIndex], sizeof(ulong) );
+			case TBasicType::EbtDouble :
+				std::memcpy( OUT ptr + Bytes{sizeof(int64_t) * valueIndex}, &data[dataIndex], sizeof(int64_t) );
 				dataIndex += 2;
 				break;
 
@@ -167,6 +221,31 @@ namespace
 				CHECK_MSG( false, "not supported" );
 				break;
 		}
+	}
+
+/*
+=================================================
+	Trace::_AllocValue
+=================================================
+*/
+	bool  Trace::_AllocValue (OUT void* &ptr, INOUT VariableState &var, const usize elemCount)
+	{
+		const uint	sz = BasicTypeSizeOf( var.type );
+
+		if ( var.valueOffset == UMax )
+		{
+			var.valueOffset = AlignUp( _storageSize, sz );
+			_storageSize	+= uint(sz * elemCount);
+
+			if ( _storageSize > _storageCapacity )
+			{
+				var.valueOffset = UMax;
+				return false;
+			}
+		}
+
+		ptr = _storage.get() + Bytes{var.valueOffset};
+		return true;
 	}
 
 /*
@@ -181,7 +260,7 @@ namespace
 		if ( not (_lastLoc == expr.range) )
 			CHECK_ERR( _FlushStates( varNames, sources, format, INOUT result ));
 
-		const auto	AppendID = [this] (ulong newID)
+		const auto	AppendID = [this] (VariableID newID)
 		{{
 			for (auto& id : _pending) {
 				if ( id == newID )
@@ -190,60 +269,98 @@ namespace
 			_pending.push_back( newID );
 		}};
 
-		for (uint col = 0; col < cols; ++col)
+		auto	id   = expr.varID;
+		auto	iter = _states.find( id );
+
+		if ( iter == _states.end() or id == VariableID::Unknown )
+			iter = _states.insert_or_assign( id, VariableState{ type }).first;
+
+		VariableState&	var = iter->second;
+
+		CHECK( id == VariableID::Unknown or var.type == type );
+		var.type		= type;
+		var.modified	= true;
+		var.lastSwizzle	= Default;
+
+		if ( var.type == TBasicType::EbtVoid )
 		{
-			ulong	id   = HashOf( expr.varID, col );
-			auto	iter = _states.find( id );
+			ASSERT( var.valueOffset == UMax );
+		}
+		else
+		if ( expr.swizzle.IsArray() )
+		{
+			// TODO
+		}
+		else
+		if ( not expr.swizzle.IsUndefined() )	// update part of variable
+		{
+			void*	ptr;
+			CHECK_ERR( _AllocValue( OUT ptr, INOUT var, expr.swizzle.OriginRows() * expr.swizzle.OriginCols() ));
+			var.lastSwizzle = expr.swizzle;
 
-			if ( iter == _states.end() or expr.varID == VariableID::Unknown )
-				iter = _states.insert_or_assign( id, VariableState{ Default, type, rows, false }).first;
+			const uint	dst_rows = expr.swizzle.DstOrOriginRows();
+			ASSERT( dst_rows == rows );
+			ASSERT( cols == 1 );
+			ASSERT( not expr.swizzle.IsIdentity() );
 
-			VariableState&	var = iter->second;
-
-			CHECK( expr.varID == VariableID::Unknown or var.type == type );
-			var.type	 = type;
-			var.modified = true;
-
-			if ( var.type == TBasicType::EbtVoid )
+			if ( expr.swizzle.IsMatrix() )
 			{
-				var.value = Default;
-				var.count = 0;
+				uint	c = expr.swizzle.DstColumn();
+				ASSERT( c < expr.swizzle.OriginCols() );
+
+				for (uint i = 0, j = 0; i < rows; ++i)
+				{
+					uint	r = expr.swizzle[i];
+					var.hasValue.Set( c * rows + r );
+					CopyValue( type, INOUT ptr, c * rows + r, data, INOUT j );
+				}
 			}
 			else
-			if ( expr.swizzle )
 			{
-				for (uint i = 0; i < rows; ++i)
+				ASSERT( expr.swizzle.IsVector() );
+				for (uint i = 0, j = 0; i < rows; ++i)
 				{
-					uint	sw = (expr.swizzle >> (i*3)) & 7;
-					ASSERT( sw > 0 and sw <= 4 );
-					var.count = Max( 1u, var.count, sw );
+					uint	r = expr.swizzle[i];
+					var.hasValue.Set( r );
+					CopyValue( type, INOUT ptr, r, data, INOUT j );
 				}
+			}
+		}
+		else	// update whole data of variable
+		{
+			void*	ptr;
+			CHECK_ERR( _AllocValue( OUT ptr, INOUT var, cols * rows ));
+
+			if ( cols > 1 )
+			{
+				var.lastSwizzle.SetIdentityMatrix( cols, rows );
+
+				for (uint c = 0, j = 0; c < cols; ++c)
+				{
+					for (uint r = 0; r < rows; ++r)
+					{
+						var.hasValue.Set( c * rows + r );
+						CopyValue( type, INOUT ptr, c * rows + r, data, INOUT j );
+					}
+				}
+			}
+			else
+			{
+				var.lastSwizzle.SetIdentityVector( rows );
 
 				for (uint r = 0, j = 0; r < rows; ++r)
 				{
-					uint	sw = (expr.swizzle >> (r*3)) & 7;
-					if ( sw >= 1 )
-						CopyValue( type, INOUT var.value, sw-1, data, INOUT j );
+					var.hasValue.Set( r );
+					CopyValue( type, INOUT ptr, r, data, INOUT j );
 				}
 			}
-			else
-			{
-				for (uint r = 0, j = 0; r < rows; ++r) {
-					CopyValue( type, INOUT var.value, r, data, INOUT j );
-				}
-			}
+		}
 
-			var.count = Max( var.count, rows );
-			var.count = Min( var.count, 4u );
+		AppendID( id );
 
-			AppendID( id );
-
-			for (auto& var_id : expr.vars) {
-				AppendID( HashOf( var_id, 0 ));
-				AppendID( HashOf( var_id, 1 ));
-				AppendID( HashOf( var_id, 2 ));
-				AppendID( HashOf( var_id, 3 ));
-			}
+		for (auto& var_id : expr.vars)
+		{
+			AppendID( var_id );
 		}
 
 		_lastLoc = expr.range;
@@ -319,7 +436,27 @@ namespace
 	template <typename T>
 	Nd__In String  TypeToString (T value)
 	{
+		StaticAssert( IsInteger<T> );
 		return ToString( value );
+	}
+
+/*
+=================================================
+	SwizzleToString
+=================================================
+*/
+	Nd__In String  SwizzleToString (Trace::Swizzle swizzle)
+	{
+		String		str;
+		const char	sw[]	= "xyzw";
+		const uint	rows	= swizzle.DstOrOriginRows();
+		CHECK_ERR( rows > 0 and rows <= 4 );
+
+		for (uint i = 0; i < rows; ++i)
+		{
+			str << sw[ swizzle[i] ];
+		}
+		return str;
 	}
 
 /*
@@ -328,40 +465,58 @@ namespace
 =================================================
 */
 	template <typename T>
-	Nd__In String  TypeToString (uint rows, const StaticArray<T,4> &values)
+	Nd__In String  TypeToString (Trace::Swizzle swizzle, uint rowOffset, Trace::ActiveElems hasValue, const T* values)
 	{
-		String	str;
+		String		str;
+		const uint	rows = swizzle.DstOrOriginRows();
 
+		CHECK_ERR( rows > 0 and rows <= 4 );
 		if ( rows > 1 )
 			str << TypeToString( rows );
 
 		str << " {";
-
-		for (uint r = 0; r < rows; ++r)
+		for (uint i = 0; i < rows; ++i)
 		{
-			str << (r ? ", " : "") + TypeToString( values[r] );
+			uint	r = swizzle[i] + rowOffset;
+			ASSERT( hasValue.Has( r ));
+			str << (i ? ", " : "") + TypeToString( values[r] );
 		}
+		str << '}';
 
-		str << "}\n";
+		if constexpr( IsInteger<T> and not IsSame<T,bool> )
+		{
+			str << " | {";
+			for (uint i = 0; i < rows; ++i)
+			{
+				uint	r = swizzle[i] + rowOffset;
+				ASSERT( hasValue.Has( r ));
+				str << (i ? ", " : "") << "0x" << ToString<16>( values[r] );
+			}
+			str << '}';
+		}
+		str << '\n';
 		return str;
 	}
 
 	template <typename Dst, typename Src>
-	Nd__In String  TypeToString2 (uint rows, const StaticArray<Src,4> &values)
+	Nd__In String  TypeToString2 (Trace::Swizzle swizzle, uint rowOffset, Trace::ActiveElems hasValue, const Src* values)
 	{
-		String	str;
+		String		str;
+		const uint	rows = swizzle.DstOrOriginRows();
 
+		CHECK_ERR( rows > 0 and rows <= 4 );
 		if ( rows > 1 )
 			str << TypeToString( rows );
 
 		str << " {";
-
-		for (uint r = 0; r < rows; ++r)
+		for (uint i = 0; i < rows; ++i)
 		{
-			str << (r ? ", " : "") + TypeToString( BitCastRlx<Dst>( values[r] ));
+			uint	r = swizzle[i] + rowOffset;
+			ASSERT( hasValue.Has( r ));
+			str << (i ? ", " : "") + TypeToString( BitCastRlx<Dst>( values[r] ));
 		}
-
 		str << "}\n";
+
 		return str;
 	}
 
@@ -398,7 +553,7 @@ namespace
 				break;
 
 			// pattern: 'url (line)'
-			case Trace::ELogFormat::VS :
+			case Trace::ELogFormat::FileURL :
 				result << "//  file://" << src.filename << " (" << ToString(file_line) << ")\n";
 				break;
 
@@ -449,79 +604,119 @@ namespace
 */
 	bool  Trace::_FlushStates (const VarNames_t &varNames, const Sources_t &sources, ELogFormat format, INOUT String &result)
 	{
-		const auto	Convert = [this, &varNames, INOUT &result] (ulong varHash) -> bool
+		const auto	Convert = [this, &varNames, INOUT &result] (VariableID id) -> bool
 		{{
-			VariableID	id	 = VarFromHash( varHash );
-			auto		iter = _states.find( varHash );
+			auto	iter = _states.find( id );
 
 			if ( iter == _states.end() )
 				return false;
 
-			auto	name = varNames.find( id );
-			if ( name != varNames.end() )
-				result << "//" << (iter->second.modified ? "> " : "  ") << name->second << ": ";
-			else
-				result << "//" << (iter->second.modified ? "> (out): " : "  (temp): ");
+			auto&		var					= iter->second;
+			auto		name				= varNames.find( id );
+			const auto	[sw, rows, cols]	= var.GetSwizzleRowsCols();
+			void*		ptr					= null;
+			Swizzle		row_sw				= sw;	// same swizzle for each column
+			const uint	dst_col				= sw.DstColumn();
+			const bool	has_col_idx			= dst_col != UMax or cols > 1;
+			const uint	active_rows			= has_col_idx ? sw.DstOrOriginRows() : 1;
 
-			iter->second.modified = false;
+			ASSERT_MSG( not ((dst_col != UMax) and (cols > 1)), "can not use both: whole matrix and dst column" );
 
-			switch ( iter->second.type )
+			if ( has_col_idx )
 			{
-				case TBasicType::EbtVoid : {
-					result << "void\n";
-					break;
-				}
-				case TBasicType::EbtFloat : {
-					result << "float";
-					result << TypeToString( iter->second.count, iter->second.value.f );
-					break;
-				}
-				case TBasicType::EbtDouble : {
-					result << "double";
-					result << TypeToString( iter->second.count, iter->second.value.d );
-					break;
-				}
-				case TBasicType::EbtInt : {
-					result << "int";
-					result << TypeToString( iter->second.count, iter->second.value.i );
-					break;
-				}
-				case TBasicType::EbtBool : {
-					result << "bool";
-					result << TypeToString( iter->second.count, iter->second.value.b );
-					break;
-				}
-				case TBasicType::EbtUint : {
-					result << "uint";
-					result << TypeToString( iter->second.count, iter->second.value.u );
-					break;
-				}
-				case TBasicType::EbtInt64 : {
-					result << "long";
-					result << TypeToString( iter->second.count, iter->second.value.i64 );
-					break;
-				}
-				case TBasicType::EbtUint64 : {
-					result << "ulong";
-					result << TypeToString( iter->second.count, iter->second.value.u64 );
-					break;
-				}
-				case TBasicType::EbtFloat16 : {
-					result << "half";
-					result << TypeToString2<half>( iter->second.count, iter->second.value.u );
-					break;
-				}
-				default :
-					RETURN_ERR( "not supported" );
+				ASSERT( rows == active_rows );
+				row_sw.SetIdentityVector( active_rows );
 			}
+
+			if ( var.type != TBasicType::EbtVoid )
+			{
+				CHECK_ERR( var.valueOffset != UMax );
+				ptr = _storage.get() + Bytes{var.valueOffset};
+			}
+
+			for (uint c = 0; c < cols; ++c)
+			{
+				uint	row = 0;
+
+				if ( name != varNames.end() )
+				{
+					result << "//" << (var.modified ? "> " : "  ") << name->second;
+
+					if ( has_col_idx )
+					{
+						row = dst_col != UMax ? dst_col : c;
+						result << '[' << ToString( row ) << ']';
+						row *= active_rows;
+					}
+
+					if ( not sw.IsIdentityRows() )
+						result << '.' << SwizzleToString( sw );
+
+					result << ": ";
+				}
+				else
+					result << "//" << (var.modified ? "> (out): " : "  (temp): ");
+
+				switch ( var.type )
+				{
+					case TBasicType::EbtVoid : {
+						result << "void\n";
+						break;
+					}
+					case TBasicType::EbtFloat : {
+						result << "float";
+						result << TypeToString( row_sw, row, var.hasValue, Cast<float>(ptr) );
+						break;
+					}
+					case TBasicType::EbtDouble : {
+						result << "double";
+						result << TypeToString( row_sw, row, var.hasValue, Cast<double>(ptr) );
+						break;
+					}
+					case TBasicType::EbtInt : {
+						result << "int";
+						result << TypeToString( row_sw, row, var.hasValue, Cast<int>(ptr) );
+						break;
+					}
+					case TBasicType::EbtBool : {
+						result << "bool";
+						result << TypeToString( row_sw, row, var.hasValue, Cast<bool>(ptr) );
+						break;
+					}
+					case TBasicType::EbtUint : {
+						result << "uint";
+						result << TypeToString( row_sw, row, var.hasValue, Cast<uint>(ptr) );
+						break;
+					}
+					case TBasicType::EbtInt64 : {
+						result << "long";
+						result << TypeToString( row_sw, row, var.hasValue, Cast<slong>(ptr) );
+						break;
+					}
+					case TBasicType::EbtUint64 : {
+						result << "ulong";
+						result << TypeToString( row_sw, row, var.hasValue, Cast<ulong>(ptr) );
+						break;
+					}
+					case TBasicType::EbtFloat16 : {
+						result << "half";
+						result << TypeToString2<half>( row_sw, row, var.hasValue, Cast<uint>(ptr) );		// TODO: use half
+						break;
+					}
+					default :
+						RETURN_ERR( "not supported" );
+				}
+			}
+
+			var.modified = false;
 			return true;
 		}};
 
 		if ( _pending.empty() )
 			return true;
 
-		for (auto& h : _pending) {
-			Convert( h );
+		for (auto& id : _pending) {
+			Convert( id );
 		}
 		_pending.clear();
 
@@ -656,7 +851,7 @@ namespace
 		const ulong		max_size	= ulong(inMaxSize);
 		uint const*		start_ptr	= static_cast<uint const*>(ptr) + _dataOffset / sizeof(uint);
 		uint const*		end_ptr		= start_ptr + Min( count, (max_size - _dataOffset) / sizeof(uint) );
-		Array<Trace>	shaders;
+		Array<Trace>	shaders;	// buffer may contain traces from multiple invocations and shaders
 
 		ASSERT( (count * sizeof(uint)) <= max_size );
 
@@ -668,7 +863,7 @@ namespace
 			uint		type		= *(data_ptr++);
 			uint		t_basic		= (type & 0xFF);
 			uint		row_size	= (type >> 8) & 0xF;					// for scalar, vector and matrix
-			uint		col_size	= Max(1u, (type >> 12) & 0xF );			// only for matrix
+			uint		col_size	= Max( 1u, (type >> 12) & 0xF );		// only for matrix
 			uint const*	data		= data_ptr;
 			Trace*		trace		= null;
 
@@ -678,7 +873,9 @@ namespace
 			data_ptr += (row_size * col_size) * TypeSizeOf( t_basic );
 			ASSERT( data_ptr <= end_ptr );
 
-			for (auto& sh : shaders) {
+			// find existing shader trace
+			for (auto& sh : shaders)
+			{
 				if ( sh.lastPosition == prev_pos ) {
 					trace = &sh;
 					break;
@@ -689,6 +886,7 @@ namespace
 			{
 				if ( prev_pos == _initialPosition )
 				{
+					// create new shader trace
 					shaders.push_back( Trace{} );
 					result.resize( shaders.size() );
 					trace = &shaders.back();

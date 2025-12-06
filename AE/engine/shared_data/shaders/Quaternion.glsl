@@ -22,7 +22,10 @@ ND_ Quat	QCreate (const float3 axis, const float angle);
 ND_ Quat	QCreate (float x, float y, float z, float w);
 ND_ Quat	QCreateWXYZ (float w, float x, float y, float z);
 
-ND_ Quat	QFrom2Normals (const float3 n1, const float3 n2);
+ND_ Quat	QFromSpherical (const float2 phiTheta);
+ND_ Quat	QFromEuler (float yaw, float pitch, float roll);
+
+ND_ Quat	QFrom2Normals (const float3 from, const float3 to);
 
 ND_ Quat	QNormalize (const Quat q);
 ND_ Quat	QInverse (const Quat q);
@@ -98,6 +101,33 @@ Quat  QCreateWXYZ (float w, float x, float y, float z)
 	Quat	ret;
 	ret.data = float4( x, y, z, w );
 	return ret;
+}
+
+/*
+=================================================
+	QFromEuler / QFromSpherical
+=================================================
+*/
+Quat  QFromEuler (float yaw, float pitch, float roll)
+{
+	float	cy = Cos( yaw   * 0.5 );
+    float	sy = Sin( yaw   * 0.5 );
+    float	cp = Cos( pitch * 0.5 );
+    float	sp = Sin( pitch * 0.5 );
+    float	cr = Cos( roll  * 0.5 );
+    float	sr = Sin( roll  * 0.5 );
+
+    Quat	q;
+    q.data.w = (cr * cp * cy) + (sr * sp * sy);
+    q.data.x = (sr * cp * cy) - (cr * sp * sy);
+    q.data.y = (cr * sp * cy) + (sr * cp * sy);
+    q.data.z = (cr * cp * sy) - (sr * sp * cy);
+    return QNormalize( q );
+}
+
+Quat  QFromSpherical (const float2 phiTheta)
+{
+	return QFromEuler( phiTheta.y, phiTheta.x, 0.0 );
 }
 
 /*
@@ -218,9 +248,9 @@ Quat  QSlerp (const Quat qx, const Quat qy, const float factor)
 */
 float3  QDirection (const Quat q)
 {
-	return float3( 2.0f * q.data.x * q.data.z + 2.0f * q.data.y * q.data.w,
-				   2.0f * q.data.z * q.data.y - 2.0f * q.data.x * q.data.w,
-				   1.0f - 2.0f - q.data.x * q.data.x - 2.0f * q.data.y * q.data.y );
+	return float3(	2.0 * (q.data.x * q.data.z - q.data.w * q.data.y),
+					2.0 * (q.data.y * q.data.z + q.data.w * q.data.x),
+					1.0 - 2.0 * (q.data.x * q.data.x + q.data.y * q.data.y) );
 }
 
 /*
@@ -339,15 +369,24 @@ Quat  QLookAt (const float3 dir)
 	from GLM (MIT license) https://github.com/g-truc/glm
 =================================================
 */
-Quat  QFrom2Normals (const float3 u, const float3 v)
-{
-	float	norm_u_norm_v	= Sqrt( Dot( u, u ) * Dot( v, v ));
-	float	real_part		= norm_u_norm_v + Dot( u, v );
+#ifdef AE_LICENSE_MIT
+	Quat  QFrom2Normals (const float3 u, const float3 v)
+	{
+		float	norm_u_norm_v	= Sqrt( Dot( u, u ) * Dot( v, v ));
+		float	real_part		= norm_u_norm_v + Dot( u, v );
+		float3	t;
 
-	//if ( real_part < 1.0e-6 * norm_u_norm_v )
-		// TODO: opposite normals
-
-	float3	t = Cross( u, v );
-
-	return QNormalize( QCreate( t.x, t.y, t.z, real_part ));
-}
+		if ( real_part < 1.0e-6 * norm_u_norm_v )
+		{
+			real_part = 0.0f;
+			t = Abs(u.x) > Abs(u.z) ?
+					float3( -u.y, u.x, 0.f ) :
+					float3( 0.f, -u.z, u.y );
+		}
+		else
+		{
+			t = Cross( u, v );
+		}
+		return QNormalize( QCreate( t.x, t.y, t.z, real_part ));
+	}
+#endif

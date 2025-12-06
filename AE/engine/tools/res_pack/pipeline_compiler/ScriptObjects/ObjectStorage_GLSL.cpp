@@ -155,7 +155,7 @@ namespace AE::PipelineCompiler
 */
 	String  ObjectStorage::GetShaderExtensionsGLSL (INOUT Version2 &spirvVer, const EShaderStages stage, bool hasDebugInfo, ArrayView<ScriptFeatureSetPtr> features) __Th___
 	{
-		StaticAssert( Graphics::FeatureSet::GetFeatureCount() == 272 );
+		StaticAssert( Graphics::FeatureSet::GetFeatureCount() == 271 );
 
 		ASSERT( IsSingleBitSet( stage ));
 

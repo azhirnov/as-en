@@ -175,7 +175,7 @@ namespace AE::PipelineCompiler
 	{
 	// types
 		using AttachBits_t = BitSet< GraphicsConfig::MaxAttachments >;
-		
+
 		struct ViewMask
 		{
 			uint	value	= 0;

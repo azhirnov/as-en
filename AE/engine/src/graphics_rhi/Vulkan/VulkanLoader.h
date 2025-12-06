@@ -45,9 +45,9 @@ namespace AE::Graphics
 		# include "vulkan_loader/fn_vulkan_lib.h"
 		# include "vulkan_loader/fn_vulkan_inst.h"
 		#undef  VKLOADER_STAGE_INLINEFN
-		
+
 		static PFN_vkGetInstanceProcAddr  _var_vkGetInstanceProcAddr;
-		
+
 		ND_ VKAPI_ATTR static PFN_vkVoidFunction vkGetInstanceProcAddr (VkInstance instance, const char * pName) __NE___ { return _var_vkGetInstanceProcAddr( instance, pName ); }
 	};
 	StaticAssert( sizeof(VulkanInstanceFn) == 1 );

@@ -77,7 +77,7 @@ namespace AE::Base
 			return ptr;
 		#endif
 	}
-	
+
 /*
 =================================================
 	NonAlignedCast (pointer)
@@ -286,9 +286,18 @@ namespace AE::Base
 		else
 	  #endif
 		{
+		#ifdef AE_COMPILER_CLANG
+		#	pragma clang diagnostic push
+		#	pragma clang diagnostic ignored "-Wnontrivial-memcall"
+		#endif
+
 			To	dst;
 			std::memcpy( OUT &dst, &src, sizeof(To) );
 			return dst;
+
+		#ifdef AE_COMPILER_CLANG
+		#	pragma clang diagnostic pop
+		#endif
 		}
 	}
 
@@ -313,9 +322,18 @@ namespace AE::Base
 		else
 	  #endif
 		{
+		#ifdef AE_COMPILER_CLANG
+		#	pragma clang diagnostic push
+		#	pragma clang diagnostic ignored "-Wnontrivial-memcall"
+		#endif
+
 			To	dst = {};
 			std::memcpy( OUT &dst, &src, std::min( sizeof(From), sizeof(To) ));
 			return dst;
+
+		#ifdef AE_COMPILER_CLANG
+		#	pragma clang diagnostic pop
+		#endif
 		}
 	}
 
@@ -372,7 +390,7 @@ namespace AE::Base
 			return static_cast<To>(_src);
 		}
 	};
-	
+
 	template <typename To, typename From>
 	NdCx__ bool  CastAndCheck (OUT To &dst, const From &src) __NE___
 	{
@@ -392,19 +410,19 @@ namespace AE::Base
 	{
 		return rhs += T{lhs};
 	}
-	
+
 	template <typename T, typename A>
 	__Cx__ T&  operator -= (INOUT T &rhs, const CheckCast<A> &lhs) __NE___
 	{
 		return rhs -= T{lhs};
 	}
-	
+
 	template <typename T, typename A>
 	__Cx__ T&  operator *= (INOUT T &rhs, const CheckCast<A> &lhs) __NE___
 	{
 		return rhs *= T{lhs};
 	}
-	
+
 	template <typename T, typename A>
 	__Cx__ T&  operator /= (INOUT T &rhs, const CheckCast<A> &lhs) __NE___
 	{

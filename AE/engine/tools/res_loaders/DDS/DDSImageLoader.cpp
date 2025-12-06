@@ -14,11 +14,15 @@ namespace
 */
 	static void  D32S8Rearrange (INOUT IntermImage::Level &level)
 	{
+		const void*		end				= level.PixelData() + level.DataSize();
+		const Bytes		d32_row_pitch	= ImageUtils::RowSize( level.dimension.x, 32, uint2{1} );
+		const Bytes		d32_slice_pitch	= ImageUtils::SliceSize( level.dimension.y, d32_row_pitch, uint2{1} );
+
 		for (uint z = 0; z < level.dimension.z; ++z)
 		for (uint y = 0; y < level.dimension.y; ++y)
 		{
-			uint*		dst = Cast<uint>( level.PixelData() + level.rowPitch * y + level.slicePitch * z ) + 1;
-			const uint*	src = dst + 1;
+			uint*		dst = Cast<uint>( level.PixelData() + d32_row_pitch * y + d32_slice_pitch * z );
+			const uint*	src = Cast<uint>( level.PixelData() + level.rowPitch * y + level.slicePitch * z );
 
 			for (uint x = 0; x < level.dimension.x; ++x)
 			{
@@ -26,9 +30,14 @@ namespace
 				dst += 1;
 				src += 2;
 			}
+
+			ASSERT( dst < end );
+			ASSERT( src <= end );
 		}
 
-		level.format = EPixelFormat::Depth32F;
+		level.format		= EPixelFormat::Depth32F;
+		level.rowPitch		= d32_row_pitch;
+		level.slicePitch	= d32_slice_pitch;
 	}
 
 /*
@@ -62,6 +71,15 @@ namespace
 				image_level.layer		= ImageLayer{ uint(layer) };
 				image_level.rowPitch	= ImageUtils::RowSize( image_level.dimension.x, info.bitsPerBlock, texel_block );
 				image_level.slicePitch	= ImageUtils::SliceSize( image_level.dimension.y, image_level.rowPitch, texel_block );
+
+				// special case
+				switch ( format )
+				{
+					case EPixelFormat::Depth32F_Stencil8 :
+						image_level.rowPitch  *= 2;
+						image_level.slicePitch = ImageUtils::SliceSize( image_level.dimension.y, image_level.rowPitch, texel_block );
+						break;
+				}
 
 				ASSERT( dds_pitch == 0 or Bytes32u{uint(dds_pitch >> mm)} == image_level.rowPitch );
 

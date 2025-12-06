@@ -50,23 +50,23 @@ Performance per thread.
 | | time | diff | delta | FLOPS | SOL |
 |----------------------------|----------|--------|-------|-------------|---|
 | Simd Float8 - FMA ilp=8    | 72.73 ms | +1%    | +1%   | 110.0GFLOPS | 82% |
-| Simd Float8 - FMA ilp=7    | 75.63 ms | +5%    | +4%   | 92.6GFLOPS  | 
-| Simd Float8 - MulAdd       | 87.15 ms | +21%   | +15%  | 91.8GFLOPS  | 
-| Simd Float8 - FMA ilp=6    | 72.00 ms | -      | -     | 83.3GFLOPS  | 
-| Simd Float8 - FMA ilp=16   | 0.20 s   | +182%  | +8%   | 78.7GFLOPS  | 
-| Simd Float8 - FMA ilp=5    | 0.14 s   | +100%  | -     | 69.5GFLOPS  | 
+| Simd Float8 - FMA ilp=7    | 75.63 ms | +5%    | +4%   | 92.6GFLOPS  |
+| Simd Float8 - MulAdd       | 87.15 ms | +21%   | +15%  | 91.8GFLOPS  |
+| Simd Float8 - FMA ilp=6    | 72.00 ms | -      | -     | 83.3GFLOPS  |
+| Simd Float8 - FMA ilp=16   | 0.20 s   | +182%  | +8%   | 78.7GFLOPS  |
+| Simd Float8 - FMA ilp=5    | 0.14 s   | +100%  | -     | 69.5GFLOPS  |
 | Simd Float8 - Mul          | 0.12 s   | +60%   | +14%  | 69.3GFLOPS  | 103% |
 | Simd Float8 - Add ilp=6    | 0.13 s   | +81%   | +1%   | 69.2GFLOPS  | 103% |
-| Simd Float8 - Add ilp=7    | 0.10 s   | +41%   | +16%  | 69.1GFLOPS  | 
-| Simd Float8 - Add ilp=8    | 0.12 s   | +61%   | -     | 69.1GFLOPS  | 
-| Simd Float8 - FMA + Div    | 0.12 s   | +72%   | +7%   | 64.8GFLOPS  | 
-| Simd Float8 - FMA + Add    | 0.13 s   | +80%   | +5%   | 61.9GFLOPS  | 
-| Simd Float8 - FMA + Div2   | 0.14 s   | +99%   | +10%  | 55.7GFLOPS  | 
-| Simd Float8 - FMA ilp=4    | 0.14 s   | +99%   | -     | 55.7GFLOPS  | 
-| Simd Float8 - Add ilp=5    | 0.19 s   | +162%  | +9%   | 53.0GFLOPS  | 
-| Simd Float8 - Add ilp=4    | 0.17 s   | +140%  | +20%  | 46.3GFLOPS  | 
-| Simd Float8 - Fast Div     | 0.25 s   | +251%  | +24%  | 31.6GFLOPS  | 
-| Simd Float8 - Fast Sqrt    | 0.26 s   | +263%  | +3%   | 30.6GFLOPS  | 
+| Simd Float8 - Add ilp=7    | 0.10 s   | +41%   | +16%  | 69.1GFLOPS  |
+| Simd Float8 - Add ilp=8    | 0.12 s   | +61%   | -     | 69.1GFLOPS  |
+| Simd Float8 - FMA + Div    | 0.12 s   | +72%   | +7%   | 64.8GFLOPS  |
+| Simd Float8 - FMA + Add    | 0.13 s   | +80%   | +5%   | 61.9GFLOPS  |
+| Simd Float8 - FMA + Div2   | 0.14 s   | +99%   | +10%  | 55.7GFLOPS  |
+| Simd Float8 - FMA ilp=4    | 0.14 s   | +99%   | -     | 55.7GFLOPS  |
+| Simd Float8 - Add ilp=5    | 0.19 s   | +162%  | +9%   | 53.0GFLOPS  |
+| Simd Float8 - Add ilp=4    | 0.17 s   | +140%  | +20%  | 46.3GFLOPS  |
+| Simd Float8 - Fast Div     | 0.25 s   | +251%  | +24%  | 31.6GFLOPS  |
+| Simd Float8 - Fast Sqrt    | 0.26 s   | +263%  | +3%   | 30.6GFLOPS  |
 | Simd Float8 - Div ilp=8    | 0.80 s   | +1009% | +206% | 10.0GFLOPS  | 89% |
 | Simd Float8 - Div ilp=4    | 0.80 s   | +1009% | -     | 10.0GFLOPS  | 89% |
 | Simd Float8 - Precise Sqrt | 1.25 s   | +1642% | +57%  | 6.38GFLOPS  |
@@ -76,33 +76,33 @@ Performance per thread.
 | | time | diff | FLOPS | SOL |
 |--------------------------|----------|------|------------|---|
 | Simd Float8 - FMA ilp=7  | 0.10 s   | +16% | 68.8GFLOPS | 51% (102% per core) |
-| Simd Float8 - FMA ilp=6  | 87.54 ms | -    | 68.5GFLOPS | 
-| Simd Float8 - FMA ilp=5  | 0.16 s   | +10% | 62.4GFLOPS | 
-| Simd Float8 - FMA ilp=8  | 0.14 s   | +39% | 56.7GFLOPS | 
+| Simd Float8 - FMA ilp=6  | 87.54 ms | -    | 68.5GFLOPS |
+| Simd Float8 - FMA ilp=5  | 0.16 s   | +10% | 62.4GFLOPS |
+| Simd Float8 - FMA ilp=8  | 0.14 s   | +39% | 56.7GFLOPS |
 | Simd Float8 - FMA ilp=4  | 0.15 s   | +3%  | 55.0GFLOPS | 41% |
 | Simd Float8 - FMA ilp=16 | 0.44 s   | +50% | 36.2GFLOPS |
-| Simd Float8 - FMA + Add  | 0.23 s   | +13% | 35.1GFLOPS | 
+| Simd Float8 - FMA + Add  | 0.23 s   | +13% | 35.1GFLOPS |
 | Simd Float8 - Add ilp=8  | 0.23 s   | +1%  | 34.7GFLOPS | 52% (104% per core) |
-| Simd Float8 - Add ilp=7  | 0.20 s   | +26% | 34.6GFLOPS | 
-| Simd Float8 - Add ilp=6  | 0.26 s   | +11% | 34.6GFLOPS | 
-| Simd Float8 - Add ilp=4  | 0.23 s   | +1%  | 34.3GFLOPS | 
-| Simd Float8 - Add ilp=5  | 0.29 s   | +13% | 34.0GFLOPS | 
+| Simd Float8 - Add ilp=7  | 0.20 s   | +26% | 34.6GFLOPS |
+| Simd Float8 - Add ilp=6  | 0.26 s   | +11% | 34.6GFLOPS |
+| Simd Float8 - Add ilp=4  | 0.23 s   | +1%  | 34.3GFLOPS |
+| Simd Float8 - Add ilp=5  | 0.29 s   | +13% | 34.0GFLOPS |
 
 ## Float SIMD (4 threads, 4 cores)
 
 | | time | diff | FLOPS | SOL |
 |--------------------------|----------|------|------------|---|
 | Simd Float8 - FMA ilp=7  | 79.01 ms | +3%  | 88.6GFLOPS | 66% |
-| Simd Float8 - FMA ilp=6  | 76.55 ms | -    | 78.4GFLOPS | 
+| Simd Float8 - FMA ilp=6  | 76.55 ms | -    | 78.4GFLOPS |
 | Simd Float8 - Add ilp=8  | 0.12 s   | +14% | 66.9GFLOPS | 100% |
-| Simd Float8 - Add ilp=6  | 0.13 s   | +13% | 66.8GFLOPS | 
-| Simd Float8 - Add ilp=7  | 0.10 s   | +33% | 66.7GFLOPS | 
-| Simd Float8 - FMA ilp=5  | 0.15 s   | +5%  | 66.6GFLOPS | 
+| Simd Float8 - Add ilp=6  | 0.13 s   | +13% | 66.8GFLOPS |
+| Simd Float8 - Add ilp=7  | 0.10 s   | +33% | 66.7GFLOPS |
+| Simd Float8 - FMA ilp=5  | 0.15 s   | +5%  | 66.6GFLOPS |
 | Simd Float8 - FMA ilp=16 | 0.25 s   | +28% | 64.3GFLOPS |
-| Simd Float8 - FMA + Add  | 0.14 s   | +2%  | 58.3GFLOPS | 
-| Simd Float8 - FMA ilp=8  | 0.14 s   | +4%  | 56.0GFLOPS | 
-| Simd Float8 - FMA ilp=4  | 0.15 s   | -    | 53.0GFLOPS | 
-| Simd Float8 - Add ilp=5  | 0.19 s   | +4%  | 51.4GFLOPS | 
+| Simd Float8 - FMA + Add  | 0.14 s   | +2%  | 58.3GFLOPS |
+| Simd Float8 - FMA ilp=8  | 0.14 s   | +4%  | 56.0GFLOPS |
+| Simd Float8 - FMA ilp=4  | 0.15 s   | -    | 53.0GFLOPS |
+| Simd Float8 - Add ilp=5  | 0.19 s   | +4%  | 51.4GFLOPS |
 | Simd Float8 - Add ilp=4  | 0.19 s   | +24% | 42.8GFLOPS | 64% |
 
 ## Double SIMD (single thread)
@@ -110,49 +110,48 @@ Performance per thread.
 | | time | diff | delta | FLOPS | SOL |
 |-----------------------------|----------|--------|-------|------------|---|
 | Simd Double4 - FMA ilp=8    | 72.54 ms | +1%    | +1%   | 55.1GFLOPS | 83% |
-| Simd Double4 - FMA ilp=7    | 75.75 ms | +5%    | +4%   | 46.2GFLOPS | 
-| Simd Double4 - MulAdd       | 87.32 ms | +21%   | +15%  | 45.8GFLOPS | 
-| Simd Double4 - FMA ilp=6    | 72.02 ms | -      | -     | 41.7GFLOPS | 
-| Simd Double4 - FMA ilp=16   | 0.20 s   | +182%  | +1%   | 39.4GFLOPS | 
-| Simd Double4 - Mul          | 0.12 s   | +60%   | +14%  | 34.7GFLOPS | 
-| Simd Double4 - Add ilp=6    | 0.13 s   | +80%   | -     | 34.7GFLOPS | 
-| Simd Double4 - FMA ilp=5    | 0.14 s   | +100%  | -     | 34.7GFLOPS | 
-| Simd Double4 - Add ilp=7    | 0.10 s   | +41%   | +16%  | 34.6GFLOPS | 
-| Simd Double4 - Add ilp=8    | 0.12 s   | +61%   | -     | 34.6GFLOPS | 
-| Simd Double4 - FMA + Div    | 0.12 s   | +66%   | +3%   | 33.5GFLOPS | 
-| Simd Double4 - FMA + Add    | 0.13 s   | +80%   | +8%   | 30.9GFLOPS | 
-| Simd Double4 - FMA ilp=4    | 0.14 s   | +99%   | +10%  | 27.9GFLOPS | 
-| Simd Double2 - FMA ilp=8    | 0.15 s   | +102%  | +1%   | 27.6GFLOPS | 
-| Simd Double4 - Add ilp=5    | 0.19 s   | +162%  | +8%   | 26.5GFLOPS | 
-| Simd Double4 - FMA + Div2   | 0.16 s   | +119%  | +4%   | 25.4GFLOPS | 
-| Simd Double2 - FMA ilp=7    | 0.15 s   | +110%  | +4%   | 23.1GFLOPS | 
-| Simd Double4 - Add ilp=4    | 0.17 s   | +140%  | +10%  | 23.2GFLOPS | 
-| Simd Double2 - MulAdd       | 0.17 s   | +142%  | +1%   | 22.9GFLOPS | 
-| Simd Double2 - FMA ilp=16   | 0.38 s   | +422%  | +9%   | 21.3GFLOPS | 
-| Simd Double2 - FMA ilp=6    | 0.14 s   | +99%   | -     | 20.9GFLOPS | 
-| Simd Double2 - Add ilp=7    | 0.20 s   | +180%  | +7%   | 17.4GFLOPS | 
-| Simd Double2 - Add ilp=8    | 0.23 s   | +220%  | +14%  | 17.4GFLOPS | 
-| Simd Double2 - Mul          | 0.23 s   | +220%  | -     | 17.4GFLOPS | 
-| Simd Double2 - Add ilp=6    | 0.26 s   | +260%  | +1%   | 17.4GFLOPS | 
-| Simd Double2 - FMA ilp=5    | 0.29 s   | +299%  | -     | 17.4GFLOPS | 
-| Simd Double2 - FMA + Add    | 0.26 s   | +254%  | +11%  | 15.7GFLOPS | 
-| Simd Double2 - FMA + Div    | 0.26 s   | +256%  | -     | 15.6GFLOPS | 
-| Simd Double2 - FMA ilp=4    | 0.29 s   | +298%  | +11%  | 13.9GFLOPS | 
-| Simd Double2 - FMA + Div2   | 0.30 s   | +317%  | +5%   | 13.3GFLOPS | 
-| Simd Double2 - Add ilp=5    | 0.38 s   | +424%  | -     | 13.2GFLOPS | 
-| Simd Double2 - Add ilp=4    | 0.34 s   | +378%  | +15%  | 11.6GFLOPS | 
-| Simd Double4 - Div ilp=8    | 1.13 s   | +1475% | +201% | 3.53GFLOPS | 
-| Simd Double4 - Div ilp=4    | 1.13 s   | +1476% | -     | 3.53GFLOPS | 
-| Simd Double4 - Precise Sqrt | 1.94 s   | +2588% | +71%  | 2.07GFLOPS | 
-| Simd Double2 - Div ilp=8    | 2.27 s   | +3055% | +17%  | 1.76GFLOPS | 
-| Simd Double2 - Div ilp=4    | 2.27 s   | +3058% | -     | 1.76GFLOPS | 
+| Simd Double4 - FMA ilp=7    | 75.75 ms | +5%    | +4%   | 46.2GFLOPS |
+| Simd Double4 - MulAdd       | 87.32 ms | +21%   | +15%  | 45.8GFLOPS |
+| Simd Double4 - FMA ilp=6    | 72.02 ms | -      | -     | 41.7GFLOPS |
+| Simd Double4 - FMA ilp=16   | 0.20 s   | +182%  | +1%   | 39.4GFLOPS |
+| Simd Double4 - Mul          | 0.12 s   | +60%   | +14%  | 34.7GFLOPS |
+| Simd Double4 - Add ilp=6    | 0.13 s   | +80%   | -     | 34.7GFLOPS |
+| Simd Double4 - FMA ilp=5    | 0.14 s   | +100%  | -     | 34.7GFLOPS |
+| Simd Double4 - Add ilp=7    | 0.10 s   | +41%   | +16%  | 34.6GFLOPS |
+| Simd Double4 - Add ilp=8    | 0.12 s   | +61%   | -     | 34.6GFLOPS |
+| Simd Double4 - FMA + Div    | 0.12 s   | +66%   | +3%   | 33.5GFLOPS |
+| Simd Double4 - FMA + Add    | 0.13 s   | +80%   | +8%   | 30.9GFLOPS |
+| Simd Double4 - FMA ilp=4    | 0.14 s   | +99%   | +10%  | 27.9GFLOPS |
+| Simd Double2 - FMA ilp=8    | 0.15 s   | +102%  | +1%   | 27.6GFLOPS |
+| Simd Double4 - Add ilp=5    | 0.19 s   | +162%  | +8%   | 26.5GFLOPS |
+| Simd Double4 - FMA + Div2   | 0.16 s   | +119%  | +4%   | 25.4GFLOPS |
+| Simd Double2 - FMA ilp=7    | 0.15 s   | +110%  | +4%   | 23.1GFLOPS |
+| Simd Double4 - Add ilp=4    | 0.17 s   | +140%  | +10%  | 23.2GFLOPS |
+| Simd Double2 - MulAdd       | 0.17 s   | +142%  | +1%   | 22.9GFLOPS |
+| Simd Double2 - FMA ilp=16   | 0.38 s   | +422%  | +9%   | 21.3GFLOPS |
+| Simd Double2 - FMA ilp=6    | 0.14 s   | +99%   | -     | 20.9GFLOPS |
+| Simd Double2 - Add ilp=7    | 0.20 s   | +180%  | +7%   | 17.4GFLOPS |
+| Simd Double2 - Add ilp=8    | 0.23 s   | +220%  | +14%  | 17.4GFLOPS |
+| Simd Double2 - Mul          | 0.23 s   | +220%  | -     | 17.4GFLOPS |
+| Simd Double2 - Add ilp=6    | 0.26 s   | +260%  | +1%   | 17.4GFLOPS |
+| Simd Double2 - FMA ilp=5    | 0.29 s   | +299%  | -     | 17.4GFLOPS |
+| Simd Double2 - FMA + Add    | 0.26 s   | +254%  | +11%  | 15.7GFLOPS |
+| Simd Double2 - FMA + Div    | 0.26 s   | +256%  | -     | 15.6GFLOPS |
+| Simd Double2 - FMA ilp=4    | 0.29 s   | +298%  | +11%  | 13.9GFLOPS |
+| Simd Double2 - FMA + Div2   | 0.30 s   | +317%  | +5%   | 13.3GFLOPS |
+| Simd Double2 - Add ilp=5    | 0.38 s   | +424%  | -     | 13.2GFLOPS |
+| Simd Double2 - Add ilp=4    | 0.34 s   | +378%  | +15%  | 11.6GFLOPS |
+| Simd Double4 - Div ilp=8    | 1.13 s   | +1475% | +201% | 3.53GFLOPS |
+| Simd Double4 - Div ilp=4    | 1.13 s   | +1476% | -     | 3.53GFLOPS |
+| Simd Double4 - Precise Sqrt | 1.94 s   | +2588% | +71%  | 2.07GFLOPS |
+| Simd Double2 - Div ilp=8    | 2.27 s   | +3055% | +17%  | 1.76GFLOPS |
+| Simd Double2 - Div ilp=4    | 2.27 s   | +3058% | -     | 1.76GFLOPS |
 | Simd Double2 - Precise Sqrt | 3.87 s   | +5271% | +70%  | 1.03GFLOPS |
 
 
 # AMD Phenom II X4 945
 
 * 3 GHz, 45nm (Deneb, K10)
-* Performance: 43.2 GFLOPS per CPU [ref](https://gadgetversus.com/processor/amd-phenom-ii-x4-945-specs/)
 * Theoretical performance (FMA):
 	- 2 FLOPS * 4 Op/cy * 3 GHz = 24 GFLOPS per core
 	- 24 GFLOPS * 4 cores = 96 GFLOPS per CPU
@@ -211,7 +210,6 @@ Simd Double2 - Sqrt    : 6.25 s  +733.3%    - 204.8MFLOPS
 * 3.39 GHz, 14nm
 * Notes:
 	- FMA with 2op/cy [ref](https://en.wikichip.org/wiki/intel/microarchitectures/skylake)
-* Performance: 163 GFLOPS per CPU in SGEMM [ref](https://gadgetversus.com/processor/intel-core-i5-8250u-specs/)
 * Theoretical performance (FMA):
 	- 2 FLOPS * 2*8 Op/cy * 3.39 GHz = 108.5 GFLOPS per core
 	- 108.5 GFLOPS * 4 cores = 434 GFLOPS per CPU
@@ -281,7 +279,6 @@ Simd Double2 - Mul         : 0.84 s  +8913.7%    - 477.6MFLOPS    ???
 # ARM Cortex X1 (Snapdragon 888)
 
 * Kryo 680 Prime, 2841 MHz, 5nm, Asus ROG Phone 5
-* Performance: 144 GFLOPS per CPU [ref](https://gadgetversus.com/processor/qualcomm-sm8350-snapdragon-888-5g-specs/)
 * Notes:
 	- 4x128b NEON [ref](https://www.anandtech.com/show/15813/arm-cortex-a78-cortex-x1-cpu-ip-diverging/3)
 * Theoretical performance (FMA):
@@ -435,7 +432,6 @@ Simd Double2 - Div        : 0.53 s  +1011.6%     - 0.6GFLOPS,   1.2GB/s
 * 2200 MHz, 6nm, Motorola G54
 * Notes:
 	- 2x128b NEON [ref](https://www.anandtech.com/show/15813/arm-cortex-a78-cortex-x1-cpu-ip-diverging/3)
-* Performance: 87.9 GFLOPS per CPU [ref](https://gadgetversus.com/processor/mediatek-dimensity-7020-specs/)
 * Theoretical performance (FMA):
 	- 2 FLOPS * 2*4 Op/cy * 2.2 GHz = 35.2 GFLOPS per core
 
@@ -496,7 +492,6 @@ Simd Double2 - Div     : 1.17 s  +959.6%    - 0.5GFLOPS
 * 2050 MHz, 12nm, Realme 8i
 * Notes:
 	- 2x128b NEON ?
-* Performance: 66.6 GFLOPS per CPU [ref](https://gadgetversus.com/processor/mediatek-mt6781-helio-g96-specs/)
 * Theoretical performance (FMA):
 	- 2 FLOPS * 2*4 Op/cy * 2 GHz = 32 GFLOPS per core
 
@@ -825,8 +820,6 @@ Scalar Double4 - Div     : 1.14 s  +346.9%    - 70.0MFLOPS
 Scalar Double2 - Div     : 1.18 s  +362.8%    - 67.6MFLOPS
 ```
 
-9.4 GFLOPS per CPU [ref](https://gadgetversus.com/processor/samsung-exynos-7-octa-7870-specs/)
-
 
 # ARM Cortex A53, P-core (Snapdragon 439)
 
@@ -876,8 +869,6 @@ Scalar Double2 - Sqrt    : 0.86 s  +325.2%    - 92.6MFLOPS
 Scalar Double4 - Div     : 0.91 s  +346.3%    - 88.2MFLOPS
 Scalar Double2 - Div     : 0.94 s  +361.5%    - 85.3MFLOPS
 ```
-
-24 GFLOPS per CPU [ref](https://gadgetversus.com/processor/qualcomm-sdm439-snapdragon-439-specs/)
 
 
 # ARM Cortex A53, E-core (Snapdragon 439)
@@ -1003,8 +994,6 @@ Simd Double2 - seq1 Add   : 1.20 s  +491.9%    - 2.13GFLOPS,  2.13GB/s
 Simd Double2 - seq1 MulAdd: 1.40 s  +590.8%    - 1.83GFLOPS,  1.83GB/s
 Simd Double2 - seq1 Div   : 2.02 s  +893.4%    - 634.6MFLOPS,  1.27GB/s
 ```
-
-203.4 GFLOPS [ref](https://gadgetversus.com/processor/apple-m1-specs/)
 
 
 # Apple M1, E-core
@@ -1135,31 +1124,31 @@ Simd Float8 - FMA + Add : 0.46 s  +120.3%    - 17.4GFLOPS
 
 * Theoretical performance (FMA):
 	- 32 FLOPS * 4.9 GHz = 156.8 GFLOPS per core
-  
+
 ## Float SIMD (single thread)
 
 | | time | diff | FLOPS | SOL |
 |----------------------------|----------|--------|-------------|---|
 | Simd Float8 - FMA ilp=8    | 51.69 ms | +1%    | 154.8GFLOPS | 99% |
-| Simd Float8 - FMA ilp=16   | 0.10 s   | +102%  | 154.4GFLOPS | 
-| Simd Float8 - FMA ilp=7    | 53.47 ms | +4%    | 130.9GFLOPS | 
-| Simd Float8 - FMA + Div    | 65.05 ms | +27%   | 123.0GFLOPS | 
-| Simd Float8 - FMA ilp=6    | 51.20 ms | -      | 117.2GFLOPS | 
+| Simd Float8 - FMA ilp=16   | 0.10 s   | +102%  | 154.4GFLOPS |
+| Simd Float8 - FMA ilp=7    | 53.47 ms | +4%    | 130.9GFLOPS |
+| Simd Float8 - FMA + Div    | 65.05 ms | +27%   | 123.0GFLOPS |
+| Simd Float8 - FMA ilp=6    | 51.20 ms | -      | 117.2GFLOPS |
 | Simd Float8 - MulAdd       | 82.21 ms | +61%   | 97.3GFLOPS  | 62% |
-| Simd Float8 - FMA ilp=5    | 0.10 s   | +102%  | 96.8GFLOPS  | 
-| Simd Float8 - FMA + Div2   | 84.31 ms | +65%   | 94.9GFLOPS  | 
-| Simd Float8 - FMA + Add    | 96.49 ms | +88%   | 82.9GFLOPS  | 
-| Simd Float8 - Add ilp=7    | 90.62 ms | +77%   | 77.2GFLOPS  | 
-| Simd Float8 - Add ilp=8    | 0.10 s   | +102%  | 77.2GFLOPS  | 
+| Simd Float8 - FMA ilp=5    | 0.10 s   | +102%  | 96.8GFLOPS  |
+| Simd Float8 - FMA + Div2   | 84.31 ms | +65%   | 94.9GFLOPS  |
+| Simd Float8 - FMA + Add    | 96.49 ms | +88%   | 82.9GFLOPS  |
+| Simd Float8 - Add ilp=7    | 90.62 ms | +77%   | 77.2GFLOPS  |
+| Simd Float8 - Add ilp=8    | 0.10 s   | +102%  | 77.2GFLOPS  |
 | Simd Float8 - FMA ilp=4    | 0.10 s   | +102%  | 77.2GFLOPS  | 49% |
-| Simd Float8 - Mul          | 0.10 s   | +103%  | 77.0GFLOPS  | 
-| Simd Float8 - Add ilp=6    | 0.12 s   | +129%  | 76.8GFLOPS  | 
-| Simd Float8 - Add ilp=5    | 0.16 s   | +205%  | 64.1GFLOPS  | 
+| Simd Float8 - Mul          | 0.10 s   | +103%  | 77.0GFLOPS  |
+| Simd Float8 - Add ilp=6    | 0.12 s   | +129%  | 76.8GFLOPS  |
+| Simd Float8 - Add ilp=5    | 0.16 s   | +205%  | 64.1GFLOPS  |
 | Simd Float8 - Add ilp=4    | 0.16 s   | +203%  | 51.6GFLOPS  | 66% |
-| Simd Float8 - Fast Div     | 0.21 s   | +304%  | 38.7GFLOPS  | 
-| Simd Float8 - Fast Sqrt    | 0.21 s   | +304%  | 38.7GFLOPS  | 
-| Simd Float8 - Div ilp=4    | 0.62 s   | +1104% | 13.0GFLOPS  | 
-| Simd Float8 - Div ilp=8    | 0.62 s   | +1105% | 13.0GFLOPS  | 
+| Simd Float8 - Fast Div     | 0.21 s   | +304%  | 38.7GFLOPS  |
+| Simd Float8 - Fast Sqrt    | 0.21 s   | +304%  | 38.7GFLOPS  |
+| Simd Float8 - Div ilp=4    | 0.62 s   | +1104% | 13.0GFLOPS  |
+| Simd Float8 - Div ilp=8    | 0.62 s   | +1105% | 13.0GFLOPS  |
 | Simd Float8 - Precise Sqrt | 1.03 s   | +1905% | 7.79GFLOPS  |
 
 ## Float SIMD (4 threads, 4 cores)
@@ -1168,16 +1157,16 @@ Simd Float8 - FMA + Add : 0.46 s  +120.3%    - 17.4GFLOPS
 |--------------------------|----------|-------|-------------|---|
 | Simd Float8 - FMA ilp=16 | 0.14 s   | +89%  | 118.0GFLOPS | 75% |
 | Simd Float8 - FMA ilp=8  | 76.72 ms | +7%   | 104.3GFLOPS | 67% |
-| Simd Float8 - FMA ilp=7  | 71.56 ms | -     | 97.8GFLOPS  | 
-| Simd Float8 - FMA ilp=6  | 71.88 ms | -     | 83.5GFLOPS  | 
-| Simd Float8 - FMA ilp=5  | 0.14 s   | +97%  | 70.9GFLOPS  | 
-| Simd Float8 - FMA + Add  | 0.13 s   | +78%  | 62.8GFLOPS  | 
+| Simd Float8 - FMA ilp=7  | 71.56 ms | -     | 97.8GFLOPS  |
+| Simd Float8 - FMA ilp=6  | 71.88 ms | -     | 83.5GFLOPS  |
+| Simd Float8 - FMA ilp=5  | 0.14 s   | +97%  | 70.9GFLOPS  |
+| Simd Float8 - FMA + Add  | 0.13 s   | +78%  | 62.8GFLOPS  |
 | Simd Float8 - Add ilp=5  | 0.17 s   | +132% | 60.2GFLOPS  | 77% |
 | Simd Float8 - Add ilp=8  | 0.13 s   | +86%  | 60.1GFLOPS  | 77% |
-| Simd Float8 - Add ilp=7  | 0.12 s   | +64%  | 59.6GFLOPS  | 
-| Simd Float8 - Add ilp=6  | 0.15 s   | +112% | 59.4GFLOPS  | 
-| Simd Float8 - FMA ilp=4  | 0.15 s   | +103% | 54.9GFLOPS  | 
-| Simd Float8 - Add ilp=4  | 0.16 s   | +130% | 48.5GFLOPS  | 
+| Simd Float8 - Add ilp=7  | 0.12 s   | +64%  | 59.6GFLOPS  |
+| Simd Float8 - Add ilp=6  | 0.15 s   | +112% | 59.4GFLOPS  |
+| Simd Float8 - FMA ilp=4  | 0.15 s   | +103% | 54.9GFLOPS  |
+| Simd Float8 - Add ilp=4  | 0.16 s   | +130% | 48.5GFLOPS  |
 
 ## Double SIMD (single thread)
 
@@ -1185,43 +1174,43 @@ Simd Float8 - FMA + Add : 0.46 s  +120.3%    - 17.4GFLOPS
 |-----------------------------|----------|--------|-------|------------|---|
 | Simd Double4 - FMA ilp=8    | 51.72 ms | +1%    | +1%   | 77.3GFLOPS | 99% |
 | Simd Double4 - FMA ilp=16   | 0.10 s   | +102%  | -     | 77.3GFLOPS | 99% |
-| Simd Double4 - FMA ilp=7    | 53.43 ms | +4%    | +3%   | 65.5GFLOPS | 
-| Simd Double4 - FMA ilp=6    | 51.25 ms | -      | -     | 58.5GFLOPS | 
-| Simd Double4 - MulAdd       | 82.25 ms | +60%   | +54%  | 48.6GFLOPS | 
-| Simd Double4 - FMA ilp=5    | 0.10 s   | +102%  | +7%   | 48.4GFLOPS | 
-| Simd Double4 - FMA + Div    | 84.43 ms | +65%   | +3%   | 47.4GFLOPS | 
-| Simd Double4 - FMA + Add    | 96.35 ms | +88%   | +6%   | 41.5GFLOPS | 
+| Simd Double4 - FMA ilp=7    | 53.43 ms | +4%    | +3%   | 65.5GFLOPS |
+| Simd Double4 - FMA ilp=6    | 51.25 ms | -      | -     | 58.5GFLOPS |
+| Simd Double4 - MulAdd       | 82.25 ms | +60%   | +54%  | 48.6GFLOPS |
+| Simd Double4 - FMA ilp=5    | 0.10 s   | +102%  | +7%   | 48.4GFLOPS |
+| Simd Double4 - FMA + Div    | 84.43 ms | +65%   | +3%   | 47.4GFLOPS |
+| Simd Double4 - FMA + Add    | 96.35 ms | +88%   | +6%   | 41.5GFLOPS |
 | Simd Double4 - Add ilp=7    | 90.50 ms | +77%   | +7%   | 38.7GFLOPS | 99% |
 | Simd Double2 - FMA ilp=16   | 0.21 s   | +304%  | -     | 38.7GFLOPS | 49% |
-| Simd Double4 - FMA ilp=4    | 0.10 s   | +102%  | -     | 38.6GFLOPS | 
-| Simd Double4 - Mul          | 0.10 s   | +103%  | -     | 38.5GFLOPS | 
+| Simd Double4 - FMA ilp=4    | 0.10 s   | +102%  | -     | 38.6GFLOPS |
+| Simd Double4 - Mul          | 0.10 s   | +103%  | -     | 38.5GFLOPS |
 | Simd Double4 - Add ilp=8    | 0.10 s   | +103%  | -     | 38.5GFLOPS | 98% |
 | Simd Double4 - Add ilp=6    | 0.12 s   | +128%  | +10%  | 38.5GFLOPS | 98% |
-| Simd Double2 - FMA ilp=8    | 0.10 s   | +103%  | -     | 38.5GFLOPS | 
-| Simd Double4 - FMA + Div2   | 0.12 s   | +130%  | +1%   | 34.0GFLOPS | 
-| Simd Double2 - FMA ilp=7    | 0.11 s   | +107%  | +2%   | 33.0GFLOPS | 
-| Simd Double4 - Add ilp=5    | 0.16 s   | +205%  | +1%   | 32.0GFLOPS | 
-| Simd Double2 - FMA ilp=6    | 0.10 s   | +103%  | -     | 28.8GFLOPS | 
-| Simd Double4 - Add ilp=4    | 0.16 s   | +203%  | +32%  | 25.8GFLOPS | 
-| Simd Double2 - MulAdd       | 0.16 s   | +218%  | +4%   | 24.5GFLOPS | 
-| Simd Double2 - FMA ilp=5    | 0.21 s   | +303%  | -     | 24.2GFLOPS | 
-| Simd Double2 - FMA + Div    | 0.17 s   | +229%  | +3%   | 23.7GFLOPS | 
-| Simd Double2 - FMA + Add    | 0.19 s   | +275%  | +6%   | 20.8GFLOPS | 
-| Simd Double2 - Add ilp=7    | 0.18 s   | +252%  | +7%   | 19.4GFLOPS | 
-| Simd Double2 - Add ilp=8    | 0.21 s   | +303%  | +7%   | 19.4GFLOPS | 
-| Simd Double2 - Add ilp=6    | 0.23 s   | +353%  | +9%   | 19.4GFLOPS | 
-| Simd Double2 - Mul          | 0.21 s   | +304%  | -     | 19.3GFLOPS | 
-| Simd Double2 - FMA ilp=4    | 0.21 s   | +304%  | -     | 19.3GFLOPS | 
-| Simd Double4 - Fast Div     | 0.21 s   | +317%  | +3%   | 18.7GFLOPS | 
-| Simd Double2 - FMA + Div2   | 0.24 s   | +360%  | +2%   | 17.0GFLOPS | 
-| Simd Double2 - Add ilp=5    | 0.31 s   | +503%  | -     | 16.2GFLOPS | 
-| Simd Double2 - Add ilp=4    | 0.31 s   | +503%  | +31%  | 12.9GFLOPS | 
-| Simd Double2 - Fast Div     | 0.42 s   | +718%  | +35%  | 9.55GFLOPS | 
-| Simd Double4 - Div ilp=4    | 0.93 s   | +1724% | +123% | 4.28GFLOPS | 
-| Simd Double4 - Div ilp=8    | 1.03 s   | +1900% | +10%  | 3.90GFLOPS | 
-| Simd Double4 - Precise Sqrt | 1.73 s   | +3268% | +68%  | 2.32GFLOPS | 
-| Simd Double2 - Div ilp=4    | 1.87 s   | +3540% | +8%   | 2.14GFLOPS | 
-| Simd Double2 - Div ilp=8    | 2.05 s   | +3902% | +10%  | 1.95GFLOPS | 
+| Simd Double2 - FMA ilp=8    | 0.10 s   | +103%  | -     | 38.5GFLOPS |
+| Simd Double4 - FMA + Div2   | 0.12 s   | +130%  | +1%   | 34.0GFLOPS |
+| Simd Double2 - FMA ilp=7    | 0.11 s   | +107%  | +2%   | 33.0GFLOPS |
+| Simd Double4 - Add ilp=5    | 0.16 s   | +205%  | +1%   | 32.0GFLOPS |
+| Simd Double2 - FMA ilp=6    | 0.10 s   | +103%  | -     | 28.8GFLOPS |
+| Simd Double4 - Add ilp=4    | 0.16 s   | +203%  | +32%  | 25.8GFLOPS |
+| Simd Double2 - MulAdd       | 0.16 s   | +218%  | +4%   | 24.5GFLOPS |
+| Simd Double2 - FMA ilp=5    | 0.21 s   | +303%  | -     | 24.2GFLOPS |
+| Simd Double2 - FMA + Div    | 0.17 s   | +229%  | +3%   | 23.7GFLOPS |
+| Simd Double2 - FMA + Add    | 0.19 s   | +275%  | +6%   | 20.8GFLOPS |
+| Simd Double2 - Add ilp=7    | 0.18 s   | +252%  | +7%   | 19.4GFLOPS |
+| Simd Double2 - Add ilp=8    | 0.21 s   | +303%  | +7%   | 19.4GFLOPS |
+| Simd Double2 - Add ilp=6    | 0.23 s   | +353%  | +9%   | 19.4GFLOPS |
+| Simd Double2 - Mul          | 0.21 s   | +304%  | -     | 19.3GFLOPS |
+| Simd Double2 - FMA ilp=4    | 0.21 s   | +304%  | -     | 19.3GFLOPS |
+| Simd Double4 - Fast Div     | 0.21 s   | +317%  | +3%   | 18.7GFLOPS |
+| Simd Double2 - FMA + Div2   | 0.24 s   | +360%  | +2%   | 17.0GFLOPS |
+| Simd Double2 - Add ilp=5    | 0.31 s   | +503%  | -     | 16.2GFLOPS |
+| Simd Double2 - Add ilp=4    | 0.31 s   | +503%  | +31%  | 12.9GFLOPS |
+| Simd Double2 - Fast Div     | 0.42 s   | +718%  | +35%  | 9.55GFLOPS |
+| Simd Double4 - Div ilp=4    | 0.93 s   | +1724% | +123% | 4.28GFLOPS |
+| Simd Double4 - Div ilp=8    | 1.03 s   | +1900% | +10%  | 3.90GFLOPS |
+| Simd Double4 - Precise Sqrt | 1.73 s   | +3268% | +68%  | 2.32GFLOPS |
+| Simd Double2 - Div ilp=4    | 1.87 s   | +3540% | +8%   | 2.14GFLOPS |
+| Simd Double2 - Div ilp=8    | 2.05 s   | +3902% | +10%  | 1.95GFLOPS |
 | Simd Double2 - Precise Sqrt | 3.46 s   | +6645% | +69%  | 1.16GFLOPS |
 
 
@@ -1229,31 +1218,31 @@ Simd Float8 - FMA + Add : 0.46 s  +120.3%    - 17.4GFLOPS
 
 * Theoretical performance (FMA):
 	- 32 FLOPS * 5.1 GHz = 163 GFLOPS per core
-  
+
 ## Float SIMD (single thread)
 
 | | time | diff | FLOPS | SOL |
 |-------------------------------|----------|------|-------------|---|
 | Simd Float8 - FMA ilp8        | 64.78 ms | +2%  | 123.5GFLOPS | 76% |
-| Simd Float8 - FMA ilp8 + Div2 | 69.65 ms | +8%  | 114.9GFLOPS | 
-| Simd Float8 - FMA ilp7        | 63.63 ms | +1%  | 110.0GFLOPS | 
-| Simd Float8 - MulAdd          | 77.74 ms | +12% | 102.9GFLOPS | 
-| Simd Float8 - FMA ilp4 + Div4 | 80.59 ms | +4%  | 99.3GFLOPS  | 
-| Simd Float8 - FMA ilp6        | 63.07 ms | -    | 95.1GFLOPS  | 
-| Simd Float8 - FMA ilp8 + Add  | 90.41 ms | -    | 88.5GFLOPS  | 
-| Simd Float8 - FMA ilp5        | 0.12 s   | +5%  | 80.7GFLOPS  | 
+| Simd Float8 - FMA ilp8 + Div2 | 69.65 ms | +8%  | 114.9GFLOPS |
+| Simd Float8 - FMA ilp7        | 63.63 ms | +1%  | 110.0GFLOPS |
+| Simd Float8 - MulAdd          | 77.74 ms | +12% | 102.9GFLOPS |
+| Simd Float8 - FMA ilp4 + Div4 | 80.59 ms | +4%  | 99.3GFLOPS  |
+| Simd Float8 - FMA ilp6        | 63.07 ms | -    | 95.1GFLOPS  |
+| Simd Float8 - FMA ilp8 + Add  | 90.41 ms | -    | 88.5GFLOPS  |
+| Simd Float8 - FMA ilp5        | 0.12 s   | +5%  | 80.7GFLOPS  |
 | Simd Float8 - Add ilp8        | 0.10 s   | +13% | 78.2GFLOPS  | 96% |
-| Simd Float8 - Add ilp7        | 90.30 ms | +12% | 77.5GFLOPS  | 
-| Simd Float8 - Add ilp6        | 0.12 s   | +5%  | 76.0GFLOPS  | 
-| Simd Float8 - Add ilp5        | 0.13 s   | +7%  | 74.7GFLOPS  | 
-| Simd Float8 - Mul             | 0.11 s   | +9%  | 71.9GFLOPS  | 
-| Simd Float8 - Add ilp4        | 0.11 s   | +1%  | 70.9GFLOPS  | 
-| Simd Float8 - FMA ilp16       | 0.24 s   | +80% | 66.3GFLOPS  | 
-| Simd Float8 - FMA ilp4        | 0.12 s   | +1%  | 64.1GFLOPS  | 
-| Simd Float8 - Fast Sqrt       | 0.31 s   | +28% | 25.9GFLOPS  | 
-| Simd Float8 - Fast Div        | 0.32 s   | +5%  | 24.7GFLOPS  | 
-| Simd Float8 - Div ilp8        | 0.41 s   | +27% | 19.5GFLOPS  | 
-| Simd Float8 - Div ilp4        | 0.45 s   | +10% | 17.7GFLOPS  | 
+| Simd Float8 - Add ilp7        | 90.30 ms | +12% | 77.5GFLOPS  |
+| Simd Float8 - Add ilp6        | 0.12 s   | +5%  | 76.0GFLOPS  |
+| Simd Float8 - Add ilp5        | 0.13 s   | +7%  | 74.7GFLOPS  |
+| Simd Float8 - Mul             | 0.11 s   | +9%  | 71.9GFLOPS  |
+| Simd Float8 - Add ilp4        | 0.11 s   | +1%  | 70.9GFLOPS  |
+| Simd Float8 - FMA ilp16       | 0.24 s   | +80% | 66.3GFLOPS  |
+| Simd Float8 - FMA ilp4        | 0.12 s   | +1%  | 64.1GFLOPS  |
+| Simd Float8 - Fast Sqrt       | 0.31 s   | +28% | 25.9GFLOPS  |
+| Simd Float8 - Fast Div        | 0.32 s   | +5%  | 24.7GFLOPS  |
+| Simd Float8 - Div ilp8        | 0.41 s   | +27% | 19.5GFLOPS  |
+| Simd Float8 - Div ilp4        | 0.45 s   | +10% | 17.7GFLOPS  |
 | Simd Float8 - Precise Sqrt    | 0.71 s   | +58% | 11.2GFLOPS  |
 
 ## Float SIMD (4 threads, 4 cores)
@@ -1261,41 +1250,41 @@ Simd Float8 - FMA + Add : 0.46 s  +120.3%    - 17.4GFLOPS
 | | time | diff | FLOPS | SOL |
 |------------------------------|----------|------|-------------|---|
 | Simd Float8 - FMA ilp8       | 72.65 ms | +4%  | 110.1GFLOPS | 67% |
-| Simd Float8 - FMA ilp7       | 69.54 ms | -    | 100.7GFLOPS | 
-| Simd Float8 - FMA ilp6       | 69.26 ms | -    | 86.6GFLOPS  | 
-| Simd Float8 - FMA ilp8 + Add | 0.10 s   | +1%  | 79.3GFLOPS  | 
+| Simd Float8 - FMA ilp7       | 69.54 ms | -    | 100.7GFLOPS |
+| Simd Float8 - FMA ilp6       | 69.26 ms | -    | 86.6GFLOPS  |
+| Simd Float8 - FMA ilp8 + Add | 0.10 s   | +1%  | 79.3GFLOPS  |
 | Simd Float8 - FMA ilp16      | 0.21 s   | +40% | 77.3GFLOPS  |
-| Simd Float8 - FMA ilp5       | 0.14 s   | -    | 73.5GFLOPS  | 
+| Simd Float8 - FMA ilp5       | 0.14 s   | -    | 73.5GFLOPS  |
 | Simd Float8 - Add ilp8       | 0.11 s   | +11% | 71.4GFLOPS  | 88% |
-| Simd Float8 - Add ilp7       | 0.10 s   | +38% | 69.9GFLOPS  | 
-| Simd Float8 - Add ilp5       | 0.15 s   | +9%  | 67.7GFLOPS  | 
-| Simd Float8 - Add ilp6       | 0.13 s   | +6%  | 66.7GFLOPS  | 
-| Simd Float8 - Add ilp4       | 0.13 s   | +13% | 63.0GFLOPS  | 
-| Simd Float8 - FMA ilp4       | 0.14 s   | +1%  | 58.9GFLOPS  | 
+| Simd Float8 - Add ilp7       | 0.10 s   | +38% | 69.9GFLOPS  |
+| Simd Float8 - Add ilp5       | 0.15 s   | +9%  | 67.7GFLOPS  |
+| Simd Float8 - Add ilp6       | 0.13 s   | +6%  | 66.7GFLOPS  |
+| Simd Float8 - Add ilp4       | 0.13 s   | +13% | 63.0GFLOPS  |
+| Simd Float8 - FMA ilp4       | 0.14 s   | +1%  | 58.9GFLOPS  |
 
 ## Double SIMD (single thread)
 
 | | time | diff | FLOPS | SOL |
 |--------------------------------|----------|-------|------------|---|
 | Simd Double4 - FMA ilp8        | 64.67 ms | -     | 61.9GFLOPS | 76% |
-| Simd Double4 - FMA ilp7        | 64.39 ms | +1%   | 54.4GFLOPS | 
-| Simd Double4 - MulAdd          | 77.86 ms | +20%  | 51.4GFLOPS | 
-| Simd Double4 - FMA ilp8 + Div2 | 79.79 ms | +2%   | 50.1GFLOPS | 
-| Simd Double4 - FMA ilp6        | 63.45 ms | -     | 47.3GFLOPS | 
-| Simd Double4 - FMA ilp8 + Add  | 90.86 ms | -     | 44.0GFLOPS | 
-| Simd Double4 - FMA ilp5        | 0.12 s   | -     | 40.1GFLOPS | 
-| Simd Double4 - FMA ilp4 + Div4 | 99.93 ms | +10%  | 40.0GFLOPS | 
+| Simd Double4 - FMA ilp7        | 64.39 ms | +1%   | 54.4GFLOPS |
+| Simd Double4 - MulAdd          | 77.86 ms | +20%  | 51.4GFLOPS |
+| Simd Double4 - FMA ilp8 + Div2 | 79.79 ms | +2%   | 50.1GFLOPS |
+| Simd Double4 - FMA ilp6        | 63.45 ms | -     | 47.3GFLOPS |
+| Simd Double4 - FMA ilp8 + Add  | 90.86 ms | -     | 44.0GFLOPS |
+| Simd Double4 - FMA ilp5        | 0.12 s   | -     | 40.1GFLOPS |
+| Simd Double4 - FMA ilp4 + Div4 | 99.93 ms | +10%  | 40.0GFLOPS |
 | Simd Double4 - Add ilp8        | 0.10 s   | +2%   | 39.1GFLOPS | 96% |
-| Simd Double4 - Add ilp7        | 90.53 ms | +13%  | 38.7GFLOPS | 
-| Simd Double4 - Add ilp6        | 0.12 s   | +5%   | 38.1GFLOPS | 
-| Simd Double4 - Add ilp5        | 0.13 s   | +8%   | 37.2GFLOPS | 
-| Simd Double4 - Mul             | 0.11 s   | +4%   | 36.0GFLOPS | 
-| Simd Double4 - Add ilp4        | 0.11 s   | +1%   | 35.5GFLOPS | 
-| Simd Double4 - FMA ilp16       | 0.24 s   | +2%   | 33.2GFLOPS | 
-| Simd Double4 - FMA ilp4        | 0.12 s   | +5%   | 32.2GFLOPS | 
-| Simd Double4 - Div ilp8        | 0.75 s   | +172% | 5.36GFLOPS | 
-| Simd Double4 - Div ilp4        | 0.80 s   | +8%   | 4.97GFLOPS | 
-| Simd Double4 - Precise Sqrt    | 1.22 s   | +52%  | 3.27GFLOPS | 
+| Simd Double4 - Add ilp7        | 90.53 ms | +13%  | 38.7GFLOPS |
+| Simd Double4 - Add ilp6        | 0.12 s   | +5%   | 38.1GFLOPS |
+| Simd Double4 - Add ilp5        | 0.13 s   | +8%   | 37.2GFLOPS |
+| Simd Double4 - Mul             | 0.11 s   | +4%   | 36.0GFLOPS |
+| Simd Double4 - Add ilp4        | 0.11 s   | +1%   | 35.5GFLOPS |
+| Simd Double4 - FMA ilp16       | 0.24 s   | +2%   | 33.2GFLOPS |
+| Simd Double4 - FMA ilp4        | 0.12 s   | +5%   | 32.2GFLOPS |
+| Simd Double4 - Div ilp8        | 0.75 s   | +172% | 5.36GFLOPS |
+| Simd Double4 - Div ilp4        | 0.80 s   | +8%   | 4.97GFLOPS |
+| Simd Double4 - Precise Sqrt    | 1.22 s   | +52%  | 3.27GFLOPS |
 
 
 # Intel Ultra 7 255H, E-Core
@@ -1303,31 +1292,31 @@ Simd Float8 - FMA + Add : 0.46 s  +120.3%    - 17.4GFLOPS
 * Theoretical performance (FMA):
 	- 4x fp32 128-bit FMA pipes
 	- 32 FLOPS * 4.4 GHz = 141 GFLOPS per core
-  
+
 ## Float SIMD (single thread)
 
 | | time | diff | FLOPS | SOL |
 |-------------------------------|----------|-------|-------------|---|
 | Simd Float8 - FMA ilp8        | 61.22 ms | +3%   | 130.7GFLOPS | 93% |
-| Simd Float8 - FMA ilp7        | 63.20 ms | +3%   | 110.8GFLOPS | 
-| Simd Float8 - FMA ilp6        | 59.57 ms | -     | 100.7GFLOPS | 
-| Simd Float8 - FMA ilp5        | 0.12 s   | +1%   | 86.7GFLOPS  | 
-| Simd Float8 - FMA ilp16       | 0.21 s   | +48%  | 74.9GFLOPS  | 
+| Simd Float8 - FMA ilp7        | 63.20 ms | +3%   | 110.8GFLOPS |
+| Simd Float8 - FMA ilp6        | 59.57 ms | -     | 100.7GFLOPS |
+| Simd Float8 - FMA ilp5        | 0.12 s   | +1%   | 86.7GFLOPS  |
+| Simd Float8 - FMA ilp16       | 0.21 s   | +48%  | 74.9GFLOPS  |
 | Simd Float8 - Add ilp7        | 99.91 ms | +58%  | 70.1GFLOPS  | 99% |
-| Simd Float8 - Add ilp8        | 0.11 s   | +14%  | 70.0GFLOPS  | 
-| Simd Float8 - MulAdd          | 0.11 s   | -     | 70.0GFLOPS  | 
-| Simd Float8 - FMA ilp4        | 0.11 s   | -     | 70.0GFLOPS  | 
-| Simd Float8 - Mul             | 0.11 s   | -     | 69.9GFLOPS  | 
-| Simd Float8 - Add ilp5        | 0.14 s   | +5%   | 69.9GFLOPS  | 
-| Simd Float8 - Add ilp6        | 0.13 s   | +8%   | 69.8GFLOPS  | 
-| Simd Float8 - Add ilp4        | 0.12 s   | +3%   | 67.3GFLOPS  | 
-| Simd Float8 - FMA ilp8 + Add  | 0.14 s   | +6%   | 58.8GFLOPS  | 
-| Simd Float8 - FMA ilp8 + Div2 | 0.14 s   | +1%   | 55.5GFLOPS  | 
-| Simd Float8 - FMA ilp4 + Div4 | 0.29 s   | +36%  | 27.6GFLOPS  | 
-| Simd Float8 - Fast Div        | 0.49 s   | +68%  | 16.4GFLOPS  | 
-| Simd Float8 - Fast Sqrt       | 0.49 s   | -     | 16.3GFLOPS  | 
-| Simd Float8 - Div ilp4        | 2.28 s   | +366% | 3.50GFLOPS  | 
-| Simd Float8 - Div ilp8        | 2.41 s   | +6%   | 3.32GFLOPS  | 
+| Simd Float8 - Add ilp8        | 0.11 s   | +14%  | 70.0GFLOPS  |
+| Simd Float8 - MulAdd          | 0.11 s   | -     | 70.0GFLOPS  |
+| Simd Float8 - FMA ilp4        | 0.11 s   | -     | 70.0GFLOPS  |
+| Simd Float8 - Mul             | 0.11 s   | -     | 69.9GFLOPS  |
+| Simd Float8 - Add ilp5        | 0.14 s   | +5%   | 69.9GFLOPS  |
+| Simd Float8 - Add ilp6        | 0.13 s   | +8%   | 69.8GFLOPS  |
+| Simd Float8 - Add ilp4        | 0.12 s   | +3%   | 67.3GFLOPS  |
+| Simd Float8 - FMA ilp8 + Add  | 0.14 s   | +6%   | 58.8GFLOPS  |
+| Simd Float8 - FMA ilp8 + Div2 | 0.14 s   | +1%   | 55.5GFLOPS  |
+| Simd Float8 - FMA ilp4 + Div4 | 0.29 s   | +36%  | 27.6GFLOPS  |
+| Simd Float8 - Fast Div        | 0.49 s   | +68%  | 16.4GFLOPS  |
+| Simd Float8 - Fast Sqrt       | 0.49 s   | -     | 16.3GFLOPS  |
+| Simd Float8 - Div ilp4        | 2.28 s   | +366% | 3.50GFLOPS  |
+| Simd Float8 - Div ilp8        | 2.41 s   | +6%   | 3.32GFLOPS  |
 | Simd Float8 - Precise Sqrt    | 2.78 s   | +15%  | 2.88GFLOPS  |
 
 ## Float SIMD (4 threads, 4 cores)
@@ -1335,40 +1324,40 @@ Simd Float8 - FMA + Add : 0.46 s  +120.3%    - 17.4GFLOPS
 | | time | diff | FLOPS | SOL |
 |------------------------------|----------|------|-------------|---|
 | Simd Float8 - FMA ilp8       | 63.59 ms | +3%  | 125.8GFLOPS | 89% |
-| Simd Float8 - FMA ilp7       | 64.46 ms | +1%  | 108.6GFLOPS | 
-| Simd Float8 - FMA ilp6       | 61.64 ms | -    | 97.3GFLOPS  | 
-| Simd Float8 - FMA ilp5       | 0.12 s   | +1%  | 84.6GFLOPS  | 
+| Simd Float8 - FMA ilp7       | 64.46 ms | +1%  | 108.6GFLOPS |
+| Simd Float8 - FMA ilp6       | 61.64 ms | -    | 97.3GFLOPS  |
+| Simd Float8 - FMA ilp5       | 0.12 s   | +1%  | 84.6GFLOPS  |
 | Simd Float8 - FMA ilp16      | 0.21 s   | +43% | 76.9GFLOPS  |
-| Simd Float8 - FMA ilp4       | 0.12 s   | +14% | 68.8GFLOPS  | 
+| Simd Float8 - FMA ilp4       | 0.12 s   | +14% | 68.8GFLOPS  |
 | Simd Float8 - Add ilp6       | 0.13 s   | +7%  | 68.8GFLOPS  | 98% |
-| Simd Float8 - Add ilp7       | 0.10 s   | +59% | 68.5GFLOPS  | 
-| Simd Float8 - Add ilp5       | 0.15 s   | +5%  | 68.6GFLOPS  | 
-| Simd Float8 - Add ilp8       | 0.12 s   | +1%  | 68.5GFLOPS  | 
-| Simd Float8 - Add ilp4       | 0.12 s   | +3%  | 65.7GFLOPS  | 
-| Simd Float8 - FMA ilp8 + Add | 0.14 s   | +6%  | 57.6GFLOPS  | 
+| Simd Float8 - Add ilp7       | 0.10 s   | +59% | 68.5GFLOPS  |
+| Simd Float8 - Add ilp5       | 0.15 s   | +5%  | 68.6GFLOPS  |
+| Simd Float8 - Add ilp8       | 0.12 s   | +1%  | 68.5GFLOPS  |
+| Simd Float8 - Add ilp4       | 0.12 s   | +3%  | 65.7GFLOPS  |
+| Simd Float8 - FMA ilp8 + Add | 0.14 s   | +6%  | 57.6GFLOPS  |
 
 ## Double SIMD (single thread)
 
 | | time | diff | FLOPS | SOL |
 |--------------------------------|----------|-------|-------------|---|
 | Simd Double4 - FMA ilp8        | 61.94 ms | +4%   | 64.6GFLOPS  | 92% |
-| Simd Double4 - FMA ilp7        | 63.82 ms | +3%   | 54.8GFLOPS  | 
-| Simd Double4 - FMA ilp6        | 59.54 ms | -     | 50.4GFLOPS  | 
-| Simd Double4 - FMA ilp5        | 0.12 s   | -     | 43.2GFLOPS  | 
-| Simd Double4 - FMA ilp16       | 0.21 s   | +10%  | 37.3GFLOPS  | 
+| Simd Double4 - FMA ilp7        | 63.82 ms | +3%   | 54.8GFLOPS  |
+| Simd Double4 - FMA ilp6        | 59.54 ms | -     | 50.4GFLOPS  |
+| Simd Double4 - FMA ilp5        | 0.12 s   | -     | 43.2GFLOPS  |
+| Simd Double4 - FMA ilp16       | 0.21 s   | +10%  | 37.3GFLOPS  |
 | Simd Double4 - Add ilp7        | 0.10 s   | +57%  | 35.0GFLOPS  | 99% |
-| Simd Double4 - Mul             | 0.11 s   | -     | 35.0GFLOPS  | 
-| Simd Double4 - MulAdd          | 0.11 s   | -     | 34.9GFLOPS  | 
-| Simd Double4 - FMA ilp4        | 0.11 s   | -     | 34.9GFLOPS  | 
-| Simd Double4 - Add ilp6        | 0.13 s   | +1%   | 34.9GFLOPS  | 
-| Simd Double4 - Add ilp8        | 0.12 s   | +1%   | 34.7GFLOPS  | 
-| Simd Double4 - Add ilp5        | 0.14 s   | +5%   | 34.7GFLOPS  | 
-| Simd Double4 - Add ilp4        | 0.13 s   | +10%  | 31.4GFLOPS  | 
-| Simd Double4 - FMA ilp8 + Add  | 0.14 s   | +6%   | 29.2GFLOPS  | 
-| Simd Double4 - FMA ilp8 + Div2 | 0.23 s   | -     | 17.3GFLOPS  | 
-| Simd Double4 - FMA ilp4 + Div4 | 0.46 s   | +42%  | 8.68GFLOPS  | 
-| Simd Double4 - Div ilp8        | 3.69 s   | -     | 1.08GFLOPS  | 
-| Simd Double4 - Div ilp4        | 3.71 s   | +1%   | 1.08GFLOPS  | 
+| Simd Double4 - Mul             | 0.11 s   | -     | 35.0GFLOPS  |
+| Simd Double4 - MulAdd          | 0.11 s   | -     | 34.9GFLOPS  |
+| Simd Double4 - FMA ilp4        | 0.11 s   | -     | 34.9GFLOPS  |
+| Simd Double4 - Add ilp6        | 0.13 s   | +1%   | 34.9GFLOPS  |
+| Simd Double4 - Add ilp8        | 0.12 s   | +1%   | 34.7GFLOPS  |
+| Simd Double4 - Add ilp5        | 0.14 s   | +5%   | 34.7GFLOPS  |
+| Simd Double4 - Add ilp4        | 0.13 s   | +10%  | 31.4GFLOPS  |
+| Simd Double4 - FMA ilp8 + Add  | 0.14 s   | +6%   | 29.2GFLOPS  |
+| Simd Double4 - FMA ilp8 + Div2 | 0.23 s   | -     | 17.3GFLOPS  |
+| Simd Double4 - FMA ilp4 + Div4 | 0.46 s   | +42%  | 8.68GFLOPS  |
+| Simd Double4 - Div ilp8        | 3.69 s   | -     | 1.08GFLOPS  |
+| Simd Double4 - Div ilp4        | 3.71 s   | +1%   | 1.08GFLOPS  |
 | Simd Double4 - Precise Sqrt    | 5.55 s   | +1%   | 721.0MFLOPS |
 
 
@@ -1376,31 +1365,31 @@ Simd Float8 - FMA + Add : 0.46 s  +120.3%    - 17.4GFLOPS
 
 * Theoretical performance (FMA):
 	- 16 FLOPS * 2.5 GHz = 40 GFLOPS per core
-  
+
 ## Float SIMD (single thread)
 
 | | time | diff | FLOPS | SOL |
 |-------------------------------|--------|-------|-------------|---|
 | Simd Float8 - FMA ilp6        | 0.15 s | -     | 39.5GFLOPS  | 99% |
-| Simd Float8 - FMA ilp7        | 0.18 s | +17%  | 39.3GFLOPS  | 
-| Simd Float8 - FMA ilp8        | 0.20 s | +15%  | 39.2GFLOPS  | 
-| Simd Float8 - FMA ilp16       | 0.48 s | +6%   | 33.2GFLOPS  | 
-| Simd Float8 - FMA ilp5        | 0.31 s | -     | 32.7GFLOPS  | 
-| Simd Float8 - FMA ilp4        | 0.31 s | +50%  | 26.2GFLOPS  | 
+| Simd Float8 - FMA ilp7        | 0.18 s | +17%  | 39.3GFLOPS  |
+| Simd Float8 - FMA ilp8        | 0.20 s | +15%  | 39.2GFLOPS  |
+| Simd Float8 - FMA ilp16       | 0.48 s | +6%   | 33.2GFLOPS  |
+| Simd Float8 - FMA ilp5        | 0.31 s | -     | 32.7GFLOPS  |
+| Simd Float8 - FMA ilp4        | 0.31 s | +50%  | 26.2GFLOPS  |
 | Simd Float8 - Add ilp7        | 0.35 s | +16%  | 19.8GFLOPS  | 99% |
-| Simd Float8 - Add ilp4        | 0.40 s | +14%  | 19.8GFLOPS  | 
-| Simd Float8 - Add ilp5        | 0.51 s | -     | 19.8GFLOPS  | 
-| Simd Float8 - Add ilp8        | 0.40 s | -     | 19.8GFLOPS  | 
-| Simd Float8 - Mul             | 0.41 s | -     | 19.7GFLOPS  | 
-| Simd Float8 - Add ilp6        | 0.46 s | +12%  | 19.7GFLOPS  | 
-| Simd Float8 - MulAdd          | 0.41 s | -     | 19.6GFLOPS  | 
-| Simd Float8 - FMA ilp8 + Add  | 0.48 s | -     | 16.6GFLOPS  | 
-| Simd Float8 - FMA ilp8 + Div2 | 0.50 s | +4%   | 15.9GFLOPS  | 
-| Simd Float8 - FMA ilp4 + Div4 | 1.02 s | +101% | 7.87GFLOPS  | 
-| Simd Float8 - Fast Sqrt       | 2.02 s | +99%  | 3.96GFLOPS  | 
-| Simd Float8 - Fast Div        | 2.04 s | +1%   | 3.93GFLOPS  | 
-| Simd Float8 - Div ilp8        | 8.08 s | +297% | 989.7MFLOPS | 
-| Simd Float8 - Div ilp4        | 8.09 s | -     | 989.2MFLOPS | 
+| Simd Float8 - Add ilp4        | 0.40 s | +14%  | 19.8GFLOPS  |
+| Simd Float8 - Add ilp5        | 0.51 s | -     | 19.8GFLOPS  |
+| Simd Float8 - Add ilp8        | 0.40 s | -     | 19.8GFLOPS  |
+| Simd Float8 - Mul             | 0.41 s | -     | 19.7GFLOPS  |
+| Simd Float8 - Add ilp6        | 0.46 s | +12%  | 19.7GFLOPS  |
+| Simd Float8 - MulAdd          | 0.41 s | -     | 19.6GFLOPS  |
+| Simd Float8 - FMA ilp8 + Add  | 0.48 s | -     | 16.6GFLOPS  |
+| Simd Float8 - FMA ilp8 + Div2 | 0.50 s | +4%   | 15.9GFLOPS  |
+| Simd Float8 - FMA ilp4 + Div4 | 1.02 s | +101% | 7.87GFLOPS  |
+| Simd Float8 - Fast Sqrt       | 2.02 s | +99%  | 3.96GFLOPS  |
+| Simd Float8 - Fast Div        | 2.04 s | +1%   | 3.93GFLOPS  |
+| Simd Float8 - Div ilp8        | 8.08 s | +297% | 989.7MFLOPS |
+| Simd Float8 - Div ilp4        | 8.09 s | -     | 989.2MFLOPS |
 | Simd Float8 - Precise Sqrt    | 9.69 s | +20%  | 825.5MFLOPS |
 
 ## Float SIMD (2 threads, 2 cores)
@@ -1408,41 +1397,41 @@ Simd Float8 - FMA + Add : 0.46 s  +120.3%    - 17.4GFLOPS
 | | time | diff | FLOPS | SOL |
 |------------------------------|----------|------|-------------|---|
 | Simd Float8 - FMA ilp6       | 0.15 s | -    | 39.5GFLOPS | 99% |
-| Simd Float8 - FMA ilp7       | 0.18 s | +16% | 39.6GFLOPS | 
-| Simd Float8 - FMA ilp8       | 0.20 s | +14% | 39.5GFLOPS | 
-| Simd Float8 - FMA ilp16      | 0.46 s | +2%  | 34.5GFLOPS | 
-| Simd Float8 - FMA ilp5       | 0.31 s | +1%  | 32.1GFLOPS | 
-| Simd Float8 - FMA ilp4       | 0.31 s | +53% | 25.9GFLOPS | 
+| Simd Float8 - FMA ilp7       | 0.18 s | +16% | 39.6GFLOPS |
+| Simd Float8 - FMA ilp8       | 0.20 s | +14% | 39.5GFLOPS |
+| Simd Float8 - FMA ilp16      | 0.46 s | +2%  | 34.5GFLOPS |
+| Simd Float8 - FMA ilp5       | 0.31 s | +1%  | 32.1GFLOPS |
+| Simd Float8 - FMA ilp4       | 0.31 s | +53% | 25.9GFLOPS |
 | Simd Float8 - Add ilp7       | 0.35 s | +14% | 19.8GFLOPS | 99% |
-| Simd Float8 - Add ilp4       | 0.40 s | +14% | 19.8GFLOPS | 
-| Simd Float8 - Add ilp6       | 0.45 s | +11% | 19.8GFLOPS | 
+| Simd Float8 - Add ilp4       | 0.40 s | +14% | 19.8GFLOPS |
+| Simd Float8 - Add ilp6       | 0.45 s | +11% | 19.8GFLOPS |
 | Simd Float8 - Add ilp5       | 0.51 s | +6%  | 19.7GFLOPS |
-| Simd Float8 - Add ilp8       | 0.41 s | +1%  | 19.5GFLOPS | 
-| Simd Float8 - FMA ilp8 + Add | 0.48 s | +3%  | 16.8GFLOPS | 
+| Simd Float8 - Add ilp8       | 0.41 s | +1%  | 19.5GFLOPS |
+| Simd Float8 - FMA ilp8 + Add | 0.48 s | +3%  | 16.8GFLOPS |
 
 ## Double SIMD (single thread)
 
 | | time | diff | FLOPS | SOL |
 |--------------------------------|---------|-------|-------------|---|
 | Simd Double4 - FMA ilp6        | 0.15 s  | -     | 19.8GFLOPS  | 99% |
-| Simd Double4 - FMA ilp7        | 0.18 s  | +17%  | 19.8GFLOPS  | 
-| Simd Double4 - FMA ilp8        | 0.20 s  | +14%  | 19.8GFLOPS  | 
-| Simd Double4 - FMA ilp16       | 0.48 s  | +5%   | 16.7GFLOPS  | 
-| Simd Double4 - FMA ilp5        | 0.30 s  | -     | 16.4GFLOPS  | 
-| Simd Double4 - FMA ilp4        | 0.30 s  | +50%  | 13.2GFLOPS  | 
+| Simd Double4 - FMA ilp7        | 0.18 s  | +17%  | 19.8GFLOPS  |
+| Simd Double4 - FMA ilp8        | 0.20 s  | +14%  | 19.8GFLOPS  |
+| Simd Double4 - FMA ilp16       | 0.48 s  | +5%   | 16.7GFLOPS  |
+| Simd Double4 - FMA ilp5        | 0.30 s  | -     | 16.4GFLOPS  |
+| Simd Double4 - FMA ilp4        | 0.30 s  | +50%  | 13.2GFLOPS  |
 | Simd Double4 - Add ilp7        | 0.35 s  | +3%   | 9.92GFLOPS  | 99% |
-| Simd Double4 - Mul             | 0.40 s  | +7%   | 9.92GFLOPS  | 
-| Simd Double4 - MulAdd          | 0.40 s  | -     | 9.92GFLOPS  | 
-| Simd Double4 - Add ilp6        | 0.45 s  | +4%   | 9.92GFLOPS  | 
-| Simd Double4 - Add ilp5        | 0.50 s  | +3%   | 9.92GFLOPS  | 
-| Simd Double4 - Add ilp4        | 0.40 s  | -     | 9.91GFLOPS  | 
-| Simd Double4 - Add ilp8        | 0.40 s  | -     | 9.91GFLOPS  | 
-| Simd Double4 - FMA ilp8 + Add  | 0.48 s  | -     | 8.34GFLOPS  | 
-| Simd Double4 - FMA ilp8 + Div2 | 0.81 s  | +1%   | 4.96GFLOPS  | 
-| Simd Double4 - FMA ilp4 + Div4 | 1.61 s  | +96%  | 2.48GFLOPS  | 
-| Simd Double4 - Div ilp8        | 12.91 s | +699% | 309.8MFLOPS | 
-| Simd Double4 - Div ilp4        | 12.93 s | -     | 309.4MFLOPS | 
-| Simd Double4 - Precise Sqrt    | 19.37 s | +50%  | 206.5MFLOPS | 
+| Simd Double4 - Mul             | 0.40 s  | +7%   | 9.92GFLOPS  |
+| Simd Double4 - MulAdd          | 0.40 s  | -     | 9.92GFLOPS  |
+| Simd Double4 - Add ilp6        | 0.45 s  | +4%   | 9.92GFLOPS  |
+| Simd Double4 - Add ilp5        | 0.50 s  | +3%   | 9.92GFLOPS  |
+| Simd Double4 - Add ilp4        | 0.40 s  | -     | 9.91GFLOPS  |
+| Simd Double4 - Add ilp8        | 0.40 s  | -     | 9.91GFLOPS  |
+| Simd Double4 - FMA ilp8 + Add  | 0.48 s  | -     | 8.34GFLOPS  |
+| Simd Double4 - FMA ilp8 + Div2 | 0.81 s  | +1%   | 4.96GFLOPS  |
+| Simd Double4 - FMA ilp4 + Div4 | 1.61 s  | +96%  | 2.48GFLOPS  |
+| Simd Double4 - Div ilp8        | 12.91 s | +699% | 309.8MFLOPS |
+| Simd Double4 - Div ilp4        | 12.93 s | -     | 309.4MFLOPS |
+| Simd Double4 - Precise Sqrt    | 19.37 s | +50%  | 206.5MFLOPS |
 
 
 # Intel Ultra 7 255H, per core

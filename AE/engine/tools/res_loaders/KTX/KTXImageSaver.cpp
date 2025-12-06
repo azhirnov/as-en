@@ -65,7 +65,7 @@ namespace
 
 		Unused( &CreateKtxRStream, &VkFormatToEPixelFormat, &GLFormatToEPixelFormat );
 
-		
+
 		const EPixelFormat		format	= image.PixelFormat();
 		const uint3				dim		= image.Dimension();
 		ktxTextureCreateInfo	ci		= {};

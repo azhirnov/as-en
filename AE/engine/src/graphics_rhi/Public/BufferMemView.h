@@ -131,7 +131,7 @@ namespace AE::Graphics
 		template <typename T>
 			requires(IsTriviallySerializable<T>)
 		ND_ Bytes  CopyTo (OUT Array<T> &dst, Bytes srcOffset = 0_b)			C_NE___	{ return CopyTo( OUT dst.data(), ArraySizeOf(dst), srcOffset ); }
-		
+
 		template <typename T>
 			requires(IsTriviallySerializable<T>)
 		ND_ Bytes  CopyTo (OUT MutableArrayView<T> dst, Bytes srcOffset = 0_b)	C_NE___	{ return CopyTo( OUT dst.data(), ArraySizeOf(dst), srcOffset ); }

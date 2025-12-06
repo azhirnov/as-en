@@ -38,9 +38,11 @@ namespace AE::PipelineCompiler
 			Unknown,
 			Text,			// as plane text with part of source code
 			VS_Console,		// compatible with VS output, allow navigation to code by click
-			VS,				// click to file path will open shader source file
+			FileURL,		// click to file path will open shader source file
 			VSCode,			// click to file path will open shader source file in specified line
-			_Count
+			_Count,
+
+			VS			= FileURL,
 		};
 
 		enum class VariableID : uint { Unknown = ~0u };
@@ -80,16 +82,65 @@ namespace AE::PipelineCompiler
 			ND_ bool  IsNotDefined ()								C_NE___;
 		};
 
+		struct Swizzle
+		{
+			static constexpr uint	c_SwizzleIdxBits		= 2;						// 0..3
+			static constexpr uint	c_ArrayFlagOffset		= 0;
+			static constexpr uint	c_RowOffset				= c_ArrayFlagOffset + 1;
+			static constexpr uint	c_DstRowsOffset			= 4 * c_SwizzleIdxBits + c_RowOffset;
+			static constexpr uint	c_OriginRowsOffset		= c_DstRowsOffset + 3;
+			static constexpr uint	c_OriginColsOffset		= c_OriginRowsOffset + 2;
+			static constexpr uint	c_DstColumnOffset		= c_OriginColsOffset + 2;
+			static constexpr uint	c_IdentityFlagOffset	= c_DstColumnOffset + 2;
+			StaticAssert( c_IdentityFlagOffset+1 <= 32 );
+
+			uint	_value	= 0;
+
+			Swizzle ()												__NE___ {}
+			Swizzle (const Swizzle &other)							__NE___ : _value{other._value} {}
+
+			ND_ uint	DstRows ()									C_NE___	{ ASSERT( not IsArray() );  return (_value >> c_DstRowsOffset) & 7; }				// 0..4
+			ND_ uint	OriginRows ()								C_NE___	{ ASSERT( not IsArray() );  return ((_value >> c_OriginRowsOffset) & 3) + 1; }
+			ND_ uint	OriginCols ()								C_NE___	{ ASSERT( not IsArray() );  return ((_value >> c_OriginColsOffset) & 3) + 1; }
+			ND_ uint	DstColumn ()								C_NE___;																					// 0..3 if defined, UMax if undefined
+			ND_ uint	operator [] (usize idx)						C_NE___;
+			ND_ uint	DstOrOriginRows ()							C_NE___	{ uint rows = DstRows();  return rows == 0 ? OriginRows() : rows; }
+			ND_ uint	ArrayIndex ()								C_NE___	{ return _value >> (c_ArrayFlagOffset+1); }
+
+			ND_ bool	IsIdentity ()								C_NE___	{ ASSERT( not IsArray() );  return ((_value >> c_IdentityFlagOffset) & 1) == 1; }	// dst = ...
+			ND_ bool	IsIdentityRows ()							C_NE___	{ return DstRows() == 0; }															// dst[col = ... or dst = ...
+			ND_ bool	IsMatrix ()									C_NE___	{ return not IsArray() and OriginCols() > 1; }										// dst[col].swizzle = ... or dst[col] = ...
+			ND_ bool	IsVector ()									C_NE___	{ return not IsArray() and OriginCols() == 1; }										// dst.swizzle = ...
+			ND_ bool	IsArray ()									C_NE___	{ return ((_value >> c_ArrayFlagOffset) & 1) == 1; }								// dst[arrIdx] = ...
+			ND_ bool	IsUndefined ()								C_NE___	{ return _value == 0; }
+
+			ND_ bool	CheckIsIdentity ()							C_NE___;	// complex check
+
+			ND_ bool	operator == (const Swizzle &rhs)			C_NE___	{ return _value == rhs._value; }
+
+				void	SetDstRows (usize cnt)						__NE___;
+				void	SetDstColumn (uint col)						__NE___;
+				void	SetOriginRows (uint cnt)					__NE___;
+				void	SetOriginCols (uint cnt)					__NE___;
+				void	Set (usize idx, uint dstIdx)				__NE___;
+
+				void	SetIdentityVector (uint size)				__NE___;
+				void	SetIdentityMatrix (uint cols, uint rows)	__NE___;
+				void	SetArrayIndex (uint idx)					__NE___;
+		private:
+				void	_SetIdentityFlag ()							__NE___;
+		};
+
 		struct ExprInfo
 		{
 			VariableID			varID	= Default;	// ID of output variable
-			uint				swizzle	= 0;
+			Swizzle				swizzle;
 			SourceLocation		range;				// begin and end location of expression
 			SourcePoint			point;				// location of operator
 			Array<VariableID>	vars;				// all variables IDs in this expression
 
 			ExprInfo ()												__NE___	= default;
-			ExprInfo (VariableID id, uint sw, const SourceLocation &range, const SourcePoint &pt) __NE___ : varID{id}, swizzle{sw}, range{range}, point{pt} {}
+			ExprInfo (VariableID id, Swizzle sw, const SourceLocation &range, const SourcePoint &pt) __NE___ : varID{id}, swizzle{sw}, range{range}, point{pt} {}
 
 			ND_ bool  operator == (const ExprInfo &rhs)				C_NE___;
 		};

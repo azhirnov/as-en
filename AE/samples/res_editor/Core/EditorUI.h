@@ -83,7 +83,8 @@ namespace AE::ResEditor
 			void const*			target	= null;
 			EDebugMode			mode	= Default;
 			EShaderStages		stage	= Default;
-			float2				coord;
+			float2				coord;		// relative
+			Optional<uint3>		exactCoord;
 		};
 
 		struct SelectedPixel
@@ -167,7 +168,7 @@ namespace AE::ResEditor
 			void  GetAllSliders (FN &&fn);
 
 			void  AddLabels (const void* uid, Labels_t labels);
-			
+
 			template <typename FN>
 			void  GetAllLabels (FN &&fn);
 
@@ -210,12 +211,14 @@ namespace AE::ResEditor
 			ImGuiContext*		ctx					= null;
 			float2				mousePos;
 			float2				mouseWheel;
+			int					uiScale				= 4;
 			bool				mouseLBDown			= false;
 			bool				showDbgViews		= true;
 			bool				showUI				= true;
 			bool				runShaderDebugger	= false;
 			bool				reloadScript		= false;
 			bool				showHelp			= false;
+			U8String			inputChars;
 			uint				activeTab			= UMax;
 			usize				nodeClicked			= UMax;
 			String				scriptName;
@@ -223,6 +226,8 @@ namespace AE::ResEditor
 			uint				dbgPassIdx			= UMax;
 			uint				dbgModeIdx			= UMax;
 			uint				dbgStageIdx			= UMax;
+			bool				dbgSetCoord			= false;
+			packed_int3			dbgCoord;
 			String				helpText;
 			ESurfaceFormat		defaultSurfFormat	= Default;
 			ESurfaceFormat		reqSurfFormat		= Default;
@@ -286,6 +291,7 @@ namespace AE::ResEditor
 		struct {
 			String						deviceName;
 			String						driver;
+			String						renderDoc;
 		}							_info;
 
 		ImGuiDataSync				_imgui;
@@ -302,7 +308,7 @@ namespace AE::ResEditor
 		EditorUI (ResEditorCore &core, Path scriptPath);
 		~EditorUI ();
 
-		ND_ bool		Init (IOutputSurface &, EWindowMode);
+		ND_ bool		Init (IOutputSurface &, EWindowMode, float uiScale);
 		ND_ AsyncTask	Draw (ArrayView<AsyncTask> deps);
 			void		ProcessInput (ActionQueueReader reader, OUT bool &switchMode);
 			void		SetHelpText (String txt);

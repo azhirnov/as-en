@@ -4,25 +4,32 @@
 void ASmain ()
 {
 	// include:
-	//	NVIDIA GeForce RTX 2080.json
-	//	AMD Radeon 780M driver 2.0.321 on Arch unknown
-	//	AMD Radeon Graphics (RADV PHOENIX) driver 25.0.1 on Ubuntu 22.04
-	//	AMD Radeon RX 6750 XT (RADV NAVI22) driver 23.3.4 on Arch unknown
-	//	AMD Radeon RX 6900 XT (RADV NAVI21) driver 22.2.99 on Debian unknown
-	//	AMD Radeon RX 7800 XT (RADV NAVI32) driver 24.0.99 on Arch unknown
-	//	AMD Radeon RX 7900 XTX (RADV GFX1100) driver 23.2.1 on Arch unknown
-	//	Intel(R) Arc(tm) A770M Graphics (DG2) driver 24.3.1 on Endeavouros unknown
-	//	Intel(R) Arc(tm) A770 Graphics (DG2) driver 23.3.3 on Arch unknown
-	//	Intel(R) Arc(TM) B580 Graphics driver 0.405.2156 on Windows 11
-	//	llvmpipe (LLVM 18.1.8, 256 bits) driver 0.0.1 on Arch unknown
-	//	llvmpipe (LLVM 20.1.0, 256 bits) driver 25.0.99 on Windows 11
-	//	NVIDIA GeForce GTX 1070 driver 511.65.0.0 on Windows 10
-	//	NVIDIA GeForce RTX 2080 driver 553.31.0.0 on Windows 11
-	//	NVIDIA GeForce RTX 3060 Ti driver 553.22.0.0 on Windows 11
-	//	NVIDIA GeForce RTX 3090 driver 473.11.0.0 on Windows 10
-	//	NVIDIA GeForce RTX 4090 driver 526.98.0.0 on Windows 10
-	//	NVIDIA GeForce RTX 4090 driver 553.51.0.0 on Windows 11
-	//	NVIDIA Tegra Orin (nvgpu) driver 540.2.0.0 on Ubuntu 22.04
+	//	Lin-AMD-RDNA3-780M-1.4.313
+	//	Lin-NV-RTX2000-1.4.312
+	//	Mesa-AMD-RDNA3-780M-1.4.328
+	//	Mesa-AMD-RDNA3.5-890M-1.4.318
+	//	Mesa-AMD-RDNA4-1.4.328
+	//	Mesa-Intel-Arc-1.4.318
+	//	Mesa-Intel-Xe1-1.4.328
+	//	Mesa-Intel-Xe2-1.4.318
+	//	Win-AMD-RDNA2-1.4.315
+	//	Win-AMD-RDNA2-610M-1.4.315
+	//	Win-AMD-RDNA3-1.4.315
+	//	Win-AMD-RDNA3-780M-1.4.329
+	//	Win-AMD-RDNA3.5-8060S-1.4.325
+	//	Win-AMD-RDNA3.5-890M-1.4.329
+	//	Win-AMD-RDNA4-1.4.329
+	//	Win-Intel-Xe1-1.3.297
+	//	Win-Intel-Xe1-1.4.325
+	//	Win-Intel-Xe1-LPG-1.4.325
+	//	Win-Intel-Xe2-1.4.325
+	//	Win-Intel-Xe2-LPG-1.4.323
+	//	Win-llvmpipe-1.4.328
+	//	Win-NV-GTX1000-1.4.329
+	//	Win-NV-RTX2000-1.4.312
+	//	Win-NV-RTX3000-1.4.328
+	//	Win-NV-RTX4000-1.4.328
+	//	Win-NV-RTX5000-1.4.319
 
 	const EFeature  True = EFeature::RequireTrue;
 
@@ -46,6 +53,7 @@ void ASmain ()
 	fset.AddSubgroupOperationRange( ESubgroupOperation::_Ballot_Begin, ESubgroupOperation::_Ballot_End );
 	fset.AddSubgroupOperationRange( ESubgroupOperation::_Shuffle_Begin, ESubgroupOperation::_Shuffle_End );
 	fset.AddSubgroupOperationRange( ESubgroupOperation::_ShuffleRelative_Begin, ESubgroupOperation::_ShuffleRelative_End );
+	fset.AddSubgroupOperationRange( ESubgroupOperation::_Clustered_Begin, ESubgroupOperation::_Clustered_End );
 	fset.AddSubgroupOperationRange( ESubgroupOperation::_Quad_Begin, ESubgroupOperation::_Quad_End );
 	fset.subgroupTypes(ESubgroupTypes(
 		ESubgroupTypes::Float32 | 
@@ -62,10 +70,14 @@ void ASmain ()
 		EShaderStages::Fragment | 
 		EShaderStages::Compute
 	));
+	fset.requiredSubgroupSizeStages(EShaderStages(
+		EShaderStages::Compute
+	));
 	fset.minSubgroupSize (8);
 	fset.maxSubgroupSize (8);
 	fset.subgroup (True);
 	fset.subgroupBroadcastDynamicId (True);
+	fset.subgroupSizeControl (True);
 	fset.shaderInt8 (True);
 	fset.shaderInt16 (True);
 	fset.shaderInt64 (True);
@@ -85,6 +97,7 @@ void ASmain ()
 	fset.shaderOutputViewportIndex (True);
 	fset.shaderOutputLayer (True);
 	fset.shaderSubgroupClock (True);
+	fset.shaderIntegerDotProduct (True);
 	fset.shaderClipDistance (True);
 	fset.shaderCullDistance (True);
 	fset.shaderDrawParameters (True);
@@ -106,10 +119,15 @@ void ASmain ()
 	fset.shaderStorageImageWriteWithoutFormat (True);
 	fset.vulkanMemoryModel (True);
 	fset.vulkanMemoryModelDeviceScope (True);
+	fset.shaderDemoteToHelperInvocation (True);
+	fset.shaderTerminateInvocation (True);
+	fset.shaderZeroInitializeWorkgroupMemory (True);
+	fset.fragmentShaderSampleInterlock (True);
+	fset.fragmentShaderPixelInterlock (True);
 	fset.rayTracingPipeline (True);
 	fset.rayTraversalPrimitiveCulling (True);
 	fset.maxRayRecursionDepth (13);
-	fset.maxSpirvVersion (150);
+	fset.maxSpirvVersion (160);
 	fset.maxMetalVersion (240);
 	fset.drawIndirectFirstInstance (True);
 	fset.drawIndirectCount (True);
@@ -120,6 +138,8 @@ void ASmain ()
 	fset.maxMultiviewViewCount (6);
 	fset.multiViewport (True);
 	fset.maxViewports (16);
+	fset.sampleLocations (True);
+	fset.variableSampleLocations (True);
 	fset.tessellationIsolines (True);
 	fset.tessellationPointMode (True);
 	fset.maxTexelBufferElements (128 << 20);
@@ -129,18 +149,18 @@ void ASmain ()
 	fset.perPipeline_maxStorageBuffersDynamic (8);
 	fset.perPipeline_maxTotalBuffersDynamic (16);
 	fset.perPipeline_maxInputAttachments (7);
-	fset.perPipeline_maxSampledImages (393210);
-	fset.perPipeline_maxSamplers (393210);
-	fset.perPipeline_maxStorageBuffers (393210);
-	fset.perPipeline_maxStorageImages (393210);
+	fset.perPipeline_maxSampledImages (1000000);
+	fset.perPipeline_maxSamplers (1000000);
+	fset.perPipeline_maxStorageBuffers (1000000);
+	fset.perPipeline_maxStorageImages (1000000);
 	fset.perPipeline_maxUniformBuffers (180);
 	fset.perPipeline_maxAccelStructures (16);
 	fset.perPipeline_maxTotalResources (1024);
 	fset.perStage_maxInputAttachments (7);
-	fset.perStage_maxSampledImages (65535);
-	fset.perStage_maxSamplers (65535);
-	fset.perStage_maxStorageBuffers (65535);
-	fset.perStage_maxStorageImages (65535);
+	fset.perStage_maxSampledImages (1000000);
+	fset.perStage_maxSamplers (1000000);
+	fset.perStage_maxStorageBuffers (1000000);
+	fset.perStage_maxStorageImages (1000000);
 	fset.perStage_maxUniformBuffers (15);
 	fset.perStage_maxAccelStructures (16);
 	fset.perStage_maxTotalResources (1000000);
@@ -150,7 +170,7 @@ void ASmain ()
 	fset.maxFragmentOutputAttachments (8);
 	fset.maxFragmentDualSrcAttachments (1);
 	fset.maxFragmentCombinedOutputResources (104);
-	fset.maxPushConstantsSize (128);
+	fset.maxPushConstantsSize (256);
 	fset.maxComputeSharedMemorySize (32 << 10);
 	fset.maxComputeWorkGroupInvocations (1 << 10);
 	fset.maxComputeWorkGroupSizeX (1 << 10);
@@ -162,7 +182,7 @@ void ASmain ()
 	fset.vertexDivisor (True);
 	fset.maxVertexAttribDivisor (0xfffffff);
 	fset.maxVertexAttributes (29);
-	fset.maxVertexBuffers (31);
+	fset.maxVertexBuffers (32);
 	fset.AddVertexFormats({
 		EVertexType::Byte, EVertexType::Byte2, EVertexType::Byte3, EVertexType::Byte4, 
 		EVertexType::UByte, EVertexType::UByte2, EVertexType::UByte3, EVertexType::UByte4, 
@@ -281,8 +301,8 @@ void ASmain ()
 	fset.samplerYcbcrConversion (True);
 	fset.maxSamplerAnisotropy (16.00);
 	fset.maxSamplerLodBias (15.00);
-	fset.framebufferColorSampleCounts({ 1, 4 });
-	fset.framebufferDepthSampleCounts({ 1, 4 });
+	fset.framebufferColorSampleCounts({ 1, 4, 8 });
+	fset.framebufferDepthSampleCounts({ 1, 4, 8 });
 	fset.maxFramebufferLayers (1 << 10);
 	fset.supportedQueues(EQueueMask( EQueueMask::Graphics ));
 }

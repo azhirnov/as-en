@@ -62,7 +62,7 @@ namespace AE::App
 
 		decltype(&::DXGIGetDebugInterface1)	get_debug_interface;
 		Unused( _dxgiLib.GetProcAddr( "DXGIGetDebugInterface1", OUT get_debug_interface ));
-		
+
 		HRESULT					hr;
 		ComPtr<IDXGIAdapter1>	selected_adapter;
 
@@ -144,7 +144,7 @@ namespace AE::App
 
 		return true;
 	}
-	
+
 /*
 =================================================
 	_OpenDesktopInThread
@@ -154,7 +154,7 @@ namespace AE::App
 	{
 		HDESK	current_desktop = ::OpenInputDesktop( 0, FALSE, GENERIC_ALL );
 		CHECK_ERR( current_desktop != null );
-		
+
 		// Attach desktop to this thread (only if it is new thread)
 		bool desktop_attached = ::SetThreadDesktop( current_desktop ) != 0;
 		::CloseDesktop( current_desktop );
@@ -167,7 +167,7 @@ namespace AE::App
 		}
 		return true;
 	}
-	
+
 /*
 =================================================
 	_InitDuplication
@@ -177,7 +177,7 @@ namespace AE::App
 	{
 		CHECK_ERR( _dxDevice != null );
 		CHECK_ERR( _desktopDuplication == null );
-		
+
 		ComPtr<IDXGIDevice>		dxgi_device;
 		ComPtr<IDXGIAdapter>	dxgi_adapter;
 		ComPtr<IDXGIOutput>		dxgi_output;
@@ -187,7 +187,7 @@ namespace AE::App
 		HRESULT		hr = Cast<ID3D11Device>(_dxDevice)->QueryInterface(__uuidof(IDXGIDevice), OUT dxgi_device.VRef() );
 		CHECK_ERR_MSG( SUCCEEDED(hr),
 			"Failed to get DXGI device" );
-		
+
 		hr = dxgi_device->GetParent(__uuidof(IDXGIAdapter), OUT dxgi_adapter.VRef() );
 		dxgi_device = null;
 
@@ -218,12 +218,12 @@ namespace AE::App
 			"Failed to create DXGI output" );
 
 		AE_LOGI( "Start desktop duplication on output ("s << ToString(output_id) << ")" );
-		
+
 		hr = dxgi_output->QueryInterface(__uuidof(IDXGIOutput1), OUT dxgi_output1.VRef() );
 		dxgi_output = null;
 		CHECK_ERR_MSG( SUCCEEDED(hr),
 			"Failed to get DXGI Output1" );
-		
+
 		dxgi_output1->QueryInterface(__uuidof(IDXGIOutput5), OUT dxgi_output5.VRef() );
 
 		if ( dxgi_output5 )
@@ -294,7 +294,7 @@ namespace AE::App
 
 		return true;
 	}
-	
+
 /*
 =================================================
 	_GetFrame
@@ -325,7 +325,7 @@ namespace AE::App
 			return true;
 		}
 		outTimeout = false;
-		
+
 		CHECK_ERR_MSG( SUCCEEDED(hr),
 			"AcquireNextFrame: failed to get desktop duplication resource" );
 
@@ -337,10 +337,10 @@ namespace AE::App
 			desk_dupl->ReleaseFrame();
 			RETURN_ERR( "failed to get _acquiredDesktopImage" );
 		}
-		
+
 		frameInfo.moveRects.clear();
 		frameInfo.dirtyRects.clear();
-		
+
 		frameInfo.lastPresentTime		= WindowsUtils::QueryPerformanceCounterToTimePoint( dx_frame_info.LastPresentTime.QuadPart );
 		frameInfo.lastMouseUpdateTime	= WindowsUtils::QueryPerformanceCounterToTimePoint( dx_frame_info.LastMouseUpdateTime.QuadPart );
 		frameInfo.accumulatedFrames		= dx_frame_info.AccumulatedFrames;
@@ -378,7 +378,7 @@ namespace AE::App
 
 		return true;
 	}
-	
+
 /*
 =================================================
 	_ReleaseFrame
@@ -450,7 +450,7 @@ namespace AE::App
 
 		_dx11Lib.Unload();
 	}
-	
+
 /*
 =================================================
 	GetDescription
@@ -472,7 +472,7 @@ namespace AE::App
 //-----------------------------------------------------------------------------
 
 
-	
+
 /*
 =================================================
 	Start
@@ -481,7 +481,7 @@ namespace AE::App
 	bool  ScreenCaptureDXGI_HostAccess::Start (const Config &cfg) __NE___
 	{
 		DRC_EXLOCK( _app.GetSingleThreadCheck() );
-		
+
 		CHECK_ERR( cfg.hostImageFormat != Default );
 
 		_config = cfg;
@@ -509,7 +509,7 @@ namespace AE::App
 		init.Wait();
 		return ok;
 	}
-	
+
 /*
 =================================================
 	_FindAdapter
@@ -529,14 +529,14 @@ namespace AE::App
 	void  ScreenCaptureDXGI_HostAccess::Finish () __NE___
 	{
 		DRC_EXLOCK( _app.GetSingleThreadCheck() );
-		
+
 		if ( _looping.load() )
 		{
 			_looping.store( false );
 			_dxThread.join();
 		}
 	}
-	
+
 /*
 =================================================
 	_ThreadFn
@@ -579,7 +579,7 @@ namespace AE::App
 		_DestroyStagingImages();
 		_Destroy();
 	}
-	
+
 /*
 =================================================
 	_DestroyStagingImages
@@ -609,7 +609,7 @@ namespace AE::App
 		}
 		_dxStagingImages.fill( null );
 	}
-	
+
 /*
 =================================================
 	_CopyToStaging
@@ -635,7 +635,7 @@ namespace AE::App
 		dst_frame.accumulatedFrames		= srcFrameInfo.accumulatedFrames;
 		dst_frame.moveRects				= Array<MoveRect>{srcFrameInfo.moveRects};
 		dst_frame.dirtyRects			= Array<RectI>{srcFrameInfo.dirtyRects};
-		
+
 		D3D11_TEXTURE2D_DESC	tex_desc;
 		src_tex->GetDesc( OUT &tex_desc );
 
@@ -664,7 +664,7 @@ namespace AE::App
 		// TODO: skip copy if no dirty rects
 
 		auto*	dst_tex = Cast<ID3D11Texture2D>( _dxStagingImages[ idx ]);
-		
+
 		ctx->CopyResource( dst_tex, src_tex );
 
 		// add to queue
@@ -693,7 +693,7 @@ namespace AE::App
 		// skip some frames to avoid stall
 		if ( qsize < QueueSize/2 )
 			return;
-		
+
 		auto*	ctx = Cast<ID3D11DeviceContext>( _dxContext );
 
 		// unmap previous
@@ -701,7 +701,7 @@ namespace AE::App
 		{
 			const ubyte	i		= sync->index;
 			auto*		image	= Cast<ID3D11Texture2D>( _dxStagingImages[i] );
-			
+
 			ctx->Unmap( image, 0 );
 			sync->unusedImages.Set( i );	// 0 -> 1
 			sync->index = UMax;
@@ -714,7 +714,7 @@ namespace AE::App
 		ASSERT( not sync->unusedImages.Has( i ));
 
 		auto*	image = Cast<ID3D11Texture2D>( _dxStagingImages[i] );
-	
+
 		D3D11_MAPPED_SUBRESOURCE	sub_res;
 		HRESULT	hr = ctx->Map( image, 0, D3D11_MAP_READ, 0, OUT &sub_res );
 
@@ -757,7 +757,7 @@ namespace AE::App
 
 		if ( sync->mappedPtr == null )
 			return sync->error;
-		
+
 		const uint		i			= sync->index;
 		auto&			frame_info	= _frameInfos[i];
 		ImageMemView	mem_view	{ sync->mappedPtr, _rowPitch * _displayDim.y, uint3{}, uint3{_displayDim, 1u},
@@ -766,7 +766,7 @@ namespace AE::App
 		fn( mem_view, frame_info );
 		return ErrorCode::OK;
 	}
-	
+
 /*
 =================================================
 	SetReadImageCallback
@@ -865,7 +865,7 @@ namespace AE::App
 
 		return true;
 	}
-	
+
 /*
 =================================================
 	Finish
@@ -874,7 +874,7 @@ namespace AE::App
 	void  ScreenCaptureDXGI_Vulkan::Finish () __NE___
 	{
 		DRC_EXLOCK( _app.GetSingleThreadCheck() );
-		
+
 		_Destroy();
 	}
 
@@ -924,7 +924,7 @@ namespace AE::App
 
 		if_unlikely( is_timeout )
 			return ErrorCode::Timeout;
-		
+
 		SharedImage		shared_image;
 		if ( not _CreateVulkanImage( _acquiredDesktopImage, OUT shared_image ))
 		{
@@ -1057,14 +1057,14 @@ namespace AE::App
 		mem_alloc.sType				= VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
 		mem_alloc.pNext				= &dedication_info;
 		mem_alloc.allocationSize	= mem_req.memoryRequirements.size;
-		
+
 		CHECK_ERR( dev.GetMemoryTypeIndex( mem_props.memoryTypeBits,
 										   VkMemoryPropertyFlagBits(0), VkMemoryPropertyFlagBits(0),
 										   VkMemoryPropertyFlagBits(0), VkMemoryPropertyFlagBits(0),
 										   OUT mem_alloc.memoryTypeIndex ));
 
 		VK_CHECK_ERR( dev.vkAllocateMemory( dev.GetVkDevice(), &mem_alloc, null, OUT &sharedImage.vkMemory ));
-		
+
 		VkBindImageMemoryInfo	bind = {};
 		bind.sType	= VK_STRUCTURE_TYPE_BIND_IMAGE_MEMORY_INFO;
 		bind.memory	= sharedImage.vkMemory;
@@ -1096,7 +1096,7 @@ namespace AE::App
 
 		return true;
 	}
-	
+
 /*
 =================================================
 	_DestroyVulkanImage

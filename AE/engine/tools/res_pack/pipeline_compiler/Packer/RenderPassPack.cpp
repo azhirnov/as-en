@@ -548,7 +548,7 @@ namespace
 								CHECK_ERR( ds_ref != null );
 								InitAttachmentRef( name, rt->index, OUT *ds_ref );
 								dst.pDepthStencilAttachment = ds_ref;
-								
+
 								if ( usage_it->second.type == EAttachment::RasterOrder and rt->HasDepth() )
 									dst.flags |= VK_SUBPASS_DESCRIPTION_RASTERIZATION_ORDER_ATTACHMENT_DEPTH_ACCESS_BIT_EXT;
 								else
@@ -599,7 +599,7 @@ namespace
 						{
 							auto*	fdm = _allocator.Allocate<VkRenderPassFragmentDensityMapCreateInfoEXT>( 1 );
 							CHECK_ERR( fdm != null );
-							
+
 							*ci_p_next	= fdm;
 							ci_p_next	= &fdm->pNext;
 
@@ -1048,7 +1048,7 @@ namespace
 			//<< "\nci.sType           = " << VkStructureTypeToString( _ci.sType )
 			//<< "\nci.pNext          " << (_ci.pNext == null ? " = null" : "!= null")
 			<< "\nci.flags           = " << VkRenderPassCreateFlagsToString( _ci.flags );
-		
+
 		for (auto* next = Cast<VkBaseInStructure>(_ci.pNext); next != null; next = next->pNext)
 		{
 			switch ( next->sType )
@@ -1274,7 +1274,7 @@ namespace
 		CHECK( _ci.flags == 0 );
 
 		result &= ser( _name, _states );
-		
+
 		// serialize extensions
 		{
 			uint	count = 0;
@@ -1444,7 +1444,7 @@ namespace
 		{{
 			auto*	fdm	= _allocator.Allocate<VkRenderPassFragmentDensityMapCreateInfoEXT>(1);
 			CHECK_ERR( fdm != null );
-			
+
 			fdm->sType	= VK_STRUCTURE_TYPE_RENDER_PASS_FRAGMENT_DENSITY_MAP_CREATE_INFO_EXT;
 			fdm->pNext	= null;
 
@@ -1464,12 +1464,12 @@ namespace
 		_ci.sType	= VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO_2;
 		_ci.pNext	= null;
 		_ci.flags	= 0;		// unused
-		
+
 		// deserialize extensions
 		{
 			uint	ext_count = 0;
 			result &= des( OUT ext_count );
-			
+
 			VkBaseOutStructure**	ci_p_next = BitCast<VkBaseOutStructure**>( &_ci.pNext );
 
 			for (uint j = 0; j < ext_count; ++j)
@@ -1598,7 +1598,7 @@ namespace
 					}
 					sp.pPreserveAttachments = refs;
 				}
-				
+
 				result &= des( OUT sp.viewMask );
 
 				// deserialize extensions
@@ -1658,7 +1658,7 @@ namespace
 			}
 			_ci.pDependencies = dependencies;
 		}
-		
+
 		{
 			FixedArray<uint, GraphicsConfig::MaxMultiViews>		view_mask_arr;
 			result &= des( OUT view_mask_arr );

@@ -224,7 +224,7 @@ namespace AE::Base
 		}
 		return result;
 	}
-	
+
 /*
 =================================================
 	GetComputerName
@@ -237,20 +237,6 @@ namespace AE::Base
 
 		CHECK_ERR( result == 0 );
 		return String{hostname};
-	}
-
-/*
-=================================================
-	GetUserName
-=================================================
-*/
-	String  UnixUtils::GetUserName () __NE___
-	{
-		char	username [LOGIN_NAME_MAX] = {};
-		int		result = ::getlogin_r( OUT username, LOGIN_NAME_MAX );
-		
-		CHECK_ERR( result == 0 );
-		return String{username};
 	}
 //-----------------------------------------------------------------------------
 

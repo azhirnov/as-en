@@ -19,7 +19,7 @@ int main ()
 	return 0;
 	#endif
 
-	StaticLogger::LoggerDbgScope	log{};
+	StaticLogger::LoggerScope	log{};
 	CHECK( PlatformUtils::SetSystemSleepState( ESystemSleepState::DontSleep_AllowTurnDisplayOff ));
 
 	UnitTest_Ranges();

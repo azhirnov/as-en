@@ -18,7 +18,7 @@ namespace AE::Base
 #	define PUSH_ERRORMODE
 #	define POP_ERRORMODE
 # endif
-	
+
 /*
 =================================================
 	constructor
@@ -43,15 +43,15 @@ namespace AE::Base
 		_loaded = false;
 		return true;
 	}
-	
+
 	bool  WindowsLibrary::Open (NtStringView libName) __NE___
 	{
 		CHECK_ERR( _handle == null );
 		_handle = ::GetModuleHandleA( libName.c_str() );
-		
+
 		if_unlikely( _handle == null )
 			WIN_CHECK_DEV( "Error when opening shared library '"s << libName << "': " );
-		
+
 		_loaded = false;
 		return _handle != null;
 	}
@@ -71,7 +71,7 @@ namespace AE::Base
 
 		if_unlikely( _handle == null )
 			WIN_CHECK_DEV( "Error when loading shared library '"s << libName << "': " );
-		
+
 		_loaded = (_handle != null);
 		return _loaded;
 	}
@@ -79,14 +79,14 @@ namespace AE::Base
 	bool  WindowsLibrary::Load (const Path &libName) __NE___
 	{
 		CHECK_ERR( _handle == null );
-		
+
 		PUSH_ERRORMODE;
 		_handle = ::LoadLibraryW( libName.c_str() );
 		POP_ERRORMODE;
 
 		if_unlikely( _handle == null )
 			WIN_CHECK_DEV( "Error when loading shared library '"s << ToString(libName) << "': " );
-		
+
 		_loaded = (_handle != null);
 		return _loaded;
 	}

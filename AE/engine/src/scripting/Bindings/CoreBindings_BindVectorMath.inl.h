@@ -411,7 +411,7 @@ namespace
 
 		static V	Not (const V &x)														{ return glm::operator ! (x); }
 	};
-	
+
 	struct VecFunc2
 	{
 		template <typename V, typename R>
@@ -560,7 +560,7 @@ namespace
 		AS_OP_BINARY_T(		binder, EBinaryOperator::ShiftRight, VF::ShiftR_v_v );
 		AS_OP_BINARY_T(		binder, EBinaryOperator::ShiftRight, VF::ShiftR_v_s );
 		AS_OP_BINARY_RH_T(	binder, EBinaryOperator::ShiftRight, VF::ShiftR_s_v );
-		
+
 		AS_OP_EQUAL_T(		binder, VF::Equal );
 		AS_OP_CMP_T(		binder, VF::Cmp );
 
@@ -610,7 +610,7 @@ namespace
 		AS_OP_BINARY_T(		binder, EBinaryOperator::Mod, VecFunc2::template Mod_v_v< Vec_t >);
 		AS_OP_BINARY_T(		binder, EBinaryOperator::Mod, VecFunc2::template Mod_v_s< Vec_t >);
 		AS_OP_BINARY_RH_T(	binder, EBinaryOperator::Mod, VecFunc2::template Mod_s_v< Vec_t >);
-		
+
 		AS_OP_EQUAL_T(		binder, VF::Equal );
 		AS_OP_CMP_T(		binder, VF::Cmp );
 

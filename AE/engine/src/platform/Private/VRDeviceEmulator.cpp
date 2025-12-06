@@ -363,7 +363,7 @@ namespace AE::App
 		if_likely( _vrSession._listener )
 			_vrSession._listener->OnStateChanged( _vrSession, state );
 	}
-	
+
 /*
 =================================================
 	OnSurfaceCreated
@@ -373,13 +373,13 @@ namespace AE::App
 	{
 		if_unlikely( not _vrSession._window )
 			return;
-		
+
 		ASSERT( &wnd == _vrSession._window.get() );
 
 		if_likely( _vrSession._listener )
 			_vrSession._listener->OnSurfaceCreated( _vrSession );
 	}
-	
+
 /*
 =================================================
 	OnSurfaceDestroyed
@@ -389,7 +389,7 @@ namespace AE::App
 	{
 		if_unlikely( not _vrSession._window )
 			return;
-		
+
 		ASSERT( &wnd == _vrSession._window.get() );
 
 		if_likely( _vrSession._listener )
@@ -530,7 +530,7 @@ namespace AE::App
 
 		return true;
 	}
-	
+
 /*
 =================================================
 	Close
@@ -645,7 +645,7 @@ namespace AE::App
 
 		return _surface.Create( desc2 );
 	}
-	
+
 /*
 =================================================
 	_CreateSwapchain / _DestroySwapchain

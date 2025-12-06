@@ -31,6 +31,9 @@
 #define INOUT
 #define OUT
 
+#define length			__reserved__
+#define input			__reserved__
+
 // used for vec/mat type building (templates)
 // AEStyleGLSLPreprocessor will replace it by GLSL vec/mat type without dimension suffix
 #define float_vec_t		float
@@ -282,7 +285,7 @@ template <int I>				ND_ _Vec<double,I>	uint64BitsToDouble (const _Vec<ulong,I>);
 								ND_ ushort			bfloat16BitsToUint (const bfloat);			// inverse uintBitsToBFloat16
 								ND_ bfloat			intBitsToBFloat16 (const short);			// inverse bfloat16BitsToInt
 								ND_ bfloat			uintBitsToBFloat16 (const ushort);			// inverse bfloat16BitsToUint
-								
+
 	template <int I>			ND_ _Vec<short,I>	bfloat16BitsToInt (const bfloat);			// inverse intBitsToBFloat16
 	template <int I>			ND_ _Vec<ushort,I>	bfloat16BitsToUint (const bfloat);			// inverse uintBitsToBFloat16
 	template <int I>			ND_ _Vec<bfloat,I>	intBitsToBFloat16 (const short);			// inverse bfloat16BitsToInt
@@ -294,7 +297,7 @@ template <int I>				ND_ _Vec<double,I>	uint64BitsToDouble (const _Vec<ulong,I>);
 								ND_ ubyte				floate5m2BitsToUint (const floatE5M2);			// inverse uintBitsToFloate5m2
 								ND_ floatE5M2			intBitsToFloate5m2 (const sbyte);				// inverse floate5m2BitsToInt
 								ND_ floatE5M2			uintBitsToFloate5m2 (const ubyte);				// inverse floate5m2BitsToUint
-								
+
 	template <int I>			ND_ _Vec<sbyte,I>		floate5m2BitsToInt (const _Vec<floatE5M2,I>);	// inverse intBitsToFloate5m2
 	template <int I>			ND_ _Vec<ubyte,I>		floate5m2BitsToUint (const _Vec<floatE5M2,I>);	// inverse uintBitsToFloate5m2
 	template <int I>			ND_ _Vec<floatE5M2,I>	intBitsToFloate5m2 (const _Vec<sbyte,I>);		// inverse floate5m2BitsToInt
@@ -304,7 +307,7 @@ template <int I>				ND_ _Vec<double,I>	uint64BitsToDouble (const _Vec<ulong,I>);
 								ND_ ubyte				floate4m3BitsToUint (const floatE4M3);			// inverse uintBitsToFloate4m3
 								ND_ floatE4M3			intBitsToFloate4m3 (const sbyte);				// inverse floate4m3BitsToInt
 								ND_ floatE4M3			uintBitsToFloate4m3 (const ubyte);				// inverse floate4m3BitsToUint
-								
+
 	template <int I>			ND_ _Vec<sbyte,I>		floate4m3BitsToInt (const _Vec<floatE4M3,I>);	// inverse intBitsToFloate4m3
 	template <int I>			ND_ _Vec<ubyte,I>		floate4m3BitsToUint (const _Vec<floatE4M3,I>);	// inverse uintBitsToFloate4m3
 	template <int I>			ND_ _Vec<floatE4M3,I>	intBitsToFloate4m3 (const _Vec<sbyte,I>);		// inverse floate4m3BitsToInt
@@ -332,7 +335,7 @@ template <int I>				ND_ _Vec<double,I>	uint64BitsToDouble (const _Vec<ulong,I>);
 									void			saturatedConvert (out floatE4M3 result, float value);
 	template <int I>				void			saturatedConvert (out _Vec<floatE5M2,I> &result, const _Vec<float,I> value);
 	template <int I>				void			saturatedConvert (out _Vec<floatE4M3,I> &result, const _Vec<float,I> value);
-	
+
 	//								void			saturatedConvert (out coopmat &result, coopmat value);
 #endif // AE_float8_e5m2_e4m3
 
@@ -597,13 +600,13 @@ public:
 	ND_ float  AtomicLoad (float  &mem, Scope scope, StorageSemantics storage, Semantics sem);
 	ND_ double AtomicLoad (double &mem, Scope scope, StorageSemantics storage, Semantics sem);
 	#endif
-	
+
 	#ifdef AE_memory_scope_semantics
 	void  AtomicStore (INOUT uint  &mem, uint  data, Scope scope, StorageSemantics storage, Semantics sem);
 	void  AtomicStore (INOUT sint  &mem, sint  data, Scope scope, StorageSemantics storage, Semantics sem);
 	void  AtomicStore (INOUT ulong &mem, ulong data, Scope scope, StorageSemantics storage, Semantics sem);
 	void  AtomicStore (INOUT slong &mem, slong data, Scope scope, StorageSemantics storage, Semantics sem);
-	
+
 	void  AtomicStore (INOUT float  &mem, float  data, Scope scope, StorageSemantics storage, Semantics sem);
 	void  AtomicStore (INOUT double &mem, double data, Scope scope, StorageSemantics storage, Semantics sem);
 	#endif
@@ -1083,7 +1086,7 @@ public:
 			float  	CullDistance [_MaxCullDistance];
 	#endif
 			int		Layer;
-			
+
   #endif
 
 
@@ -1596,7 +1599,7 @@ public:
 
 		ND_ T &		operator [] (int i);
 		ND_ T		operator [] (int i)		const;
-		
+
 		ND_ CoopMat		operator - ()					const;
 
 		ND_ CoopMat		operator + (const CoopMat &)	const;
@@ -1612,7 +1615,7 @@ public:
 		ND_ CoopMat		operator | (const CoopMat &)	const;
 		ND_ CoopMat		operator ~ ()					const;
 	};
-	
+
 	// read 'm' from 'buf[ firstElement * stride * rows ]' for row major or
 	// 'buf[ firstElement * stride * cols ]' to column major
 	template <typename T, Scope S, uint R, uint C, MatrixUse U, typename B>
@@ -1639,7 +1642,7 @@ public:
 													  MatrixOperands				 matrixOperands = MatrixOperands::None);
 
   #endif // AE_cooperative_matrix and AE_memory_scope_semantics
-	
+
 	// GLSL_NV_cooperative_vector
   #if defined(AE_cooperative_vector)
 
@@ -1654,10 +1657,10 @@ public:
 		explicit CoopVec (T);
 
 		ND_ uint		length()						const	{ return NumComps; }
-		
+
 		ND_ T &			operator [] (int i);
 		ND_ T			operator [] (int i)				const;
-		
+
 		ND_ CoopVec		operator - ()					const;
 
 		ND_ CoopVec		operator + (const CoopVec &)	const;
@@ -1732,7 +1735,7 @@ public:
 							CoopVectorMatrixLayout	matrixLayout,
 							bool					transpose,
 							uint					matrixStride);			// 16b align, in bytes, ignored for optimal layouts
-	
+
 	template <typename ResultTy, uint ResultComps,
 			  typename InputTy,  uint InputComps,
 			  typename MatrixTy
@@ -1748,12 +1751,12 @@ public:
 						 CoopVectorMatrixLayout	matrixLayout,
 						 bool					transpose,
 						 uint					matrixStride);				// 16b align, in bytes, ignored for optimal layouts
-	
+
 	template <typename T, uint NumComps, typename ArrayElemTy>
 	void  CoopVecLoad (OUT CoopVec<T, NumComps>			&v,
 					   volatile coherent ArrayElemTy[]	buffer,
 					   uint								bufferOffset);		// 16b align, in bytes
-	
+
 	template <typename T, uint NumComps, typename ArrayElemTy>
 	void  CoopVecStore (const CoopVec<T, NumComps>			&v,
 						OUT volatile coherent ArrayElemTy[]	buffer,
@@ -1882,6 +1885,11 @@ public:
 //	[[unroll, peel_count(3)]]
 //	[[unroll, partial_count(2)]]
 
+// GL_EXT_subgroup_uniform_control_flow
+//	void main() [[subroup_uniform_control_flow]]
+
+// GL_EXT_maximal_reconvergence
+//	void main() [[maximally_reconverges]]
 
 #ifdef __INTELLISENSE__
 #	define SH_VERT

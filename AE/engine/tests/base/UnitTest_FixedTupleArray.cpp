@@ -237,7 +237,7 @@ namespace
 		TEST( T::CheckStatistic() );
 	}
 
-	
+
 	static void  FixedTupleArray_Test8 ()
 	{
 		constexpr FixedTupleArray< 32, int, bool >	arr;

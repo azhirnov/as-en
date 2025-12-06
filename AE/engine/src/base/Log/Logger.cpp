@@ -244,8 +244,7 @@ namespace
 
 			case IDOK :
 			case IDIGNORE :	return EResult::Continue;
-		};
-
+		}
 		return EResult::Unknown;
 	}
 #endif
@@ -461,6 +460,9 @@ namespace
 
 			::GetConsoleMode( hnd, OUT &mode );
 			::SetConsoleMode( hnd, mode | ENABLE_VIRTUAL_TERMINAL_PROCESSING );
+
+			::SetConsoleOutputCP( CP_UTF8 );
+			//::setvbuf( stdout, null, _IOFBF, 1000 );
 		}
 		#endif
 

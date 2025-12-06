@@ -89,7 +89,7 @@ namespace AE::ResLoader
 
 		template <typename T>
 		ND_ ArrayView<T>				GetIndexData ()						C_NE___;
-		
+
 		template <typename T>
 		ND_ MutableArrayView<T>			GetIndexData ()						__NE___;
 
@@ -116,7 +116,7 @@ namespace AE::ResLoader
 						   ENormalEncoding normalEncoding) __NE___
 	{
 		StaticAssert(( IsSame< I, uint > or IsSame< I, ushort >));
-		
+
 		_attribs		= RVRef(attribs);
 		_vertexStride	= SizeOf<V>;
 		_topology		= topology;
@@ -174,7 +174,7 @@ namespace AE::ResLoader
 			return ArrayView<T>{ Cast<T>(_indices.data()), _indices.size()/sizeof(T) };
 		}
 	}
-	
+
 /*
 =================================================
 	GetIndexData

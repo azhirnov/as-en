@@ -116,7 +116,7 @@ namespace AE::Graphics
 		struct ComputeProperties
 		{
 			uint		computeGroupCount [3]	= {};
-			
+
 			uint		taskTotalGroups			= 0;
 			uint		taskGroupCount [3]		= {};
 
@@ -124,7 +124,7 @@ namespace AE::Graphics
 			uint		meshGroupCount [3]		= {};
 
 			uint		subgroupSize			= 0;
-			
+
 			bool		prefersLocalInvocationVertexOutput		: 1;
 			bool		prefersLocalInvocationPrimitiveOutput	: 1;
 			bool		prefersCompactVertexOutput				: 1;
@@ -260,7 +260,7 @@ namespace AE::Graphics
 					rayTracing.maxDispatchInvocations		= 67108864;					// amd/samsung/nvidia - 1073741824, amd - 67108864, intel - 4294967295, apple - ???
 
 					//rayTracing.maxThreadCount				= {};
-					
+
 					//rayTracing.maxVerticesPerCluster		= 0;
 					//rayTracing.maxTrianglesPerCluster		= 0;
 					//rayTracing.maxClusterGeometryIndex	= 0;

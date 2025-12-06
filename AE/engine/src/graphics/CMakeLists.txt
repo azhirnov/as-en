@@ -27,7 +27,7 @@ if (TARGET "GraphicsRHI")
 
 	set_property( TARGET "Graphics" PROPERTY FOLDER "Engine" )
 	target_link_libraries( "Graphics" PUBLIC "GraphicsRHI" "VFS" "Platform" )
-	
+
 	UseEnginePCH( "Graphics" )
 	EnableUnityBuild( "Graphics" )
 

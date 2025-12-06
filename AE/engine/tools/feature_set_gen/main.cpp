@@ -373,7 +373,7 @@ static bool  GenMinNonUniformDescIndexing (ArrayView<FeatureSetInfo> fsInfo)
 =================================================
 	GenMinNativeNonUniformDescIndexing
 =================================================
-*/
+*
 static bool  GenMinNativeNonUniformDescIndexing (ArrayView<FeatureSetInfo> fsInfo)
 {
 	#define FS_LIST( _visitor_ ) \
@@ -1511,7 +1511,7 @@ static bool  GenAppleFamily (INOUT Array<FeatureSetInfo> &fsInfo)
 */
 int main ()
 {
-	AE::Base::StaticLogger::LoggerDbgScope log{};
+	StaticLogger::LoggerScope log{};
 
 	Array<FeatureSetInfo>	fs_infos;
 	{
@@ -1553,6 +1553,11 @@ int main ()
 	{
 		AE_LOGI( "Process: "s << ToString( info.path ));
 		CHECK_ERR( FeatureSetFromJSON( info.path, OUT info.fs, OUT info.name ), -1 );
+
+		// pre validation
+		{
+			info.fs.attachmentBlendFormats &= info.fs.attachmentFormats;
+		}
 
 		info.fs.Validate();
 
@@ -1606,7 +1611,7 @@ int main ()
 	CHECK_ERR( GenMinimalFS					( fs_infos ),	-10 );
 	CHECK_ERR( GenMinDescriptorIndexing		( fs_infos ),	-10 );
 	CHECK_ERR( GenMinNonUniformDescIndexing	( fs_infos ),	-10 );
-	CHECK_ERR( GenMinNativeNonUniformDescIndexing( fs_infos ),	-10 );
+//	CHECK_ERR( GenMinNativeNonUniformDescIndexing( fs_infos ),	-10 );
 	CHECK_ERR( GenMinRecursiveRayTracing	( fs_infos ),	-10 );
 	CHECK_ERR( GenMinInlineRayTracing		( fs_infos ),	-10 );
 	CHECK_ERR( GenMinMeshShader				( fs_infos ),	-10 );

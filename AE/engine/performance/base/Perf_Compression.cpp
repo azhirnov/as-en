@@ -30,8 +30,9 @@ namespace
 		const uint		max_iter = 10;
 		Array<float>	comp_arr;
 
-		IntervalProfiler	profiler{ "CompressionTest on "s << coreTypeName, IntervalProfiler::EFlags::ExcludeDelta };
-		
+		IntervalProfiler	profiler{ "CompressionTest on "s << coreTypeName,
+									  IntervalProfiler::EFlags::IncludeTime | IntervalProfiler::EFlags::IncludeDiffFromFastest };
+
 	  #ifdef AE_ENABLE_BROTLI
 		for (float wnd = 0.6f; wnd < 1.1f; wnd += 0.1f)
 		for (float qual = 0.2f; qual < 0.9f; qual += 0.2f)
@@ -42,12 +43,12 @@ namespace
 
 			String	name = "Brotli, q="s << ToString( qual, 1 ) << ", wnd=" << ToString( wnd, 1 );
 			Bytes	comp_size;
-			
+
 			profiler.BeginTest( name, [&comp_arr, i = comp_arr.size()](nanoseconds) { return ToString(comp_arr[i], 1) << '%'; } );
 			for (uint i = 0; i < max_iter; ++i)
 			{
 				profiler.BeginIteration();
-				
+
 				comp_size = ArraySizeOf(compressed);
 				TEST( BrotliUtils::Compress( OUT compressed.data(), INOUT comp_size, buffer.data(), ArraySizeOf(buffer), cfg ));
 
@@ -58,7 +59,7 @@ namespace
 			AE_LOGI( name );
 		}
 	  #endif
-		
+
 	  #ifdef AE_ENABLE_LZ4
 		compressed.resize( usize{Lz4Utils::MaxCompressedSize( Bytes{buffer.size()} )} );
 
@@ -70,12 +71,12 @@ namespace
 
 			String	name = "LZ4, hc="s << ToString( hc, 1 );
 			Bytes	comp_size;
-			
+
 			profiler.BeginTest( name, [&comp_arr, i = comp_arr.size()](nanoseconds) { return ToString(comp_arr[i], 1) << '%'; } );
 			for (uint i = 0; i < max_iter; ++i)
 			{
 				profiler.BeginIteration();
-				
+
 				comp_size = ArraySizeOf(compressed);
 				TEST( Lz4Utils::Compress( OUT compressed.data(), INOUT comp_size, buffer.data(), ArraySizeOf(buffer), cfg ));
 
@@ -85,7 +86,7 @@ namespace
 			comp_arr.push_back(float( 100.0 * double(ulong{comp_size}) / double(buffer.size()) ));
 			AE_LOGI( name );
 		}
-		
+
 		for (float lvl = 0.0f; lvl < 1.0f; lvl += 0.2f)
 		{
 			Lz4WStream::Config	cfg;
@@ -93,12 +94,12 @@ namespace
 
 			String	name = "LZ4 frame, lvl="s << ToString( lvl, 1 );
 			Bytes	comp_size;
-			
+
 			profiler.BeginTest( name, [&comp_arr, i = comp_arr.size()](nanoseconds) { return ToString(comp_arr[i], 1) << '%'; } );
 			for (uint i = 0; i < max_iter; ++i)
 			{
 				profiler.BeginIteration();
-				
+
 				comp_size = ArraySizeOf(compressed);
 				TEST( Lz4Utils::CompressFrame( OUT compressed.data(), INOUT comp_size, buffer.data(), ArraySizeOf(buffer), cfg ));
 
@@ -109,7 +110,7 @@ namespace
 			AE_LOGI( name );
 		}
 	  #endif
-		
+
 	  #ifdef AE_ENABLE_ZSTD
 		for (float lvl = 0.f; lvl < 1.0f; lvl += 0.1f)
 		{
@@ -118,12 +119,12 @@ namespace
 
 			String	name = "ZStd, lvl="s << ToString( lvl, 1 );
 			Bytes	comp_size;
-			
+
 			profiler.BeginTest( name, [&comp_arr, i = comp_arr.size()](nanoseconds) { return ToString(comp_arr[i], 1) << '%'; } );
 			for (uint i = 0; i < max_iter; ++i)
 			{
 				profiler.BeginIteration();
-				
+
 				comp_size = ArraySizeOf(compressed);
 				TEST( ZStdUtils::Compress( OUT compressed.data(), INOUT comp_size, buffer.data(), ArraySizeOf(buffer), cfg ));
 
@@ -136,7 +137,7 @@ namespace
 	  #endif
 	}
 
-	
+
 	static void  DecompressionTest (StringView coreTypeName)
 	{
 		Array<char>		buffer;
@@ -146,15 +147,16 @@ namespace
 
 		Array<char>		compressed;
 		compressed.resize( buffer.size() );
-		
+
 		Array<char>		decompressed;
 		decompressed.resize( buffer.size() );
 
 		const uint		max_iter = 10;
 		Array<float>	comp_arr;
 
-		IntervalProfiler	profiler{ "DecompressionTest on "s << coreTypeName, IntervalProfiler::EFlags::ExcludeDelta };
-		
+		IntervalProfiler	profiler{ "DecompressionTest on "s << coreTypeName,
+									  IntervalProfiler::EFlags::IncludeTime | IntervalProfiler::EFlags::IncludeDiffFromFastest };
+
 	  #ifdef AE_ENABLE_BROTLI
 		for (float wnd = 0.6f; wnd < 1.1f; wnd += 0.1f)
 		for (float qual = 0.2f; qual < 0.9f; qual += 0.2f)
@@ -167,7 +169,7 @@ namespace
 
 			Bytes	comp_size = ArraySizeOf(compressed);
 			TEST( BrotliUtils::Compress( OUT compressed.data(), INOUT comp_size, buffer.data(), ArraySizeOf(buffer), cfg ));
-			
+
 			profiler.BeginTest( name, [&comp_arr, i = comp_arr.size()](nanoseconds) { return ToString(comp_arr[i], 1) << '%'; } );
 			for (uint i = 0; i < max_iter; ++i)
 			{
@@ -184,7 +186,7 @@ namespace
 			AE_LOGI( name );
 		}
 	  #endif
-		
+
 	  #ifdef AE_ENABLE_LZ4
 		compressed.resize( usize{Lz4Utils::MaxCompressedSize( Bytes{buffer.size()} )} );
 
@@ -197,12 +199,12 @@ namespace
 			String	name = "LZ4, hc="s << ToString( hc, 1 );
 			Bytes	comp_size = ArraySizeOf(compressed);
 			TEST( Lz4Utils::Compress( OUT compressed.data(), INOUT comp_size, buffer.data(), ArraySizeOf(buffer), cfg ));
-			
+
 			profiler.BeginTest( name, [&comp_arr, i = comp_arr.size()](nanoseconds) { return ToString(comp_arr[i], 1) << '%'; } );
 			for (uint i = 0; i < max_iter; ++i)
 			{
 				profiler.BeginIteration();
-				
+
 				Bytes	decomp_size = ArraySizeOf(decompressed);
 				TEST( Lz4Utils::Decompress( OUT decompressed.data(), INOUT decomp_size, compressed.data(), comp_size ));
 
@@ -213,7 +215,7 @@ namespace
 			comp_arr.push_back(float( 100.0 * double(ulong{comp_size}) / double(buffer.size()) ));
 			AE_LOGI( name );
 		}
-		
+
 		for (float lvl = 0.0f; lvl < 1.0f; lvl += 0.2f)
 		{
 			Lz4WStream::Config	cfg;
@@ -222,12 +224,12 @@ namespace
 			String	name = "LZ4 frame, lvl="s << ToString( lvl, 1 );
 			Bytes	comp_size = ArraySizeOf(compressed);
 			TEST( Lz4Utils::CompressFrame( OUT compressed.data(), INOUT comp_size, buffer.data(), ArraySizeOf(buffer), cfg ));
-			
+
 			profiler.BeginTest( name, [&comp_arr, i = comp_arr.size()](nanoseconds) { return ToString(comp_arr[i], 1) << '%'; } );
 			for (uint i = 0; i < max_iter; ++i)
 			{
 				profiler.BeginIteration();
-				
+
 				Bytes	decomp_size = ArraySizeOf(decompressed);
 				TEST( Lz4Utils::DecompressFrame( OUT decompressed.data(), INOUT decomp_size, compressed.data(), comp_size ));
 
@@ -239,7 +241,7 @@ namespace
 			AE_LOGI( name );
 		}
 	  #endif
-		
+
 	  #ifdef AE_ENABLE_ZSTD
 		for (float lvl = 0.f; lvl < 1.0f; lvl += 0.1f)
 		{
@@ -249,12 +251,12 @@ namespace
 			String	name = "ZStd, lvl="s << ToString( lvl, 1 );
 			Bytes	comp_size = ArraySizeOf(compressed);
 			TEST( ZStdUtils::Compress( OUT compressed.data(), INOUT comp_size, buffer.data(), ArraySizeOf(buffer), cfg ));
-			
+
 			profiler.BeginTest( name, [&comp_arr, i = comp_arr.size()](nanoseconds) { return ToString(comp_arr[i], 1) << '%'; } );
 			for (uint i = 0; i < max_iter; ++i)
 			{
 				profiler.BeginIteration();
-				
+
 				Bytes	decomp_size = ArraySizeOf(decompressed);
 				TEST( ZStdUtils::Decompress( OUT decompressed.data(), INOUT decomp_size, compressed.data(), comp_size ));
 

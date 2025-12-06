@@ -242,7 +242,7 @@ namespace AE::ResEditor
 		pd.cmdbuf = ctx.ReleaseCommandBuffer();
 		return true;
 	}
-	
+
 /*
 =================================================
 	Update

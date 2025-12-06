@@ -393,6 +393,8 @@ namespace AE::ResEditor
 
 		static void  _AddVertexBuffer (Scripting::ScriptArgList args)										__Th___;
 
+		ND_ usize  _DrawCmdsWithLayer (ERenderLayer)														C_NE___;
+
 		ND_ static auto  _CreateUBType ()																	__Th___;
 	};
 

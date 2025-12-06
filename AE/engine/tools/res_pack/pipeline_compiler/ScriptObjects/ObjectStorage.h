@@ -199,7 +199,7 @@ namespace AE::PipelineCompiler
 		void  CompileShaderMSL (OUT CompiledShaderPtr &shader, const ScriptShaderPtr &inShader, EShaderVersion version,
 								const String &defines, const String &resources, ArrayView<String> include,
 								ArrayView<ScriptFeatureSetPtr> features)															__Th___;
-		
+
 		void  CompileShaderSLang (OUT CompiledShaderPtr &shader, const ScriptShaderPtr &inShader, EShaderVersion version,
 								  const String &defines, const String &resources, ArrayView<String> include,
 								  ArrayView<ScriptFeatureSetPtr> features)															__Th___;

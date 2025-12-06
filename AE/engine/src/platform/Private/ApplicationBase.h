@@ -30,7 +30,7 @@ namespace AE::App
 
 		Unique< IAppListener >	_listener;
 		const Clock				_timer;
-		
+
 		WindowArray_t			_windows;
 
 	  #ifdef AE_PLATFORM_WINDOWS
@@ -60,7 +60,7 @@ namespace AE::App
 		WindowPtr    CreateVRSession (WndListenerPtr, IInputActions*, IVRSession::EDeviceType)	__NE_OV;
 
 		Duration_t   GetTimeSinceStart ()														C_NE_OF	{ return Duration_t{_timeSinceStart.load()}; }
-		
+
 		Monitor::ID  GetMonitor (int2 pos)														C_NE_OF;
 		Monitor::ID  GetMonitorFromNative (Monitor::NativeMonitor_t)							C_NE_OF;
 

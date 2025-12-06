@@ -12,7 +12,7 @@ if ( (${AE_ENABLE_METAL} OR ${AE_ENABLE_VULKAN}) AND (TARGET "GraphicsRHI") )
 	if (${AE_ENABLE_VULKAN})
 		target_link_libraries( "GraphicsRHI-shared" PUBLIC "VulkanSyncLog" )
 	endif()
-	
+
 	UseEnginePCH2( "GraphicsRHI-shared" )
 
 endif()

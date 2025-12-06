@@ -144,7 +144,7 @@
 				float	dist = AA_QuadGrid_dxdy( (pos + float2(Abs(pos.y)*0.1, 0.0)) / scale2d, thick ).x;
 
 				out_Color = float4( ApplyFalloff( dist ));
-				
+
 				if ( iInvColor == 1 )
 					out_Color = InvertColor( out_Color.x );
 				break;
@@ -161,7 +161,7 @@
 						md		*= AA_RadialLines_dxdy( pos, float(iRadialLines), thick ).x;
 
 				out_Color = float4( ApplyFalloff( md ));
-				
+
 				if ( iInvColor == 1 )
 					out_Color = InvertColor( out_Color.x );
 				break;
@@ -232,7 +232,7 @@
 					float4	grid_col = float4(ApplyFalloff( df.x ));
 					if ( iInvColor == 1 )
 						grid_col = InvertColor( grid_col.x );
-					
+
 					float	fog = SmoothStep( df.y / iSubDiv.x, 5.5, 6.5 );
 					out_Color = Lerp( grid_col, out_Color, fog );
 				}

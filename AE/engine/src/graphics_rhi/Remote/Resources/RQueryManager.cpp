@@ -211,7 +211,7 @@ namespace AE::Graphics
 		return _GetPipelineStatistic< Msg::Query_GetPipelineStatistic, Msg::Query_GetComputePipeStat_Response >(
 					q, OUT result, size, EQueryType::ComputePipelineStatistic );
 	}
-	
+
 /*
 =================================================
 	_GetPipelineStatistic

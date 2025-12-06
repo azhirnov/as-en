@@ -550,8 +550,7 @@ bool  RGTest::_Create (FStorage_t refStorage)
 	info.swapchain.presentMode	= EPresentMode::FIFO;
 	info.swapchain.minImageCount= 2;
 
-	info.deviceAddr				= Networking::IpAddress::FromInt( 192,168,0,0, 0 );	// TODO: set RemoveDevice IP address
-
+	info.deviceAddr				= Networking::IpAddress::FromLocalhostTCP( 0 );	// or AE_RMG_IPv4
 	info.enableSyncLog			= true;
 
 	CHECK_ERR( _device.Init( info ));

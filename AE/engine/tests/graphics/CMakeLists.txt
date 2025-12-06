@@ -55,7 +55,7 @@ if (TARGET "Graphics")
 			AE_REF_IMG_PATH="${AE_DATA_FOLDER}/tests/graphics/"
 			AE_RES_PACK_FOLDER="${AE_TEMP_FOLDER}/engine/graphics/" )
 	endif()
-	
+
 	UseEnginePCH2( ${TEST_NAME} )
 
 	add_test( NAME ${TEST_NAME} COMMAND ${TEST_NAME} )

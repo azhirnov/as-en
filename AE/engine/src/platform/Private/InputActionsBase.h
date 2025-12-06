@@ -139,6 +139,8 @@ namespace AE::App
 
 		bool						_vrEmulation	= false;
 
+		U32String					_textInput;
+
 		TsDoubleBufferedQueue		_dbQueue;
 
 		DRC_ONLY(
@@ -184,6 +186,8 @@ namespace AE::App
 		void  _Setup (float2 surfDim, float pixToMm)												__NE___;
 		void  _Reset ()																				__NE___;
 
+		void  _AddChar (CharUtf32)																	__NE___;
+
 		template <typename T>
 		NdCx__ static InputKey	_Pack (T key,
 									   EGestureType gesture,
@@ -222,6 +226,8 @@ namespace AE::App
 
 		template <EGestureType GT>
 		void  _UpdateKey2 (ushort type, EGestureState state, ControllerID id, Duration_t timestamp)	__NE___;
+
+		void  _SendTextInput ()																		__NE___;
 	};
 //-----------------------------------------------------------------------------
 

@@ -55,7 +55,7 @@ namespace
 
 		return result;
 	}
-	
+
 /*
 =================================================
 	ProcessMessage
@@ -83,7 +83,7 @@ namespace
 		s_recursion.fetch_sub( 1 );
 		return res;
 	}
-	
+
 /*
 =================================================
 	SetDebugReportHook

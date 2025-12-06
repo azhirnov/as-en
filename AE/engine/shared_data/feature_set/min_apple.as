@@ -4,11 +4,18 @@
 void ASmain ()
 {
 	// include:
-	//	Apple M1 driver 0.2.2017 on Osx 14.1
-	//	Apple A12 GPU driver 0.2.2018 on Ios 17.5
-	//	Apple A15 GPU driver 0.2.2018 on Ios 17.5
-	//	Apple A17 Pro GPU driver 0.2.2018 on Ios 17.5
-	//	Apple M3 Max driver 0.2.2014 on Osx 14.2
+	//	Apple-M1-1.4.323
+	//	Apple-M2-1.4.323
+	//	Apple-M3-1.4.323
+	//	Apple-M4-1.4.329
+	//	Apple-A12-1.3.313
+	//	Apple-A13-1.4.323
+	//	Apple-A14-1.4.323
+	//	Apple-A15-1.4.323
+	//	Apple-A16-1.4.323
+	//	Apple-A17-1.4.323
+	//	Apple-A18-1.4.323
+	//	Apple-A19-1.4.323
 	//	Apple9
 	//	Apple8
 	//	Apple8_Mac
@@ -75,6 +82,8 @@ void ASmain ()
 	fset.scalarBlockLayout (True);
 	fset.bufferDeviceAddress (True);
 	fset.storagePushConstant8 (True);
+	fset.fragmentStoresAndAtomics (True);
+	fset.vertexPipelineStoresAndAtomics (True);
 	fset.shaderOutputViewportIndex (True);
 	fset.shaderOutputLayer (True);
 	fset.shaderClipDistance (True);
@@ -117,7 +126,7 @@ void ASmain ()
 	fset.perPipeline_maxStorageBuffers (155);
 	fset.perPipeline_maxStorageImages (40);
 	fset.perPipeline_maxUniformBuffers (155);
-	fset.perPipeline_maxTotalResources (700);
+	fset.perPipeline_maxTotalResources (1024);
 	fset.perStage_maxInputAttachments (96);
 	fset.perStage_maxSampledImages (96);
 	fset.perStage_maxSamplers (16);
@@ -186,9 +195,6 @@ void ASmain ()
 		EPixelFormat::RGB10_A2U, EPixelFormat::R16F, EPixelFormat::RG16F, EPixelFormat::RGBA16F, 
 		EPixelFormat::R32F, EPixelFormat::RG32F, EPixelFormat::RGBA32F, EPixelFormat::R11G11B10F
 	});
-	fset.AddTexelFormats( EFormatFeature::StorageTexelBufferAtomic, {
-		EPixelFormat::R32I, EPixelFormat::R32U
-	});
 	fset.imageCubeArray (True);
 	fset.textureCompressionASTC_LDR (True);
 	fset.textureCompressionETC2 (True);
@@ -200,9 +206,6 @@ void ASmain ()
 	fset.maxImageDimension3D (2 << 10);
 	fset.maxImageDimensionCube (16 << 10);
 	fset.maxImageArrayLayers (2 << 10);
-	fset.AddTexelFormats( EFormatFeature::StorageImageAtomic, {
-		EPixelFormat::R32I, EPixelFormat::R32U
-	});
 	fset.AddTexelFormats( EFormatFeature::StorageImage, {
 		EPixelFormat::RGBA16_SNorm, EPixelFormat::RGBA8_SNorm, EPixelFormat::RG16_SNorm, EPixelFormat::RG8_SNorm, 
 		EPixelFormat::R16_SNorm, EPixelFormat::R8_SNorm, EPixelFormat::RGBA16_UNorm, EPixelFormat::RGBA8_UNorm, 

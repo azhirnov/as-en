@@ -142,7 +142,7 @@ namespace AE::CICD
 		AtomicRC<Session>	_session;		// set in other thread, read & reset in client thread
 		Atomic<uint>		_cmdIndex	{0};
 
-		Array<CopyCmd>		_copyCmds;
+		Array<CopyCmd>		_copyCmds;		// executed in '_OnSessionComplete()'
 
 		// log
 		uint				_logPart			= UMax;

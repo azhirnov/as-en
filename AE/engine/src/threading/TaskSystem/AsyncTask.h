@@ -63,7 +63,7 @@
 	void	Coro_ContinueInQueue (ETaskQueue) - stop execution and add coroutine to another queue.
 
 	auto	Coro_WaitResultOrCancel (deps) - same as 'Coro_Continue', return promise result.
-	
+
 	void	co_await task				- same as 'Coro_Continue(task)' but pointers are not changed.
 	auto	co_await promise			- same as 'Coro_WaitResultOrCancel(promise)' but pointers are not changed.
 
@@ -127,7 +127,7 @@ namespace AE::_Coro_
 	template <typename T>				struct Promise_CoroTraits;
 	template <typename T, ETaskQueue>	class ScheduledInlinePromise;
 	template <ETaskQueue>				class ScheduledInlineCoro;
-	
+
 	template <typename T>				class CoroAwaiter_WaitResultCopyOrCancel_Array;
 	template <typename ...Deps>			class CoroAwaiter_WaitResultCopyOrCancel;
 
@@ -140,14 +140,14 @@ namespace AE::_Coro_
 	class AsyncTaskCoro_Error {};
 	class AsyncTaskCoro_Success {};
 	enum class MakeDeferResult {};
-	
+
 	struct AsyncTaskCoro_ChangeQueue
 	{
 		ETaskQueue	value;
 	};
 
 
-	
+
 	//
 	// Async Task
 	//
@@ -221,7 +221,7 @@ namespace AE::_Coro_
 		Atomic< int >					_waitCount			{0};					// 0 - all complete, >0 - has uncomplete dependencies
 		Atomic< EStatus >				_status				{EStatus::Initial};
 		Atomic< bool >					_willBeCanceled		{false};				// 'true' - allow to fast cancel.
-		const EFlags					_flags				{Default};					
+		const EFlags					_flags				{Default};
 		ETaskQueue						_queueType			{ETaskQueue::PerFrame};
 
 		#if AE_ENABLE_TASK_NAME
@@ -231,7 +231,7 @@ namespace AE::_Coro_
 		  private:
 			uint						_resumeCount		{0};
 		#endif
-		
+
 		PtrWithSpinLock< OutputChunk >	_output				{null};
 
 		PROFILE_ONLY(
@@ -267,7 +267,7 @@ namespace AE::_Coro_
 		ND_ auto		yield_value (AsyncTaskCoro_ChangeQueue)		__NE___;
 
 			void		unhandled_exception ()						__NE___	{ _Error(); }
-			
+
 
 		// Execute task.
 		// Can be executed multiple times if used 'co_await'.
@@ -290,7 +290,7 @@ namespace AE::_Coro_
 
 		// Only during initialization or while executing
 			void  _SetQueueType (ETaskQueue type)					__NE___;
-			
+
 		#if AE_ENABLE_TASK_NAME
 			void  _SetDebugName (StringView dbgName)				__NE___;
 			void  _SetDebugName (const SourceLoc &loc)				__NE___;
@@ -314,7 +314,7 @@ namespace AE::_Coro_
 
 			void  _ReleaseObject ()									__NE_OF;
 			bool  _SetCancellationState ()							__NE___;
-			
+
 		// Call this methods only inside 'Run()' method.
 			void  _Error ()											__NE___;
 
@@ -342,7 +342,7 @@ namespace AE::_Coro_
 	struct AsyncTaskImpl::TaskDependencyManagerApi
 	{
 		using TaskDependency	= AsyncTaskImpl::TaskDependency;
-		
+
 		____IF static auto		IncWaitCounter (AsyncTaskImpl &self)								__NE___	{ return self._waitCount.fetch_add( 1 ); }
 
 			   static void		SetDependencyCompletionStatus (AsyncTaskImpl &task, Bool isCanceled = False{}) __NE___;
@@ -352,12 +352,12 @@ namespace AE::_Coro_
 	class AsyncTaskImpl::TaskSchedulerApi
 	{
 		friend class Threading::TaskScheduler;
-			
+
 		using OutputChunk		= AsyncTaskImpl::OutputChunk;
 		using TaskDependency	= AsyncTaskImpl::TaskDependency;
 
 		DEBUG_ONLY( ND_ static slong  AsyncTaskTotalCount ()										__NE___;)
-			
+
 		____IF static auto			IncWaitCounter (AsyncTaskImpl &self)							__NE___	{ return self._waitCount.fetch_add( 1 ); }
 		Nd__IF static auto			DecWaitCounter (AsyncTaskImpl &self)							__NE___	{ return self._waitCount.fetch_sub( 1 ); }
 		____IF static void			SetWaitCounter (AsyncTaskImpl &self, int value)					__NE___	{ self._waitCount.store( value ); }
@@ -371,7 +371,7 @@ namespace AE::_Coro_
 		Nd__IF static auto			LoadWaitCount (const AsyncTaskImpl &self)						__NE___	{ return self._waitCount.load(); }
 		Nd__IF static bool			IsFastCancellation (const AsyncTaskImpl &self)					__NE___ { return self._willBeCanceled.load() and NoBits( self._flags, EFlags::RunCancelled ); }
 		____IF static void			SetQueueType (AsyncTaskImpl &self, ETaskQueue type)				__NE___	{ self._SetQueueType( type ); }
-		
+
 		#if AE_ENABLE_TASK_NAME
 			   static void			Init (AsyncTaskImpl&, ETaskQueue, StringView, const SourceLoc&)	__NE___;
 		#else
@@ -385,7 +385,7 @@ namespace AE::_Coro_
 		friend class Threading::LfTaskQueue;
 
 		using EFlags	= AsyncTaskImpl::EFlags;
-			
+
 		Nd__IF static bool			WillBeCanceled (const AsyncTaskImpl &self)						__NE___ { return self._willBeCanceled.load(); }
 		Nd__IF static EFlags		GetFlags (const AsyncTaskImpl &self)							__NE___ { return self._flags; }
 		Nd__IF static bool			InputDepsAreNotFinished (AsyncTaskImpl &self)					__NE___	{ return self._waitCount.load() > 0; }
@@ -404,7 +404,7 @@ namespace AE::_Coro_
 		friend class AsyncTaskCoro_IsCanceled;
 		friend class AsyncTaskCoro_NextQueue;
 		friend class CoroAwaiter_Continue;
-			
+
 		template <typename ...Deps>
 		Nd__IF static bool			Continue (AsyncTaskImpl &self, const Tuple<Deps...> &deps,
 											  Bool defaultIsStrongDep)								__NE___	{ return self._Continue( deps, defaultIsStrongDep ); }
@@ -436,7 +436,7 @@ namespace AE::_Coro_
 		)
 	};
 
-	
+
 
 	forceinline bool  AsyncTaskImpl::IsDummy () C_NE___
 	{
@@ -508,7 +508,7 @@ namespace AE::_Coro_
 		template <typename T>
 		  requires( T::template _AllowExplicitCast<T> )
 		explicit BaseCoro (const BaseCoro<T> &other)	__NE___ : _coro{other._coro} {}
-		
+
 		template <typename T>
 		  requires( T::template _AllowExplicitCast<T> )
 		explicit BaseCoro (BaseCoro<T> &&other)			__NE___ : _coro{RVRef(other._coro)} {}
@@ -518,7 +518,7 @@ namespace AE::_Coro_
 		template <typename T>
 		  requires( T::template _AllowImplicitCast<T> )
 		BaseCoro (const BaseCoro<T> &other)				__NE___ : _coro{other._coro} {}
-		
+
 		template <typename T>
 		  requires( T::template _AllowImplicitCast<T> )
 		BaseCoro (BaseCoro<T> &&other)					__NE___ : _coro{RVRef(other._coro)} {}
@@ -539,7 +539,7 @@ namespace AE::_Coro_
 		template <typename T = PromiseType>
 			requires( T::_allowImplicitCastToAsyncTask )
 		ND_ operator AsyncTask ()						CrNE___	{ return _coro; }
-		
+
 		template <typename T = PromiseType>
 			requires( T::_allowImplicitCastToAsyncTask )
 		ND_ operator AsyncTask ()						rvNE___	{ return RVRef(_coro); }
@@ -549,7 +549,7 @@ namespace AE::_Coro_
 		template <typename T = PromiseType>
 			requires( not T::_allowImplicitCastToAsyncTask )
 		ND_ explicit operator AsyncTask ()				CrNE___	{ return _coro; }
-		
+
 		template <typename T = PromiseType>
 			requires( not T::_allowImplicitCastToAsyncTask )
 		ND_ explicit operator AsyncTask ()				rvNE___	{ return RVRef(_coro); }
@@ -557,7 +557,7 @@ namespace AE::_Coro_
 
 		ND_ auto&  operator * ()						C_NE___	{ return *_coro; }
 		ND_ auto*  operator -> ()						C_NE___	{ return _coro.operator->(); }
-		
+
 		template <typename T>
 		ND_ bool  operator == (const T &rhs)			C_NE___ { return _coro == rhs; }
 
@@ -579,7 +579,7 @@ namespace AE::_Coro_
 	public:
 		using Self			= AsyncCoroImpl;
 		using Coroutine_t	= BaseCoro< Self >;
-		
+
 		static constexpr bool	_allowImplicitCastToAsyncTask = true;
 
 		template <typename T>
@@ -597,13 +597,13 @@ namespace AE::_Coro_
 		// otherwise 'std::bad_alloc' would be thrown.
 		// Function returns cancelled task.
 		ND_ static auto		get_return_object_on_allocation_failure ()	__NE___ { return Coroutine_t{}; }
-			
+
 		ND_ static void*	operator new (usize size)					__NE___	{ return NothrowAllocatable::operator new( size ); }	// fixed crash on MSVC
 	};
 //-----------------------------------------------------------------------------
 
 
-		
+
 	//
 	// Uncancellable Async Coroutine
 	//
@@ -613,7 +613,7 @@ namespace AE::_Coro_
 	public:
 		using Self			= UncancellableCoroImpl;
 		using Coroutine_t	= BaseCoro< Self >;
-		
+
 		static constexpr bool	_allowImplicitCastToAsyncTask = true;
 
 		template <typename T>
@@ -632,13 +632,13 @@ namespace AE::_Coro_
 
 		ND_	auto			get_return_object ()						__NE___	{ return Coroutine_t{*this}; }
 		ND_ static auto		get_return_object_on_allocation_failure ()	__NE___ { return Coroutine_t{}; }
-			
+
 		ND_ static void*	operator new (usize size)					__NE___	{ return NothrowAllocatable::operator new( size ); }	// fixed crash on MSVC
 	};
 //-----------------------------------------------------------------------------
 
 
-	
+
 	//
 	// Inline Coroutine
 	//
@@ -663,7 +663,7 @@ namespace AE::_Coro_
 
 		ND_	auto			get_return_object (const SourceLoc &loc = SourceLoc::current()) __NE___;
 		ND_ static auto		get_return_object_on_allocation_failure ()	__NE___;
-			
+
 		ND_ static void*	operator new (usize size)					__NE___	{ return NothrowAllocatable::operator new( size ); }	// fixed crash on MSVC
 	};
 
@@ -681,7 +681,7 @@ namespace AE::_Coro_
 	// variables
 	private:
 		AsyncTaskImpl*	_coro	= null;
-		
+
 	// methods
 	public:
 		explicit ScheduledInlineCoro (AsyncTaskImpl* ptr)				__NE___ : _coro{ ptr } {}
@@ -694,7 +694,7 @@ namespace AE::_Coro_
 		void  _AddToScheduler ()										__NE___;
 	};
 
-	
+
 	template <ETaskQueue Q>
 	forceinline auto  InlineCoroImpl<Q>::get_return_object (const SourceLoc &loc)	__NE___
 	{
@@ -704,7 +704,7 @@ namespace AE::_Coro_
 		Unused( loc );
 		return Coroutine_t{ this };
 	}
-	
+
 	template <ETaskQueue Q>
 	forceinline auto  InlineCoroImpl<Q>::get_return_object_on_allocation_failure ()	__NE___
 	{
@@ -724,13 +724,13 @@ namespace AE::_Coro_
 	public:
 		using Self			= ScheduledCoroImpl< Queue >;
 		using Coroutine_t	= BaseCoro< Self >;
-		
+
 		static constexpr bool	_allowImplicitCastToAsyncTask = true;
-		
+
 		template <typename T>
 		static constexpr bool	_AllowImplicitCast = IsBaseOf< Self, T >;
 
-		
+
 	// methods
 	public:
 		// Coroutine //
@@ -739,7 +739,7 @@ namespace AE::_Coro_
 
 		ND_	auto			get_return_object (const SourceLoc &loc = SourceLoc::current()) __NE___;
 		ND_ static auto		get_return_object_on_allocation_failure ()	__NE___ { return Coroutine_t{}; }
-			
+
 		ND_ static void*	operator new (usize size)					__NE___	{ return NothrowAllocatable::operator new( size ); }	// fixed crash on MSVC
 	};
 //-----------------------------------------------------------------------------
@@ -773,7 +773,7 @@ namespace AE::_Coro_
 
 	public:
 		AsyncPromiseImpl ()												__NE___ {}
-		
+
 		template <typename ...Args>
 		explicit AsyncPromiseImpl (MakeDeferResult, Args&& ...args)	__NE___ : AsyncTaskImpl{ EFlags::DoNotRun }, _value{ FwdArg<Args>(args)... }
 		{
@@ -787,7 +787,7 @@ namespace AE::_Coro_
 
 		ND_ auto			initial_suspend ()							C_NE___ { return std::suspend_always{}; }
 		ND_ auto			final_suspend ()							C_NE___	{ return std::suspend_always{}; }							// must not be 'suspend_never'
-		
+
 			void			return_value (ResultType value)				__NE___	{ _value = RVRef(value); }									// set value by 'co_return'
 	//	ND_ auto			yield_value (ResultType value)				__NE___	{ _value = RVRef(value);  return std::suspend_always{}; }	// set value by 'co_yield'
 
@@ -806,12 +806,12 @@ namespace AE::_Coro_
 	class InlinePromiseImpl final : public AsyncPromiseImpl<ResultType>
 	{
 		friend struct Promise_CoroTraits< BaseCoro< InlinePromiseImpl< ResultType, Queue >>>;
-		
+
 	// types
 	public:
 		using Self			= InlinePromiseImpl< ResultType, Queue >;
 		using Coroutine_t	= ScheduledInlinePromise< ResultType, Queue >;
-		
+
 		template <typename T>
 		static constexpr bool	_AllowImplicitCast = IsBaseOf< Self, T >;	// TODO: check
 
@@ -861,7 +861,7 @@ namespace AE::_Coro_
 		void  _AddToScheduler ()									__NE___;
 	};
 
-	
+
 	template <typename R, ETaskQueue Q>
 	forceinline auto  InlinePromiseImpl<R,Q>::get_return_object (const SourceLoc &loc) __NE___
 	{
@@ -893,7 +893,7 @@ namespace AE::_Coro_
 	public:
 		using Self			= ScheduledPromiseImpl< ResultType, Queue >;
 		using Coroutine_t	= BaseCoro< Self >;
-		
+
 		template <typename T>
 		static constexpr bool	_AllowImplicitCast = IsBaseOf< Self, T >;
 
@@ -955,7 +955,7 @@ namespace AE::_Coro_
 //-----------------------------------------------------------------------------
 
 
-	
+
 	template <typename T>
 	struct CoroTraits;
 
@@ -976,17 +976,17 @@ namespace AE::_Coro_
 
 	template <>
 	struct CoroTraits< AsyncTask >			: AsyncTask_CoroTraits< AsyncTask > {};
-	
+
 	template <ETaskQueue Queue>
 	struct CoroTraits< BaseCoro<ScheduledCoroImpl<Queue> >>	: AsyncTask_CoroTraits< BaseCoro<ScheduledCoroImpl<Queue> >> {};
-	
+
 	template <>
 	struct CoroTraits< BaseCoro< AsyncCoroImpl >> : AsyncTask_CoroTraits< BaseCoro< AsyncCoroImpl >> {};
-	
+
 	template <ETaskQueue Queue>
 	struct CoroTraits< BaseCoro< InlineCoroImpl<Queue> >>  : AsyncTask_CoroTraits< BaseCoro< InlineCoroImpl<Queue> >> {};
 
-	
+
 	template <typename T>
 	struct Promise_CoroTraits
 	{
@@ -1002,7 +1002,7 @@ namespace AE::_Coro_
 	template <typename ResultType>
 	struct CoroTraits< BaseCoro< AsyncPromiseImpl< ResultType >>> :
 		Promise_CoroTraits< BaseCoro< AsyncPromiseImpl< ResultType >>> {};
-	
+
 	template <typename ResultType, ETaskQueue Queue>
 	struct CoroTraits< BaseCoro< InlinePromiseImpl< ResultType, Queue >>> :
 		Promise_CoroTraits< BaseCoro< InlinePromiseImpl< ResultType, Queue >>> {};
@@ -1021,7 +1021,7 @@ namespace AE::_Coro_
 	struct CompletedDeps
 	{
 		friend class CoroAwaiterImpl;
-		
+
 	// variables
 	protected:
 		std::bitset<Count>				_bits;
@@ -1075,7 +1075,7 @@ namespace AE::_Coro_
 					StaticAssert( not IsRequired );
 			}
 		};
-		
+
 	// methods
 	public:
 		Nd__IF static CompletedDeps<1>  AwaitResultImpl (const AsyncTask &dep) __NE___
@@ -1098,7 +1098,7 @@ namespace AE::_Coro_
 			return AsyncTaskImpl::CoroutineApi::Continue( curCoro.promise(), Tuple{ dep }, defaultIsStrongDep );
 		}
 
-		
+
 		template <typename ...Deps>
 		Nd__IF static CompletedDeps<CountOf<Deps...>()>  AwaitResultImpl2 (const Tuple<Deps...> &deps) __NE___
 		{
@@ -1118,7 +1118,7 @@ namespace AE::_Coro_
 
 			if ( tmp.complete._bits.all() )
 				return false; // resume
-			
+
 			// add new dependencies to the task, but doesn't add to queue
 			return AsyncTaskImpl::CoroutineApi::Continue( curCoro.promise(), deps, defaultIsStrongDep );
 		}
@@ -1129,7 +1129,7 @@ namespace AE::_Coro_
 		{
 			return CoroTraits<T>::GetResultCopy( task );
 		}
-		
+
 		template <typename T>
 		Nd__IF static exact_t  GetResultPtr (const T &task) __NE___
 		{
@@ -1143,7 +1143,7 @@ namespace AE::_Coro_
 		}
 	};
 //-----------------------------------------------------------------------------
-	
+
 
 
 	//
@@ -1161,7 +1161,7 @@ namespace AE::_Coro_
 		ND_ T const&	Ref ()					C_NE___	{ return *value; }
 		ND_ bool		Exists ()				C_NE___	{ return value != null; }
 	};
-	
+
 	template <typename T>
 	struct CopyWrap
 	{
@@ -1170,12 +1170,12 @@ namespace AE::_Coro_
 		T			value;
 
 		explicit CopyWrap (T val)				__NE___ : value{RVRef(val)} {}
-		
+
 		ND_ T &			Ref ()					__NE___	{ return value; }
 		ND_ T const&	Ref ()					C_NE___	{ return value; }
 		ND_ bool		Exists ()				C_NE___	{ return true; }
 	};
-	
+
 	template <typename T>
 	struct CopyWrapImplicit
 	{
@@ -1184,14 +1184,14 @@ namespace AE::_Coro_
 		T			value;
 
 		explicit CopyWrapImplicit (T val)		__NE___ : value{RVRef(val)} {}
-		
+
 		ND_ T &			Ref ()					__NE___	{ return value; }
 		ND_ T const&	Ref ()					C_NE___	{ return value; }
 		ND_ bool		Exists ()				C_NE___	{ return true; }
 	};
 
 
-	
+
 	//
 	// Successfully Completed Dependencies with Result
 	//
@@ -1238,12 +1238,12 @@ namespace AE::_Coro_
 	public:
 		template <usize I>
 		Nd__IF exact_t		get ()		C_NE___	{ StaticAssert( I < Count );  DEBUG_ONLY(_IsCompleteAndChecked<I>());  return _results.template Get<I>().Ref(); }
-		
+
 		template <usize I>
 		Nd__IF exact_t		get ()		__NE___	{ StaticAssert( I < Count );  DEBUG_ONLY(_IsCompleteAndChecked<I>());  return _results.template Get<I>().Ref(); }
 	};
 
-	
+
 	template <template<class> typename WrapT, typename Type>
 	struct CompletedDepsResult<WrapT, Type> : CompletedDeps<1>
 	{
@@ -1256,7 +1256,7 @@ namespace AE::_Coro_
 	// variables
 	protected:
 		WrapT<Type>		_result;
-		
+
 	// methods
 	protected:
 		template <typename Arg>
@@ -1264,12 +1264,12 @@ namespace AE::_Coro_
 		{
 			DEBUG_ONLY(
 				if (this->_bits.all()) CHECK( _result.Exists() );
-			
+
 				if ( not mustCheck ) this->_isChecked.flip();  // set all 'true'
 			)
 			Unused( mustCheck );
 		}
-		
+
 		DEBUG_ONLY(
 			void  _IsCompleteAndChecked () const
 			{
@@ -1281,7 +1281,7 @@ namespace AE::_Coro_
 	public:
 		template <usize I = 0>
 		Nd__IF exact_t		get ()			C_NE___	{ StaticAssert( I == 0 );  DEBUG_ONLY(_IsCompleteAndChecked());  return _result.Ref(); }
-		
+
 		template <usize I = 0>
 		Nd__IF exact_t		get ()			__NE___	{ StaticAssert( I == 0 );  DEBUG_ONLY(_IsCompleteAndChecked());  return _result.Ref(); }
 
@@ -1290,15 +1290,15 @@ namespace AE::_Coro_
 
 		template <typename T = WrapT<Type>>	requires(T::_allowImplicitCast)
 		Nd__IF operator Type const& ()		CrNE___	{ return get(); }
-		
+
 		template <typename T = WrapT<Type>>	requires(T::_allowImplicitCast)
 		Nd__IF operator Type & ()			r_NE___	{ return get(); }
-		
+
 		template <typename T = WrapT<Type>>	requires(T::_allowImplicitCast)
 		Nd__IF operator Type && ()			rvNE___	{ ASSERT( this->_bits.test(0) );  DEBUG_ONLY( this->_bits.reset(0) );  return RVRef( _result.Ref() ); }
 	};
 
-	
+
 	template <template<class> typename WrapT, typename ...Types>
 	struct CompletedDepsResult< WrapT, TypeList<Types...> > : CompletedDepsResult< WrapT, Types... >
 	{
@@ -1444,7 +1444,7 @@ namespace AE::_Coro_
 //-----------------------------------------------------------------------------
 
 
-	
+
 /*
 =================================================
 	CoroAwaiter_FastCancel
@@ -1520,7 +1520,7 @@ namespace AE::_Coro_
 		{
 			// compatible with all 'promise_type' which is inherited from 'AsyncTaskImpl'
 			StaticAssert( IsBaseOf< AsyncTaskImpl, P >);
-			
+
 			// add new dependencies to the task, but doesn't add to queue
 			return AsyncTaskImpl::CoroutineApi::Continue( curCoro.promise(), Tuple{}, True{"strong dependency"} );
 		}
@@ -1528,7 +1528,7 @@ namespace AE::_Coro_
 //-----------------------------------------------------------------------------
 
 
-	
+
 /*
 =================================================
 	CoroAwaiter_FastCancelAndReset
@@ -1588,13 +1588,13 @@ namespace AE::_Coro_
 		}
 	};
 
-	
+
 	template <typename ...Deps>
 	Nd__IF auto  Wait_FastCancelAndReset (Deps& ...deps) __NE___
 	{
 		return CoroAwaiter_FastCancelAndReset< Deps... >{ deps... };
 	}
-	
+
 	Nd__IF auto  Wait_FastCancelAndReset () __NE___
 	{
 		return CoroAwaiter_Continue{};
@@ -1602,7 +1602,7 @@ namespace AE::_Coro_
 //-----------------------------------------------------------------------------
 
 
-	
+
 /*
 =================================================
 	CoroAwaiter_WaitResultCopyOrCancel
@@ -1650,7 +1650,7 @@ namespace AE::_Coro_
 			return CoroAwaiterImpl::AwaitSuspendImpl2( curCoro, _deps, True{"strong dependency"} );
 		}
 	};
-	
+
 /*
 =================================================
 	CoroAwaiter_WaitResultCopyOrCancel_Array
@@ -1669,7 +1669,7 @@ namespace AE::_Coro_
 	// variables
 	private:
 		Array<T> const&		_deps;
-		
+
 	// methods
 	public:
 		explicit CoroAwaiter_WaitResultCopyOrCancel_Array (Array<T> const& deps) __NE___ : _deps{deps} {}
@@ -1742,7 +1742,7 @@ namespace AE::_Coro_
 			return CoroAwaiterImpl::AwaitSuspendImpl2( curCoro, _deps, False{"weak dependency"} );
 		}
 	};
-	
+
 /*
 =================================================
 	CoroAwaiter_WithResultRef
@@ -1838,7 +1838,7 @@ namespace AE::_Coro_
 //-----------------------------------------------------------------------------
 
 
-	
+
 	template <typename T>
 	concept IsCoroutinePromise = requires()
 	{
@@ -1849,7 +1849,7 @@ namespace AE::_Coro_
 
 		T{}.yield_value( _Coro_::AsyncTaskCoro_Error{} );
 		T{}.yield_value( _Coro_::AsyncTaskCoro_ChangeQueue{ ETaskQueue::Main });
-		
+
 		T{}.get_return_object();
 		T::get_return_object_on_allocation_failure();
 	};
@@ -1862,7 +1862,7 @@ namespace AE::_Coro_
 	{
 		_Coro_::BaseCoro< _Coro_::AsyncPromiseImpl< typename T::promise_type::Result_t >>{ RVRef(task) };
 	};
-	
+
 	template <typename T>
 	concept	IsInlineCoroutine = IsCoroutine<T> and requires()
 	{
@@ -1888,7 +1888,7 @@ namespace AE::_Coro_
 	using CoroCtorResult = typename _CoroCtorResult1< typename TypeList<Args...>::Back::type >::type;
 //-----------------------------------------------------------------------------
 
-	
+
 
 	enum class ESafeCoroError : uint
 	{
@@ -1902,7 +1902,7 @@ namespace AE::_Coro_
 		ArgIsPointer,
 		ArgIsView,
 	};
-	
+
 	template <int I, typename TL>
 	NdCe__ Pair<ESafeCoroError, int>  SafeCoro_CheckArgs ()
 	{
@@ -1969,7 +1969,7 @@ namespace AE::_Coro_
 
 				if ( not IsCoroutine< typename Info::result >)
 					return { ESafeCoroError::InvalidResultType, -1 };
-			
+
 				return SafeCoro_CheckArgs< 0, typename Info::args >();
 			}
 			else
@@ -1985,7 +1985,7 @@ namespace AE::_Coro_
 
 				if ( not IsCoroutine< typename Info::result >)
 					return { ESafeCoroError::InvalidResultType, -1 };
-			
+
 				// reference types will be converted to value type,
 				// input as a reference already checked in 'IsTemplateArgWithoutRef'
 				using ArgsTL2 = ArgsTL::template Apply_t< std::remove_reference >;
@@ -2007,16 +2007,16 @@ namespace AE::_Coro_
 		{
 			if ( not IsGlobalFunction<T> )
 				return { ESafeCoroError::NotAGlobalFunction, -1 };
-			
+
 			using Info = FunctionInfo< T >;
-			
+
 			if ( not IsCoroutine< typename Info::result >)
 				return { ESafeCoroError::InvalidResultType, -1 };
 
 			return SafeCoro_CheckArgs< 0, typename Info::args >();
 		}
 	}
-	
+
 	template <typename CoroCtor, typename ArgsTL>
 	__Ce__ void  SafeCoro_PrintError ()
 	{
@@ -2031,10 +2031,10 @@ namespace AE::_Coro_
 			"used lambda with capture or non-empty class, this is unsafe:\n"
 			" - lambda capture lifetime does not match with coroutine lifetime\n"
 			" - 'this' lifetime is not guarantied to match with coroutine lifetime, use smart pointer instead" );
-		
+
 		StaticAssert( err != ESafeCoroError::InvalidResultType, "\n"
 			"function must return coroutine type, this validation may have false-positive for non-coroutines" );
-		
+
 		StaticAssert( err != ESafeCoroError::NotAGlobalFunction, "\n"
 			"allowed: lambdas, methods with empty classes and static functions" );
 
@@ -2045,11 +2045,11 @@ namespace AE::_Coro_
 		#if 0 //__cpp_static_assert >= 202306L
 			StaticAssert( err != ESafeCoroError::ArgIsReference,
 				 std::format("\nargument {} with reference to the object is unsafe - lifetime of object may not match with coroutine lifetime", idx ));
-		
+
 			StaticAssert( err != ESafeCoroError::ArgIsPointer,
 				std::format("\nargument {} with pointer to the object is unsafe - lifetime of object may not match with coroutine lifetime\n"
 					"use smart pointers instead", idx ));
-		
+
 			StaticAssert( err != ESafeCoroError::ArgIsView,
 				std::format("\nargument {} with view type is unsafe - lifetime of referenced memory may not match with coroutine lifetime", idx ));
 
@@ -2058,11 +2058,11 @@ namespace AE::_Coro_
 
 			StaticAssert( err != ESafeCoroError::ArgIsReference, "\n"
 				"argument with reference to the object is unsafe - lifetime of object may not match with coroutine lifetime" );
-		
+
 			StaticAssert( err != ESafeCoroError::ArgIsPointer, "\n"
 				"argument with pointer to the object is unsafe - lifetime of object may not match with coroutine lifetime\n"
 				"use smart pointers instead" );
-		
+
 			StaticAssert( err != ESafeCoroError::ArgIsView, "\n"
 				"argument with view type is unsafe - lifetime of referenced memory may not match with coroutine lifetime" );
 		#endif
@@ -2070,7 +2070,7 @@ namespace AE::_Coro_
 
 } // AE::_Coro_
 //-----------------------------------------------------------------------------
-  
+
 
 namespace AE::Threading
 {
@@ -2086,7 +2086,7 @@ namespace AE::Threading
 
 	template <typename ResultType>
 	using Promise			= _Coro_::BaseCoro< _Coro_::AsyncPromiseImpl< ResultType >>;
-	
+
 	template <typename ResultType,
 			  ETaskQueue Queue = _Coro_::c_DefaultTaskQueue>
 	using ScheduledPromise	= _Coro_::BaseCoro< _Coro_::ScheduledPromiseImpl< ResultType, Queue >>;
@@ -2113,7 +2113,7 @@ namespace AE::Threading
 	#define Coro_Continue(...)				(co_await _Coro_::Wait_FastCancelAndReset( __VA_ARGS__ ))
 	#define Coro_WaitResultOrCancel(...)	(co_await _Coro_::CoroAwaiter_WaitResultCopyOrCancel{ __VA_ARGS__ })
 	#define UncancellableCoro_Success()		(co_yield _Coro_::AsyncTaskCoro_Success{})
-	
+
 
 	using _Coro_::IsCoroutine;
 	using _Coro_::IsPromise;
@@ -2185,7 +2185,7 @@ namespace AE::Threading
 		else
 			return AsyncTask{ RVRef(result) };
 	}
-	
+
 /*
 =================================================
 	CreateInline
@@ -2196,9 +2196,9 @@ namespace AE::Threading
 	{
 		StaticAssert( CountOf<Args...>() > 0 );
 		_Coro_::SafeCoro_PrintError< CoroCtor, TypeList<Args...> >();
-		
+
 		exact_t		result = FwdArg<CoroCtor>(ctor)( FwdArg<Args>(args) ... );
-		
+
 		using R = decltype(result);
 		StaticAssert( IsInlineCoroutine< R >);
 
@@ -2261,7 +2261,7 @@ namespace AE::Threading
 		_Coro_::SafeCoro_PrintError< CoroCtor, ArgsTL >();
 
 		exact_t		result = FoldExpr::ApplyExceptLast( FwdArg<CoroCtor>(ctor), FwdArg<Args>(args) ... );
-		
+
 		using R = decltype(result);
 		StaticAssert( IsInlineCoroutine< R >);
 
@@ -2270,19 +2270,20 @@ namespace AE::Threading
 		else
 			return AsyncTask{ RVRef(result) };
 	}
-	
+
 /*
 =================================================
 	WithResult
 =================================================
 */
 	template <typename FN, typename Result>
-	____IA bool  WithResult (Promise<Result> promise, FN&& fn) __NE___
+	____IA bool  WithResult (Promise<Result> promise, FN&& fn)
+					NoExcept( IsNoExcept( FwdArg<FN>(fn)( _Coro_::CoroAwaiterImpl::GetResultCopy( promise )) ))
 	{
 		if ( not promise->IsCompleted() )
 			return false;
 
-		FwdArg<FN>(fn)( _Coro_::CoroAwaiterImpl::GetResultCopy( promise ));
+		FwdArg<FN>(fn)( _Coro_::CoroAwaiterImpl::GetResultCopy( promise ));  // may throw
 		return true;
 	}
 
@@ -2315,7 +2316,7 @@ namespace AE::Threading
 	{
 		return _Coro_::CoroAwaiter_FastCancel< Tuple<Deps...> >{ deps };
 	}
-	
+
 /*
 =================================================
 	operator co_await (promise)
@@ -2326,13 +2327,13 @@ namespace AE::Threading
 	{
 		return _Coro_::CoroAwaiter_WaitResultCopyOrCancel{ True{"copy"}, dep };
 	}
-	
+
 	template <typename Result>
 	Nd__IF auto  operator co_await (const Array<Promise<Result>> &deps) __NE___
 	{
 		return _Coro_::CoroAwaiter_WaitResultCopyOrCancel_Array{ deps };
 	}
-	
+
 	template <typename Result, ETaskQueue Queue>
 	Nd__IF auto  operator co_await (ScheduledPromise<Result, Queue> dep) __NE___
 	{

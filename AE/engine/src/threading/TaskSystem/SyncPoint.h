@@ -2,7 +2,7 @@
 /*
 	SyncPoint - triggered when object is destroyed (always use reference counter!).
 	Use 'OnComplete()' to subscribe on event.
-	
+
 	Algorithm:
 	* create 'SyncPoint' with reference counting: MakeRC<SyncPoint>()
 	* keep reference to 'SyncPoint'
@@ -52,7 +52,7 @@ namespace AE::Threading
 			Coro ()									__NE___	{}
 			explicit Coro (promise_type &p)			__NE___ : _coro{ p.GetRC<promise_type>() } {}
 			explicit Coro (CoroHandle_t handle)		__NE___ : _coro{ handle.promise().GetRC<promise_type>() } {}
-			
+
 			ND_ operator AsyncTask ()				C_NE___	{ return _coro; }
 
 			ND_ auto*	operator -> ()				C_NE___	{ return _coro.operator->(); }

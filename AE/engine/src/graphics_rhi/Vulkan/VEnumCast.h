@@ -387,7 +387,7 @@ namespace AE::Graphics
 				case EImageOpt::SparseAliased :					flags |= VK_IMAGE_CREATE_SPARSE_BINDING_BIT | VK_IMAGE_CREATE_SPARSE_ALIASED_BIT;	break;
 				case EImageOpt::Alias :							flags |= VK_IMAGE_CREATE_ALIAS_BIT;													break;
 				case EImageOpt::SampleLocationsCompatible :		flags |= VK_IMAGE_CREATE_SAMPLE_LOCATIONS_COMPATIBLE_DEPTH_BIT_EXT;					break;
-					
+
 				case EImageOpt::Subsampled :					flags |= VK_IMAGE_CREATE_SUBSAMPLED_BIT_EXT;				break;
 
 				case EImageOpt::BlitSrc :
@@ -1416,7 +1416,7 @@ namespace AE::Graphics
 		switch_end
 		RETURN_ERR( "unknown present scaling", Zero );
 	}
-	
+
 /*
 =================================================
 	AEEnumCast ()
@@ -1984,7 +1984,7 @@ namespace AE::Graphics
 		switch_end
 		RETURN_ERR( "unknown surface transform" );
 	}
-	
+
 /*
 =================================================
 	VEnumCast (ECoopMatrixComponentType)
@@ -2018,7 +2018,7 @@ namespace AE::Graphics
 		switch_end
 		RETURN_ERR( "unknown cooperative matrix/vector component type", VK_COMPONENT_TYPE_MAX_ENUM_KHR );
 	}
-	
+
 /*
 =================================================
 	VEnumCast (ECoopVecMatrixLayout)

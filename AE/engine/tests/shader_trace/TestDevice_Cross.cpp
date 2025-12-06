@@ -8,7 +8,7 @@
 
 namespace AE::PipelineCompiler
 {
-	
+
 	void  TestDevice::_Decompile (const Array<uint> &spirvData)
 	{
 		spirv_cross::CompilerGLSL			compiler {spirvData.data(), spirvData.size()};

@@ -61,8 +61,11 @@ namespace {
 		_requiredViewDesc{ viewDesc },
 		_dbgName{ dbgName }
 	{
+		// TODO: destructor is not called when throw exception
+
 		if ( isDummy )
 		{
+			// TODO: may happens when uninitialized image used as input
 			CHECK_THROW( not _inDynSize );
 
 			_uploadStatus.store( EUploadStatus::InProgress );
@@ -117,7 +120,7 @@ namespace {
 		if ( _base )
 			_base->_Remove( this );
 	}
-	
+
 /*
 =================================================
 	GetImageDesc / GetViewDesc
@@ -366,7 +369,7 @@ namespace {
 
 			WithResult(
 				op.loaded,
-				[this, &ctx, &op, &failed] (const IntermImageRC &imageData)
+				[this, &ctx, &op, &failed] (const IntermImageRC &imageData) __Th___
 				{
 					if ( not imageData )
 					{
@@ -523,7 +526,7 @@ namespace {
 		for (auto& op : storeOps) {
 			result->_storeOps.emplace_back( StoreOp2{ op });
 		}
-		
+
 		const auto	view_desc = res_mngr.GetDescription( result->_view.Get() );
 
 		for (auto& op : result->_storeOps)

@@ -2,6 +2,8 @@
 
 #include "Perf_Common.h"
 
+#ifdef AE_SIMD_SimdFloat8
+
 namespace
 {
 #ifdef AE_DEBUG
@@ -40,7 +42,7 @@ namespace
 			offset		= AlignUp( offset + SizeOf<packed_float3> * capacity, align );
 			scaleBias	= Cast<packed_float4>( ptr + offset );
 			offset		= offset + SizeOf<packed_float4> * capacity;
-			
+
 			ZeroMem( parentIds, SizeOf<uint> * capacity );
 
 			CHECK( offset == size );
@@ -67,7 +69,7 @@ namespace
 		}
 	};
 
-	
+
 	struct ChunkV
 	{
 		uint			count		= 0;
@@ -92,7 +94,7 @@ namespace
 			offset		= AlignUp( offset + SizeOf<float3> * capacity, align );
 			scaleBias	= Cast<float4>( ptr + offset );
 			offset		= offset + SizeOf<float4> * capacity;
-			
+
 			ZeroMem( parentIds, SizeOf<uint> * capacity );
 
 			CHECK( offset == size );
@@ -119,7 +121,7 @@ namespace
 		}
 	};
 
-	
+
 	struct ChunkAVX
 	{
 		uint		count		= 0;
@@ -140,7 +142,7 @@ namespace
 		{
 			count		= 0;
 			capacity	= uint(newCount);
-			
+
 			usize	align	= Max( AE_CACHE_LINE, sizeof(SimdFloat8) );
 			Bytes	size	= CalcSize( capacity );
 			void*	ptr		= UntypedAllocator::Allocate( SizeAndAlign{ size, align });
@@ -190,17 +192,17 @@ namespace
 
 		bool  IsEmpty () const	{ return count == 0; }
 		bool  IsFull () const	{ return count >= capacity; }
-		
+
 		static Bytes  CalcSize (usize c)
 		{
 			usize	align	= Max( AE_CACHE_LINE, sizeof(SimdFloat8) );
 			Bytes	size	= 0_b;
 			size = AlignUp( size + SizeOf<uint> * c, align );
-			
+
 			size = AlignUp( size + SizeOf<float> * c, align );
 			size = AlignUp( size + SizeOf<float> * c, align );
 			size = AlignUp( size + SizeOf<float> * c, align );
-			
+
 			size = AlignUp( size + SizeOf<float> * c, align );
 			size = AlignUp( size + SizeOf<float> * c, align );
 			size = AlignUp( size + SizeOf<float> * c, align );
@@ -224,7 +226,7 @@ namespace
 			}
 		}
 	}
-	
+
 	static void  ResetCache (Array<ChunkAVX> &chunks)
 	{
 		for (auto& ch : chunks)
@@ -352,12 +354,12 @@ namespace
 	}
 	//-----------------------------------------------
 
-	
+
 	static void  Hierarchy_Test2 (IntervalProfiler &profiler, ArrayView<uint> hierarchyDepths, const uint totalCount)
 	{
 		Array<ChunkS>	chunks;
 		chunks.emplace_back();
-		
+
 		uint	global_idx = 0;
 
 		// root
@@ -385,7 +387,7 @@ namespace
 				const uint	levels = hierarchyDepths[k];
 				if ( depth >= levels )
 					continue;
-				
+
 				if ( chunks.back().IsFull() )
 					chunks.emplace_back();
 
@@ -400,7 +402,7 @@ namespace
 				ch.parentIds[i] = parent_idx;
 				ch.positions[i] = packed_float3{};
 				ch.scaleBias[i] = packed_float4{};
-				
+
 				uint	cur_idx	= uint((chunks.size()-1) * c_ChunkSize + i);
 				ASSERT( cur_idx == global_idx );
 
@@ -420,11 +422,11 @@ namespace
 								return	ToStringSfx( bandwidth ) << "B/s | " <<
 										ToStringSfx( flops ) << "FLOPS";
 							});
-		
+
 		for (uint i = 0; i < c_MaxIterations; ++i)
 		{
 			profiler.BeginIteration();
-			
+
 			for (uint cy = 0; cy < c_Cycles; ++cy)
 			{
 				// for each entity except root
@@ -449,7 +451,7 @@ namespace
 				}
 			}
 			profiler.EndIteration();
-			
+
 			ResetCache( chunks );
 		}
 		profiler.EndTest();
@@ -553,12 +555,12 @@ namespace
 	}
 	//-----------------------------------------------
 
-	
+
 	static void  Hierarchy_Test4 (IntervalProfiler &profiler, ArrayView<uint> hierarchyDepths, const uint totalCount)
 	{
 		Array<ChunkV>	chunks;
 		chunks.emplace_back();
-		
+
 		uint	global_idx = 0;
 
 		// root
@@ -586,7 +588,7 @@ namespace
 				const uint	levels = hierarchyDepths[k];
 				if ( depth >= levels )
 					continue;
-				
+
 				if ( chunks.back().IsFull() )
 					chunks.emplace_back();
 
@@ -601,7 +603,7 @@ namespace
 				ch.parentIds[i] = parent_idx;
 				ch.positions[i] = float3{};
 				ch.scaleBias[i] = float4{};
-				
+
 				uint	cur_idx	= uint((chunks.size()-1) * c_ChunkSize + i);
 				ASSERT( cur_idx == global_idx );
 
@@ -621,11 +623,11 @@ namespace
 								return	ToStringSfx( bandwidth ) << "B/s | " <<
 										ToStringSfx( flops ) << "FLOPS";
 							});
-		
+
 		for (uint i = 0; i < c_MaxIterations; ++i)
 		{
 			profiler.BeginIteration();
-			
+
 			for (uint cy = 0; cy < c_Cycles; ++cy)
 			{
 				// for each entity except root
@@ -650,14 +652,14 @@ namespace
 				}
 			}
 			profiler.EndIteration();
-			
+
 			ResetCache( chunks );
 		}
 		profiler.EndTest();
 	}
 	//-----------------------------------------------
 
-	
+
 	static void  Hierarchy_Test5 (IntervalProfiler &profiler, ArrayView<uint> hierarchyDepths, const uint totalCount)
 	{
 		Array<ChunkAVX>	chunks;
@@ -715,7 +717,7 @@ namespace
 			}
 		}
 		CHECK( global_idx == totalCount+8 );
-		
+
 		AE_LOGI( "AVX Size: "s << ToString( ChunksSize( chunks )));
 
 
@@ -732,7 +734,7 @@ namespace
 		for (uint i = 0; i < c_MaxIterations; ++i)
 		{
 			profiler.BeginIteration();
-			
+
 			for (uint cy = 0; cy < c_Cycles; ++cy)
 			{
 				// for each entity except root
@@ -750,7 +752,7 @@ namespace
 						for (uint j = 0; j < 8; ++j)
 						{
 							uint	parent_idx	= ch.parentIds[k + j];
-						
+
 							ASSERT( parent_idx < cur_idx );
 							Unused( cur_idx );
 
@@ -776,7 +778,7 @@ namespace
 	}
 	//-----------------------------------------------
 
-	
+
 	static void  Hierarchy_Test6 (IntervalProfiler &profiler, ArrayView<uint> hierarchyDepths, const uint totalCount)
 	{
 		Array<ChunkAVX>	chunks;
@@ -799,10 +801,10 @@ namespace
 			ch.scaleBiasY[0]	= 0.f;
 			ch.scaleBiasZ[0]	= 0.f;
 			ch.scaleBiasW[0]	= 0.f;
-			
+
 			ch.count += 8;
 		}
-		
+
 		Array<uint>		parent_ids;
 		parent_ids.resize( hierarchyDepths.size(), 0u );
 
@@ -813,7 +815,7 @@ namespace
 				const uint	levels = hierarchyDepths[k];
 				if ( depth >= levels )
 					continue;
-				
+
 				if ( chunks.back().IsFull() )
 					chunks.emplace_back();
 
@@ -832,7 +834,7 @@ namespace
 				ch.scaleBiasY[i]	= 0.f;
 				ch.scaleBiasZ[i]	= 0.f;
 				ch.scaleBiasW[i]	= 0.f;
-				
+
 				uint	cur_idx	= uint((chunks.size()-1) * c_ChunkSize + i);
 				ASSERT( cur_idx == global_idx+8 );
 
@@ -856,7 +858,7 @@ namespace
 		for (uint i = 0; i < c_MaxIterations; ++i)
 		{
 			profiler.BeginIteration();
-			
+
 			for (uint cy = 0; cy < c_Cycles; ++cy)
 			{
 				// for each entity except root
@@ -874,7 +876,7 @@ namespace
 						for (uint j = 0; j < 8; ++j)
 						{
 							uint	parent_idx	= ch.parentIds[k + j];
-						
+
 							ASSERT( parent_idx < cur_idx );
 							Unused( cur_idx );
 
@@ -900,7 +902,7 @@ namespace
 	}
 	//-----------------------------------------------
 
-	
+
 	static void  Hierarchy_Test7 (IntervalProfiler &profiler, ArrayView<uint> hierarchyDepths, const uint totalCount)
 	{
 		Array<ChunkAVX>	chunks;
@@ -914,7 +916,7 @@ namespace
 
 			if ( ch.IsEmpty() )
 				ch.Alloc( c_ChunkSize );
-			
+
 			for (uint i = 0; i < 8; ++i)
 			{
 				ch.parentIds[i]		= UMax;
@@ -933,7 +935,7 @@ namespace
 		//	[0000][1111][2222] [0000][1111] ...
 
 		HashMap< uint, uint >	same_depth;
-		
+
 		for (uint depth : hierarchyDepths)
 		{
 			same_depth.emplace( depth, 0u ).first->second ++;
@@ -948,7 +950,7 @@ namespace
 			{
 				if ( chunks.back().count + 8*levels > chunks.back().capacity )
 					chunks.emplace_back();
-				
+
 				ChunkAVX&	ch = chunks.back();
 
 				if ( ch.IsEmpty() )
@@ -974,7 +976,7 @@ namespace
 						ch.scaleBiasY[i]	= 0.f;
 						ch.scaleBiasZ[i]	= 0.f;
 						ch.scaleBiasW[i]	= 0.f;
-					
+
 						if ( i%8 == 7 )
 						{
 							uint	cur_idx	= uint( (chunks.size()-1) * c_ChunkSize + (i & ~7) );
@@ -986,7 +988,7 @@ namespace
 			}
 		}
 		CHECK( global_idx == totalCount );
-		
+
 		AE_LOGI( "AVX v2 Size: "s << ToString( ChunksSize( chunks )));
 
 
@@ -1003,7 +1005,7 @@ namespace
 		for (uint i = 0; i < c_MaxIterations; ++i)
 		{
 			profiler.BeginIteration();
-			
+
 			for (uint cy = 0; cy < c_Cycles; ++cy)
 			{
 				// for each entity except root
@@ -1049,7 +1051,7 @@ namespace
 	}
 	//-----------------------------------------------
 
-	
+
 	static void  Hierarchy_Test8 (IntervalProfiler &profiler, ArrayView<uint> hierarchyDepths, const uint totalCount)
 	{
 		Array<ChunkAVX>	chunks;
@@ -1063,7 +1065,7 @@ namespace
 
 			if ( ch.IsEmpty() )
 				ch.Alloc( c_ChunkSize );
-			
+
 			for (uint i = 0; i < 8; ++i)
 			{
 				ch.parentIds[i]		= UMax;
@@ -1083,7 +1085,7 @@ namespace
 		//  read root once
 
 		HashMap< uint, uint >	same_depth;
-		
+
 		for (uint depth : hierarchyDepths)
 		{
 			same_depth.emplace( depth, 0u ).first->second ++;
@@ -1098,7 +1100,7 @@ namespace
 			{
 				if ( chunks.back().count + 8*levels > chunks.back().capacity )
 					chunks.emplace_back();
-				
+
 				ChunkAVX&	ch = chunks.back();
 
 				if ( ch.IsEmpty() )
@@ -1124,7 +1126,7 @@ namespace
 						ch.scaleBiasY[i]	= 0.f;
 						ch.scaleBiasZ[i]	= 0.f;
 						ch.scaleBiasW[i]	= 0.f;
-					
+
 						if ( i%8 == 7 )
 						{
 							uint	cur_idx	= uint( (chunks.size()-1) * c_ChunkSize + (i & ~7) );
@@ -1136,7 +1138,7 @@ namespace
 			}
 		}
 		CHECK( global_idx == totalCount );
-		
+
 		AE_LOGI( "AVX v3 Size: "s << ToString( ChunksSize( chunks )));
 
 
@@ -1153,7 +1155,7 @@ namespace
 		for (uint i = 0; i < c_MaxIterations; ++i)
 		{
 			profiler.BeginIteration();
-			
+
 			for (uint cy = 0; cy < c_Cycles; ++cy)
 			{
 				// for each entity except root
@@ -1203,7 +1205,7 @@ namespace
 
 extern void Perf_Hierarchy ()
 {
-	IntervalProfiler	profiler{ "ECS Hierarchy", IntervalProfiler::EFlags::SortByPerf | IntervalProfiler::EFlags::ExcludeDelta };
+	IntervalProfiler	profiler{ "ECS Hierarchy", IntervalProfiler::EFlags::SortByPerf };
 
 	Random				rnd;
 	ulong				total_count = 0;
@@ -1229,4 +1231,14 @@ extern void Perf_Hierarchy ()
 	Hierarchy_Test6( profiler, hierarchy_depths, uint(total_count) );
 	Hierarchy_Test7( profiler, hierarchy_depths, uint(total_count) );	// x3 faster
 //	Hierarchy_Test8( profiler, hierarchy_depths, uint(total_count) );
+
+	TEST_PASSED();
 }
+
+#else
+
+extern void Perf_Hierarchy ()
+{
+}
+
+#endif // AE_SIMD_SimdFloat8

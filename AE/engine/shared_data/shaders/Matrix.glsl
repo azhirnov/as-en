@@ -44,12 +44,14 @@ ND_ float4x4	f4x4_Rotate  (const float angle, const float3 axis);
 // View //
 ND_ float		FastViewSpaceZ (const float4x4 view, float3 worldPos);
 
+ND_ float3x3	f3x3_LookAt (const float3 dir, const float3 up);
+
 
 // Projection //
-ND_ float4x4	f4x4_Ortho (const float4 viewport, const float2 range);
+ND_ float4x4	f4x4_Ortho (const float4 viewport, const float2 clipPlanes);
 ND_ float4x4	f4x4_InfinitePerspective (const float fovY, const float aspectRatio, const float zNear);
-ND_ float4x4	f4x4_Perspective (float fovY, const float aspectRatio, const float2 range);
-ND_ float4x4	f4x4_Perspective (const float fovY, const float2 viewportSize, const float2 range);
+ND_ float4x4	f4x4_Perspective (const float fovY, const float aspectRatio, const float2 clipPlanes);
+ND_ float4x4	f4x4_Perspective (const float fovY, const float2 viewportSize, const float2 clipPlanes);
 	void		f4x4_ReverseZ (inout float4x4 m);
 
 ND_ float4		ProjectToNormClipSpace (const float4x4 mvp, const float4 pos);
@@ -62,8 +64,8 @@ ND_ bool		NormClipSpacePointIsVisible (const float3 point);
 
 				// return world space if invViewProj provided
 				// return object space if invMVP provided
-ND_ float3		UnProject (const float4x4 invMat, float3 screenCoordZ, const float4 viewport);
-ND_ float3		UnProject (const float4x4 invMat, float3 screenCoordZ, const float2 invViewportSize);
+ND_ float3		UnProject (const float4x4 invMat, float3 screenCoordAndZ, const float4 viewport);
+ND_ float3		UnProject (const float4x4 invMat, float3 screenCoordAndZ, const float2 invViewportSize);
 ND_ float3		UnProjectNDC (const float4x4 invMat, const float3 ndc);
 
 				// return /w space non-linear depth from view space Z
@@ -73,8 +75,8 @@ ND_ float		FastProjectRevZInf (const float zNear, float z);	// infinite perspect
 
 				// return view space Z from z/w
 ND_ float		FastUnProjectZ (const float4x4 proj, float zw);		// perspective projection
-ND_ float		FastProjectZInf (const float zNear, float zw);		// infinite perspective
-ND_ float		FastProjectRevZInf (const float zNear, float zw);	// infinite perspective with reverse Z
+ND_ float		FastUnProjectZInf (const float zNear, float zw);		// infinite perspective
+ND_ float		FastUnProjectRevZInf (const float zNear, float zw);	// infinite perspective with reverse Z
 
 
 // Scale
@@ -88,6 +90,7 @@ ND_ float4x4	f4x4_Scale (const float  value);
 ND_ float4x4	f4x4_Scale (const float3 value);
 
 
+// matrix to vector
 ND_ float2		GetDirection2D (const float angle);
 ND_ float2		GetDirection2D (const float3x3 m);
 
@@ -100,10 +103,9 @@ ND_ float3		GetAxisY (const float4x4 m);
 ND_ float3		GetAxisZ (const float3x3 m);
 ND_ float3		GetAxisZ (const float4x4 m);
 
-ND_ float3x3	f3x3_LookAt (const float3 dir, const float3 up);
 ND_ float2		Transform2D (const float4x4 mat, const float2 point);
 
-ND_ float3		ViewDir (const float4x4 invProj, const float2 unormPos);
+ND_ float3		ViewDir (const float4x4 invViewProj, const float2 unormPos);
 //-----------------------------------------------------------------------------
 
 
@@ -322,7 +324,7 @@ float4  ProjectToScreenSpace (const float4x4 mvp, const float4 pos, const float4
 	return	temp;
 }
 
-float  FastProjectZ (const float4x4 proj, float z)
+float2  FastProjectZW (const float4x4 proj, float z)
 {
 	// assume that only (0,0), (1,1), (2,2), (2,3), (3,2) are not zero as in perspective projection matrix
 	float	p23 = 1.0;			// proj[2][3]
@@ -331,13 +333,19 @@ float  FastProjectZ (const float4x4 proj, float z)
 
 	float	w = p23 * z;
 			z = (p22 * z) + p32;
-	return	z / w;
+	return	float2( z, w );
+}
+
+float  FastProjectZ (const float4x4 proj, float z)
+{
+	float2	zw = FastProjectZW( proj, z );
+	return zw[0] / zw[1];
 }
 
 float  FastProjectZInf (const float zNear, float z)
 {
 //	return	(z - zNear) / z;
-	return	1.0 - zNear / z;	// better accuracy
+	return	1.0 - (zNear / z);	// better accuracy
 }
 
 float  FastProjectRevZInf (const float zNear, float z)
@@ -362,16 +370,16 @@ bool  NormClipSpacePointIsVisible (const float3 point)
 //-----------------------------------------------------------------------------
 
 
-float3  UnProject (const float4x4 invMat, float3 screenCoordZ, const float4 viewport)
+float3  UnProject (const float4x4 invMat, float3 screenCoordAndZ, const float4 viewport)
 {
-	screenCoordZ.xy = ToSNorm( (screenCoordZ.xy - viewport.xy) * Rcp(viewport.zw - viewport.xy) );
-	return UnProjectNDC( invMat, screenCoordZ );
+	screenCoordAndZ.xy = ToSNorm( (screenCoordAndZ.xy - viewport.xy) * Rcp(viewport.zw - viewport.xy) );
+	return UnProjectNDC( invMat, screenCoordAndZ );
 }
 
-float3  UnProject (const float4x4 invMat, float3 screenCoordZ, const float2 invViewportSize)
+float3  UnProject (const float4x4 invMat, float3 screenCoordAndZ, const float2 invViewportSize)
 {
-	screenCoordZ.xy = ToSNorm( screenCoordZ.xy * invViewportSize );
-	return UnProjectNDC( invMat, screenCoordZ );
+	screenCoordAndZ.xy = ToSNorm( screenCoordAndZ.xy * invViewportSize );
+	return UnProjectNDC( invMat, screenCoordAndZ );
 }
 
 float3  UnProjectNDC (const float4x4 invMat, const float3 ndc)
@@ -407,9 +415,11 @@ float  FastViewSpaceZ (const float4x4 view, float3 worldPos)
 	return Dot( float3(view[0][2], view[1][2], view[2][2]), worldPos );
 }
 
-float3  ViewDir (const float4x4 invProj, const float2 unormPos)
+// returns world space normal if used invViewProj matrix
+// returns view space normal if used invProj matrix
+float3  ViewDir (const float4x4 invViewProj, const float2 unormPos)
 {
-	const float4	world_pos = invProj * float4(ToSNorm(unormPos), 1.0f, 1.0f);
+	const float4	world_pos = invViewProj * float4(ToSNorm(unormPos), 1.0f, 1.0f);
 	return Normalize( world_pos.xyz / world_pos.w );
 }
 //-----------------------------------------------------------------------------
@@ -473,32 +483,32 @@ void  f4x4_ReverseZ (inout float4x4 m)
 		return result;
 	}
 
-	float4x4  f4x4_Ortho (const float4 viewport, const float2 range)
+	float4x4  f4x4_Ortho (const float4 viewport, const float2 clipPlanes)
 	{
 		// viewport - {left, top, right, bottom}
 		float4x4	result = float4x4( 1.f );
 		result[0][0] = 2.f / (viewport.z - viewport.x);
 		result[1][1] = 2.f / (viewport.y - viewport.w);
-		result[2][2] = - 1.f;
+		result[2][2] = 1.f / (clipPlanes.y - clipPlanes.x);
 		result[3][0] = - (viewport.z + viewport.x) / (viewport.z - viewport.x);
 		result[3][1] = - (viewport.y + viewport.w) / (viewport.y - viewport.w);
+		result[3][2] = - clipPlanes.x / (clipPlanes.y - clipPlanes.x);
 		return result;
 	}
 
-	float4x4  f4x4_Perspective (float fovY, const float aspectRatio, const float2 range)
+	float4x4  f4x4_Perspective (const float fovY, const float aspectRatio, const float2 clipPlanes)
 	{
-		fovY = Tan( fovY * 0.5f );
-
+		const float	tan_y  = Tan( fovY * 0.5f );
 		float4x4	result = float4x4( 0.f );
-		result[0][0] = 1.f / (aspectRatio * fovY);
-		result[1][1] = 1.f / fovY;
-		result[2][2] = range.y / (range.y - range.x);
+		result[0][0] = 1.f / (aspectRatio * tan_y);
+		result[1][1] = 1.f / tan_y;
+		result[2][2] = clipPlanes.y / (clipPlanes.y - clipPlanes.x);
 		result[2][3] = 1.f;
-		result[3][2] = -(range.y * range.x) / (range.y - range.x);
+		result[3][2] = -(clipPlanes.y * clipPlanes.x) / (clipPlanes.y - clipPlanes.x);
 		return result;
 	}
 
-	float4x4  f4x4_Perspective (const float fovY, const float2 viewportSize, const float2 range)
+	float4x4  f4x4_Perspective (const float fovY, const float2 viewportSize, const float2 clipPlanes)
 	{
 		const float	h = Cos( 0.5f * fovY ) / Sin( 0.5f * fovY );
 		const float	w = h * viewportSize.y / viewportSize.x;
@@ -506,9 +516,9 @@ void  f4x4_ReverseZ (inout float4x4 m)
 		float4x4	result = float4x4( 0.f );
 		result[0][0] = w;
 		result[1][1] = h;
-		result[2][2] = range.y / (range.y - range.x);
+		result[2][2] = clipPlanes.y / (clipPlanes.y - clipPlanes.x);
 		result[2][3] = 1.f;
-		result[3][2] = -(range.y * range.x) / (range.y - range.x);
+		result[3][2] = -(clipPlanes.y * clipPlanes.x) / (clipPlanes.y - clipPlanes.x);
 		return result;
 	}
 
@@ -517,8 +527,8 @@ void  f4x4_ReverseZ (inout float4x4 m)
 
 
 // for debugging
-#if 1
-	
+#if 0
+
 	// col = mat * row
 	float3  Mul (const float3x3 lhs, const float3 rhs)
 	{

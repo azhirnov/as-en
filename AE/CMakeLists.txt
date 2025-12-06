@@ -18,7 +18,7 @@ endif()
 #----------------------------------------------------------
 
 project( "AE"
-		 VERSION 25.5.291	# year, release per year, version
+		 VERSION 25.6.295	# year, release per year, version
 		 LANGUAGES C CXX
 		 DESCRIPTION "async game engine"
 		)
@@ -47,7 +47,7 @@ set( MAIN_BINARY_DIR 		"${CMAKE_BINARY_DIR}/bin"		CACHE INTERNAL "" FORCE )
 
 # for IDE
 set( ANDROID_SDK_ROOT		"$ENV{ANDROID_SDK_ROOT}" )
-set( ANDROID_NDK_PATH		"${ANDROID_SDK_ROOT}/ndk/29.0.13599879" )
+set( ANDROID_NDK_PATH		"${ANDROID_SDK_ROOT}/ndk/29.0.14206865" )
 set( ANDROID_NDK_INCLUDE	"${ANDROID_NDK_PATH}/toolchains/llvm/prebuilt/windows-x86_64/sysroot/usr/include" CACHE INTERNAL "" FORCE )
 if (WIN32)
 	if (NOT EXISTS ${ANDROID_NDK_PATH})

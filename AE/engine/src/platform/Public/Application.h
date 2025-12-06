@@ -5,7 +5,7 @@
 	May create:
 	 * IInputSurface for camera.
 	 * IVirtualFileStorage for builtin resources.
-	 
+
 	Thread safe:  see method description.
 
 

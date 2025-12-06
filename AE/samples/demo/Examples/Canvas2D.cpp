@@ -267,7 +267,7 @@ namespace AE::Samples::Demo
 					"Canvas2D::ProcessInput"
 				);
 	}
-	
+
 /*
 =================================================
 	_ProcessInputTask

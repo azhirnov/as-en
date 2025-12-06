@@ -55,13 +55,13 @@ namespace AE::LangModel
 		RC<ILanguageModelContext>  CreateContext (const ContextParams &)	__NE_OV;
 
 		ModelInfo  GetModelInfo ()											__NE_OV;
-		
+
 		EImplementation  GetImplementationType ()							C_NE_OV	{ return _implType; }
 
 	private:
 		bool  _Open (Remote::OpenParams &);
 		bool  _RegisterMessages ();
-		
+
 		template <typename M>
 		ND_ bool  _Register (Serializing::SerializedID::Ref id);
 

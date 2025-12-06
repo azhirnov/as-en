@@ -63,7 +63,7 @@ namespace AE::App
 		void  _Init (Unique<IWndListener>	listener,
 					 const WindowDesc		&desc,
 					 IInputActions*			dstActions)	__NE___;
-		
+
 		bool  ProcessMessages ()						__NE_OV	{ DBG_WARNING("don't use it");  return false; }
 
 		ND_ ApplicationAndroid&  _App ()				__NE___;

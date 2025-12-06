@@ -86,6 +86,9 @@ void ASmain (WinAPI_ActionBindings& bindings)
 				  ActionInfo( "UI.FrameCapture", EGestureType::Down ));
 		bind.Add( WinAPI_Input::F4,
 				  ActionInfo( "UI.CopySliderState", EGestureType::Down ));
+
+		bind.Add( WinAPI_Input::RawChar,
+				  ActionInfo( "UI.Char", EValueType::Chars ));
 	}
 
 	// ScaleBias camera

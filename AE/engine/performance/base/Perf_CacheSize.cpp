@@ -12,18 +12,37 @@ namespace
 	static constexpr Bytes		c_BufSize	= 128_MiB;
 	static constexpr Bytes		c_BufAlign	= SmallAllocationSize;
 
-	
+
 #if AE_SIMD_AVX >= 30
-	static void  XorHash ((OUT void* inDst, const Bytes size)
+	static void  XorHash (OUT void* inDst, const Bytes size)
 	{
+		auto*		src	= static_cast<__m512i const *>( inDst );
+		__m512i		h	= _mm512_setzero_si512();
+
+		for (auto* end = src + size; src < end;)
+		{
+			__m512i		r0 = _mm512_load_si512( src+0 );
+			__m512i		r1 = _mm512_load_si512( src+1 );
+			__m512i		r2 = _mm512_load_si512( src+2 );
+			__m512i		r3 = _mm512_load_si512( src+3 );
+
+			__m512i		h0 = _mm512_xor_si512( r0, r1 );
+			__m512i		h1 = _mm512_xor_si512( r2, r3 );
+
+			h = _mm512_xor_si512( _mm512_xor_si512( h0, h1 ), h );
+			src += 256_b;
+		}
+
+		auto*		dst = static_cast<__m512i *>( inDst );
+		_mm512_store_si512( OUT dst, h );
 	}
 
-	static void  Fp32Sum (OUT void* inDst, const void* inSrc, const Bytes size)
+	static void  Fp32Sum_Cached (OUT void* inDst, const void* inSrc, const Bytes size)
 	{
 		float const*	src	= Cast<float>(inSrc);
 		float*			dst = Cast<float>(inDst);
 		const uint		N	= 16;
-		
+
 		for (auto* end = src + size; src < end;)
 		{
 			__m512	r0 = _mm512_load_ps( src + N*0 );
@@ -46,7 +65,7 @@ namespace
 	{
 		auto*		src	= static_cast<__m256i const *>( inDst );
 		__m256i		h	= _mm256_setzero_si256();
-		
+
 		for (auto* end = src + size; src < end;)
 		{
 			__m256i		r0 = _mm256_load_si256( src+0 );
@@ -60,17 +79,17 @@ namespace
 			h = _mm256_xor_si256( _mm256_xor_si256( h0, h1 ), h );
 			src += 128_b;
 		}
-		
+
 		auto*		dst = static_cast<__m256i *>( inDst );
 		_mm256_store_si256( OUT dst, h );
 	}
-	
+
 	static void  Fp32Sum_Cached (OUT void* inDst, const void* inSrc, const Bytes size)
 	{
 		float const*	src	= Cast<float>(inSrc);
 		float*			dst = Cast<float>(inDst);
 		const uint		N	= 8;
-		
+
 		for (auto* end = src + size; src < end;)
 		{
 			__m256	r0 = _mm256_load_ps( src + N*0 );
@@ -89,16 +108,35 @@ namespace
 	}
 
 #elif AE_SIMD_SSE >= 20
-	static void  XorHash ((OUT void* inDst, const Bytes size)
+	static void  XorHash (OUT void* inDst, const Bytes size)
 	{
+		auto*		src	= static_cast<__m128i const *>( inDst );
+		__m128i		h	= _mm_setzero_si128();
+
+		for (auto* end = src + size; src < end;)
+		{
+			__m128i		r0 = _mm_load_si128( src+0 );
+			__m128i		r1 = _mm_load_si128( src+1 );
+			__m128i		r2 = _mm_load_si128( src+2 );
+			__m128i		r3 = _mm_load_si128( src+3 );
+
+			__m128i		h0 = _mm_xor_si128( r0, r1 );
+			__m128i		h1 = _mm_xor_si128( r2, r3 );
+
+			h = _mm_xor_si128( _mm_xor_si128( h0, h1 ), h );
+			src += 64_b;
+		}
+
+		auto*		dst = static_cast<__m128i *>( inDst );
+		_mm_store_si128( OUT dst, h );
 	}
-	
-	static void  Fp32Sum (OUT void* inDst, const void* inSrc, const Bytes size)
+
+	static void  Fp32Sum_Cached (OUT void* inDst, const void* inSrc, const Bytes size)
 	{
 		float const*	src	= Cast<float>(inSrc);
 		float*			dst = Cast<float>(inDst);
 		const uint		N	= 4;
-		
+
 		for (auto* end = src + size; src < end;)
 		{
 			__m128	r0 = _mm_load_ps( src + N*0 );
@@ -117,16 +155,16 @@ namespace
 	}
 
 #elif AE_SIMD_NEON
-	static void  XorHash ((OUT void* inDst, const Bytes size)
+	static void  XorHash (OUT void* inDst, const Bytes size)
 	{
 	}
-	
-	static void  Fp32Sum (OUT void* inDst, const void* inSrc, const Bytes size)
+
+	static void  Fp32Sum_Cached (OUT void* inDst, const void* inSrc, const Bytes size)
 	{
 		float const*	src	= Cast<float>(inSrc);
 		float*			dst = Cast<float>(inDst);
 		const uint		N	= 4;
-		
+
 		for (auto* end = src + size; src < end;)
 		{
 			float32x4_t		r0 = vld1q_f32( src + N*0 );
@@ -135,7 +173,7 @@ namespace
 			float32x4_t		r3 = vld1q_f32( src + N*3 );
 
 			float32x4_t		a0 = vaddq_f32( r0, r1 );
-			float32x4_t		a2 = vaddq_f32( r2, r3 );
+			float32x4_t		a1 = vaddq_f32( r2, r3 );
 
 			vst1q_f32( OUT dst + N*0, a0 );
 			vst1q_f32( OUT dst + N*1, a1 );
@@ -279,7 +317,7 @@ namespace
 			});
 	}
 
-	
+
 	static constexpr uint	max_threads = 4;
 
 
@@ -412,11 +450,11 @@ extern void PerfTest_CacheSize ()
 				CheckCacheSizeMT<10>( "memset", core_bits, core.type, core_count );
 				CheckCacheSizeMT<11>( "SIMD cached fill", core_bits, core.type, core_count );
 				CheckCacheSizeMT<12>( "SIMD non-cached fill", core_bits, core.type, core_count );
-				
+
 				CheckCacheSizeMT<4>(  "SIMD fp32 sum cached", core_bits, core.type, core_count );
 				CheckCacheSizeMT<13>( "SIMD xor cached", core_bits, core.type, core_count );
 			}
-			
+
 			if ( not core.HasLogicalCores() )
 				return;
 
@@ -424,7 +462,7 @@ extern void PerfTest_CacheSize ()
 			{
 				const auto	core_bits	= core.logicalBits;
 				const uint	core_count	= Min( max_threads, uint(core_bits.count()) ) / 2;
-				
+
 				CheckCacheSizeMT<0>( "memcpy", core_bits, core.type, core_count );
 				CheckCacheSizeMT<1>( "SIMD cached copy", core_bits, core.type, core_count );
 				CheckCacheSizeMT<2>( "SIMD non-cached copy", core_bits, core.type, core_count );
@@ -433,7 +471,7 @@ extern void PerfTest_CacheSize ()
 				CheckCacheSizeMT<10>( "memset", core_bits, core.type, core_count );
 				CheckCacheSizeMT<11>( "SIMD cached fill", core_bits, core.type, core_count );
 				CheckCacheSizeMT<12>( "SIMD non-cached fill", core_bits, core.type, core_count );
-				
+
 				CheckCacheSizeMT<4>(  "SIMD fp32 sum cached", core_bits, core.type, core_count );
 				CheckCacheSizeMT<13>( "SIMD xor cached", core_bits, core.type, core_count );
 			}

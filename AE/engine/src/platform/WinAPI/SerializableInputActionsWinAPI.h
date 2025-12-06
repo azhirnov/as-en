@@ -173,7 +173,9 @@ namespace AE::App
 			_visitor_( Key_KP_PageUp,		0x21,		"KP_PageUp",		VK_PRIOR			)\
 			_visitor_( Key_KP_PageDown,		0x22,		"KP_PageDown",		VK_NEXT				)\
 			_visitor_( Key_KP_Insert,		0x2D,		"KP_Insert",		VK_INSERT			)\
-			_visitor_( Key_KP_Delete,		0x2E,		"KP_Delete",		VK_DELETE			)
+			_visitor_( Key_KP_Delete,		0x2E,		"KP_Delete",		VK_DELETE			)\
+			/* other */\
+			_visitor_( RawChar,			c_RawCharType,	"RawChar",			c_RawCharType )\
 
 		enum class EInputType : InputType_t
 		{
@@ -205,6 +207,8 @@ namespace AE::App
 			TouchDelta,								// float2 (delta in pixels)
 			TouchDelta_norm,						// snorm2 (with correct proportions)
 			Cursor2DEnd			= TouchDelta_norm,
+
+			// TODO: android sensors for remote input
 
 			_Count,
 			Unknown				= 0xFFFF,

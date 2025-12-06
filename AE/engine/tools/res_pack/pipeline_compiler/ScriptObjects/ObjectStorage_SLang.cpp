@@ -4,7 +4,7 @@
 
 namespace AE::PipelineCompiler
 {
-	
+
 /*
 =================================================
 	CompileShaderSLang
@@ -15,7 +15,7 @@ namespace AE::PipelineCompiler
 	{
 		CHECK_THROW_MSG( not outShader );
 		CHECK_THROW_MSG( inShader );
-		
+
 		ShaderSrcKey	key;
 		key.source		= inShader->GetSource();
 		key.resources	= resources;
@@ -34,11 +34,11 @@ namespace AE::PipelineCompiler
 				return;
 			}
 		}
-		
+
 		// compile shader
 		CompiledShader	compiled;
 		_CompileShaderSLang( key, features, inShader->GetPath(), inShader->GetEntry(), OUT compiled );
-		
+
 		auto	cs_iter	= _compiledShaders.insert( RVRef(compiled) ).first;
 		auto*	spirv	= UnionGet<SpirvBytecode_t>( cs_iter->data );
 
@@ -61,13 +61,13 @@ namespace AE::PipelineCompiler
 											  const PathAndLine &shaderPath, const String &entry, OUT CompiledShader &compiled) __Th___
 	{
 		CHECK_THROW_MSG( slangCompiler );
-		
+
 		// check SPIRV version
 		{
 			const uint	ver			= GetMaxValueFromFeatures( features, &FeatureSet::maxShaderVersion ).spirv;
 			Version2	max_spv_ver = Version2::From100( ver );
 			CHECK_THROW_MSG(( max_spv_ver >= Version2{1,0} ));
-			
+
 			Version2	req_spv_ver = EShaderVersion_Ver2( info.version );
 			CHECK_THROW_MSG( req_spv_ver <= max_spv_ver );
 		}
@@ -104,7 +104,7 @@ namespace AE::PipelineCompiler
 		in.header				= header;
 		in.source				= info.source;
 		in.fileLoc				= shaderPath;
-			
+
 		if_unlikely( not slangCompiler->Compile( in, OUT out ))
 		{
 			AE_LOGI( "Shader source:\n"s << in.header << '\n' << in.source );
@@ -115,7 +115,7 @@ namespace AE::PipelineCompiler
 		{
 			AE_LOG_DBG( "Shader compiled with warnings:\n"s << out.log );
 		}
-			
+
 		compiled.version	= info.version;
 		compiled.type		= info.type;
 		compiled.reflection	= RVRef(out.reflection);

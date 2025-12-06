@@ -314,10 +314,10 @@ TODO
 ## Nonuniform
 
 * __depth pre-pass__ [[14.2](../GPU_Benchmarks.md#14-Nonuniform)]<br/>
-	dpp = 0.4ms, 
+	dpp = 0.4ms,
 	Scale=0.6, Dim=2K, ObjCount=4K<br/>
 	**Texture bias doesn't work with nonuniform! Nonuniform access sometimes has flickering!**
-	 
+
 	| nonuniform              | per object (ms) | per warp (ms) | per quad (ms) | per pixel (ms) |
 	|-------------------------|-----------------|---------------|---------------|----------------|
 	| texture layer           | 2.4             | 2.4           | 2.4           | 2.4            |
@@ -335,7 +335,7 @@ TODO
 	| texture layer           | 1.45            | 1.6           | 1.54          | 1.52           |
 	| texture index           | 3.25            | 3.25          | 3.8           | 3.83           |
 	| texture & sampler index | 3.25            | 3.25          | 3.8           | 3.83           |
-	
+
 * __visibility buffer__ v2
 	visibility buffer build = 3.8ms<br/>
 	visibility buffer FS overhead ms<br/>

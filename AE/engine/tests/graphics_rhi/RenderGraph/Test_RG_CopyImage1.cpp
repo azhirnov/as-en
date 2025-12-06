@@ -56,14 +56,14 @@ namespace
 		read.imageOffset	= ImageDim_t{copy.dstOffset};	// TODO: must be same type
 		read.imageDim		= ImageDim_t{copy.extent};
 		read.heapType		= EStagingHeapType::Static;
-		
+
 		t.result = ctx.ReadbackImage( t.img_2, read ).Then( t,
 							[] (Promise<ImageMemView> readRes, CoSafe<CI1_TestData &> t) -> InlineCoro<>
 							{
 								auto view = co_await readRes;
 								t->isOK = (view == t->img_view);
 							});
-		
+
 		ctx.AccumBarriers().MemoryBarrier( EResourceState::CopyDst, EResourceState::Host_Read );
 
 		RenderCoro_Execute( ctx );

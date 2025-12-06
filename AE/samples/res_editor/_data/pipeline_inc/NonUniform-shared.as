@@ -12,7 +12,7 @@
 
 		if ( dbgVS ) name += ".dbg_vs";
 		if ( dbgFS ) name += ".dbg_fs";
-		
+
 		{
 			RC<PipelineLayout>		pl = PipelineLayout( "pl."+name );
 			pl.DSLayout( "pass",	 0, "pass.ds" );
@@ -24,7 +24,7 @@
 		RC<GraphicsPipeline>	ppln = GraphicsPipeline( name+".t" );
 		ppln.SetLayout( "pl."+name );
 		ppln.SetFragmentOutputFromRenderTech( "rtech", "main" );
-		
+
 		if ( name != "dpp" )
 			ppln.SetShaderIO( EShader::Vertex, EShader::Fragment, "io" );
 
@@ -51,7 +51,7 @@
 			spec.AddToRenderTech( "rtech", "main" );  // in ScriptSceneGraphicsPass
 
 			RenderState	rs;
-			
+
 			if ( name == "dpp" )
 			{
 				rs.depth.test				= true;
@@ -88,7 +88,7 @@
 			RC<DescriptorSetLayout>	ds = DescriptorSetLayout( "mtr.ds" );
 			ds.UniformBuffer( EShaderStages::Vertex,	"un_PerObject", "UnifiedGeometryMaterialUB" );
 			ds.StorageBuffer( EShaderStages::Vertex,	"un_Transform", "ObjectTransform_Array",	EResourceState::ShaderStorage_Read );	// external
-			
+
 			if ( StartsWith( name, "bindless-samp" ))
 			{
 				array<string>	samplers = {
@@ -129,13 +129,13 @@
 		ObjectTransform	obj		= un_Transform.elements[ obj_id ];
 		float2			uv		= ProceduralQuadUV();
 		float3			pos		= float3( ToSNorm(uv) * obj.scale, 0.0 );
-		
+
 		pos = QMul( QCreate(obj.rotation), pos );
 		pos += obj.position;
 		pos -= un_PerPass.camera.pos;
 
 		gl.Position		= un_PerPass.camera.viewProj * float4(pos, 1.0);
-		
+
 		#ifndef DEPTH_PRE_PASS
 			Out.uv			= uv;
 			Out.color		= unpackUnorm4x8( obj.color );
@@ -150,7 +150,7 @@
 	#include "Normal.glsl"
 	#include "InvocationID.glsl"
 	#include "../3party_shaders/VisibilityBuffer.glsl"
-	
+
 
 	void Main ()
 	{

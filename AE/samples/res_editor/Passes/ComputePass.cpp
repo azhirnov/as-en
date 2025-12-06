@@ -91,13 +91,18 @@ namespace AE::ResEditor
 				 AnyBits( pd.dbg.stage, EShaderStages::Compute ))
 			{
 				// TODO: dispatch indirect?
-				const uint2		dim	= uint2{Iteration::FindMaxConstThreadCount( _iterations, _localSize )};
+				const uint2		dim		= uint2{Iteration::FindMaxConstThreadCount( _iterations, _localSize )};
+				const uint3		coord	= pd.dbg.exactCoord.has_value() ?
+											*pd.dbg.exactCoord :
+											uint3{ pd.dbg.coord * float2(dim-1u), 0u };
 
 				ppln = it->second;
 
 				DirectCtx::Transfer		tctx{ pd.rtask, RVRef(pd.cmdbuf) };
-				CHECK( pd.dbg.debugger->AllocForCompute( OUT dbg, tctx, ppln, uint3{pd.dbg.coord * float2(dim-1u), 0u }));
+				CHECK( pd.dbg.debugger->AllocForCompute( OUT dbg, tctx, ppln, coord ));
 				pd.cmdbuf = tctx.ReleaseCommandBuffer();
+
+				//UIInteraction::Instance().SetShaderDebugCoord( coord );	// TODO
 			}
 		}
 
@@ -124,7 +129,7 @@ namespace AE::ResEditor
 			for (const auto& it : _iterations)
 			{
 				const uint3	group_count = it.GroupCount( _localSize );	// TODO: indirect dispatch ?
-				
+
 				ShaderTypes::ComputePassPC	pc;
 				pc.wgCount_dispatchIndex = uint4{ group_count, dispatch_id };
 

@@ -1,0 +1,107 @@
+// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+#ifdef __INTELLISENSE__
+#	include <pipeline_compiler.as>
+#	include <glsl.h>
+#endif
+//-----------------------------------------------------------------------------
+#ifdef SCRIPT
+
+	void ASmain ()
+	{
+		{
+			RC<ShaderStructType>	st = ShaderStructType( "io" );
+			st.Set( EStructLayout::InternalIO,
+					"float4		color;" );
+		}{
+			RC<DescriptorSetLayout>	ds = DescriptorSetLayout( "mtr.ds" );
+			ds.UniformBuffer( EShaderStages::Vertex,	"un_PerObject",	"UnifiedGeometryMaterialUB" );
+			ds.StorageBuffer( EShaderStages::Vertex,	"un_Geometry",	"GeometrySBlock",	EResourceState::ShaderStorage_Read );	// external
+		}{
+			RC<PipelineLayout>		pl = PipelineLayout( "pl" );
+			pl.DSLayout( "pass",	 0, "pass.ds" );
+			pl.DSLayout( "material", 1, "mtr.ds" );
+		}
+
+		RC<GraphicsPipeline>	ppln = GraphicsPipeline( "tmpl" );
+		ppln.SetLayout( "pl" );
+		ppln.SetFragmentOutputFromRenderTech( "rtech", "main" );
+		ppln.SetShaderIO( EShader::Vertex, EShader::Fragment, "io" );
+
+		{
+			RC<Shader>	vs = Shader();
+			vs.LoadSelf();
+			ppln.SetVertexShader( vs );
+		}{
+			RC<Shader>	fs = Shader();
+			fs.LoadSelf();
+			ppln.SetFragmentShader( fs );
+		}
+
+		// specialization
+		{
+			RC<GraphicsPipelineSpec>	spec = ppln.AddSpecialization( "spec" );
+			spec.AddToRenderTech( "rtech", "main" );  // in ScriptSceneGraphicsPass
+
+			RenderState	rs;
+
+			rs.depth.test					= true;
+			rs.depth.write					= true;
+
+			rs.inputAssembly.topology		= EPrimitive::TriangleList;
+
+			rs.rasterization.frontFaceCCW	= true;
+			rs.rasterization.cullMode		= ECullMode::None;
+
+			spec.SetRenderState( rs );
+		}
+	}
+
+#endif
+//-----------------------------------------------------------------------------
+#ifdef SH_VERT
+	#include "Quaternion.glsl"
+	#include "Transform.glsl"
+	#include "Geometry.glsl"
+	#include "Cone.glsl"
+
+	void Main ()
+	{
+		float3	light_pos = iLightPos;
+		light_pos.z = Lerp( iClipPlanes.x, iClipPlanes.y, light_pos.z );
+		light_pos -= un_PerPass.camera.pos;
+
+		#ifdef SPOTLIGHT
+			const float3	dir			= SphericalToCartesian( float2( float_Pi2 * iLightParams.z, float_Pi2 * iLightParams.w ));
+			const float		angle		= float_Pi * iLightParams.y;
+			const float		height		= iLightParams.x;
+
+			const Cone		cone		= Cone_Create( light_pos, dir, angle, height );
+			const float		radius		= Cone_BaseRadius( cone );
+			
+			Quat			rot			= QFrom2Normals( float3(0.0, 1.0, 0.0), // origin direction
+														 dir );					// new direction
+
+			const float3	vert_pos	= cone.origin + QMul( rot, (un_Geometry.positions[ gl.VertexIndex ] * float3(radius, radius, height)).xzy );
+
+		#else
+			const float3	sphere_pos	= light_pos;
+			const float		radius		= iLightParams.x;
+			
+			const float3	vert_pos	= sphere_pos + (un_Geometry.positions[ gl.VertexIndex ] * radius);
+		#endif
+
+		gl.Position		= WorldPosToClipSpace( float4( vert_pos, 1.0 ));
+		Out.color		= float4( 0.0, 1.0, 0.0, 1.0 );
+	}
+
+#endif
+//-----------------------------------------------------------------------------
+#ifdef SH_FRAG
+
+	void Main ()
+	{
+		out_Color = In.color;
+	}
+
+#endif
+//-----------------------------------------------------------------------------

@@ -15,12 +15,12 @@ namespace AE::_Coro_
 		return String{_batch->DbgName()} << " |" << ToString(_drawIndex) << "| " << DbgName();
 	}
 #endif
-	
+
 } // AE::_Coro_
 //-----------------------------------------------------------------------------
 
 
-	
+
 namespace AE::Graphics
 {
 /*
@@ -89,5 +89,5 @@ namespace AE::Graphics
 		MemoryBarrier( EMemoryOrder::Release );
 		RenderTaskScheduler::DrawCommandBatchApi::Recycle( this );
 	}
-	
+
 } // AE::Graphics

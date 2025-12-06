@@ -12,7 +12,7 @@
 
 // The following equation models the Fresnel reflectance term of the spec equation (aka F())
 // Implementation of fresnel from [4], Equation 15
-vec3 F_Schlick(vec3 f0, vec3 f90, float VdotH) 
+vec3 F_Schlick(vec3 f0, vec3 f90, float VdotH)
 {
 	return f0 + (f90 - f0) * pow(clamp(1.0 - VdotH, 0.0, 1.0), 5.0);
 }

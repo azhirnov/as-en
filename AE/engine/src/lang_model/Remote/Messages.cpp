@@ -59,12 +59,12 @@ namespace AE::LangModel::Msg
 						obj.sampler.typical, obj.sampler.xtc, obj.sampler.topNSigma, obj.sampler.penalties,
 						obj.sampler.temperature, obj.sampler.seed );
 		}
-		
+
 		static bool  Deserialize_LLamaContextParams (Deserializer &des, INOUT void* &objPtr, Ptr<IAllocator>) __NE___
 		{
 			if ( objPtr == null )
 				objPtr = new LLama::ContextParams{};
-			
+
 			auto&	obj = *Cast<LLama::ContextParams>( objPtr );
 			return des( obj.contextSize, obj.threadCount, obj.maxSequences, obj.evaluationBatchSize,
 						obj.flashAttention, obj.extractEmbeddings, obj.offloadKQV, obj.opOffload,

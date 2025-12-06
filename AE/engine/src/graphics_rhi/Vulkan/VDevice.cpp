@@ -802,7 +802,7 @@ namespace
 						case VK_PIPELINE_EXECUTABLE_STATISTIC_FORMAT_BOOL32_KHR :	str << (stat.value.b32 ? "true" : "false");		break;
 						case VK_PIPELINE_EXECUTABLE_STATISTIC_FORMAT_INT64_KHR :	str << ToString( stat.value.i64 );				break;
 						case VK_PIPELINE_EXECUTABLE_STATISTIC_FORMAT_FLOAT64_KHR :	str << ToString( stat.value.f64 );				break;
-							
+
 						case VK_PIPELINE_EXECUTABLE_STATISTIC_FORMAT_UINT64_KHR :
 							if ( is_bytes )	str << ToString( stat.value.u64 );
 							else			str << ToString( Bytes{stat.value.u64} );
@@ -997,7 +997,7 @@ namespace
 		vkDestroyImage( _vkLogicalDevice, img, null );
 		return true;
 	}
-	
+
 /*
 =================================================
 	ConvertCooperativeVectorMatrix
@@ -1013,7 +1013,7 @@ namespace
 		{
 			usize									dst_size	= usize{src.dstSize};
 			VkConvertCooperativeVectorMatrixInfoNV	dst			= {};
-			
+
 			CHECK_ERR( src.srcSize > 0 and src.dstSize > 0 );
 			CHECK_ERR( src.srcData != null and src.dstData != null );
 			// TODO: check srcSize, dstSize, srcStride, dstStride
@@ -1032,17 +1032,17 @@ namespace
 			dst.srcStride			= usize{src.srcStride};
 			dst.dstLayout			= VEnumCast( src.dstLayout );
 			dst.dstStride			= usize{src.dstStride};
-			
+
 			CHECK_ERR( dst.srcComponentType != VK_COMPONENT_TYPE_MAX_ENUM_KHR );
 			CHECK_ERR( dst.dstComponentType != VK_COMPONENT_TYPE_MAX_ENUM_KHR );
 			CHECK_ERR( dst.srcLayout != VK_COOPERATIVE_VECTOR_MATRIX_LAYOUT_MAX_ENUM_NV );
 			CHECK_ERR( dst.dstLayout != VK_COOPERATIVE_VECTOR_MATRIX_LAYOUT_MAX_ENUM_NV );
-			
+
 			VK_CHECK_ERR( vkConvertCooperativeVectorMatrixNV( _vkLogicalDevice, &dst ));
 		}
 		return true;
 	}
-	
+
 /*
 =================================================
 	GetCooperativeVectorMatrixDstSize
@@ -1080,7 +1080,7 @@ namespace
 			dst.srcStride			= usize{src.srcStride};
 			dst.dstLayout			= VEnumCast( src.dstLayout );
 			dst.dstStride			= usize{src.dstStride};
-			
+
 			CHECK_ERR( dst.srcComponentType != VK_COMPONENT_TYPE_MAX_ENUM_KHR );
 			CHECK_ERR( dst.dstComponentType != VK_COMPONENT_TYPE_MAX_ENUM_KHR );
 			CHECK_ERR( dst.srcLayout != VK_COOPERATIVE_VECTOR_MATRIX_LAYOUT_MAX_ENUM_NV );
@@ -1090,7 +1090,7 @@ namespace
 		}
 		return true;
 	}
-	
+
 /*
 =================================================
 	GetDriverName
@@ -1249,7 +1249,7 @@ namespace
 		DRC_EXLOCK( _drCheck );
 		CHECK_ERR( not VulkanLoader::IsLoaded() );
 		CHECK_ERR( not driverList.empty() );
-		
+
 		CHECK_ERR( LinuxUtils::SetEnvironmentVariable( "DISABLE_LAYER_AMD_SWITCHABLE_GRAPHICS_1", "1" ));  // to use 'VK_DRIVER_FILES'
 
 		const auto	SetDriver = [] (const EDriver driver)
@@ -1293,14 +1293,14 @@ namespace
 					else
 						AE_LOGW( "AMD PRO ICD is not exist in '"s << amdpro_icd << "'" );
 					break;
-					
+
 				case EDriver::ANV :
 					if ( FileSystem::IsFile( intel_icd ))
 						return LinuxUtils::SetEnvironmentVariable( "VK_DRIVER_FILES", intel_icd );
 					else
 						AE_LOGW( "ANV (Mesa for Intel) ICD is not exist in '"s << intel_icd << "'" );
 					break;
-				
+
 				case EDriver::GFXStream :
 					if ( FileSystem::IsFile( gfxstream_icd ))
 						return LinuxUtils::SetEnvironmentVariable( "VK_DRIVER_FILES", gfxstream_icd );
@@ -1358,7 +1358,7 @@ namespace
 		DRC_EXLOCK( _drCheck );
 		CHECK_ERR( not VulkanLoader::IsLoaded() );
 		CHECK_ERR( not driverList.empty() );
-		
+
 		const auto	SetDriver = [] (const EDriver driver)
 		{{
 			static const char	lavapipe_icd []	= "lvp_icd.x86_64.json";
@@ -1430,7 +1430,7 @@ namespace
 	{
 		CHECK_ERR( _vkInstance == Default );
 		CHECK_ERR( VulkanLoader::Initialize() );
-		
+
 	  #ifndef AE_CFG_RELEASE
 		if ( AnyBits( devFlags, EDeviceFlags::EnableRenderDoc ))
 			Unused( RenderDocApi::EnableVkLayer() );
@@ -1658,7 +1658,7 @@ namespace {
 
 			if ( dev_id >= devices.size() )
 				return false;
-			
+
 			return SetPhysicalDevice( devices[ dev_id ]);
 		}
 
@@ -1987,7 +1987,7 @@ namespace {
 
 			if ( props.fragShadingRateFeats.attachmentFragmentShadingRate )
 				outResFlags.imageUsage |= EImageUsage::ShadingRate;
-			
+
 			if ( props.fragDensityMapFeats.fragmentDensityMap )
 			{
 				outResFlags.imageUsage   |= EImageUsage::FragmentDensityMap;
@@ -3496,7 +3496,7 @@ namespace {
 			 HasSubString( pCallbackData->pMessage, ".dstComponentType (VK_COMPONENT_TYPE_FLOAT8_E4M3_EXT) requires the extensions VK_EXT_shader_float8" ) or
 			 HasSubString( pCallbackData->pMessage, ".dstComponentType (VK_COMPONENT_TYPE_FLOAT8_E5M2_EXT) requires the extensions VK_EXT_shader_float8" ))
 			return VK_FALSE;
-		
+
 		auto	dbg_report	= self->_dbgReport.WriteLock();
 
 		TRY{
@@ -3541,11 +3541,14 @@ namespace {
 	{
 		StringView	message {pMessage};
 		{
-			usize	begin	= message.find( "[ " );
-			usize	end		= message.find( " ]" );
+			const StringView	begin_str = "(https://docs.vulkan.org/spec/latest/chapters/resources.html#"sv;
+
+			usize	begin	= message.find( begin_str );
+					begin	= begin != StringView::npos ? begin + begin_str.size() : begin;
+			usize	end		= message.find( ")", begin );
 
 			if ( begin != StringView::npos and begin < end and
-				 CheckFalsePositive( SubString( &message[begin+2], &message[end] )))
+				 CheckFalsePositive( SubString( &message[begin], &message[end] )))
 				return VK_FALSE;
 		}
 

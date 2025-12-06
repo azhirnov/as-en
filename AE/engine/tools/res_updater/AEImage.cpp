@@ -35,7 +35,7 @@ namespace
 		HeaderV1			imageHeader;
 	};
 	StaticAssert( sizeof(FileHeaderV1) == 24 );
-	
+
 /*
 =================================================
 	ImagePackerV1_GetOffset
@@ -70,7 +70,7 @@ namespace
 			dataOffset += sliceSize * Max( imageDim.z, header.arrayLayers );
 		}
 	}
-	
+
 /*
 =================================================
 	Convert_AEImageV1toV2
@@ -96,7 +96,7 @@ namespace
 		const Bytes		v1_base_off = Sizeof( hdr_v1 );
 		const Bytes		v2_base_off = Sizeof( hdr_v2 );
 		Array<ubyte>	buf;
-		
+
 		for (usize mip = 0, mip_cnt = hdr_v2.imageHeader.mipmaps; mip < mip_cnt; ++mip)
 		{
 			for (usize layer = 0, layer_cnt = hdr_v2.imageHeader.arrayLayers; layer < layer_cnt; ++layer)

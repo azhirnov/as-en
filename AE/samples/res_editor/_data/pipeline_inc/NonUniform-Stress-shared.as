@@ -12,7 +12,7 @@
 
 		if ( dbgVS ) name += ".dbg_vs";
 		if ( dbgFS ) name += ".dbg_fs";
-		
+
 		{
 			RC<PipelineLayout>		pl = PipelineLayout( "pl."+name );
 			pl.DSLayout( "pass",	 0, "pass.ds" );
@@ -47,7 +47,7 @@
 			spec.AddToRenderTech( "rtech", "main" );  // in ScriptSceneGraphicsPass
 
 			RenderState	rs;
-			
+
 			rs.depth.test					= true;
 			rs.depth.write					= true;
 

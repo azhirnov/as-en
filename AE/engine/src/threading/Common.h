@@ -33,7 +33,7 @@ namespace AE::Threading
 	using namespace AE::Base;
 
 	ImportBitOperators;
-	
+
 	using AsyncTask = RC< AE::_Coro_::AsyncTaskImpl >;
 
 	class IThread;

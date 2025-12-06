@@ -347,7 +347,7 @@ namespace
 	}
 //-----------------------------------------------------------------------------
 
-	
+
 	template <typename TSet>
 	ND_ ulong  IterationTest2 (TSet &set, IntervalProfiler& profiler)
 	{
@@ -384,7 +384,7 @@ namespace
 		}
 		return IterationTest2( arr, profiler );
 	}
-	
+
 	static void  HashSet_Iterate ()
 	{
 	#if 0
@@ -408,7 +408,7 @@ namespace
 		Array< Elem >								arr;
 	#endif
 		StaticArray< ulong, 9 >		sum = {};
-		
+
 		constexpr uint	count = 1'000'000;
 		Array< uint >	keys;
 		Array< uint >	keys2;
@@ -450,7 +450,7 @@ namespace
 		sum[7] += IterationTest( absl_set2, keys2.begin(), keys2.end(), profiler );
 		sum[7] += IterationTest( absl_set2, keys3.begin(), keys3.end(), profiler );
 		profiler.EndTest();
-		
+
 		profiler.BeginTest( "Array" );
 		sum[8] += IterationTest( arr, keys.begin(),  keys.end(),  profiler );
 		sum[8] += IterationTest( arr, keys.rbegin(), keys.rend(), profiler );

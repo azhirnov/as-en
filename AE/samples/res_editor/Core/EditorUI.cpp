@@ -413,6 +413,9 @@ namespace
 		const bool						hasSurface;
 		DbgViewAndState_t				dbgViewDstState = {};
 
+		float							uiToPix;		// UI coords to surface coords
+		float							pixToUI;		// surface coords to UI coords
+
 		inline static const float		wnd_step		= 20.f;
 		inline static const float		wnd_width		= 370.f;
 		inline static const float		wnd_height		= 650.f;
@@ -451,7 +454,7 @@ namespace
 			void  _RecursiveVisitFolder (const Path &rootPath, const ScriptFolder &);
 			void  _LoadScript (const Path &rootPath);
 	};
-	
+
 /*
 =================================================
 	ImGuiDrawTask::Run
@@ -475,6 +478,9 @@ namespace
 
 		t._CheckScriptDir( t._scriptDir );
 		EXLOCK( imgui );
+
+		uiToPix = imgui->uiScale * 0.25f;
+		pixToUI = 1.0f / uiToPix;
 
 	  #if RmG_UI_ON_HOST
 		auto			glib = GetGraphicsLib();
@@ -640,7 +646,7 @@ namespace
 		const float	dt = GraphicsScheduler().GetFrameTimeDelta().count();
 		ImGuiIO &	io = ImGui::GetIO();
 
-		io.DisplaySize	= ImVec2{float(rtSize.x), float(rtSize.y)};
+		io.DisplaySize	= ImVec2{ float(rtSize.x) * pixToUI, float(rtSize.y) * pixToUI };
 		io.DeltaTime	= dt;
 
 		// update input
@@ -648,10 +654,15 @@ namespace
 			ZeroMem( OUT io.MouseDown );
 
 			io.MouseDown[0]	= imgui->mouseLBDown;
-			io.MousePos		= { imgui->mousePos.x, imgui->mousePos.y };
+			io.MousePos		= ImVec2{ imgui->mousePos.x * pixToUI, imgui->mousePos.y * pixToUI };
 			io.MouseWheel	= Clamp( imgui->mouseWheel.y, -1.f, 1.f );
 			io.MouseWheelH	= Clamp( imgui->mouseWheel.x, -1.f, 1.f );
 
+			if ( not imgui->inputChars.empty() )
+			{
+				io.AddInputCharactersUTF8( Cast<char>(imgui->inputChars.c_str()) );
+				imgui->inputChars.clear();
+			}
 			s_UIInteraction.selectedPixel->pendingPos = (imgui->mousePos + 0.5f) / float2{rtSize};
 		}
 
@@ -835,19 +846,19 @@ namespace
 			if ( bool dbg_info = g_mode->shaderFlags.contains( UIInteraction::EShaderFlags::DebugInfo );
 				 ImGui::Checkbox( "Shader debug info", INOUT &dbg_info ))
 				g_mode->shaderFlags.set( UIInteraction::EShaderFlags::DebugInfo, dbg_info );
-			
+
 			if ( bool pipe_opt = g_mode->shaderFlags.contains( UIInteraction::EShaderFlags::Optimize );
 				 ImGui::Checkbox( "Optimize shader & pipeline", INOUT &pipe_opt ))
 				g_mode->shaderFlags.set( UIInteraction::EShaderFlags::Optimize, pipe_opt );
-			
+
 			if ( bool pipe_stat = g_mode->shaderFlags.contains( UIInteraction::EShaderFlags::CaptureStatistics );
 				 ImGui::Checkbox( "Pipeline statistics", INOUT &pipe_stat ))
 				g_mode->shaderFlags.set( UIInteraction::EShaderFlags::CaptureStatistics, pipe_stat );
-			
+
 			if ( bool pipe_internal = g_mode->shaderFlags.contains( UIInteraction::EShaderFlags::CaptureInternalRepresentation );
 				 ImGui::Checkbox( "Pipeline internal representation", INOUT &pipe_internal ))
 				g_mode->shaderFlags.set( UIInteraction::EShaderFlags::CaptureInternalRepresentation, pipe_internal );
-			
+
 		  #if defined(AE_PLATFORM_WINDOWS) and defined(AE_METAL_TOOLS)
 			if ( bool msl = g_mode->shaderFlags.contains( UIInteraction::EShaderFlags::CompileMSL );
 				 ImGui::Checkbox( "Compile MSL", INOUT &msl ))
@@ -856,10 +867,17 @@ namespace
 		}
 		ImGui::Separator();
 
+		// UI
+		{
+			ImGui::SliderInt( "UI scale", INOUT &imgui->uiScale, 1, 4*3, ToString(imgui->uiScale * 0.25f, 2).c_str() );
+		}
+		ImGui::Separator();
+
 		// info
 		{
 			ImGui::TextUnformatted( t._info.deviceName.c_str() );
 			ImGui::TextUnformatted( t._info.driver.c_str() );
+			ImGui::TextUnformatted( t._info.renderDoc.c_str() );
 		}
 	}
 
@@ -991,6 +1009,13 @@ namespace
 		if ( imgui->dbgPassIdx == dbg_passes.size() )
 			DbgMode_ShaderStages( EDebugModeBits{}.SetAll(), EShaderStages::Unknown );
 
+		ImGui::Checkbox( "Set coord", &imgui->dbgSetCoord );
+		ImGui::BeginDisabled( not imgui->dbgSetCoord );
+		ImGui::TextUnformatted( "Coord" );
+		ImGui::SameLine();
+		ImGui::InputInt3( "##DbgCoord", &imgui->dbgCoord.x, ImGuiInputTextFlags_CharsDecimal );
+		ImGui::EndDisabled();
+
 		ImGui::Separator();
 
 		ImGui::Checkbox( "Show debug view", INOUT &imgui->showDbgViews );
@@ -1020,6 +1045,11 @@ namespace
 				dbg->target	= BitCast<void*>(usize(0x1));
 				dbg->stage	= EShaderStages::All;
 			}
+
+			if ( imgui->dbgSetCoord )
+				dbg->exactCoord = uint3{imgui->dbgCoord};
+			else
+				dbg->exactCoord.reset();
 		}
 	}
 
@@ -1561,7 +1591,7 @@ namespace
 
 		return true;
 	}
-	
+
 /*
 =================================================
 	DrawTask::_TransitDbgViewToDefaultState
@@ -1633,10 +1663,10 @@ namespace
 				if_likely( cmd.UserCallback == null )
 				{
 					RectI	scissor;
-					scissor.left	= int(cmd.ClipRect.x + 0.5f);
-					scissor.top		= int(cmd.ClipRect.y + 0.5f);
-					scissor.right	= int(cmd.ClipRect.z + 0.5f);
-					scissor.bottom	= int(cmd.ClipRect.w + 0.5f);
+					scissor.left	= Min( int(cmd.ClipRect.x * uiToPix + 0.5f), int(rtSize.x)-1 );
+					scissor.top		= Min( int(cmd.ClipRect.y * uiToPix + 0.5f), int(rtSize.y)-1 );
+					scissor.right	= Min( int(cmd.ClipRect.z * uiToPix + 0.5f), int(rtSize.x)-1 );
+					scissor.bottom	= Min( int(cmd.ClipRect.w * uiToPix + 0.5f), int(rtSize.y)-1 );
 
 					dctx.SetScissor( scissor );
 
@@ -1691,7 +1721,7 @@ namespace
 	Init
 =================================================
 */
-	bool  EditorUI::Init (IOutputSurface &surface, EWindowMode wndMode)
+	bool  EditorUI::Init (IOutputSurface &surface, EWindowMode wndMode, float uiScale)
 	{
 		if ( _initialized.load() )
 			return true;
@@ -1710,12 +1740,14 @@ namespace
 				_windowMode.windowedMode = wndMode;
 			}
 
+			_imgui->uiScale = int(uiScale * 4.0f + 0.5f);
+
 			_InitDeviceInfo();
 			return true;
 		}
 		return false;
 	}
-	
+
 /*
 =================================================
 	_InitDeviceInfo
@@ -1724,9 +1756,13 @@ namespace
 	void  EditorUI::_InitDeviceInfo ()
 	{
 		auto&	dev = GraphicsScheduler().GetDevice();
-		
+
 		_info.deviceName	= "device: "s << dev.GetDeviceName();
 		_info.driver		= "driver: "s << dev.GetDriverName();
+
+	  #ifndef AE_CFG_RELEASE
+		_info.renderDoc		= dev.HasRenderDocApi() ? "RenderDoc is attached"s : ""s;
+	  #endif
 	}
 
 /*
@@ -1923,6 +1959,7 @@ namespace
 		imgui->mouseWheel			= {};
 		imgui->runShaderDebugger	= false;
 		imgui->reloadScript			= false;
+		imgui->inputChars.clear();
 
 		ActionQueueReader::Header	hdr;
 		for (; reader.ReadHeader( OUT hdr );)
@@ -1971,6 +2008,13 @@ namespace
 
 				case IA.UI_CopySliderState :
 					_CopySliderState();												break;
+
+				case IA.UI_Char :
+				{
+					auto	str = reader.Data< IInputActions::Chars >( hdr.offset );
+					CHECK( Utf32ToUtf8( OUT imgui->inputChars, U32StringView{ str.chars, str.length }));
+					break;
+				}
 
 				case IA.UI_MouseRBDown :
 				case IA.UI_ResExport :
@@ -2128,7 +2172,7 @@ R"(UI controls:
 		usize	node_id = 0;
 		_RecursiveCheckScriptDir( INOUT scriptDir.rootInfo, INOUT node_id, scriptDir.root, 0, scriptDir.maxDepth );
 	}
-	
+
 /*
 =================================================
 	_RecursiveCheckScriptDir
@@ -2154,11 +2198,27 @@ R"(UI controls:
 
 			if ( depth+1 < maxDepth and not FileSystem::IsEmptyDirectory( dir ))
 			{
-				auto&	dst = rootDst.folders.emplace_back();
-				dst.reset( new ScriptFolder{} );
-				dst->name = name;
+				ScriptFolder*	dst;
+				{
+					auto	dst_uptr = MakeUnique<ScriptFolder>();
+					dst	= dst_uptr.get();
+					rootDst.folders.push_back( RVRef(dst_uptr) );
+				}
 
+				dst->name = name;
 				_RecursiveCheckScriptDir( INOUT *dst, INOUT nodeID, dir, depth+1, maxDepth );
+
+				// remove empty folder
+				if_unlikely( dst->scripts.empty() )
+				{
+					for (auto it = rootDst.folders.begin(); it != rootDst.folders.end();)
+					{
+						if ( it->get() == dst )
+							it = rootDst.folders.erase( it );
+						else
+							++it;
+					}
+				}
 			}
 		}
 

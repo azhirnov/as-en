@@ -64,19 +64,19 @@ using namespace AE::Base;
 #	define BEGIN_TEST()									\
 		const Path	curr {path};						\
 		std::filesystem::current_path( curr );			\
-		StaticLogger::LoggerDbgScope log{};
+		StaticLogger::LoggerScope log{};
 
 #elif defined(AE_PLATFORM_APPLE)
 #	define BEGIN_TEST()																				\
 		const Path	curr = Path{argv[0]}.parent_path().parent_path().parent_path().parent_path();	\
 		Unused( argc );																				\
 		std::filesystem::current_path( curr );														\
-		StaticLogger::LoggerDbgScope log{};
+		StaticLogger::LoggerScope log{};
 
 #else
 #	define BEGIN_TEST()													\
 		std::filesystem::current_path( Path{argv[0]}.parent_path() );	\
-		StaticLogger::LoggerDbgScope log{};								\
+		StaticLogger::LoggerScope log{};								\
 		const Path	curr = Path{argv[0]}.parent_path();					\
 		Unused( argc );
 #endif

@@ -270,7 +270,7 @@ namespace AE::Threading
 				// find available index in low level
 				auto&	level			= chunk.lowLevel[ hi_lvl_idx ];
 				auto	low_available	= level.Load();							// 0 - unassigned
-				int		low_lvl_idx		= low_available.GetFirstZeroBitIndex();	// first 0 bit
+				int		low_lvl_idx		= low_available.GetLowZeroBitIndex();	// first 0 bit
 
 				for (; low_lvl_idx >= 0; ++dbgCounter)
 				{
@@ -328,7 +328,7 @@ namespace AE::Threading
 						return Ptr_t{result};
 					}
 
-					low_lvl_idx = low_available.GetFirstZeroBitIndex();	// first 0 bit
+					low_lvl_idx = low_available.GetLowZeroBitIndex();	// first 0 bit
 					ThreadUtils::Pause();
 				}
 

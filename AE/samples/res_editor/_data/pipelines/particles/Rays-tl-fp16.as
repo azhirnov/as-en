@@ -1,7 +1,7 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 /*
 	Draw particles as rays.
-	Used triangle list to build multiple oriented quads.
+	Used triangle list to build multiple oriented rays.
 */
 #ifdef __INTELLISENSE__
 #	include <pipeline_compiler.as>

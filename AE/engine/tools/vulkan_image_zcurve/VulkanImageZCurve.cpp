@@ -298,7 +298,7 @@ static void  PrintImageZCurve (const VDevice &dev, EPixelFormat fmt, bool printS
 
 int  main ()
 {
-	AE::Base::StaticLogger::LoggerDbgScope	log{};
+	StaticLogger::LoggerScope	log{};
 
 	VDeviceInitializer	dev {False{"no log"}};
 

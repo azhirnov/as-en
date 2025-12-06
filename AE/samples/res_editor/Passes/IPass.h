@@ -59,7 +59,8 @@ namespace AE::ResEditor
 			void const*					target		= null;
 			EDebugMode					mode		= Default;
 			EShaderStages				stage		= Default;
-			float2						coord;
+			float2						coord;		// relative to render target dimension or dispatch size
+			Optional<uint3>				exactCoord;
 			Ptr<ShaderDebugger>			debugger;
 
 			ND_ bool  IsEnabled ()					const	{ return debugger and mode != Default; }
@@ -214,8 +215,8 @@ namespace AE::ResEditor
 		ND_ uint  _GetRepeatCount ()														const;
 	};
 
-	
-	
+
+
 /*
 =================================================
 	_BeginTimeQuery
@@ -248,10 +249,10 @@ namespace AE::ResEditor
 	{
 		if ( not _passTime )
 			return;
-		
+
 		FrameUID	frame_id	= ctx.GetFrameId();
 		auto&		query		= _timeQuery[ frame_id.Index() ];
-		
+
 		if ( not query )
 			return;
 

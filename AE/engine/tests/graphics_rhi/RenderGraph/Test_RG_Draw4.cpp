@@ -122,14 +122,14 @@ namespace
 	static RenderCoro  D4_CopyTask (D4_TestData& t)
 	{
 		Ctx		ctx{ RenderCoro_Get() };
-		
+
 		t.result = ctx.ReadbackImage( t.img, Default ).Then( t,
 							[] (Promise<ImageMemView> readRes, CoSafe<D4_TestData &> t) -> InlineCoro<>
 							{
 								auto view = co_await readRes;
 								t->isOK = t->imgCmp->Compare( view );
 							});
-		
+
 		RenderCoro_Execute( ctx );
 	}
 

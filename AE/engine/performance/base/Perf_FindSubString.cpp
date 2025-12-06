@@ -356,11 +356,19 @@ namespace
 #endif
 
 #if AE_SIMD_AVX >= 2
-	FINDSUBSTRING( FindSubString5, Base::_hidden_::FindChar_AVX2 )
+	Nd__IF const char*  FindChar_AVX2 (char const* str, char const* const end, const char ch) __NE___
+	{
+		return Cast<char>( Base::_hidden_::FindChar8_AVX2( Cast<sbyte>(str), Cast<sbyte>(end), sbyte(ch) ));
+	}
+	FINDSUBSTRING( FindSubString5, FindChar_AVX2 )
 #endif
 
 #if AE_SIMD_SSE >= 20
-	FINDSUBSTRING( FindSubString7, Base::_hidden_::FindChar_SSE2 )
+	Nd__IF const char*  FindChar_SSE2 (char const* str, char const* const end, const char ch) __NE___
+	{
+		return Cast<char>( Base::_hidden_::FindChar8_SSE2( Cast<sbyte>(str), Cast<sbyte>(end), sbyte(ch) ));
+	}
+	FINDSUBSTRING( FindSubString7, FindChar_SSE2 )
 #endif
 
 #if AE_SIMD_NEON
@@ -452,7 +460,12 @@ namespace
 		return end;
 	}
 
-	FINDSUBSTRING( FindSubString_Neon1, Base::_hidden_::FindChar_NEON )
+	Nd__IF const char*  FindChar_NEON (char const* str, char const* const end, const char ch) __NE___
+	{
+		return Cast<char>( Base::_hidden_::FindChar8_NEON( Cast<sbyte>(str), Cast<sbyte>(end), sbyte(ch) ));
+	}
+
+	FINDSUBSTRING( FindSubString_Neon1, FindChar_NEON )
 	FINDSUBSTRING( FindSubString_Neon2, FindChar_NEON2 )
 	FINDSUBSTRING( FindSubString_Neon3, FindChar_NEON3 )
 #endif

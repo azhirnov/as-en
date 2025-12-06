@@ -96,7 +96,7 @@ namespace AE::App
 		VRSessionOpenXR (ApplicationBase &, Unique<IWndListener>,
 					  IInputActions* dst = null)								__NE___;
 		~VRSessionOpenXR ()														__NE___;
-		
+
 		ND_ bool  Create ()														__NE___;
 
 
@@ -106,8 +106,8 @@ namespace AE::App
 	// IWindow //
 		void  Close ()															__NE_OV;
 		bool  CreateRenderSurface (const Graphics::SwapchainDesc &desc)			__NE_OV;
-		bool  SetBrightness (Percent level)										__NE_OV	{ return false; }
-		bool  SetColorSpace (EColorSpace value)									C_NE_OV	{ return false; }
+		bool  SetBrightness (Percent)											__NE_OV	{ return false; }
+		bool  SetColorSpace (EColorSpace)										C_NE_OV	{ return false; }
 
 		uint2				GetSurfaceSize ()									C_NE_OV	{ return {}; }
 		Monitor				GetMonitor ()										C_NE_OV	{ return {}; }

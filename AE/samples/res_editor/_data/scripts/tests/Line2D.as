@@ -1,5 +1,6 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 /*
+	test geometry functions for 2D line
 */
 #ifdef __INTELLISENSE__
 # 	include <res_editor.as>
@@ -44,19 +45,21 @@
 //-----------------------------------------------------------------------------
 #ifdef PERPENDICULAR
 	#include "SDF.glsl"
-	#include "Geometry.glsl"
+	#include "Geometry2D.glsl"
 	#include "InvocationID.glsl"
-	
+
 	bool  Line_Perpendicular2 (const float2 pos, const float2 begin, const float2 end, out float2 pointOnLine)
 	{
+		Line2d	line = Line_Create( begin, end );
+
 	#if PERPENDICULAR == 1
 		// same as 'Line_Perpendicular()'
-		pointOnLine = Line_ProjectPoint( begin, end, pos );
-		return Line_PointInside( begin, end, pointOnLine );
+		pointOnLine = Line_ProjectPoint( line, pos );
+		return Line_PointInside( line, pointOnLine );
 	#else
 		float2	norm = LeftVector( end - begin );
-		return	Line_RayIntersection( begin, end, pos, pos + norm, pointOnLine ) and
-				Line_PointInside( begin, end, pointOnLine );
+		return	Line_RayIntersection( line, Line_Create( pos, pos + norm ), pointOnLine ) and
+				Line_PointInside( line, pointOnLine );
 	#endif
 	}
 
@@ -66,19 +69,17 @@
 		float	uv_scale	= 2.0;
 		float	line_width	= 0.01;
 		float2	uv			= GetGlobalCoordSNormCorrected() * uv_scale;
-
-		float2	line_begin	= float2(-0.8, 0.8);
-		float2	line_end	= float2(0.7, -0.8);
+		Line2d	line		= Line_Create( float2(-0.8, 0.8), float2(0.7, -0.8) );
 
 		if ( iAnimation == 1 )
 		{
 			float2	dir	= SinCos( un_PerPass.time * 0.1 );
-			line_begin	= dir;
-			line_end	= -dir;
+			line.begin	= dir;
+			line.end	= -dir;
 		}
 
-		float	dist0		= SDF2_Line( uv, line_begin, line_end ) - line_width * 2.0;
-		
+		float	dist0		= SDF2_Line( uv, line.begin, line.end ) - line_width * 2.0;
+
 		float	dist2		= float_max;
 		float2	uv2			= float2(float_max);
 		float2	point_on_line;
@@ -87,7 +88,7 @@
 		{
 			uv2 = MapPixCoordToSNormCorrected( Saturate(un_PerPass.mouse.xy) * un_PerPass.resolution.xy, float2(GetGlobalSize().xy) ) * uv_scale;
 
-			if ( Line_Perpendicular2( uv2, line_begin, line_end, OUT point_on_line ))
+			if ( Line_Perpendicular2( uv2, line.begin, line.end, OUT point_on_line ))
 				dist2 = SDF2_Line( uv, uv2, point_on_line ) - line_width;
 		}
 		else
@@ -99,7 +100,7 @@
 				float	d	= float_max;
 				float2	p;
 
-				if ( Line_Perpendicular2( uv3, line_begin, line_end, OUT p ))
+				if ( Line_Perpendicular2( uv3, line.begin, line.end, OUT p ))
 				{
 					d = SDF2_Line( uv, uv3, p ) - line_width;
 					if ( d < dist2 )
@@ -112,9 +113,9 @@
 			}
 		}
 
-		float2	point	= Line_ProjectPoint( line_begin, line_end, uv2 );
+		float2	point	= Line_ProjectPoint( line, uv2 );
 		float	dist3	= SDF2_Circle( uv - point, line_width );
-		bool	side	= Line_PointOnLeftSide( line_begin, line_end, uv2 );
+		bool	side	= Line_PointOnLeftSide( line, uv2 );
 
 		if ( dist3 < 0.0 )
 			out_Color = float4(0.0, 0.0, 1.0, 1.0);

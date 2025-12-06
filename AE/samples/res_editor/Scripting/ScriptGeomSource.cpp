@@ -873,7 +873,7 @@ namespace
 		CHECK_THROW( names[0].dbgMode == Default );
 
 		result->rtech = rtech;
-		
+
 		#ifdef AE_ENABLE_VULKAN
 		{
 			auto&	res = res_mngr.GetResourcesOrThrow( ppln );
@@ -2113,14 +2113,31 @@ namespace
 
 /*
 =================================================
+	_DrawCmdsWithLayer
+=================================================
+*/
+	usize  ScriptUniGeometry::_DrawCmdsWithLayer (const ERenderLayer passLayer) C_NE___
+	{
+		usize	count = 0;
+		for (const auto& cmd_union : _drawCommands)
+		{
+			Visit( cmd_union,
+				[&] (const auto &cmd) { count += usize(cmd.layer == passLayer); }
+			);
+		}
+		return count;
+	}
+
+/*
+=================================================
 	ToMaterial
 =================================================
 */
-	RC<IGSMaterials>  ScriptUniGeometry::ToMaterial (const ERenderLayer, RenderTechPipelinesPtr rtech, const PipelineNames_t &names) C_Th___
+	RC<IGSMaterials>  ScriptUniGeometry::ToMaterial (const ERenderLayer passLayer, RenderTechPipelinesPtr rtech, const PipelineNames_t &names) C_Th___
 	{
 		CHECK_THROW( _geomSrc );
 		CHECK_THROW( rtech );
-		CHECK_THROW( names.size() >= _drawCommands.size() );	// may contain multiple materials per draw, when has debug pipelines
+		CHECK_THROW( names.size() >= _DrawCmdsWithLayer( passLayer ));	// may contain multiple materials per draw, when has debug pipelines
 
 		auto		result		= MakeRC<UnifiedGeometry::Material>();
 		auto&		res_mngr	= GraphicsScheduler().GetResourceManager();
@@ -2134,7 +2151,7 @@ namespace
 		{{
 			auto	ppln = rtech->GetMeshPipeline( info.pplnName );
 			CHECK_THROW( ppln );
-			
+
 			#ifdef AE_ENABLE_VULKAN
 			{
 				auto&	res = res_mngr.GetResourcesOrThrow( ppln );
@@ -2157,7 +2174,7 @@ namespace
 		{{
 			auto	ppln = rtech->GetGraphicsPipeline( info.pplnName );
 			CHECK_THROW( ppln );
-			
+
 			#ifdef AE_ENABLE_VULKAN
 			{
 				auto&	res = res_mngr.GetResourcesOrThrow( ppln );
@@ -2563,7 +2580,7 @@ namespace {
 
 		GraphicsPipelineID	ppln = rtech->GetGraphicsPipeline( names[0].pplnName );
 		CHECK_THROW( ppln );
-		
+
 		#ifdef AE_ENABLE_VULKAN
 		{
 			auto&	res = res_mngr.GetResourcesOrThrow( ppln );
@@ -2713,7 +2730,7 @@ namespace {
 
 				auto	ppln = rtech->GetGraphicsPipeline( names[i].pplnName );
 				CHECK_THROW( ppln );
-				
+
 				#ifdef AE_ENABLE_VULKAN
 				{
 					auto&	res = res_mngr.GetResourcesOrThrow( ppln );

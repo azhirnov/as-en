@@ -792,7 +792,7 @@ namespace AE::ResEditor
 			const float2						clip_planes = _camera->GetClipPlanes();
 
 			pc_data.proj		= _camera->GetProj();
-			pc_data.nearPlane	= clip_planes.x; 
+			pc_data.nearPlane	= clip_planes.x;
 
 			if ( IsInfinity( clip_planes.y ))
 				pc_data.invDistance = 1.0e-2f;
@@ -1011,7 +1011,7 @@ namespace AE::ResEditor
 
 		CHECK_THROW( res_mngr.CreateDescriptorSets( OUT _dsIndex, OUT _descSets.data(), _descSets.size(), _ppln, DescriptorSetName{"ds0"} ));
 	}
-		
+
 /*
 =================================================
 	destructor
@@ -1040,7 +1040,7 @@ namespace AE::ResEditor
 		CHECK_THROW( src_desc.layerCount == dst_desc.layerCount );
 
 		DirectCtx::Compute		ctx{ pd.rtask, RVRef(pd.cmdbuf), DebugLabel{"RelaxedCopyImagePass", HtmlColor::Blue} };
-		
+
 		// update descriptors
 		{
 			DescriptorUpdater	updater;
@@ -1314,7 +1314,7 @@ namespace AE::ResEditor
 	}
 //-----------------------------------------------------------------------------
 
-	
+
 /*
 =================================================
 	constructor
@@ -1340,7 +1340,7 @@ namespace AE::ResEditor
 		_cmd.dstType	= dstType;
 		_cmd.srcLayout	= srcLayout;
 		_cmd.dstLayout	= dstLayout;
-		
+
 		if ( AnyEqual( _cmd.srcLayout, ECoopVecMatrixLayout::InferencingOptimal, ECoopVecMatrixLayout::TrainingOptimal ))
 		{
 			CHECK_THROW( _cmd.srcStride == 0 );
@@ -1365,7 +1365,7 @@ namespace AE::ResEditor
 		CHECK_THROW( _cmd.srcSize != 0 );
 		CHECK_THROW( _cmd.dstSize != 0 );
 	}
-		
+
 /*
 =================================================
 	Execute

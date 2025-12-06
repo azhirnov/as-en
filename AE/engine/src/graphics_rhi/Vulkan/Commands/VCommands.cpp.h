@@ -94,7 +94,7 @@ namespace AE::Graphics::_hidden_
 			}
 		}
 	}
-	
+
 /*
 =================================================
 	ConvertCooperativeVectorMatrixImpl
@@ -133,7 +133,7 @@ namespace AE::Graphics::_hidden_
 			dst.srcStride				= usize{src.srcStride};
 			dst.dstLayout				= VEnumCast( src.dstLayout );
 			dst.dstStride				= usize{src.dstStride};
-			
+
 			CHECK_ERRV( dst.srcComponentType != VK_COMPONENT_TYPE_MAX_ENUM_KHR );
 			CHECK_ERRV( dst.dstComponentType != VK_COMPONENT_TYPE_MAX_ENUM_KHR );
 			CHECK_ERRV( dst.srcLayout != VK_COOPERATIVE_VECTOR_MATRIX_LAYOUT_MAX_ENUM_NV );
@@ -145,7 +145,7 @@ namespace AE::Graphics::_hidden_
 				vk_cmds.clear();
 			}
 		}
-		
+
 		if ( not vk_cmds.empty() )
 			fn.vkCmdConvertCooperativeVectorMatrixNV( cmdbuf, uint(vk_cmds.size()), vk_cmds.data() );
 	}

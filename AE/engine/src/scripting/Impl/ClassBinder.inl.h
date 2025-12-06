@@ -113,7 +113,7 @@ namespace AE::Scripting
 		else
 		if constexpr( alignof(T) == 8 )
 			_flags |= asOBJ_APP_CLASS_ALIGN8;
-		
+
 		if constexpr( IsCopyConstructible<T> )
 			_flags |= asOBJ_APP_CLASS_COPY_CONSTRUCTOR;
 
@@ -206,7 +206,7 @@ namespace AE::Scripting
 
 		if_unlikely( _genHeader )
 			_header << "struct " << _name << "\n{\n";
-		
+
 		if constexpr( IsCompleteType< ScriptTypeInfo<T> >)
 		{
 			StaticAssert( ScriptTypeInfo<T>::is_object );
@@ -402,7 +402,7 @@ namespace AE::Scripting
 
 		if constexpr( IsFloatPoint<B> )
 			ASSERT( NoBits( _flags, asOBJ_APP_CLASS_ALLINTS ));
-		
+
 		if constexpr( IsInteger<B> )
 			ASSERT( NoBits( _flags, asOBJ_APP_CLASS_ALLFLOATS ));
 
@@ -449,7 +449,7 @@ namespace AE::Scripting
 
 		if constexpr( IsFloatPoint<B> )
 			ASSERT( NoBits( _flags, asOBJ_APP_CLASS_ALLINTS ));
-		
+
 		if constexpr( IsInteger<B> )
 			ASSERT( NoBits( _flags, asOBJ_APP_CLASS_ALLFLOATS ));
 
@@ -682,7 +682,7 @@ namespace AE::Scripting
 			_header << ";\n";
 		}
 	}
-	
+
 /*
 =================================================
 	AddMethodOrGlobal

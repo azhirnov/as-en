@@ -45,7 +45,7 @@ static void  GraphicsTests (RC<VFS::IVirtualFileStorage> assetStorage, RC<VFS::I
 	extern "C" AE_DLL_EXPORT int Tests_Graphics2 (VFS::IVirtualFileStorage* assetStorage,
 												  VFS::IVirtualFileStorage* refStorage)
 	{
-		AE::Base::StaticLogger::LoggerDbgScope log{};
+		StaticLogger::LoggerScope log{};
 
 		GraphicsTests( RC{assetStorage}, RC{refStorage} );
 		return 0;

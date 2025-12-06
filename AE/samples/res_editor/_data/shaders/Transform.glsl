@@ -12,18 +12,7 @@
 #include "Matrix.glsl"
 
 
-#ifdef DISABLE_un_PerObject
-/*
-=================================================
-	LocalPosToWorldSpace
-=================================================
-*/
-ND_ float4  LocalPosToWorldSpace (const float4 pos)
-{
-	return pos - float4(un_PerPass.camera.pos, 0.0f);
-}
-//-----------------------------------------------------------------------------
-#else
+#ifdef DESCRIPTOR_UniformBuffer_un_PerObject
 /*
 =================================================
 	LocalPosToWorldSpace
@@ -52,7 +41,24 @@ ND_ float3  LocalVecToWorldSpace (const float3 dir)
 {
 	return Normalize( float3x3(un_PerObject.transform) * dir );
 }
-#endif
+//-----------------------------------------------------------------------------
+#else
+/*
+=================================================
+	LocalPosToWorldSpace
+=================================================
+*/
+ND_ float4  LocalPosToWorldSpace (const float4 pos)
+{
+	return pos - float4(un_PerPass.camera.pos, 0.0f);
+}
+
+ND_ float4  LocalPosToWorldSpace (const float3 pos)
+{
+	return LocalPosToWorldSpace( float4( pos, 1.0f ));
+}
+
+#endif // DESCRIPTOR_UniformBuffer_un_PerObject
 //-----------------------------------------------------------------------------
 
 
@@ -66,6 +72,11 @@ ND_ float4  WorldPosToViewSpace (const float4 pos)
 	return un_PerPass.camera.view * pos;
 }
 
+ND_ float4  WorldPosToViewSpace (const float3 pos)
+{
+	return WorldPosToViewSpace( float4( pos, 1.0f ));
+}
+
 ND_ float4  LocalPosToViewSpace (const float4 pos)
 {
 	return WorldPosToViewSpace( LocalPosToWorldSpace( pos ));
@@ -73,7 +84,7 @@ ND_ float4  LocalPosToViewSpace (const float4 pos)
 
 ND_ float4  LocalPosToViewSpace (const float3 pos)
 {
-	return LocalPosToViewSpace( float4( pos, 1.0f ));
+	return WorldPosToViewSpace( LocalPosToWorldSpace( pos ));
 }
 
 /*
@@ -123,7 +134,7 @@ ND_ float4  LocalPosToNormClipSpace (const float3 pos)
 
 /*
 =================================================
-	WorldPosToScreenSpace / LocalPosToScreenSpace
+	WorldPosToScreenSpace / LocalPosToScreenSpace / ViewPosToScreenSpace
 ----
 	XY in screen coordinates (pixels).
 	Z - non-linear depth in range [0, 1].
@@ -143,4 +154,9 @@ ND_ float4  LocalPosToScreenSpace (const float4 pos, float4 viewport)
 ND_ float4  LocalPosToScreenSpace (const float3 pos, float4 viewport)
 {
 	return LocalPosToScreenSpace( float4( pos, 1.0f ), viewport );
+}
+
+ND_ float4  ViewPosToScreenSpace (const float4 pos, float4 viewport)
+{
+	return ProjectToScreenSpace( un_PerPass.camera.proj, pos, viewport );
 }

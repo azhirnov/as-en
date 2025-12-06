@@ -126,7 +126,7 @@
 		{
 			float3	local_pos	= ray.pos - center;
 			float	density		= DensityLowRes( local_pos );
-			
+
 			// simple volumetric
 			if ( density > 0.0 )
 			{
@@ -141,12 +141,12 @@
 
 			Ray_Move( INOUT ray, step );
 		}
-		
+
 		transmittance	= Saturate( 1.0 - transmittance );
 		accum_density	= Saturate( accum_density );
 
 		float3	light_col = RemoveSRGBCurve( iLightColor.rgb ) * transmittance * accum_density;
-		
+
 		return float4(ApplySRGBCurve( light_col ), 1.0);
 	}
   #endif
@@ -176,7 +176,7 @@
 		{
 			float3	local_pos	= ray.pos - center;
 			float	density		= DensityLowRes( local_pos );
-			
+
 			if ( density > 0.0 )
 			{
 				float	density_along_light = 0.0;
@@ -197,7 +197,7 @@
 
 			Ray_Move( INOUT ray, step );
 		}
-		
+
 		transmittance	= Max( 0.0, transmittance );
 		accum_density	= Min( 1.0, accum_density );
 

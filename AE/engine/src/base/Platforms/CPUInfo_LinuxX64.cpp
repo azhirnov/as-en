@@ -28,7 +28,7 @@ namespace
 	{
 		return StringToUInt( line.substr( line.find(": ")+4, line.length() ), 16 );
 	}
-	
+
 	ND_ static uint  GetMinClockSpeed (uint id)
 	{
 		String			line;
@@ -249,7 +249,7 @@ namespace
 				AddCacheInfo( ECacheType::L3, c );
 			}
 		}
-		
+
 		Unused( LinuxUtils::ResetCurrentThreadAffinity() );
 
 		_Validate();

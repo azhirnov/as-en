@@ -114,7 +114,7 @@ namespace AE::ResEditor
 
 		ND_ BufferID				GetBufferId (uint fid)			const	{ return _ids[ fid ].Get(); }
 		ND_ BufferID				GetBufferId (FrameUID fid)		const	{ return _ids[ fid.Index() ].Get(); }
-		
+
 		// Warning: sync problem - '_id' may be changed between GetBufferId() and GetBufferDesc(),
 		// so prefer to use 'GetDescription( GetBufferId() )' instead.
 		ND_ BufferDesc				GetBufferDesc ()				const;

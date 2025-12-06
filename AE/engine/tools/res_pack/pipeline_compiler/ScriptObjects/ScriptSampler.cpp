@@ -264,7 +264,7 @@ namespace
 		CHECK_THROW_MSG( value == Default or AnyBits( ESamplerOpt::All, value ));
 
 		_desc.options = value;
-		
+
 		if ( AnyBits( _desc.options, ESamplerOpt::Subsampled | ESamplerOpt::SubsampledCoarseReconstruction ))
 		{
 			TEST_FEATURE_MSG( GetFeatures(), fragmentDensityMap, "but required for sampler with 'Subsampled' or 'SubsampledCoarseReconstruction' flags" );
@@ -556,7 +556,7 @@ namespace
 				SLOG( "for subsampled sampler unnormalized coordinates must be false" );
 				_desc.options &= ~ESamplerOpt::UnnormalizedCoordinates;
 			}
-			
+
 			if ( _desc.minFilter != _desc.magFilter )
 			{
 				SLOG( "min & mag filter for subsampled sampler must equal" );
@@ -588,7 +588,7 @@ namespace
 				SLOG( "V-address mode for subsampled sampler must be 'clamp'" );
 				_desc.addressMode.y = EAddressMode::ClampToEdge;
 			}
-			
+
 			if ( _desc.HasAnisotropy() )
 			{
 				SLOG( "anisotropy filter for subsampled sampler is not supported" );

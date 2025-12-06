@@ -16,7 +16,7 @@ namespace
 		Path				modelPath;
 		uint				ctxSize;
 		uint				gpuLayers;
-		LLama::EBackend	backend;
+		LLama::EBackend		backend;
 	};
 
 	struct PerfTestResult
@@ -55,7 +55,7 @@ namespace
 			outTokens += count;
 			return true;
 		}
-		
+
 		void  OnComplete (U8StringView completeResponse, uint tokenCount) __NE_OV
 		{
 			response = completeResponse;
@@ -86,7 +86,7 @@ namespace
 			<< ToString( out.ctxCreation ) << " | "
 			<< ToString( out.timeToFirstToken ) << " | "
 			<< ToString( out.responseGeneration ) << " | ";
-		
+
 		if ( in.backend != LLama::EBackend::CPU )
 			str << ToString(Min( in.gpuLayers, out.maxLayers )) << " / " << ToString( out.maxLayers );
 		else
@@ -138,7 +138,7 @@ namespace
 		AE_LOGI( "Try backend: "s << ToString(in.backend) << ", ctx: " << ToString(in.ctxSize) << ", gpuLayers: " << ToString(in.gpuLayers) );
 
 		AE_LOGI( "Load model" );
-		
+
 		result.hasErrors = true;
 
 		RC<ILanguageModel>	model;
@@ -180,20 +180,20 @@ namespace
 			params.offloadKQV		= true;
 			params.opOffload		= true;
 
-			#if 1
+			#if 1 // better for seed-oss
 				params.sampler.minP		= LLama::Sampler_MinP{ 0.05f, 1 };
 				params.sampler.temperature	= 0.8f;
 			#endif
-			#if 0
+			#if 0 // better for gpt-oss ?
 				params.sampler.topK		= LLama::Sampler_TopK{ 40 };
 				params.sampler.minP		= LLama::Sampler_MinP{ 0.05f, 1 };
-				params.sampler.topP		= LLama::Sampler_TopP{ 0.95f, 1 };
+				params.sampler.topP		= LLama::Sampler_TopP{ 0.90f, 1 };
 				params.sampler.temperature = 0.6f;
 			#endif
 
 			ctx = model->CreateContext( params );
 			CHECK_ERRV( ctx );
-			
+
 			result.ctxCreation = Clock_t::now() - begin;
 		}
 
@@ -264,7 +264,7 @@ namespace
 			LLamaPerf_RunTest( in, OUT result, systemMsg, prompt, dstFolder, expected, unexpected );
 			return;
 		}
-		
+
 		if ( model_size > g_VRAM )
 			return;
 
@@ -287,7 +287,7 @@ namespace
 
 		FileSystem::DeleteDirectory( dst_folder );
 		FileSystem::CreateDirectory( dst_folder );
-		
+
 		for (auto& [in, out] : requests)
 		{
 			LLamaPerf_RunTest(	in, out,
@@ -309,7 +309,7 @@ namespace
 	{
 		constexpr uint	c_ContextSize	= 16 << 10;
 		constexpr uint	c_GPULayers		= 999;
-		
+
 		Array<PerfTestRequest>	requests;
 		const PerfTestInput		request_types[] =
 		{
@@ -466,7 +466,7 @@ public half loss(MyNetwork* network, no_diff half x, no_diff half y)
     let networkResult = network.eval(x, y);
     let gt = no_diff groundtruth(x, y);
     let diff = networkResult - gt;
-    
+
     return dot(diff, diff);
 }
 

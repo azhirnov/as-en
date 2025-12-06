@@ -37,7 +37,7 @@ static void  GraphicsPerfTests (RC<VFS::IVirtualFileStorage> assetStorage)
 
 	extern "C" AE_DLL_EXPORT int Perf_Graphics2 (VFS::IVirtualFileStorage* assetStorage)
 	{
-		StaticLogger::LoggerDbgScope log{};
+		StaticLogger::LoggerScope log{};
 
 		GraphicsPerfTests( RC{assetStorage} );
 		return 0;
@@ -48,7 +48,7 @@ static void  GraphicsPerfTests (RC<VFS::IVirtualFileStorage> assetStorage)
 	int  main (const int argc, char* argv[])
 	{
 		BEGIN_TEST();
-		
+
 		Unused( PlatformUtils::SetSystemSleepState( ESystemSleepState::DisplayAlwaysOn ));
 
 	  #ifdef AE_CI_BUILD_TEST

@@ -1,0 +1,43 @@
+//> gl_GlobalInvocationID: uint3 {8, 8, 0} | {0x8, 0x8, 0x0}
+//> gl_LocalInvocationID: uint3 {0, 0, 0} | {0x0, 0x0, 0x0}
+//> gl_WorkGroupID: uint3 {8, 8, 0} | {0x8, 0x8, 0x0}
+no source
+
+//> point: float2 {8.000000, 18.000000}
+//  gl_GlobalInvocationID: uint3 {8, 8, 0} | {0x8, 0x8, 0x0}
+8. point = vec2(gl_GlobalInvocationID.xy + uvec2(0,10));
+
+//> arr: float {8.000000}
+//  point: float2 {8.000000, 18.000000}
+11. arr[0] = point.x;
+
+//> arr: float {18.000000}
+//  point: float2 {8.000000, 18.000000}
+12. arr[1] = point.y;
+
+//> arr: float {26.000000}
+//  point: float2 {8.000000, 18.000000}
+13. arr[2] = point.x + point.y;
+
+//> arr: float {144.000000}
+//  point: float2 {8.000000, 18.000000}
+14. arr[3] = point.x * point.y;
+
+//> color.xyz: float3 {8.000000, 18.000000, 8.000000}
+//  point: float2 {8.000000, 18.000000}
+16. color.rgb = point.xyx;
+
+//> color.w: float {144.000000}
+//  arr: float {144.000000}
+//  gl_GlobalInvocationID: uint3 {8, 8, 0} | {0x8, 0x8, 0x0}
+17. color.a = arr[ gl_GlobalInvocationID.x % arr.length() ];
+
+//> Test1(): void
+23. 	Test1( color );
+
+//> imageStore(): void
+//  gl_GlobalInvocationID: uint3 {8, 8, 0} | {0x8, 0x8, 0x0}
+24. 	imageStore( un_OutImage, ivec2(gl_GlobalInvocationID.xy), color );
+
+//---------------------------
+

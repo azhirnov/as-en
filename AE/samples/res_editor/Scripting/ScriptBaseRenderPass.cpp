@@ -15,7 +15,7 @@ namespace AE::ResEditor
 	{
 		auto*	obj = args.GetObject< ScriptBaseRenderPass >();
 		obj->_Output2( args );
-		
+
 		auto&	dst = obj->_output.back();
 		dst.rt->AddUsage( dst.usage );
 
@@ -25,7 +25,7 @@ namespace AE::ResEditor
 		if ( dst.rt->IsMutableDimension() )
 			obj->_SetDynamicDimension( dst.rt->DimensionRC() );
 	}
-	
+
 /*
 =================================================
 	_Output2
@@ -123,17 +123,17 @@ namespace AE::ResEditor
 	{
 		auto*	obj = args.GetObject< ScriptBaseRenderPass >();
 		obj->_OutputBlend2( args );
-		
+
 		auto&	dst = obj->_output.back();
 		dst.rt->AddUsage( dst.usage );
-		
+
 		if ( obj->_subsampled )
 			dst.rt->AddUsage( EResourceUsage::SubsampledAttachment );
 
 		if ( dst.rt->IsMutableDimension() )
 			obj->_SetDynamicDimension( dst.rt->DimensionRC() );
 	}
-	
+
 /*
 =================================================
 	_OutputBlend2
@@ -215,7 +215,7 @@ namespace AE::ResEditor
 				"unsupported fn signature" );
 		}
 	}
-	
+
 /*
 =================================================
 	_FragmentShadingRate
@@ -224,12 +224,12 @@ namespace AE::ResEditor
 	 void  ScriptBaseRenderPass::_FragmentShadingRate (Scripting::ScriptArgList args) __Th___
 	 {
 		auto*	obj = args.GetObject< ScriptBaseRenderPass >();
-		
+
 		for (auto& out : obj->_output)
 		{
 			CHECK_THROW_MSG( out.usage != EResourceUsage::FragShadingRate,
 				"'FragShadingRate' already added" );
-			
+
 			CHECK_THROW_MSG( out.usage != EResourceUsage::FragDensityMap,
 				"can not combine 'FragShadingRate' with 'FragDensityMap'" );
 		}
@@ -243,7 +243,7 @@ namespace AE::ResEditor
 		dst.storeOp	= EAttachmentStoreOp::None;
 		dst.rt->AddUsage( dst.usage );
 	 }
-	 
+
 /*
 =================================================
 	_FragmentDensityMap
@@ -257,7 +257,7 @@ namespace AE::ResEditor
 		{
 			CHECK_THROW_MSG( out.usage != EResourceUsage::FragDensityMap,
 				"'FragDensityMap' already added" );
-			
+
 			CHECK_THROW_MSG( out.usage != EResourceUsage::FragShadingRate,
 				"can not combine 'FragShadingRate' with 'FragDensityMap'" );
 
@@ -265,7 +265,7 @@ namespace AE::ResEditor
 		}
 
 		obj->_Output2( args );
-		
+
 		auto&	dst = obj->_output.back();
 		dst.name	= "FragmentDensity";
 		dst.usage	= EResourceUsage::FragDensityMap;
@@ -358,7 +358,7 @@ namespace AE::ResEditor
 	{
 		auto&	dst	= _output.emplace_back();
 		uint	idx	= 0;
-		
+
 		if ( args.IsArg< String const& >(idx) ){
 			dst.inName = args.Arg< String const& >(idx++);
 		}
@@ -368,7 +368,7 @@ namespace AE::ResEditor
 
 		CHECK_THROW_MSG( not dst.inName.empty() );
 		CHECK_THROW_MSG( dst.inName != dst.name );
-		
+
 		if ( args.IsArg< ScriptImagePtr const& >(idx) )
 		{
 			dst.rt = args.Arg< ScriptImagePtr const& >(idx++);
@@ -419,7 +419,7 @@ namespace AE::ResEditor
 		if ( dst.rt->IsMutableDimension() )
 			_SetDynamicDimension( dst.rt->DimensionRC() );
 	}
-	
+
 /*
 =================================================
 	_Input
@@ -440,7 +440,7 @@ namespace AE::ResEditor
 		dst.usage	= EResourceUsage::InputAttachment;
 
 		dst.rt->AddUsage( dst.usage );
-		
+
 		if ( is_ds and attName.empty() )
 			dst.name = "DepthStencil";
 		else

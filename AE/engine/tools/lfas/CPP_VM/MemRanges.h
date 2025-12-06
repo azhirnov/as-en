@@ -142,7 +142,7 @@ namespace LFAS
 
 		return true;
 	}
-	
+
 /*
 =================================================
 	_IsDataAvailable
@@ -208,7 +208,7 @@ namespace LFAS
 			if ( iter->begin < range.begin )
 			{
 				CHECK_ERR( _IsDataAvailable( *iter, tid ));
-				
+
 				RangeWithVersion	part = *iter;
 				part.begin	= range.begin;
 				part.end	= iter->end;
@@ -291,7 +291,7 @@ namespace LFAS
 		for (; iter != _ranges.end() and iter->begin < range.end; ++iter)
 		{
 			ASSERT( IsIntersects( *iter, range ));
-			
+
 			CHECK_ERR( _IsDataAvailable( *iter, tid ));
 		}
 

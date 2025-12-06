@@ -731,7 +731,7 @@ namespace AE::Parsers
 			if ( not feat.extension.empty() )
 			{
 				existing_ext.insert( feat.extension );
-				
+
 				CHECK_MSG( _extensions.contains( feat.extension ),
 					"Extension '"s << feat.extension << "' is not found in headers" );
 			}
@@ -1083,7 +1083,7 @@ namespace AE::Parsers
 			<< "\t\t\t\tnext_props  = &_properties.subgroupProperties.pNext;\n"
 			<< "\t\t\t\t_properties.subgroupProperties.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SUBGROUP_PROPERTIES;\n"
 			<< "\t\t\t}\n";
-		
+
 		str	<< "\t\t\tif ( _extensions.externalMemoryCaps )\n"
 			<< "\t\t\t{\n"
 			<< "\t\t\t\t*next_props = &_properties.deviceIdProperties;\n"
@@ -1116,7 +1116,7 @@ namespace AE::Parsers
 					{
 						CHECK( feat_st.fields[0].name == "sType" );
 						CHECK( feat_st.fields[1].name == "pNext" );
-						
+
 						ext_validation << "\t\t\t_extensions." << feat.shortName;
 						AppendToString( INOUT ext_validation, feats.maxNameLen - feat.shortName.size() );
 

@@ -168,7 +168,7 @@ namespace
 		}
 
 		const Bytes	compressed_size {file_data.size()};
-		
+
 		// decompress v1
 		{
 			Array<ubyte>	decoded;
@@ -334,7 +334,7 @@ namespace
 		}
 
 		const Bytes	compressed_size {file_data.size()};
-		
+
 		// decompress v1
 		{
 			Array<ubyte>	decoded;
@@ -362,7 +362,7 @@ namespace
 	}
 #endif // AE_ENABLE_ZSTD
 
-	
+
 #ifdef AE_ENABLE_LZ4
 	static void  Lz4Stream_Test1 ()
 	{
@@ -505,7 +505,7 @@ namespace
 		}
 
 		const Bytes	compressed_size {file_data.size()};
-		
+
 		// decompress v1
 		{
 			Array<ubyte>	decoded;
@@ -549,7 +549,7 @@ namespace
 		}
 
 		const Bytes	compressed_size {file_data.size()};
-		
+
 		// decompress v1
 		{
 			Array<ubyte>	decoded;
@@ -930,7 +930,7 @@ extern void UnitTest_DataSource (const Path &curr)
 	ZStdStream_Test3();
 	ZStdStream_Test4();
 	#endif
-	
+
 	#ifdef AE_ENABLE_LZ4
 	Lz4Stream_Test1();
 	Lz4Stream_Test2();

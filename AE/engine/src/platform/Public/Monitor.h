@@ -55,6 +55,7 @@ namespace AE::App
 		Meters2f			physicalSize;					// in meters, for curved screen this is length of arc
 		Meters2f			curvatureRadius;				// radius of curvature on X and Y axis, only for curved monitors
 		float				ppi					= 0.f;		// pixels per inch
+		float				uiScale				= 1.f;		// OS can set scale factor for each monitor
 		uint				freq				= 0;		// update frequency in Hz
 		EOrientation		orient				= Default;
 		bool				isExternal			= false;

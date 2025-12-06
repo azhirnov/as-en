@@ -30,7 +30,9 @@ namespace AE::ResEditor
 			if_unlikely( pd.dbg.IsEnabled( subpass.get() ))
 			{
 				DirectCtx::Transfer		tctx	{ pd.rtask, RVRef(pd.cmdbuf) };
-				const uint2				coord	= uint2{pd.dbg.coord * float2(dim-1u)};
+				const uint2				coord	= pd.dbg.exactCoord.has_value() ?
+													uint2{*pd.dbg.exactCoord} :
+													uint2{pd.dbg.coord * float2(dim-1u)};
 
 				dbg_result.resize( instances.size() );
 
@@ -42,6 +44,8 @@ namespace AE::ResEditor
 
 				pd.cmdbuf	= tctx.ReleaseCommandBuffer();
 				dbg_subpass	= subpass.get();
+
+				//UIInteraction::Instance().SetShaderDebugCoord( coord );	// TODO
 			}
 		}
 
@@ -128,7 +132,7 @@ namespace AE::ResEditor
 						case ERenderLayer::_Count :			break;
 					}
 					switch_end
-						
+
 					if ( draw_fn == null )
 						continue;
 
@@ -176,7 +180,7 @@ namespace AE::ResEditor
 
 		// validate dimensions
 		const uint2		cur_dim = _renderTargets.front().image->GetViewDesc().Dimension2();
-		
+
 		for (auto& rt : _renderTargets)
 		{
 			const uint2		dim = rt.image->GetViewDesc().Dimension2();
@@ -193,7 +197,7 @@ namespace AE::ResEditor
 			subpass->_dimension = cur_dim;
 			subpass->Update( ctx, pd );
 		}
-		
+
 		_ReadTimeQuery( ctx.GetFrameId() );
 		return true;
 	}
@@ -209,7 +213,7 @@ namespace AE::ResEditor
 			if_unlikely( rt.image->RequireResize() )
 				resources.push_back( rt.image );
 		}
-		
+
 		for (auto& subpass : _subpasses) {
 			subpass->GetResourcesToResize( INOUT resources );
 		}
@@ -275,7 +279,7 @@ namespace AE::ResEditor
 					CHECK_ERR( instances[i].geometry->Update( IGeomSource::UpdateData{ *mtr, ctx, instances[i].transform, pd }));
 			}
 		}
-		
+
 		return true;
 	}
 
@@ -315,6 +319,8 @@ namespace AE::ResEditor
 			return true;
 
 		CHECK_ERR( _scene );
+
+		// TODO: shader debugger
 
 		for (uint i = 0, cnt = _GetRepeatCount(); i < cnt; ++i)
 		{
@@ -412,7 +418,7 @@ namespace AE::ResEditor
 			}
 			CHECK_ERR( updater.Flush() );
 		}
-		
+
 		_ReadTimeQuery( ctx.GetFrameId() );
 		return true;
 	}

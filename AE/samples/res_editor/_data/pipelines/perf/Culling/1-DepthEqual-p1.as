@@ -6,5 +6,5 @@
 	{
 		CreatePipeline( "DepthEqual", "pass-1" );
 	}
-	
+
 #endif

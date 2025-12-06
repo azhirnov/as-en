@@ -107,7 +107,7 @@ namespace
 
 		ReadbackImageDesc	readback;
 		readback.heapType = EStagingHeapType::Dynamic;
-		
+
 		t.result[0] = ctx.ReadbackImage( t.image[0], readback ).Then( t,
 								[] (Promise<ImageMemView> readRes, CoSafe<AC3_TestData &> t) -> InlineCoro<>
 								{
@@ -120,7 +120,7 @@ namespace
 									auto view = co_await readRes;
 									t->isOK[1] = t->imgCmp->Compare( view );
 								});
-		
+
 		RenderCoro_Execute( ctx );
 	}
 

@@ -7,13 +7,15 @@
 # pragma once
 #endif
 
-#include "Ray.glsl"
+#include "Math.glsl"
 
 struct AABB
 {
 	float3	min;
 	float3	max;
 };
+
+ND_ AABB	AABB_Create (float3 min, float3 max);
 
 ND_ bool    AABB_IsInside (const AABB box, const float3 globalPos);
 ND_ float3  AABB_ToLocal (const AABB box, const float3 globalPos);
@@ -27,6 +29,7 @@ ND_ float3  AABB_UNormToGlobal (const AABB box, const float3 unormPos);
 ND_ float3  AABB_Center (const AABB box);
 ND_ float3  AABB_Size (const AABB box);
 ND_ float3  AABB_HalfSize (const AABB box);
+ND_ float	AABB_OuterRadius (const AABB box);
 
 // for particles
 //ND_ float3  AABB_Wrap (const AABB box, const float3 globalPos);
@@ -35,6 +38,19 @@ ND_ float3  AABB_HalfSize (const AABB box);
 //-----------------------------------------------------------------------------
 
 
+
+/*
+=================================================
+	AABB_Create
+=================================================
+*/
+AABB  AABB_Create (float3 min, float3 max)
+{
+	AABB	res;
+	res.min = min;
+	res.max = max;
+	return res;
+}
 
 /*
 =================================================
@@ -54,6 +70,11 @@ bool  AABB_IsInside (const AABB box, const float3 globalPos)
 float3  AABB_Center (const AABB box)
 {
 	return (box.min + box.max) * 0.5;
+}
+
+float  AABB_OuterRadius (const AABB box)
+{
+	return MaxOf( Abs( box.max - box.min ));
 }
 
 /*

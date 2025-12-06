@@ -356,7 +356,7 @@ namespace
 			switch ( level )
 			{
 				case 1 :
-					cache_type = (type == AMDCacheType::Instruction ? ECacheType::L1_Instuction : ECacheType::L1_Data); 
+					cache_type = (type == AMDCacheType::Instruction ? ECacheType::L1_Instuction : ECacheType::L1_Data);
 					break;
 				case 2 :
 				case 3 :
@@ -585,7 +585,7 @@ namespace
 			cpuName = cpu_name;
 		}
 	}
-	
+
 /*
 =================================================
 	ReadX64CacheHierarchy
@@ -594,10 +594,10 @@ namespace
 	static void  ReadX64CacheHierarchy (ECPUVendor vendor, const CpuArchInfo::Cores_t &coreTypes, OUT CpuArchInfo::CacheInfoMap_t &cacheInfo) __NE___
 	{
 		StaticArray<uint, 4>	cpui = {};
-		
+
 		CPUID( 0, OUT cpui );
 		const int count = cpui[0];
-		
+
 		CPUID( 0x8000'0000, OUT cpui );
 		const uint ex_count = cpui[0];
 

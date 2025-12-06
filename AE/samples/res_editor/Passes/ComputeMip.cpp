@@ -125,7 +125,7 @@ namespace AE::ResEditor
 	bool  ComputeMip::Update (TransferCtx_t &ctx, const UpdatePassData &pd) __Th___
 	{
 		CHECK_ERR( not _variables.empty() );
-		
+
 		// validate dimensions
 		const uint2		cur_dim = _variables.front().image->GetViewDesc().Dimension2();
 		{
@@ -190,7 +190,7 @@ namespace AE::ResEditor
 	{
 		_resources.GetResourcesToResize( INOUT resources );
 	}
-	
+
 /*
 =================================================
 	_CreateMipChain
@@ -216,12 +216,12 @@ namespace AE::ResEditor
 			CHECK_ERR( it != _pipelines.end() );
 			ppln = it->second;
 		}
-		
+
 		auto&	res_mngr = GraphicsScheduler().GetResourceManager();
 		_mipChainDS.resize( mip_count );
 		CHECK_ERR( res_mngr.CreateDescriptorSets( OUT _ds1Index, OUT _mipChainDS.data(), _mipChainDS.size(),
 												  ppln, DescriptorSetName{"ds1"}, null, "ComputeMip" ));
-		
+
 		for (auto& var : _variables)
 		{
 			ASSERT( var.inViews.empty() );
@@ -247,7 +247,7 @@ namespace AE::ResEditor
 				CHECK_ERR( var.inViews[i] and var.outViews[i] );
 			}
 		}
-		
+
 		_mipChainGroupSizes.resize( mip_count );
 		for (uint mip = 0; mip < mip_count; ++mip)
 		{
@@ -267,7 +267,7 @@ namespace AE::ResEditor
 
 		return true;
 	}
-	
+
 /*
 =================================================
 	_DestroyMipChain
@@ -286,7 +286,7 @@ namespace AE::ResEditor
 		{
 			for (auto& view : var.inViews)
 				res_mngr.ReleaseResource( INOUT view );
-			
+
 			for (auto& view : var.outViews)
 				res_mngr.ReleaseResource( INOUT view );
 

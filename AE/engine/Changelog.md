@@ -1,4 +1,11 @@
-## 25.05.xxx
+## 25.06.295
+
+- Platform: text input (without backspace, arrows, etc)
+- ShaderTrace: fix vector swizzle, matrix swizzle
+- Graphics|Vulkan: small fixes for Intel Arc
+- CICD: fixed and used instead of github actions
+
+
 ## 25.05.291
 
 - Platform|Windows: Screen capture
@@ -21,7 +28,7 @@
 
 ## 25.03.282
 
-- Graphics: fixed D32_S8 loading
+- ResLoader: fixed D32_S8 loading
 - Threading: enable coroutines for Clang on Windows
 - All: remove C++17
 - All: remove EnableIf, used `requires` instead
@@ -53,6 +60,7 @@
 - Profiling: used Vulkan pipeline statistic
 - Vulkan: add VK_KHR_multiview, VK_EXT_fragment_density_map, VK_EXT_fragment_density_map2
 - Vulkan: add VK_NV_cooperative_vector
+
 
 ## 24.12.268
 

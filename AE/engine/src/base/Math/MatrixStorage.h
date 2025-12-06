@@ -29,7 +29,7 @@ namespace AE::Base
 	using half4x2_storage			= MatrixStorage< half,  4, 2, EMatrixOrder::ColumnMajor, 2*2 >;
 	using half4x3_storage			= MatrixStorage< half,  4, 3, EMatrixOrder::ColumnMajor, 2*4 >;
 	using half4x4_storage			= MatrixStorage< half,  4, 4, EMatrixOrder::ColumnMajor, 2*4 >;
-	
+
 	using half2x2_storage_std140	= MatrixStorage< half,  2, 2, EMatrixOrder::ColumnMajor, 16 >;
 	using half2x3_storage_std140	= MatrixStorage< half,  2, 3, EMatrixOrder::ColumnMajor, 16 >;
 	using half2x4_storage_std140	= MatrixStorage< half,  2, 4, EMatrixOrder::ColumnMajor, 16 >;
@@ -49,7 +49,7 @@ namespace AE::Base
 	using packed_half4x2_storage	= MatrixStorage< half,  4, 2, EMatrixOrder::ColumnMajor, 2 >;
 	using packed_half4x3_storage	= MatrixStorage< half,  4, 3, EMatrixOrder::ColumnMajor, 2 >;
 	using packed_half4x4_storage	= MatrixStorage< half,  4, 4, EMatrixOrder::ColumnMajor, 2 >;
-	
+
 	using float2x2_storage			= MatrixStorage< float,  2, 2, EMatrixOrder::ColumnMajor, 4*2 >;
 	using float2x3_storage			= MatrixStorage< float,  2, 3, EMatrixOrder::ColumnMajor, 4*4 >;
 	using float2x4_storage			= MatrixStorage< float,  2, 4, EMatrixOrder::ColumnMajor, 4*4 >;
@@ -89,7 +89,7 @@ namespace AE::Base
 	using double4x2_storage			= MatrixStorage< double, 4, 2, EMatrixOrder::ColumnMajor, 8*2 >;
 	using double4x3_storage			= MatrixStorage< double, 4, 3, EMatrixOrder::ColumnMajor, 8*4 >;
 	using double4x4_storage			= MatrixStorage< double, 4, 4, EMatrixOrder::ColumnMajor, 8*4 >;
-	
+
 	using double2x2_storage_std140	= MatrixStorage< double, 2, 2, EMatrixOrder::ColumnMajor, 8*2 >;
 	using double2x3_storage_std140	= MatrixStorage< double, 2, 3, EMatrixOrder::ColumnMajor, 8*4 >;
 	using double2x4_storage_std140	= MatrixStorage< double, 2, 4, EMatrixOrder::ColumnMajor, 8*4 >;

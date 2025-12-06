@@ -152,7 +152,7 @@ namespace AE::Base
 	{
 		return "";
 	}
-	
+
 	ND_ StringView  ToString (ECoopMatrixCfg type)
 	{
 		switch_enum( type )
@@ -225,7 +225,7 @@ namespace AE::Base
 		switch_end
 		return "";
 	}
-	
+
 	ND_ String  ToString (EIntegerDotProductFeats bits)
 	{
 		return Base::ToString( bits, &EIntegerDotProductFeat_ToString );
@@ -351,7 +351,7 @@ namespace
 	ND_ static bool  FS_GreaterEqual (uint lhs, uint rhs, const char*) __NE___ {
 		return lhs >= rhs;
 	}
-	
+
 	ND_ static bool  FS_GreaterEqual (Bytes32u lhs, Bytes32u rhs, const char*) __NE___ {
 		return lhs >= rhs;
 	}
@@ -550,7 +550,7 @@ namespace
 	ND_ static uint  FS_MergeMin (uint lhs, uint rhs, const char*) __NE___ {
 		return Min( lhs, rhs );
 	}
-	
+
 	ND_ static Bytes32u  FS_MergeMin (Bytes32u lhs, Bytes32u rhs, const char*) __NE___ {
 		return Min( lhs, rhs );
 	}
@@ -704,7 +704,7 @@ namespace
 	ND_ static uint  FS_MergeMax (uint lhs, uint rhs, const char*) __NE___ {
 		return Max( lhs, rhs );
 	}
-	
+
 	ND_ static Bytes32u  FS_MergeMax (Bytes32u lhs, Bytes32u rhs, const char*) __NE___ {
 		return Max( lhs, rhs );
 	}
@@ -934,7 +934,6 @@ namespace
 		const auto	True			= EFeature::RequireTrue;
 		const auto	neg_feat		= EFeature::Ignore;
 		const auto	invalid_pot		= POTValue::Invalid();
-		const auto	invalid_potb	= POTBytes::Invalid();
 
 		EShaderStages	all_stages = EShaderStages::All;
 		if ( fNotEq( computeShader,		 True ))	all_stages &= ~EShaderStages::Compute;
@@ -993,10 +992,13 @@ namespace
 
 		if ( fEqual( attachmentFragmentShadingRate, True )) {
 			if constexpr( Mutable ) {
-				if (not fragmentShadingRateTexelSize)
+				if ( not fragmentShadingRateTexelSize )
 					attachmentFragmentShadingRate = EFeature::Ignore;
 			}else
 				CHECK_ERR( fragmentShadingRateTexelSize );
+
+			CHECK_ERR( fragmentShadingRateTexelSize.minX <= fragmentShadingRateTexelSize.maxX );
+			CHECK_ERR( fragmentShadingRateTexelSize.minY <= fragmentShadingRateTexelSize.maxY );
 		}else{
 			if constexpr( Mutable )
 				fragmentShadingRateTexelSize = VRSTexelSize{};
@@ -1025,7 +1027,7 @@ namespace
 			chNotEqual2( fragmentShadingRateWithFragmentShaderInterlock,	True, neg_feat );
 			chNotEqual2( fragmentShadingRateWithCustomSampleLocations,		True, neg_feat );
 		}
-		
+
 		if ( fEqual( fragmentDensityMap, EFeature::RequireTrue ))
 		{
 			chGreaterEq( maxSubsampledArrayLayers,				POTValue_From<1> );
@@ -1261,7 +1263,7 @@ namespace
 		}else{
 			chEqual( cooperativeMatrixStages, EShaderStages::Unknown );
 		}
-		
+
 		if ( fEqual( cooperativeVectorTraining, True )) {
 			chEqual( cooperativeVector, True );
 		}
@@ -1330,7 +1332,7 @@ namespace
 
 		if ( rs.depth.bounds )
 			CHECK_ERR( depthBounds == True );
-		
+
 		if ( (rs.rasterization.polygonMode == EPolygonMode::Line or
 			  (rs.inputAssembly.topology >= EPrimitive::LineList and rs.inputAssembly.topology >= EPrimitive::LineStripAdjacency)) and
 			 rs.rasterization.lineWidth > 1 )
@@ -1405,13 +1407,13 @@ namespace
 
 		if ( rs.inputAssembly.topology == EPrimitive::TriangleFan )
 			CHECK_ERR( triangleFans == True );
-		
+
 		if ( rs.rasterOrderAccess.color )
 			CHECK_ERR( rasterizationOrderColorAttachmentAccess == True );
-			
+
 		if ( rs.rasterOrderAccess.depth )
 			CHECK_ERR( rasterizationOrderDepthAttachmentAccess == True );
-			
+
 		if ( rs.rasterOrderAccess.stencil )
 			CHECK_ERR( rasterizationOrderStencilAttachmentAccess == True );
 
@@ -1645,7 +1647,7 @@ namespace
 		}
 
 		const EImageUsage	all_usage = desc.usage | view.extUsage;		// may contain incompatible flags
-		
+
 		if ( AllBits( view.options, EImageViewOpt::FragmentDensityMap_Dynamic ))
 			result &= (fragmentDensityMapDynamic == EFeature::RequireTrue);
 
@@ -1662,7 +1664,7 @@ namespace
 */
 	bool  FeatureSet::IsCompatible (const FeatureSet &rhs) C_NE___
 	{
-	#ifdef AE_CI_BUILD_TEST
+	#if defined(AE_CI_BUILD_TEST) and defined(AE_DEBUG)
 		return DbgIsCompatible( rhs );
 	#else
 		bool	res = true;
@@ -1673,6 +1675,7 @@ namespace
 	#endif
 	}
 
+#ifdef AE_DEBUG
 	bool  FeatureSet::DbgIsCompatible (const FeatureSet &rhs) C_NE___
 	{
 		#define AE_FEATURE_SET_VISIT( _type_, _name_, _bits_ )																			\
@@ -1686,6 +1689,7 @@ namespace
 		#undef AE_FEATURE_SET_VISIT
 		return true;
 	}
+#endif
 
 /*
 =================================================
@@ -1937,7 +1941,7 @@ namespace {
 */
 	HashVal64  FeatureSet::GetHashOfFS_Precalculated () __NE___
 	{
-		return HashVal64{0x88d7baf8f3f47b8cull};
+		return HashVal64{0x27fca4234eb1848bull};
 	}
 
 

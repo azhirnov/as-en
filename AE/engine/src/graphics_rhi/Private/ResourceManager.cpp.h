@@ -242,7 +242,7 @@ namespace {
 		CHECK_ERR( _featureSet.surfaceFormats == surface_formats );
 		return true;
 	}
-	
+
 /*
 =================================================
 	RenderTaskSchedulerApi::New
@@ -744,7 +744,7 @@ namespace {
 		CHECK_ERR( img != null );
 		return Image_t::IsSupported( *this, img->Description(), viewDesc );
 	}
-	
+
 	bool  ResourceManager::IsSupported (const BufferDesc &desc, const BufferViewDesc &viewDesc) C_NE___
 	{
 		return Buffer_t::IsSupported( *this, desc, viewDesc );
@@ -957,7 +957,7 @@ namespace {
 	  #if AE_DBG_GRAPHICS
 		if ( it == pc.end() )
 			RETURN_ERR( "Failed to find push constant '"s << HashToName( pcName ) << "'" );
-		
+
 		if ( typeName != it->second.typeName )
 			RETURN_ERR( "Type mismatch: '"s << HashToName( typeName ) << "' != '" << HashToName( it->second.typeName ) << "'" );
 

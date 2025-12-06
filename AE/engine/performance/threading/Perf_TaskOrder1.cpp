@@ -8,7 +8,7 @@ namespace
 	constexpr uint	c_queueCount	= 2;
 	constexpr uint	c_threadCount	= 1'000;
 	constexpr uint	c_repeatCount	= 1;
-	
+
 	using TimePoint_t	= HighResClock::time_point;
 //-----------------------------------------------------------------------------
 
@@ -45,12 +45,12 @@ namespace
 	{
 		return ~h0 ^ h1;
 	}
-	
+
 	ND_ static ulong  Mix (ulong h0, ulong h1, ulong h2)
 	{
 		return ((h0 ^ ~h1) >> 1) ^ h2;
 	}
-	
+
 	ND_ static ulong  Mix (ulong h0, ulong h1, ulong h2, ulong h3)
 	{
 		return (h0 ^ ~h1) ^ ((~h2 ^ h3) << 2);
@@ -100,7 +100,7 @@ namespace
 
 			per_thread[t] = hash2;
 		}
-		
+
 		Array<ulong>	per_group;
 
 		for (uint t = 0; t+3 < threadCount; t += 3)
@@ -117,7 +117,7 @@ namespace
 				per_group.push_back( Mix( per_thread[ threadCount-2 ], per_thread[ threadCount-1 ]));
 				break;
 		}
-		
+
 		ulong	hash = 0;
 		for (auto h : per_group) {
 			hash ^= h;
@@ -136,7 +136,7 @@ namespace
 	{
 		co_return CalcHash( h );
 	}
-	
+
 	static Promise_t  Task2 (ulong hash2, const uint depth)
 	{
 		const ulong		mode = GetMode( hash2, depth );
@@ -194,7 +194,7 @@ namespace
 		for (uint t = 0; t < baseTaskCount; ++t) {
 			per_thread[t] = Task3( seed, t );
 		}
-		
+
 		Array<Promise<ulong>>	per_group;
 
 		for (uint t = 0; t+3 < baseTaskCount; t += 3)
@@ -227,7 +227,7 @@ namespace
 					}( per_thread[ baseTaskCount-2 ], per_thread[ baseTaskCount-1 ] ));
 				break;
 		}
-		
+
 		ulong	hash = 0;
 		for (auto p : per_group)
 		{
@@ -237,12 +237,12 @@ namespace
 		co_return hash;
 	}
 
-	
+
 	static void  MultiThreadHash (const ulong seed, const uint baseTaskCount, const ulong refHash)
 	{
 		LocalTaskScheduler	scheduler		{WorkerQueueCount(c_queueCount)};
 		const uint			thread_count	= ThreadUtils::MaxThreadCount();
-		
+
 		for (uint i = 0; i < thread_count; ++i) {
 			scheduler->AddThread( ThreadMngr::CreateThread( ThreadMngr::ThreadConfig{
 				EThreadArray{ EThread::PerFrame },
@@ -250,14 +250,10 @@ namespace
 			}));
 		}
 
-		const auto	start_time	= TimePoint_t::clock::now();
-
 		Promise<ulong>	p = RunTasks( seed, baseTaskCount );
 
 		TEST( scheduler->Wait( {AsyncTask{p}}, seconds{10000} ));
 		TEST( p->IsCompleted() );
-		
-		const nanoseconds	total_time	= TimePoint_t::clock::now() - start_time;
 
 		ulong	h;
 		TEST( WithResult( p, [&h](ulong res){ h = res; }));

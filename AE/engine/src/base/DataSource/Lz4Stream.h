@@ -63,7 +63,7 @@ namespace AE::Base
 		void *			_context			= null;		// LZ4F_cctx*
 		Bytes			_position;						// uncompressed size
 		int				_compressionLevel	= 0;
-		
+
 		static constexpr usize	c_BufferSize = 4u << 10;
 
 
@@ -110,7 +110,7 @@ namespace AE::Base
 
 		ND_ static bool  Decompress (OUT void* dstData, INOUT Bytes &dstSize,
 									 const void* srcData, Bytes srcSize)			__NE___;
-		
+
 		ND_ static bool  CompressFrame (OUT void* dstData, INOUT Bytes &dstSize,
 										const void* srcData, Bytes srcSize,
 										const Lz4WStream::Config &cfg = Default)	__NE___;

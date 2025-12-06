@@ -223,11 +223,24 @@ float  SDF_Cylinder (const float3 position, const float2 radiusHeight)
 }
 
 
-float  SDF_Cone (const float3 position, const float2 direction)
+float  SDF_InfiniteCone (const float3 position, const float2 direction)
 {
 	// 'direction' must be normalized
 	const float  q = Length( position.xy );
 	return Dot( direction, float2( q, position.z ));
+}
+
+
+float  SDF_Cone (const float3 position, const float2 angleSinCos, const float height)
+{
+	float2	q = height * float2( angleSinCos.x / angleSinCos.y, -1.0 );
+	float2	w = float2( Length( position.xz ), position.y );
+	float2	a = w - q * Saturate( Dot( w, q ) / Dot( q, q ));
+	float2	b = w - q * float2( Saturate( w.x / q.x ), 1.0 );
+	float	k = Sign( q.y );
+	float	d = Min( Dot( a, a ), Dot( b, b ));
+	float	s = Max( k*(w.x * q.y - w.y * q.x), k * (w.y - q.y) );
+	return Sqrt(d) * Sign(s);
 }
 
 

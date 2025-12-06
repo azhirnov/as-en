@@ -90,7 +90,7 @@ namespace
 
 			ranges.Acquire( ThreadID(2) );
 			TEST( ranges.Write( 4_b, 8_b, ThreadID(2) ));					// write without flush
-			
+
 			ranges.Acquire( ThreadID(3) );
 			TEST( ranges.Read( 8_b, 16_b, ThreadID(3) ));
 			TEST_NO_LOG( not ranges.Read( 0_b, 8_b, ThreadID(3) ));			// <<< data race - read data which is not flushed
@@ -99,14 +99,14 @@ namespace
 
 			ranges.Init( 128_b, ThreadID(1) );
 			ranges.AcquireRelease( ThreadID(1) );
-			
+
 			TEST_NO_LOG( not ranges.Write( 4_b, 16_b, ThreadID(2) ));		// <<< data race - write without acquire
 		}{
 			MemRanges	ranges;
 
 			ranges.Init( 128_b, ThreadID(1) );
 			ranges.Release( ThreadID(1) );
-			
+
 			ranges.Acquire( ThreadID(2) );
 			ranges.Acquire( ThreadID(3) );
 

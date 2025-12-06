@@ -56,7 +56,7 @@ namespace
 
 				binder.Comment( "Enable all debug features." );
 				binder.AddValue( "Enable_AllShaderDbg",	EFlags::Enable_AllShaderDbg );
-				
+
 				binder.Comment( "Compile shader using Slang compiler." );
 				binder.AddValue( "UseSLang",	EFlags::UseSLang );
 
@@ -73,7 +73,7 @@ namespace
 		AS_METHOD_T( classBinder, ScriptBasePass::SetDebugLabel3,	"SetDebugLabel",	{"label", "color"} );
 
 		AS_METHOD_T( classBinder, ScriptBasePass::AddFlag,			"AddFlag",			{} );
-		
+
 		classBinder.Comment( "Measure GPU time for this pass. If pass executed multiple times during 'Repeat()' then average time will be returned." );
 		AS_METHOD_T( classBinder, ScriptBasePass::MeasureTime,		"MeasureTime",		{"timeInSeconds"} );
 
@@ -320,7 +320,7 @@ namespace
 			classBinder.template AddGenericMethod< void (const String &, const String&, const ScriptImagePtr &, const RGBA32u &)	>( &ScriptBaseRenderPass::_InOut, "InOut", {"inName", "outName", "image", "clearColor"} );
 			classBinder.template AddGenericMethod< void (const String &, const String&, const ScriptImagePtr &, const DepthStencil &)>( &ScriptBaseRenderPass::_InOut, "InOut", {"inName", "outName", "image", "clearDS"} );
 			classBinder.template AddGenericMethod< void (const String &, const ScriptImagePtr &, const DepthStencil &)				>( &ScriptBaseRenderPass::_InOut, "InOut", {"inName", "image", "clearDS"} );
-			
+
 			classBinder.Comment( "Used instead of 'ArgIn' to define image as input attachment. Supports color and depth formats." );
 			AS_METHOD_T( classBinder, ScriptBaseRenderPass::_Input, "Input", {"inName", "image", "attachmentName"} );
 		}
@@ -329,7 +329,7 @@ namespace
 		{
 			classBinder.Comment( "Add fragment shading rate attachment." );
 			classBinder.template AddGenericMethod< void (const ScriptImagePtr &)	>( &ScriptBaseRenderPass::_FragmentShadingRate,	"FragmentShadingRate", {"image"} );
-			
+
 			classBinder.Comment( "Add fragment density map attachment." );
 			classBinder.template AddGenericMethod< void (const ScriptImagePtr &)	>( &ScriptBaseRenderPass::_FragmentDensityMap,	"FragmentDensityMap", {"image"} );
 		}

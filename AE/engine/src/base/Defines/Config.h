@@ -5,6 +5,8 @@
 
 #pragma once
 
+#include "base/../../GlobalConfig.h"
+
 // mem leak check
 #if defined(AE_COMPILER_MSVC) and defined(AE_ENABLE_MEMLEAK_CHECKS) and defined(_DEBUG)
 #	define _CRTDBG_MAP_ALLOC
@@ -73,6 +75,7 @@
 									// 2017: 19.10 - 19.16
 									// 2019: 19.20 - 19.29
 									// 2022: 19.30 - ...
+									// 2026: TODO
 #endif
 #ifdef AE_COMPILER_GCC
 #	define AE_COMPILER_NAME			"GCC"

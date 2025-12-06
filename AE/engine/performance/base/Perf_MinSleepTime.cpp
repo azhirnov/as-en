@@ -10,7 +10,7 @@ namespace
 
 	static void  MinSleepTime_Test1 ()
 	{
-		IntervalProfiler	profiler{ "std sleep_for", IntervalProfiler::EFlags::ExcludeDelta | IntervalProfiler::EFlags::ExcludePerfDiff };
+		IntervalProfiler	profiler{ "std sleep_for", IntervalProfiler::EFlags::IncludeTime };
 
 		profiler.BeginTest( "1 us" );
 		for (uint i = 0; i < c_Count; ++i)
@@ -70,7 +70,7 @@ namespace
 
 	static void  MinSleepTime_Test2 ()
 	{
-		IntervalProfiler	profiler{ "AE", IntervalProfiler::EFlags::ExcludeDelta | IntervalProfiler::EFlags::ExcludePerfDiff };
+		IntervalProfiler	profiler{ "AE", IntervalProfiler::EFlags::IncludeTime };
 
 		profiler.BeginTest( "Pause" );
 		for (uint i = 0; i < c_Count; ++i)
@@ -121,7 +121,7 @@ namespace
 
 	static void  MinSleepTime_Test3 ()
 	{
-		IntervalProfiler	profiler{ "Micro Sleep", IntervalProfiler::EFlags::ExcludeDelta | IntervalProfiler::EFlags::ExcludePerfDiff };
+		IntervalProfiler	profiler{ "Micro Sleep", IntervalProfiler::EFlags::IncludeTime };
 
 		profiler.BeginTest( "100 ns" );
 		for (uint i = 0; i < c_Count; ++i)
@@ -199,7 +199,7 @@ namespace
 
 	static void  MinSleepTime_Test4 ()
 	{
-		IntervalProfiler	profiler{ "Nano Sleep", IntervalProfiler::EFlags::ExcludeDelta | IntervalProfiler::EFlags::ExcludePerfDiff };
+		IntervalProfiler	profiler{ "Nano Sleep", IntervalProfiler::EFlags::IncludeTime };
 
 		profiler.BeginTest( "70 ns" );
 		for (uint i = 0; i < c_Count; ++i)
@@ -250,7 +250,7 @@ namespace
 
 	static void  MinSleepTime_Test5 ()
 	{
-		IntervalProfiler	profiler{ "Milli Sleep", IntervalProfiler::EFlags::ExcludeDelta | IntervalProfiler::EFlags::ExcludePerfDiff };
+		IntervalProfiler	profiler{ "Milli Sleep", IntervalProfiler::EFlags::IncludeTime };
 
 		profiler.BeginTest( "1 ms" );
 		for (uint i = 0; i < c_Count; ++i)
@@ -260,7 +260,7 @@ namespace
 			profiler.EndIteration();
 		}
 		profiler.EndTest();
-		
+
 		profiler.BeginTest( "3 ms" );
 		for (uint i = 0; i < c_Count; ++i)
 		{

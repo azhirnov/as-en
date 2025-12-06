@@ -276,7 +276,7 @@ namespace
 */
 	void  MFeatureSet::InitFeatureSet (const MGPUFamilies &f, INOUT FeatureSet &outFeatureSet) C_NE___
 	{
-		StaticAssert( FeatureSet::GetFeatureCount() == 272 );
+		StaticAssert( FeatureSet::GetFeatureCount() == 271 );
 
 		using SubgroupOperationBits = FeatureSet::SubgroupOperationBits;
 		using KiBytes				= FeatureSet::KiBytes;
@@ -732,7 +732,7 @@ namespace
 			outFeatureSet.textureCompressionASTC_HDR	= features.pixelFormat_ASTC and f.apple >= 6 ? True : False;
 			outFeatureSet.textureCompressionBC			= features.pixelFormat_BC ? True : False;
 			outFeatureSet.textureCompressionETC2		= features.pixelFormat_ETC ? True : False;
-			outFeatureSet.imageViewMinLod				= False;
+			//outFeatureSet.imageViewMinLod				= False;
 			outFeatureSet.multisampleArrayImage			= mac_ios14 ? True : False;
 			outFeatureSet.maxImageDimension1D			= POTValue{ properties.max1DTextureSize };
 			outFeatureSet.maxImageDimension2D			= POTValue{ properties.max2DTextureSize };

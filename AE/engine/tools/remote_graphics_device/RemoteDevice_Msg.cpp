@@ -2006,7 +2006,7 @@ namespace AE::RemoteGraphics::Msg
 	}
 	//-------------------------------------------------
 
-	
+
 	using RenderCoroRef = _Coro_::RenderTaskImpl::UserApi;
 
 	void  CmdBuf_Bake::BeginGraphics::Execute (void* inCtx) __Th___

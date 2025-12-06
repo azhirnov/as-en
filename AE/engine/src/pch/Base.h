@@ -18,6 +18,7 @@
 #include "base/Algorithms/StringUtils.h"
 #include "base/Algorithms/ToString.h"
 #include "base/Algorithms/Parser.h"
+#include "base/Algorithms/Iterators.h"
 
 // Containers
 #include "base/Containers/AnyTypeRef.h"

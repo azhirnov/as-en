@@ -31,7 +31,7 @@ namespace
 		DescriptorSetLayoutPtr	dsl1{ new DescriptorSetLayout{ "Material" }};
 		dsl1->AddSampledImage( EShaderStages::Fragment, "diffuseTex", ArraySize{1}, EImageType::Float | EImageType::Dim2DArray, EResourceState::ShaderSample );
 		dsl1->AddSampledImage( EShaderStages::Fragment, "noiseTex", ArraySize{1}, EImageType::Float | EImageType::Dim3D, EResourceState::ShaderSample );
-		
+
 		DescriptorSetLayoutPtr	dsl2{ new DescriptorSetLayout{ "PerPass" }};
 		dsl2->AddSubpassInput( EShaderStages::Fragment, "inputTex", 0, EImageType::Float | EImageType::Dim2DMS, EResourceState::InputColorAttachment );
 		dsl2->AddRayTracingScene( EShaderStages::Fragment, "rtScene", ArraySize{1} );
@@ -86,6 +86,18 @@ namespace
   layout(set=3, binding=1) uniform accelerationStructureEXT rtScene;
 //---------------------
 
+#define DESCRIPTOR_StorageBuffer_storageBuf
+#define DESCRIPTOR_UniformTexelBuffer_texBuffer
+#define DESCRIPTOR_StorageTexelBuffer_texStorage
+#define DESCRIPTOR_StorageImage_storageImage
+#define DESCRIPTOR_SampledImage_colorTex
+#define DESCRIPTOR_CombinedImage_sampledTex
+#define DESCRIPTOR_CombinedImage_ImmutableSampler_sampledTex2
+#define DESCRIPTOR_ImmutableSampler_imtblSampler
+#define DESCRIPTOR_SampledImage_diffuseTex
+#define DESCRIPTOR_SampledImage_noiseTex
+#define DESCRIPTOR_SubpassInput_inputTex
+#define DESCRIPTOR_RayTracingScene_rtScene
 )#";
 		TEST( src == ref );
 	}

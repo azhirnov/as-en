@@ -22,6 +22,7 @@ namespace
 		using SrcPoint		= ShaderTrace::SourcePoint;
 		using ExprInfos_t	= ShaderTrace::ExprInfos_t;
 		using VarNames_t	= ShaderTrace::VarNames_t;
+		using Swizzle		= ShaderTrace::Swizzle;
 
 		struct StackFrame
 		{
@@ -176,7 +177,7 @@ namespace
 
 
 	private:
-			void				_GetVariableID (TIntermNode* node, OUT VariableID &id, OUT uint &swizzle);
+			void				_GetVariableID (TIntermNode* node, OUT VariableID &id, OUT Swizzle &swizzle);
 		ND_ uint				_GetSourceId (const TSourceLoc &) const;
 	};
 
@@ -274,7 +275,7 @@ void  DebugInfo::Leave (TIntermNode* node)
 uint  DebugInfo::GetCustomSourceLocation (TIntermNode* node, const TSourceLoc &curr)
 {
 	VariableID	id;
-	uint		swizzle;
+	Swizzle		swizzle;
 	_GetVariableID( node, OUT id, OUT swizzle );
 
 	SrcLoc	range{ 0, uint(curr.line), uint(curr.column) };
@@ -292,7 +293,7 @@ uint  DebugInfo::GetCustomSourceLocation (TIntermNode* node, const TSourceLoc &c
 uint  DebugInfo::GetCustomSourceLocation2 (TIntermNode* node, const TSourceLoc &begin, const TSourceLoc &end)
 {
 	VariableID	id;
-	uint		swizzle;
+	Swizzle		swizzle;
 	_GetVariableID( node, OUT id, OUT swizzle );
 
 	SrcLoc	range { 0, uint(begin.line), uint(begin.column) };
@@ -361,7 +362,7 @@ bool  DebugInfo::SetDebugStorage (TIntermSymbol* symb)
 uint  DebugInfo::GetSourceLocation (TIntermNode* node, const TSourceLoc &curr, bool setColumnToZero)
 {
 	VariableID	id;
-	uint		swizzle;
+	Swizzle		swizzle;
 	_GetVariableID( node, OUT id, OUT swizzle );
 
 	SrcPoint	point	{ curr };
@@ -445,7 +446,7 @@ void  DebugInfo::AddSymbol (TIntermSymbol* node, Bool isUserDefined)
   #ifndef PROFILER
 	// register symbol
 	VariableID	id;
-	uint		sw;
+	Swizzle		sw;
 	_GetVariableID( node, OUT id, OUT sw );
   #endif
 }
@@ -549,16 +550,17 @@ inline usize  DebugInfo::FieldInfoHash::operator () (const FieldInfo &value) con
 	GetVectorSwizzleMask
 =================================================
 */
-ND_ static uint  GetVectorSwizzleMask (TIntermBinary* binary)
+ND_ static ShaderTrace::Swizzle  GetVectorSwizzleMask (TIntermBinary* binary)
 {
-	Array<uint>				sw_mask;
+	Array<uint>				sw_mask;		// only for vector
+	uint					dst_col = UMax;	// for matrix
 	Array<TIntermBinary*>	swizzle_op;		swizzle_op.push_back( binary );
 
-	CHECK_ERR( binary and (binary->getOp() == TOperator::EOpVectorSwizzle or binary->getOp() == TOperator::EOpIndexDirect) );
+	CHECK_ERR( binary and AnyEqual( binary->getOp(), TOperator::EOpVectorSwizzle, TOperator::EOpIndexDirect ));
 
 	// extract swizzle mask
 	for (TIntermTyped* node = binary->getLeft();
-		 node->getAsBinaryNode() and node->getAsBinaryNode()->getOp() == TOperator::EOpVectorSwizzle;)
+		 node->getAsBinaryNode() and AnyEqual( node->getAsBinaryNode()->getOp(), TOperator::EOpVectorSwizzle, TOperator::EOpIndexDirect );)
 	{
 		swizzle_op.push_back( node->getAsBinaryNode() );
 
@@ -567,16 +569,63 @@ ND_ static uint  GetVectorSwizzleMask (TIntermBinary* binary)
 
 	binary = swizzle_op.back();
 
-	const auto ProcessUnion = [&sw_mask] (TIntermConstantUnion* cu, const Array<uint> &mask) -> bool
+	uint2	origin_dim {0u};
+
+	if ( TIntermSymbol*  src_symb = binary->getLeft()->getAsSymbolNode())
+	{
+		TType const&	type = src_symb->getType();
+
+		if ( type.isVector() )
+		{
+			ASSERT( type.getVectorSize() >= 1 and type.getVectorSize() <= 4 );
+			origin_dim.x = type.getVectorSize();
+			origin_dim.y = 1;
+		}else
+		if ( type.isMatrix() )
+		{
+			ASSERT( type.getMatrixCols() >= 1 and type.getMatrixCols() <= 4 );
+			ASSERT( type.getMatrixRows() >= 1 and type.getMatrixRows() <= 4 );
+			origin_dim.x = type.getMatrixRows();
+			origin_dim.y = type.getMatrixCols();
+		}
+	}
+	else
+	{
+		if ( TIntermBinary*  bin = binary->getLeft()->getAsBinaryNode();
+			 bin != null and bin->getOp() == TOperator::EOpIndexDirectStruct )
+		{
+			// not supported yet
+			return {};
+		}
+	}
+	CHECK_ERR( origin_dim.x != 0 );
+
+	const auto ProcessUnion = [&sw_mask, &dst_col, &origin_dim] (TIntermConstantUnion* cu, const Array<uint> &mask, const TType &dstType) -> bool
 	{
 		TConstUnionArray const&	cu_arr = cu->getConstArray();
 		CHECK_ERR( cu_arr.size() == 1 and cu->getType().getBasicType() == EbtInt );
-		CHECK_ERR( cu_arr[0].getType() == EbtInt and cu_arr[0].getIConst() >= 0 and cu_arr[0].getIConst() < 4 );
+
+		int	idx = cu_arr[0].getIConst();
+		CHECK_ERR( cu_arr[0].getType() == EbtInt and idx >= 0 and idx < 4 );
+
+		if ( dstType.isMatrix() )
+		{
+			ASSERT( mask.empty() );
+			ASSERT( idx < int(origin_dim.y) );
+			ASSERT( dst_col == UMax );
+			dst_col = uint(idx);
+			return true;
+		}
+
+		ASSERT( dstType.isScalar() or dstType.isVector() );
 
 		if ( mask.empty() )
-			sw_mask.push_back( cu_arr[0].getIConst() );
+			sw_mask.push_back( idx );
 		else
-			sw_mask.push_back( mask[ cu_arr[0].getIConst() ]);
+		{
+			CHECK_ERR( idx < int(mask.size()) );
+			sw_mask.push_back( mask[ idx ]);
+		}
 		return true;
 	};
 
@@ -584,6 +633,7 @@ ND_ static uint  GetVectorSwizzleMask (TIntermBinary* binary)
 	for (auto iter = swizzle_op.rbegin(); iter != swizzle_op.rend(); ++iter)
 	{
 		TIntermBinary*		bin		= (*iter);
+		TType const&		type	= bin->getLeft()->getType();
 		const Array<uint>	mask	= sw_mask;
 
 		sw_mask.clear();
@@ -595,26 +645,56 @@ ND_ static uint  GetVectorSwizzleMask (TIntermBinary* binary)
 			for (auto& node : aggr->getSequence())
 			{
 				if ( auto* cu = node->getAsConstantUnion() )
-					CHECK_ERR( ProcessUnion( cu, mask ));
+					CHECK_ERR( ProcessUnion( cu, mask, type ));
 			}
 		}
 		else
 		if ( auto* cu = bin->getRight()->getAsConstantUnion() )
 		{
-			CHECK_ERR( ProcessUnion( cu, mask ));
+			CHECK_ERR( ProcessUnion( cu, mask, type ));
 		}
 		else
 			RETURN_ERR( "not supported!" );
 	}
 
-	uint	result	= 0;
-	uint	shift	= 0;
-	for (auto& idx : sw_mask)
+	ShaderTrace::Swizzle	result;
+	result.SetOriginRows( origin_dim.x );
+	result.SetOriginCols( origin_dim.y );
+
+	if ( dst_col != UMax )
 	{
-		result |= ((idx + 1) << shift);
-		shift  += 3;
+		result.SetDstColumn( dst_col );
+
+		ASSERT( result.IsIdentityRows() );
+		ASSERT( result.IsMatrix() );
 	}
+
+	if ( not sw_mask.empty() )
+	{
+		result.SetDstRows( sw_mask.size() );
+
+		for (auto [dst_idx, i] : WithIndex(sw_mask))
+		{
+			result.Set( i, dst_idx );
+		}
+
+		ASSERT( not result.IsIdentityRows() );
+	}
+
+	ASSERT( not result.IsIdentity() );	// identity swizzle must be optimized by compiler?
+	ASSERT( not result.IsUndefined() );
 	return result;
+}
+
+/*
+=================================================
+	GetArraySwizzleMask
+=================================================
+*/
+ND_ static ShaderTrace::Swizzle  GetArraySwizzleMask (TIntermBinary* binary)
+{
+	// TODO: use SetArrayIndex()
+	return {};
 }
 
 /*
@@ -622,7 +702,7 @@ ND_ static uint  GetVectorSwizzleMask (TIntermBinary* binary)
 	_GetVariableID
 =================================================
 */
-void  DebugInfo::_GetVariableID (TIntermNode* node, OUT VariableID &id, OUT uint &swizzle)
+void  DebugInfo::_GetVariableID (TIntermNode* node, OUT VariableID &id, OUT Swizzle &swizzle)
 {
 	if ( node == null )
 	{
@@ -631,7 +711,7 @@ void  DebugInfo::_GetVariableID (TIntermNode* node, OUT VariableID &id, OUT uint
 	}
 
 	id = VariableID(~0u);
-	swizzle = 0;
+	swizzle = Default;
 
 	const VariableID	new_id = VariableID(uint(_varInfos.size() + _fnCallMap.size() + _fieldMap.size()));
 
@@ -662,7 +742,7 @@ void  DebugInfo::_GetVariableID (TIntermNode* node, OUT VariableID &id, OUT uint
 		{
 			swizzle = GetVectorSwizzleMask( binary );
 
-			uint	temp;
+			Swizzle	temp;
 			return _GetVariableID( binary->getLeft(), OUT id, OUT temp );
 		}
 		else
@@ -672,7 +752,7 @@ void  DebugInfo::_GetVariableID (TIntermNode* node, OUT VariableID &id, OUT uint
 		{
 			swizzle = GetVectorSwizzleMask( binary );
 
-			uint	temp;
+			Swizzle	temp;
 			return _GetVariableID( binary->getLeft(), OUT id, OUT temp );
 		}
 		else
@@ -680,9 +760,9 @@ void  DebugInfo::_GetVariableID (TIntermNode* node, OUT VariableID &id, OUT uint
 		if ( binary->getOp() == TOperator::EOpIndexDirect and
 			 binary->getLeft()->isArray() )
 		{
-			swizzle = 0;	// TODO
+			swizzle = GetArraySwizzleMask( binary );
 
-			uint	temp;
+			Swizzle	temp;
 			return _GetVariableID( binary->getLeft(), OUT id, OUT temp );
 		}
 		else
@@ -1985,7 +2065,7 @@ static void  RecordBasicShaderInfo (TIntermAggregate* body, const TSourceLoc &lo
 		if ( auto* fncall = CreateAppendToTrace( invocation, loc_id, dbgInfo ))
 			body->getSequence().push_back( fncall );
 	}
-	
+
 	// "dbg_AppendToTrace( gl_SubgroupSize, location )"
 	if ( auto*  invocation = dbgInfo.GetCachedSymbolNode( "gl_SubgroupSize" ))
 	{

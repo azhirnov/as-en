@@ -63,7 +63,7 @@ namespace
 		DRC_EXLOCK( _drCheck );
 
 		CHECK_MSG( _dsLayout == null, "missing 'Flush()' call" );
-		
+
 		_resMngr.ImmediatelyRelease( INOUT _descSetId );
 	}
 
@@ -483,7 +483,7 @@ namespace
 				GFX_DBG_ONLY(
 					auto*	img = _resMngr.GetResource( view->ImageId() );
 					CHECK_ERR( img != null );
-					
+
 					const auto&	img_desc	= img->Description();
 					const auto&	view_desc	= view->Description();
 					const auto	img_type	= GetImageType( img_desc, view_desc );

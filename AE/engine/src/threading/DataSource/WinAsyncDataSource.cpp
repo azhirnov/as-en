@@ -290,7 +290,7 @@ namespace
 		Result		res;
 		res.pos		= GetOverlappedOffset( _overlapped.Ref<OVERLAPPED>() );
 		res.status	= _status.load();
-		
+
 		if ( res.status == EStatus::Completed )
 		{
 			res.dataSize	= _actualSize.load();

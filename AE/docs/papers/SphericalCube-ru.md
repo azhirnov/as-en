@@ -14,7 +14,7 @@
 ![](img/SC_Proj.png)
 
 На картинке цветом обозначена площадь треугольника, одинаковый цвет характеризует равномерную площадь треугольников на сфере.<br/>
-[Код](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/scripts/sphere/SphericalCube-1.as).
+[Код](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/scripts/planets/SphericalCube-1.as).
 
 
 ## Производительность и точность
@@ -37,7 +37,7 @@
 
 Правильное сочетание: Tangential проекция для вершин и Identity проекция для текстурных координат. Тогда вершины распределяются равномерно по сфере, а текстура накладывается с наименьшими искажениями и, следовательно, с наилучшей детализацией.
 
-[Код](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/scripts/sphere/SphericalCube-2.as).
+[Код](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/scripts/planets/SphericalCube-2.as).
 
 
 ## Топология
@@ -55,7 +55,7 @@
 
 Пример проекции круга на сферический куб, ближе к грани куба начинаются небольшие искажения, для круга это не критично.<br/>
 Проекция квадрата на сферический куб не имеет искажений только в центре грани, а на краях начинаются искажения, но радиус вписанной окружности не меняется. Ниже будет способ для коррекции искажений.<br/>
-[Код](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/scripts/sphere/SphericalCube-3.as)
+[Код](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/scripts/planets/SphericalCube-3.as)
 
 
 ### Погрешность интерполяции
@@ -67,8 +67,8 @@
 Улучшить точность можно повторив линейную интерполяцию между контрольными точками. На картинке это вариант справа.
 
 Код:<br/>
-[коррекция в вычислительном шейдере](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/scripts/sphere/SphericalCube-4.as).<br/>
-[коррекция во фрагментном шейдере](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/scripts/sphere/SphericalCube-5.as).
+[коррекция в вычислительном шейдере](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/scripts/planets/SphericalCube-4.as).<br/>
+[коррекция во фрагментном шейдере](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/scripts/planets/SphericalCube-5.as).
 
 
 ## Проекция из 2D
@@ -96,7 +96,7 @@
 * На границе между гранями поставить дополнительные точки.
 * Рассчитать UV во фрагментном шейдере через tangent, bitangent вектора и 3D координаты центра.
 
-[Код](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/scripts/sphere/UVSphere-2.as)
+[Код](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/scripts/planets/UVSphere-2.as)
 
 
 ## Сфера без геометрии
@@ -117,7 +117,7 @@
 * Геометрия при высокой детализации использует намного больше потоков фрагментного шейдера, так как на ребрах треугольников вызываются вспомогательные потоки (quad overdraw). А процедурная сфера с геометрией в виде шестиугольника расходует намного меньше потоков.
 * За счет этого производительность в 2 раза выше даже на мобилках.
 
-[Код](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/scripts/sphere/UVSphere-1.as)
+[Код](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/scripts/planets/UVSphere-1.as)
 
 
 ## Процедурная генерация планет
@@ -151,10 +151,10 @@
 Раскидать точки на сфере и используя рендер в текстуру отрисовать квадраты, чтобы заполнить только выбранные области. Для сложения кратеров используется блендинг.<br/>
 Минус этого подхода - проблема с проекцией геометрии на кубическую карту.
 
-[Пример](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/scripts/sphere/UVSphere-2.as)
+[Пример](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/scripts/planets/UVSphere-2.as)
 
 **2й вариант**<br/>
-Можно модифицировать [один из примеров](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/scripts/sphere/UVSphere-1.as). Диаграмма Воронного не требуется, нужно случайно распределить круги без наложения в пределах одного слоя. Слоев будет несколько, они имитируют падение метеоритов в старый кратер.<br/>
+Можно модифицировать [один из примеров](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/scripts/planets/UVSphere-1.as). Диаграмма Воронного не требуется, нужно случайно распределить круги без наложения в пределах одного слоя. Слоев будет несколько, они имитируют падение метеоритов в старый кратер.<br/>
 Алгоритм:
 1. Точка в 2D на грани куба проецируется в 3D нормаль сферы и вращается.
 2. Нормаль проецируется обратно в 2D и ищется центр ближайшей ячейки на сетке.
@@ -164,8 +164,8 @@
 	![](img/SC_UVCorrection.jpg)
 
 Код:
-* [Рассчет и коррекция UV](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/scripts/sphere/UVSphere-3.as)<br/>
-* [Случайное распределение кругов на сфере](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/scripts/sphere/UVSphere-4.as)<br/>
+* [Рассчет и коррекция UV](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/scripts/planets/UVSphere-3.as)<br/>
+* [Случайное распределение кругов на сфере](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/scripts/planets/UVSphere-4.as)<br/>
 
 
 <details><summary><b>Подробнее про наложение кратеров</b></summary>
@@ -195,5 +195,5 @@
 Ломаную линию можно получить объединив несколько плоскостей.<br/>
 Множество линий делается через случайную генерацию плоскостей и за счет вращения слоя с линиями, как сделано для кратеров.
 
-[Код](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/scripts/sphere/UVSphere-5.as)
+[Код](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/scripts/planets/UVSphere-5.as)
 

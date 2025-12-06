@@ -205,7 +205,7 @@ namespace AE::Video
 	bool  FFmpegVideoDecoder::_CreateAudioCodec (const AVStream* audioStream, OUT AVCodec const* &codec, OUT AVCodecContext* &codecCtx) C_NE___
 	{
 		// TODO
-
+		Unused( audioStream, codec, codecCtx );
 		return true;
 	}
 
@@ -702,6 +702,7 @@ namespace AE::Video
 
 		//CHECK_ERR( _audio.codecCtx != null );
 
+		Unused( inoutSamples );
 		// TODO
 		return false;
 

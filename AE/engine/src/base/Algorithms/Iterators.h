@@ -392,7 +392,7 @@ namespace AE::Base
 		};
 
 	} // _hidden_
-	
+
 	template <typename T>
 	  requires( IsUnsignedInteger<T> )
 	NdCx__ auto  BitIndexIterate (const T &bits) __NE___
@@ -406,7 +406,7 @@ namespace AE::Base
 	{
 		return Base::_hidden_::BitIndexIterateView< R, T >{ bits };
 	}
-	
+
 	template <typename R, typename T = R>
 	  requires( IsEnum<R> and IsEnum<T> )
 	NdCx__ auto  BitIndexIterate (const T &bits) __NE___
@@ -423,7 +423,7 @@ namespace AE::Base
 		if constexpr( C <= 64 )
 			return Base::_hidden_::BitIndexIterateView< uint, ulong >{ bits.to_ullong() };
 	}
-	
+
 	template <typename BF>
 	  requires( IsSpecializationOf< BF, Bitfield >)
 	NdCx__ auto  BitIndexIterate (const BF &bits) __NE___
@@ -431,7 +431,7 @@ namespace AE::Base
 		using T = typename BF::Value_t;
 		return Base::_hidden_::BitIndexIterateView< uint, T >{ T{bits} };
 	}
-	
+
 	template <typename ES>
 	  requires( IsSpecializationOf< ES, EnumSet >)
 	NdCx__ auto  BitIndexIterate (const ES &bitArray) __NE___

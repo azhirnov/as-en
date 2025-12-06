@@ -26,7 +26,7 @@ namespace _hidden_
 {
 	template <typename ObjT, typename Args>
 	struct _IsCallOperatorSpecialization2 : CT_False {};
-		
+
 	template <typename ObjT, typename ...Args>
 		requires( IsCallOperatorSpecialization< ObjT, Args... >)
 	struct _IsCallOperatorSpecialization2< ObjT, TypeList<Args...> > : CT_True {};
@@ -34,7 +34,7 @@ namespace _hidden_
 	template <typename ObjT, typename ArgsTL>
 	concept IsCallOperatorSpecializationFromTypeList =	IsTypeList< ArgsTL > and
 														Base::_hidden_::_IsCallOperatorSpecialization2< ObjT, ArgsTL >::value;
-	
+
 /*
 =================================================
 	IsCallOperatorSpecializationWith
@@ -46,7 +46,7 @@ namespace _hidden_
 {
 	template <typename ObjT, typename Args>
 	struct _CallOperatorSpecialization_FnPtr;
-	
+
 	template <typename ObjT, typename ...Args>
 		requires( IsCallOperatorSpecialization< ObjT, Args... >)
 	struct _CallOperatorSpecialization_FnPtr< ObjT, TypeList<Args...> >
@@ -54,7 +54,7 @@ namespace _hidden_
 		using type = decltype( &ObjT::template operator()< Args... > );
 	};
 
-	
+
 	template <typename ObjT, typename FN, typename ...Args>
 	concept _CanUseCallOperatorWithArgs1 = requires (Args ...args)
 	{
@@ -63,7 +63,7 @@ namespace _hidden_
 
 	template <typename ObjT, typename FN, typename Args>
 	struct _CanUseCallOperatorWithArgs2 : CT_False {};
-		
+
 	template <typename ObjT, typename FN, typename ...Args>
 		requires( _CanUseCallOperatorWithArgs1< ObjT, FN, Args... >)
 	struct _CanUseCallOperatorWithArgs2< ObjT, FN, TypeList<Args...> > : CT_True {};

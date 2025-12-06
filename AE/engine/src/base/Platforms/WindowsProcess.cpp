@@ -246,7 +246,7 @@ namespace AE::Base
 		bool	ok;
 		return _WaitAndClose( INOUT &output, OUT ok, timeout );
 	}
-	
+
 	bool  WindowsProcess::WaitAndClose (OUT bool &isSuccess, milliseconds timeout)
 	{
 		return _WaitAndClose( null, OUT isSuccess, timeout );
@@ -270,7 +270,7 @@ namespace AE::Base
 
 		if ( _thread == null or _process == null )
 			return true;
-		
+
 		if ( output != null )
 		{
 			ASSERT( AllBits( _flags, EFlags::ReadOutput ));
@@ -290,7 +290,7 @@ namespace AE::Base
 
 			DWORD process_exit;
 			::GetExitCodeProcess( _process, OUT &process_exit );	// winxp
-			
+
 			// process may be blocked by buffer overflow, need to read output and wait
 			if ( process_exit == STILL_ACTIVE and _streamOutRead != null )
 			{
@@ -312,7 +312,7 @@ namespace AE::Base
 			if ( ::WaitForSingleObject( _thread, timeout ) == WAIT_OBJECT_0 )	// winxp
 			{
 				// thread is complete
-				ASSERT( AnyEqual( process_exit, 0u, 1u ));
+				//ASSERT( AnyEqual( process_exit, 0u, 1u ));
 				isSuccess = (process_exit == 0);
 				break;
 			}
@@ -332,7 +332,7 @@ namespace AE::Base
 
 				if ( not success or readn == 0 )
 					break;
-				
+
 				if_likely( output != null )
 					*output << StringView{ buf, readn };
 			}

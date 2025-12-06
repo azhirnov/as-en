@@ -495,7 +495,7 @@ bool  TestDevice::_Compile (OUT Array<uint>&			spirvData,
 			::spvDiagnosticDestroy( diagnostic );
 			::spvContextDestroy( ctx );
 		}
-		
+
 		if ( not is_valid )
 			_Decompile( spirvData );
 
@@ -510,7 +510,7 @@ bool  TestDevice::_Compile (OUT Array<uint>&			spirvData,
 		}
 	}
 	#endif // AE_ENABLE_SPIRV_TOOLS
-	
+
 	return true;
 }
 

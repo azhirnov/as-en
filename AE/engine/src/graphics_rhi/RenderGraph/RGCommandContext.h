@@ -202,7 +202,7 @@ namespace AE::RG::_hidden_
 		StaticAssert( IsBaseOf< IComputeContext, BaseCtx >);
 
 		static constexpr bool	IsIndirectContext = BaseCtx::IsIndirectContext;
-		
+
 		using CmdBuf_t		= typename BaseCtx::CmdBuf_t;
 		using RenderCoroRef	= typename BaseCtx::RenderCoroRef;
 
@@ -234,7 +234,7 @@ namespace AE::RG::_hidden_
 
 	  #if defined(AE_ENABLE_VULKAN) or defined(AE_ENABLE_REMOTE_GRAPHICS)
 		void  WriteTimestamp (const IQueryManager::IQuery &q, uint index, EPipelineScope srcScope)							__Th_OV	{ return _ctx.WriteTimestamp( q, index, srcScope ); }
-		
+
 		void  ConvertCooperativeVectorMatrix (ArrayView<ConvertCoopMatrixCmd> cmds)											__Th_OV	{ _ctx.ConvertCooperativeVectorMatrix( cmds ); }
 		void  ConvertCooperativeVectorMatrix (ArrayView<ConvertCoopMatrixCmd2> cmds)										__Th_OV;
 	  #endif
@@ -491,7 +491,7 @@ namespace AE::RG::_hidden_
 		StaticAssert( IsBaseOf< IRayTracingContext, BaseCtx >);
 
 		static constexpr bool	IsIndirectContext = BaseCtx::IsIndirectContext;
-		
+
 		using CmdBuf_t		= typename BaseCtx::CmdBuf_t;
 		using RenderCoroRef	= typename BaseCtx::RenderCoroRef;
 
@@ -554,7 +554,7 @@ namespace AE::RG::_hidden_
 		StaticAssert( IsBaseOf< IASBuildContext, BaseCtx >);
 
 		static constexpr bool	IsIndirectContext = BaseCtx::IsIndirectContext;
-		
+
 		using CmdBuf_t		= typename BaseCtx::CmdBuf_t;
 		using RenderCoroRef	= typename BaseCtx::RenderCoroRef;
 
@@ -638,7 +638,7 @@ namespace AE::RG::_hidden_
 		StaticAssert( IsBaseOf< IVideoDecodeContext, BaseCtx >);
 
 		static constexpr bool	IsIndirectContext = BaseCtx::IsIndirectContext;
-		
+
 		using CmdBuf_t		= typename BaseCtx::CmdBuf_t;
 		using RenderCoroRef	= typename BaseCtx::RenderCoroRef;
 
@@ -674,7 +674,7 @@ namespace AE::RG::_hidden_
 		StaticAssert( IsBaseOf< IVideoEncodeContext, BaseCtx >);
 
 		static constexpr bool	IsIndirectContext = BaseCtx::IsIndirectContext;
-		
+
 		using CmdBuf_t		= typename BaseCtx::CmdBuf_t;
 		using RenderCoroRef	= typename BaseCtx::RenderCoroRef;
 
@@ -1044,7 +1044,7 @@ namespace AE::RG::_hidden_
 		_ctx.CommitBarriers();
 		_ctx.DispatchIndirect( buffer, offset );
 	}
-	
+
 	template <typename C>
 	void  ComputeContext<C>::ConvertCooperativeVectorMatrix (ArrayView<ConvertCoopMatrixCmd2> cmds) __Th___
 	{

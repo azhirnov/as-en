@@ -211,6 +211,8 @@ namespace AE::ResEditor
 
 		VFSClients_t				_vfsClients;
 
+		FileWatch					_rdCaptureWatch;
+
 		struct {
 			RingBuffer<Path>			scripts;				// main thread only
 			Atomic<bool>				isActive		{false};
@@ -224,6 +226,9 @@ namespace AE::ResEditor
 	public:
 		ResEditorCore ();
 		~ResEditorCore ();
+
+	private:
+			void  _CheckRdEvents ();
 
 
 	// API for EditorUI
@@ -246,7 +251,7 @@ namespace AE::ResEditor
 		void  _UpdateTests (RC<Renderer> renderer);
 
 
-	// IBaseApp //
+	// IBaseApp (main thread) //
 	private:
 		bool  OnSurfaceCreated (IWindow &)											__NE_OV;
 		void  StartRendering (Ptr<IInputActions>, Ptr<IOutputSurface>, EWndState)	__NE_OV;

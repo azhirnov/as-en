@@ -219,7 +219,7 @@ namespace
 			desc.taskDefaultLocalSize	= WGLocalSize_t{ task->reflection.mesh.taskGroupSize };
 			desc.taskLocalSizeSpec		= WGLocalSizeSpec_t{ task->reflection.mesh.taskGroupSpec };
 			CHECK( desc.shaders.insert_or_assign( EShader::MeshTask, task->uid ).second );
-			
+
 			CHECK_THROW_MSG( All( (desc.taskDefaultLocalSize > WGLocalSize_t{0}) or (desc.taskLocalSizeSpec != WGLocalSizeSpec_t{SerializableMeshPipeline::UndefinedSpecConst}) ),
 				"'taskDefaultLocalSize' is zero and specialization is not defined" );
 		}
@@ -232,7 +232,7 @@ namespace
 			desc.meshDefaultLocalSize	= WGLocalSize_t{ mesh->reflection.mesh.meshGroupSize };
 			desc.meshLocalSizeSpec		= WGLocalSizeSpec_t{ mesh->reflection.mesh.meshGroupSpec };
 			CHECK( desc.shaders.insert_or_assign( EShader::Mesh, mesh->uid ).second );
-			
+
 			CHECK_THROW_MSG( All( (desc.meshDefaultLocalSize > WGLocalSize_t{0}) or (desc.meshLocalSizeSpec != WGLocalSizeSpec_t{SerializableMeshPipeline::UndefinedSpecConst}) ),
 				"'meshDefaultLocalSize' is zero and specialization is not defined" );
 		}
@@ -531,7 +531,7 @@ namespace
 
 		desc.meshLocalSize = WGLocalSize_t{BasePipelineDesc::LoadTimeLocalSize};
 	}
-	
+
 /*
 =================================================
 	GetSubpassIndex
@@ -542,7 +542,7 @@ namespace
 		CHECK( desc.renderPass.IsDefined() );
 
 		auto&	storage = *ObjectStorage::Instance();
-		
+
 		auto	rp_it = storage.serializedRPs.find( desc.renderPass );
 		if ( rp_it == storage.serializedRPs.end() )
 			return UMax;

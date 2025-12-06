@@ -56,7 +56,7 @@ namespace
 	{
 		arg.state |= EResourceState::ComputeShader;
 	}
-	
+
 /*
 =================================================
 	_Variable
@@ -67,22 +67,22 @@ namespace
 		auto*	obj = args.GetObject< ScriptComputeMip >();
 		auto&	dst	= obj->_variables.emplace_back();
 		uint	idx	= 0;
-		
+
 		CHECK_THROW_MSG( args.IsArg< String const& >(idx),
 			"First argument must be string with uniform name of input resource" );
 		dst.inName = args.Arg< String const& >(idx++);
-		
+
 		CHECK_THROW_MSG( args.IsArg< String const& >(idx),
 			"Second argument must be string with uniform name of output resource" );
 		dst.outName = args.Arg< String const& >(idx++);
-		
+
 		CHECK_THROW_MSG( args.IsArg< ScriptImagePtr const& >(idx),
 			"Third argument must be image" );
 		dst.image = args.Arg< ScriptImagePtr const& >(idx++);
-		
+
 		if ( args.IsArg< MipmapLevel const& >(idx) )
 			dst.baseMipmap = args.Arg< MipmapLevel const& >(idx++);
-		
+
 		if ( args.IsArg< String const& >(idx) )
 		{
 			dst.sampler = args.Arg< String const& >(idx++);
@@ -118,7 +118,7 @@ namespace
 
 		binder.AddGenericMethod< void (const String &, const String &, const ScriptImagePtr &)					>( &ScriptComputeMip::_Variable, "Variable", {"inName", "outName", "image"} );
 		binder.AddGenericMethod< void (const String &, const String &, const ScriptImagePtr &, const String &)	>( &ScriptComputeMip::_Variable, "Variable", {"inName", "outName", "image", "sampler"} );
-			
+
 		binder.AddGenericMethod< void (const String &, const String &, const ScriptImagePtr &, const MipmapLevel &)					>( &ScriptComputeMip::_Variable, "Variable", {"inName", "outName", "image", "baseMipmap"} );
 		binder.AddGenericMethod< void (const String &, const String &, const ScriptImagePtr &, const MipmapLevel &, const String &)	>( &ScriptComputeMip::_Variable, "Variable", {"inName", "outName", "image", "baseMipmap", "sampler"} );
 	}
@@ -182,7 +182,7 @@ namespace
 			CHECK_THROW( res_mngr.CreateDescriptorSets( OUT result->_ds0Index, OUT result->_descSets.data(), max_frames,
 														ppln, DescriptorSetName{"ds0"}, null, _dbgName ));
 			_args.InitResources( OUT result->_resources, result->_rtech.packId );  // throw
-			
+
 			result->_pcIndex = res_mngr.GetPushConstantIndex< ShaderTypes::ComputeMipPC >( ppln, PushConstantName{"pc"} );
 			CHECK_THROW( result->_pcIndex );
 		}
@@ -263,7 +263,7 @@ namespace AE::ResEditor
 		StaticAssert( IPass::CustomKeys_t{}.max_size() == 2 );
 		return st;
 	}
-	
+
 /*
 =================================================
 	_CreatePCType
@@ -336,7 +336,7 @@ namespace AE::ResEditor
 					ds_layout->AddCombinedImage_ImmutableSampler( stage, var.inName, type, var.inState, {var.sampler} );
 				else
 					ds_layout->AddStorageImage( stage, var.inName, ArraySize{1}, type, var.image->PixelFormat(), Default, var.inState );
-				
+
 				ds_layout->AddStorageImage( stage, var.outName, ArraySize{1}, type, var.image->PixelFormat(), Default, var.outState );
 			}
 		}
@@ -377,10 +377,10 @@ namespace AE::ResEditor
 			sh_opt   = EShaderOpt::Optimize;
 			ppln_opt |= EPipelineOpt::Optimize;
 		}
-		
+
 		if ( flags.contains( UIInteraction::EShaderFlags::CaptureStatistics ))
 			ppln_opt |= EPipelineOpt::CaptureStatistics;
-		
+
 		if ( flags.contains( UIInteraction::EShaderFlags::CaptureInternalRepresentation ))
 			ppln_opt |= EPipelineOpt::CaptureInternalRepresentation;
 
@@ -411,7 +411,7 @@ namespace AE::ResEditor
 		PipelineLayoutPtr		ppln_layout{ new PipelineLayout{ pplnName + ".pl" }};
 		ppln_layout->AddDSLayout2( "ds0", 0, "dsl.0" );
 		ppln_layout->AddDSLayout2( "ds1", 1, "dsl.1" );
-		
+
 		{
 			ShaderStructTypePtr	st = _CreatePCType();	// throw
 			ppln_layout->AddPushConst2( "pc", st, EShader::Compute );

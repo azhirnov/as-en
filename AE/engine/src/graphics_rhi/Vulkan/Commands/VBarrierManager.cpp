@@ -330,7 +330,7 @@ namespace AE::Graphics::_hidden_
 		barrier.dstStageMask	= VPipelineScope::GetStages( dst ) & _supportedStages;
 		barrier.srcAccessMask	= VPipelineScope::GetAccess( src ) & _supportedAccess;
 		barrier.dstAccessMask	= VPipelineScope::GetAccess( dst ) & _supportedAccess;
-		
+
 		barrier.srcStageMask	|= (barrier.srcStageMask == 0 ? VK_PIPELINE_STAGE_2_ALL_COMMANDS_BIT : 0);	// same as VK_PIPELINE_STAGE_2_BOTTOM_OF_PIPE_BIT
 		barrier.dstStageMask	|= (barrier.dstStageMask == 0 ? VK_PIPELINE_STAGE_2_ALL_COMMANDS_BIT : 0);	// same as VK_PIPELINE_STAGE_2_TOP_OF_PIPE_BIT
 
@@ -364,7 +364,7 @@ namespace AE::Graphics::_hidden_
 
 		barrier.srcAccessMask	= VK_ACCESS_2_NONE;
 		barrier.dstAccessMask	= VK_ACCESS_2_NONE;
-		
+
 		DbgValidateBarrier( srcState, dstState, barrier );
 		_AddMemoryBarrier( barrier );
 	}
@@ -378,7 +378,7 @@ namespace AE::Graphics::_hidden_
 		barrier.dstStageMask	= VPipelineScope::GetStages( dst ) & _supportedStages;
 		barrier.srcAccessMask	= VK_ACCESS_2_NONE;
 		barrier.dstAccessMask	= VK_ACCESS_2_NONE;
-		
+
 		barrier.srcStageMask	|= (barrier.srcStageMask == 0 ? VK_PIPELINE_STAGE_2_ALL_COMMANDS_BIT : 0);	// same as VK_PIPELINE_STAGE_2_BOTTOM_OF_PIPE_BIT
 		barrier.dstStageMask	|= (barrier.dstStageMask == 0 ? VK_PIPELINE_STAGE_2_ALL_COMMANDS_BIT : 0);	// same as VK_PIPELINE_STAGE_2_TOP_OF_PIPE_BIT
 

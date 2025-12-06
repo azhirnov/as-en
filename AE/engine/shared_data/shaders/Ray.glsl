@@ -8,6 +8,7 @@
 #endif
 
 #include "Math.glsl"
+#include "Matrix.glsl"
 #include "Quaternion.glsl"
 
 
@@ -121,17 +122,15 @@ float2  RayInverse_Perspective (const float fovY, const float ratio, const float
 =================================================
 	Ray_Perspective
 ----
-	create ray from view-proj matrix
+	create ray from view-proj or proj matrix.
+	result in world space if used view-proj matrix or in view space if used proj matrix.
 =================================================
 */
 Ray  Ray_Perspective (const float4x4 invViewProj, const float3 origin, const float nearPlane, const float2 unormCoord)
 {
-	const float4	world_pos	= invViewProj * float4(ToSNorm( unormCoord ), 1.0, 1.0);
-	const float3	dir			= Normalize( world_pos.xyz / world_pos.w );
-
 	Ray		ray;
 	ray.origin	= origin;
-	ray.dir		= dir;
+	ray.dir		= ViewDir( invViewProj, unormCoord );
 
 	Ray_SetLength( INOUT ray, nearPlane );  // set 't' and 'pos'
 	return ray;
@@ -144,7 +143,7 @@ Ray  Ray_Perspective (const float4x4 invViewProj, const float3 origin, const flo
 	_______  -- screen
 
 	   * -- eye
-	   
+
 	used rectilinear/perspective projection.
 
 	'screenSize' and 'distanceToEye' in meters
@@ -168,7 +167,7 @@ Ray  Ray_PerspectiveFromFlatScreen (const float3 origin, const float distanceToE
 	_____  -- curved screen
    /     \
 	  * --- eye
-	  
+
 	'screenSize', 'screenRadius' and 'distanceToEye' in meters
 =================================================
 */

@@ -227,7 +227,7 @@ namespace AE::Graphics::_hidden_
 		Msg::CmdBuf_Bake::MemoryBarrier3Cmd  cmd;
 		_AddCommand( cmd );
 	}
-	
+
 	void  RBarrierManager::ExecutionBarrier (EResourceState srcState, EResourceState dstState) __Th___
 	{
 		Msg::CmdBuf_Bake::ExecutionBarrierCmd  cmd;

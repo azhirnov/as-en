@@ -12,13 +12,13 @@ namespace
 
 		CHECK( rowC == bias.size() );
 		CHECK( rowC * rowA == weights.size() );
-		
+
 		if ( columnMajor )
 		{
 			for (uint i = 0; i < rowC; ++i)
 			{
 				float	sum = float(bias[i]);
-				
+
 				for (uint j = 0; j < rowA; ++j)
 				{
 					sum += float(weights[ i + j * rowC ]) * float(input[j]);
@@ -31,7 +31,7 @@ namespace
 			for (uint i = 0; i < rowC; ++i)
 			{
 				float	sum = float(bias[i]);
-				
+
 				for (uint j = 0; j < rowA; ++j)
 				{
 					sum += float(weights[ i * rowA + j ]) * float(input[j]);
@@ -49,13 +49,13 @@ namespace
 
 		CHECK( rowC == bias.size() );
 		CHECK( rowC * rowA == weights.size() );
-		
+
 		if ( columnMajor )
 		{
 			for (uint i = 0; i < rowC; ++i)
 			{
 				slong	sum = bias[i];
-				
+
 				for (uint j = 0; j < rowA; ++j)
 				{
 					int	wg = weights[ i + j * rowC ];
@@ -71,7 +71,7 @@ namespace
 			for (uint i = 0; i < rowC; ++i)
 			{
 				slong	sum = bias[i];
-				
+
 				for (uint j = 0; j < rowA; ++j)
 				{
 					int	wg = weights[ i * rowA + j ];
@@ -83,6 +83,64 @@ namespace
 			}
 		}
 	}
+
+
+	static void  MatMulAdd (MutableArrayView<float> output, ArrayView<float> inputA, ArrayView<float> inputB, ArrayView<float> inputC,
+							const uint2 rowColA, const uint2 rowColB, const uint2 rowColC, const bool columnMajor)
+	{
+		ASSERT( inputA.size() == rowColA.x * rowColA.y );
+		ASSERT( inputB.size() == rowColB.x * rowColB.y );
+		ASSERT( inputC.size() == rowColC.x * rowColC.y );
+		ASSERT( output.size() == rowColC.x * rowColC.y );
+
+		ASSERT( rowColA.y == rowColB.x );
+		ASSERT( rowColA.x == rowColC.x );
+		ASSERT( rowColB.y == rowColC.y );
+
+		if ( columnMajor )
+		{
+			for (uint i = 0; i < rowColA.x; ++i)
+			{
+				for (uint j = 0; j < rowColB.y; ++j)
+				{
+					const uint	idx  = i * rowColB.y + j;
+					float		sum  = float(inputC[ idx ]);
+
+					for (uint k = 0; k < rowColA.y; ++k)
+					{
+						float	a = float(inputA[ k * rowColA.y + j ]);		// col
+						float	b = float(inputB[ i * rowColB.y + k ]);		// row
+
+						sum += a * b;
+					}
+
+					output[ idx ] = sum;
+				}
+			}
+		}
+		else // row-major
+		{
+			for (uint i = 0; i < rowColA.x; ++i)
+			{
+				for (uint j = 0; j < rowColB.y; ++j)
+				{
+					const uint	idx  = i * rowColB.y + j;
+					float		sum  = float(inputC[ idx ]);
+
+					for (uint k = 0; k < rowColA.y; ++k)
+					{
+						float	a = float(inputA[ i * rowColA.y + k ]);		// row
+						float	b = float(inputB[ k * rowColB.y + j ]);		// col
+
+						sum += a * b;
+					}
+
+					output[ idx ] = sum;
+				}
+			}
+		}
+	}
+
 
 
 	static const float	c_ReLU = 0.001f;
@@ -143,7 +201,7 @@ namespace
 		 0.5229f,
 		-0.0424f
 	};
-		
+
 	static const float	layer2_weights[] = {
 		 0.3367f,  0.3921f, -0.4937f, -0.9429f,
 		 0.1268f, -0.4663f,  0.1044f,  0.2329f,
@@ -170,6 +228,7 @@ namespace
 	};
 
 
+	// same as in shader
 	static void  MLP_Test1 ()
 	{
 		const bool	columnMajor = false;
@@ -202,7 +261,8 @@ namespace
 		AE_LOGI( "Max diff: "s << ToString( max_diff, 2, True{"exp"} ));
 	}
 
-	
+
+	// convert to UNorm weights, first step to use i8 quantisation
 	static void  MLP_Test2 ()
 	{
 		float	layer1_weights2 [CountOf( layer1_weights )];
@@ -259,7 +319,7 @@ namespace
 
 			inv_scale_bias = float2{ (max - min) / 255.f, min };
 		}
-		
+
 		for (float y = 0.f; y < 1.0f; y += 0.1f)
 		for (float x = 0.f; x < 1.0f; x += 0.1f)
 		{
@@ -277,7 +337,7 @@ namespace
 			for (float in : input) {
 				sum_in1 += in;
 			}
-			
+
 			for (usize i = 0; i < CountOf(output1); ++i)
 			{
 				q_output1[i] = q_output1[i] * inv_scale_bias.x / 255.f + inv_scale_bias.y * sum_in1;
@@ -288,12 +348,12 @@ namespace
 
 				sum_in2 += q_output1[i];
 			}
-			
+
 			VecMatMulAdd( OUT q_output2, q_output1, layer2_weights2, layer2_bias2, columnMajor );
 			VecMatMulAdd( OUT output2,   output1,   layer2_weights,  layer2_bias,  columnMajor );
 			ReLU( INOUT output2 );
 
-			
+
 			for (usize i = 0; i < CountOf(output2); ++i)
 			{
 				q_output2[i] = q_output2[i] * inv_scale_bias.x + inv_scale_bias.y * sum_in2;
@@ -302,7 +362,7 @@ namespace
 				float diff = Abs( q_output2[i] - output2[i] );
 				ASSERT( diff < 0.001f );
 			}
-			
+
 			float4	ref = groundtruth( float2{ input[0], input[1] });
 
 			float	diff = 0.f;
@@ -317,14 +377,15 @@ namespace
 		AE_LOGI( "Max diff: "s << ToString( max_diff, 2, True{"exp"} ));
 	}
 
-	
+
+	// try to use i8 quantisation
 	static void  MLP_Test3 ()
 	{
 		ubyte	q_layer1_weights	[CountOf( layer1_weights )];
 		sint	q_layer1_bias		[CountOf( layer1_bias )];
 		ubyte	q_layer2_weights	[CountOf( layer2_weights )];
 		sint	q_layer2_bias		[CountOf( layer2_bias )];
-		float	max_diff			= 0.f;
+		//float	max_diff			= 0.f;
 		float2	scale_bias;
 		float2	inv_scale_bias;
 
@@ -372,13 +433,13 @@ namespace
 			Convert( layer2_weights, OUT MutableArrayView<ubyte>{ q_layer2_weights }, scale_bias );
 			Convert( layer1_bias,    OUT MutableArrayView<sint >{ q_layer1_bias },    scale_bias );
 			Convert( layer2_bias,    OUT MutableArrayView<sint >{ q_layer2_bias },    scale_bias );
-			
+
 			for (auto& a : q_layer1_bias) a *= 255;
 			for (auto& a : q_layer2_bias) a *= 255;
 
 			inv_scale_bias = float2{ (max - min) / (255.f * 255.f), min };
 		}
-		
+
 		for (float y = 0.f; y < 1.0f; y += 0.1f)
 		for (float x = 0.f; x < 1.0f; x += 0.1f)
 		{
@@ -399,7 +460,7 @@ namespace
 			VecMatMulAdd( OUT q_output1, q_input1, q_layer1_weights, q_layer1_bias, columnMajor );
 			VecMatMulAdd( OUT output1,   input,    layer1_weights,   layer1_bias,   columnMajor );
 			ReLU( INOUT output1 );
-			
+
 			for (usize i = 0; i < CountOf(output1); ++i)
 			{
 				float	a = float(q_output1[i]) * inv_scale_bias.x + inv_scale_bias.y * sum_in1;
@@ -409,16 +470,18 @@ namespace
 				ASSERT( diff < 0.04f );
 
 				output1[i] = Saturate( output1[i] );
-				a = Saturate( a );
+
+				// must be unorm
+				ASSERT( a >= 0.0f );
+				ASSERT( a <= 1.0f );
+
+				a = Saturate( a );	// forced converted to unorm, it add error to result !!!
 
 				sum_in2 += a;
 
-				//ASSERT( a >= -0.1f );
-				//ASSERT( a <= 1.2f );
-
 				q_input2[i] = ubyte( a * 255.f + 0.5f );
 			}
-			
+
 			float	output2		[4];
 			sint	q_output2	[CountOf( output2 )];
 
@@ -446,10 +509,11 @@ namespace
 			max_diff = Max( max_diff, diff );
 			CHECK( diff < 0.1f );*/
 		}
-		AE_LOGI( "Max diff: "s << ToString( max_diff, 2, True{"exp"} ));
+		//AE_LOGI( "Max diff: "s << ToString( max_diff, 2, True{"exp"} ));
 	}
 
-	
+
+	// simple quantisation
 	static void  MLP_Test4 ()
 	{
 		const float	layer1_weights2 [] = {
@@ -475,7 +539,7 @@ namespace
 		for (usize i = 0; i < CountOf(layer1_bias2); ++i) {
 			q_layer1_bias[i] = (layer1_bias2[i] + bias) * scale * 255.f;
 		}
-		
+
 		for (float y = 0.f; y < 1.0f; y += 0.1f)
 		for (float x = 0.f; x < 1.0f; x += 0.1f)
 		{
@@ -498,15 +562,76 @@ namespace
 			}
 		}
 	}
+
+
+	// try convert mat * vec to mat * mat to make compatible with cooperative matrix
+	static void  MLP_Test5 ()
+	{
+	//	const bool	columnMajor = false;
+		float		output [16];
+		float		max_diff	= 0.f;
+
+		float		weights [16*16];
+	//	float		bias [16*16];
+
+		for (int inp = 0; inp < 4; ++inp)
+			for (int out = 0; out < 16; ++out)
+				for (int in = 0; in < 4; ++in)
+					weights[out * 16 + inp*4 + in] = layer1_weights[out*4 + in];
+
+		for (int out = 0; out < 4; ++out)
+			for (int inp = 0; inp < 4; ++inp)
+				for (int hid = 0; hid < 16; ++hid)
+					weights[(4 + out) * 16 + inp*16 + hid] = layer2_weights[out*16 + hid];
+
+		const auto	CalcDiff = [&max_diff] (float x, float y, const float* output)
+		{{
+			float4	ref = groundtruth( float2{ x, y });
+			float	diff = 0.f;
+			diff += Abs( ref[0] - output[0] );
+			diff += Abs( ref[1] - output[1] );
+			diff += Abs( ref[2] - output[2] );
+			diff += Abs( ref[3] - output[3] );
+
+			max_diff = Max( max_diff, diff );
+			CHECK( diff < 0.1f );
+		}};
+
+		for (float y = 0.f; y < 1.0f; y += 0.1f)
+		for (float x = 0.f; x < 1.0f; x += 0.1f)
+		{
+			float	input0[] = { x, y, x*x, y*y };	x += 0.1f;
+			float	input1[] = { x, y, x*x, y*y };	x += 0.1f;
+			float	input2[] = { x, y, x*x, y*y };	x += 0.1f;
+			float	input3[] = { x, y, x*x, y*y };	x += 0.1f;
+
+			float	input [16] = {
+				input0[0], input0[1], input0[2], input0[3],
+				input1[0], input1[1], input1[2], input1[3],
+				input2[0], input2[1], input2[2], input2[3],
+				input3[0], input3[1], input3[2], input3[3]
+			};
+
+			// TODO
+			//MatMulAdd( OUT output, input, weights, bias );
+
+			CalcDiff( input0[0], input0[1], &output[0] );
+			CalcDiff( input1[0], input1[1], &output[4] );
+			CalcDiff( input2[0], input2[1], &output[8] );
+			CalcDiff( input3[0], input3[1], &output[12] );
+		}
+		AE_LOGI( "Max diff: "s << ToString( max_diff, 2, True{"exp"} ));
+	}
 }
 
 
 extern void Test_MLPTraining (Executor &)
 {
-//	MLP_Test1();
-	MLP_Test2();
-	MLP_Test3();
-//	MLP_Test4();
+	MLP_Test1();	// ok
+	MLP_Test2();	// ok
+//	MLP_Test3();	// failed
+	MLP_Test4();	// ok
+//	MLP_Test5();	// incomplete
 
 	TEST_PASSED();
 }

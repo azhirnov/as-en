@@ -12,7 +12,7 @@
 
 		if ( dbgVS ) name += ".dbg_vs";
 		if ( dbgFS ) name += ".dbg_fs";
-		
+
 		{
 			RC<PipelineLayout>		pl = PipelineLayout( "pl."+name );
 			pl.DSLayout( "pass",	 0, "pass.ds" );
@@ -47,7 +47,7 @@
 			spec.AddToRenderTech( "rtech", "main" );  // in ScriptSceneGraphicsPass
 
 			RenderState	rs;
-			
+
 			if ( name == "vb1" )
 			{
 				rs.depth.test					= true;
@@ -77,7 +77,7 @@
 					"uint				objId;" );
 		}{
 			RC<DescriptorSetLayout>	ds = DescriptorSetLayout( "mtr.ds" );
-			
+
 			string	name2 = name;
 
 			if ( name2 == "vb1" )
@@ -141,7 +141,7 @@
 		ObjectTransform	obj		= un_Transform.elements[ obj_id ];
 		float2			uv		= ProceduralQuadUV();
 		float3			pos		= float3( ToSNorm(uv) * obj.scale, 0.0 );
-		
+
 		pos = QMul( QCreate(obj.rotation), pos );
 		pos += obj.position;
 		pos -= un_PerPass.camera.pos;
@@ -163,7 +163,7 @@
 	#include "Quaternion.glsl"
 	#include "InvocationID.glsl"
 	#include "../3party_shaders/VisibilityBuffer.glsl"
-	
+
 	#ifndef VIS_BUF_PASS_1
 		void  LocalPosToWorldSpace (ObjectTransform obj, uint vertId, out float3 pos, out float2 uv)
 		{
@@ -188,7 +188,7 @@
 	#ifdef VIS_BUF_PASS_1
 		out_VisBuf.rg = uint2( gl.PrimitiveID, In.objId );
 		return;
-		
+
 	#else
 		const uint2			primId_objId = gl.texture.Fetch( un_VisBuf, int2(gl.FragCoord.xy), 0 ).rg;
 
@@ -209,7 +209,7 @@
 														WorldPosToClipSpace( wpos2 ),
 														ToSNorm( gl.FragCoord.xy * un_PerPass.invResolution.xy ),
 														2.0 * un_PerPass.invResolution.xy );
-			
+
 		GradientInterpolationResults uv_res = Interpolate2DWithDeriv( deriv, uv0, uv1, uv2 );
 
 		uv_res.dx *= Exp2( iTexBias );

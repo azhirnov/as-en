@@ -26,7 +26,7 @@ namespace AE::App
 																								XR_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT |
 																								XR_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT |
 																								XR_DEBUG_UTILS_MESSAGE_TYPE_CONFORMANCE_BIT_EXT;
-		
+
 		#define XRFEATS_STRUCT
 		#include "xr_features.h"
 		#undef  XRFEATS_STRUCT
@@ -44,7 +44,7 @@ namespace AE::App
 
 		XrFormFactor			_formFactor		= XR_FORM_FACTOR_HEAD_MOUNTED_DISPLAY;
 		XrSystemProperties		_systemProps;
-		
+
 		XRExtensions			_extensions;
 		ExtensionSet_t			_extensionNames;
 
@@ -59,7 +59,7 @@ namespace AE::App
 		ND_ XrSession			GetXrSession ()									C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _xrSession; }
 
 		ND_ XRExtensions const&	GetExtensions ()								C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _extensions; }
-		
+
 		ND_ bool				IsInitialized ()								C_NE___	{ return GetXrSession() != Default; }
 		ND_ bool				HasExtension (StringView name)					C_NE___;
 
@@ -76,7 +76,7 @@ namespace AE::App
 	};
 
 
-	
+
 	//
 	// OpenXR Device Initializer
 	//
@@ -96,7 +96,7 @@ namespace AE::App
 
 			InstanceCreateInfo () __NE___ {}
 		};
-		
+
 		struct ObjectDbgInfo
 		{
 			StringView		type;
@@ -160,7 +160,7 @@ namespace AE::App
 
 		void  _ValidateLayers (INOUT Array<const char*> &layers, Bool silent)								C_Th___;
 		void  _ValidateExtensions (Array<const char*> layers, INOUT Array<const char*> &ext, Bool silent)	C_Th___;
-		
+
 		void  _LogInstance (ArrayView<const char*> layers)													C_NE___;
 		void  _LogSession ()																				C_NE___;
 

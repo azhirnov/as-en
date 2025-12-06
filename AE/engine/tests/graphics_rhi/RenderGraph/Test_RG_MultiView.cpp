@@ -88,21 +88,21 @@ namespace
 		CHECK_CE( lock.try_lock() );
 
 		Ctx		ctx{ RenderCoro_Get() };
-		
+
 		auto	task = ctx.ReadbackImage( t.img, ReadbackImageDesc{}.ArrayLayer( 0 )).Then( t,
 							[] (Promise<ImageMemView> readRes, CoSafe<MV1_TestData &> t) -> InlineCoro<>
 							{
 								auto view = co_await readRes;
 								t->isOK = t->imgCmp0->Compare( view );
 							});
-			
+
 		t.result = ctx.ReadbackImage( t.img, ReadbackImageDesc{}.ArrayLayer( 1 )).Then( t,
 							[] (Promise<ImageMemView> readRes, CoSafe<MV1_TestData &> t) -> InlineCoro<>
 							{
 								auto view = co_await readRes;
 								t->isOK = t->imgCmp1->Compare( view );
 							});
-		
+
 		ctx.AccumBarriers().MemoryBarrier( EResourceState::CopyDst, EResourceState::Host_Read );
 
 		RenderCoro_Execute( ctx );

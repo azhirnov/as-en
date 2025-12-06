@@ -27,6 +27,7 @@ namespace AE::CICD
 		// android //
 		ND_ bool  _AndroidRunTest (StringView libName, StringView entry);
 		ND_ bool  _AndroidInstall (StringView apk);
+		ND_ bool  _AndroidRunCmd (StringView cmd);
 
 
 	protected:

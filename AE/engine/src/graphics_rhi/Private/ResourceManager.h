@@ -158,7 +158,7 @@ namespace AE::Graphics
 		class RenderTaskSchedulerApi
 		{
 			friend class RenderTaskScheduler;
-			
+
 			static constexpr uint	ExpiredResFrameOffset	= ResourceManager::ExpiredResFrameOffset;
 
 				static AsyncCoro	ReleaseExpiredResources (FrameUID)													__NE___;

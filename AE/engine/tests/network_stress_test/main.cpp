@@ -27,7 +27,7 @@ extern void  TcpMsgClientV4 (ArrayView<IpAddress> serverAddr);
 static IpAddress  GetSelfIPv4AddressFromRouter ()
 {
 	IpAddress	addr;
-	CHECK( SocketService::Instance().GetSelfIPAddress( IpAddress::FromServiceUDP( "192.168.0.1", "8080" ), OUT addr ));
+	CHECK( SocketService::Instance().GetSelfIPAddress( AE_ROUTER_IPv4, OUT addr ));
 	return addr;
 }
 
@@ -35,9 +35,9 @@ static IpAddress6  GetSelfIPv6AddressFromRouter ()
 {
 	IpAddress6	addr;
 	#ifdef AE_PLATFORM_APPLE
-		CHECK( SocketService::Instance().GetSelfIPAddress( IpAddress6::FromServiceUDP( "IPv6 addr%en0", "80" ), OUT addr ));
+		CHECK( SocketService::Instance().GetSelfIPAddress( AE_ROUTER_IPv6_APPLE, OUT addr ));
 	#else
-		CHECK( SocketService::Instance().GetSelfIPAddress( IpAddress6::FromServiceUDP( "IPv6 addr", "" ), OUT addr ));
+		CHECK( SocketService::Instance().GetSelfIPAddress( AE_ROUTER_IPv6, OUT addr ));
 	#endif
 	return addr;
 }
@@ -45,14 +45,14 @@ static IpAddress6  GetSelfIPv6AddressFromRouter ()
 static IpAddress  GetSelfIPv4AddressFromGoogleDNS ()
 {
 	IpAddress	addr;
-	CHECK( SocketService::Instance().GetSelfIPAddress( IpAddress::FromServiceUDP( "8.8.8.8", "53" ), OUT addr ));
+	CHECK( SocketService::Instance().GetSelfIPAddress( AE_GOOGLE_DNS_IPv4, OUT addr ));
 	return addr;
 }
 
 static IpAddress6  GetSelfIPv6AddressFromGoogleDNS ()
 {
 	IpAddress6	addr;
-	CHECK( SocketService::Instance().GetSelfIPAddress( IpAddress6::FromServiceUDP( "2001:4860:4860::8888", "53" ), OUT addr ));
+	CHECK( SocketService::Instance().GetSelfIPAddress( AE_GOOGLE_DNS_IPv6, OUT addr ));
 	return addr;
 }
 
@@ -68,9 +68,10 @@ int main (const int argc, char* argv[])
 	auto&	mngr = SocketService::Instance();
 	CHECK_ERR( mngr.Initialize() );
 
-	static constexpr ushort	TCP_port		= 3000;
-	static constexpr ushort	UDP_port		= 3001;
-	static constexpr char	IP_address[]	= "192.168.0.xxx";
+	static constexpr ushort	TCP_port		= AE_TEST_TCP_PORT_1;
+	static constexpr ushort	UDP_port		= AE_TEST_UDP_PORT_1;
+	static constexpr ushort	UDP_port2		= AE_TEST_UDP_PORT_2;
+	static constexpr char	IP_address[]	= AE_TEST_IPv4;
 
 	// local IPv4/IPv6 using router address
 	#if 0
@@ -110,8 +111,8 @@ int main (const int argc, char* argv[])
 
 	// TCP client/server IPv4
 	#if 0
-		StdThread	server_thread{ [](){ TcpServerV4( IpAddress::FromLocalhostTCP( 3000 )); }};
-		StdThread	client_thread{ [](){ TcpClientV4( IpAddress::FromLocalhostTCP( 3000 )); }};
+		StdThread	server_thread{ [](){ TcpServerV4( IpAddress::FromLocalhostTCP( TCP_port )); }};
+		StdThread	client_thread{ [](){ TcpClientV4( IpAddress::FromLocalhostTCP( TCP_port )); }};
 
 		server_thread.join();
 		client_thread.join();
@@ -119,7 +120,7 @@ int main (const int argc, char* argv[])
 
 	// TCP client/server IPv6
 	#if 0
-		IpAddress6	addr = GetSelfIPv6AddressFromRouter();	addr.SetPort( 3000 );
+		IpAddress6	addr = GetSelfIPv6AddressFromRouter();	addr.SetPort( TCP_port );
 
 		StdThread	server_thread{ [addr](){ TcpServerV6( addr ); }};
 		StdThread	client_thread{ [addr](){ TcpClientV6( addr ); }};
@@ -132,8 +133,8 @@ int main (const int argc, char* argv[])
 
 	// UDP client/server IPv4
 	#if 0
-		StdThread	server_thread{ [](){ UdpServerV4( IpAddress::FromLocalhostUDP( 3000 )); }};
-		StdThread	client_thread{ [](){ UdpClientV4( IpAddress::FromLocalhostUDP( 3000 ), IpAddress::FromLocalhostUDP( 3001 )); }};
+		StdThread	server_thread{ [](){ UdpServerV4( IpAddress::FromLocalhostUDP( UDP_port )); }};
+		StdThread	client_thread{ [](){ UdpClientV4( IpAddress::FromLocalhostUDP( UDP_port ), IpAddress::FromLocalhostUDP( UDP_port2 )); }};
 
 		server_thread.join();
 		client_thread.join();
@@ -141,10 +142,10 @@ int main (const int argc, char* argv[])
 
 	// UDP client/server IPv6
 	#if 0
-		IpAddress6	addr = GetSelfIPv6AddressFromRouter();	addr.SetPort( 3000 );
+		IpAddress6	addr = GetSelfIPv6AddressFromRouter();	addr.SetPort( UDP_port );
 
 		StdThread	server_thread{ [addr](){ UdpServerV6( addr ); }};
-		StdThread	client_thread{ [addr](){ UdpClientV6( addr, IpAddress6::FromLocalhostUDP( 3001 )); }};
+		StdThread	client_thread{ [addr](){ UdpClientV6( addr, IpAddress6::FromLocalhostUDP( UDP_port2 )); }};
 
 		server_thread.join();
 		client_thread.join();
@@ -163,9 +164,6 @@ int main (const int argc, char* argv[])
 	// TCP client
 	#if 0
 		TcpClientV4( IpAddress::FromHostPortTCP( IP_address, TCP_port ));
-	#endif
-	#if 0
-		TcpClientV6( IpAddress6::FromString( "[IPv6 addr]:3000" ));
 	#endif
 	//-------------------------------------------
 

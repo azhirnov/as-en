@@ -85,7 +85,7 @@ namespace AE::Base
 		explicit PhysicalQuantityVec (Quantity s)			__NE___ : QVec_t{s} {}
 
 		explicit PhysicalQuantityVec (const ValVec_t &v)	__NE___ : QVec_t{v} {}
-		
+
 		explicit PhysicalQuantityVec (Zero_t)				__NE___ {}
 		Self&  operator = (Zero_t)							__NE___ { this->x = this->y = Quantity_t{};  return *this; }
 
@@ -129,7 +129,7 @@ namespace AE::Base
 		explicit PhysicalQuantityVec (Quantity s)					__NE___	: QVec_t{s} {}
 
 		explicit PhysicalQuantityVec (const ValVec_t &v)			__NE___	: QVec_t{v} {}
-		
+
 		explicit PhysicalQuantityVec (Zero_t)						__NE___ {}
 		Self&  operator = (Zero_t)									__NE___ { this->x = this->y = this->z = Quantity_t{};  return *this; }
 
@@ -173,7 +173,7 @@ namespace AE::Base
 		explicit PhysicalQuantityVec (Quantity s)								__NE___	: QVec_t{s} {}
 
 		explicit PhysicalQuantityVec (const ValVec_t &v)						__NE___	: QVec_t{v.x, v.y, v.z, v.w} {}
-		
+
 		explicit PhysicalQuantityVec (Zero_t)									__NE___ {}
 		Self&  operator = (Zero_t)												__NE___ { this->x = this->y = this->z = this->w = Quantity_t{};  return *this; }
 

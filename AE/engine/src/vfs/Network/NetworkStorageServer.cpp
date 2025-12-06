@@ -60,7 +60,7 @@ namespace AE::VFS
 					++fail_cnt;
 					break; // failed to send
 				}
-				
+
 				msg->reqId	= id;
 				msg->size	= size;
 				msg->index	= ushort(part_idx);
@@ -616,7 +616,7 @@ namespace AE::VFS
 		[](auto writeReq, NDSRequestID reqId, EClientLocalID clientId) -> InlineCoro<ETaskQueue::Background>
 		{
 			auto	res = co_await writeReq;
-				
+
 			if ( s_NetVFS_Server )
 			{
 				if ( not Coro_IsCanceled )

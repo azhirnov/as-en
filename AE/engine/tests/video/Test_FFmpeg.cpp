@@ -361,6 +361,7 @@ namespace
 extern void  Test_FFmpeg ()
 {
 	//FFmpeg_Print();
+	Unused( &FFmpeg_Print );
 
 	FFmpeg_Test1();
 	FFmpeg_Test2();

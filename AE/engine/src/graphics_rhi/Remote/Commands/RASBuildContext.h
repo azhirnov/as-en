@@ -114,7 +114,7 @@ namespace AE::Graphics
 		WriteProperty( property, as.Handle(), buffers[0].bufferHandle, buffers[0].bufferOffset, size );
 
 		const void*	ptr = _ReadbackAlloc( buffers[0].devicePtr, size );
-		
+
 		return Scheduler().Run(
 					ETaskQueue::PerFrame,
 					[](auto ptr) -> Promise<Bytes>

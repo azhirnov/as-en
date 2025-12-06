@@ -32,7 +32,7 @@ namespace AE::Base
 	{
 		return RVRef(value);
 	}
-	
+
 	Nd__In String  ToString (StringView value) __Th___
 	{
 		return String{value};
@@ -43,7 +43,7 @@ namespace AE::Base
 	{
 		return String{value, C-1};
 	}
-	
+
 	Nd__In String  ToString (const char* value) __Th___
 	{
 		if ( value != null )

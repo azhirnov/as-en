@@ -16,11 +16,11 @@
 		RC<Image>			rt2				= Image( EPixelFormat::RGBA8_UNorm, dim );
 		RC<Image>			ds				= Image( Supported_DepthFormat(), dim );		ds.Name( "Depth" );
 		RC<Image>			wp				= Image( EPixelFormat::RGBA32F, dim );			wp.Name( "WorldPos" );
-		
+
 		RC<FPVCamera>		camera			= FPVCamera();
 		RC<Scene>			scene			= Scene();
 		RC<Buffer>			obj_buf			= Buffer();
-		
+
 		const uint2			local_size		= uint2( 8, 8 );
 		RC<DynamicUInt>		obj_count		= DynamicUInt();
 		RC<DynamicUInt2>	count2d			= obj_count.XX().Mul( local_size );
@@ -76,7 +76,7 @@
 
 			scene.Add( geometry );
 		}
-		
+
 		Slider( obj_count,	"ObjCount",		1,	10,	3 );
 
 		// render loop //

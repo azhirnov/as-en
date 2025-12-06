@@ -9,7 +9,7 @@
 
 namespace AE::Base
 {
-	
+
 /*
 =================================================
 	constructor
@@ -32,7 +32,7 @@ namespace AE::Base
 		_handle = lib;
 		return _handle != null;
 	}
-	
+
 	bool  UnixLibrary::Open (NtStringView libName) __NE___
 	{
 		CHECK_ERR( _handle == null );
@@ -40,7 +40,7 @@ namespace AE::Base
 
 		if_unlikely( _handle == null )
 			AE_LOG_DBG( "Error when opening shared library '"s << libName << "': " << ::dlerror() );
-		
+
 		return _handle != null;
 	}
 

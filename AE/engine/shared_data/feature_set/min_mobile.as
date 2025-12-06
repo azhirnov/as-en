@@ -4,59 +4,66 @@
 void ASmain ()
 {
 	// include:
-	//	Adreno driver 512.797.0 on Windows 11
-	//	Apple A12 GPU driver 0.2.2018 on Ios 17.5
-	//	Apple A15 GPU driver 0.2.2018 on Ios 17.5
-	//	Apple A17 Pro GPU driver 0.2.2018 on Ios 17.5
-	//	Apple M3 Max driver 0.2.2014 on Osx 14.2
-	//	asus ASUS_AI2203_D driver 32.1.0 on Android 13.0
-	//	Adreno (TM) 660 driver 512.530.0 on Android 11.0
-	//	Google Pixel 8 Pro driver 44.0.0 on Android 14.0
-	//	HUAWEI BRA-AL00 driver 472.436.143 on Android 12.0
-	//	Mali-T830 driver 28.0.0 on Android 9.0
-	//	motorola moto g13 driver 32.1.0 on Android 14.0
-	//	motorola moto g73 5G driver 1.473.1397 on Android 13.0
-	//	NINTENDO Switch v2 driver 495.0.0.0 on Android 11.0
-	//	Adreno (TM) 505 driver 512.454.0 on Android 9.0
-	//	nubia NX729J driver 512.746.0 on Android 13.0
-	//	NVIDIA Tegra X1 (rev B) (nvgpu) driver 495.0.0.0 on Android 11.0
-	//	NVIDIA Tegra X2 (nvgpu) driver 32.4.3.0 on Ubuntu 18.04
-	//	NVIDIA Tegra Xavier (nvgpu) driver 32.4.3.0 on Ubuntu 18.04
-	//	Oculus Quest 3 driver 512.746.0 on Android 12.0
-	//	Oppo A77 driver 58.722.917 on Android 7.1
-	//	Mali-G71 driver 575.795.1934 on Android 7.1
-	//	OPPO CPH1951 driver 1.386.1368 on Android 11.0
-	//	OPPO CPH2217 driver 1.386.1368 on Android 13.0
-	//	OPPO PDYT20 driver 32.1.0 on Android 12.0
-	//	OPPO PFFM20 driver 32.1.0 on Android 12.0
-	//	PowerVR B-Series BXE-4-32 driver 1.492.1330 on Debian unknown
-	//	V3D 4.2 driver 21.2.5 on Android 12.0
-	//	Raspberry Raspberry Pi 4 driver 23.1.2 on Android 13.0
-	//	Raspberry Raspberry Pi 5 driver 23.3.2 on Android 14.0
-	//	Mali-G52 MC2 driver 26.0.0 on Android 11.0
-	//	Adreno (TM) 730 driver 512.615.0 on Android 12.0
-	//	rockchip BlueBerry driver 13.0.0 on Android 12.0
-	//	rockchip orangepi5plus driver 13.0.0 on Android 12.0
-	//	rockchip orangepi5 driver 12.0.0 on Android 12.0
-	//	Rockchip rk3399 driver 1012.218.955 on Android 10.0
-	//	samsung SM-A346E driver 32.1.0 on Android 14.0
-	//	Mali-G72 driver 26.0.0 on Android 11.0
-	//	samsung SM-G780F driver 38.1.0 on Android 13.0
-	//	Mali-G76 driver 32.1.0 on Android 12.0
-	//	samsung SM-S901B driver 2.0.0 on Android 14.0
-	//	samsung SM-S901E driver 512.744.6 on Android 13.0
-	//	Samsung Xclipse 920 driver 2.0.0 on Android 12.0
-	//	samsung SM-S926B driver 2.0.0 on Android 14.0
-	//	Snapdragon(R) X Elite - X1E80100 - Qualcomm(R) Adreno(TM) GPU driver 512.780.0 on Windows 11
-	//	PowerVR Rogue GE8320 driver 1.386.1368 on Android 11.0
-	//	Adreno (TM) 610 driver 512.502.0 on Android 11.0
-	//	PowerVR Rogue GE8300 driver 1.322.3448 on Android 10.0
-	//	VeriSilicon  driver 6.4.0 on Android 11.0
-	//	VideoCore VII HW (V3D-720) - 7.1.9 driver 24.0 on Linux #2 SMP Tue Oct 3 14:16:30 PDT 2023
-	//	vivo V2324A driver 44.1.0 on Android 14.0
-	//	vivo V2351 driver 38.1.0 on Android 14.0
-	//	Xiaomi 22081212G driver 512.744.1 on Android 14.0
-	//	Adreno (TM) 612 driver 512.502.0 on Android 12.0
+	//	Adreno-505-1.1.87
+	//	Adreno-540-1.1.128
+	//	Adreno-660-1.1.128
+	//	Adreno-660-1.1.276
+	//	Adreno-660-1.1.295
+	//	Adreno-740-1.3.128
+	//	Adreno-740-1.3.295
+	//	Adreno-830-1.3.284
+	//	Adreno-830-1.4.295
+	//	Apple-A12-1.3.313
+	//	Apple-A13-1.4.323
+	//	Apple-A14-1.4.323
+	//	Apple-A15-1.4.323
+	//	Apple-A16-1.4.323
+	//	Apple-A17-1.4.323
+	//	Apple-A18-1.4.323
+	//	Apple-A19-1.4.323
+	//	Maleoon910-1.2.231
+	//	Maleoon910-1.2.309
+	//	Maleoon920-1.3.275
+	//	Maleoon920-1.3.309
+	//	Mali-G52-1.1.191
+	//	Mali-G52-1.3.278
+	//	Mali-G52.1.1.149
+	//	Mali-G57-1.1.191
+	//	Mali-G57-1.3.225
+	//	Mali-G57-1.3.283
+	//	Mali-G610-1.1.219
+	//	Mali-G615-1.3.247
+	//	Mali-G71-1.0.97
+	//	Mali-G71-1.1.108
+	//	Mali-G71-1.1.131
+	//	Mali-G710-1.1.117
+	//	Mali-G710-1.3.274
+	//	Mali-G710-1.4.305
+	//	Mali-G715-1.4.305
+	//	Mali-G720-1.3.247
+	//	Mali-G720-1.3.278
+	//	Mali-G76-1.1.177
+	//	Mali-G76-1.1.213
+	//	Mali-G78-1.1.177
+	//	Mali-G78-1.3.231
+	//	Mali-G78-1.4.303
+	//	Mali-G925-1.3.278
+	//	Mali-T880-1.0.82
+	//	PanVk-Mali-G610-1.4.333
+	//	PVR-7-1.0.3
+	//	PVR-9-1.1.131
+	//	PVR-B-1.1.170
+	//	PVR-D-1.3.288
+	//	PVR-D-1.4.303
+	//	Rockchip-Orangepi5max-1.3.231
+	//	SamsungX530-1.3.279
+	//	SamsungX920-1.1.179
+	//	SamsungX920-1.3.279
+	//	SamsungX940-1.3.231
+	//	SamsungX940-1.3.279
+	//	Turnip-Adreno-650-1.3.328
+	//	Videocore6-1.3.260
+	//	Videocore7-1.3.295
 	//	Apple8
 	//	Apple7_Metal3
 	//	Apple7
@@ -67,16 +74,19 @@ void ASmain ()
 
 	RC<FeatureSet>  fset = FeatureSet( "MinMobile" );
 
+	fset.depthBiasClamp (True);
 	fset.independentBlend (True);
 	fset.sampleRateShading (True);
 	fset.constantAlphaColorBlendFactors (True);
+	fset.largePoints (True);
 	fset.shaderSampleRateInterpolationFunctions (True);
+	fset.shaderUniformBufferArrayDynamicIndexing (True);
 	fset.maxSpirvVersion (100);
 	fset.maxMetalVersion (220);
 	fset.maxDrawIndirectCount (1);
 	fset.maxViewports (1);
 	fset.maxTexelBufferElements (64 << 10);
-	fset.maxUniformBufferSize (16 << 10);
+	fset.maxUniformBufferSize (64 << 10);
 	fset.maxStorageBufferSize (64 << 10);
 	fset.perPipeline_maxUniformBuffersDynamic (8);
 	fset.perPipeline_maxStorageBuffersDynamic (4);
@@ -91,14 +101,14 @@ void ASmain ()
 	fset.perStage_maxInputAttachments (4);
 	fset.perStage_maxSampledImages (16);
 	fset.perStage_maxSamplers (16);
-	fset.perStage_maxStorageBuffers (4);
+	fset.perStage_maxStorageBuffers (24);
 	fset.perStage_maxStorageImages (4);
 	fset.perStage_maxUniformBuffers (12);
-	fset.perStage_maxTotalResources (44);
+	fset.perStage_maxTotalResources (79);
 	fset.maxDescriptorSets (4);
 	fset.maxTexelOffset (7);
 	fset.maxFragmentOutputAttachments (4);
-	fset.maxFragmentCombinedOutputResources (4);
+	fset.maxFragmentCombinedOutputResources (8);
 	fset.maxPushConstantsSize (128);
 	fset.maxComputeSharedMemorySize (16 << 10);
 	fset.maxComputeWorkGroupInvocations (64);
@@ -137,9 +147,6 @@ void ASmain ()
 		EPixelFormat::RGBA16U, EPixelFormat::R32U, EPixelFormat::RG32U, EPixelFormat::RGBA32U, 
 		EPixelFormat::RGBA16F, EPixelFormat::R32F, EPixelFormat::RG32F, EPixelFormat::RGBA32F
 	});
-	fset.AddTexelFormats( EFormatFeature::StorageTexelBufferAtomic, {
-		EPixelFormat::R32I, EPixelFormat::R32U
-	});
 	fset.imageCubeArray (True);
 	fset.textureCompressionETC2 (True);
 	fset.multisampleArrayImage (True);
@@ -148,9 +155,6 @@ void ASmain ()
 	fset.maxImageDimension3D (512);
 	fset.maxImageDimensionCube (4 << 10);
 	fset.maxImageArrayLayers (256);
-	fset.AddTexelFormats( EFormatFeature::StorageImageAtomic, {
-		EPixelFormat::R32I, EPixelFormat::R32U
-	});
 	fset.AddTexelFormats( EFormatFeature::StorageImage, {
 		EPixelFormat::RGBA8_SNorm, EPixelFormat::RGBA8_UNorm, EPixelFormat::RGBA8I, EPixelFormat::RGBA16I, 
 		EPixelFormat::R32I, EPixelFormat::RG32I, EPixelFormat::RGBA32I, EPixelFormat::RGBA8U, 
@@ -171,19 +175,16 @@ void ASmain ()
 		EPixelFormat::R16U, EPixelFormat::RG16U, EPixelFormat::RGBA16U, EPixelFormat::R32U, 
 		EPixelFormat::RG32U, EPixelFormat::RGBA32U, EPixelFormat::RGB10_A2U, EPixelFormat::R16F, 
 		EPixelFormat::RG16F, EPixelFormat::RGBA16F, EPixelFormat::R32F, EPixelFormat::RG32F, 
-		EPixelFormat::RGBA32F, EPixelFormat::Depth16
+		EPixelFormat::RGBA32F, EPixelFormat::Depth16, EPixelFormat::Depth32F
 	});
 	fset.AddTexelFormats( EFormatFeature::LinearSampled, {
 		EPixelFormat::RGBA8_SNorm, EPixelFormat::RG8_SNorm, EPixelFormat::R8_SNorm, EPixelFormat::RGBA8_UNorm, 
 		EPixelFormat::RG8_UNorm, EPixelFormat::R8_UNorm, EPixelFormat::RGB10_A2_UNorm, EPixelFormat::R5G6B5_UNorm, 
 		EPixelFormat::BGRA8_UNorm, EPixelFormat::sRGB8_A8, EPixelFormat::sBGR8_A8, EPixelFormat::R16F, 
-		EPixelFormat::RG16F, EPixelFormat::RGBA16F, EPixelFormat::R11G11B10F, EPixelFormat::RGB9F_E5, 
-		EPixelFormat::ETC2_RGB8_UNorm, EPixelFormat::ETC2_sRGB8, EPixelFormat::ETC2_RGB8_A1_UNorm, EPixelFormat::ETC2_sRGB8_A1, 
-		EPixelFormat::ETC2_RGBA8_UNorm, EPixelFormat::ETC2_sRGB8_A8, EPixelFormat::EAC_R11_SNorm, EPixelFormat::EAC_R11_UNorm, 
-		EPixelFormat::EAC_RG11_SNorm, EPixelFormat::EAC_RG11_UNorm
+		EPixelFormat::RG16F, EPixelFormat::RGBA16F, EPixelFormat::R11G11B10F, EPixelFormat::RGB9F_E5
 	});
 	fset.maxSamplerAnisotropy (1.00);
-	fset.maxSamplerLodBias (2.00);
+	fset.maxSamplerLodBias (4.00);
 	fset.framebufferColorSampleCounts({ 1, 4 });
 	fset.framebufferDepthSampleCounts({ 1, 4 });
 	fset.maxFramebufferLayers (256);

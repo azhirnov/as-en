@@ -6,7 +6,7 @@
 
 namespace AE::Base
 {
-	
+
 	//
 	// Reference Counter Pointer
 	//
@@ -40,7 +40,7 @@ namespace AE::Base
 		explicit PackedRC (Ptr<T> ptr)						__NE___ { _Inc( ptr.get() );	_Set( ptr.get() ); }
 		explicit PackedRC (Ref<T> ref)						__NE___ { _Inc( &ref );			_Set( &ref ); }
 		explicit PackedRC (const RC<T> &other)				__NE___	{ _Inc( other.get() );	_Set( other.get() ); }
-		
+
 		PackedRC (RC<T> &&other)							__NE___	{ _Set( other.release() ); }
 		PackedRC (Self &&other)								__NE___ : _value{other.GetRawData()}	{ Unused( other.release() ); }
 		PackedRC (const Self &other)						__NE___ : _value{other.GetRawData()}	{ _Inc( other.get() ); }
@@ -116,7 +116,7 @@ namespace AE::Base
 			void		reset ()							__NE___ {				_Dec();  _value = 0; }
 
 			void		Swap (INOUT Self &rhs)				__NE___;
-			
+
 		ND_ usize		Extra ()							C_NE___	{ return _value & _mask; }
 			void		SetExtra (usize value)				__NE___	{ _value &= ~_mask;  _value |= value & _mask;  ASSERT( Extra() == value ); }
 

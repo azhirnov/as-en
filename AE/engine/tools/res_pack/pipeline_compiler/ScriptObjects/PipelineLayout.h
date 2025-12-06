@@ -91,6 +91,8 @@ namespace AE::PipelineCompiler
 
 	private:
 		ND_ bool  _Build ()																		__Th___;
+
+		ND_ String  _DescriptorsMacros (EShaderStages stages)									C_Th___;
 	};
 	using PipelineLayoutPtr = ScriptRC< PipelineLayout >;
 

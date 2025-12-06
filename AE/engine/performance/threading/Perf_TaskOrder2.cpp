@@ -8,11 +8,11 @@ namespace
 	constexpr uint	c_queueCount	= 2;
 	constexpr uint	c_threadCount	= 10'000;
 	constexpr uint	c_repeatCount	= 1;
-	
+
 	using TimePoint_t	= HighResClock::time_point;
 //-----------------------------------------------------------------------------
 
-	
+
 	static void  UpdateHash (INOUT ulong hash)
 	{
 		const ulong	h = hash;
@@ -36,7 +36,7 @@ namespace
 	{
 		return BitRotateLeft( h0, h1 & 0x2F ) ^ h1;
 	}
-	
+
 	ND_ static ulong  Mix (ulong h0, ulong h1, ulong h2, ulong h3)
 	{
 		return Mix( h1, h3 ) ^ Mix( h2, h0 );
@@ -51,11 +51,11 @@ namespace
 		for (uint t = 0; t < baseTaskCount; ++t)
 		{
 			ulong	hash2 = CalcPerThreadHash( seed, t );
-			
+
 			for (uint d = 0; d < c_maxDepth; ++d)
 			{
 				UpdateHash( INOUT hash2 );
-				
+
 				if ( d > 2 and (hash2 & (0x7ull << 49)) == 0 )
 				{
 					hash2 *= 111;
@@ -67,9 +67,9 @@ namespace
 
 			per_thread[t] = hash2;
 		}
-		
+
 		FixedArray< ulong, 4 >  accum;
-		
+
 		for (uint t = 0; t+4 < baseTaskCount; t += 4)
 		{
 			accum.push_back( Mix( per_thread[t+0], per_thread[t+1], per_thread[t+2], per_thread[t+3] ));
@@ -81,7 +81,7 @@ namespace
 				accum.push_back( Mix( copy[0], copy[1], copy[2], copy[3] ));
 			}
 		}
-		
+
 		ulong	hash = 0;
 		for (auto& h : accum)
 		{
@@ -91,16 +91,16 @@ namespace
 	}
 //-----------------------------------------------------------------------------
 
-	
+
 	using Promise_t		= ScheduledPromise< ulong, ETaskQueue::PerFrame >;
 	using InlPromise_t	= InlinePromise< ulong, ETaskQueue::PerFrame >;
 
-	
+
 	static AsyncCoro  Task2 (Atomic<ulong> &hash2, const uint d)
 	{
 		ulong	h = hash2.load();
 		UpdateHash( INOUT h );
-		
+
 		if ( d > 2 and (h & (0x7ull << 49)) == 0 )
 		{
 			hash2.store( h );
@@ -117,7 +117,7 @@ namespace
 	{
 		Atomic<ulong>	hash2	{CalcPerThreadHash( seed, tid )};
 		AsyncTask		t		= null;
-		
+
 		for (uint d = 0; d < c_maxDepth; ++d)
 		{
 			t = Scheduler().Run( Task2( hash2, d ), Tuple{t} );
@@ -180,7 +180,7 @@ namespace
 	{
 		LocalTaskScheduler	scheduler		{WorkerQueueCount(c_queueCount)};
 		const uint			thread_count	= ThreadUtils::MaxThreadCount();
-		
+
 		for (uint i = 0; i < thread_count; ++i) {
 			scheduler->AddThread( ThreadMngr::CreateThread( ThreadMngr::ThreadConfig{
 				EThreadArray{ EThread::PerFrame },
@@ -188,14 +188,10 @@ namespace
 			}));
 		}
 
-		const auto	start_time	= TimePoint_t::clock::now();
-
 		Promise<ulong>	p = RunTasks( seed, baseTaskCount );
 
 		TEST( scheduler->Wait( {AsyncTask{p}}, seconds{10000} ));
 		TEST( p->IsCompleted() );
-		
-		const nanoseconds	total_time	= TimePoint_t::clock::now() - start_time;
 
 		ulong	h;
 		TEST( WithResult( p, [&h](ulong res){ h = res; }));

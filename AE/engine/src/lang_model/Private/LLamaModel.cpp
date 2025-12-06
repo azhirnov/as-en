@@ -12,7 +12,7 @@ namespace vk
 		eErrorOutOfHostMemory,
 		eErrorOutOfDeviceMemory,
 	};
-	
+
 	class ErrorCategoryImpl : public std::error_category
 	{
 	public:
@@ -46,7 +46,7 @@ namespace vk
 		virtual ~Error() noexcept       = default;
 		virtual const char * what() const noexcept = 0;
 	};
-	
+
 
 	class SystemError : public Error, public std::system_error
 	{
@@ -77,7 +77,7 @@ namespace vk
 
 namespace AE::LangModel
 {
-	
+
 /*
 =================================================
 	CreateLLama
@@ -117,7 +117,7 @@ namespace AE::LangModel
 			_fn.llama_log_set( &_DummyLogger, null );
 
 		CHECK_ERR( _LoadBackends( params ));
-		
+
 		// load model
 		TRY
 		{
@@ -149,7 +149,7 @@ namespace AE::LangModel
 		CHECK_ERR( _fn.llama_model_has_decoder( _model ));
 		return true;
 	}
-	
+
 /*
 =================================================
 	CreateContext
@@ -178,7 +178,9 @@ namespace AE::LangModel
 			switch_end
 
 			const uint	max_n_ctx		= _fn.llama_model_n_ctx_train( _model );
-			const uint	max_cpu_cores	= uint(CpuArchInfo::Get().PhysicalCoreMask().count());
+			const auto&	cpu_arch		= CpuArchInfo::Get();
+			const auto	core_bits		= cpu_arch.PhysicalCoreMask( ECoreType::LowPower );
+			const uint	max_cpu_cores	= Max( uint(core_bits.count()), 1u );
 
 			if ( params.contextSize != 0 )
 			{
@@ -232,19 +234,19 @@ namespace AE::LangModel
 				auto&	value = *params.sampler.topK;
 				_fn.llama_sampler_chain_add( result->_samplerChain, _fn.llama_sampler_init_top_k( value.k ));
 			}
-			
+
 			if ( params.sampler.typical.has_value() )
 			{
 				auto&	value = *params.sampler.typical;
 				_fn.llama_sampler_chain_add( result->_samplerChain, _fn.llama_sampler_init_typical( value.p, value.minKeep ));
 			}
-			
+
 			if ( params.sampler.xtc.has_value() )
 			{
 				auto&	value = *params.sampler.xtc;
 				_fn.llama_sampler_chain_add( result->_samplerChain, _fn.llama_sampler_init_xtc( value.p, value.t, value.minKeep, value.seed ));
 			}
-			
+
 			if ( params.sampler.topNSigma.has_value() )
 			{
 				auto&	value = *params.sampler.topNSigma;
@@ -308,25 +310,25 @@ namespace AE::LangModel
 
 		if ( not _loadedCPU and arch.feats.AVX512F and arch.feats.AVX512_BF16 and arch.feats.AVX512_VBMI and arch.feats.AVX512_VNNI )
 			_loadedCPU |= LoadBackend( "ggml-cpu-avx512_bf16_vbmi_vnni" );
-	
+
 		if ( not _loadedCPU and arch.feats.AVX512F and arch.feats.AVX512_BF16 )
 			_loadedCPU |= LoadBackend( "ggml-cpu-avx512_bf16" );
-		
+
 		if ( not _loadedCPU and arch.feats.AVX512F )
 			_loadedCPU |= LoadBackend( "ggml-cpu-avx512" );
 
 		if ( not _loadedCPU and arch.feats.AVX2 and arch.feats.AVX_VNNI )
 			_loadedCPU |= LoadBackend( "ggml-cpu-avx2_vnni" );
-		
+
 		if ( not _loadedCPU and arch.feats.AVX2 )
 			_loadedCPU |= LoadBackend( "ggml-cpu-avx2" );
-		
+
 		if ( not _loadedCPU and arch.feats.AVX )
 			_loadedCPU |= LoadBackend( "ggml-cpu-avx" );
-		
+
 		if ( not _loadedCPU and arch.feats.SSE42 )
 			_loadedCPU |= LoadBackend( "ggml-cpu-sse4" );
-		
+
 		if ( not _loadedCPU )
 			_loadedCPU |= LoadBackend( "ggml-cpu" );
 
@@ -361,7 +363,7 @@ namespace AE::LangModel
 				case LLama::EBackend::Metal :	_loadedGPU |= LoadBackend( "ggml-metal" );	break;
 				case LLama::EBackend::CPU :
 				case LLama::EBackend::_Count :
-				case LLama::EBackend::Auto :		break;
+				case LLama::EBackend::Auto :	break;
 			}
 			switch_end
 		}
@@ -391,7 +393,7 @@ namespace AE::LangModel
 		CHECK_ERR( _llamaLib );
 
 		bool	loaded = true;
-		
+
 		#define LLAMA_VISIT( _name_ )	loaded &= _llamaLib.GetProcAddr( AE_TOSTRING(_name_), OUT _fn._name_ );
 		LLAMA_FNS( LLAMA_VISIT )
 		#undef LLAMA_VISIT
@@ -399,7 +401,7 @@ namespace AE::LangModel
 		CHECK_ERR( loaded );
 		return true;
 	}
-	
+
 /*
 =================================================
 	_LoadGgmlLib
@@ -418,11 +420,11 @@ namespace AE::LangModel
 		if ( not _ggmlLib )
 			Unused( _ggmlLib.Load( "./libggml.so" ));
 	  #endif
-		
+
 		CHECK_ERR( _ggmlLib );
 
 		bool	loaded = true;
-		
+
 		#define GGML_VISIT( _name_ )	loaded &= _ggmlLib.GetProcAddr( AE_TOSTRING(_name_), OUT _fn._name_ );
 		LLAMA_GGML_FNS( GGML_VISIT )
 		#undef GGML_VISIT
@@ -449,7 +451,7 @@ namespace AE::LangModel
 		_llamaLib.Unload();
 		_ggmlLib.Unload();
 	}
-	
+
 /*
 =================================================
 	_Logger
@@ -483,7 +485,7 @@ namespace AE::LangModel
 		AE_PRIVATE_LOGX( log_level, ELogScope::Unknown, msg, SourceLoc::current() );
 		Unused( userData );
 	}
-	
+
 /*
 =================================================
 	_UserLogger
@@ -520,7 +522,7 @@ namespace AE::LangModel
 	{
 		return Cast<ILoadingListener>(userData)->Progress( Percent{progress} );
 	}
-	
+
 /*
 =================================================
 	GetModelInfo
@@ -546,7 +548,7 @@ namespace AE::LangModel
 //-----------------------------------------------------------------------------
 
 
-	
+
 /*
 =================================================
 	Generate
@@ -562,14 +564,14 @@ namespace AE::LangModel
 
 		CHECK_ERR( listener );
 		CHECK_ERR( not prompt.empty() );
-		
+
 		auto&	fn = _modelRC->_fn;
 
 		NOTHROW_ERR( _formatted.resize( fn.llama_n_ctx( _ctx ) ));
 
 		const char*		chat_tmpl		= fn.llama_model_chat_template( _modelRC->_model, null );
 		const bool		add_assistant	= true;
-		
+
 		// add the user input to the message list and format it
 		_messageStorage.push_back( RVRef(prompt) );
 		_messages.emplace_back( "user", Cast<char>(_messageStorage.back().c_str()) );
@@ -579,7 +581,7 @@ namespace AE::LangModel
 													_messages.data(), _messages.size(),
 													add_assistant,
 													OUT _formatted.data(), int(_formatted.size()) );
-		
+
 		if ( new_len > int(_formatted.size()) )
 		{
 			NOTHROW_ERR( _formatted.resize( new_len ));
@@ -592,18 +594,18 @@ namespace AE::LangModel
 			"failed to apply the chat template" );
 
 		CHECK_ERR( _prevLen < new_len );
-		
+
 		StringView	formatted_prompt{ _formatted.begin() + _prevLen, _formatted.begin() + new_len };
 		U8String	response;
 
 		if_unlikely( not _GenerateResponse2( formatted_prompt, *listener, OUT response ))
 			return false;
-		
+
 		// add the response to the messages
 		_messageStorage.push_back( RVRef(response) );
 		_messages.emplace_back( "assistant", Cast<char>(_messageStorage.back().c_str()) );
 		ASSERT( _messageStorage.size() == _messages.size() );
-		
+
 		_prevLen = fn.llama_chat_apply_template( chat_tmpl,
 												 _messages.data(), _messages.size(),
 												 false,
@@ -613,7 +615,7 @@ namespace AE::LangModel
 
 		return true;
 	}
-	
+
 /*
 =================================================
 	_GenerateResponse2
@@ -741,7 +743,7 @@ namespace AE::LangModel
 =================================================
 	CurrentSize
 =================================================
-*/	
+*/
 	uint  LLamaContext::CurrentSize () __NE___
 	{
 		CHECK_ERR( _modelRC );
@@ -764,7 +766,7 @@ namespace AE::LangModel
 		_promptTokens.clear();
 		_prevLen = 0;
 	}
-	
+
 /*
 =================================================
 	Append
@@ -791,7 +793,7 @@ namespace AE::LangModel
 
 		return true;
 	}
-	
+
 /*
 =================================================
 	GetMessages
@@ -800,7 +802,7 @@ namespace AE::LangModel
 	Array<Pair<ERole, U8String>>  LLamaContext::GetMessages () __NE___
 	{
 		Array<Pair<ERole, U8String>>	result;
-		
+
 		CHECK_ERR( _messageStorage.size() == _messages.size() );
 
 		for (auto& msg : _messages)

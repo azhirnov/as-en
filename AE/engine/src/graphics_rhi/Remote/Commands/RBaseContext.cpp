@@ -520,7 +520,7 @@ namespace AE::Graphics::_hidden_
 
 		_cmdbuf->WriteTimestamp( q, index, srcScope );
 	}
-	
+
 /*
 =================================================
 	_BeginQuery
@@ -532,7 +532,7 @@ namespace AE::Graphics::_hidden_
 
 		_cmdbuf->BeginQuery( q, index );
 	}
-	
+
 /*
 =================================================
 	_EndQuery

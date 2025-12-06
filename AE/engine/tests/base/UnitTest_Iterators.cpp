@@ -249,7 +249,7 @@ namespace
 		}{
 			Bitfield<uint>	bits;
 			uint			i		= 0;
-			
+
 			for (uint idx : BitIndexIterate(bits))
 			{
 				Unused( idx );

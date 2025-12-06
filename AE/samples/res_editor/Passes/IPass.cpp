@@ -166,7 +166,7 @@ namespace
 
 		return _repeatCount->Get();
 	}
-	
+
 /*
 =================================================
 	_ReadTimeQuery

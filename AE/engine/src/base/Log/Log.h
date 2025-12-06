@@ -112,15 +112,14 @@ namespace AE::Base
 
 			static void		SetCurrentThreadName (StringView name)				__NE___;
 
-		template <bool checkMemLeaks>
-		struct _LoggerScope
+		struct LoggerScope
 		{
-			_LoggerScope (int)	__NE___ { Initialize(); }
-			_LoggerScope ()		__NE___ { InitDefault(); }
-			~_LoggerScope ()	__NE___ { Deinitialize( checkMemLeaks ); }
+			bool	checkMemLeaks = true;
+
+			LoggerScope (int)	__NE___ { Initialize(); }
+			LoggerScope ()		__NE___ { InitDefault(); }
+			~LoggerScope ()		__NE___ { Deinitialize( checkMemLeaks ); }
 		};
-		using LoggerDbgScope	= _LoggerScope<true>;	// with mem leak check
-		using LoggerScope		= _LoggerScope<false>;
 	};
 
 } // AE::Base

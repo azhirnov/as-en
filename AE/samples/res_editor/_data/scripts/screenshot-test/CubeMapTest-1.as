@@ -118,7 +118,13 @@
 				break;
 			}
 		}
-		
+
+		if ( Any(IsNaN( col.rgb )) or Any(IsInfinity( col.rgb )))
+		{
+			out_Color = float4(0.2);
+			return;
+		}
+
 		col.a = 1.0;
 
 		gl.image.Store( un_OutImage, GetGlobalCoord().xy, col );

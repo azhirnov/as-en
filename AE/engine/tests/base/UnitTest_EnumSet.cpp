@@ -206,13 +206,13 @@ namespace
 		TEST( it == bits.end() );
 	}
 
-	
+
 	static void  EnumSet_Test6 ()
 	{
 		constexpr TestBits	bits0;
 
 		StaticAssert( bits0.None() );
-		
+
 		constexpr TestBits	bits = TestBits{}.InsertRange( ETest::Bit2, ETest::Bit4 );
 
 		StaticAssert( not bits.None() );
@@ -240,8 +240,8 @@ namespace
 		Bitfield<uint>	a0;
 		TEST( a0.None() );
 		TEST( not a0.Any() );
-		TEST( a0.ExtractBit() == 0 );
-		TEST( a0.ExtractBitIndex() < 0 );
+		TEST( a0.ExtractLowBit() == 0 );
+		TEST( a0.ExtractLowBitIndex() < 0 );
 
 		Bitfield<uint>	a1;
 		a1.Set<0>();
@@ -249,7 +249,7 @@ namespace
 		TEST( a1.Has<0>() );
 		TEST( not a1.Has<1>() );
 
-		TEST( a1.SetFirstZeroBit() == 2 );
+		TEST( a1.ExtractLowZeroBit() == 2 );
 		TEST( a1.Has<0>() );
 		TEST( a1.Has<1>() );
 		TEST( not a1.Has<2>() );

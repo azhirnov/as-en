@@ -18,7 +18,7 @@ extern "C" AE_DLL_EXPORT int Tests_Platform (IApplication &app, IWindow &wnd)
 
 	Unique<IApplication::IAppListener>  AE_OnAppCreated ()
 	{
-		AE::Base::StaticLogger::LoggerDbgScope log{};
+		StaticLogger::LoggerScope log{};
 
 		Test_Application();
 		Test_Input();

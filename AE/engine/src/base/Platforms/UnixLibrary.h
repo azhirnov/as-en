@@ -63,7 +63,8 @@ namespace AE::Base
 	template <typename T>
 	inline bool  UnixLibrary::GetProcAddr (NtStringView name, OUT T &result) C_NE___
 	{
-		StaticAssert( IsGlobalFunction< T >);
+		if constexpr( not IsSame< T, void* >)
+			StaticAssert( IsGlobalFunction< T >);
 
 		NonNull( _handle );
 		ASSERT( not name.empty() );

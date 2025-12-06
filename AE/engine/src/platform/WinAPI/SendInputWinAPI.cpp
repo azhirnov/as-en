@@ -7,7 +7,7 @@
 
 namespace AE::App
 {
-	
+
 /*
 =================================================
 	SetCursorPos
@@ -25,7 +25,7 @@ namespace AE::App
 	{
 		return ::SetCursorPos( pos.x, pos.y ) != 0;
 	}
-	
+
 /*
 =================================================
 	SetKeyState

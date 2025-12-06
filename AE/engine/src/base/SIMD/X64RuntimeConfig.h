@@ -13,7 +13,7 @@ namespace AE::Base
 	//
 	// Runtime Config
 	//
-	
+
 	#define AE_SimdRuntimeConfig
 	struct SimdRuntimeConfig final : Base::Noninstanceable
 	{
@@ -63,7 +63,7 @@ namespace AE::Base
 //-----------------------------------------------------------------------------
 
 
-	
+
 /*
 =================================================
 	GetExceptionState
@@ -88,7 +88,7 @@ namespace AE::Base
 		}
 		return res;
 	}
-	
+
 /*
 =================================================
 	SetExceptionState
@@ -113,7 +113,7 @@ namespace AE::Base
 		}
 		_MM_SET_EXCEPTION_STATE( e );
 	}
-	
+
 /*
 =================================================
 	ResetExceptionState
@@ -123,7 +123,7 @@ namespace AE::Base
 	{
 		_MM_SET_EXCEPTION_STATE( 0 );
 	}
-	
+
 /*
 =================================================
 	ExceptionMask
@@ -168,7 +168,7 @@ namespace AE::Base
 		switch_end
 		_MM_SET_ROUNDING_MODE( m );
 	}
-	
+
 	inline SimdRuntimeConfig::ERounding  SimdRuntimeConfig::State::RoundingMode () C_NE___
 	{
 		uint	m = _value & _MM_ROUND_MASK;
@@ -191,7 +191,7 @@ namespace AE::Base
 	{
 		_MM_SET_FLUSH_ZERO_MODE( flushToZero ? _MM_FLUSH_ZERO_ON : _MM_FLUSH_ZERO_OFF );
 	}
-	
+
 	inline bool  SimdRuntimeConfig::State::DenormalFlushToZero () C_NE___
 	{
 		return (_value & _MM_FLUSH_ZERO_MASK) == _MM_FLUSH_ZERO_ON;

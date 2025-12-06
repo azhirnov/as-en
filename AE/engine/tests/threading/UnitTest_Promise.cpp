@@ -79,14 +79,14 @@ namespace
 								TEST( not is_canceled );
 								TEST( status == ETaskStatus::InProgress );
 								TEST( queue == ETaskQueue::PerFrame );
-								
+
 								auto	t00 = t0;
 
 								auto	res0	= Coro_WaitResult( t0 );
 								TEST( res0.AllComplete() );
 								TEST( not t0 );
 								TEST( not Coro_IsCanceled );
-								
+
 								auto	res00	= Coro_WaitResult( t00 );
 								TEST( res00.AllComplete() );
 								TEST( not t00 );
@@ -101,14 +101,14 @@ namespace
 								const auto&	s0			= res0.get();
 								const auto&	s00			= res00.get();
 								const auto&	[s1, s2]	= res12;
-								
+
 								TEST( not s0.empty() );
 								TEST( not s00.empty() );
 								TEST( not s1.empty() );
 
 								DeferExLock  guard {val.guard};
 								TEST( guard.try_lock() );
-								
+
 								val.str += s0 + s1 + ToString(s2) + '|' + s00;
 
 								co_return "";
@@ -161,7 +161,7 @@ namespace
 								TEST( res0.AllComplete() );
 								TEST( not t0 );
 								TEST( not Coro_IsCanceled );
-								
+
 								auto	res00	= Coro_WaitUniqueResult( t00 );
 								TEST( res00.AllComplete() );
 								TEST( not t00 );
@@ -232,7 +232,7 @@ namespace
 								TEST( res0.AllComplete() );
 								TEST( t0 );
 								TEST( not Coro_IsCanceled );
-								
+
 								auto	res00	= Coro_WaitResultRef( t00 );
 								TEST( res00.AllComplete() );
 								TEST( t00 );
@@ -383,7 +383,7 @@ namespace
 
 								co_return "123"s;
 							}( value, p0, p1 ));
-		
+
 		auto		p3 = scheduler->Run(
 							[] (ExeOrder &val, auto t0, auto t1, auto t2) -> Promise<String>
 							{
@@ -424,7 +424,7 @@ namespace
 		MovableString::ref = 0;
 
 		LocalTaskScheduler	scheduler {WorkerQueueCount(1)};
-		
+
 		ExeOrder		value;
 		MovableString	origin_str{"ufnljsnLASKNDKLSJNKSpsdkfnaljskmkbfq;ASKM;QUIAHD8OWQIUJN"};
 
@@ -449,7 +449,7 @@ namespace
 							TEST( s1 );
 
 							TEST_Eq( s1->data(), MovableString::ref );
-							
+
 							{
 								DeferExLock  guard {val.guard};
 								TEST( guard.try_lock() );
@@ -459,14 +459,14 @@ namespace
 						}( value, p1 ));
 
 		scheduler->Run( p1, Tuple{ t1 });
-		
+
 		scheduler->AddThread( ThreadMngr::CreateThread( ThreadMngr::ThreadConfig{} ));
-		
+
 		TEST( scheduler->Wait( List{ AsyncTask{t1}, AsyncTask{t2} }, c_MaxTimeout ));
 		TEST( p1->Status() == ETaskStatus::Completed );
 		TEST( t1->Status() == ETaskStatus::Completed );
 		TEST( t2->Status() == ETaskStatus::Completed );
-		
+
 		DeferExLock  guard {value.guard};
 		TEST( guard.try_lock() );
 		TEST( value.str == "01u" );
@@ -513,7 +513,7 @@ namespace
 									co_return "3";
 								}( value, p1 );
 		TEST( p2->Status() == ETaskStatus::Pending );
-		
+
 		AsyncCoro		p3 =	[] (ExeOrder &val, auto t2) -> ScheduledCoro<>
 								{
 									TEST( Coro_Get().QueueType() == ETaskQueue::PerFrame );
@@ -568,9 +568,9 @@ namespace
 								Array<String> res1 = co_await promises;	// Coro_WaitResultOrCancel
 
 								TEST_Eq( res1.size(), promises.size() );
-								
+
 								Array<String> res2 = co_await promises;
-								
+
 								TEST_Eq( res1.size(), res2.size() );
 								TEST( res1 == res2 );
 
@@ -607,10 +607,10 @@ namespace
 
 		Promise<String>	p0 = []() -> InlinePromise<String>	{ co_return "a"s; }();
 		TEST( p0->Status() == ETaskStatus::Completed );
-		
+
 		auto			p1 = []() -> Promise<String>		{ co_return "b"s; }();
 		TEST( p1->Status() == ETaskStatus::Initial );
-		
+
 		ExeOrder		value;
 		Promise<String>	p2 = [](ExeOrder &val, Promise<String> t0, Promise<String> t1) -> InlinePromise<String>
 							{
@@ -627,7 +627,7 @@ namespace
 
 								auto res = Coro_WaitResult( t0, t1 );
 								TEST( res );
-								
+
 								TEST( Coro_Get().Status() == ETaskStatus::InProgress );
 								TEST( not Coro_IsCanceled );
 								TEST( Coro_Get().QueueType() == ETaskQueue::PerFrame );  // as in template parameter
@@ -663,7 +663,7 @@ namespace
 								co_return;
 							}( value, p2 );
 		TEST( p3->Status() == ETaskStatus::Pending );
-		
+
 		{
 			DeferExLock  guard {value.guard};
 			TEST( guard.try_lock() );
@@ -679,7 +679,7 @@ namespace
 		TEST( p1->Status() == ETaskStatus::Completed );
 		TEST( p2->Status() == ETaskStatus::Completed );
 		TEST( p3->Status() == ETaskStatus::Completed );
-		
+
 		DeferExLock  guard {value.guard};
 		TEST( guard.try_lock() );
 		TEST( value.str == "0123abc" );
@@ -707,7 +707,7 @@ namespace
 							TEST( not Coro_IsCanceled );
 
 							auto& [s1, s2] = res;
-							
+
 							{
 								DeferExLock  guard {val->guard};
 								TEST( guard.try_lock() );
@@ -716,7 +716,7 @@ namespace
 							}
 							co_return;
 						});
-		
+
 		scheduler->Run( p1 );
 		scheduler->Run( p0 );
 
@@ -726,7 +726,7 @@ namespace
 		TEST( p0->Status() == ETaskStatus::Completed );
 		TEST( p1->Status() == ETaskStatus::Completed );
 		TEST( p2->Status() == ETaskStatus::Completed );
-		
+
 		DeferExLock  guard {value.guard};
 		TEST( guard.try_lock() );
 		TEST( value.str == "0ab" );

@@ -266,7 +266,7 @@ namespace AE::Threading
 							 const Tuple<Deps...> &	deps	= Default,
 							 StringView				dbgName	= Default,
 							 const SourceLoc &		loc		= SourceLoc::current())	__NE___;
-			
+
 		template <typename TaskType, typename ...Deps>
 		ND_	bool  EnqueueNew (ETaskQueue			queueType,
 							  TaskType				task,
@@ -398,7 +398,7 @@ namespace AE::Threading
 			task = CoroType{_Coro_::AsyncTaskImpl::CanceledTask::s_canceled.operator->()};
 		return RVRef(task);
 	}
-	
+
 /*
 =================================================
 	EnqueueNew
@@ -415,14 +415,14 @@ namespace AE::Threading
 
 		CHECK_ERR( task );
 		CHECK_ERR( task->Status() == ETaskStatus::Initial );
-		
+
 		#if AE_ENABLE_TASK_NAME
 			TaskApi::Init( *task, queueType, dbgName, loc );
 		#else
 			TaskApi::Init( *task, queueType );
 			Unused( dbgName, loc );
 		#endif
-		
+
 		// in 'AddDependencies()' current task has been added to the input dependencies
 		// and they may decrease counter '_waitCount' at any time, so set +1 to forbid state changing
 		TaskApi::SetWaitCounter( *task, 1 );
@@ -432,7 +432,7 @@ namespace AE::Threading
 			// add task to queue only to call 'OnCancel()'
 			Unused( TaskApi::SetCancellationState( *task ));
 		}
-		
+
 		// remove +1 and check
 		auto	count = TaskApi::DecWaitCounter( *task );
 		ASSERT_Gt( count, 0 );
@@ -503,7 +503,7 @@ namespace AE::Threading
 			return true;
 		}
 	}
-	
+
 	template <typename ...Args>
 	__CxIF bool  TaskScheduler::AsyncTaskApi::AddDependencies (Task &task, const Tuple<Args...> &args, Bool defaultIsStrongDep) __NE___
 	{
@@ -527,7 +527,7 @@ namespace AE::Threading
 
 		return iter->second->Resolve( AnyTypeCRef{dep}, task, defaultIsStrongDep );
 	}
-	
+
 /*
 =================================================
 	WaitAsync
@@ -570,7 +570,7 @@ namespace AE::_Coro_
 	{
 		return Scheduler().Run( Queue, Coroutine_t{ *this }, Tuple{}, Default, loc );
 	}
-	
+
 	template <typename ResultType, ETaskQueue Queue>
 	forceinline auto  ScheduledPromiseImpl<ResultType,Queue>::get_return_object (const SourceLoc &loc) __NE___
 	{
@@ -593,7 +593,7 @@ namespace AE::_Coro_
 		}
 		_coro = null;
 	}
-	
+
 /*
 =================================================
 	ScheduledInlineCoro::_AddToScheduler

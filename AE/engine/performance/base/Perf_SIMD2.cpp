@@ -44,7 +44,7 @@ namespace
 				AE_LOGI( "Result "s << ToString(r0 + r1 + r2 + r3) );
 		}
 	};
-	
+
 	#define REUSE_MEMBERS \
 		using SimdVal_Base<T>::r0; \
 		using SimdVal_Base<T>::r1; \
@@ -107,7 +107,7 @@ namespace
 			r7 = p1 - r7;
 		}
 	};
-	
+
 	template <typename T>
 	struct VFloat_Add_8r4 : SimdVal_Base<T>
 	{
@@ -161,7 +161,7 @@ namespace
 			r7 = p3 - r7;
 		}
 	};
-	
+
 	template <typename T>
 	struct VFloat_Add_8r8 : SimdVal_Base<T>
 	{
@@ -219,7 +219,7 @@ namespace
 			r7 = p7 - r7;
 		}
 	};
-	
+
 	template <typename T>
 	struct VFloat_Add_8r16 : SimdVal_Base<T>
 	{
@@ -304,17 +304,17 @@ namespace
 			r1 = p0 + r1;
 			r2 = p0 + r2;
 			r3 = p0 + r3;
-			
+
 			r0 = p1 - r0;
 			r1 = p1 - r1;
 			r2 = p1 - r2;
 			r3 = p1 - r3;
-			
+
 			r0 = p0 + r0;
 			r1 = p0 + r1;
 			r2 = p0 + r2;
 			r3 = p0 + r3;
-			
+
 			r0 = p1 - r0;
 			r1 = p1 - r1;
 			r2 = p1 - r2;
@@ -342,17 +342,17 @@ namespace
 			r1 = p0 + r1;
 			r2 = p0 + r2;
 			r3 = p0 + r3;
-			
+
 			r0 = p1 - r0;
 			r1 = p1 - r1;
 			r2 = p1 - r2;
 			r3 = p1 - r3;
-			
+
 			r0 = p2 + r0;
 			r1 = p2 + r1;
 			r2 = p2 + r2;
 			r3 = p2 + r3;
-			
+
 			r0 = p3 - r0;
 			r1 = p3 - r1;
 			r2 = p3 - r2;
@@ -384,17 +384,17 @@ namespace
 			r1 = p0 + r1;
 			r2 = p1 + r2;
 			r3 = p1 + r3;
-			
+
 			r0 = p2 - r0;
 			r1 = p2 - r1;
 			r2 = p3 - r2;
 			r3 = p3 - r3;
-			
+
 			r0 = p4 + r0;
 			r1 = p4 + r1;
 			r2 = p5 + r2;
 			r3 = p5 + r3;
-			
+
 			r0 = p6 - r0;
 			r1 = p6 - r1;
 			r2 = p7 - r2;
@@ -434,17 +434,17 @@ namespace
 			r1 = p1 + r1;
 			r2 = p2 + r2;
 			r3 = p3 + r3;
-			
+
 			r0 = p4 - r0;
 			r1 = p5 - r1;
 			r2 = p6 - r2;
 			r3 = p7 - r3;
-			
+
 			r0 = p8  + r0;
 			r1 = p9  + r1;
 			r2 = p10 + r2;
 			r3 = p11 + r3;
-			
+
 			r0 = p12 - r0;
 			r1 = p13 - r1;
 			r2 = p14 - r2;
@@ -453,7 +453,7 @@ namespace
 	};
 	//-------------------------------------------------------------------------
 
-	
+
 	template <typename Op>
 	static void  VFloat_Op (IntervalProfiler &profiler, ArrayView<typename Op::type> arr, const usize count, StringView name) __NE___
 	{
@@ -494,7 +494,7 @@ namespace
 		#endif
 
 		static constexpr usize	count	= c_Repeat / sizeof(T);
-		
+
 		Array<T>	data;
 		data.resize( count * 16 );
 
@@ -519,8 +519,8 @@ namespace
 				setAffinity();
 
 				IntervalProfiler	profiler{ "SIMD-2 test, single thread, "s << ToString( core.type ) << " core",
-												IntervalProfiler::EFlags::SortByPerf | IntervalProfiler::EFlags::ExcludePerfDiff };
-				
+												IntervalProfiler::EFlags::SortByPerf };
+
 				// Clang converts scalar to SIMD, so test is not correct
 				#if not defined(AE_COMPILER_CLANG) or not defined(AE_COMPILER_CLANG_CL)
 					TestVFloat< packed_float4 >( profiler, "Scalar Float4" );

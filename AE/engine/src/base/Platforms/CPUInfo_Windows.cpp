@@ -101,7 +101,7 @@ namespace AE::Base
 
 			DynUntypedStorage	info_data	{ Bytes{buf_size}, AlignOf<SYSTEM_CPU_SET_INFORMATION> };
 			auto*				infos		= info_data.Ptr<SYSTEM_CPU_SET_INFORMATION>();
-			
+
 			if ( fnGetSystemCpuSetInformation( OUT infos, uint(info_data.Size()), OUT &buf_size, process, 0 ) != FALSE )	// win10
 			{
 				// info for each logical core
@@ -159,7 +159,7 @@ namespace AE::Base
 		// read core frequency
 		{
 			bool	has_freq = false;
-			
+
 			#ifdef AE_CPU_ARCH_X86_64
 				// will change thread affinity
 				has_freq = ReadX64CPUClock( INOUT cpu.coreTypes );

@@ -141,7 +141,7 @@ namespace AE::Base
 	{
 		return static_cast<Dst>( ExtractBit( INOUT value ));
 	}
-	
+
 /*
 =================================================
 	ExtractHighBit
@@ -161,13 +161,13 @@ namespace AE::Base
 
 		return T(result);
 	}
-	
+
 	template <typename Dst, typename T> requires(HasScalarBitOp<T>)
 	NdCx__ Dst  ExtractHighBit (INOUT T& value)
 	{
 		return static_cast<Dst>( ExtractHighBit( INOUT value ));
 	}
-	
+
 /*
 =================================================
 	IsPowerOfTwo / IsPowerOf2 / IsSingleBitSet
@@ -653,7 +653,7 @@ namespace AE::Base
 		int	i = IntLog2( x );
 		return i >= 0 ? (T{1} << (i + int(not IsPowerOfTwo( x )))) : T{0};
 	}
-	
+
 	template <typename T> requires(HasScalarBitOp<T>)
 	NdCx__ T  NearPOT (const T x) __NE___
 	{
@@ -746,25 +746,25 @@ namespace EnumBitOperators
 {
 	template <AllowEnumBitOps T>
 	NdCx__ T	operator |  (T lhs, T rhs)			__NE___	{ return static_cast<T>( ToNearUInt(lhs) | ToNearUInt(rhs) ); }
-	
+
 	template <AllowEnumBitOps T>
 	NdCx__ T	operator &  (T lhs, T rhs)			__NE___	{ return static_cast<T>( ToNearUInt(lhs) & ToNearUInt(rhs) ); }
-	
+
 	template <AllowEnumBitOps T>
 	NdCx__ T	operator ^  (T lhs, T rhs)			__NE___	{ return static_cast<T>( ToNearUInt(lhs) ^ ToNearUInt(rhs) ); }
 
 	template <AllowEnumBitOps T>
 	__Cx__ T&	operator |= (INOUT T &lhs, T rhs)	__NE___	{ return lhs = static_cast<T>( ToNearUInt(lhs) | ToNearUInt(rhs) ); }
-	
+
 	template <AllowEnumBitOps T>
 	__Cx__ T&	operator &= (INOUT T &lhs, T rhs)	__NE___	{ return lhs = static_cast<T>( ToNearUInt(lhs) & ToNearUInt(rhs) ); }
-	
+
 	template <AllowEnumBitOps T>
 	__Cx__ T&	operator ^= (INOUT T &lhs, T rhs)	__NE___	{ return lhs = static_cast<T>( ToNearUInt(lhs) ^ ToNearUInt(rhs) ); }
 
 	template <AllowEnumBitOps T>
 	NdCx__ T	operator ~ (T lhs)					__NE___	{ return static_cast<T>( ~ToNearUInt(lhs)); }
-	
+
 	template <AllowEnumBitOps T>
 	NdCx__ bool	operator ! (T lhs)					__NE___	{ return not ToNearUInt(lhs); }
 }
@@ -780,5 +780,5 @@ namespace EnumBitOperators
 	using AE::Base::EnumBitOperators::operator !
 
 	ImportBitOperators;
-	
+
 } // AE::Base

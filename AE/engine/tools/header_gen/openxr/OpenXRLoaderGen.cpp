@@ -4,7 +4,7 @@
 
 namespace AE::Parsers
 {
-	
+
 /*
 =================================================
 	GenXrLoaders
@@ -22,14 +22,14 @@ namespace AE::Parsers
 			String						filename;
 			StringView					prevExt;
 		};
-		
+
 		StaticArray< Group, 2 >			groups;
 		StaticArray< StringView, 8 >	prev_exts	= {};
 		const auto						feats		= _GetFeatures( minVer );
 		HashSet<StringView>				include_fn	= {  };
 		HashSet<StringView>				exclude_fn	= { "xrGetInstanceProcAddr" };
 		HashSet<StringView>				lib_fn		= { "xrGetInstanceProcAddr", "xrEnumerateApiLayerProperties", "xrEnumerateInstanceExtensionProperties", "xrCreateInstance" };
-		
+
 		for (auto& g : groups)
 		{
 			g.inline_funcs	.resize( _fileData.size() );
@@ -56,7 +56,7 @@ namespace AE::Parsers
 		}
 
 		std::map< StringView, Array<FunctionInfo const*> >	fn_per_ext;
-		
+
 		for (auto& fn : _funcs)
 		{
 			if ( exclude_fn.contains( fn.data.name ))
@@ -287,7 +287,7 @@ namespace AE::Parsers
 				auto	prev_ext = prev_exts[ gr_idx + file_idx*2 ];
 				if ( prev_ext.empty() )
 					continue;
-				
+
 				String	ext_def = "#  endif // "s << prev_ext << '\n';
 
 				gr->func_pointers[ file_idx ]	<< ext_def;
@@ -297,7 +297,7 @@ namespace AE::Parsers
 				gr->inline_funcs[ file_idx ]	<< ext_def;
 			}
 		}
-		
+
 		// save to file
 		for (auto& gr : groups)
 		{
@@ -366,7 +366,7 @@ namespace AE::Parsers
 		}
 		return true;
 	}
-	
+
 /*
 =================================================
 	_GetFeatures
@@ -404,7 +404,7 @@ namespace AE::Parsers
 	OpenXRLoaderGen::FeatureSet  OpenXRLoaderGen::_GetFeatures (Version2 minVer) const
 	{
 		constexpr Version2	NoVer	= Version2::Max();	// only as extension
-		
+
 		const FeatureInfo	instanceFeatures[] =
 		{
 		// debugging //
@@ -413,7 +413,7 @@ namespace AE::Parsers
 		// vulkan //
 			{ "vulkan",							XR_KHR_VULKAN_ENABLE_EXTENSION_NAME,						NoVer,	{1,0},	{} },
 			{ "vulkanSwapchainFormatList",		XR_KHR_VULKAN_SWAPCHAIN_FORMAT_LIST_EXTENSION_NAME,			NoVer,	{1,0},	{} },
-			
+
 		// metal //
 			{ "metal",							XR_KHR_METAL_ENABLE_EXTENSION_NAME,							NoVer,	{1,0},	{} },
 
@@ -436,13 +436,13 @@ namespace AE::Parsers
 
 		// varjo //
 		};
-		
+
 		usize	max_name_len = 0;
 		for (auto& feat : instanceFeatures) {
 			max_name_len = Max( max_name_len, feat.shortName.size() );
 		}
 		max_name_len = (max_name_len & 1 ? max_name_len : max_name_len + 1);
-		
+
 		// check that all required extensions are exists and in the correct order
 		HashSet<StringView>	existing_ext;
 
@@ -456,20 +456,20 @@ namespace AE::Parsers
 					"Extension '"s << feat.extension << "' is not found in headers" );
 			}
 		}
-		
+
 		for (auto& feat : instanceFeatures) {
 			for (auto& ext : feat.requireExts) {
 				CHECK_MSG( existing_ext.find( ext ) != existing_ext.end(),
 					"Instance extension '"s << feat.extension << "' requires extension '" << ext << "' which is not enabled/exists" );
 			}
 		}
-		
+
 		FeatureSet	set;
 		set.instance.assign( std::begin(instanceFeatures), std::end(instanceFeatures) );
 		set.enabledExt	= RVRef(existing_ext);
 		set.minVer		= minVer;
 		set.maxNameLen	= max_name_len;
-		
+
 		for (auto& feat : set.instance)
 		{
 			feat.propsType = EPropsType::Instance;
@@ -482,7 +482,7 @@ namespace AE::Parsers
 
 		return set;
 	}
-	
+
 /*
 =================================================
 	_IsPlatformSpecificExt
@@ -518,7 +518,7 @@ namespace AE::Parsers
 			<< "\t};\n";
 		return str;
 	}
-	
+
 /*
 =================================================
 	_GetLogFeaturesFunc
@@ -546,7 +546,7 @@ namespace AE::Parsers
 			<< "\t}\n";
 		return str;
 	}
-	
+
 /*
 =================================================
 	ExtToName
@@ -582,12 +582,12 @@ namespace AE::Parsers
 	{
 		String	gstr;
 		gstr << "\tvoid  OpenXRDeviceInitializer::_CheckExtensions ()\n\t{";
-		
+
 		for (auto& feat : feats.instance)
 		{
 			if ( not feat.enabled )
 				continue;
-			
+
 			CHECK_ERR( not feat.extension.empty() );
 
 			String	ext_name	= ExtToName( feat.extension );
@@ -603,17 +603,17 @@ namespace AE::Parsers
 
 			str << " = ";
 			str << "HasExtension( " << ext_name << " );";
-			
+
 			if ( check_macro )
 				str << "\n\t  #endif";
 
 			gstr << str;
 		}
-		
+
 		gstr << "\n\t}\n";
 		return gstr;
 	}
-	
+
 /*
 =================================================
 	_GetExtensionsListFunc
@@ -624,17 +624,17 @@ namespace AE::Parsers
 		String	str;
 		str << "\tArrayView<const char*>  OpenXRDeviceInitializer::_GetExtensions ()\n\t{\n"
 			<< "\t\tstatic char const* const  extensions1[] = {";
-		
+
 		for (auto& feat : feats.instance)
 		{
 			String	ext_name	= ExtToName( feat.extension );
 			bool	check_macro	= _IsPlatformSpecificExt( feat.extension );
-			
+
 			if ( check_macro )
 				str << "\n\t\t  #ifdef " << ext_name;
 
 			str << "\n\t\t\t" << ext_name << ",";
-			
+
 			if ( check_macro )
 				str << "\n\t\t  #endif";
 		}

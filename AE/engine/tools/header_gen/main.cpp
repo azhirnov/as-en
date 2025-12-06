@@ -60,7 +60,7 @@ int GenerateOpenXRLoader (const char* headerPath, const char* loaderPath, Versio
 */
 int main ()
 {
-	AE::Base::StaticLogger::LoggerDbgScope	log{};
+	StaticLogger::LoggerScope	log{};
 
 	#if 1
 	{

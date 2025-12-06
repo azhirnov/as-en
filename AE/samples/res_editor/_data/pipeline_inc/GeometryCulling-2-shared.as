@@ -13,7 +13,7 @@
 		string	ppln_name = name;
 		if ( dbgVS ) ppln_name += ".dbg_vs";
 		if ( dbgFS ) ppln_name += ".dbg_fs";
-		
+
 		if ( not HasPipelineLayout( "pl."+ppln_name ))
 		{
 			RC<PipelineLayout>		pl = PipelineLayout( "pl."+ppln_name );
@@ -24,7 +24,7 @@
 		}
 
 		RC<GraphicsPipeline>	ppln = GraphicsPipeline( ppln_name+".t" );
-		
+
 		if ( pass == "pass-0" and HasDescriptorSetLayout( "subpass-0.ds" ))
 		{
 			RC<PipelineLayout>	pl = PipelineLayout( "pl-0."+ppln_name );
@@ -73,7 +73,7 @@
 			spec.AddToRenderTech( "rtech", pass );  // in ScriptSceneGraphicsPass
 
 			RenderState	rs;
-			
+
 			if ( name != "WithoutDepthTest" and name != "VisibilityBuffer1Pass2" and name != "VisibilityBuffer2Pass2" )
 			{
 				rs.depth.test				= true;
@@ -122,7 +122,7 @@
 		CreatePipeline3( name, pass, false, false );
 		//CreatePipeline3( name, pass, false, true );
 	}
-	
+
 	void  CreatePipeline (string name)
 	{
 		CreatePipeline( name, "main" );
@@ -159,7 +159,7 @@
 		pos -= un_PerPass.camera.pos;
 
 		gl.Position = un_PerPass.camera.viewProj * float4(pos, 1.0);
-		
+
 		#ifndef DEPTH_PRE_PASS
 			Out.uv			= uv;
 			Out.color		= unpackUnorm4x8( obj.color );
@@ -184,11 +184,11 @@
 	#include "Normal.glsl"
 	#include "InvocationID.glsl"
 	#include "../3party_shaders/VisibilityBuffer.glsl"
-	
+
 	FBM_NOISE_Hash( PerlinNoise )
 	TURBULENCE_FBM_Hash( PerlinNoiseFBM )
 
-		
+
 	#if PERF_LEVEL == 1
 		void  RandomTexID (float scale, float bias, uint intBias, out uint texId, out float2 uv)
 		{
@@ -242,7 +242,7 @@
 	#elif defined(VIS_BUF1_1)
 		out_VisBuf.rg = uint2( gl.PrimitiveID, In.objId );
 		return;
-		
+
 	#elif defined(VIS_BUF2_1)
 		out_VisBuf.rg	= uint2( gl.PrimitiveID, In.objId );
 		out_VisBuf2		= float4( gl.BaryCoord, 0.0 );
@@ -267,21 +267,21 @@
 															WorldPosToClipSpace( wpos2 ),
 															ToSNorm( gl.FragCoord.xy * un_PerPass.invResolution.xy ),
 															2.0 * un_PerPass.invResolution.xy );
-			
+
 			GradientInterpolationResults uv_res = Interpolate2DWithDeriv( deriv, un_Geometry.uvs[idx.x], un_Geometry.uvs[idx.y], un_Geometry.uvs[idx.z] );
 
 			DerivativesOutput	wp_deriv	= Cal3DDeriv( deriv, wpos0, wpos1, wpos2 );
 			const float3		norm		= Normalize( Cross( wp_deriv.db_dx, wp_deriv.db_dy ));	// ComputeNormalInWS_dxdy
 			const float2		uv			= uv_res.interp;
 			const float4		color		= unpackUnorm4x8( obj.color );
-			
+
 		#elif defined(VIS_BUF2_2)
 			// [Visibility buffer with barycentric coordinates and primitiveID (6:24 - 14:40)](https://developer.apple.com/videos/play/tech-talks/10858/?time=384)
 			const uint2			primId_objId = SubpassLoad( VisBuf ).rg;
 
 			if ( primId_objId.y == 0xFFFF )
 				gl.Discard;
-			
+
 			ObjectTransform		obj			= un_Transform.elements[ primId_objId.y ];
 			const uint			primId		= primId_objId.x * 3;
 			const uint			texId		= primId_objId.y % TEX_COUNT;
@@ -345,7 +345,7 @@
 				uint	tex0_id = (texId + 2) % TEX_COUNT;
 				uint	tex1_id = (texId + 4) % TEX_COUNT;
 				uint	tex2_id = (texId + 7) % TEX_COUNT;
-				
+
 				out_Color  = TexSample( gl::Nonuniform(gl::CombinedTex2D<float>( un_Textures[tex0_id], un_Sampler )));
 				out_Color += TexSample( gl::Nonuniform(gl::CombinedTex2D<float>( un_Textures[tex1_id], un_Sampler )));
 				out_Color += TexSample( gl::Nonuniform(gl::CombinedTex2D<float>( un_Textures[tex2_id], un_Sampler )));
@@ -367,7 +367,7 @@
 		float	ndl = Clamp( Dot( norm, Normalize(iLight) ), 0.1, 1.0 );
 
 		out_Color.rgb *= color.rgb * ndl;
-		
+
 		#ifdef LATE_ZS
 			gl.FragDepth = gl.FragCoord.z + out_Color.r * 0.00001;
 		#endif

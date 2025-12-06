@@ -42,7 +42,7 @@ function( EngineDeps_Base projName )
 	endif()
 
 	target_link_libraries( ${projName} PUBLIC "FametaCounter-lib" )
-	
+
 	if (${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
 		target_link_libraries( ${projName} PUBLIC "dl" "pthread" )
 		target_compile_definitions( ${projName} PUBLIC _LARGEFILE_SOURCE _LARGE_FILES _FILE_OFFSET_BITS=64 _LARGEFILE64_SOURCE )
@@ -74,7 +74,7 @@ function( EngineDeps_GraphicsRHI projName )
 	if (${AE_ENABLE_VULKAN})
 		target_link_libraries( ${projName} PUBLIC "Vulkan-lib" )
 		target_compile_definitions( ${projName} PUBLIC AE_ENABLE_GLSL_TRACE )
-	
+
 		if (${AE_ENABLE_VMA})
 			target_link_libraries( ${projName} PUBLIC "VMA-lib" )
 		endif()
@@ -93,7 +93,7 @@ function( EngineDeps_GraphicsRHI projName )
 		else()
 			target_compile_definitions( ${projName} PUBLIC AE_VK_TIMELINE_SEMAPHORE=0 )
 		endif()
-		
+
 		if (APPLE)
 			target_compile_definitions( ${projName} PUBLIC VK_USE_PLATFORM_METAL_EXT=1 )
 		endif()
@@ -323,7 +323,7 @@ if (${AE_WHOLE_ENGINE_PCH} OR ${AE_ENGINE_BASE_PCH})
 			"${AE_ENGINE_PCH_DIR}/Release/cmake_pch.hxx"
 		)
 	endfunction()
-	
+
 	file( GLOB CPP_SOURCES	"*.*" )
 
 	add_library( "EnginePCH" STATIC ${CPP_SOURCES} )

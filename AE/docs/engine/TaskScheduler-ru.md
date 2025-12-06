@@ -102,7 +102,7 @@ ThreadManager также распределяет потоки по ядрам �
 * Другие задачи подписываются на `SyncPoint::OnComplete()`.
 * Как только счетчик ссылок равен нулю, то все ожидающие задачи могут начать выполняться.
 
-Исходники: 
+Исходники:
 [SyncPoint.h](https://github.com/azhirnov/as-en/blob/dev/AE/engine/src/threading/TaskSystem/SyncPoint.h), [Тесты](https://github.com/azhirnov/as-en/blob/dev/AE/engine/tests/threading/UnitTest_SyncPoint.cpp)
 
 ### Старый способ

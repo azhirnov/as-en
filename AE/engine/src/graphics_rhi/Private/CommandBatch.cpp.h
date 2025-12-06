@@ -148,7 +148,7 @@ namespace AE::Graphics
 		CHECK_ERR( not _onCompleteDeps.IsFull() );
 
 		_onCompleteDeps.emplace_back( task.GetRC() ).SetExtra( uint{defaultIsStrongDep} );
-		
+
 		AsyncTaskImpl::TaskDependencyManagerApi::IncWaitCounter( task );
 		return true;
 	}
@@ -231,7 +231,7 @@ namespace AE::Graphics
 
 		_perTaskBarriers[ index ] = pBarriers.get();
 	}
-	
+
 
 /*
 =================================================

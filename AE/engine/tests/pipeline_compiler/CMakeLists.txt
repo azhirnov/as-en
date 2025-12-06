@@ -15,7 +15,7 @@ if (TARGET "PipelineCompiler")
 		target_include_directories( "Tests.PipelineCompiler" PRIVATE "${AE_EXTERNAL_SHARED_PATH}/Vulkan" )
 		target_compile_definitions( "Tests.PipelineCompiler" PRIVATE "AE_ENABLE_VULKAN" )
 	endif()
-	
+
 	UseEnginePCH2( "Tests.PipelineCompiler" )
 
 	add_test( NAME "Tests.PipelineCompiler" COMMAND "Tests.PipelineCompiler" )

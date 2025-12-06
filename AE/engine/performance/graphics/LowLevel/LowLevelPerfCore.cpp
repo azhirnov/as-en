@@ -44,7 +44,7 @@ namespace
 		cfg.device.validation	= EDeviceValidation::Enabled;
 
 	  #ifdef AE_ENABLE_REMOTE_GRAPHICS
-		cfg.deviceAddr			= Networking::IpAddress::FromInt( 192,168,0,0, 0 );
+		cfg.deviceAddr			= AE_RMG_IPv4;
 	  #endif
 
 		CHECK_ERR( _InitGraphics( cfg ));

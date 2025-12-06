@@ -5,7 +5,7 @@
 namespace
 {
 	static const FrameUID	c_InitialFrameId = FrameUID::Init( 2 );
-	static const ushort		c_Port			 = 4002;
+	static const ushort		c_Port			 = AE_TEST_TCP_PORT_2;
 
 
 	class ServerProvider final : public IServerProvider

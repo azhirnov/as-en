@@ -127,7 +127,7 @@
 
 		float2	uv		= Fract( Abs( pos ));
 		float	lod		= Floor( pos.x );
-		
+
 		if ( pos.y < 0.0 )
 		{
 			// top
@@ -145,7 +145,7 @@
 
 		if ( AnyLess( uv, border ))
 			out_Color = float4(1.0);
-		
+
 		if ( Abs(pos.y) > 1.0 )
 			out_Color = float4(0.25);
 	}

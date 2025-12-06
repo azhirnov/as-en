@@ -320,7 +320,7 @@ namespace {
 		else
 			return Scheduler().WaitAsync( ETaskQueue::PerFrame, Tuple{ArrayView<AsyncTask>{tasks}} );
 	}
-	
+
 /*
 =================================================
 	UploadAsync

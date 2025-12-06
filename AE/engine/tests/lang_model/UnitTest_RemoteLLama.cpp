@@ -9,7 +9,7 @@ extern const char*  GetGGMLModelName();
 
 namespace
 {
-	static constexpr ushort		c_ServerPort = 3000;
+	static constexpr ushort		c_ServerPort = AE_LLM_SERVER_PORT;
 
 
 	class LoadingListener final : public ILoadingListener
@@ -27,7 +27,7 @@ namespace
 	public:
 		U8String	response;
 		uint		tokens		= 0;
-		
+
 		bool  AppendResponse (U8StringView piece, uint count) __NE_OV
 		{
 			TEST( count > 0 );
@@ -35,7 +35,7 @@ namespace
 			response << piece;
 			return true;  // continue
 		}
-		
+
 		void  OnComplete (U8StringView completeResponse, uint count) __NE_OV
 		{
 			TEST( response == completeResponse );
@@ -105,7 +105,7 @@ namespace
 		AE_LOGI( "Generate response" );
 		{
 			auto	listener = MakeRC<ResponseListener>();
-			
+
 			TEST( ctx->Generate( u8"What you can do?", listener ));
 
 			TEST( not listener->response.empty() );
@@ -177,7 +177,7 @@ extern void  UnitTest_RemoteLLama ()
 
 	RemoteLLama_Test1();
 	RemoteLLama_Test2();
-	
+
 	Networking::SocketService::Instance().Deinitialize();
 	TEST_PASSED();
 }

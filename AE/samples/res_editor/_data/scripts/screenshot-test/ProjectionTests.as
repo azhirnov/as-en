@@ -13,7 +13,7 @@
 		// initialize
 		RC<Image>		rt		= Image( EPixelFormat::RGBA8_UNorm, SurfaceSize() );
 		RC<Buffer>		buf		= Buffer();
-		
+
 		// setup projection
 		{
 			const float2	z_range = float2(1.0, 100.0);
@@ -30,7 +30,7 @@
 			buf.Float( "infinitePerspective",		inf_persp );
 			buf.Float( "frustum",					frust );
 			buf.Float( "infiniteFrustum",			inf_frust );
-			
+
 			buf.Float( "revZ_perspective",			rev_z * persp );
 			buf.Float( "revZ_infinitePerspective",	rev_z * inf_persp );
 			buf.Float( "revZ_frustum",				rev_z * frust );
@@ -154,7 +154,7 @@
 				diff = Abs( y - ref ) * err1;
 				break;
 			}
-			
+
 			case 24 :
 			{
 				float	p	= FastProjectZ( un_CBuf.perspective, z );
@@ -198,7 +198,7 @@
 				diff = Abs( y - ref ) * 1.0e+8;
 				break;
 			}
-			
+
 			case 29 :
 			{
 				y = FastProjectZ( un_CBuf.perspective, z );
@@ -206,7 +206,7 @@
 				diff = Abs( y - z ) / z * 1.0e+6;
 				break;
 			}
-			
+
 			case 30 :
 			{
 				y = FastProjectZInf( un_CBuf.zRange.x, z );
@@ -223,7 +223,7 @@
 				break;
 			}
 		}
-		
+
 		if ( i != int(GetGlobalCoordUNorm(int3(1)).y * y_max) )
 		{
 			out_Color = float4(0.0);

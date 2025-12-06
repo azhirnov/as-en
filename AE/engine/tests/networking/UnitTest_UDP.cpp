@@ -5,7 +5,7 @@
 
 namespace
 {
-	static const ushort		c_Port = 3000;
+	static const ushort		c_Port = AE_TEST_UDP_PORT_1;
 
 
 	template <typename Address>

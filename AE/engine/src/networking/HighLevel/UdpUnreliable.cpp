@@ -195,7 +195,7 @@ namespace {
 	Send
 =================================================
 */
-	void  UdpUnreliable::Send (MsgList_t msgList) __NE___
+	void  UdpUnreliable::Send (MsgList_t) __NE___
 	{
 		//_output.queue.insert( _output.queue.end(), msgs.begin(), msgs.end() );
 	}
@@ -208,7 +208,7 @@ namespace {
 	ProcessMessages
 =================================================
 */
-	void  UdpUnreliableClientChannel::ProcessMessages (const FrameUID frameId, INOUT MsgQueueStatistic &) __NE___
+	void  UdpUnreliableClientChannel::ProcessMessages (const FrameUID, INOUT MsgQueueStatistic &) __NE___
 	{
 		if_unlikely( not _socket.IsOpen() )
 			return;
@@ -286,7 +286,7 @@ namespace {
 	ProcessMessages
 =================================================
 */
-	void  UdpUnreliableServerChannel::ProcessMessages (const FrameUID frameId, INOUT MsgQueueStatistic &) __NE___
+	void  UdpUnreliableServerChannel::ProcessMessages (const FrameUID, INOUT MsgQueueStatistic &) __NE___
 	{
 		if_unlikely( not _socket.IsOpen() )
 			return;

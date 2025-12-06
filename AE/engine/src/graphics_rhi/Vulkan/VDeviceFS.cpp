@@ -24,7 +24,7 @@ namespace
 		DEBUG_ONLY( if ( uint{dst} != src ) AE_LOG_DBG( "Not a POT value ("s << ToString(src) << ")" );)
 		return dst;
 	}
-	
+
 # ifdef AE_ENABLE_LOGS
 	#include "vulkan_loader/vkenum_to_str.h"
 # endif
@@ -37,7 +37,7 @@ namespace
 */
 	void  VDevice::InitFeatureSet (OUT FeatureSet &outFeatureSet) C_NE___
 	{
-		StaticAssert( FeatureSet::GetFeatureCount() == 272 );
+		StaticAssert( FeatureSet::GetFeatureCount() == 271 );
 
 		using EFeature	= FeatureSet::EFeature;
 		using KiBytes	= FeatureSet::KiBytes;
@@ -239,9 +239,9 @@ namespace
 				mp.sType = VK_STRUCTURE_TYPE_COOPERATIVE_MATRIX_PROPERTIES_KHR;
 				mp.pNext = null;
 			}
-			
+
 			VK_CHECK( vkGetPhysicalDeviceCooperativeMatrixPropertiesKHR( GetVkPhysicalDevice(), INOUT &count, OUT mat_props.data() ));
-			
+
 			for (auto& mp : mat_props)
 			{
 				if ( mp.AType == VK_COMPONENT_TYPE_FLOAT16_KHR and mp.BType      == VK_COMPONENT_TYPE_FLOAT16_KHR and
@@ -312,9 +312,9 @@ namespace
 				vp.sType = VK_STRUCTURE_TYPE_COOPERATIVE_VECTOR_PROPERTIES_NV;
 				vp.pNext = null;
 			}
-			
+
 			VK_CHECK( vkGetPhysicalDeviceCooperativeVectorPropertiesNV( GetVkPhysicalDevice(), INOUT &count, OUT vec_props.data() ));
-			
+
 			for (auto& vp : vec_props)
 			{
 				if ( vp.inputType == VK_COMPONENT_TYPE_FLOAT16_KHR and vp.inputInterpretation == VK_COMPONENT_TYPE_FLOAT16_KHR and
@@ -461,7 +461,7 @@ namespace
 			outFeatureSet.fragmentShadingRateTexelSize.maxY			= POTValue{_properties.fragShadingRateProps.maxFragmentShadingRateAttachmentTexelSize.height}.GetPOT();
 			outFeatureSet.fragmentShadingRateTexelSize.aspectRatio	= POTValue{_properties.fragShadingRateProps.maxFragmentShadingRateAttachmentTexelSizeAspectRatio}.GetPOT();
 		}
-		
+
 		if ( _extensions.fragDensityMap )
 		{
 			SET_FEAT2( fragmentDensityMap,						_properties.fragDensityMapFeats );
@@ -513,9 +513,9 @@ namespace
 			SET_FEAT2( variableSampleLocations, _properties.sampleLocationsProps );
 		}
 
-		outFeatureSet.perPipeline_maxUniformBuffersDynamic	= CheckCast{ limits.maxDescriptorSetUniformBuffersDynamic };
-		outFeatureSet.perPipeline_maxStorageBuffersDynamic	= CheckCast{ limits.maxDescriptorSetStorageBuffersDynamic };
-		outFeatureSet.perPipeline_maxTotalBuffersDynamic	= CheckCast{ outFeatureSet.perPipeline_maxUniformBuffersDynamic + outFeatureSet.perPipeline_maxStorageBuffersDynamic }; // TODO: set ushort or silent warning
+		outFeatureSet.perPipeline_maxUniformBuffersDynamic	= ubyte(limits.maxDescriptorSetUniformBuffersDynamic);
+		outFeatureSet.perPipeline_maxStorageBuffersDynamic	= ubyte(limits.maxDescriptorSetStorageBuffersDynamic);
+		outFeatureSet.perPipeline_maxTotalBuffersDynamic	= ubyte(Min( outFeatureSet.perPipeline_maxUniformBuffersDynamic + outFeatureSet.perPipeline_maxStorageBuffersDynamic, 255 ));
 		outFeatureSet.perPipeline.maxInputAttachments		= limits.maxDescriptorSetInputAttachments;
 		outFeatureSet.perPipeline.maxSampledImages			= limits.maxDescriptorSetSampledImages;
 		outFeatureSet.perPipeline.maxSamplers				= limits.maxDescriptorSetSamplers;
@@ -534,9 +534,9 @@ namespace
 
 		if ( _extensions.maintenance7 )
 		{
-			outFeatureSet.perPipeline_maxUniformBuffersDynamic	= CheckCast{ _properties.maintenance7Props.maxDescriptorSetTotalUniformBuffersDynamic };
-			outFeatureSet.perPipeline_maxStorageBuffersDynamic	= CheckCast{ _properties.maintenance7Props.maxDescriptorSetTotalStorageBuffersDynamic };
-			outFeatureSet.perPipeline_maxTotalBuffersDynamic	= CheckCast{ _properties.maintenance7Props.maxDescriptorSetTotalBuffersDynamic };
+			outFeatureSet.perPipeline_maxUniformBuffersDynamic	= ubyte(_properties.maintenance7Props.maxDescriptorSetTotalUniformBuffersDynamic);
+			outFeatureSet.perPipeline_maxStorageBuffersDynamic	= ubyte(_properties.maintenance7Props.maxDescriptorSetTotalStorageBuffersDynamic);
+			outFeatureSet.perPipeline_maxTotalBuffersDynamic	= ubyte(_properties.maintenance7Props.maxDescriptorSetTotalBuffersDynamic);
 		}
 
 		if ( _extensions.accelerationStructure )
@@ -870,8 +870,8 @@ namespace
 	{
 		#define SET_FEAT( _name_ )			feats10._name_ = (inFS._name_ == True ? VK_TRUE : VK_FALSE)
 		#define SET_FEAT2( _name_, _feat_ )	_feat_._name_  = (inFS._name_ == True ? VK_TRUE : VK_FALSE)
-		
-		StaticAssert( FeatureSet::GetFeatureCount() == 272 );
+
+		StaticAssert( FeatureSet::GetFeatureCount() == 271 );
 		using EFeature = FeatureSet::EFeature;
 
 		auto&			feats10		= _properties.features;
@@ -1145,12 +1145,12 @@ namespace
 		_properties.fragShadingRateProps.minFragmentShadingRateAttachmentTexelSize				= BitCast<VkExtent2D>(inFS.fragmentShadingRateTexelSize.Min());
 		_properties.fragShadingRateProps.maxFragmentShadingRateAttachmentTexelSize				= BitCast<VkExtent2D>(inFS.fragmentShadingRateTexelSize.Max());
 		_properties.fragShadingRateProps.maxFragmentShadingRateAttachmentTexelSizeAspectRatio	= inFS.fragmentShadingRateTexelSize.MaxAspectRatio();
-		
+
 		_extensions.fragDensityMap = (inFS.fragmentDensityMap == True);
 		SET_FEAT2( fragmentDensityMap,						_properties.fragDensityMapFeats );
 		SET_FEAT2( fragmentDensityMapDynamic,				_properties.fragDensityMapFeats );
 		SET_FEAT2( fragmentDensityMapNonSubsampledImages,	_properties.fragDensityMapFeats );
-		
+
 		_extensions.fragDensityMap2 =	(inFS.fragmentDensityMap	== True)		and
 										((inFS.subsampledLoads		== True)	or
 										 (inFS.maxSubsampledArrayLayers > 0)	or

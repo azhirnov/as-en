@@ -110,20 +110,40 @@ namespace AE::Base
 		NdCx__ T &		Ref ()								__NE___	{ return _bits; }
 
 		// change first 1 bit to 0
-		NdCx__ T		ExtractBit ()						__NE___;
-		NdCx__ int		ExtractBitIndex ()					__NE___	{ return IntLog2( ExtractBit() ); }
+		NdCx__ T		ExtractLowBit ()					__NE___;
+		NdCx__ int		ExtractLowBitIndex ()				__NE___	{ return IntLog2( ExtractLowBit() ); }
+
+		// alias for 'ExtractLowBit()'
+		NdCx__ T		ExtractBit ()						__NE___	{ return ExtractLowBit(); }
+		NdCx__ int		ExtractBitIndex ()					__NE___	{ return ExtractLowBitIndex(); }
 
 		// returns first 1 bit
-		NdCx__ T		GetFirstBit ()						C_NE___;
-		NdCx__ int		GetFirstBitIndex ()					C_NE___	{ return IntLog2( GetFirstBit() ); }
+		NdCx__ T		GetLowBit ()						C_NE___;
+		NdCx__ int		GetLowBitIndex ()					C_NE___	{ return IntLog2( GetLowBit() ); }
+
+		// change last 1 bit to 0
+		NdCx__ T		ExtractHighBit ()					__NE___;
+		NdCx__ int		ExtractHighBitIndex ()				__NE___	{ return IntLog2( ExtractHighBit() ); }
+
+		// returns last 1 bit
+		NdCx__ T		GetHighBit ()						C_NE___;
+		NdCx__ int		GetHighBitIndex ()					C_NE___	{ return IntLog2( GetHighBit() ); }
 
 		// change first 0 bit to 1
-		NdCx__ T		SetFirstZeroBit ()					__NE___;		// TODO: ExtractZeroBit ?
-		NdCx__ int		SetFirstZeroBitIndex ()				__NE___	{ return IntLog2( SetFirstZeroBit() ); }
+		NdCx__ T		ExtractLowZeroBit ()				__NE___;
+		NdCx__ int		ExtractLowZeroBitIndex ()			__NE___	{ return IntLog2( ExtractLowZeroBit() ); }
 
 		// returns first 0 bit
-		NdCx__ T		GetFirstZeroBit ()					C_NE___;
-		NdCx__ int		GetFirstZeroBitIndex ()				C_NE___	{ return IntLog2( GetFirstZeroBit() ); }
+		NdCx__ T		GetLowZeroBit ()					C_NE___;
+		NdCx__ int		GetLowZeroBitIndex ()				C_NE___	{ return IntLog2( GetLowZeroBit() ); }
+
+		// change last 0 bit to 1
+		NdCx__ T		ExtractHighZeroBit ()				__NE___;
+		NdCx__ int		ExtractHighZeroBitIndex ()			__NE___	{ return IntLog2( ExtractHighZeroBit() ); }
+
+		// returns last 0 bit
+		NdCx__ T		GetHighZeroBit ()					C_NE___;
+		NdCx__ int		GetHighZeroBitIndex ()				C_NE___	{ return IntLog2( GetHighZeroBit() ); }
 
 		ND_ usize		BitCount ()							C_NE___	{ return Base::BitCount( _bits ); }
 		ND_ usize		ZeroBitCount ()						C_NE___	{ return Base::BitCount( ~_bits ); }
@@ -138,41 +158,88 @@ namespace AE::Base
 
 /*
 =================================================
-	ExtractBit
+	ExtractLowBit
 ----
 	extract lowest non-zero bit
 =================================================
 */
 	template <typename T>
-	__Cx__ T  Bitfield<T>::ExtractBit () __NE___
+	__Cx__ T  Bitfield<T>::ExtractLowBit () __NE___
 	{
-		T	result = _bits & ~(_bits - T{1});
+		T	result = GetLowBit();
 		_bits &= ~result;
 		return result;
 	}
 
+	template <typename T>
+	__Cx__ T  Bitfield<T>::GetLowBit () C_NE___
+	{
+		return _bits & ~(_bits - T{1});
+	}
+
 /*
 =================================================
-	SetFirstZeroBit / GetFirstZeroBit
+	ExtractHighBit
+----
+	extract highest non-zero bit
+=================================================
+*/
+	template <typename T>
+	__Cx__ T  Bitfield<T>::ExtractHighBit () __NE___
+	{
+		T	result = GetHighBit();
+		_bits &= ~result;
+		return result;
+	}
+
+	template <typename T>
+	__Cx__ T  Bitfield<T>::GetHighBit () C_NE___
+	{
+		return _bits & ~(_bits >> 1);
+	}
+
+/*
+=================================================
+	ExtractLowZeroBit / GetLowZeroBit
 ----
 	find lowest zero bit, set it to 1 and return bit
 =================================================
 */
 	template <typename T>
-	__Cx__ T  Bitfield<T>::SetFirstZeroBit () __NE___
+	__Cx__ T  Bitfield<T>::ExtractLowZeroBit () __NE___
 	{
-		T	inv		= ~_bits;
-		T	result	= inv & ~(inv - T{1});
+		T	result = GetLowZeroBit();
 		_bits |= result;
 		return result;
 	}
 
 	template <typename T>
-	__Cx__ T  Bitfield<T>::GetFirstZeroBit () C_NE___
+	__Cx__ T  Bitfield<T>::GetLowZeroBit () C_NE___
 	{
-		T	inv		= ~_bits;
-		T	result	= inv & ~(inv - T{1});
+		T	inv = ~_bits;
+		return inv & ~(inv - T{1});
+	}
+
+/*
+=================================================
+	ExtractHighZeroBit / GetHighZeroBit
+----
+	find highest zero bit, set it to 1 and return bit
+=================================================
+*/
+	template <typename T>
+	__Cx__ T  Bitfield<T>::ExtractHighZeroBit () __NE___
+	{
+		T	result = GetHighZeroBit();
+		_bits |= result;
 		return result;
+	}
+
+	template <typename T>
+	__Cx__ T  Bitfield<T>::GetHighZeroBit () C_NE___
+	{
+		T	inv	= ~_bits;
+		return inv & ~(inv >> 1);
 	}
 
 /*

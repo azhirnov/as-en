@@ -181,7 +181,7 @@
 			EXLOCK( f.guard );
 
 			f.deps.emplace_back( task.GetRC() ).SetExtra( uint{defaultIsStrongDep} );
-			
+
 			TaskApi::IncWaitCounter( task );
 			return true;
 		}
@@ -204,7 +204,7 @@
 //-----------------------------------------------------------------------------
 
 
-	
+
 /*
 =================================================
 	_EndFrameRun

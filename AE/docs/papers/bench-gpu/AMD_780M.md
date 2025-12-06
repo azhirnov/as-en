@@ -6,7 +6,7 @@
 * Warp width (SIMD): 32 (2x per CU)
 * Clock base: 800 MHz, boost: 2700 MHz.
 * APU: Ryzen 7 8745HS
-* Driver: 
+* Driver:
 
 ### Memory
 
@@ -48,23 +48,23 @@ FLOPS = clock * CU * warp_width * 2 (dual issue)
 
 	- AMDVLK driver:
 		* Clock: 2.2 GHz
-	
+
 		| TOp/s | ops | max TFLOPS |
 		|---|---|---|
 		| 2.45 | Add, Mul | 2.45 |
 		| 1.71 | MulAdd   | **3.42** |
 		| 1.67 | FMA      | 3.34 |
-	
+
 	- AMDPRO driver:
 		* Clock: 2.2 GHz
-	
+
 		| TOp/s | ops | max TFLOPS |
 		|---|---|---|
 		| 2.44 | Add, Mul | 2.44 |
 		| 1.71 | MulAdd   | **3.42** |
 		| 1.69 | FMA      | 3.38 |
 
-* FP16 instruction performance: 
+* FP16 instruction performance:
 	- RADV driver:
 		* Clock: 2.3-2.4 GHz
 

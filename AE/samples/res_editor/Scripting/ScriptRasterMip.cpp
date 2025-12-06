@@ -56,7 +56,7 @@ namespace
 	{
 		arg.state |= EResourceState::FragmentShader;
 	}
-	
+
 /*
 =================================================
 	_Variable
@@ -67,22 +67,22 @@ namespace
 		auto*	obj = args.GetObject< ScriptRasterMip >();
 		auto&	dst	= obj->_variables.emplace_back();
 		uint	idx	= 0;
-		
+
 		CHECK_THROW_MSG( args.IsArg< String const& >(idx),
 			"First argument must be string with uniform name of input resource" );
 		dst.inName = args.Arg< String const& >(idx++);
-		
+
 		CHECK_THROW_MSG( args.IsArg< String const& >(idx),
 			"Second argument must be string with uniform name of output resource" );
 		dst.outName = args.Arg< String const& >(idx++);
-		
+
 		CHECK_THROW_MSG( args.IsArg< ScriptImagePtr const& >(idx),
 			"Third argument must be image" );
 		dst.image = args.Arg< ScriptImagePtr const& >(idx++);
 
 		if ( args.IsArg< MipmapLevel const& >(idx) )
 			dst.baseMipmap = args.Arg< MipmapLevel const& >(idx++);
-		
+
 		CHECK_THROW_MSG( args.IsArg< String const& >(idx),
 			"Last argument must be sampler name" );
 		dst.sampler = args.Arg< String const& >(idx++);
@@ -108,7 +108,7 @@ namespace
 		binder.AddFactoryCtor( &ScriptRasterMip_Ctor2,	{"shaderPath"} );
 		binder.AddFactoryCtor( &ScriptRasterMip_Ctor3,	{"shaderPath", "defines"} );
 
-		binder.AddGenericMethod< void (const String &, const String &, const ScriptImagePtr &, const String &)	>( &ScriptRasterMip::_Variable, "Variable", {"inName", "outName", "image", "sampler"} );	
+		binder.AddGenericMethod< void (const String &, const String &, const ScriptImagePtr &, const String &)	>( &ScriptRasterMip::_Variable, "Variable", {"inName", "outName", "image", "sampler"} );
 		binder.AddGenericMethod< void (const String &, const String &, const ScriptImagePtr &, const MipmapLevel &, const String &)	>( &ScriptRasterMip::_Variable, "Variable", {"inName", "outName", "image", "baseMipmap", "sampler"} );
 	}
 
@@ -142,7 +142,7 @@ namespace
 		Bytes		ub_size;
 
 		result->_rtech = _CompilePipeline( OUT ub_size );	// throw
-		
+
 		result->_rpDesc.renderPassName	= RenderPassName{"rp"};
 		result->_rpDesc.subpassName		= SubpassName{"main"};
 		result->_rpDesc.packId			= result->_rtech.packId;
@@ -254,7 +254,7 @@ namespace AE::ResEditor
 		StaticAssert( IPass::CustomKeys_t{}.max_size() == 2 );
 		return st;
 	}
-	
+
 /*
 =================================================
 	_CreatePCType
@@ -303,7 +303,7 @@ namespace AE::ResEditor
 		const String	subpass = "main";
 
 		_args.ValidateArgs();
-		
+
 		CompatibleRenderPassDescPtr		compat_rp{ new CompatibleRenderPassDesc{ "compat.rp" }};
 		compat_rp->AddSubpass( subpass );
 		{
@@ -314,7 +314,7 @@ namespace AE::ResEditor
 
 				att->format		= desc.format;
 				att->samples	= desc.samples;
-				
+
 				att->AddUsage( subpass, EAttachment::Color );
 			}
 		}{
@@ -350,7 +350,7 @@ namespace AE::ResEditor
 			_args.ArgsToDescSet( stage, ds_layout, ArraySize{1} );  // throw
 		}{
 			DescriptorSetLayoutPtr	ds_layout{ new DescriptorSetLayout{ "dsl.1" }};
-			
+
 			for (auto& var : _variables)
 			{
 				const auto	type = EImageType(var.image->ImageType());
@@ -369,7 +369,7 @@ namespace AE::ResEditor
 		gl.Position	= float4( uv * 2.0 - 1.0, 0.0, 1.0 );
 	})#";
 		}
-		
+
 		// fragment shader
 		{
 			String	header;
@@ -406,10 +406,10 @@ namespace AE::ResEditor
 			sh_opt   = EShaderOpt::Optimize;
 			ppln_opt |= EPipelineOpt::Optimize;
 		}
-		
+
 		if ( flags.contains( UIInteraction::EShaderFlags::CaptureStatistics ))
 			ppln_opt |= EPipelineOpt::CaptureStatistics;
-		
+
 		if ( flags.contains( UIInteraction::EShaderFlags::CaptureInternalRepresentation ))
 			ppln_opt |= EPipelineOpt::CaptureInternalRepresentation;
 
@@ -446,7 +446,7 @@ namespace AE::ResEditor
 		{
 			ShaderStructTypePtr	st = _CreatePCType();	// throw
 			ppln_layout->AddPushConst2( "pc", st, EShader::Fragment );
-			
+
 			ppln_layout->Define( "iInvResolution=pc.invResolution" );
 			ppln_layout->Define( "iResolution=pc.resolution" );
 		}

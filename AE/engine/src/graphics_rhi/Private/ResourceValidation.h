@@ -84,7 +84,7 @@ namespace AE::Graphics
 
 		if_unlikely( desc.imageDim == Default or desc.usage == Default or desc.format == Default or desc.memType == Default )
 			return false;
-		
+
 		// validate usage
 		if_unlikely( not AllBits( res_flags.imageUsage, desc.usage ))
 			return false;

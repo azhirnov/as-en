@@ -6,12 +6,10 @@
 using namespace AE;
 using namespace AE::Base;
 
-static constexpr ushort		c_ServerPort = 3000;
-
 
 int main (const int argc, char* argv[])
 {
-	ushort	port = c_ServerPort;
+	ushort	port = AE_LLM_SERVER_PORT;
 	if ( argc >= 3 )
 	{
 		if ( argv[1] == "-port"sv )
@@ -21,7 +19,7 @@ int main (const int argc, char* argv[])
 	StaticLogger::LoggerScope	log{};
 	StaticLogger::AddLogger( ILogger::CreateConsoleOutput() );
 	//StaticLogger::AddLogger( ILogger::CreateDialogOutput() );
-	
+
 	Unused( PlatformUtils::SetSystemSleepState( ESystemSleepState::DontSleep_AllowTurnDisplayOff ));
 
 	CHECK_ERR( Networking::SocketService::Instance().Initialize(), -1 );

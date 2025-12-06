@@ -20,7 +20,7 @@ namespace AE::Samples::Demo
 		static bool		show_demo_window	= true;
 		static bool		show_another_window	= false;
 		static ImVec4	clear_color;
-		
+
 		const auto	UpdateUI = [t] ()
 		{{
 			// 1. Show the big demo window (Most of the sample code is in ImGui::ShowDemoWindow()! You can browse its code to learn more about Dear ImGui!).
@@ -63,7 +63,7 @@ namespace AE::Samples::Demo
 
 			t->profiler.DrawImGUI();
 		}};
-		
+
 		CHECK_CE( t->imgui.Draw( RenderCoro_Get(), surface, UpdateUI, Default ));
 		co_return;
 	}
@@ -106,7 +106,7 @@ namespace AE::Samples::Demo
 					"ImGui::ProcessInput"
 				);
 	}
-	
+
 /*
 =================================================
 	_ProcessInputTask

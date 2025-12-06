@@ -1,0 +1,114 @@
+// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+#ifdef __INTELLISENSE__
+#	include <pipeline_compiler.as>
+#	include <glsl.h>
+#endif
+//-----------------------------------------------------------------------------
+#ifdef SCRIPT
+
+	void ASmain ()
+	{
+		{
+			RC<ShaderStructType>	st = ShaderStructType( "io" );
+			st.Set( EStructLayout::InternalIO,
+					"float3		worldPos;"s +
+					"flat uint	cluster;" );
+		}{
+			RC<DescriptorSetLayout>	ds = DescriptorSetLayout( "mtr.ds" );
+			ds.UniformBuffer( EShaderStages::Vertex, "un_PerObject", "UnifiedGeometryMaterialUB" );
+			ds.StorageBuffer( EShaderStages::Vertex, "un_Geometry",  "GeometrySBlock", EResourceState::ShaderStorage_Read );	// external
+			ds.StorageBuffer( EShaderStages::Vertex, "un_Clusters",  "Cluster_Array",  EResourceState::ShaderStorage_Read );	// external
+		}{
+			RC<PipelineLayout>		pl = PipelineLayout( "pl" );
+			pl.DSLayout( "pass",	 0, "pass.ds" );
+			pl.DSLayout( "material", 1, "mtr.ds" );
+		}
+
+		RC<GraphicsPipeline>	ppln = GraphicsPipeline( "tmpl" );
+		ppln.SetLayout( "pl" );
+		ppln.SetFragmentOutputFromRenderTech( "rtech", "main" );
+		ppln.SetShaderIO( EShader::Vertex, EShader::Fragment, "io" );
+
+		{
+			RC<Shader>	vs = Shader();
+			vs.LoadSelf();
+			ppln.SetVertexShader( vs );
+		}{
+			RC<Shader>	fs = Shader();
+			fs.LoadSelf();
+			ppln.SetFragmentShader( fs );
+		}
+
+		// specialization
+		{
+			RC<GraphicsPipelineSpec>	spec = ppln.AddSpecialization( "spec" );
+			spec.AddToRenderTech( "rtech", "main" );  // in ScriptSceneGraphicsPass
+
+			RenderState	rs;
+			/*{
+				RenderState_ColorBuffer	cb;
+				cb.blend = true;
+				cb.BlendOp( EBlendOp::Add );
+				cb.SrcBlendFactor( EBlendFactor::One );
+				cb.DstBlendFactor( EBlendFactor::OneMinusSrcAlpha );
+				rs.color.SetColorBuffer( 0, cb );
+			}*/
+			rs.depth.test					= true;
+			rs.depth.write					= true;
+
+			rs.inputAssembly.topology		= EPrimitive::TriangleList;
+
+			rs.rasterization.frontFaceCCW	= true;
+			rs.rasterization.cullMode		= ECullMode::None;
+
+			spec.SetRenderState( rs );
+		}
+	}
+
+#endif
+//-----------------------------------------------------------------------------
+#ifdef SH_VERT
+	#include "Transform.glsl"
+
+	void Main ()
+	{
+		const uint		idx		= gl.VertexIndex;
+
+	#ifdef DRAW_BOXES
+		float3			pos		= un_Clusters.elements[ gl.InstanceIndex ].points[ idx ];
+	#else
+		float3			pos		= un_Geometry.positions[idx];
+		float4			sp		= un_Clusters.elements[ gl.InstanceIndex ].sp;
+						pos		= sp.xyz + pos * sp.w;
+	#endif
+						
+		float4	wpos	= LocalPosToWorldSpace( pos );
+
+		gl.Position		= WorldPosToClipSpace( wpos );
+		Out.worldPos	= wpos.xyz;
+		Out.cluster		= gl.InstanceIndex;
+
+		if ( un_Clusters.elements[ gl.InstanceIndex ].visible == 0 )
+		{
+			gl.Position = float4( float_nan );
+		}
+	}
+
+#endif
+//-----------------------------------------------------------------------------
+#ifdef SH_FRAG
+	#include "Normal.glsl"
+	#include "Hash.glsl"
+
+	void  Main ()
+	{
+		float3		color	= DHash31( float(In.cluster) * 0.1 );
+
+		if ( Dot( color, color ) < 0.2 )
+			color = 1.0 - color;
+
+		out_Color = float4( color, 0.4 );
+	}
+
+#endif
+//-----------------------------------------------------------------------------

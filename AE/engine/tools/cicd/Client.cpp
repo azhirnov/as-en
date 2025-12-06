@@ -147,7 +147,7 @@ namespace AE::CICD
 
 		if ( EqualIC( cmd, "cancel" ))
 			return _CancelAll();
-		
+
 		if ( EqualIC( cmd, "help" ))
 		{
 			_PrintHelp();
@@ -201,7 +201,7 @@ namespace AE::CICD
 		Msg::ServerCancelAll	msg;
 		return _Send( msg );
 	}
-	
+
 /*
 =================================================
 	_PrintHelp
@@ -210,8 +210,8 @@ namespace AE::CICD
 	void  Client::_PrintHelp ()
 	{
 		std::cout << "Usage:\n"
-			"> run script-name\n -- will run script, use on from 'Available scripts' list\n"
-			"> cancel -- will cancel script execution\n";
+			"> run script-name  -- will run script, use one from 'Available scripts' list\n"
+			"> cancel  -- will cancel script execution\n";
 	}
 
 /*

@@ -1,4 +1,6 @@
-## xx.2025
+## 11.2025
+- Sample: tiled deferred, clustered deferred
+- update frustum culling sample
 
 
 ## 10.2025

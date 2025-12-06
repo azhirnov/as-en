@@ -104,7 +104,7 @@ namespace AE::Graphics
 
 			_font.view = res_mngr.CreateImageView( ImageViewDesc{}, _font.image, "Imgui font image view" );
 			CHECK_ERR( _font.view );
-			
+
 			_imguiCtx->IO.Fonts->SetTexID( BitCast<ImTextureID>( 0ull ));
 		}
 		return true;
@@ -180,7 +180,7 @@ namespace AE::Graphics
 		}
 		return true;
 	}
-	
+
 /*
 =================================================
 	BindTextures
@@ -197,7 +197,7 @@ namespace AE::Graphics
 		{
 			if ( ids[i] == Default )
 				continue;
-			
+
 			textures[i+1] = ids[i];
 		}
 
@@ -241,7 +241,7 @@ namespace AE::Graphics
 
 		return true;
 	}
-	
+
 /*
 =================================================
 	Render2
@@ -277,7 +277,7 @@ namespace AE::Graphics
 													.AddViewport( rt.RegionSize() )
 													.AddTarget( AttachmentName{"Color"}, rt.viewId, clearValue, rt.initialState, rt.finalState ),
 												DebugLabel{"ImGui", HtmlColor::Yellow} );
-		
+
 		// same as ImGui::GetDrawData()
 		auto*	viewport = _imguiCtx->Viewports[0];
 
@@ -389,6 +389,12 @@ namespace AE::Graphics
 			io.MouseWheelH	= mouseWheel.x;
 		}
 
+		if ( not inputText.empty() )
+		{
+			io.AddInputCharactersUTF8( Cast<char>(inputText.c_str()) );
+			inputText.clear();
+		}
+
 		ImGui::NewFrame();
 
 		if ( updateUI )
@@ -497,7 +503,7 @@ namespace AE::Graphics
 			{
 				ImDrawCmd const&	cmd = cmd_list.CmdBuffer[j];
 				const uint			tex	= uint(BitCast<ulong>(cmd.TexRef.GetTexID()));
-				
+
 				if ( tex != cur_tex )
 				{
 					cur_tex = tex;
@@ -554,7 +560,7 @@ namespace AE::Graphics
 
 		copyCtx.AccumBarriers()
 			.ImageBarrier( _font.image, EResourceState::CopyDst, EResourceState::ShaderSample | EResourceState::FragmentShader );
-		
+
 		_imguiCtx->IO.Fonts->ClearTexData();
 		return result;
 	}

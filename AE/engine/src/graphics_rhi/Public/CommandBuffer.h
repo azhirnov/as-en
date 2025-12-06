@@ -109,7 +109,7 @@ namespace AE::Graphics
 									Bytes		indirectBufferOffset,
 									uint		drawCount,
 									Bytes		stride)																				__Th___	= 0;
-		
+
 		//	'indirectBuffer' at 'indirectBufferOffset' must contains array of 'drawCount' elements of type 'DrawIndexedIndirectCommand' with stride 'stride'.
 				void  DrawIndexedIndirect (const DrawIndexedIndirectCmd &cmd)														__Th___ { DrawIndexedIndirect( cmd.indirectBuffer, cmd.indirectBufferOffset, cmd.drawCount, cmd.stride ); }
 		virtual void  DrawIndexedIndirect (BufferID		indirectBuffer,
@@ -124,7 +124,7 @@ namespace AE::Graphics
 		//	'taskCount' must be <= 'DeviceProperties::ComputeProperties::taskGroupCount'.
 		//	'taskCount' total count must be <= 'DeviceProperties::ComputeProperties::taskTotalGroups'.
 		virtual void  DrawMeshTasks (const uint3 &taskCount)																		__Th___	= 0;
-		
+
 		//	'indirectBuffer' at 'indirectBufferOffset' must contains array of 'drawCount' elements of type 'DrawMeshTasksIndirectCommand' with stride 'stride'.
 				void  DrawMeshTasksIndirect (const DrawMeshTasksIndirectCmd &cmd)													__Th___	{ DrawMeshTasksIndirect( cmd.indirectBuffer, cmd.indirectBufferOffset, cmd.drawCount, cmd.stride ); }
 		virtual void  DrawMeshTasksIndirect (BufferID	indirectBuffer,
@@ -184,7 +184,7 @@ namespace AE::Graphics
 		virtual void  MemoryBarrier (EResourceState srcState, EResourceState dstState)														__Th___	= 0;
 		virtual void  MemoryBarrier (EPipelineScope srcScope, EPipelineScope dstScope)														__Th___	= 0;
 		virtual void  MemoryBarrier ()																										__Th___	= 0;
-		
+
 		virtual void  ExecutionBarrier (EResourceState srcState, EResourceState dstState)													__Th___ = 0;
 		virtual void  ExecutionBarrier (EPipelineScope srcScope, EPipelineScope dstScope)													__Th___	= 0;
 		virtual void  ExecutionBarrier ()																									__Th___	= 0;
@@ -454,7 +454,7 @@ namespace AE::Graphics
 
 		//	requires: EPipelineDynamicState::RTStackSize
 		virtual void  SetStackSize (Bytes size)																						__Th___	= 0;
-		
+
 		//	'dim' must be <= 'DeviceProperties::RayTracingProperties::maxThreadCount'.
 		//	'dim' total count must be <= 'DeviceProperties::RayTracingProperties::maxDispatchInvocations'.
 		//		sbt: EResourceState::RTShaderBindingTable
@@ -471,7 +471,7 @@ namespace AE::Graphics
 										 BufferID indirectBuffer, Bytes indirectBufferOffset)										__Th___	= 0;
 		virtual void  TraceRaysIndirect (const RTShaderBindingTable &sbt,
 										 BufferID indirectBuffer, Bytes indirectBufferOffset)										__Th___	= 0;
-		
+
 		//	'indirectBuffer' at 'indirectBufferOffset' must contains single object with 'TraceRayIndirectCommand2' type.
 		//	requires 'rayTracingPipelineTraceRaysIndirect2' feature flag
 		virtual void  TraceRaysIndirect2 (BufferID indirectBuffer, Bytes indirectBufferOffset)										__Th___	= 0;

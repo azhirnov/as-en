@@ -10,7 +10,6 @@ using namespace AE::Threading;
 using namespace AE::Networking;
 using namespace AE::CICD;
 
-
 #ifdef AE_PLATFORM_ANDROID
 # include "platform/Android/AndroidCommon.h"
 # include "platform/Android/Java.h"
@@ -36,8 +35,7 @@ using namespace AE::CICD;
 	{
 		CHECK_FATAL( _RegisterCommands() );
 
-		auto	addr		= IpAddress::FromHostPortTCP( "192.168.0.xxx", 3000 );
-		auto	provider	= MakeRC<DefaultServerProviderV1>( addr );
+		auto	provider = MakeRC<DefaultServerProviderV1>( AE_CICD_ANDROID_SERVER );
 		CHECK_FATAL( _StartClient( provider ));
 	}
 
@@ -158,13 +156,10 @@ using namespace AE::CICD;
 		}
 	};
 
-	ND_ static int  Main (StringView cmd, StringView dir, StringView name)
+	ND_ static int  Main (StringView cmd, StringView dir, StringView ipAddr, StringView name)
 	{
 		LocalSocketMngr		socket_mngr;
 
-		auto	server_addr	= IpAddress::FromLocalPortTCP( 3000 );
-		auto	addr		= IpAddress::FromHostPortTCP( "192.168.0.xxx", 3000 );
-		auto	provider	= MakeRC<DefaultServerProviderV1>( addr );
 		auto	work_dir	= dir.empty() ? FS::CurrentPath() : Path{dir};
 		auto	pc_name		= PlatformUtils::GetComputerName();
 
@@ -172,6 +167,23 @@ using namespace AE::CICD;
 			name = pc_name;
 
 		CHECK_ERR( FS::CreateDirectories( work_dir ));
+
+	  #ifdef CICD_SERVER
+		if ( cmd == "start-server" )
+		{
+			auto	self_addr = IpAddress::FromLocalPortTCP( AE_CICD_PORT );
+
+			StaticLogger::AddLogger( ILogger::CreateHtmlOutputPerThread( "server-log" ));
+
+			Path	scr_dir {AE_SCRIPT_DIR};	// work_dir / "scrips"
+
+			Server	server { scr_dir, work_dir / "artefacts" };
+			return server.Run( self_addr ) ? 0 : -1;
+		}
+	  #endif
+
+		auto	server_addr	= IpAddress::FromHostPortTCP( ipAddr, AE_CICD_PORT );
+		auto	provider	= MakeRC<DefaultServerProviderV1>( server_addr );
 
 	  #ifdef CICD_BUILD_MACHINE
 		if ( cmd == "start-build-machine" )
@@ -192,18 +204,6 @@ using namespace AE::CICD;
 
 			TestMachine	test {work_dir, name};
 			return test.Run( provider ) ? 0 : -1;
-		}
-	  #endif
-
-	  #ifdef CICD_SERVER
-		if ( cmd == "start-server" )
-		{
-			StaticLogger::AddLogger( ILogger::CreateHtmlOutputPerThread( "server-log" ));
-
-			Path	scr_dir {AE_SCRIPT_DIR};	// work_dir / "scrips"
-
-			Server	server { scr_dir, work_dir / "artefacts" };
-			return server.Run( server_addr ) ? 0 : -1;
 		}
 	  #endif
 
@@ -236,27 +236,19 @@ using namespace AE::CICD;
 		  #endif
 		}
 
-		StaticLogger::LoggerDbgScope	log {0};
+		StaticLogger::LoggerScope	log {0};
 		StaticLogger::AddLogger( ILogger::CreateIDEOutput() );
 		StaticLogger::AddLogger( ILogger::CreateConsoleOutput() );
-		//StaticLogger::AddLogger( ILogger::CreateDialogOutput() );
-		
+
 		Unused( PlatformUtils::SetSystemSleepState( ESystemSleepState::DontSleep_AllowTurnDisplayOff ));
-
-	  #if 0
-		//	return Main( "start-build-machine", "/home/and/Documents/CICD", "Ubuntu" );
-		//	return Main( "start-test-machine",  "/home/and/Documents/CICD", "Ubuntu" );
-
-		//	return Main( "start-build-machine", "/Users/amac/Projects/CICD", "MacM1" );
-		//	return Main( "start-test-machine",  "/Users/amac/Projects/CICD", "MacM1" );
-	  #endif
 
 		if ( argc < 2 )
 		{
 			std::cout << "Invalid arguments: must be:" << std::endl;
 			std::cout << "  arg0: 'start-build-machine', 'start-test-machine', 'start-server', 'start-client'" << std::endl;
 			std::cout << "  arg1: (optional) working directory" << std::endl;
-			std::cout << "  arg2: (optional) client name" << std::endl;
+			std::cout << "  arg2: (optional) server address" << std::endl;
+			std::cout << "  arg3: (optional) client name" << std::endl;
 			std::cout << "Input:" << std::endl;
 			for (int i = 0; i < argc; ++i)
 				std::cout << i << ": " << argv[i] << std::endl;
@@ -264,8 +256,9 @@ using namespace AE::CICD;
 		}
 
 		return Main( argv[1],
-					 (argc >= 3 ? StringView{argv[2]} : Default),
-					 (argc >= 4 ? StringView{argv[3]} : Default)
+					 (argc > 2 ? StringView{argv[2]} : Default),
+					 (argc > 3 ? StringView{argv[3]} : Default),
+					 (argc > 4 ? StringView{argv[4]} : Default)
 					);
 	}
 

@@ -60,7 +60,7 @@ namespace AE::Base
 
 		bool  WaitAndClose (milliseconds timeout = _DefTimeout);
 		bool  WaitAndClose (INOUT String &output, milliseconds timeout = _DefTimeout);
-		
+
 		bool  WaitAndClose (OUT bool &isSuccess, milliseconds timeout = _DefTimeout);
 		bool  WaitAndClose (INOUT String &output, OUT bool &isSuccess, milliseconds timeout = _DefTimeout);
 

@@ -243,6 +243,17 @@ namespace AE::Base
 	  #endif
 	}
 
+/*
+=================================================
+	SetSystemSleepState
+=================================================
+*/
+	bool  AndroidUtils::SetSystemSleepState (ESystemSleepState) __NE___
+	{
+		// TODO
+		return false;
+	}
+
 } // AE::Base
 
 #endif // AE_PLATFORM_ANDROID

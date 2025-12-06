@@ -65,7 +65,7 @@ namespace AE::App
 			Failed_Acquire,			// after this error you must restart screen capture.
 			Failed_VkInterop,		// failed to share resource with Vulkan, try another parameters in 'Config'.
 			Failed_StagingAlloc,	// failed to allocate staging memory.
-			Failed_UserException,	// 
+			Failed_UserException,	//
 		};
 
 		using ReadImageFn_t		= Function< void (const Graphics::ImageMemView &memView, const FrameInfo &info) >;
@@ -100,7 +100,7 @@ namespace AE::App
 											 OUT FrameInfo				&info,
 											 Graphics::CommandBatch		&cmdBatch,
 											 milliseconds				timeout)	__NE___ = 0;
-		
+
 		// Read new frame on CPU side.
 		// Returns 'false' if there are no new images.
 		// First frame may contains non-empty 'moveRects' but user should ignore it and make full copy to initialize capture.

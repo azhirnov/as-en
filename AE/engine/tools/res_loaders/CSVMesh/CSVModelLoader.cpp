@@ -69,7 +69,7 @@ namespace
 		#undef MTR_KEY
 		#undef VISIT
 	}
-	
+
 /*
 =================================================
 	ParseBool
@@ -222,7 +222,7 @@ namespace
 				Array<StringView>	parts;
 				Parser::Tokenize( value, ',', OUT parts );
 				CHECK_ERR( parts.size() == 2 );
-				
+
 				auto		mtr_key = GetMaterialKey( parts[0] );
 				usize		p2 = 0;
 				StringView	str;
@@ -237,7 +237,7 @@ namespace
 				new_material->Set( mtr_key, RVRef(tex) );
 				continue;
 			}
-			
+
 			if ( key == "node" )
 			{
 				if ( not new_node.name.empty() )
@@ -266,7 +266,7 @@ namespace
 
 } // namespace
 
-	
+
 /*
 =================================================
 	LoadModel
@@ -285,7 +285,7 @@ namespace
 
 		return LoadScene( OUT scene, str, cfg.convertMeshesToFloatPointFormat, cfg.meshFolders, cfg.textureFolders );
 	}
-	
+
 /*
 =================================================
 	LoadModel
@@ -297,7 +297,7 @@ namespace
 	{
 		FileRStream		file {scenePath};
 		CHECK_ERR( file.IsOpen() );
-		
+
 		String	str;
 		CHECK_ERR( file.Read( file.RemainingSize(), OUT str ));
 
@@ -306,7 +306,7 @@ namespace
 
 		if ( mesh_folders.empty() )
 			mesh_folders.push_back( scenePath.parent_path() );
-		
+
 		if ( tex_folders.empty() )
 			tex_folders.push_back( scenePath.parent_path() );
 

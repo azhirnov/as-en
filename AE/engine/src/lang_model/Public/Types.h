@@ -6,7 +6,7 @@
 
 namespace AE::LangModel
 {
-	
+
 	enum class EModelFormat : ubyte
 	{
 		GGUF,				// for LLama
@@ -102,7 +102,7 @@ namespace AE::LangModel
 	};
 
 
-	
+
 	//
 	// Language Model Log Listener
 	//

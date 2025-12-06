@@ -248,8 +248,12 @@ namespace AE::CICD
 
 		// ignored in MSVC
 		if ( threadCount > 0 )
-			cmd << " -j " << ToString( threadCount );
+		{
+			const auto&	cpu_arch	= CpuArchInfo::Get();
+			const uint	max_threads	= Max( uint(cpu_arch.LogicalCoreMask( ECoreType::LowPower ).count()), 1u );
 
+			cmd << " -j " << ToString( Min( threadCount, max_threads ));
+		}
 		return _Execute( cmd );
 	}
 
@@ -264,7 +268,7 @@ namespace AE::CICD
 
 	  #ifdef AE_PLATFORM_WINDOWS
 		const auto	flags 	= OSProcess::EFlags::UseCommandPrompt;
-		String		cmd 	= "gradlew.bat ";
+		String		cmd 	= "gradlew ";
 	  #else
 		const auto	flags 	= OSProcess::EFlags::None;
 		String		cmd 	= "./gradlew ";
@@ -482,14 +486,21 @@ namespace AE::CICD
 			const usize		cmake_end = src.find( '}', cmake_begin );
 			CHECK_ERR( cmake_end != String::npos );
 
-			StringView			cmake = SubString( src.data() + cmake_begin, src.data() + cmake_end );
-			const StringView	args = "arguments";
+			StringView			cmake		= SubString( src.data() + cmake_begin, src.data() + cmake_end );
+			const StringView	args_tag	= "arguments";
+			const StringView	targets_tag	= "targets";
 
-			usize			args_begin = cmake.find( args );
-			CHECK_ERR( args_begin != String::npos );
-			args_begin += args.size();
+			usize	args_begin = cmake.find( args_tag );
+			CHECK_ERR( args_begin != StringView::npos );
+			args_begin += args_tag.size();
 
-			const usize		args_end = cmake.rfind( '\n' );
+			usize	args_end = cmake.find( targets_tag );
+			if ( args_end == StringView::npos )
+			{
+				args_end = cmake.size();
+			}
+
+			args_end = cmake.rfind( '\n', args_end );
 			CHECK_ERR( args_end != String::npos );
 
 			String	params = " '-DANDROID_STL=c++_static', '-DANDROID_ARM_NEON=ON'";

@@ -161,7 +161,6 @@ namespace
 		ND_ bool  Initialize (const ECounterSet &)	__NE___;
 	};
 
-
 /*
 =================================================
 	Impl::Initialize

@@ -98,7 +98,7 @@ float3x3  ComputeTBNinFS (float2 uv, float3 worldPos)
 
 * Min/max фильтр может работать только для 2-3 текселей из блока 2х2. Если при интерполяции у текселей вес 0, то они не учитываются для min/max фильтра.<br/>
   Из-за этой особенности фильтрация текстур не степени 2 приводит к потере данных.<br/>
-  Проявляется в [DepthPyramidCulling](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/scripts/tests/DepthPyramidCulling.as), [GenMipmaps](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/scripts/tests/GenMipmaps.as).
+  Проявляется в [DepthPyramidCulling](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/scripts/geom-cull/test-DepthPyramidCulling.as), [GenMipmaps](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/scripts/tests/GenMipmaps.as).
 
 
 ### Точность
@@ -108,25 +108,6 @@ float3x3  ComputeTBNinFS (float2 uv, float3 worldPos)
 	- Важно использовать ReverseZ в матрице проекции чтобы улучшение точности было и на этапе EarlyZ.
 	- Для D24 ReverseZ также полезен, так как увеличивается точность на этапе интерполяции и EarlyZ. [[ссылка](https://www.humus.name/Articles/Persson_CreatingVastGameWorlds.pdf)]
 	- Для OpenGL ReverseZ не дает улучшения точности, так как используется диапазон [-1,+1] который теряет точность еще до сохранения ф буфер глубины в диапазоне [0,1]. [[ссылка](https://www.reedbeta.com/blog/depth-precision-visualized/)]
-
-
-## Эффекты
-
-### Bloom
-
-Эффект рассеивания света на линзе. Чем больше яркость, тем больше рассеивается. Результат прибавляется к цвету сцены.
-
-### SSR
-
-Трассировка отражений в экранном пространстве.<br/>
-Недостатки:
-* При использовании тумана, частиц и тд они попадают в отражения, что некорректно.
-* Спекулярные освещение отражается некорректно, так как зависит от направления луча.
-* Плохо подходит для TBDR архитектур из-за нагрузки на память.
-* Трассировка может прерываться, что дает зашумление. Это создает ложное движение и привлекает внимание.
-* Используется предыдущий кадр, что при резком движении создает несоответствие, нужна репроекция.
-
-Альтернатива - кубические карты и репроекция.
 
 
 ## Multiview vs Viewport array

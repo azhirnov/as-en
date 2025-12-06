@@ -116,7 +116,7 @@ namespace
 
 			co_await Tuple{Threading::StrongDepArray{draw_tasks}};
 		}
-		
+
 		CHECK_CE( lock.try_lock() );
 
 		// continue render pass
@@ -145,14 +145,14 @@ namespace
 		CHECK_CE( lock.try_lock() );
 
 		Ctx		ctx{ RenderCoro_Get() };
-		
+
 		t.result = ctx.ReadbackImage( t.img, Default ).Then( t,
 							[] (Promise<ImageMemView> readRes, CoSafe<DA1_TestData &> t) -> InlineCoro<>
 							{
 								auto view = co_await readRes;
 								t->isOK = t->imgCmp->Compare( view );
 							});
-		
+
 		ctx.AccumBarriers().MemoryBarrier( EResourceState::CopyDst, EResourceState::Host_Read );
 
 		RenderCoro_Execute( ctx );

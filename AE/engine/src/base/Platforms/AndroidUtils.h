@@ -32,15 +32,19 @@ namespace AE::Base
 
 		ND_	static uint		GetLogicalCoreIndex ()											__NE___;
 
+		ND_ static bool		SetSystemSleepState (ESystemSleepState)							__NE___;
+
 
 		// OS //
-		ND_ static bool				IsUnderDebugger ()										__NE___;
-		ND_ static Version3			GetOSVersion ()											__NE___;
-		ND_ static uint				GetSDKVersion ()										__NE___;
-		ND_ static uint				GetTargetSDKVersion ()									__NE___;
-		NdCx__ static uint			GetMinSDKVersion ()										__NE___	{ return __ANDROID_API__; }
-		ND_ static StringView		GetOSName ()											__NE___ { return "Android"; }
-		ND_ static auto				GetOSType ()											__NE___	{ return EOperationSystem::Android; }
+		ND_ static bool			IsUnderDebugger ()											__NE___;
+		ND_ static Version3		GetOSVersion ()												__NE___;
+		ND_ static uint			GetSDKVersion ()											__NE___;
+		ND_ static uint			GetTargetSDKVersion ()										__NE___;
+		NdCx__ static uint		GetMinSDKVersion ()											__NE___	{ return __ANDROID_API__; }
+		ND_ static StringView	GetOSName ()												__NE___ { return "Android"; }
+		ND_ static auto			GetOSType ()												__NE___	{ return EOperationSystem::Android; }
+
+		ND_ static String		GetUserName ()												__NE___	{ return "AndroidUser"; }
 	};
 
 } // AE::Base

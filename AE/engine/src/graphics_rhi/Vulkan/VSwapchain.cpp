@@ -170,7 +170,7 @@ namespace AE::Graphics
 
 		NOTHROW_ERR( present_modes.resize( count ));
 		VK_CHECK_ERR( vkGetPhysicalDeviceSurfacePresentModesKHR( _device->GetVkPhysicalDevice(), _vkSurface, OUT &count, OUT present_modes.data() ));
-		
+
 		usize	i = 0, j = 0;
 		for (; i < present_modes.size() and j < maxCount; ++i)
 		{
@@ -178,7 +178,7 @@ namespace AE::Graphics
 			if ( mode != Default )
 				dst[j++] = mode;
 		}
-		
+
 		if ( i < present_modes.size() )
 			AE_LOG_DBG( "Input buffer is too small" );
 		return j;
@@ -480,7 +480,7 @@ namespace AE::Graphics
 
 				auto  fpCreateWaylandSurfaceKHR = BitCast<PFN_vkCreateWaylandSurfaceKHR>( vkGetInstanceProcAddr( _device->GetVkInstance(), "vkCreateWaylandSurfaceKHR" ));
 				CHECK_ERR( fpCreateWaylandSurfaceKHR != null );
-				
+
 				VK_CHECK_ERR( fpCreateWaylandSurfaceKHR( _device->GetVkInstance(), &surface_info, null, OUT &_vkSurface ));
 				AE_LOG_DBG( "Created Wayland Vulkan surface" );
 			}
@@ -538,7 +538,7 @@ namespace AE::Graphics
 		#endif
 
 		_device->SetObjectName( _vkSurface, dbgName, VK_OBJECT_TYPE_SURFACE_KHR );
-		
+
 	  #ifndef AE_CFG_RELEASE
 		if ( _device->HasRenderDocApi() )
 			_device->GetRenderDocApi().SetWindow( window );
@@ -737,7 +737,7 @@ namespace AE::Graphics
 				   _device->GetVkDevice()		  != Default and
 				   _vkSurface					  != Default );
 		CHECK_ERR( not IsImageAcquired() );		// TODO: it's allowed
-		
+
 		const auto&	ext = _device->GetVExtensions();
 		CHECK_ERR( ext.swapchain );
 
@@ -1187,7 +1187,7 @@ namespace AE::Graphics
 			VkPhysicalDeviceSurfaceInfo2KHR	surf_info = {};
 			surf_info.sType		= VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SURFACE_INFO_2_KHR;
 			surf_info.surface	= _vkSurface;
-			
+
 			VkSurfaceCapabilities2KHR	surf_caps2 = {};
 			surf_caps2.sType = VK_STRUCTURE_TYPE_SURFACE_CAPABILITIES_2_KHR;
 

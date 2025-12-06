@@ -75,7 +75,7 @@ namespace AE::Base
 		result = BitCast<T>( _GetProcAddress( name.c_str() ));
 		return result != null;
 	}
-	
+
 /*
 =================================================
 	GetVarAddr

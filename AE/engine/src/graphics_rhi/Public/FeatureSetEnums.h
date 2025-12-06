@@ -111,7 +111,7 @@ namespace AE::Graphics
 		BGRA8_sRGB_nonlinear,			// BGRA8_UNorm,		sRGB_nonlinear
 		RGBA8_sRGB_nonlinear,			// RGBA8_UNorm,		sRGB_nonlinear
 		BGRA8_BT709_nonlinear,			// BGRA8_UNorm,		BT709_nonlinear
-		
+
 		RGBA16F_sRGB_nonlinear,			// RGBA16F,			sRGB_nonlinear
 		RGBA16F_Extended_sRGB_linear,	// RGBA16F,			Extended_sRGB_linear
 		RGBA16F_Extended_sRGB_nonlinear,// RGBA16F,			Extended_sRGB_nonlinear
@@ -318,6 +318,7 @@ namespace AE::Graphics
 		_visit_( Adreno_500 )			\
 		_visit_( Adreno_600 )			/* 													- VRS		*/\
 		_visit_( Adreno_700 )			/* including X, X Elite											*/\
+		_visit_( Adreno_800 )			/* 																*/\
 		\
 		/*---- AMD ----*/\
 		_visit_( AMD_GCN1 )				/* R5-R9, RX 520, 610, HD 7970									*/\
@@ -379,13 +380,16 @@ namespace AE::Graphics
 		_visit_( Intel_Gen9 )			/* HD 510..550, HD 610..650, UHD 610..650						*/\
 		_visit_( Intel_Gen11 )			/* Iris Plus, Core 10xxx		(Ice Lake)						*/\
 		_visit_( Intel_Gen12 )			/* UHD Graphics 7xx, Iris Xe, Core 11xxx						*/\
-		_visit_( Intel_Gen12_7 )		/* Arc 3/5/7									- RT, MS, VRS	*/\
+		_visit_( Intel_Xe1 )			/* Arc 3/5/7									- RT, MS, VRS	*/\
+		_visit_( Intel_Xe2 )			/* B***															*/\
 		\
 		/*---- PowerVR ----*/\
 		_visit_( PowerVR_Series8 )		/* GE8xxx														*/\
 		_visit_( PowerVR_Series9 )		/* GE9xxx														*/\
 		_visit_( PowerVR_SeriesA )		/* AXE, AXM														*/\
 		_visit_( PowerVR_SeriesB )		/* BXE, BXM														*/\
+		_visit_( PowerVR_SeriesC )		/* CXM															*/\
+		_visit_( PowerVR_SeriesD )		/* DXM															*/\
 		\
 		/*---- Other ----*/\
 		_visit_( VeriSilicon )			/*																*/\
@@ -402,7 +406,7 @@ namespace AE::Graphics
 		Unknown			= _Count,
 
 		_Adreno_Begin	= Adreno_500,
-		_Adreno_End		= Adreno_700,
+		_Adreno_End		= Adreno_800,
 
 		_AMD_Begin		= AMD_GCN1,
 		_AMD_End		= AMD_RDNA4,
@@ -417,10 +421,10 @@ namespace AE::Graphics
 		_NV_End			= NV_Blackwell,
 
 		_Intel_Begin	= Intel_Gen7,
-		_Intel_End		= Intel_Gen12_7,
+		_Intel_End		= Intel_Xe2,
 
 		_PowerVR_Begin	= PowerVR_Series8,
-		_PowerVR_End	= PowerVR_SeriesB,
+		_PowerVR_End	= PowerVR_SeriesD,
 
 		_Other_Begin	= VeriSilicon,
 	};

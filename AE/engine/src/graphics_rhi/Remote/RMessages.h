@@ -875,13 +875,13 @@ namespace AE::RemoteGraphics::Msg
 
 		ArrayView<PplnStat>			result;
 	)
-		
+
 	DECL_RESP( Query_GetMeshPipeStat_Response,
 		using PplnStat = IQueryManager::MeshPipelineStatistic;
 
 		ArrayView<PplnStat>			result;
 	)
-		
+
 	DECL_RESP( Query_GetComputePipeStat_Response,
 		using PplnStat = IQueryManager::ComputePipelineStatistic;
 
@@ -1294,7 +1294,7 @@ namespace AE::RemoteGraphics::Msg
 			ushort					index;
 			EPipelineScope			scope;
 		)
-			
+
 		DECL_CMD( BeginEndQueryCmd,
 			using SerQuery = Query_Alloc_Response::SerQuery;
 
@@ -1348,7 +1348,7 @@ namespace AE::RemoteGraphics::Msg
 		)
 
 		DECL_CMD( MemoryBarrier3Cmd, )
-			
+
 		DECL_CMD( ExecutionBarrierCmd,
 			EResourceState			srcState;
 			EResourceState			dstState;

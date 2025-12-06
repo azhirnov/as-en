@@ -385,7 +385,7 @@ namespace
 			compute.meshGroupCount[0]	= props.maxMeshWorkGroupCount[0];
 			compute.meshGroupCount[1]	= props.maxMeshWorkGroupCount[1];
 			compute.meshGroupCount[2]	= props.maxMeshWorkGroupCount[2];
-			
+
 			compute.prefersLocalInvocationVertexOutput		= props.prefersLocalInvocationVertexOutput;
 			compute.prefersLocalInvocationPrimitiveOutput	= props.prefersLocalInvocationPrimitiveOutput;
 			compute.prefersCompactVertexOutput				= props.prefersCompactVertexOutput;

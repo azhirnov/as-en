@@ -111,7 +111,7 @@ namespace AE::RemoteGraphics
 		_app = &app;
 
 		WindowDesc	desc;
-		desc.size	= {1600, 896};
+		desc.size	= {800, 600};
 		desc.title	= "RemoteGraphicsDevice";
 		desc.mode	= EWindowMode::Resizable;
 
@@ -179,7 +179,7 @@ namespace AE::RemoteGraphics
 		using namespace AE::Networking;
 
 		IpAddress	server_addr;
-		CHECK( SocketService::Instance().GetSelfIPAddress( IpAddress::FromServiceUDP( "192.168.0.1", "8080" ), OUT server_addr ));
+		CHECK( SocketService::Instance().GetSelfIPAddress( AE_ROUTER_IPv4, OUT server_addr ));
 
 		server_addr.SetPort( 0 );
 
@@ -190,7 +190,7 @@ namespace AE::RemoteGraphics
 			Cast<App::ApplicationAndroid>(_app)->ShowToast( server_addr.ToString(), False{"short"} );
 	  #endif
 	  #ifdef AE_PLATFORM_WINDOWS
-		WindowsUtils::AddExceptionToFirewall( WindowsUtils::GetExeLocation(), "AE RmG In", True{"inbound"}, True{"TCP"}, 0 );
+		CHECK( WindowsUtils::AddExceptionToFirewall( WindowsUtils::GetExeLocation(), "AE RmG In", True{"inbound"}, True{"TCP"}, 0 ));
 	  #endif
 	}
 
@@ -762,7 +762,7 @@ namespace AE::RemoteGraphics
 	ILogger::EResult  RmGAppListener::LogToHost::Process (const MessageInfo &info) __Th___
 	{
 		StringView	text = info.message;
-		
+
 	  #if defined(__cpp_lib_stacktrace) and not defined(AE_COMPILER_GCC)
 		String		msg_with_call_stack;
 		if ( info.level >= ELogLevel::Warning )

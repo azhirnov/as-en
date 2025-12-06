@@ -37,10 +37,11 @@
 
 		switch ( idx )
 		{
-			case 0 :	return SDF_CappedCone( pos, 0.7, 0.2, 0.4 );
+			case 0 :	return SDF_CappedCone( pos, 0.7, 0.0, 0.4 );
 			case 1 :	return SDF_Octahedron( pos, 0.6 );
 			case 2 :	return SDF_Pyramid( pos, 1.5 );
 			case 3 :	return SDF_Ray( pos, Normalize(float3(0.5)), 0.1 );
+			case 4 :	return SDF_Cone( pos, SinCos( float_Pi * 0.1 ), 1.2 );
 		}
 		return 1.0;
 	}

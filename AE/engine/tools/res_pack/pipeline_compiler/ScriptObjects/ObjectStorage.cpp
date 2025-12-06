@@ -895,14 +895,14 @@ namespace {
 		auto	it			= rtech_map.find( name );
 		return it != rtech_map.end();
 	}
-	
+
 	static bool  HasDescriptorSetLayout (const String &name) __Th___
 	{
 		auto&	map	= ObjectStorage::Instance()->dsLayouts;
 		auto	it	= map.find( name );
 		return it != map.end();
 	}
-	
+
 	static bool  HasPipelineLayout (const String &name) __Th___
 	{
 		auto&	map	= ObjectStorage::Instance()->pplnLayouts;
@@ -1013,7 +1013,7 @@ namespace {
 		binder.Comment( "Vulkan 1.3" );
 		binder.AddValue( "SPIRV_1_6",		EShaderVersion::SPIRV_1_6 );
 		StaticAssert( EShaderVersion::_SPIRV_Last == EShaderVersion::SPIRV_1_6 );
-		
+
 		binder.Comment( "Vulkan 1.0" );
 		binder.AddValue( "Slang_SPIRV_1_0",		EShaderVersion::Slang_SPIRV_1_0 );
 		binder.AddValue( "Slang_SPIRV_1_1",		EShaderVersion::Slang_SPIRV_1_1 );
@@ -1173,6 +1173,13 @@ namespace {
 		binder.AddValue( "Half_2DMSArray",		EImageType::Dim2DMSArray	| EImageType::Half );
 		binder.AddValue( "Half_Buffer",			EImageType::Buffer			| EImageType::Half );
 		// depth
+		binder.AddValue( "Depth_2D",			EImageType::Dim2D			| EImageType::Depth );
+		binder.AddValue( "Depth_2DArray",		EImageType::Dim2DArray		| EImageType::Depth );
+		binder.AddValue( "Depth_Cube",			EImageType::DimCube			| EImageType::Depth );
+		binder.AddValue( "Depth_CubeArray",		EImageType::DimCubeArray	| EImageType::Depth );
+		binder.AddValue( "Depth_2DMS",			EImageType::Dim2DMS			| EImageType::Depth );
+		binder.AddValue( "Depth_2DMSArray",		EImageType::Dim2DMSArray	| EImageType::Depth );
+		// depth shadow
 		binder.AddValue( "1D_Shadow",			EImageType::Dim1D			| EImageType::Depth | EImageType::Shadow );
 		binder.AddValue( "2D_Shadow",			EImageType::Dim2D			| EImageType::Depth | EImageType::Shadow );
 		binder.AddValue( "1DArray_Shadow",		EImageType::Dim1DArray		| EImageType::Depth | EImageType::Shadow );

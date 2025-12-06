@@ -47,7 +47,7 @@ namespace AE::Base
 			static bool		SetCurrentThreadPriority (EThreadPriority priority)				__NE___;
 
 		ND_	static uint		GetLogicalCoreIndex ()											__NE___;
-		
+
 		ND_ static bool		SetSystemSleepState (ESystemSleepState)							__NE___;
 
 
@@ -59,6 +59,8 @@ namespace AE::Base
 		// OS //
 		ND_ static bool				IsUnderDebugger ()										__NE___;
 		ND_ static Version3			GetOSVersion ()											__NE___;
+
+		ND_ static String			GetUserName ()											__NE___	{ return "AppleUser"; }
 
 		#ifdef AE_PLATFORM_MACOS
 		ND_ static auto				GetOSType ()											__NE___	{ return EOperationSystem::MacOS; }

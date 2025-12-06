@@ -4,7 +4,7 @@
 ## Specs
 
 * CPU Arch: Twin Lake
-* GPU: UHD Graphics 730 (Xe-LP, Alder Lake-N, Gen 12.1)
+* GPU: UHD Graphics 730 (Xe-LP ?, Alder Lake-N, Gen 12.1)
 * Clock: 1000 MHz
 * Execution Units: 24
 * warp size: 32 *(16 with dual issue)*
@@ -47,7 +47,7 @@ Total ALUs = EU * warp_size/2
 	| 251 | MulAdd | 502   |
 	| 251 | FMA    | 502   |
 
-	
+
 ## Nonuniform
 
 * __depth pre-pass__ [[14.2](../GPU_Benchmarks.md#14-Nonuniform)]<br/>

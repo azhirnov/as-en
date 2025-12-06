@@ -86,7 +86,7 @@ namespace
 								(IsSame< T, char > or IsSame< T, wchar_t >);
 
 		StaticAssert( conv1 or conv2 );
-		
+
 		BasicString<CharType>	dst;
 		dst.resize( src.length() );
 
@@ -805,7 +805,8 @@ namespace
 
 	int main (int argc, char* argv[])
 	{
-		AE::Base::StaticLogger::LoggerScope log{};	// don't check for memleak because of false possitive in 'SpirvToMsl'
+		AE::Base::StaticLogger::LoggerScope log{};
+		log.checkMemLeaks = false;	// don't check for memleak because of false possitive in 'SpirvToMsl'
 
 		Path	input_script;
 		Path	output_dir		= FileSystem::CurrentPath();
@@ -816,7 +817,7 @@ namespace
 		// for debugging
 		{
 			input_script 	= "";	// -i
-			output_dir 		= "";				// -o
+			output_dir 		= "";	// -o
 		}
 		#else
 			for (int i = 1; i+1 < argc; i += 2)

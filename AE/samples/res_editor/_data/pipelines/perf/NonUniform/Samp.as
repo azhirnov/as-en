@@ -6,5 +6,5 @@
 	{
 		CreatePipeline( "bindless-samp" );
 	}
-	
+
 #endif

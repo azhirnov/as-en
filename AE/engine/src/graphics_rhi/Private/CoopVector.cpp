@@ -4,7 +4,7 @@
 
 namespace AE::Graphics
 {
-	
+
 /*
 =================================================
 	ConvertCoopMatrixCmd ctor
@@ -34,7 +34,7 @@ namespace AE::Graphics
 //-----------------------------------------------------------------------------
 
 
-		
+
 /*
 =================================================
 	ConvertCoopMatrixCmd2 ctor
@@ -64,7 +64,7 @@ namespace AE::Graphics
 //-----------------------------------------------------------------------------
 
 
-		
+
 /*
 =================================================
 	ConvertCoopMatrixOnHost ctor
@@ -94,7 +94,7 @@ namespace AE::Graphics
 //-----------------------------------------------------------------------------
 
 
-		
+
 /*
 =================================================
 	CoopMatrixConfig ctor
@@ -123,7 +123,7 @@ namespace AE::Graphics
 				n	= 16;
 				k	= 16;
 				break;
-				
+
 			case ECoopMatrixCfg::Afp16_Bfp16_Cfp32_Rfp32_M8_N8_K16 :
 				a	= ECoopMatrixComponentType::Float16;
 				b	= ECoopMatrixComponentType::Float16;
@@ -153,7 +153,7 @@ namespace AE::Graphics
 				n	= 16;
 				k	= 32;
 				break;
-				
+
 			case ECoopMatrixCfg::Au8_Bu8_Cu32_Ru32_M8_N8_K32 :
 				a	= ECoopMatrixComponentType::UInt8;
 				b	= ECoopMatrixComponentType::UInt8;
@@ -180,7 +180,7 @@ namespace AE::Graphics
 		}
 		switch_end
 	}
-	
+
 /*
 =================================================
 	ToECoopMatrixCfg
@@ -205,7 +205,7 @@ namespace AE::Graphics
 			 n		== 16									and
 			 k		== 16 )
 			return ECoopMatrixCfg::Afp16_Bfp16_Cfp32_Rfp32_M16_N16_K16;
-		
+
 		if ( a		== ECoopMatrixComponentType::Float16	and
 			 b		== ECoopMatrixComponentType::Float16	and
 			 c		== ECoopMatrixComponentType::Float32	and
@@ -223,7 +223,7 @@ namespace AE::Graphics
 			 n		== 16									and
 			 k		== 32 )
 			return ECoopMatrixCfg::Au8_Bu8_Cu32_Ru32_M16_N16_K32;
-		
+
 		if ( a		== ECoopMatrixComponentType::SInt8		and
 			 b		== ECoopMatrixComponentType::SInt8		and
 			 c		== ECoopMatrixComponentType::SInt32		and
@@ -232,7 +232,7 @@ namespace AE::Graphics
 			 n		== 16									and
 			 k		== 32 )
 			return ECoopMatrixCfg::As8_Bs8_Cs32_Rs32_M16_N16_K32;
-		
+
 		if ( a		== ECoopMatrixComponentType::UInt8		and
 			 b		== ECoopMatrixComponentType::UInt8		and
 			 c		== ECoopMatrixComponentType::UInt32		and
@@ -241,7 +241,7 @@ namespace AE::Graphics
 			 n		== 8									and
 			 k		== 32 )
 			return ECoopMatrixCfg::Au8_Bu8_Cu32_Ru32_M8_N8_K32;
-		
+
 		if ( a		== ECoopMatrixComponentType::SInt8		and
 			 b		== ECoopMatrixComponentType::SInt8		and
 			 c		== ECoopMatrixComponentType::SInt32		and
@@ -258,7 +258,7 @@ namespace AE::Graphics
 //-----------------------------------------------------------------------------
 
 
-		
+
 /*
 =================================================
 	CoopVectorConfig ctor
@@ -310,7 +310,7 @@ namespace AE::Graphics
 		}
 		switch_end
 	}
-	
+
 /*
 =================================================
 	ToECoopVecCfg
@@ -326,7 +326,7 @@ namespace AE::Graphics
 			 transpose				== true )
 			return ECoopVecCfg::Tfp16_Ifp16_Mfp16_Bfp16_Rfp16_Tp;
 
-		
+
 		if ( inputType				== ECoopMatrixComponentType::Float16		and
 			 inputInterpretation	== ECoopMatrixComponentType::Float8_E4M3	and
 			 matrixInterpretation	== ECoopMatrixComponentType::Float8_E4M3	and
@@ -334,7 +334,7 @@ namespace AE::Graphics
 			 resultType				== ECoopMatrixComponentType::Float16		and
 			 transpose				== false )
 			return ECoopVecCfg::Tfp16_Ifp8e4m3_Mfp8e4m3_Bfp16_Rfp16;
-		
+
 		if ( inputType				== ECoopMatrixComponentType::Float16		and
 			 inputInterpretation	== ECoopMatrixComponentType::Float8_E5M2	and
 			 matrixInterpretation	== ECoopMatrixComponentType::Float8_E5M2	and
@@ -342,7 +342,7 @@ namespace AE::Graphics
 			 resultType				== ECoopMatrixComponentType::Float16		and
 			 transpose				== false )
 			return ECoopVecCfg::Tfp16_Ifp8e5m2_Mfp8e5m2_Bfp16_Rfp16;
-		
+
 		if ( inputType				== ECoopMatrixComponentType::SInt8		and
 			 inputInterpretation	== ECoopMatrixComponentType::SInt8		and
 			 matrixInterpretation	== ECoopMatrixComponentType::SInt8		and

@@ -42,7 +42,7 @@ namespace AE::Graphics
 			uint	texIndex;
 		};
 		StaticAssert( sizeof(imgui_fs_pc) == 4 );
-		
+
 	public:
 		static constexpr uint	TextureCount = 16;
 
@@ -87,6 +87,7 @@ namespace AE::Graphics
 		float2						mouseWheel;
 		bool						mouseLBDown			= false;
 		bool						touchActive			= false;
+		U8String					inputText;
 
 	private:
 		// imgui

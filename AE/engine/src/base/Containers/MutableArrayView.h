@@ -11,7 +11,7 @@ namespace AE::Base
 	//
 	// Mutable Array View
 	//
-	
+
 	template <typename T, typename IndexT = usize>
 	struct MutableArrayView
 	{
@@ -100,6 +100,8 @@ namespace AE::Base
 		NdCx__ View_t	section (usize first, usize count)		C_NE___	{ return _AV().section( first, count ); }
 		NdCx__ Self		section (usize first, usize count)		__NE___;
 
+		__Cx__ void  Assign (ArrayView<T> other)				__NE___;
+
 		template <typename R> requires(IsTrivial<T> and IsTrivial<R>)
 		NdCx__ MutableArrayView<R>  Cast ()						__NE___;
 
@@ -144,6 +146,27 @@ namespace AE::Base
 		StaticAssert( sizeof(R) > sizeof(T) ? IsMultipleOf( sizeof(R), sizeof(T) ) : IsMultipleOf( sizeof(T), sizeof(R) ));
 
 		return MutableArrayView<R>{ static_cast<R*>(static_cast<void *>( _array )), (_count * sizeof(T)) / sizeof(R) };
+	}
+
+/*
+=================================================
+	Assign
+=================================================
+*/
+	template <typename T, typename I>
+	__Cx__ void  MutableArrayView<T,I>::Assign (ArrayView<T> other) __NE___
+	{
+		CHECK_ERRV( size() == other.size() );	// use 'resize()' before 'Assign()' to fix it
+
+		if constexpr( IsMemCopyAvailable<T> )
+		{
+			MemCopy( OUT _array, other.data(), DataSize() );
+		}
+		else
+		{
+			for (usize i = 0; i < _count; ++i)
+				_array[i] = other.data()[i];
+		}
 	}
 //-----------------------------------------------------------------------------
 

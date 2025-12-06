@@ -31,8 +31,8 @@ public:
 # elif defined(AE_SIMD_SimdFloat8)
 	Nd__IF static SimdUShort8  FloatToHalf (SimdFloat8 srcF) __NE___
 	{
-		return	_FloatToHalf< SimdUShort8, SimdUInt4, SimdInt4 >( srcF.Lane<0>() )
-					.Shuffle< 0,1,2,3, 8,9,10,11 >( _FloatToHalf< SimdUShort8, SimdUInt4, SimdInt4 >( srcF.Lane<1>() ));
+		return	_FloatToHalf< SimdUShort8, SimdUInt4, SimdInt4 >( srcF.Part<0>() )
+					.Shuffle< 0,1,2,3, 8,9,10,11 >( _FloatToHalf< SimdUShort8, SimdUInt4, SimdInt4 >( srcF.Part<1>() ));
 	}
 # endif
 

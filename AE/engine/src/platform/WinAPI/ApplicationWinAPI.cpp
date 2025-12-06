@@ -212,6 +212,12 @@ namespace AE::App
 					has_dpi  = true;
 				}
 			}
+			{
+				UINT dpi_x, dpi_y;
+				HRESULT hr = ::GetDpiForMonitor( hMonitor, MDT_EFFECTIVE_DPI, OUT &dpi_x, OUT &dpi_y );	// win8.1
+				if (SUCCEEDED(hr))
+					disp.uiScale = dpi_x / 96.f;
+			}
 		  #endif
 
 			disp.physicalSize	= disp._CalculatePhysicalSize();
@@ -259,7 +265,7 @@ namespace AE::App
 		return Default;
 	#endif
 	}
-	
+
 /*
 =================================================
 	StartScreenCapture
@@ -310,7 +316,7 @@ namespace AE::App
 				//::TranslateMessage( &msg );
 				::DispatchMessageA( &msg );
 			}
-			
+
 			ApplicationBase::_Update();
 			ApplicationBase::_AfterUpdate();
 

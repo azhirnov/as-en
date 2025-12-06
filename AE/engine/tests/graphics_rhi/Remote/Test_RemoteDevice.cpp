@@ -54,7 +54,7 @@ extern void Test_RemoteDevice (IApplication*, IWindow* wnd)
 		info.swapchain.presentMode	= EPresentMode::FIFO;
 		info.swapchain.minImageCount= 2;
 
-		info.deviceAddr				= Networking::IpAddress::FromHostPortTCP( "set IP address here", 0 );
+		info.deviceAddr				= AE_RMG_IPv4;
 
 		CHECK_FATAL( dev.Init( info ));
 		CHECK_FATAL( dev.IsInitialized() );

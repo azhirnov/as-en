@@ -523,12 +523,6 @@ static void  ProcessFunctionCall (TIntermOperator* node, DebugInfo &dbgInfo)
 	if ( not (is_builtin or is_user_defined) or is_debug )
 		return;
 
-	/*bool	has_output = false;
-	for (auto& qual : node->getQualifierList()) {
-		if ( qual == TStorageQualifier::EvqOut or qual == TStorageQualifier::EvqInOut )
-			has_output = true;
-	}*/
-
 	// record returned value
 	if ( node->getType().getBasicType() == TBasicType::EbtVoid or
 		 node->getType().isScalarOrVec1() or node->getType().isVector() or node->getType().isMatrix() )
@@ -576,7 +570,6 @@ static void  ProcessFunctionCall (TIntermOperator* node, DebugInfo &dbgInfo)
 		}
 		else
 			dbgInfo.InjectNode( CreateAppendToTrace( node, loc_id, dbgInfo ));
-
 	}
 }
 

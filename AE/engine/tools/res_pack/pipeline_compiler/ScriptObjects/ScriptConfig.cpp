@@ -189,7 +189,7 @@ namespace AE::PipelineCompiler
 		storage.defaultShaderDefines.clear();
 		storage.defaultShaderDefines << value;
 	}
-	
+
 /*
 =================================================
 	SetDefaultDescSetUsage
@@ -245,7 +245,7 @@ namespace AE::PipelineCompiler
 		binder.Comment( "Set defines which will be used in all shaders.\n"
 						"Format: MACROS = value \\n DEF \\n ..." );
 		AS_METHOD( binder, ScriptConfig::SetShaderDefines,			"SetShaderDefines",			{} );
-		
+
 		binder.Comment( "Set default DescriptorSetLayout usage." );
 		AS_METHOD( binder, ScriptConfig::SetDefaultDescSetUsage,	"SetDefaultDescSetUsage",	{} );
 		AS_METHOD( binder, ScriptConfig::SetDefaultDescSetUsage2,	"SetDefaultDescSetUsage",	{} );

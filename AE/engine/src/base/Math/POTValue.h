@@ -289,7 +289,7 @@ namespace AE::Base
 		StaticAssert( IsUnsigned<IT> );
 		ASSERT( rhs.GetPOT() >= 0 );
 		ASSERT( rhs.GetPOT() < int(CT_SizeOfInBits<IT>) );
-		
+
 		if ( rhs.GetPOT() < 0 )
 			return MaxValue<IT>();
 

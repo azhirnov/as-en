@@ -693,7 +693,7 @@ namespace
 		CHECK_THROW_MSG( ptr );
 		_vertexBuffers = ptr;
 	}
-	
+
 /*
 =================================================
 	GetSubpassIndex

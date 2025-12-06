@@ -329,7 +329,7 @@ namespace AE::App
 			return false;
 
 		CHECK_MSG( gpu_count == 1, "only one GPU is supported" );
-		
+
 
 		NV_GPU_DISPLAYIDS	display_ids [PlatformConfig::MaxMonitors];
 		NvU32				disp_count	= 0;
@@ -337,7 +337,7 @@ namespace AE::App
 		for (auto& disp : display_ids)
 			disp.version = NV_GPU_DISPLAYIDS_VER;
 		disp_count = NvU32(CountOf( display_ids ));
-		
+
 		NVAPI_CHECK_ERR( NvAPI_GPU_GetConnectedDisplayIds( gpu_handles[0], OUT display_ids, OUT &disp_count, 0 ));
 
 		if ( disp_count == 0 )

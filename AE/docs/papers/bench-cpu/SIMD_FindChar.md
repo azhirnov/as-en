@@ -22,7 +22,7 @@ AVX2, MSVC
 	str size:		131 KB			- L2 cache
 	instructions:	410M			= 131'176 * 100'000 / 32
 	inst/s:			3.42 GInst/s	= ~3.4 GHz  - used 2 instruction (cmpeq, movemask) on 4.2GHz, its ~1.6 inst/cy
-	
+
 AVX2, Clang
 	bandwidth:		131.6GB/s
 	time:			99.67ms
@@ -48,7 +48,7 @@ AVX2, MSVC
 	time:			0.22 s
 	str size:		131 KB			- L2 cache
 	instructions:	410M			= 131'176 * 100'000 / 32
-	inst/s:			1.86 GInst/s	= 3.73GHz with 1 inst/cy 
+	inst/s:			1.86 GInst/s	= 3.73GHz with 1 inst/cy
 ```
 
 
@@ -77,7 +77,7 @@ AVX2, MSVC
 	str size:		131 KB			- L2 cache
 	instructions:	410M			= 131'176 * 100'000 / 32
 	inst/s:			4.11 GInst/s	- used 2 instruction (cmpeq, movemask) on 5.1GHz, its 1.6 inst/cy
-	
+
 AVX2, Clang
 	str size:		131 KB			- L2 cache
 	instructions:	410M			= 131'176 * 100'000 / 32
@@ -87,7 +87,7 @@ AVX2, Clang
 		bandwidth:		153.4 GB/s
 		time:			85.5 ms
 		inst/s:			4.8 GInst/s		- used 2 instruction (cmpeq, movemask), its 1.9 inst/cy
-		
+
 	E-core:
 		clock:			4.4 GHz
 		bandwidth:		115.2 GB/s

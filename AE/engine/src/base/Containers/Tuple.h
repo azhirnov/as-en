@@ -118,10 +118,10 @@ namespace _hidden_
 
 		template <typename Fn>
 		__CxIA void				ForEach (Fn &fn)					C_Th___	{ _ForEach<0>( fn ); }
-		
+
 		template <typename Fn>
 		__CxIA void 			Visit (Fn &fn)						C_NE___	{ _RecursiveVisit<0>( fn, *this ); }
-		
+
 		template <typename Fn>
 		__CxIA void 			Visit (Fn &fn)						__NE___	{ _RecursiveVisit<0>( fn, *this ); }
 
@@ -338,7 +338,7 @@ namespace _hidden_
 		return TupleConcat( FwdArg<Tuple1>(tuple1),
 							TupleConcat( FwdArg<Tuple2>(tuple2), FwdArg<Tuples>(tuples)... ));
 	}
-	
+
 /*
 =================================================
 	TupleAppend

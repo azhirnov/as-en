@@ -3,6 +3,7 @@
 #ifdef AE_PLATFORM_WINDOWS
 # include <signal.h>
 # include "base/Platforms/WindowsHeader.cpp.h"
+# include <shellapi.h>
 # include "base/Platforms/WindowsUtils.h"
 # include "base/Platforms/WindowsLibrary.h"
 # include "base/Platforms/WindowsProcess.h"
@@ -897,7 +898,7 @@ namespace
 		DWORD	err = ::GetEnvironmentVariableA( name.c_str(), null, 0 );
 		return err != 0;
 	}
-	
+
 /*
 =================================================
 	SetEnvironmentVariable
@@ -913,7 +914,7 @@ namespace
 
 		return ::SetEnvironmentVariableA( name.c_str(), value.c_str() ) != 0;
 	}
-	
+
 /*
 =================================================
 	DeleteEnvironmentVariable
@@ -924,7 +925,7 @@ namespace
 		CHECK_ERR( not name.empty() );
 		return ::SetEnvironmentVariableA( name.c_str(), null ) != 0;
 	}
-	
+
 /*
 =================================================
 	GetExeLocation
@@ -937,7 +938,7 @@ namespace
 
 		NOTHROW_ERR( return Path{ buf };)
 	}
-	
+
 /*
 =================================================
 	QueryPerformanceCounterToTimePoint
@@ -974,7 +975,7 @@ namespace
 		const slong	part  = (qpc % freq) * period::den / freq;
 		return time_point{ duration{ whole + part }};
 	}
-	
+
 /*
 =================================================
 	HasRegistryKey
@@ -990,7 +991,7 @@ namespace
 		::RegCloseKey( hkey );
 		return ok;
 	}
-	
+
 /*
 =================================================
 	ReadRegistry
@@ -1025,7 +1026,7 @@ namespace
 		::RegCloseKey( hkey );
 		return false;
 	}
-	
+
 /*
 =================================================
 	SetThreadThrottling
@@ -1057,7 +1058,7 @@ namespace
 
 		return ::SetThreadInformation( handle, ::ThreadPowerThrottling, &throttling_state, sizeof(throttling_state) ) != FALSE;
 	}
-	
+
 /*
 =================================================
 	SetSystemSleepState
@@ -1078,7 +1079,7 @@ namespace
 
 		return ::SetThreadExecutionState( flags ) != 0;	// winxp
 	}
-	
+
 /*
 =================================================
 	GetComputerName
@@ -1092,7 +1093,7 @@ namespace
 		CHECK_ERR( ::GetComputerNameA( OUT buf, INOUT &size ) != 0 );  // win2000
 		return String{buf};
 	}
-	
+
 /*
 =================================================
 	GetUserName
@@ -1106,7 +1107,7 @@ namespace
 		CHECK_ERR( ::GetUserNameA( OUT buf, INOUT &size ) != 0 );  // win2000
 		return String{buf};
 	}
-	
+
 /*
 =================================================
 	AddExceptionToFirewall
@@ -1138,6 +1139,61 @@ namespace
 		cmd << '\'';  // end of 'New-NetFirewallRule'
 
 		return WindowsProcess::Execute( cmd );
+	}
+
+/*
+=================================================
+	IsRunningAsAdmin
+=================================================
+*/
+	bool  WindowsUtils::IsRunningAsAdmin () __NE___
+	{
+		BOOL						is_admin		= FALSE;
+		PSID						admin_group		= null;
+		SID_IDENTIFIER_AUTHORITY	nt_authority	= SECURITY_NT_AUTHORITY;
+
+		if ( ::AllocateAndInitializeSid(
+				&nt_authority, 2,
+				SECURITY_BUILTIN_DOMAIN_RID,
+				DOMAIN_ALIAS_RID_ADMINS,
+				0, 0, 0, 0, 0, 0,
+				OUT &admin_group ))
+		{
+			::CheckTokenMembership( null, admin_group, OUT &is_admin );
+			::FreeSid( admin_group );
+		}
+		return is_admin == TRUE;
+	}
+
+/*
+=================================================
+	RunAsAdmin
+=================================================
+*/
+	bool  WindowsUtils::RunAsAdmin (const Path &path) __NE___
+	{
+		HINSTANCE res = ::ShellExecuteW( null, L"runas", path.native().c_str(), L"", null, SW_SHOWNORMAL );
+		// If the function succeeds, it returns a value greater than 32.
+		return usize(res) > 32;
+	}
+
+/*
+=================================================
+	Dialog_OkCancel
+=================================================
+*/
+	int  WindowsUtils::Dialog_OkCancel (NtStringView caption, NtStringView msg) __NE___
+	{
+		UINT	flags = MB_ICONERROR | MB_SETFOREGROUND | MB_TOPMOST;
+				flags |= MB_OKCANCEL | MB_DEFBUTTON1;
+
+		int	result = ::MessageBoxExA( null, msg.c_str(), caption.c_str(), flags, MAKELANGID( LANG_ENGLISH, SUBLANG_ENGLISH_US ));
+		switch ( result )
+		{
+			case IDCANCEL :	return 1;
+			case IDOK :		return 0;
+		}
+		return -1;
 	}
 
 /*

@@ -4,17 +4,17 @@
 void ASmain ()
 {
 	// include:
-	//	NVIDIA GeForce RTX 2080.json
-	//	NVIDIA GeForce GTX 1070 driver 511.65.0.0 on Windows 10
-	//	NVIDIA GeForce GTX 750 driver 535.113.1.0 on Linuxmint 21.2
-	//	NVIDIA GeForce GTX 980 Ti driver 516.94.0.0 on Windows 10
-	//	NVIDIA GeForce MX110 driver 510.54.0.0 on Arch unknown
-	//	NVIDIA GeForce RTX 2080 driver 553.31.0.0 on Windows 11
-	//	NVIDIA GeForce RTX 3060 Ti driver 553.22.0.0 on Windows 11
-	//	NVIDIA GeForce RTX 3090 driver 473.11.0.0 on Windows 10
-	//	NVIDIA GeForce RTX 4090 driver 526.98.0.0 on Windows 10
-	//	NVIDIA GeForce RTX 4090 driver 553.51.0.0 on Windows 11
-	//	NVIDIA Tegra Orin (nvgpu) driver 540.2.0.0 on Ubuntu 22.04
+	//	Lin-NV-RTX2000-1.4.312
+	//	Win-NV-GTX1000-1.4.329
+	//	Win-NV-GTX1600-1.4.312
+	//	Win-NV-GTX700-1.4.312
+	//	Win-NV-GTX800-1.4.329
+	//	Win-NV-GTX900-1.4.312
+	//	Win-NV-MX150-1.4.312
+	//	Win-NV-RTX2000-1.4.312
+	//	Win-NV-RTX3000-1.4.328
+	//	Win-NV-RTX4000-1.4.328
+	//	Win-NV-RTX5000-1.4.319
 
 	const EFeature  True = EFeature::RequireTrue;
 
@@ -57,10 +57,15 @@ void ASmain ()
 		EShaderStages::GraphicsPipeStages | 
 		EShaderStages::Compute
 	));
+	fset.requiredSubgroupSizeStages(EShaderStages(
+		EShaderStages::GraphicsPipeStages | 
+		EShaderStages::Compute
+	));
 	fset.minSubgroupSize (32);
 	fset.maxSubgroupSize (32);
 	fset.subgroup (True);
 	fset.subgroupBroadcastDynamicId (True);
+	fset.subgroupSizeControl (True);
 	fset.shaderInt8 (True);
 	fset.shaderInt16 (True);
 	fset.shaderInt64 (True);
@@ -87,6 +92,7 @@ void ASmain ()
 	fset.shaderImageFloat32AtomicAdd (True);
 	fset.shaderSubgroupClock (True);
 	fset.shaderDeviceClock (True);
+	fset.shaderIntegerDotProduct (True);
 	fset.shaderClipDistance (True);
 	fset.shaderCullDistance (True);
 	fset.shaderDrawParameters (True);
@@ -118,7 +124,10 @@ void ASmain ()
 	fset.vulkanMemoryModel (True);
 	fset.vulkanMemoryModelDeviceScope (True);
 	fset.vulkanMemoryModelAvailabilityVisibilityChains (True);
-	fset.maxSpirvVersion (150);
+	fset.shaderDemoteToHelperInvocation (True);
+	fset.shaderTerminateInvocation (True);
+	fset.shaderZeroInitializeWorkgroupMemory (True);
+	fset.maxSpirvVersion (160);
 	fset.drawIndirectFirstInstance (True);
 	fset.drawIndirectCount (True);
 	fset.maxDrawIndirectCount (4294967295);
@@ -166,6 +175,7 @@ void ASmain ()
 	fset.tessellationShader (True);
 	fset.computeShader (True);
 	fset.vertexDivisor (True);
+	fset.maxVertexAttribDivisor (4294967295);
 	fset.maxVertexAttributes (32);
 	fset.maxVertexBuffers (32);
 	fset.AddVertexFormats({
@@ -195,14 +205,15 @@ void ASmain ()
 		EPixelFormat::R16_SNorm, EPixelFormat::R8_SNorm, EPixelFormat::RGBA16_UNorm, EPixelFormat::RGBA8_UNorm, 
 		EPixelFormat::RG16_UNorm, EPixelFormat::RG8_UNorm, EPixelFormat::R16_UNorm, EPixelFormat::R8_UNorm, 
 		EPixelFormat::RGB10_A2_UNorm, EPixelFormat::RGBA4_UNorm, EPixelFormat::RGB5_A1_UNorm, EPixelFormat::R5G6B5_UNorm, 
-		EPixelFormat::BGRA8_UNorm, EPixelFormat::R8I, EPixelFormat::RG8I, EPixelFormat::RGBA8I, 
-		EPixelFormat::R16I, EPixelFormat::RG16I, EPixelFormat::RGBA16I, EPixelFormat::R32I, 
-		EPixelFormat::RG32I, EPixelFormat::RGB32I, EPixelFormat::RGBA32I, EPixelFormat::R8U, 
-		EPixelFormat::RG8U, EPixelFormat::RGBA8U, EPixelFormat::R16U, EPixelFormat::RG16U, 
-		EPixelFormat::RGBA16U, EPixelFormat::R32U, EPixelFormat::RG32U, EPixelFormat::RGB32U, 
-		EPixelFormat::RGBA32U, EPixelFormat::RGB10_A2U, EPixelFormat::R16F, EPixelFormat::RG16F, 
-		EPixelFormat::RGBA16F, EPixelFormat::R32F, EPixelFormat::RG32F, EPixelFormat::RGB32F, 
-		EPixelFormat::RGBA32F, EPixelFormat::R11G11B10F, EPixelFormat::RGB9F_E5
+		EPixelFormat::BGRA8_UNorm, EPixelFormat::sRGB8_A8, EPixelFormat::sBGR8_A8, EPixelFormat::R8I, 
+		EPixelFormat::RG8I, EPixelFormat::RGBA8I, EPixelFormat::R16I, EPixelFormat::RG16I, 
+		EPixelFormat::RGBA16I, EPixelFormat::R32I, EPixelFormat::RG32I, EPixelFormat::RGB32I, 
+		EPixelFormat::RGBA32I, EPixelFormat::R8U, EPixelFormat::RG8U, EPixelFormat::RGBA8U, 
+		EPixelFormat::R16U, EPixelFormat::RG16U, EPixelFormat::RGBA16U, EPixelFormat::R32U, 
+		EPixelFormat::RG32U, EPixelFormat::RGB32U, EPixelFormat::RGBA32U, EPixelFormat::RGB10_A2U, 
+		EPixelFormat::R16F, EPixelFormat::RG16F, EPixelFormat::RGBA16F, EPixelFormat::R32F, 
+		EPixelFormat::RG32F, EPixelFormat::RGB32F, EPixelFormat::RGBA32F, EPixelFormat::R11G11B10F, 
+		EPixelFormat::RGB9F_E5
 	});
 	fset.AddTexelFormats( EFormatFeature::StorageTexelBuffer, {
 		EPixelFormat::RGBA16_SNorm, EPixelFormat::RGBA8_SNorm, EPixelFormat::RG16_SNorm, EPixelFormat::RG8_SNorm, 
@@ -219,7 +230,7 @@ void ASmain ()
 	});
 	fset.AddTexelFormats( EFormatFeature::StorageTexelBufferAtomic, {
 		EPixelFormat::R32I, EPixelFormat::R64I, EPixelFormat::R32U, EPixelFormat::R64U, 
-		EPixelFormat::R32F
+		EPixelFormat::RG16F, EPixelFormat::RGBA16F, EPixelFormat::R32F
 	});
 	fset.imageCubeArray (True);
 	fset.textureCompressionBC (True);
@@ -233,7 +244,7 @@ void ASmain ()
 	fset.maxImageArrayLayers (2 << 10);
 	fset.AddTexelFormats( EFormatFeature::StorageImageAtomic, {
 		EPixelFormat::R32I, EPixelFormat::R64I, EPixelFormat::R32U, EPixelFormat::R64U, 
-		EPixelFormat::R32F
+		EPixelFormat::RG16F, EPixelFormat::RGBA16F, EPixelFormat::R32F
 	});
 	fset.AddTexelFormats( EFormatFeature::StorageImage, {
 		EPixelFormat::RGBA16_SNorm, EPixelFormat::RGBA8_SNorm, EPixelFormat::RG16_SNorm, EPixelFormat::RG8_SNorm, 
@@ -246,7 +257,7 @@ void ASmain ()
 		EPixelFormat::RG16U, EPixelFormat::RGBA16U, EPixelFormat::R32U, EPixelFormat::RG32U, 
 		EPixelFormat::RGBA32U, EPixelFormat::RGB10_A2U, EPixelFormat::R64U, EPixelFormat::R16F, 
 		EPixelFormat::RG16F, EPixelFormat::RGBA16F, EPixelFormat::R32F, EPixelFormat::RG32F, 
-		EPixelFormat::RGBA32F, EPixelFormat::R11G11B10F
+		EPixelFormat::RGBA32F, EPixelFormat::R11G11B10F, EPixelFormat::Depth16, EPixelFormat::Depth32F
 	});
 	fset.AddTexelFormats( EFormatFeature::AttachmentBlend, {
 		EPixelFormat::RGBA16_SNorm, EPixelFormat::RGBA8_SNorm, EPixelFormat::RG16_SNorm, EPixelFormat::RG8_SNorm, 
@@ -295,6 +306,8 @@ void ASmain ()
 	fset.samplerMirrorClampToEdge (True);
 	fset.samplerMipLodBias (True);
 	fset.samplerYcbcrConversion (True);
+	fset.ycbcr2Plane444 (True);
+	fset.nonSeamlessCubeMap (True);
 	fset.maxSamplerAnisotropy (16.00);
 	fset.maxSamplerLodBias (15.00);
 	fset.framebufferColorSampleCounts({ 1, 2, 4, 8 });

@@ -43,7 +43,7 @@ namespace AE::Base
 	// types
 	public:
 		static constexpr uint	count	= 4;
-		static constexpr uint	lanes	= 1;
+		static constexpr uint	parts	= 1;
 
 		using Scalar_t		= half;
 		using NativeScalar_t= float16_t;
@@ -276,7 +276,7 @@ namespace AE::Base
 
 	// conversion //
 		template <uint Idx>
-		ND_ Self	Lane ()										C_NE___ { StaticAssert( Idx < lanes );  return *this; }
+		ND_ Self	Part ()										C_NE___ { StaticAssert( Idx < parts );  return *this; }
 
 		template <uint X, uint Y, uint Z, uint W>
 		ND_ Self	Swizzle ()									C_NE___;
@@ -350,7 +350,7 @@ namespace AE::Base
 											Conditional< IsSame< IntType, uint >, uint32x2_t, void >>>>>>;
 		StaticAssert( CT_SizeOfInBits<Native_t> == 64 );
 
-		static constexpr uint	lanes	= 1;
+		static constexpr uint	parts	= 1;
 		static constexpr uint	count	= sizeof(Native_t) / sizeof(IntType);
 		using Array_t					= StaticArray< Scalar_t, count >;
 		StaticAssert( sizeof(Array_t) == sizeof(Native_t) );
@@ -575,7 +575,7 @@ namespace AE::Base
 
 	// conversion //
 		template <uint Idx>
-		ND_ Self	Lane ()									C_NE___ { StaticAssert( Idx < lanes );  return *this; }
+		ND_ Self	Part ()									C_NE___ { StaticAssert( Idx < parts );  return *this; }
 
 		template <uint X, uint Y, uint Z, uint W,  typename T = Scalar_t> requires( sizeof(T)==2 )
 		ND_ Self	Swizzle ()								C_NE___;
@@ -682,7 +682,7 @@ namespace AE::Base
 													Conditional< IsSame< IntType, ulong >, uint64x2_t, void >>>>>>>>;
 		StaticAssert( CT_SizeOfInBits<Native_t> == 128 );
 
-		static constexpr uint	lanes	= sizeof(IntType) >= sizeof(ulong) ? 1 : 2;	// number of NEON vectors, cross lane operations may have additional cost
+		static constexpr uint	parts	= sizeof(IntType) >= sizeof(ulong) ? 1 : 2;	// number of 64bit parts, cross lane operations may have additional cost
 		static constexpr uint	count	= sizeof(Native_t) / sizeof(IntType);
 		using Array_t					= StaticArray< Scalar_t, count >;
 		StaticAssert( sizeof(Array_t) == sizeof(Native_t) );
@@ -924,7 +924,7 @@ namespace AE::Base
 
 	// conversion //
 		template <uint Idx>
-		ND_ auto	Lane ()									C_NE___;
+		ND_ auto	Part ()									C_NE___;
 
 		template <uint X, uint Y, uint Z, uint W,  typename T = Scalar_t> requires( sizeof(T)==4 )
 		ND_ Self	Swizzle ()								C_NE___;
@@ -1018,7 +1018,7 @@ namespace AE::Base
 	{
 	// types
 	public:
-		static constexpr uint	lanes	= 2;	// number of NEON vectors, cross lane operations may have additional cost
+		static constexpr uint	parts	= 2;	// number of 64bit parts, cross lane operations may have additional cost
 		static constexpr uint	count	= 8;
 
 		using Scalar_t		= half;
@@ -1262,7 +1262,7 @@ namespace AE::Base
 
 	// conversion //
 		template <uint Idx>
-		ND_ auto	Lane ()										C_NE___;
+		ND_ auto	Part ()										C_NE___;
 
 		void		ToArray (OUT float16_t* dst)				C_NE___	{ NonNull(dst);  vst1q_f16( OUT dst, _value ); }
 		void		ToArray (OUT Scalar_t* dst)					C_NE___	{ ToArray( Base::Cast<float16_t>(dst) ); }
@@ -1316,7 +1316,7 @@ namespace AE::Base
 	// types
 	public:
 		static constexpr uint	count	= 4;
-		static constexpr uint	lanes	= 1;
+		static constexpr uint	parts	= 1;
 
 		using Scalar_t		= float;
 		using Self			= SimdFloat4;
@@ -1524,7 +1524,7 @@ namespace AE::Base
 
 	// conversion //
 		template <uint Idx>
-		ND_ Self	Lane ()										C_NE___ { StaticAssert( Idx < lanes );  return *this; }
+		ND_ Self	Part ()										C_NE___ { StaticAssert( Idx < parts );  return *this; }
 
 		template <uint X, uint Y, uint Z, uint W>
 		ND_ Self	Swizzle ()									C_NE___;
@@ -1591,7 +1591,7 @@ namespace AE::Base
 	// types
 	public:
 		static constexpr uint	count	= 2;
-		static constexpr uint	lanes	= 1;
+		static constexpr uint	parts	= 1;
 
 		using Scalar_t		= double;
 		using Self			= SimdDouble2;
@@ -1783,7 +1783,7 @@ namespace AE::Base
 
 	// conversion //
 		template <uint Idx>
-		ND_ Self	Lane ()										C_NE___ { StaticAssert( Idx < lanes );  return *this; }
+		ND_ Self	Part ()										C_NE___ { StaticAssert( Idx < parts );  return *this; }
 
 		template <uint X, uint Y>
 		ND_ Self	Swizzle ()									C_NE___;

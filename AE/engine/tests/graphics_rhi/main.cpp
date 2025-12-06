@@ -82,7 +82,7 @@ static void  RenderTests (RC<VFS::IVirtualFileStorage> assetStorage, RC<VFS::IVi
 	extern "C" AE_DLL_EXPORT int Tests_GraphicsRHI2 (VFS::IVirtualFileStorage* assetStorage,
 													 VFS::IVirtualFileStorage* refStorage)
 	{
-		StaticLogger::LoggerDbgScope log{};
+		StaticLogger::LoggerScope log{};
 
 		RenderTests( RC{assetStorage}, RC{refStorage} );
 		return 0;

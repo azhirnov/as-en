@@ -14,7 +14,7 @@
 		RC<Image>	ds1		= Image( EPixelFormat::Depth32F, SurfaceSize() );		ds1.Name( "RT-Depth1" );
 		RC<Image>	ds2		= Image( EPixelFormat::Depth16, SurfaceSize() );		ds2.Name( "RT-Depth2" );
 		RC<Scene>	scene	= Scene();
-		
+
 		// create full screen quad
 		{
 			RC<UnifiedGeometry>		geometry = UnifiedGeometry();

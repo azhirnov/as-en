@@ -84,7 +84,7 @@ namespace
 		const T	ulp = Bits{x}.MinDelta();
 		const T	a	= x + ulp;
 		const T	b	= x + (ulp * T(0.5));
-		
+
 		Bits	x0 {Abs(x)};
 		Bits	a0 {a};
 		Bits	b0 {b};
@@ -121,7 +121,7 @@ namespace
 
 		float	f3	= Float32Bits::LargestNormal().AsFloatPoint();
 		TEST( f3 == FLT_MAX );
-		
+
 		IsMinDelta( 0.f );
 		IsMinDelta( 1.f );
 		IsMinDelta( 1.0e-2f );
@@ -131,7 +131,7 @@ namespace
 		IsMinDelta( 1.0e-36f );
 		IsMinDelta( FLT_MIN );
 		IsMinDelta( FLT_TRUE_MIN );
-		
+
 		IsMinDelta( -0.f );
 		IsMinDelta( -1.f );
 		IsMinDelta( -2.f );
@@ -150,7 +150,7 @@ namespace
 		IsMinDelta( FLT_MAX );
 		IsMinDelta( Float32Bits::NaN().AsFloatPoint() );
 		IsMinDelta( Float32Bits::Inf().AsFloatPoint() );
-		
+
 		IsMinDelta( -12.0e+5f );
 		IsMinDelta( -723.0e+11f );
 		IsMinDelta( -95.0e+26f );
@@ -181,7 +181,7 @@ namespace
 		IsMinDelta( 1.0e-306 );
 		IsMinDelta( DBL_MIN );
 		IsMinDelta( DBL_TRUE_MIN );
-		
+
 		IsMinDelta( -0.0 );
 		IsMinDelta( -1.0 );
 		IsMinDelta( -2.0 );
@@ -200,7 +200,7 @@ namespace
 		IsMinDelta( DBL_MAX );
 		IsMinDelta( Float64Bits::NaN().AsFloatPoint() );
 		IsMinDelta( Float64Bits::Inf().AsFloatPoint() );
-		
+
 		IsMinDelta( -12.0e+5 );
 		IsMinDelta( -723.0e+101 );
 		IsMinDelta( -95.0e+206 );
@@ -572,7 +572,7 @@ namespace
 	  #if 0	// compilation error
 		TEST_Eq( POTValue{ 256_b }.GetPOT(),		8 );	// use 'POTBytes' instead
 	  #endif
-		
+
 		TEST( MinValue<POTValue>().GetPOT() == -1 );
 		TEST( MaxValue<POTValue>().GetPOT() == MaxValue<sbyte>() );
 	}

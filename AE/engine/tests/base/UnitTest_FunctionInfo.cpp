@@ -12,7 +12,7 @@ public:
 	static void F4 (double, int);
 
 	float F5 () noexcept;
-	
+
 	static void F6 (double, int) noexcept;
 };
 

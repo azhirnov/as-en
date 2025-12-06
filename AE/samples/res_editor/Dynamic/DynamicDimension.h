@@ -98,7 +98,7 @@ namespace AE::ResEditor
 		ND_ static uint2	_GetXY (EnableRCBase*)					__NE___;
 		ND_ static uint		_GetArea (EnableRCBase*)				__NE___;
 		ND_ static uint		_GetVolume (EnableRCBase*)				__NE___;
-		
+
 		ND_ static uint3	_GetFloorPOT (EnableRCBase*)			__NE___;
 		ND_ static uint3	_GetDim (EnableRCBase*)					__NE___;
 
@@ -423,7 +423,7 @@ namespace AE::ResEditor
 		ASSERT( _numDimensions == EImageDim_3D );
 		return MakeRC<DynamicUInt>( RC<>{GetRC()}, &_GetVolume );
 	}
-	
+
 /*
 =================================================
 	GetFloorPOT

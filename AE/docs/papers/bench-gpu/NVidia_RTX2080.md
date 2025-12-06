@@ -90,7 +90,7 @@ Subgroup occupancy, red - full subgroup, blue - very low number of threads per s
 
 ### Subgroups and independent thread scheduling
 
-In [UniqueIDs sample](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/scripts/samples-compute/UniqueIDs-1.as) only on NV `subgroupElect()` may executes multiple times per subgroup.
+In [UniqueIDs sample](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/scripts/compute/UniqueIDs-1.as) only on NV `subgroupElect()` may executes multiple times per subgroup.
 Possible explanation is: each branch create independent set of threads so `subgroupElect()` affects only this threads instead of whole subgroup.
 
 
@@ -438,7 +438,7 @@ TODO
 
 * RGBA8_UNorm texture with random access [[9](../GPU_Benchmarks.md#9-Texture-cache)]
 	- Measured cache size: 32 KB, 1 MB, 4MB.
-	- 8 texels per pixel, 5.76MPix, 737MB.
+	- 8 texels per pixel, 4 texels for linear filter, 5.76MPix, 737 MB read per frame.
 	- from specs: only 32KB of L1 cache is reserved for texture cache.
 	- textureGather() has same performance as texture() with linear sampling.
 
@@ -499,7 +499,7 @@ Possible explanation: triangle is clipped, but hardware can not rasterize rectan
 	| texture & sampler index | 2.25            | 2.27          | 2.30          | 3.95           |
 
 * __depth pre-pass__ [[14.2](../GPU_Benchmarks.md#14-Nonuniform)]<br/>
-	dpp = 0.5ms, 
+	dpp = 0.5ms,
 	Scale=0.2, Dim=8K, ObjCount=32K
 
 	| nonuniform              | per object (ms) | per warp (ms) | per quad (ms) | per pixel (ms) |
@@ -518,4 +518,3 @@ Possible explanation: triangle is clipped, but hardware can not rasterize rectan
 	| texture layer           | 1.38            | 1.40          | 1.42          | 1.55           |
 	| texture index           | 1.39            | 1.41          | 1.45          | 2.22           |
 	| texture & sampler index | 1.39            | 1.41          | 1.46          | 2.18           |
-

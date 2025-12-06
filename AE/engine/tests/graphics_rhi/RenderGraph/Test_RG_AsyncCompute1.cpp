@@ -124,7 +124,7 @@ namespace
 		auto	read1_res = ctx.ReadbackImage( t.image[0], readback );
 		auto	read2_res = ctx.ReadbackImage( t.image[1], readback );
 		CHECK( read1_res.IsCompleted() and read2_res.IsCompleted() );
-		
+
 		t.result[0] = read1_res.Then( t,
 							[](Promise<ImageMemView> readRes, CoSafe<AC1_TestData &> t) -> InlineCoro<>
 							{
@@ -138,7 +138,7 @@ namespace
 								auto view = co_await readRes;
 								t->isOK[1] = t->imgCmp->Compare( view );
 							});
-		
+
 		ctx.AccumBarriers().MemoryBarrier( EResourceState::CopyDst, EResourceState::Host_Read );
 
 		RenderCoro_Execute( ctx );
@@ -149,7 +149,7 @@ namespace
 	AsyncCoro  AC1_FrameTask (AC1_TestData& t)
 	{
 		auto&	rts = GraphicsScheduler();
-		
+
 		CommandBatchPtr		last_batch;
 
 		for (; t.frameIdx.load() < 3;)

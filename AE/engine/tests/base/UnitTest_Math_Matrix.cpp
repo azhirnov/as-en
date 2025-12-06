@@ -355,12 +355,12 @@ namespace
 		float2	a1 = float3x2{} * float3{};
 		float2	a2 = float4x2{} * float4{};
 		Unused( a0, a1, a2 );
-		
+
 		float3	a3 = float2x3{} * float2{};
 		float3	a4 = float3x3{} * float3{};
 		float3	a5 = float4x3{} * float4{};
 		Unused( a3, a4, a5 );
-		
+
 		float4	a6 = float2x4{} * float2{};
 		float4	a7 = float3x4{} * float3{};
 		float4	a8 = float4x4{} * float4{};
@@ -370,12 +370,12 @@ namespace
 		float3	b1 = float2{} * float3x2{};
 		float4	b2 = float2{} * float4x2{};
 		Unused( b0, b1, b2 );
-		
+
 		float2	b3 = float3{} * float2x3{};
 		float3	b4 = float3{} * float3x3{};
 		float4	b5 = float3{} * float4x3{};
 		Unused( b3, b4, b5 );
-		
+
 		float2	b6 = float4{} * float2x4{};
 		float3	b7 = float4{} * float3x4{};
 		float4	b8 = float4{} * float4x4{};
@@ -486,7 +486,7 @@ namespace
 		TEST( All( Equal( g6, g1.AxisZ(), 1_pct )));
 	}
 
-	
+
 	static float  ToLinearDepth (float nonLinearUnormDepth, float near, float far)
 	{
 		// based on FastUnProjectZ
@@ -543,7 +543,7 @@ namespace
 			float	b = ToNonlinearDepth( a, n, f );
 			CHECK( Equal( norm_z, b, 0.1_pct ));
 		}
-		
+
 		for (float norm_z = 0.0f; norm_z < 1.0f; norm_z += 0.01f)
 		{
 			float	a = ToNonlinearDepthRevZ( norm_z, n, f );
@@ -575,7 +575,7 @@ namespace
 				float	non_linear2		= ToNonlinearDepth( linear_norm, n, f );
 				float	linear_norm2	= ToLinearDepth( non_linear, n, f );
 				float	linear2			= p.FastUnProjectZ( non_linear );
-			
+
 				CHECK( Equal( non_linear, non_linear1, 0.1_pct ));
 				CHECK( Equal( non_linear, non_linear2, 0.1_pct ));
 				CHECK( Equal( linear_norm, linear_norm2, 0.1_pct ));
@@ -612,7 +612,7 @@ namespace
 				float	non_linear2		= ToNonlinearDepth( linear_norm, n, f );
 			//	float	linear_norm2	= ToLinearDepth( non_linear, n, f );
 				float	linear2			= float4x4::FastUnProjectZInf( n, non_linear );
-			
+
 				CHECK( Equal( non_linear, non_linear1, 0.1_pct ));
 				CHECK( Equal( non_linear, non_linear2, 0.1_pct ));
 			//	CHECK( Equal( linear_norm, linear_norm2, 20_pct ));
@@ -628,7 +628,7 @@ namespace
 		auto	p1 = float4x4::InfinitePerspective( 60_deg, 1.5f, n );
 		TestInf( p1 );
 
-		
+
 		const auto	TestRevZ = [n, f] (const float4x4 &p)
 		{{
 			for (float linear_norm = 0.0f; linear_norm <= 1.0f; linear_norm += 0.01f)
@@ -647,7 +647,7 @@ namespace
 				float	non_linear2		= ToNonlinearDepthRevZ( linear_norm, n, f );
 				float	linear_norm2	= ToLinearDepthRevZ( non_linear, n, f );
 				float	linear2			= p.FastUnProjectZ( non_linear );
-			
+
 				CHECK( Equal( non_linear, non_linear1, 0.1_pct ));
 				CHECK( Equal( non_linear, non_linear2, 0.1_pct ));
 				CHECK( Equal( linear_norm, linear_norm2, 0.1_pct ));
@@ -684,7 +684,7 @@ namespace
 			//	float	non_linear2		= ToNonlinearDepthRevZ( linear_norm, n, f );
 			//	float	linear_norm2	= ToLinearDepthRevZ( non_linear, n, f );
 				float	linear2			= float4x4::FastUnProjectRevZInf( n, non_linear );
-			
+
 				CHECK( Equal( non_linear, non_linear1, 0.1_pct ));
 			//	CHECK( Equal( non_linear, non_linear2, 0.1_pct ));
 			//	CHECK( Equal( linear_norm, linear_norm2, 20_pct ));

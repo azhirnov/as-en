@@ -11,7 +11,7 @@ struct FoldExpr
 private:
 	template <typename Seq>
 	struct _ApplyExceptLastHelper;
-	
+
 	template <uint ...Indices>
 	struct _ApplyExceptLastHelper< UIntSequence< Indices... >>
 	{
@@ -25,7 +25,7 @@ private:
 public:
 	template <typename Arg0, typename ...Args>
 	NdCx__ static exact_t  First (Arg0 &&arg0, Args&& ...)		__NE___	{ return FwdArg<Arg0>(arg0); }
-	
+
 	# if defined(AE_COMPILER_CLANG) or defined(AE_COMPILER_CLANG_CL)
 	#	pragma clang diagnostic push
 	#	pragma clang diagnostic ignored "-Wunused-result"
@@ -33,12 +33,12 @@ public:
 
 	template <typename ...Args>
 	NdCx__ static exact_t  Last (Args&& ...args)				__NE___	{ return (FwdArg<Args>(args), ... ); }
-	
+
 	# if defined(AE_COMPILER_CLANG) or defined(AE_COMPILER_CLANG_CL)
 	#	pragma clang diagnostic pop
 	# endif
 
-	
+
 	template <typename FN, typename ...Args>
 	NdCxIA static exact_t  ApplyExceptLast (FN&& fn, Args&& ...args) __NE___
 	{

@@ -56,7 +56,7 @@
 //-----------------------------------------------------------------------------
 #ifdef GENTEX
 	#include "InvocationID.glsl"
-	
+
 	void Main ()
 	{
 		uint2	pos = uint2(GetGlobalCoord().xy) / 32;

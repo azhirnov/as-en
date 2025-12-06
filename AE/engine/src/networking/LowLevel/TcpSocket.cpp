@@ -3,6 +3,12 @@
 #include "networking/LowLevel/TcpSocket.h"
 #include "networking/LowLevel/PlatformSpecific.cpp.h"
 
+#ifdef AE_PLATFORM_WINDOWS
+# ifndef far
+#	define far
+# endif
+#endif
+
 namespace AE::Networking
 {
 
@@ -469,22 +475,25 @@ namespace AE::Networking
 		wait_time.tv_sec	= 0;
 		wait_time.tv_usec	= 0;
 
-		fd_set	socket_set = {};
+		NativeSocket_t	socket = BitCast<NativeSocket_t>(_handle);
 
-	  #ifdef AE_WINDOWS_SOCKET
-		socket_set.fd_count		= 1;
-		socket_set.fd_array[0]	= BitCast<NativeSocket_t>(_handle);
-	  #else
-		FD_ZERO( &socket_set );
-		FD_SET( BitCast<NativeSocket_t>(_handle), &socket_set );
-	  #endif
+		fd_set	read_fds, write_fds;
 
-		int	count = ::select( 1, &socket_set, &socket_set, null, &wait_time );
+		FD_ZERO( &read_fds );
+		FD_ZERO( &write_fds );
+
+		FD_SET( socket, &read_fds );
+		FD_SET( socket, &write_fds );
+
+		int	count = ::select( int(socket)+1, &read_fds, &write_fds, null, &wait_time );
 		if ( count == 0 )
 			return CheckError( EStatus::Connecting );	// select() timeout
 
 		if ( count > 0 )
-			return CheckError( EStatus::Connected );
+		{
+			if ( FD_ISSET( socket, &write_fds ))
+				return CheckError( EStatus::Connected );
+		}
 
 		const auto	err = PlatformUtils::GetNetworkErrorCode();
 
@@ -493,7 +502,7 @@ namespace AE::Networking
 
 		return EStatus::Failed;
 	}
-	
+
 /*
 =================================================
 	NewConnectionCount
@@ -512,7 +521,7 @@ namespace AE::Networking
 		FD_ZERO( &socket_set );
 		FD_SET( BitCast<NativeSocket_t>(_handle), &socket_set );
 	  #endif
-		
+
 		struct timeval wait_time;
 		wait_time.tv_sec	= 0;
 		wait_time.tv_usec	= int(timeout.count());

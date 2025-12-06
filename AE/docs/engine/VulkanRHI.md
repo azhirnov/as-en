@@ -309,6 +309,7 @@ Source folder: [Vulkan backend](https://github.com/azhirnov/as-en/blob/dev/AE/en
 - VK_KHR_storage_buffer_storage_class - ???
 - VK_KHR_variable_pointers - ???
 - VK_KHR_shader_untyped_pointers - ???
+- GL_EXT_shared_memory_block - ???
 
 **Will not be supported**
 - GL_EXT_vulkan_glsl_relaxed

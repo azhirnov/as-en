@@ -31,9 +31,9 @@ namespace AE::Base
 		template <typename B>
 		__Cx__ explicit THashVal (THashVal<B> h)				__NE___ : _value{h.template Cast<T>()} {}
 
-		NdCx__ bool	operator == (const THashVal &rhs)			C_NE___	{ return _value == rhs._value; }
-		NdCx__ bool	operator != (const THashVal &rhs)			C_NE___	{ return _value != rhs._value; }
-		NdCx__ bool	operator >  (const THashVal &rhs)			C_NE___	{ return _value > rhs._value; }
+		NdCx__ bool	 operator == (const THashVal &rhs)			C_NE___	{ return _value == rhs._value; }
+		NdCx__ bool	 operator != (const THashVal &rhs)			C_NE___	{ return _value != rhs._value; }
+		NdCx__ bool	 operator >  (const THashVal &rhs)			C_NE___	{ return _value > rhs._value; }
 		NdCx__ bool  operator <  (const THashVal &rhs)			C_NE___	{ return _value < rhs._value; }
 
 		__Cx__ THashVal&  operator << (const THashVal &rhs)		__NE___	{ Append( rhs );  return *this; }
@@ -128,12 +128,7 @@ namespace AE::Base
 	ND_ forceinline HashVal  HashOf (const float &value, uint ignoreMantissaBits = (23-10)) __NE___
 	{
 		ASSERT( ignoreMantissaBits < 23 );
-		uint	dst;
-	  #ifdef __cpp_lib_bit_cast
-		dst = std::bit_cast<uint>( value );
-	  #else
-		std::memcpy( OUT &dst, &value, sizeof(dst) );
-	  #endif
+		uint	dst = std::bit_cast<uint>( value );
 		dst &= ~((1u << ignoreMantissaBits)-1);
 		return HashVal{ std::hash<uint>{}( dst )};
 	}
@@ -146,12 +141,7 @@ namespace AE::Base
 	ND_ forceinline HashVal  HashOf (const double &value, uint ignoreMantissaBits = (52-10)) __NE___
 	{
 		ASSERT( ignoreMantissaBits < 52 );
-		ulong	dst;
-	  #ifdef __cpp_lib_bit_cast
-		dst = std::bit_cast<ulong>( value );
-	  #else
-		std::memcpy( OUT &dst, &value, sizeof(dst) );
-	  #endif
+		ulong	dst = std::bit_cast<ulong>( value );
 		dst &= ~((1ull << ignoreMantissaBits)-1);
 		return HashVal{ std::hash<ulong>{}( dst )};
 	}

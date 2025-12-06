@@ -16,7 +16,7 @@ if ((TARGET "ShaderTrace") AND ${AE_ENABLE_VULKAN})
 	if (TARGET "SPIRV-Cross-lib")
 		target_link_libraries( "Tests.ShaderTrace" PUBLIC "SPIRV-Cross-lib" )
 	endif()
-	
+
 	UseEnginePCH2( "Tests.ShaderTrace" )
 
 	add_test( NAME "Tests.ShaderTrace" COMMAND "Tests.ShaderTrace" )

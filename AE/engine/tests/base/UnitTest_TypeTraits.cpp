@@ -338,7 +338,7 @@ namespace
 		StaticAssert( not IsPointer< int (Class::*) (int) >);
 		StaticAssert( not IsPointer< int (Class::*) (int) const >);
 		StaticAssert( not IsPointer< int (Class::*) >);
-		
+
 		StaticAssert(     IsAnyPointer< int* >);
 		StaticAssert(     IsAnyPointer< int const* >);
 		StaticAssert(     IsAnyPointer< int const* const >);
@@ -349,7 +349,7 @@ namespace
 		StaticAssert(     IsAnyPointer< int (Class::*) (int) >);
 		StaticAssert(     IsAnyPointer< int (Class::*) (int) const >);
 		StaticAssert(     IsAnyPointer< int (Class::*) >);
-		
+
 		StaticAssert( not IsFunctionPointer< int* >);
 		StaticAssert( not IsFunctionPointer< int const* >);
 		StaticAssert( not IsFunctionPointer< int const* const >);
@@ -360,7 +360,7 @@ namespace
 		StaticAssert( not IsFunctionPointer< int (Class::*) (int) >);
 		StaticAssert( not IsFunctionPointer< int (Class::*) (int) const >);
 		StaticAssert( not IsFunctionPointer< int (Class::*) >);
-		
+
 		StaticAssert( not IsMemberPointer< int* >);
 		StaticAssert( not IsMemberPointer< int const* >);
 		StaticAssert( not IsMemberPointer< int const* const >);
@@ -382,7 +382,7 @@ namespace
 		StaticAssert( not IsMemberObjectPointer< int (Class::*) (int) >);
 		StaticAssert( not IsMemberObjectPointer< int (Class::*) (int) const >);
 		StaticAssert(     IsMemberObjectPointer< int (Class::*) >);
-		
+
 		StaticAssert( not IsMemberFunctionPointer< int* >);
 		StaticAssert( not IsMemberFunctionPointer< int const* >);
 		StaticAssert( not IsMemberFunctionPointer< int const* const >);
@@ -406,7 +406,7 @@ namespace
 	{
 		return in == 0 and g_Var1_NoSideEffects;
 	}
-	
+
 	AE_NOSIDEEFFECTS bool  NoSideEffects_Test2 (int in)
 	{
 		if ( in == 1 )
@@ -462,7 +462,7 @@ namespace
 
 		return fn();
 	}
-	
+
 
 	template <typename T1, typename T2>
 	concept Test_RequiresAdd = requires(T1 a, T2 b)
@@ -495,7 +495,7 @@ namespace
 	{
 		{ &obj.m } -> SameAs<int *>;
 	};
-	
+
 	template <typename T>
 	concept Test_HasIntMember5 = requires
 	{
@@ -530,7 +530,7 @@ namespace
 		#endif
 		StaticAssert( Test_HasIntMember4< ClassA >);
 		StaticAssert( Test_HasIntMember5< ClassA >);
-			
+
 		StaticAssert( not Test_HasIntMember1< ClassB >);
 		StaticAssert( not Test_HasIntMember2< ClassB >); // const int&
 		#ifdef __cpp_auto_cast
@@ -538,7 +538,7 @@ namespace
 		#endif
 		StaticAssert( not Test_HasIntMember4< ClassB >); // const int*
 		StaticAssert( not Test_HasIntMember5< ClassB >);
-			
+
 		StaticAssert( not Test_HasIntMember1< ClassC >);
 		StaticAssert( Test_HasIntMember2< ClassC >);
 		#ifdef __cpp_auto_cast
@@ -572,7 +572,7 @@ namespace
 #endif
 	//-----------------------------------------------------
 
-	
+
 	ND_ static constexpr bool  CxFunction (uint value) __NE___
 	{
 		ASSERT_Cx( value != 3 );
@@ -700,7 +700,7 @@ namespace
 
 		const auto	Lambda1 = [] (int) {};
 		const auto	Lambda2 = [j = 0u] (int) { Unused(j); };
-		
+
 		StaticAssert( IsEmpty< decltype(Lambda1) >);
 		StaticAssert( not IsEmpty< decltype(Lambda2) >);
 
@@ -712,7 +712,7 @@ namespace
 	template <typename T0> struct Tmpl1;
 	template <typename T0, typename T1> struct Tmpl2;
 	template <typename T0, typename T1, typename T2> struct Tmpl3;
-	
+
 	static void  Test_GetNumberOfTemplateArgs ()
 	{
 		StaticAssert( GetNumberOfTemplateArgs< Tmpl1 >() == 1 );
@@ -784,7 +784,7 @@ namespace
 			StaticAssert(	not	IsTemplateArgConstRef< decltype(Lambda4), 2 >);
 			StaticAssert(	not	IsTemplateArgConstRef< decltype(Lambda5), 2 >);
 			StaticAssert(	not	IsTemplateArgConstRef< decltype(Lambda6), 1 >);
-			
+
 			// IsTemplateArgRef
 			StaticAssert(	not	IsTemplateArgRef< decltype(Lambda1), 2 >);
 			StaticAssert(	not	IsTemplateArgRef< decltype(Lambda2), 2 >);

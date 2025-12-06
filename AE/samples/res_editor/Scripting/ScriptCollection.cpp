@@ -60,7 +60,7 @@ namespace AE::ResEditor
 		CHECK_THROW_MSG( _map.emplace( key, value ).second,
 			"Variable '"s << key << "' is already exists" );
 	}
-	
+
 /*
 =================================================
 	Add*
@@ -149,7 +149,7 @@ namespace AE::ResEditor
 
 		return ScriptRC<T>{result}.Detach();
 	}
-	
+
 /*
 =================================================
 	Get*
@@ -162,7 +162,7 @@ namespace AE::ResEditor
 	void  ScriptCollection::GetBufferArray (const String &key, OUT ScriptArray<ScriptBufferPtr> &result) C_Th___ {
 		_GetArr< ScriptBufferPtr >( key, OUT result );
 	}
-	
+
 	template <typename T>
 	void  ScriptCollection::_GetArr (const String &key, OUT ScriptArray<T> &result) C_Th___
 	{

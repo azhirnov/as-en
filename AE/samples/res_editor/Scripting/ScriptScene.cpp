@@ -241,7 +241,7 @@ namespace AE::ResEditor
 	{
 		arg.state |= EResourceState::FragmentShader;
 	}
-	
+
 /*
 =================================================
 	NextSubpass
@@ -261,7 +261,7 @@ namespace AE::ResEditor
 
 		_subpassName = passName;
 	}
-	
+
 /*
 =================================================
 	_MoveTo
@@ -365,13 +365,13 @@ namespace AE::ResEditor
 
 						CHECK_THROW_MSG( it->second->mipmap == out.mipmap,
 							String{msg} << "New mipmap level (" << ToString( out.mipmap.Get() ) << ") is not equal to previous (" << ToString( it->second->mipmap.Get() ) << ")." );
-						
+
 						if ( not IsFirstElement( subpass, _subpasses ))
 						{
 							CHECK_THROW_MSG( out.loadOp == EAttachmentLoadOp::Load,
 								"Attachment '"s << out.name << "' in subpass '" << subpass->_passName << "' must have loadOp = Load, other ops will be ignored" );
 						}
-						
+
 						if ( not IsLastElement( subpass, _subpasses ))
 						{
 							CHECK_THROW_MSG( out.storeOp == EAttachmentStoreOp::Store,
@@ -462,7 +462,8 @@ namespace AE::ResEditor
 		_BindBaseRenderPass( binder, False{"without blending"}, True{"with RWAttachment"} );
 
 		binder.Comment( "Add path to single pipeline or folder with pipelines.\n"
-						"Scene geometry will be linked with compatible pipeline or error will be generated." );
+						"Scene geometry will be linked with compatible pipeline or error will be generated.\n"
+						"Use star symbol: '*<file-suffix>' to add current file path without extension to suffix." );
 		AS_METHOD( binder, ScriptSceneGraphicsPass::AddPipeline,			"AddPipeline",			{"pplnFile"} );
 		AS_METHOD( binder, ScriptSceneGraphicsPass::AddPipelines,			"AddPipelines",			{"pplnFolder"} );
 
@@ -471,7 +472,7 @@ namespace AE::ResEditor
 
 		binder.Comment( "Can be used only if pass hasn't attachments." );
 		AS_METHOD( binder, ScriptSceneGraphicsPass::_SetDynamicDimension2,	"SetDimension",			{} );
-			
+
 		//binder.Comment( "" );
 		AS_METHOD( binder, ScriptSceneGraphicsPass::NextSubpass1,			"NextSubpass",			{} );
 		AS_METHOD( binder, ScriptSceneGraphicsPass::NextSubpass2,			"NextSubpass",			{"passName"} );
@@ -556,7 +557,7 @@ namespace AE::ResEditor
 			else
 				return "pass-"s << ToString( std::distance( subpasses.data(), &subpass ));
 		}};
-		
+
 		for (auto& subpass : subpasses)
 		{
 			subpass->_args.ValidateArgs();
@@ -566,7 +567,7 @@ namespace AE::ResEditor
 
 		// compatible render pass
 		CompatibleRenderPassDescPtr	compat_rp{ new CompatibleRenderPassDesc{ "compat.rp" }};
-		
+
 		for (auto& subpass : subpasses) {
 			compat_rp->AddSubpass( SubpassName( subpass ));
 		}
@@ -578,7 +579,7 @@ namespace AE::ResEditor
 
 			att->format		= desc.format;
 			att->samples	= desc.samples;
-		
+
 			for (auto& subpass : subpasses)
 			{
 				const auto	sp_name = SubpassName( subpass );
@@ -587,7 +588,7 @@ namespace AE::ResEditor
 				{
 					if ( out.name != out2.name )
 						continue;
-				
+
 					if ( not out.inName.empty() and out.usage == EResourceUsage::InputAttachment )
 					{
 						att->AddUsage2( sp_name, EAttachment::Input,
@@ -626,7 +627,7 @@ namespace AE::ResEditor
 					att->AddUsage( sp_name, type );
 					break;
 				}
-				
+
 				if ( not att->usageMap.contains( Graphics::SubpassName{sp_name} ))
 					att->AddUsage( sp_name, EAttachment::Preserve );
 			}
@@ -642,7 +643,7 @@ namespace AE::ResEditor
 
 			att->loadOp		= out2.loadOp;
 			att->storeOp	= out2.storeOp;
-			
+
 			for (auto& subpass : subpasses)
 			{
 				const auto	sp_name = SubpassName( subpass );
@@ -665,7 +666,7 @@ namespace AE::ResEditor
 						if ( subpasses.size() == 1 and out.loadOp == EAttachmentLoadOp::Load and out.storeOp == EAttachmentStoreOp::None )
 							state = EResourceState::DepthStencilTest;	// read-only
 					}
-					
+
 					// input attachment
 					if ( not out.inName.empty() )
 					{
@@ -709,7 +710,7 @@ namespace AE::ResEditor
 		// descriptor set layout
 		{
 			Unused( _CreateUBType() );	// throw
-			
+
 			DescriptorSetLayoutPtr	ds_layout{ new DescriptorSetLayout{ "pass.ds" }};
 			const auto				stage	= EShaderStages::AllGraphics;
 
@@ -718,7 +719,7 @@ namespace AE::ResEditor
 			if ( subpasses.size() == 1 )
 				subpasses.front()->_args.ArgsToDescSet( stage, ds_layout, ArraySize{1} );  // throw
 		}
-		
+
 		// descriptor set layout with input attachment
 		for (auto& subpass : subpasses)
 		{
@@ -739,13 +740,13 @@ namespace AE::ResEditor
 			}
 
 			subpass->_dslName = "subpass-"s << ToString( std::distance( subpasses.data(), &subpass )) << ".ds";
-			
+
 			DescriptorSetLayoutPtr	ds_layout{ new DescriptorSetLayout{ subpass->_dslName }};
 			const auto				stage	= EShaderStages::AllGraphics;
 
 			ds_layout->AddUniformBuffer( EShaderStages::AllGraphics, "un_PerPass", ArraySize{1}, "SceneGraphicsPassUB", EResourceState::ShaderUniform, False{} );
 			subpass->_args.ArgsToDescSet( stage, ds_layout, ArraySize{1} );  // throw
-			
+
 			for (auto [out, _] : WithIndex(subpass->_output))
 			{
 				if ( out.inName.empty() ) continue;
@@ -765,7 +766,7 @@ namespace AE::ResEditor
 				auto	state			= is_rw_att ?
 											(is_ds ? EResourceState::InputDepthStencilAttachment_RW : EResourceState::InputColorAttachment_RW) :
 											(is_ds ? EResourceState::InputDepthStencilAttachment : EResourceState::InputColorAttachment);
-				
+
 				if ( is_ds and not is_input_att )
 					state |= EResourceState::DSTestBeforeFS | EResourceState::DSTestAfterFS;
 
@@ -782,7 +783,7 @@ namespace AE::ResEditor
 
 		if ( GraphicsScheduler().GetFeatureSet().bufferDeviceAddress == FeatureSet::EFeature::RequireTrue )
 			CHECK_THROW( storage.CompilePipeline( se, ScriptExe::ScriptPassApi::ToPipelinePath( "ModelShared.as" ), include_dirs ));
-		
+
 		String	prev_defs = RVRef(storage.defaultShaderDefines);
 		for (auto& subpass : subpasses)
 		{
@@ -841,7 +842,7 @@ namespace AE::ResEditor
 //-----------------------------------------------------------------------------
 
 
-	
+
 /*
 =================================================
 	_ToPass2
@@ -901,7 +902,7 @@ namespace AE::ResEditor
 			"Failed to create descriptor set with layout '"s << _dslName << "' for pass '" << _passName << "'." );
 
 		_args.InitResources( OUT result->_resources, graphicsPass._rtech.packId );  // throw
-		
+
 		for (auto [out, i] : WithIndex(_output))
 		{
 			if ( out.inName.empty() ) continue;
@@ -1039,7 +1040,7 @@ namespace AE::ResEditor
 
 		result->_pipeline	= result->_rtech.rtech->GetRayTracingPipeline( ppln_name );
 		CHECK_THROW( result->_pipeline );
-		
+
 		#ifdef AE_ENABLE_VULKAN
 		{
 			auto&	res = res_mngr.GetResourcesOrThrow( result->_pipeline );

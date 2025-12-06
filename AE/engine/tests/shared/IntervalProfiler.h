@@ -18,17 +18,17 @@ struct IntervalProfiler
 public:
 	enum class EFlags
 	{
-		Unknown			= 0,
+		Unknown					= 0,
 
 		// sort
-		SortByName		= 1 << 0,
-		SortByPerf		= 1 << 1,
+		SortByName				= 1 << 0,
+		SortByPerf				= 1 << 1,
 
-		// exclude
-		ExcludeDelta	= 1 << 8,		// difference from previous to current, depends on sorting
-		ExcludeTime		= 1 << 9,
-		ExcludePerfDiff	= 1 << 10,		// difference from fastest to current
-		
+		// include
+		IncludeDelta			= 1 << 8,		// difference from previous to current, depends on sorting
+		IncludeTime				= 1 << 9,
+		IncludeDiffFromFastest	= 1 << 10,		// difference from fastest to current
+
 		_BITOPS_
 	};
 
@@ -48,6 +48,8 @@ private:
 		AddInfoFn_t			addInfoFn;
 	};
 
+	static constexpr EFlags		c_DefaultFlags = EFlags::SortByPerf | EFlags::IncludeTime | EFlags::IncludeDiffFromFastest;
+
 
 // variables
 private:
@@ -58,7 +60,7 @@ private:
 
 // methods
 public:
-	explicit IntervalProfiler (StringView name, EFlags flags = EFlags::SortByPerf) :
+	explicit IntervalProfiler (StringView name, EFlags flags = c_DefaultFlags) :
 		_testName{name}, _flags{flags} {}
 
 	~IntervalProfiler ()	{ PrintAndReset(); }
@@ -117,14 +119,14 @@ inline void  IntervalProfiler::PrintAndReset ()
 	{
 		auto&	line = lines.emplace_back();
 		line << t.name << '|';
-		
-		if ( NoBits( _flags, EFlags::ExcludeTime ))
+
+		if ( AnyBits( _flags, EFlags::IncludeTime ))
 		{
 			line << ToString(t.medium) << '|';
 		}
 
 		// perf diff
-		if ( NoBits( _flags, EFlags::ExcludePerfDiff ))
+		if ( AnyBits( _flags, EFlags::IncludeDiffFromFastest ))
 		{
 			double	fract	= min_time.count() == 0 ? 0.0 : (ToDouble( t.medium - min_time ) / ToDouble( min_time )) * 100.0;
 					fract	= Round( Abs( fract ));
@@ -142,12 +144,12 @@ inline void  IntervalProfiler::PrintAndReset ()
 		}
 
 		// diff from previous
-		if ( NoBits( _flags, EFlags::ExcludeDelta ))
+		if ( AnyBits( _flags, EFlags::IncludeDelta ))
 		{
 			double	fract	= prev.count() < 0 ? 0.0 :  (ToDouble( t.medium - prev ) / ToDouble( prev )) * 100.0;
 					fract	= Round( Abs( fract ));
 					prev	= t.medium;
-					
+
 			if ( fract != 0.0 )
 			{
 				String	s = ToString( fract, 1 );
@@ -304,7 +306,7 @@ inline void  IntervalProfiler::_FormatTable (ArrayView<String> lines, INOUT Stri
 		str << "-|-";
 	}
 	str.pop_back();
-	
+
 	// format table
 	for (usize i = 0; i < lines.size(); ++i)
 	{
@@ -313,10 +315,10 @@ inline void  IntervalProfiler::_FormatTable (ArrayView<String> lines, INOUT Stri
 		ushort			prev	= 0;
 
 		str << "\n| ";
-		
+
 		for (uint j = 0; j < max_cols; ++j)
 		{
-			StringView	part = SubString2( line, prev, sizes[j] );
+			StringView	part = SubStringBE( line, prev, sizes[j] );
 			ASSERT( not part.empty() );
 
 			str << part;

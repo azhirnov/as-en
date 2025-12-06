@@ -62,6 +62,11 @@
 		dm = DM_Unite( dm, SDF_Cylinder(	SDF_Move(pos, float3(-1.5, 0.0, 2.0)),	float2(0.4, 1.5)			), MTR_Object1 );
 		dm = DM_Unite( dm, SDF_Box(			SDF_Move(pos, float3( 1.5, 0.0, 2.0)),	float3(0.3)					), MTR_Object2 );
 		dm = DM_Unite( dm, SDF_Sphere(		SDF_Move(pos, float3( 0.0, 0.0, 2.0)),	0.3							), MTR_Object3 );
+
+		float3	pos2 = SDF_Move(pos, float3( 3.5, -1.5, 2.0));
+		pos2 = SDF_Rotate( pos2, QRotationX( ToRad(180.0) ));
+
+		dm = DM_Unite( dm, SDF_Cone(		pos2,									SinCos(float_Pi*0.1),	2.0	), MTR_Object1 );
 		return dm;
 	}
 
@@ -92,14 +97,17 @@
 	}
 
 
-	void mainImage (out float4 fragColor, in float2 fragCoord)
+	void mainImage (out float4 fragColor, in float2 fragCoord) //[[maximally_reconverges]]
 	{
 		// get ray from ViewProj matrix and pixel coordinate
-		Ray			ray = Ray_Perspective( un_PerPass.camera.invViewProj, un_PerPass.camera.pos, un_PerPass.camera.clipPlanes.x, gl.FragCoord.xy / iResolution.xy );
+		Ray			ray = Ray_Perspective( un_PerPass.camera.invViewProj, un_PerPass.camera.pos, un_PerPass.camera.clipPlanes.x, gl.FragCoord.xy * un_PerPass.invResolution );
 
 		DistAndMtr	dm = SphereTrace( ray );
 
 		Ray_Move( INOUT ray, dm.dist );
+
+		// TODO: must reconverge here for correct dxdy
+		//gl.subgroup.ExecutionBarrier();
 
 		const float3	light_dir	= Normalize( float3( 0.f, -1.0f, -0.7f ));
 		const float3	normal		= ComputeNormalInWS_dxdy( ray.pos );

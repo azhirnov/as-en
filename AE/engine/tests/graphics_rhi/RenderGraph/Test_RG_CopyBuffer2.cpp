@@ -27,14 +27,14 @@ namespace
 		ctx.AccumBarriers().BufferBarrier( t.buf_1, EResourceState::CopyDst, EResourceState::CopySrc );
 
 		ctx.CopyBuffer( t.buf_1, t.buf_2, {BufferCopy{ 0_b, 0_b, t.buf_size }} );
-		
+
 		t.result = ctx.ReadHostBuffer( t.buf_2, 0_b, t.buf_size ).Then( t,
 							[] (Promise<ArrayView<ubyte>> readRes, CoSafe<CB2_TestData &> t) -> InlineCoro<>
 							{
 								ArrayView<ubyte>  view = co_await readRes;
 								t->isOK = (view == t->buffer_data);
 							});
-		
+
 		ctx.AccumBarriers().BufferBarrier( t.buf_2, EResourceState::CopyDst, EResourceState::Host_Read );
 
 		RenderCoro_Execute( ctx );

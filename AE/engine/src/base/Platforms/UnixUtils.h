@@ -73,7 +73,6 @@ namespace AE::Base
 
 		// OS //
 		ND_ static String	GetComputerName ()												__NE___;
-		ND_ static String	GetUserName ()													__NE___;
 
 
 	private:

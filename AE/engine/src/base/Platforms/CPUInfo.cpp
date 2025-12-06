@@ -69,16 +69,16 @@ namespace AE::Base
 				<< "\n  AVX512 BW:         " << ToString( feats.AVX512_BW )
 				<< "\n  AVX512 IFMA: . . . " << ToString( feats.AVX512_IFMA )
 				<< "\n  AVX512 VBMI:       " << ToString( feats.AVX512_VBMI )
-				
+
 				<< "\n  AVX512 VBMI2:  . . " << ToString( feats.AVX512_VBMI2 )
 				<< "\n  AVX512 VPOPCNTDQ:  " << ToString( feats.AVX512_VPOPCNTDQ )
 				<< "\n  AVX512 BITALG: . . " << ToString( feats.AVX512_BITALG )
 				<< "\n  AVX512 VNNI:       " << ToString( feats.AVX512_VNNI )
 				<< "\n  AVX512 VPCLMULQDQ: " << ToString( feats.AVX512_VPCLMULQDQ )
 				<< "\n  AVX512 GFNI:       " << ToString( feats.AVX512_GFNI )
-				
+
 				<< "\n  AVX512 BF16: . . . " << ToString( feats.AVX512_BF16 )
-				
+
 				<< "\n  AVX 10:            " << ToString( feats.AVX_10 )
 
 			//	<< "\n  BMI2:              " << ToString( feats.BMI2 )
@@ -362,11 +362,13 @@ namespace AE::Base
 	LogicalCoreMask
 =================================================
 */
-	CpuArchInfo::CoreBits_t  CpuArchInfo::LogicalCoreMask () C_NE___
+	CpuArchInfo::CoreBits_t  CpuArchInfo::LogicalCoreMask (ECoreType excludeIfLessThan) C_NE___
 	{
 		CoreBits_t	mask;
-		for (auto& core : cpu.coreTypes) {
-			mask |= core.logicalBits;
+		for (auto& core : cpu.coreTypes)
+		{
+			if ( core.type < excludeIfLessThan )
+				mask |= core.logicalBits;
 		}
 		return mask;
 	}
@@ -376,11 +378,13 @@ namespace AE::Base
 	PhysicalCoreMask
 =================================================
 */
-	CpuArchInfo::CoreBits_t  CpuArchInfo::PhysicalCoreMask () C_NE___
+	CpuArchInfo::CoreBits_t  CpuArchInfo::PhysicalCoreMask (ECoreType excludeIfLessThan) C_NE___
 	{
 		CoreBits_t	mask;
-		for (auto& core : cpu.coreTypes) {
-			mask |= core.physicalBits;
+		for (auto& core : cpu.coreTypes)
+		{
+			if ( core.type < excludeIfLessThan )
+				mask |= core.physicalBits;
 		}
 		return mask;
 	}

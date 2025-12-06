@@ -121,7 +121,7 @@ if (TARGET "PipelineCompiler-shared" OR TARGET "PipelineCompiler-shared" OR TARG
 	endif()
 
 	UseEnginePCH2( "Tests.AssetPacker" )
-	
+
 	add_test( NAME "Tests.AssetPacker" COMMAND "Tests.AssetPacker" )
 
 endif()

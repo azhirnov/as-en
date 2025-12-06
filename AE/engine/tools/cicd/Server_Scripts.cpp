@@ -1129,7 +1129,9 @@ namespace AE::CICD
 		CHECK_THROW_MSG( proc.Execute( cmd, OUT output ), "get commit hash failed" );
 
 		usize	pos = Min( output.size(), output.find( '\t' ));
-		CHECK_THROW_MSG( pos == 40, "commit hash is not found" );
+		CHECK_THROW_MSG( pos == 40,
+			"can not get commit hash for branch '"s << branch << "'.\n" <<
+			"git output '" << output << "'" );
 
 		output.resize( pos );
 		return output;

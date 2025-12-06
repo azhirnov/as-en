@@ -12,7 +12,7 @@
 
 		if ( dbgVS ) name += ".dbg_vs";
 		if ( dbgFS ) name += ".dbg_fs";
-		
+
 		{
 			RC<PipelineLayout>		pl = PipelineLayout( "pl."+name );
 			pl.DSLayout( "pass",	 0, "pass.ds" );
@@ -61,7 +61,7 @@
 		{
 			RC<DescriptorSetLayout>	ds = DescriptorSetLayout( "mtr.ds" );
 			ds.UniformBuffer( EShaderStages::Vertex,	"un_PerObject", "UnifiedGeometryMaterialUB" );
-			
+
 			if ( name == "bindless-samp" )
 			{
 				array<string>	samplers = {
@@ -100,7 +100,7 @@
 //-----------------------------------------------------------------------------
 #ifdef SH_FRAG
 	#include "Hash.glsl"
-	
+
 	void Main ()
 	{
 		uint	tex_id	= uint(DHash12( gl.FragCoord.xy ) * float(un_Textures.length()));

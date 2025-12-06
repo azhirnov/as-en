@@ -73,7 +73,7 @@ namespace
 	}
 	//-----------------------------------------------------
 
-	
+
 	static uint			test3_trace_idx = 0;
 	static const RectI	test3_trace [] = {
 		/*a0*/{1,2, 3,4}
@@ -101,7 +101,7 @@ namespace
 	}
 	//-----------------------------------------------------
 
-	
+
 	static uint			test4_trace_idx = 0;
 	static const float2	test4_trace [] = {
 		/*s*/{1.1f, 1.1f}, /*m*/{2.f, 2.f}, /*ms*/{1.82f, 1.82f}

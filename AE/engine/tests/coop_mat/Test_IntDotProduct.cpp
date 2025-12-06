@@ -35,14 +35,14 @@ namespace
 			T	sum = 0;
 			for (uint j = 0; j < 4; ++j)
 			{
-				sum += T(a[j]) * T(b[j]); 
+				sum += T(a[j]) * T(b[j]);
 			}
 			output[i] = sum;
 		}
 
 		String	str		= "\n";
 		float	max_err	= 0.f;
-		
+
 		for (usize i = 0; i < refOutput.size(); ++i)
 		{
 			float	err	= Abs( (float(output[i]) - float(refOutput[i])) * 100.f / float(output[i]) );
@@ -81,14 +81,14 @@ namespace
 			T	sum = inputC[i];
 			for (uint j = 0; j < 4; ++j)
 			{
-				sum += T(a[j]) * T(b[j]); 
+				sum += T(a[j]) * T(b[j]);
 			}
 			output[i] = sum;
 		}
 
 		String	str		= "\n";
 		float	max_err	= 0.f;
-		
+
 		for (usize i = 0; i < refOutput.size(); ++i)
 		{
 			float	err	= Abs( (float(output[i]) - float(refOutput[i])) * 100.f / float(output[i]) );
@@ -179,7 +179,7 @@ namespace
 	}
 
 
-	static void  IntegerDotProduct_4x8BitPacked_MixedSignednessAccelerated_Test1 (Executor &ex)
+	static void  IntegerDotProduct_4x8BitPacked_MixedSignednessAccelerated_Test1 (Executor &)
 	{
 		// TODO
 	}
@@ -255,7 +255,7 @@ namespace
 	}
 
 
-	static void  IntegerDotProduct_AccumulatingSaturating_4x8BitPacked_MixedSignednessAccelerated_Test1 (Executor &ex)
+	static void  IntegerDotProduct_AccumulatingSaturating_4x8BitPacked_MixedSignednessAccelerated_Test1 (Executor &)
 	{
 		// TODO
 	}
@@ -272,19 +272,19 @@ extern void Test_IntDotProduct (Executor &ex)
 
 	if ( props.integerDotProduct8BitUnsignedAccelerated )
 	{} // TODO
-	
+
 	if ( props.integerDotProduct8BitSignedAccelerated )
 	{} // TODO
-	
+
 	if ( props.integerDotProduct8BitMixedSignednessAccelerated )
 	{} // TODO
 
 	if ( props.integerDotProduct4x8BitPackedUnsignedAccelerated )
 		IntegerDotProduct_4x8BitPacked_UnsignedAccelerated_Test1( ex );
-	
+
 	if ( props.integerDotProduct4x8BitPackedSignedAccelerated )
 		IntegerDotProduct_4x8BitPacked_SignedAccelerated_Test1( ex );
-	
+
 	if ( props.integerDotProduct4x8BitPackedMixedSignednessAccelerated )
 		IntegerDotProduct_4x8BitPacked_MixedSignednessAccelerated_Test1( ex );
 

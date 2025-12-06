@@ -357,7 +357,7 @@ namespace
 		AddPpln( IPass::EDebugMode::TimeHeatMap,	EFlags::Enable_ShaderTmProf,	PipelineName{"compute.TmProf"} );
 
 		auto	ppln = result->_pipelines.find( IPass::EDebugMode::Unknown )->second;
-		
+
 		#ifdef AE_ENABLE_VULKAN
 		{
 			auto&	res = res_mngr.GetResourcesOrThrow( ppln );
@@ -530,7 +530,7 @@ namespace AE::ResEditor
 				cs_line = uint(Parser::CalculateNumberOfLines( header )) - 1;
 			}
 		}
-		
+
 		const auto		flags	 = UIInteraction::Instance().graphics->shaderFlags;
 		EShaderOpt		sh_opt	 = Default;
 		EPipelineOpt	ppln_opt = Default;
@@ -545,10 +545,10 @@ namespace AE::ResEditor
 			sh_opt   = EShaderOpt::Optimize;
 			ppln_opt |= EPipelineOpt::Optimize;
 		}
-		
+
 		if ( flags.contains( UIInteraction::EShaderFlags::CaptureStatistics ))
 			ppln_opt |= EPipelineOpt::CaptureStatistics;
-		
+
 		if ( flags.contains( UIInteraction::EShaderFlags::CaptureInternalRepresentation ))
 			ppln_opt |= EPipelineOpt::CaptureInternalRepresentation;
 

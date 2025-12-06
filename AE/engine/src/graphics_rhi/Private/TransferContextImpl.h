@@ -317,7 +317,7 @@ namespace AE::Graphics {
 		}
 
 		ASSERT( buffers.size() == mem_view.Parts().size() );
-		
+
 		return	ReadbackBufferResult2{
 					Scheduler().Run(
 						ETaskQueue::PerFrame,

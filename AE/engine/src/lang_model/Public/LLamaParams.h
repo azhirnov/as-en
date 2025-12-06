@@ -132,7 +132,7 @@ namespace AE::LangModel::LLama
 #ifdef AE_ENABLE_LOGS
 namespace AE::Base
 {
-	
+
 /*
 =================================================
 	ToString (EBackend)

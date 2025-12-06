@@ -14,7 +14,7 @@ namespace AE::LangModel
 
 	ImportBitOperators;
 
-	
+
 	class ILanguageModel;
 	class ILanguageModelContext;
 	class ILoadingListener;

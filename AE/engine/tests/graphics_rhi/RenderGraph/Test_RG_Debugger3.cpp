@@ -82,7 +82,7 @@ namespace
 
 		auto	task1 = ctx.ReadbackImage( t.img, Default );
 		auto	task2 = t.debugger.ReadAll( ctx );
-		
+
 		t.result =
 			[] (auto readOp, auto dbgRes, auto& t) -> InlineCoro<>
 			{
@@ -96,9 +96,9 @@ namespace
 				if ( trace_str.size() == 1 )
 				{
 					const StringView	ms_ref_str =
-R"(//> gl_GlobalInvocationID: uint3 {0, 0, 0}
-//> gl_LocalInvocationID: uint3 {0, 0, 0}
-//> gl_WorkGroupID: uint3 {0, 0, 0}
+R"(//> gl_GlobalInvocationID: uint3 {0, 0, 0} | {0x0, 0x0, 0x0}
+//> gl_LocalInvocationID: uint3 {0, 0, 0} | {0x0, 0x0, 0x0}
+//> gl_WorkGroupID: uint3 {0, 0, 0} | {0x0, 0x0, 0x0}
 no source
 
 //> (out): float4 {0.000000, -0.500000, 0.000000, 1.000000}
@@ -110,7 +110,7 @@ no source
 //> (out): bool {true}
 31. if ( I == 0 )
 
-//> gl_PrimitiveTriangleIndicesEXT: uint3 {0, 1, 2}
+//> gl_PrimitiveTriangleIndicesEXT: uint3 {0, 1, 2} | {0x0, 0x1, 0x2}
 33. gl_PrimitiveTriangleIndicesEXT[0] = uvec3(0,1,2);
 
 //> SetMeshOutputs(): void
@@ -123,7 +123,7 @@ no source
 					t.isOK = ok;
 				}
 			}( task1.readOp, task2, t );
-		
+
 		ctx.AccumBarriers().MemoryBarrier( EResourceState::CopyDst, EResourceState::Host_Read );
 
 		RenderCoro_Execute( ctx );

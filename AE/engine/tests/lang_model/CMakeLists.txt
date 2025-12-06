@@ -10,7 +10,7 @@ if (TARGET "LangModel")
 	target_link_libraries( "Tests.LangModel" PUBLIC "LangModel" )
 
 	target_include_directories( "Tests.LangModel" PUBLIC ".." )	# from '_experimental' to 'tests' folder
-	
+
 	UseEnginePCH2( "Tests.LangModel" )
 
 	add_test( NAME "Tests.LangModel" COMMAND "Tests.LangModel" )

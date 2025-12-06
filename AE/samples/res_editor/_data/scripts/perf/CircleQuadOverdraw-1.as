@@ -135,7 +135,7 @@
 		RC<DynamicUInt>		shape		= DynamicUInt();
 		RC<DynamicUInt>		po2_count	= DynamicUInt();
 		RC<DynamicUInt>		draw_count	= DynamicUInt();
-		RC<DynamicUInt>		inst_count	= po2_count.PowOf2();
+		RC<DynamicUInt>		inst_count	= po2_count.Exp2();
 
 		for (uint i = 0; i < 4; ++i)
 		{

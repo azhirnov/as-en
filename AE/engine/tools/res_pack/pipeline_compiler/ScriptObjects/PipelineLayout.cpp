@@ -342,6 +342,45 @@ namespace
 
 /*
 =================================================
+	_DescriptorsMacros
+=================================================
+*/
+	String  PipelineLayout::_DescriptorsMacros (EShaderStages stages) C_Th___
+	{
+		String	str;
+		auto&	storage	= *ObjectStorage::Instance();
+
+		for (auto& ds : _dsLayouts)
+		{
+			if ( ds.Get<1>() == _DbgShaderTrace )
+				continue;
+
+			if ( auto ptr = ds.Get<0>() )
+			{
+				for (auto& [name, un] : ptr->GetUniforms())
+				{
+					if ( NoBits( un.stages, stages ))
+						continue;
+
+					const String	name_str = storage.GetName( name );
+					str << "#define DESCRIPTOR_" << ToString( un.type ) << '_' << name_str << '\n';
+				}
+			}
+		}
+
+		for (auto& pc : _pushConstants)
+		{
+			if ( NoBits( EShaderStages(0) | pc.Get<2>(), stages ))
+				continue;
+
+			str << "#define PUSHCONST_" << pc.Get<1>()->Typename() << '_' << pc.Get<0>() << '\n';
+		}
+
+		return str;
+	}
+
+/*
+=================================================
 	ToGLSL
 =================================================
 */
@@ -389,9 +428,9 @@ namespace
 			}
 		}
 
-		return types + str;
+		return types + str + _DescriptorsMacros( stages );
 	}
-	
+
 /*
 =================================================
 	ToHLSL
@@ -435,7 +474,7 @@ namespace
 			}
 		}
 
-		return types + str;
+		return types + str + _DescriptorsMacros( stages );
 	}
 
 /*
@@ -477,6 +516,8 @@ namespace
 				}
 			}
 		}
+
+		declStr << _DescriptorsMacros( stages );
 	}
 
 /*

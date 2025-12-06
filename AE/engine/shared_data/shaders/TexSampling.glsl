@@ -167,8 +167,8 @@ float2  UVLerpFactor (float2 uv, gl::CombinedTex2D<float> tex)
 	  #if 1
 		float	Pmax	= Max( Length(dx), Length(dy) );
 	  #elif 0
-		float	Px		= ( Abs(dx.x) + Abs(dy.x) ) * Sqrt(2.0);
-		float	Py		= ( Abs(dx.y) + Abs(dy.y) ) * Sqrt(2.0);
+		float	Px		= ( Abs(dx.x) + Abs(dy.x) ) * float_SqrtOf2;
+		float	Py		= ( Abs(dx.y) + Abs(dy.y) ) * float_SqrtOf2;
 		float	Pmax	= Max( Px, Py );
 	  #elif 0
 		float	Px		= Max( Abs(dx.x), Abs(dy.x) );

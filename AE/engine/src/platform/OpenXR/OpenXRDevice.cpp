@@ -375,7 +375,7 @@ namespace
 		#ifdef AE_PLATFORM_ANDROID
 			XrInstanceCreateInfoAndroidKHR	android_ci = {};
 			next.Add( android_ci );
-			
+
 			android_ci.type = XR_TYPE_INSTANCE_CREATE_INFO_ANDROID_KHR;
 			CHECK_ERR( OpenXRLoader::GetAndroidVMAndActivity( OUT android_ci.applicationVM, OUT android_ci.applicationActivity ));
 		#endif

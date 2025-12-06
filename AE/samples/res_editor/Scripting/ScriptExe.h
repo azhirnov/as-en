@@ -301,11 +301,35 @@ namespace AE::ResEditor
 									OUT ScriptArray<packed_float2>	&texcoords,
 									OUT ScriptArray<uint>			&indices)									__Th___;
 
+		static void  _GetCone1 (uint							segmentCount,
+								float							radius,
+								float							height,
+								OUT ScriptArray<packed_float3>	&positions,
+								OUT ScriptArray<uint>			&indices)										__Th___;
+		static void  _GetCone2 (uint							segmentCount,
+								float							radius,
+								float							height,
+								OUT ScriptArray<packed_float3>	&positions,
+								OUT ScriptArray<packed_float3>	&normals,
+								OUT ScriptArray<packed_float2>	&texcoords,
+								OUT ScriptArray<uint>			&indices)										__Th___;
+		static void  _GetCone3 (uint							segmentCount,
+								float							radius,
+								float							height,
+								OUT ScriptArray<packed_float3>	&positions,
+								OUT ScriptArray<packed_float3>	&normals,
+								OUT ScriptArray<packed_float3>	&tangents,
+								OUT ScriptArray<packed_float3>	&bitangents,
+								OUT ScriptArray<packed_float2>	&texcoords,
+								OUT ScriptArray<uint>			&indices)										__Th___;
+
+
+		static void  _GetMarchingCubeTable (OUT ScriptArray<uint> &edgeTable,
+											OUT ScriptArray<int> &triangleTable,
+											OUT ScriptArray<packed_float3> &uvw)								__Th___;
+
 		static void  _IndicesToPrimitives (const ScriptArray<uint>			&indices,
 										   OUT ScriptArray<packed_uint3>	&primitives)						__Th___;
-
-		static void  _GetFrustumPlanes (const packed_float4x4			&viewProj,
-										OUT ScriptArray<packed_float4>	&planes)								__Th___;
 
 		static void  _MergeMesh (INOUT ScriptArray<uint>	&srcIndices,
 								 uint						srcVertexCount,

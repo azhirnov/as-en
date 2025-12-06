@@ -5,7 +5,7 @@
 namespace
 {
 	static const FrameUID	c_InitialFrameId = FrameUID::Init( 2 );
-	static const ushort		c_Port			 = 3002;
+	static const ushort		c_Port			 = AE_TEST_UDP_PORT_2;
 
 
 	class ServerProvider final : public IServerProvider
@@ -25,7 +25,7 @@ namespace
 	public:
 		explicit Server (RC<MessageFactory> mf)	{ TEST( _Initialize( RVRef(mf), MakeRC<DefaultClientListener>(), null, c_InitialFrameId )); }
 
-		ND_ bool  AddChannel (ushort port)		{ return false; } //_AddChannelUnreliableUDP( port ); }
+		ND_ bool  AddChannel (ushort)			{ return false; } //_AddChannelUnreliableUDP( port ); }
 	};
 
 
@@ -34,7 +34,7 @@ namespace
 	public:
 		explicit Client (RC<MessageFactory> mf, ushort port){ TEST( _Initialize( RVRef(mf), MakeRC<ServerProvider>( IpAddress::FromLocalPortUDP(port) ), null, c_InitialFrameId )); }
 
-		ND_ bool  AddChannel (ushort port)		{ return false; } //_AddChannelUnreliableUDP( port ); }
+		ND_ bool  AddChannel (ushort )			{ return false; } //_AddChannelUnreliableUDP( port ); }
 	};
 
 

@@ -39,12 +39,18 @@ namespace AE::Scripting::_hidden_
 		ND_ usize		size ()						C_NE___	{ return this->GetSize(); }
 		ND_ bool		empty ()					C_NE___	{ return this->IsEmpty(); }
 
-		ND_ operator View_t ()						C_NE___	{ return _Arr(); }
+		ND_ explicit operator View_t ()				C_NE___	{ return _Arr(); }
 
 		ND_ explicit operator ArrayView<T> ()		C_NE___
 		{
 			CHECK_ERR( this->elementSize == sizeof(T) );
 			return ArrayView<T>{ Cast<T>( const_cast< Self *>(this)->GetBuffer() ), size() };
+		}
+
+		ND_ explicit operator MutableArrayView<T> ()__NE___
+		{
+			CHECK_ERR( this->elementSize == sizeof(T) );
+			return MutableArrayView<T>{ Cast<T>(this->GetBuffer()), size() };
 		}
 
 		ND_ explicit operator Array<T> ()			C_Th___

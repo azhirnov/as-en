@@ -12,7 +12,7 @@ extern void Test_MLPTraining (Executor &ex);
 int main (const int argc, char* argv[])
 {
 	BEGIN_TEST();
-	
+
 	Executor	ex;
 	CHECK_FATAL( ex.Initialize() );
 
@@ -21,11 +21,11 @@ int main (const int argc, char* argv[])
 	Test_CoopVecTraining( ex );
 	Test_IntDotProduct( ex );
 	Test_MLPTraining( ex );
-	
+
 	ex.Deinitialize();
 
 	AE_LOGI( "Tests.CoopMat finished" );
-	
+
 	// Don't check for memleaks because of
 	// false positive in glslang when used dynamic allocation in static variable.
 	StaticLogger::Deinitialize( false );

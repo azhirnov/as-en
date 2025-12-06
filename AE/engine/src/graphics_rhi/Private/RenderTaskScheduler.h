@@ -505,7 +505,7 @@ namespace AE::Graphics
 	inline AsyncTask  RenderTaskScheduler::EndFrame (const Tuple<Deps...> &deps) __NE___
 	{
 		CHECK_ERR( AnyEqual( _status.load(), EStatus::BeginFrame, EStatus::RecordFrame ),
-				   Scheduler().GetCanceledTask() );
+				   Threading::TaskScheduler::GetCanceledTask() );
 
 		AsyncTask	task = _EndFrameRun( GetFrameId() );
 
@@ -515,7 +515,7 @@ namespace AE::Graphics
 			return task;
 		}
 		else
-			return Scheduler().GetCanceledTask();
+			return Threading::TaskScheduler::GetCanceledTask();
 	}
 
 /*
@@ -531,7 +531,7 @@ namespace AE::Graphics
 
 		ASSERT( not _id.IsValid() );
 	}
-	
+
 /*
 =================================================
 	_ReadbackResult::_Then

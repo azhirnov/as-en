@@ -81,7 +81,7 @@
 		Particle	p		= un_Particles.elements[ gl.InstanceIndex ];
 		float		size	= (p.position_size.w * 2.0 * iSize) / Min( un_PerPass.resolution.x, un_PerPass.resolution.y );
 
-		Out.uv		= ToSNorm( half2( (gl.VertexIndex>>1)&1, gl.VertexIndex&1 ));
+		Out.uv		= ToSNorm( half2( ProceduralQuadUV() ));
 		Out.color	= unpackUnorm4x8( p.color );
 
 		float4	pos	= LocalPosToViewSpace( p.position_size.xyz );

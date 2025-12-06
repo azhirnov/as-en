@@ -57,7 +57,7 @@
 //-----------------------------------------------------------------------------
 #ifdef GENTEX
 	#include "InvocationID.glsl"
-	
+
 	void Main ()
 	{
 		uint2	pos = uint2(GetGlobalCoord().xy) / 32;
@@ -103,7 +103,7 @@
 			uv = ray.pos.xz * 2.0;
 
 			ray = Ray_Perspective( un_PerPass.camera.pos, fov, ratio, 1.0, float2(0.0) );
-			
+
 			uv += Normalize( ray.dir.xz ) * un_PerPass.time * 0.2;
 		}
 

@@ -22,7 +22,7 @@ if ((TARGET "Scripting") AND (TARGET "PipelineCompiler") AND (TARGET "ResourceLo
 		"${MAIN_SOURCE_DIR}/engine/tools/res_pack/asset_packer/Utils"
 		"${AE_ENGINE_SHARED_DATA}/scripts"
 	)
-	
+
 	UseEnginePCH2( ${APP_NAME} )
 	EnableUnityBuild( ${APP_NAME} )
 

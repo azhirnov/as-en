@@ -161,7 +161,7 @@ namespace AE::Samples::Demo
 					"Camera3D::ProcessInput"
 				);
 	}
-	
+
 /*
 =================================================
 	_ProcessInputTask

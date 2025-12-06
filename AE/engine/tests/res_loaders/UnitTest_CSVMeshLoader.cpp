@@ -100,13 +100,13 @@ namespace
 		IntermMesh		mesh;
 
 		TEST( loader.LoadMesh( OUT mesh, stream, Default ));
-		
+
 		TEST( mesh.IsValid() );
 		TEST( mesh.Topology() == EPrimitive::TriangleList );
 		TEST( mesh.IndexType() == EIndex::UInt );
 		TEST_Eq( mesh.VertexCount(), 5 );
 		TEST_Eq( mesh.IndexCount(), 7 );
-		
+
 		auto*	attribs = mesh.Attribs();
 		TEST( attribs != null );
 		TEST_Eq( attribs->Vertices().size(), 4 );
@@ -114,7 +114,7 @@ namespace
 		TEST( attribs->Vertices().contains( VertexAttributeName::Normal ));
 		TEST( attribs->Vertices().contains( VertexAttributeName::Tangent ));
 		TEST( attribs->Vertices().contains( VertexAttributeName::TextureUVs[0] ));
-		
+
 		{
 			StructView<short4>	arr = mesh.GetData< short4 >( VertexAttributeName::Position );
 			TEST( arr.size() == 5 );
@@ -160,7 +160,7 @@ namespace
 		}
 	}
 
-	
+
 	static void  CSVMeshLoader_TestRenderDocFormat2 ()
 	{
 		const char	csv[] = R"(VTX, IDX, in_Position.x, in_Position.y, in_Position.z, in_Position.w, in_Texcoord.x, in_Texcoord.y, in_Texcoord.z, in_Texcoord.w, in_Tangent.x, in_Tangent.y, in_Tangent.z, in_Tangent.w, in_BiTangent.x, in_BiTangent.y, in_BiTangent.z, in_BiTangent.w
@@ -178,7 +178,7 @@ namespace
 		IntermMesh		mesh2;
 
 		TEST( loader.LoadMesh( OUT mesh2, stream, Default ));
-		
+
 		IntermMesh		mesh;
 		TEST( mesh2.ConvertToFloatPointFormat( OUT mesh ));
 
@@ -195,7 +195,7 @@ namespace
 		TEST( attribs->Vertices().contains( VertexAttributeName::TextureUVs[0] ));
 		TEST( attribs->Vertices().contains( VertexAttributeName::Tangent ));
 		TEST( attribs->Vertices().contains( VertexAttributeName::BiTangent ));
-		
+
 		float3	fp;
 		{
 			StructView<float3>	arr = mesh.GetData< float3 >( VertexAttributeName::Position );
@@ -255,7 +255,7 @@ namespace
 		IntermMesh		mesh2;
 
 		TEST( loader.LoadMesh( OUT mesh2, stream, Default ));
-		
+
 		IntermMesh		mesh;
 		TEST( mesh2.ConvertToFloatPointFormat( OUT mesh ));
 
@@ -264,7 +264,7 @@ namespace
 		TEST( mesh.IndexType() == EIndex::UInt );
 		TEST_Eq( mesh.VertexCount(), 5 );
 		TEST_Eq( mesh.IndexCount(), 7 );
-		
+
 		auto*	attribs = mesh.Attribs();
 		TEST( attribs != null );
 		TEST_Eq( attribs->Vertices().size(), 4 );
@@ -333,6 +333,6 @@ extern void  UnitTest_CSVMeshLoader ()
 
 	CSVMeshLoader_TestNSightFormat1();
 	CSVMeshLoader_TestNSightFormat2();
-	
+
 	TEST_PASSED();
 }

@@ -291,7 +291,7 @@ namespace
 		CHECK_THROW( self.exportFolder.empty() );
 		self.exportFolder = FileSystem::ToAbsolute( Path{path} );
 	}
-	
+
 /*
 =================================================
 	ResEditorAppConfig_RenderDocDir
@@ -410,7 +410,7 @@ namespace
 	{
 		self.remoteIAPort = ushort(port);
 	}
-	
+
 /*
 =================================================
 	ResEditorAppConfig_AddGraphicsDriver
@@ -429,7 +429,7 @@ namespace
 				#define CASE( _name_ )		case EDriver::_name_ :	return AE_TOSTRING( _name_ );
 				CASE( LavaPipe )
 			  #ifdef AE_PLATFORM_LINUX
-				case _LinuxDrivers::Unknown : break;
+				case EDriver::_LinuxDrivers : break;
 				CASE( RADV )
 				CASE( AMDVLK )
 				CASE( AMD_PRO )
@@ -446,13 +446,13 @@ namespace
 			switch_end
 			return {};
 		}};
-		
+
 		String	supported;
 
 		for (uint i = 0, cnt = uint(Graphics::EDriver::_Count); i < cnt; ++i)
 		{
 			StringView	name = EDriver_ToString( Graphics::EDriver(i) );
-			if ( driverName == name )
+			if ( EqualIC( driverName, name ))
 			{
 				self.driverList.push_back( Graphics::EDriver(i) );
 				return;
@@ -463,7 +463,7 @@ namespace
 
 		if ( not supported.empty() )
 			supported.erase( supported.end()-2, supported.end() );
-		
+
 		CHECK_THROW_MSG( false,
 			"Unknown graphics driver '"s << driverName << "', known drivers: " << supported );
 	}
@@ -557,11 +557,11 @@ namespace
 			str << R"(
 void main (Config &out cfg)
 {
-	const string	vfs_path 			= "";
-	const string	local_path			= "data/";
-	const string	shader_data_path	= "shared_data/";
-	const string	ui_path				= "ui";
-	const string	test_ref_path		= "test_ref/";
+	const string	vfs_path 			= "..";
+	const string	local_path			= "../src/";
+	const string	shader_data_path	= "../shared_data/";
+	const string	ui_path				= "../ui";
+	const string	test_ref_path		= "../test_ref/";
 )";
 		}
 		else
@@ -591,7 +591,7 @@ void main (Config &out cfg)
 		str << R"(
 	// VFS //
 	//	attach path on disk to VFS
-	//	all file paths listed at startup, new files will be accessible after app restart 
+	//	all file paths listed at startup, new files will be accessible after app restart
 	cfg.StaticVFSPath( vfs_path + "shadertoy_data",  "shadertoy/" );
 	cfg.StaticVFSPath( vfs_path + "res_editor_data", "res/" );
 	cfg.StaticVFSPath( vfs_path + "private_res",	 "res/" );
@@ -634,7 +634,7 @@ void main (Config &out cfg)
 	//	where to save export (images, models, scenes, etc)
 	cfg.ExportDir( local_path + "../_export" );
 	//	where to save RenderDoc captures
-	cfg.RenderDocDir( local_path + "../_renderDoc" );
+	cfg.RenderDocDir( local_path + "../_renderdoc" );
 
 	// graphics settings //
 	cfg.screenWidth  = 1600;
@@ -646,6 +646,7 @@ void main (Config &out cfg)
 	cfg.enableRenderDoc = false;
 	//	GPU index or part of name
 	//cfg.deviceName = "";
+	//cfg.AddGraphicsDriver( "LavaPipe" );
 
 	// remote input //
 	//	see 'Setup Remote Input' in 'docs/Remote.md'
@@ -674,9 +675,10 @@ void main (Config &out cfg)
 	cfg.TestFolder( "samples-2d" );
 	cfg.TestFolder( "samples-3d" );
 	cfg.TestFolder( "samples-rt" );
-	cfg.TestFolder( "samples-compute" );
+	cfg.TestFolder( "compute" );
 	cfg.TestFolder( "samples-posteffects" );
 	cfg.TestFolder( "samples-vfx" );
+	cfg.TestFolder( "neural-shader" );
 	cfg.TestFolder( "sphere" );
 	cfg.TestFolder( "tools" );
 	cfg.TestFolder( "perf" );
@@ -1036,18 +1038,29 @@ void main (Config &out cfg)
 /*
 =================================================
 	OnSurfaceCreated
+----
+	Thread-safe: only main thread
 =================================================
 */
 	bool  ResEditorCore::OnSurfaceCreated (IWindow &wnd) __NE___
 	{
 	  #if ENABLE_RDC
-		auto&	re_cfg = ResEditorAppConfig::Get();
-		if ( re_cfg.enableRenderDoc and not re_cfg.renderDocFolder.empty() )
-			GraphicsScheduler().GetDevice().GetRenderDocApi().CaptureFolder( ToString( re_cfg.renderDocFolder ) << '/' );
+		// initialize render doc
+		{
+			auto&	re_cfg = ResEditorAppConfig::Get();
+			if ( re_cfg.enableRenderDoc and not re_cfg.renderDocFolder.empty() )
+			{
+				GraphicsScheduler().GetDevice().GetRenderDocApi().CaptureFolder( ToString( re_cfg.renderDocFolder ) << '/' );
+
+				EFileSystemWatchBits filter;
+				filter.insert( EFileSystemWatch::FileCreated );
+				CHECK( _rdCaptureWatch.Start( re_cfg.renderDocFolder, filter ));
+			}
+		}
 	  #endif
 
 		_window = &wnd;
-		return _ui.Init( wnd.GetSurface(), c_WindowMode );
+		return _ui.Init( wnd.GetSurface(), c_WindowMode, wnd.GetMonitor().uiScale );
 	}
 
 /*
@@ -1073,6 +1086,8 @@ void main (Config &out cfg)
 /*
 =================================================
 	StartRendering
+----
+	Thread-safe: only main thread
 =================================================
 */
 	void  ResEditorCore::StartRendering (Ptr<IInputActions> input, Ptr<IOutputSurface> output, EWndState state) __NE___
@@ -1101,6 +1116,8 @@ void main (Config &out cfg)
 /*
 =================================================
 	StopRendering
+----
+	Thread-safe: only main thread
 =================================================
 */
 	void  ResEditorCore::StopRendering (Ptr<IOutputSurface> output) __NE___
@@ -1209,6 +1226,8 @@ void main (Config &out cfg)
 /*
 =================================================
 	RenderFrame
+----
+	Thread-safe: only main thread
 =================================================
 */
 	void  ResEditorCore::RenderFrame () __NE___
@@ -1220,8 +1239,12 @@ void main (Config &out cfg)
 			if ( dev.HasRenderDocApi() )
 			{
 				CHECK( dev.GetRenderDocApi().TriggerFrameCapture() );
+				AE_LOGI( "Trigger frame capture..." );
 			}
+			else
+				AE_LOGI( "RenderDoc is not attached, can't capture frame" );
 		}
+		_CheckRdEvents();
 		#endif
 
 		Ptr<IInputActions>		input;
@@ -1365,6 +1388,8 @@ void main (Config &out cfg)
 /*
 =================================================
 	WaitFrame
+----
+	Thread-safe: only main thread
 =================================================
 */
 	void  ResEditorCore::WaitFrame (const Threading::EThreadArray	&threadMask,
@@ -1398,6 +1423,25 @@ void main (Config &out cfg)
 		}
 	}
 
+/*
+=================================================
+	_CheckRdEvents
+----
+	Thread-safe: only main thread
+=================================================
+*/
+	void  ResEditorCore::_CheckRdEvents ()
+	{
+		FileWatch::EventArray_t	events;
+		Unused( _rdCaptureWatch.GetEvents( OUT events ));
+
+		for (auto& ev : events)
+		{
+			if ( ev.action == EFileSystemAction::Added )
+				AE_LOGI( "Added RenderDoc capture '"s << ToString(ev.path) << "'" );
+		}
+	}
+
 } // AE::ResEditor
 //-----------------------------------------------------------------------------
 
@@ -1407,7 +1451,7 @@ using namespace AE::Base;
 using namespace AE::App;
 using namespace AE::ResEditor;
 
-#define REQUIRE_APACHE_2
+#define REQUIRE_LGPLv3
 #include "base/Defines/DetectLicense.inl.h"
 
 

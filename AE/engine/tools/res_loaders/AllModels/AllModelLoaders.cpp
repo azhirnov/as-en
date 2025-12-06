@@ -6,7 +6,7 @@
 
 namespace AE::ResLoader
 {
-	
+
 /*
 =================================================
 	LoadModel
@@ -33,7 +33,7 @@ namespace AE::ResLoader
 
 		return false;
 	}
-	
+
 /*
 =================================================
 	LoadModel

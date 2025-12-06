@@ -29,7 +29,7 @@ namespace AE::Base
 		using Self		= EnumSet<E>;
 		using Value_t	= E;
 		using Elem_t	= BitSizeToUInt< _ElemSize >;
-		
+
 	private:
 		using BitArr_t	= StaticArray< Elem_t, _ArraySize >;
 		using Index_t	= ByteSizeToUInt< Max( sizeof(E), sizeof(usize) )>;

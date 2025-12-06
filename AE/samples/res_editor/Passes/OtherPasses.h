@@ -403,7 +403,7 @@ namespace AE::ResEditor
 		ConvertCoopMatrixCmd2		_cmd;
 		RC<Buffer>					_srcBuffer;
 		RC<Buffer>					_dstBuffer;
-		
+
 	// methods
 	public:
 		ConvertCooperativeVectorMatrixPass (
@@ -412,7 +412,7 @@ namespace AE::ResEditor
 			Bytes srcOffset, Bytes srcSize,  Bytes srcStride, ECoopVecMatrixLayout srcLayout,
 			ECoopMatrixComponentType dstType, RC<Buffer> dstBuffer,
 			Bytes dstOffset, Bytes dstSize,  Bytes dstStride, ECoopVecMatrixLayout dstLayout) __Th___;
-		
+
 	// IPass //
 		EPassType	GetType ()											C_NE_OV	{ return EPassType::Sync; }
 		bool		Execute (SyncPassData &)							__Th_OV;

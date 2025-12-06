@@ -28,7 +28,7 @@ namespace
 		}
 		co_return;
 	}
-	
+
 	static AsyncCoro  CreateSPTest1Final (SPTest1_SharedData& data)
 	{
 		// make sure that all 'SPTest1Task' tasks are complete

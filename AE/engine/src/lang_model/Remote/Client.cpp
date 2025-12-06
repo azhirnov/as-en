@@ -5,7 +5,7 @@
 
 namespace AE::LangModel
 {
-	
+
 /*
 =================================================
 	CreateRemote
@@ -19,7 +19,7 @@ namespace AE::LangModel
 	}
 //-----------------------------------------------------------------------------
 
-	
+
 
 /*
 =================================================
@@ -46,7 +46,7 @@ namespace AE::LangModel
 	{
 		CHECK_ERR( _uid != Default );
 		CHECK_ERR( params.Type() == _implType );
-		
+
 		switch_enum( _implType )
 		{
 			case EImplementation::LLama :
@@ -97,7 +97,7 @@ namespace AE::LangModel
 		_modelInfo = resp->info;
 		return *_modelInfo;
 	}
-	
+
 /*
 =================================================
 	_WaitFor
@@ -173,7 +173,7 @@ namespace AE::LangModel
 
 		return false;
 	}
-	
+
 /*
 =================================================
 	_Register
@@ -229,7 +229,7 @@ namespace AE::LangModel
 			CHECK( _modelRC->_channel.Send( msg ));
 		}
 	}
-	
+
 /*
 =================================================
 	Generate
@@ -347,7 +347,7 @@ namespace AE::LangModel
 			return false;
 		}
 	}
-	
+
 /*
 =================================================
 	Append
@@ -376,7 +376,7 @@ namespace AE::LangModel
 
 		return resp->ok;
 	}
-	
+
 /*
 =================================================
 	GetMessages
@@ -388,7 +388,7 @@ namespace AE::LangModel
 
 		return _history;  // throw
 	}
-	
+
 /*
 =================================================
 	CurrentSize
@@ -409,14 +409,14 @@ namespace AE::LangModel
 	void  LangModelContextClient::Clear () __NE___
 	{
 		CHECK_ERRV( _IsValid() );
-		
+
 		_history.clear();
 
 		Msg::LangModelContextClear	msg;
 		msg.uid = _uid;
 
 		CHECK_ERRV( _modelRC->_channel.Send( msg ));
-		
+
 		auto	resp = _modelRC->_WaitFor< Msg::LangModelContext_Resp >();
 		CHECK_ERRV( resp );
 		CHECK_ERRV( resp->uid == _uid );

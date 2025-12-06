@@ -205,6 +205,9 @@ namespace
 	{
 		outEvents.clear();
 
+		if ( _inotifyFd == -1 )
+			return false;
+
 		fd_set	watch_set;
 		FD_ZERO( &watch_set );
 		FD_SET( _inotifyFd, &watch_set );
@@ -290,7 +293,7 @@ namespace
 			{
 				Path	abs_path = _baseDir / path;
 				ASSERT( abs_path.is_absolute() );
-				
+
 				int wd = ::inotify_add_watch( _inotifyFd, abs_path.native().c_str(), _filter | c_SubDirFilter );
 				CHECK_ERR( wd >= 0 );
 

@@ -17,7 +17,7 @@ namespace AE::Base
 		StringView		_fnSign;
 		uint			_line		= 0;
 		uint			_column		= 0;
-		
+
 	// methods
 	public:
 		__Cx__ SourceLoc ()											__NE___	{}
@@ -52,7 +52,7 @@ namespace AE::Base
 		NdCx__ static StringView  _ExtractStem (StringView)			__NE___;
 	};
 
-	
+
 /*
 =================================================
 	constructor
@@ -82,7 +82,7 @@ namespace AE::Base
 	{
 		usize   end    = fnSign.rfind( '(' );
 		usize   begin  = end;
-		
+
 		for (; fnSign[begin] != ' ' and fnSign[begin] != ':'; --begin) {}
 
 		// remove template specialization
@@ -95,7 +95,7 @@ namespace AE::Base
 
 		return {};  // error
 	}
-	
+
 /*
 =================================================
 	_ExtractStem
@@ -108,7 +108,7 @@ namespace AE::Base
 
 		if ( begin < end )
 			return StringView{ fname.data() + begin+1, fname.data() + end };
-		
+
 		return {};  // error
 	}
 

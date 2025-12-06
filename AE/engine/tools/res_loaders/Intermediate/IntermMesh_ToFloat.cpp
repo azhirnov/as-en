@@ -19,7 +19,7 @@ namespace
 		auto*	vert = attribs.FindVertex( id );
 		if ( vert == null )
 			return false;
-		
+
 		const EVertexType	mask		= ~(EVertexType::NormalizedFlag | EVertexType::ScaledFlag);
 		const EVertexType	cur_type	= vert->type & mask;
 		const EVertexType	req_type	= requiredType & mask;
@@ -27,10 +27,10 @@ namespace
 		// same types, don't convert
 		if ( cur_type == req_type )
 			return false;
-		
+
 		return true;
 	}
-	
+
 /*
 =================================================
 	NeedConvertMesh
@@ -53,7 +53,7 @@ namespace
 				NeedConvertVertexData( attribs, VertexAttributeName::MaterialID,	EVertexType::UInt );
 				// TODO: BoneWeights
 	}
-	
+
 /*
 =================================================
 	CreateVertexAttribs
@@ -107,7 +107,7 @@ namespace
 
 		set.AddBuffer( stride, EVertexInputRate::Vertex );
 	}
-	
+
 /*
 =================================================
 	CopyVertices
@@ -196,7 +196,7 @@ namespace
 			return dst;
 		}
 	}
-	
+
 /*
 =================================================
 	ConvertVerticesT
@@ -256,7 +256,7 @@ namespace
 		}
 		return false;
 	}
-	
+
 	template <typename T>
 	ND_ static bool  ConvertVerticesFp (CopyVertexParams &p, EVertexType reqType)
 	{
@@ -269,7 +269,7 @@ namespace
 		}
 		return false;
 	}
-	
+
 /*
 =================================================
 	ConvertVerticesNorm
@@ -378,15 +378,15 @@ namespace
 				case EVertexType::Byte2_Norm :		return ConvertVerticesNormInt< sbyte2 >( params, req_type );
 				case EVertexType::Byte3_Norm :		return ConvertVerticesNormInt< sbyte3 >( params, req_type );
 				case EVertexType::Byte4_Norm :		return ConvertVerticesNormInt< sbyte4 >( params, req_type );
-					
+
 				case EVertexType::UByte2_Norm :		return ConvertVerticesNormInt< ubyte2 >( params, req_type );
 				case EVertexType::UByte3_Norm :		return ConvertVerticesNormInt< ubyte3 >( params, req_type );
 				case EVertexType::UByte4_Norm :		return ConvertVerticesNormInt< ubyte4 >( params, req_type );
-					
+
 				case EVertexType::Short2_Norm :		return ConvertVerticesNormInt< short2 >( params, req_type );
 				case EVertexType::Short3_Norm :		return ConvertVerticesNormInt< short3 >( params, req_type );
 				case EVertexType::Short4_Norm :		return ConvertVerticesNormInt< short4 >( params, req_type );
-					
+
 				case EVertexType::UShort2_Norm :	return ConvertVerticesNormInt< ushort2 >( params, req_type );
 				case EVertexType::UShort3_Norm :	return ConvertVerticesNormInt< ushort3 >( params, req_type );
 				case EVertexType::UShort4_Norm :	return ConvertVerticesNormInt< ushort4 >( params, req_type );
@@ -395,15 +395,15 @@ namespace
 				case EVertexType::Byte2_Scaled :	return ConvertVerticesScaled< sbyte2 >( params, req_type );
 				case EVertexType::Byte3_Scaled :	return ConvertVerticesScaled< sbyte3 >( params, req_type );
 				case EVertexType::Byte4_Scaled :	return ConvertVerticesScaled< sbyte4 >( params, req_type );
-					
+
 				case EVertexType::UByte2_Scaled :	return ConvertVerticesScaled< ubyte2 >( params, req_type );
 				case EVertexType::UByte3_Scaled :	return ConvertVerticesScaled< ubyte3 >( params, req_type );
 				case EVertexType::UByte4_Scaled :	return ConvertVerticesScaled< ubyte4 >( params, req_type );
-					
+
 				case EVertexType::Short2_Scaled :	return ConvertVerticesScaled< short2 >( params, req_type );
 				case EVertexType::Short3_Scaled :	return ConvertVerticesScaled< short3 >( params, req_type );
 				case EVertexType::Short4_Scaled :	return ConvertVerticesScaled< short4 >( params, req_type );
-					
+
 				case EVertexType::UShort2_Scaled :	return ConvertVerticesScaled< ushort2 >( params, req_type );
 				case EVertexType::UShort3_Scaled :	return ConvertVerticesScaled< ushort3 >( params, req_type );
 				case EVertexType::UShort4_Scaled :	return ConvertVerticesScaled< ushort4 >( params, req_type );
@@ -440,7 +440,7 @@ namespace
 	}
 
 } // namespace
-	
+
 /*
 =================================================
 	ConvertToFloatPointFormat
@@ -470,5 +470,5 @@ namespace
 		return true;
 	}
 
-	
+
 } // AE::ResLoader

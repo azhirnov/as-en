@@ -23,7 +23,7 @@ namespace AE::App
 		Unused( _nvapi.Load() );
 	  #endif
 	}
-		
+
 /*
 =================================================
 	destructor
@@ -58,7 +58,7 @@ namespace AE::App
 				SharedPtr<VRDeviceEmulator>	vr{ new VRDeviceEmulator{ *this, RVRef(listener), dst }};
 				if ( not vr->Create() )
 					return Default;
-				
+
 				_AddWindow( vr );
 				return vr;
 			#else
@@ -72,7 +72,7 @@ namespace AE::App
 				SharedPtr<VRSessionOpenVR>	vr{ new VRSessionOpenVR{ RVRef(listener), dst }};
 				if ( not vr->Create() )
 					return Default;
-				
+
 				_AddWindow( vr );
 				return vr;
 			#else
@@ -115,7 +115,7 @@ namespace AE::App
 		if_likely( _listener )
 			_listener->BeforeWndUpdate( *this );
 	}
-	
+
 /*
 =================================================
 	_Update
@@ -124,7 +124,7 @@ namespace AE::App
 	void  ApplicationBase::_Update () __NE___
 	{
 		ASSERT( _isRunning.load() );
-		
+
 		for (usize i = 0; i < _windows.size();)
 		{
 			// ProcessMessages() will return 'false' if window is closed
@@ -171,7 +171,7 @@ namespace AE::App
 	{
 		_isRunning.store( false );
 	}
-	
+
 /*
 =================================================
 	GetMonitor
@@ -188,7 +188,7 @@ namespace AE::App
 		}
 		return Default;
 	}
-	
+
 /*
 =================================================
 	GetMonitorFromNative
@@ -197,7 +197,7 @@ namespace AE::App
 	Monitor::ID  ApplicationBase::GetMonitorFromNative (Monitor::NativeMonitor_t handle) C_NE___
 	{
 		MonitorsView_t	monitors = GetCachedMonitors();
-		
+
 		for (const Monitor& monitor : monitors)
 		{
 			if ( monitor.native == handle )
@@ -205,7 +205,7 @@ namespace AE::App
 		}
 		return Default;
 	}
-	
+
 /*
 =================================================
 	_AddWindow
@@ -217,7 +217,7 @@ namespace AE::App
 	}
 //-----------------------------------------------------------------------------
 
-	
+
 /*
 =================================================
 	StartScreenCapture

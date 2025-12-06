@@ -485,7 +485,7 @@ namespace
 		if ( not single_stage and prev_stages != Default )
 			str << "#endif\n";
 	}
-	
+
 /*
 =================================================
 	ToHLSL
@@ -547,7 +547,7 @@ namespace
 			}
 			return str;
 		}};
-		
+
 		const auto	StorageFormatToStr = [] (EPixelFormat fmt) -> StringView
 		{{
 			switch ( fmt )
@@ -600,10 +600,10 @@ namespace
 
 		CHECK_THROW_MSG( not _dsLayout.uniforms.empty() );
 		CHECK_THROW_MSG( IsCompatibleWithVulkan() );
-		
+
 		if ( NoBits( _dsLayout.stages, stages ))
 			return;
-		
+
 		auto&			storage			= *ObjectStorage::Instance();
 		const String	space_idx		= ToString( dsBinding );
 		const String	space_str		= ", space"s << space_idx;
@@ -611,24 +611,24 @@ namespace
 		EShaderStages	prev_stages		= Default;
 		const bool		single_stage	= IsSingleBitSet( stages );
 		HLSLBindings	bindings;
-		
+
 		for (auto& [name, un] : _dsLayout.uniforms)
 		{
 			const String	name_str = storage.GetName( name );
 
 			CHECK_THROW_MSG( not name_str.empty() );
 			CHECK_THROW_MSG( un.binding.IsVkDefined() );
-			
+
 			if ( NoBits( stages, un.stages ))
 				continue;
-			
+
 			const String	idx_str		= ToString( un.binding.vkIndex );
 
 			const AuxInfo*	aux_info	= null;
 			auto			aux_info_it = _infoMap.find( name );
 			if ( aux_info_it != _infoMap.end() )
 				aux_info = &aux_info_it->second;
-			
+
 			ASSERT( un.stages != Default );
 			if ( not single_stage and prev_stages != un.stages )
 			{
@@ -637,18 +637,18 @@ namespace
 				str << "#if " << StagesToStr( un.stages ) << "\n";
 				prev_stages = un.stages;
 			}
-			
+
 			switch_enum( un.type )
 			{
 				case EDescriptorType::UniformBuffer :
 				{
 					CHECK_THROW_MSG( aux_info != null and aux_info->type );
-					
+
 					if ( uniqueTypes.insert( String{aux_info->type->Typename()} ).second )
 					{
 						aux_info->type->AddUsage( ShaderStructType::EUsage::BufferLayout );
 						CHECK_THROW_MSG( aux_info->type->ToHLSL( INOUT outTypes, INOUT uniqueTypes, null ));
-					}			
+					}
 					str << "  // state: " << ToString( un.buffer.state )
 						<< "\n  // size: " << ToString( un.buffer.staticSize );
 					if ( un.buffer.HasDynamicOffset() )
@@ -663,7 +663,7 @@ namespace
 				case EDescriptorType::StorageBuffer :
 				{
 					CHECK_THROW_MSG( aux_info != null and aux_info->type );
-					
+
 					if ( uniqueTypes.insert( String{aux_info->type->Typename()} ).second )
 					{
 						aux_info->type->AddUsage( ShaderStructType::EUsage::BufferLayout );
@@ -700,7 +700,7 @@ namespace
 						<< "Buffer< " << ImageFormatToStr( un.texelBuffer.type ) << " >  "
 						<< name_str << ArraySizeToStr( un.arraySize )
 						<< " : register(t" << ToString( bindings.textureIdx ) << space_str << ");\n";
-					
+
 					bindings.textureIdx += un.arraySize;
 					break;
 				}
@@ -714,7 +714,7 @@ namespace
 						<< "Buffer< " << ImageFormatToStr( un.texelBuffer.type ) << " >  "
 						<< name_str << ArraySizeToStr( un.arraySize )
 						<< " : register(u" << ToString( bindings.unorderedAccessViewIdx ) << space_str << ");\n";
-					
+
 					bindings.unorderedAccessViewIdx += un.arraySize;
 					break;
 				}
@@ -732,7 +732,7 @@ namespace
 					str	<< (read_only ? "" : "RW") << ImageTypeToStr( un.image.type ) << "< "
 						<< ImageFormatToStr( un.texelBuffer.type ) << " >  " << name_str << ArraySizeToStr( un.arraySize )
 						<< " : register(u" << ToString( bindings.unorderedAccessViewIdx ) << space_str << ");\n";
-					
+
 					bindings.unorderedAccessViewIdx += un.arraySize;
 					break;
 				}
@@ -792,7 +792,7 @@ namespace
 					str	<< "  [[vk::binding(" << idx_str << ", " << space_idx << ")]] RaytracingAccelerationStructure  "
 						<< name_str << ArraySizeToStr( un.arraySize )
 						<< " : register(t" << ToString( bindings.textureIdx ) << space_str << ");\n";
-					
+
 					bindings.textureIdx += un.arraySize;
 					break;
 				}
@@ -2304,7 +2304,7 @@ namespace
 			uniform_name = args.Arg< String const& >(idx++);
 		else
 			CHECK_THROW_MSG( false, "Required uniform name as 'String', provided '"s << args.GetArgTypename(idx) << "'" );
-		
+
 		if ( args.IsArg< ArraySize const& >(idx) )
 			array_size = args.Arg< ArraySize const& >(idx++);
 
@@ -2567,7 +2567,7 @@ namespace
 		auto		st_it	= st_map.find( typeName );
 		CHECK_THROW_MSG( st_it != st_map.end(),
 			"ShaderStructType '"s << typeName << "' is not exists" );
-		
+
 		auto&	aux_info	= _infoMap[ UniformName{name} ];
 		aux_info.type		= st_it->second;
 		aux_info.access		= access;
@@ -2772,7 +2772,7 @@ namespace
 	{
 		AddCombinedImage_ImmutableSampler( stages, name, type, state, ArraySize{1}, ArrayView<String>{&samplerName, 1} );
 	}
-	
+
 	void  DescriptorSetLayout::AddCombinedImage_ImmutableSampler (EShaderStages stages, const String &name, EImageType type, EResourceState state,
 																  const ArraySize &arraySize, const String &samplerName) __Th___
 	{
@@ -2813,7 +2813,7 @@ namespace
 
 		_dsLayout.uniforms.emplace_back( UniformName{name}, un );
 		_AddSRGB( name, type );
-		
+
 		if ( samplerNames.size() == array_size )
 		{
 			for (auto& samp : samplerNames)

@@ -78,13 +78,13 @@ namespace AE::Base
 
 	template <usize First, usize Count>
 	using MakeUSizeSequence	= typename Base::_hidden_::MakeIntSequenceRange< usize, First, std::make_integer_sequence< usize, Count > >::type;
-	
+
 	template <uint First, uint Count>
 	using MakeUIntSequence	= typename Base::_hidden_::MakeIntSequenceRange< uint, First, std::make_integer_sequence< uint, Count > >::type;
 
 	template <usize ...Indices>
 	using USizeSequence		= std::integer_sequence< usize, Indices... >;
-	
+
 	template <uint ...Indices>
 	using UIntSequence		= std::integer_sequence< uint, Indices... >;
 

@@ -128,7 +128,7 @@ namespace AE::Base
 		template <typename B>
 				  requires( IsBaseOf< B, T >)
 		__Cx__ explicit RC (B* ptr, DontIncRef)				__NE___ : _ptr{static_cast<T*>(ptr)}	{}
-		
+
 		template <typename B>
 				  requires( IsBaseOf< B, T >)
 		explicit RC (B* ptr)								__NE___ : _ptr{static_cast<T*>(ptr)}	{ _IncSelf(); }

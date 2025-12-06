@@ -24,7 +24,7 @@ namespace AE::ResEditor
 		Add,			// x + const
 		Sub,			// x - const
 		Pow,			// pow( x, const )
-		PowOf2,			// const << x
+		Exp2,			// const << x
 		FloorPOT,
 		CeilPOT,
 		NearPOT,
@@ -182,13 +182,13 @@ namespace AE::ResEditor
 				if constexpr( IsInteger<T> )
 					result = CeilPOT( result );
 				break;
-				
+
 			case EOperator::NearPOT :
 				if constexpr( IsInteger<T> )
 					result = NearPOT( result );
 				break;
 
-			case EOperator::PowOf2 :
+			case EOperator::Exp2 :
 				if constexpr( IsFloatPoint<T> )
 					result = r_value * Pow( T(2), result );
 				else

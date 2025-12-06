@@ -38,7 +38,7 @@
 		switch ( idx )
 		{
 			case 0 :	return SDF_Cylinder( pos, float2(0.4, 0.6) );
-			case 1 :	return -SDF_Cone( pos, Normalize(float2( 0.5, 0.7 )) );
+			case 1 :	return -SDF_InfiniteCone( pos, Normalize(float2( 0.5, 0.7 )) );
 			case 2 :	return SDF_Plane( pos, Normalize(float3(0.2, -1.0, 0.0)), 0.1 );
 			case 3 :	return SDF_HexagonalPrism( pos, float2(0.5, 0.7) );
 			case 4 :	return SDF_TriangularPrism( pos, float2(0.5, 0.7) );

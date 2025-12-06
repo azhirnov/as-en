@@ -28,7 +28,7 @@ namespace
 		DummyCoro () {}
 		explicit DummyCoro (DummyTask &p)								: _coro{ p.GetRC<DummyTask>() } {}
 		explicit DummyCoro (std::coroutine_handle<DummyTask> handle)	: _coro{ handle.promise().GetRC<DummyTask>() } {}
-		
+
 		operator AsyncTask ()											{ return _coro; }
 	};
 
@@ -45,7 +45,7 @@ namespace
 
 		LfTaskQueue		q		{ Default, "", ETaskQueue::Main };
 		const uint		count	= 1'000;
-		const auto		seed	= scheduler->GetDefaultSeed();
+		const auto		seed	= TaskScheduler::GetDefaultSeed();
 
 		for (uint i = 0; i < count; ++i) {
 			q.Add( CreateTask( i ), seed );
@@ -69,7 +69,7 @@ namespace
 		{
 			threads.push_back( StdThread{ [&q, tid]()
 				{
-					const auto	seed = Scheduler().GetDefaultSeed();
+					const auto	seed = TaskScheduler::GetDefaultSeed();
 
 					for (uint c = 0; c < 1000; ++c)
 					{
@@ -91,7 +91,7 @@ namespace
 			t.join();
 		}
 
-		const auto	seed = Scheduler().GetDefaultSeed();
+		const auto	seed = TaskScheduler::GetDefaultSeed();
 		for (; q.Process( seed );) {}
 	}
 }

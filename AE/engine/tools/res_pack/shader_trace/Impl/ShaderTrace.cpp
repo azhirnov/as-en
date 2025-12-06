@@ -37,6 +37,199 @@ namespace AE::PipelineCompiler
 //-----------------------------------------------------------------------------
 
 
+/*
+=================================================
+	Swizzle::SetDstRows
+=================================================
+*/
+	void  ShaderTrace::Swizzle::SetDstRows (usize cnt) __NE___
+	{
+		ASSERT( not IsArray() );
+		ASSERT( cnt > 0 and cnt <= 4 );
+		ASSERT( cnt <= OriginRows() );
+
+		_value &= ~(7u << c_DstRowsOffset);
+		_value |= (uint(cnt & 7) << c_DstRowsOffset);
+	}
+
+/*
+=================================================
+	Swizzle::SetDstColumn
+=================================================
+*/
+	void  ShaderTrace::Swizzle::SetDstColumn (uint col) __NE___
+	{
+		ASSERT( not IsArray() );
+		ASSERT( col < OriginCols() );
+
+		_value &= ~(3u << c_DstColumnOffset);
+		_value |= (col & 3) << c_DstColumnOffset;
+	}
+
+/*
+=================================================
+	Swizzle::SetOriginRows
+=================================================
+*/
+	void  ShaderTrace::Swizzle::SetOriginRows (uint cnt) __NE___
+	{
+		ASSERT( not IsArray() );
+		ASSERT( cnt > 0 and cnt <= 4 );
+
+		_value &= ~(3u << c_OriginRowsOffset);
+		_value |= ((cnt-1) & 3) << c_OriginRowsOffset;
+	}
+
+/*
+=================================================
+	Swizzle::SetOriginCols
+=================================================
+*/
+	void  ShaderTrace::Swizzle::SetOriginCols (uint cnt) __NE___
+	{
+		ASSERT( not IsArray() );
+		ASSERT( cnt > 0 and cnt <= 4 );
+
+		_value &= ~(3u << c_OriginColsOffset);
+		_value |= ((cnt-1) & 3) << c_OriginColsOffset;
+	}
+
+/*
+=================================================
+	Swizzle::Set
+=================================================
+*/
+	void  ShaderTrace::Swizzle::Set (usize idx, uint dstIdx) __NE___
+	{
+		ASSERT( not IsArray() );
+		ASSERT( idx < DstRows() );
+		ASSERT( dstIdx < 4 );
+
+		_value &= ~(3u << (idx * c_SwizzleIdxBits + c_RowOffset));
+		_value |= ((dstIdx & 3) << (idx * c_SwizzleIdxBits + c_RowOffset));
+	}
+
+/*
+=================================================
+	Swizzle::CheckIsIdentity
+=================================================
+*/
+	bool  ShaderTrace::Swizzle::CheckIsIdentity () C_NE___
+	{
+		// possible swizzle:
+		//	vec.xyz
+		//	mat[col].xyz
+		//	vec = ... (if empty)
+		//	mat = ... (if empty)
+
+		ASSERT( not IsArray() );
+
+		const usize	cnt =	DstRows();
+		bool		res =	(IsVector() and (cnt == OriginRows() or IsIdentityRows()))	or
+							(IsMatrix() and (cnt == OriginRows() or IsIdentityRows()));
+
+		for (usize i = 0; i < cnt; ++i)
+		{
+			res &= (i == (*this)[i]);
+		}
+		return res;
+	}
+
+/*
+=================================================
+	Swizzle::SetIdentityVector
+=================================================
+*/
+	void  ShaderTrace::Swizzle::SetIdentityVector (uint size) __NE___
+	{
+		_value = 0;
+		SetOriginRows( size );
+		_SetIdentityFlag();
+
+		ASSERT( CheckIsIdentity() );
+		ASSERT( IsVector() );
+	}
+
+/*
+=================================================
+	Swizzle::SetIdentityMatrix
+=================================================
+*/
+	void  ShaderTrace::Swizzle::SetIdentityMatrix (uint cols, uint rows) __NE___
+	{
+		_value = 0;
+		SetOriginRows( rows );
+		SetOriginCols( cols );
+		_SetIdentityFlag();
+
+		ASSERT( CheckIsIdentity() );
+		ASSERT( cols > 1 ? IsMatrix() : IsVector() );
+	}
+
+/*
+=================================================
+	Swizzle::SetArrayIndex
+=================================================
+*/
+	void  ShaderTrace::Swizzle::SetArrayIndex (uint idx) __NE___
+	{
+		_value = 0;
+		_value |= 1u << c_ArrayFlagOffset;
+		_value |= idx << (c_ArrayFlagOffset + 1);
+
+		ASSERT( not IsMatrix() );
+		ASSERT( not IsVector() );
+	}
+
+/*
+=================================================
+	Swizzle::_SetIdentityFlag
+=================================================
+*/
+	void  ShaderTrace::Swizzle::_SetIdentityFlag () __NE___
+	{
+		_value &= ~(1u << c_IdentityFlagOffset);
+		_value |= 1u << c_IdentityFlagOffset;
+	}
+
+/*
+=================================================
+	Swizzle::operator []
+=================================================
+*/
+	uint  ShaderTrace::Swizzle::operator [] (usize idx) C_NE___
+	{
+		ASSERT( not IsArray() );
+
+		const uint	rows = DstRows();
+		if ( rows != 0 ) // not IsIdentityRows
+		{
+			ASSERT( idx < rows );
+			return (_value >> (uint(idx) * c_SwizzleIdxBits + c_RowOffset)) & 3;
+		}
+
+		ASSERT( idx < OriginRows() );
+		return uint(idx);
+	}
+
+/*
+=================================================
+	Swizzle::DstColumn
+=================================================
+*/
+	uint  ShaderTrace::Swizzle::DstColumn () C_NE___
+	{
+		ASSERT( not IsArray() );
+		if ( IsMatrix() and not IsIdentity() )
+		{
+			uint	col = (_value >> c_DstColumnOffset) & 3;
+			ASSERT( col < OriginCols() );
+			return col;
+		}
+		return UMax;
+	}
+//-----------------------------------------------------------------------------
+
 
 /*
 =================================================
@@ -230,7 +423,7 @@ namespace
 
 	Nd__In bool  Serialize_ExprInfo (Serializer &ser, const ShaderTrace::ExprInfo &x) {
 		return	ser( x.varID )									and
-				ser( x.swizzle )								and
+				ser( x.swizzle._value )							and
 				Serialize_SourceLocation( ser, x.range )		and
 				Serialize_SourcePoint( ser, x.point )			and
 				ser( x.vars );
@@ -238,7 +431,7 @@ namespace
 
 	Nd__In bool  Deserialize_ExprInfo (Deserializer &des, OUT ShaderTrace::ExprInfo &x) {
 		return	des( OUT x.varID )								and
-				des( OUT x.swizzle )							and
+				des( OUT x.swizzle._value )						and
 				Deserialize_SourceLocation( des, OUT x.range )	and
 				Deserialize_SourcePoint( des, OUT x.point )		and
 				des( OUT x.vars );

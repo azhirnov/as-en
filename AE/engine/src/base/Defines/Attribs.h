@@ -157,7 +157,7 @@
 
 #elif defined(AE_COMPILER_CLANG) or defined(AE_COMPILER_GCC)
 #	define AE_FUNCTION_NAME			__func__	//	local variable of type 'const char[]'
-#	define AE_FUNCTION_SIGNATURE	__PRETTY_FUNCTION__ 
+#	define AE_FUNCTION_SIGNATURE	__PRETTY_FUNCTION__
 
 #else
 #	define AE_FUNCTION_NAME			"unknown function"

@@ -50,7 +50,7 @@ namespace AE::App
 		explicit WindowBase (ApplicationBase &app)							__NE___	:	_app{ app } {}
 		WindowBase (ApplicationBase &app, Unique<IWndListener> listener)	__NE___	: _listener{ RVRef(listener) }, _app{ app } {}
 		~WindowBase ()														__NE_OV;
-		
+
 			virtual void  _CreateSwapchain ()								__NE___ = 0;
 			virtual void  _DestroySwapchain ()								__NE___ = 0;
 
@@ -104,7 +104,7 @@ namespace AE::App
 	protected:
 		explicit VRSessionBase (ApplicationBase &app)						__NE___	: WindowBase{ app } {}
 		VRSessionBase (ApplicationBase &app, Unique<IWndListener> listener)	__NE___	: WindowBase{ app, RVRef(listener) } {}
-		
+
 		IVRSession*  AsVRSession ()											__NE_OV { return this; }
 	};
 

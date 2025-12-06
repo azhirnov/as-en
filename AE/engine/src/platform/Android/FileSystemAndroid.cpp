@@ -66,7 +66,7 @@ namespace
 */
 	AndroidRStream::AndroidRStream (AAsset* asset, const char* name) __NE___ :
 		_asset{ asset },
-		_size{ asset != null ? CheckCast{ AAsset_getLength( asset )} : 0 }
+		_size{ asset != null ? CheckCast{ AAsset_getLength( asset )} : 0u }
 		DEBUG_ONLY(, _name{ name })
 	{}
 
@@ -143,7 +143,7 @@ namespace
 */
 	AndroidRDataSource::AndroidRDataSource (AAsset* asset, const char* name) __NE___ :
 		_asset{ asset },
-		_size{ asset != null ? CheckCast{ AAsset_getLength( asset )} : 0 }
+		_size{ asset != null ? CheckCast{ AAsset_getLength( asset )} : 0u }
 		DEBUG_ONLY(, _name{ name })
 	{}
 

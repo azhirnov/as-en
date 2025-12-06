@@ -166,7 +166,7 @@ public class BaseApplication
 				Log.i( TAG, "HdrSdrRatio: " + display.getHdrSdrRatio() );
 				Log.i( TAG, "isHdrSdrRatioAvailable: " + display.isHdrSdrRatioAvailable() );
 			}
-			
+
 			Display.HdrCapabilities	hdr = display.getHdrCapabilities();		// api 24
 			if (hdr != null)
 			{

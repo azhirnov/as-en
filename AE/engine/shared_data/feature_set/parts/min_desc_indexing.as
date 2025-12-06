@@ -4,94 +4,119 @@
 void ASmain ()
 {
 	// include:
-	//	Intel(R) UHD Graphics 620.json
-	//	NVIDIA GeForce RTX 2080.json
-	//	AMD Radeon 780M driver 2.0.321 on Arch unknown
-	//	AMD Radeon Graphics (RADV PHOENIX) driver 25.0.1 on Ubuntu 22.04
-	//	AMD Radeon HD 7970M (RADV PITCAIRN) driver 23.3.3 on Manjaro unknown
-	//	AMD Radeon HD 8790M (RADV OLAND) driver 23.0.4 on Ubuntu 22.04
-	//	AMD Radeon RX 5700 XT driver 2.0.213 on Windows 10
-	//	AMD Radeon RX 6500 XT driver 2.0.220 on Windows 10
-	//	AMD Radeon RX 6750 XT (RADV NAVI22) driver 23.3.4 on Arch unknown
-	//	AMD Radeon RX 6800 XT driver 2.0.213 on Windows 10
-	//	AMD Radeon RX 6900 XT (RADV NAVI21) driver 22.2.99 on Debian unknown
-	//	AMD Radeon RX 7800 XT (RADV NAVI32) driver 24.0.99 on Arch unknown
-	//	AMD Radeon RX 7900 XTX (RADV GFX1100) driver 23.2.1 on Arch unknown
-	//	AMD Radeon RX Vega driver 2.0.213 on Ubuntu 22.01
-	//	Apple M1 driver 0.2.2017 on Osx 14.1
-	//	Intel(R) Arc(tm) A380 Graphics (DG2) driver 22.2.99 on Rocky 9.0
-	//	Intel(R) Arc(tm) A770M Graphics (DG2) driver 24.3.1 on Endeavouros unknown
-	//	Intel(R) Arc(tm) A770 Graphics (DG2) driver 23.3.3 on Arch unknown
-	//	Intel(R) Arc(TM) B580 Graphics driver 0.405.2156 on Windows 11
-	//	Intel(R) Graphics driver 0.405.1984 on Windows 11
-	//	Intel(R) HD Graphics 520 (SKL GT2) driver 24.2.4 on Arch unknown
-	//	Intel(R) HD Graphics 620 driver 0.404.1960 on Windows 10
-	//	Intel(R) Xe Graphics (TGL GT2) driver 21.99.99 on Linuxmint 20.2
-	//	llvmpipe (LLVM 18.1.8, 256 bits) driver 0.0.1 on Arch unknown
-	//	llvmpipe (LLVM 20.1.0, 256 bits) driver 25.0.99 on Windows 11
-	//	NVIDIA GeForce GTX 1070 driver 511.65.0.0 on Windows 10
-	//	NVIDIA GeForce GTX 750 driver 535.113.1.0 on Linuxmint 21.2
-	//	NVIDIA GeForce GTX 980 Ti driver 516.94.0.0 on Windows 10
-	//	NVIDIA GeForce MX110 driver 510.54.0.0 on Arch unknown
-	//	NVIDIA GeForce RTX 2080 driver 553.31.0.0 on Windows 11
-	//	NVIDIA GeForce RTX 3060 Ti driver 553.22.0.0 on Windows 11
-	//	NVIDIA GeForce RTX 3090 driver 473.11.0.0 on Windows 10
-	//	NVIDIA GeForce RTX 4090 driver 526.98.0.0 on Windows 10
-	//	NVIDIA GeForce RTX 4090 driver 553.51.0.0 on Windows 11
-	//	NVIDIA Tegra Orin (nvgpu) driver 540.2.0.0 on Ubuntu 22.04
-	//	Qualcomm(R) Adreno(TM) X1-85 GPU driver 512.791.0 on Windows 11
-	//	Radeon RX 580 Series driver 2.0.207 on Ubuntu 20.04
-	//	Microsoft Direct3D12 (Qualcomm(R) Adreno(TM) 8cx Gen 3) driver 24.1.99 on Windows 11
-	//	Microsoft Direct3D12 (Snapdragon(R) X Elite - X1E78100 - Qualcom driver 24.1.99 on Windows 11
-	//	Adreno driver 512.797.0 on Windows 11
-	//	Apple A12 GPU driver 0.2.2018 on Ios 17.5
-	//	Apple A15 GPU driver 0.2.2018 on Ios 17.5
-	//	Apple A17 Pro GPU driver 0.2.2018 on Ios 17.5
-	//	Apple M3 Max driver 0.2.2014 on Osx 14.2
-	//	asus ASUS_AI2203_D driver 32.1.0 on Android 13.0
-	//	Adreno (TM) 660 driver 512.530.0 on Android 11.0
-	//	Google Pixel 8 Pro driver 44.0.0 on Android 14.0
-	//	HUAWEI BRA-AL00 driver 472.436.143 on Android 12.0
-	//	Mali-T830 driver 28.0.0 on Android 9.0
-	//	motorola moto g13 driver 32.1.0 on Android 14.0
-	//	motorola moto g73 5G driver 1.473.1397 on Android 13.0
-	//	NINTENDO Switch v2 driver 495.0.0.0 on Android 11.0
-	//	Adreno (TM) 505 driver 512.454.0 on Android 9.0
-	//	nubia NX729J driver 512.746.0 on Android 13.0
-	//	NVIDIA Tegra X1 (rev B) (nvgpu) driver 495.0.0.0 on Android 11.0
-	//	NVIDIA Tegra X2 (nvgpu) driver 32.4.3.0 on Ubuntu 18.04
-	//	NVIDIA Tegra Xavier (nvgpu) driver 32.4.3.0 on Ubuntu 18.04
-	//	Oculus Quest 3 driver 512.746.0 on Android 12.0
-	//	Oppo A77 driver 58.722.917 on Android 7.1
-	//	Mali-G71 driver 575.795.1934 on Android 7.1
-	//	OPPO CPH1951 driver 1.386.1368 on Android 11.0
-	//	OPPO CPH2217 driver 1.386.1368 on Android 13.0
-	//	OPPO PDYT20 driver 32.1.0 on Android 12.0
-	//	OPPO PFFM20 driver 32.1.0 on Android 12.0
-	//	PowerVR B-Series BXE-4-32 driver 1.492.1330 on Debian unknown
-	//	Mali-G52 MC2 driver 26.0.0 on Android 11.0
-	//	Adreno (TM) 730 driver 512.615.0 on Android 12.0
-	//	rockchip BlueBerry driver 13.0.0 on Android 12.0
-	//	rockchip orangepi5plus driver 13.0.0 on Android 12.0
-	//	rockchip orangepi5 driver 12.0.0 on Android 12.0
-	//	Rockchip rk3399 driver 1012.218.955 on Android 10.0
-	//	samsung SM-A346E driver 32.1.0 on Android 14.0
-	//	Mali-G72 driver 26.0.0 on Android 11.0
-	//	samsung SM-G780F driver 38.1.0 on Android 13.0
-	//	Mali-G76 driver 32.1.0 on Android 12.0
-	//	samsung SM-S901B driver 2.0.0 on Android 14.0
-	//	samsung SM-S901E driver 512.744.6 on Android 13.0
-	//	Samsung Xclipse 920 driver 2.0.0 on Android 12.0
-	//	samsung SM-S926B driver 2.0.0 on Android 14.0
-	//	Snapdragon(R) X Elite - X1E80100 - Qualcomm(R) Adreno(TM) GPU driver 512.780.0 on Windows 11
-	//	PowerVR Rogue GE8320 driver 1.386.1368 on Android 11.0
-	//	Adreno (TM) 610 driver 512.502.0 on Android 11.0
-	//	PowerVR Rogue GE8300 driver 1.322.3448 on Android 10.0
-	//	VideoCore VII HW (V3D-720) - 7.1.9 driver 24.0 on Linux #2 SMP Tue Oct 3 14:16:30 PDT 2023
-	//	vivo V2324A driver 44.1.0 on Android 14.0
-	//	vivo V2351 driver 38.1.0 on Android 14.0
-	//	Xiaomi 22081212G driver 512.744.1 on Android 14.0
-	//	Adreno (TM) 612 driver 512.502.0 on Android 12.0
+	//	Apple-M1-1.4.323
+	//	Apple-M2-1.4.323
+	//	Apple-M3-1.4.323
+	//	Apple-M4-1.4.329
+	//	Lin-AMD-RDNA3-780M-1.4.313
+	//	Lin-NV-RTX2000-1.4.312
+	//	Mesa-AMD-GCN4-RX580-1.4.318
+	//	Mesa-AMD-RDNA3-780M-1.4.328
+	//	Mesa-AMD-RDNA3.5-890M-1.4.318
+	//	Mesa-AMD-RDNA4-1.4.328
+	//	Mesa-Intel-Arc-1.4.318
+	//	Mesa-Intel-Gen11-1.3.230
+	//	Mesa-Intel-Gen8-1.3.224
+	//	Mesa-Intel-Gen9.5-1.4.311
+	//	Mesa-Intel-Xe1-1.4.328
+	//	Mesa-Intel-Xe2-1.4.318
+	//	Win-Adreno-X1-85-1.3.295
+	//	Win-AMD-GCN4-RX580-1.4.264
+	//	Win-AMD-GCN5-IIV-1.3.260
+	//	Win-AMD-GCN5-RXVega10-1.3.260
+	//	Win-AMD-GCN5-RXVega56-1.3.264
+	//	Win-AMD-RDNA1-1.4.315
+	//	Win-AMD-RDNA2-1.4.315
+	//	Win-AMD-RDNA2-610M-1.4.315
+	//	Win-AMD-RDNA3-1.4.315
+	//	Win-AMD-RDNA3-780M-1.4.329
+	//	Win-AMD-RDNA3.5-8060S-1.4.325
+	//	Win-AMD-RDNA3.5-890M-1.4.329
+	//	Win-AMD-RDNA4-1.4.329
+	//	Win-Intel-Gen11-1.3.215
+	//	Win-Intel-Gen12-1.4.318
+	//	Win-Intel-Gen12-1.4.323
+	//	Win-Intel-Gen9-1.3.215
+	//	Win-Intel-Gen9.5-1.3.215
+	//	Win-Intel-Xe1-1.3.297
+	//	Win-Intel-Xe1-1.4.325
+	//	Win-Intel-Xe1-LPG-1.4.325
+	//	Win-Intel-Xe2-1.4.325
+	//	Win-Intel-Xe2-LPG-1.4.323
+	//	Win-llvmpipe-1.4.328
+	//	Win-NV-GTX1000-1.4.329
+	//	Win-NV-GTX1600-1.4.312
+	//	Win-NV-GTX700-1.4.312
+	//	Win-NV-GTX800-1.4.329
+	//	Win-NV-GTX900-1.4.312
+	//	Win-NV-MX150-1.4.312
+	//	Win-NV-RTX2000-1.4.312
+	//	Win-NV-RTX3000-1.4.328
+	//	Win-NV-RTX4000-1.4.328
+	//	Win-NV-RTX5000-1.4.319
+	//	Adreno-505-1.1.87
+	//	Adreno-540-1.1.128
+	//	Adreno-660-1.1.128
+	//	Adreno-660-1.1.276
+	//	Adreno-660-1.1.295
+	//	Adreno-740-1.3.128
+	//	Adreno-740-1.3.295
+	//	Adreno-830-1.3.284
+	//	Adreno-830-1.4.295
+	//	Apple-A12-1.3.313
+	//	Apple-A13-1.4.323
+	//	Apple-A14-1.4.323
+	//	Apple-A15-1.4.323
+	//	Apple-A16-1.4.323
+	//	Apple-A17-1.4.323
+	//	Apple-A18-1.4.323
+	//	Apple-A19-1.4.323
+	//	Maleoon910-1.2.231
+	//	Maleoon910-1.2.309
+	//	Maleoon920-1.3.275
+	//	Maleoon920-1.3.309
+	//	Mali-G52-1.1.191
+	//	Mali-G52-1.3.278
+	//	Mali-G52.1.1.149
+	//	Mali-G57-1.1.191
+	//	Mali-G57-1.3.225
+	//	Mali-G57-1.3.283
+	//	Mali-G610-1.1.219
+	//	Mali-G615-1.3.247
+	//	Mali-G71-1.0.97
+	//	Mali-G71-1.1.108
+	//	Mali-G71-1.1.131
+	//	Mali-G710-1.1.117
+	//	Mali-G710-1.3.274
+	//	Mali-G710-1.4.305
+	//	Mali-G715-1.4.305
+	//	Mali-G720-1.3.247
+	//	Mali-G720-1.3.278
+	//	Mali-G76-1.1.177
+	//	Mali-G76-1.1.213
+	//	Mali-G78-1.1.177
+	//	Mali-G78-1.3.231
+	//	Mali-G78-1.4.303
+	//	Mali-G925-1.3.278
+	//	Mali-T880-1.0.82
+	//	PanVk-Mali-G610-1.4.333
+	//	PVR-7-1.0.3
+	//	PVR-9-1.1.131
+	//	PVR-B-1.1.170
+	//	PVR-D-1.3.288
+	//	PVR-D-1.4.303
+	//	Rockchip-Orangepi5max-1.3.231
+	//	SamsungX530-1.3.279
+	//	SamsungX920-1.1.179
+	//	SamsungX920-1.3.279
+	//	SamsungX940-1.3.231
+	//	SamsungX940-1.3.279
+	//	Turnip-Adreno-650-1.3.328
+	//	Videocore6-1.3.260
+	//	Videocore7-1.3.295
+	//	OculusQuest3-1.3.295
+	//	Pico4-1.1.128
+	//	Pico4U-1.3.276
 	//	Apple9
 	//	Apple8
 	//	Apple8_Mac
@@ -107,10 +132,9 @@ void ASmain ()
 
 	RC<FeatureSet>  fset = FeatureSet( "part.MinDescriptorIndexing" );
 
-	fset.shaderSampledImageArrayDynamicIndexing (True);
 	fset.shaderUniformBufferArrayDynamicIndexing (True);
 
-	fset.maxUniformBufferSize (16 << 10);
+	fset.maxUniformBufferSize (64 << 10);
 	fset.maxStorageBufferSize (64 << 10);
 
 	fset.perPipeline_maxInputAttachments (4);
@@ -124,11 +148,11 @@ void ASmain ()
 	fset.perStage_maxInputAttachments (4);
 	fset.perStage_maxSampledImages (16);
 	fset.perStage_maxSamplers (16);
-	fset.perStage_maxStorageBuffers (4);
+	fset.perStage_maxStorageBuffers (24);
 	fset.perStage_maxStorageImages (4);
 	fset.perStage_maxUniformBuffers (12);
-	fset.perStage_maxTotalResources (44);
 
+	fset.perStage_maxTotalResources (79);
 	fset.maxDescriptorSets (4);
 	fset.maxFragmentOutputAttachments (4);
 	fset.maxFragmentCombinedOutputResources (8);

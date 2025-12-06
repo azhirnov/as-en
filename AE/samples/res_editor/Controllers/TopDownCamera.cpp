@@ -101,7 +101,7 @@ namespace AE::ResEditor
 	void  TopDownCamera::CopyTo (OUT AE::ShaderTypes::CameraData &camera) C_NE___
 	{
 		Frustum_t	frustum;
-		frustum.Setup( GetViewProj() );
+		frustum.Setup( GetViewProj(), GetClipPlanes() );
 
 		_CopyToCameraData( OUT camera, frustum );
 	}

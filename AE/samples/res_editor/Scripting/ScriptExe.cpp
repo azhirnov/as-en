@@ -566,7 +566,7 @@ namespace {
 
 		data.passGroup->Add( ScriptBasePassPtr{ new ScriptCopyImage{ src, dst }});
 	}
-	
+
 /*
 =================================================
 	_CopyImage2
@@ -682,7 +682,7 @@ namespace {
 
 		data.passGroup->Add( ScriptBasePassPtr{ new ScriptClearBuffer{ buffer, Bytes{offset}, Bytes{size}, value }});
 	}
-	
+
 /*
 =================================================
 	_ConvertCooperativeVectorMatrix
@@ -757,7 +757,7 @@ namespace {
 
 		data.passGroup->Add( ScriptBasePassPtr{ new ScriptExportBuffer{ buffer, prefix, ScriptExportBuffer::EMode::Binary }});
 	}
-	
+
 	void  ScriptExe::_ExportBuffer2 (const ScriptBufferPtr &buffer, const String &prefix, uint offset, uint size) __Th___
 	{
 		CHECK_THROW_MSG( buffer );
@@ -1341,25 +1341,25 @@ namespace {
 		auto&	fs = GraphicsScheduler().GetFeatureSet();
 		return fs.attachmentFormats.contains( fmt );
 	}
-	
+
 	static bool  _Supports_AttachmentBlendFormat (const EPixelFormat fmt)
 	{
 		auto&	fs = GraphicsScheduler().GetFeatureSet();
 		return fs.attachmentBlendFormats.contains( fmt );
 	}
-	
+
 	static bool  _Supports_LinearSampledFormat (const EPixelFormat fmt)
 	{
 		auto&	fs = GraphicsScheduler().GetFeatureSet();
 		return fs.linearSampledFormats.contains( fmt );
 	}
-	
+
 	static bool  _Supports_StorageImageFormat (const EPixelFormat fmt)
 	{
 		auto&	fs = GraphicsScheduler().GetFeatureSet();
 		return fs.storageImageFormats.contains( fmt );
 	}
-	
+
 	static bool  _Supports_StorageImageAtomicFormat (const EPixelFormat fmt)
 	{
 		auto&	fs = GraphicsScheduler().GetFeatureSet();
@@ -1368,7 +1368,7 @@ namespace {
 
 	static uint _GetSubgroupSize ()
 	{
-		return GraphicsScheduler().GetDevice().GetDeviceProperties().compute.subgroupSize;	
+		return GraphicsScheduler().GetDevice().GetDeviceProperties().compute.subgroupSize;
 	}
 
 	static ScriptFeatureSet*  _GetFeatureSet ()
@@ -1398,6 +1398,7 @@ namespace {
 		CoreBindings::BindArray( se );
 		CoreBindings::BindLog( se );
 		CoreBindings::BindRandom( se );
+		CoreBindings::BindHash( se );
 		CoreBindings::BindToString( se, true, true, true, true );
 
 		GraphicsBindings::BindEnums( se );
@@ -1546,13 +1547,15 @@ namespace {
 		AS_GLOBAL_FN( se, ScriptExe::_GetSphere2,				"GetSphere",				{"lod", "positions", "cubemapTexcoords", "indices"},	"Returns spherical cube" );
 		AS_GLOBAL_FN( se, ScriptExe::_GetSphere3,				"GetSphere",				{"lod", "positions", "normals", "tangents", "bitangents", "cubemapTexcoords", "indices"},	"Returns spherical cube with tangential projection for cubemap." );
 		AS_GLOBAL_FN( se, ScriptExe::_GetSphere4,				"GetSphere",				{"lod", "positions", "normals", "tangents", "bitangents", "texcoords2d", "indices"},		"Returns spherical cube" );
-		AS_GLOBAL_FN( se, ScriptExe::_GetCylinder1,				"GetCylinder",				{"segmentCount", "isInner", "positions", "texcoords", "indices"},			"Returns cylinder" );
+		AS_GLOBAL_FN( se, ScriptExe::_GetCylinder1,				"GetCylinder",				{"segmentCount", "isInner", "positions", "texcoords", "indices"},										"Returns cylinder" );
 		AS_GLOBAL_FN( se, ScriptExe::_GetCylinder2,				"GetCylinder",				{"segmentCount", "isInner", "positions", "normals", "tangents", "bitangents", "texcoords", "indices"},	"Returns cylinder" );
+		AS_GLOBAL_FN( se, ScriptExe::_GetCone1,					"GetCone",					{"segmentCount", "radius", "height", "positions", "indices"},													"Returns cone, apex in +Z" );
+		AS_GLOBAL_FN( se, ScriptExe::_GetCone2,					"GetCone",					{"segmentCount", "radius", "height", "positions", "normals", "texcoords", "indices"},							"Returns cone, apex in +Z" );
+		AS_GLOBAL_FN( se, ScriptExe::_GetCone3,					"GetCone",					{"segmentCount", "radius", "height", "positions", "normals", "tangents", "bitangents", "texcoords", "indices"},	"Returns cone, apex in +Z" );
 
 		AS_GLOBAL_FN( se, ScriptExe::_GetSphericalCube1,		"GetSphericalCube",			{"lod", "positions", "indices"},						"Returns spherical cube without projection and face rotation.\nIn 'positions': xy - pos on face, z - face index." );
 
 		AS_GLOBAL_FN( se, ScriptExe::_IndicesToPrimitives,		"IndicesToPrimitives",		{"indices", "primitives"},		"Helper function to convert array of indices to array of uint3 indices per triangle" );
-		AS_GLOBAL_FN( se, ScriptExe::_GetFrustumPlanes,			"GetFrustumPlanes",			{"viewProj", "outPlanes"},		"Helper function to convert matrix to 6 planes of the frustum." );
 		AS_GLOBAL_FN( se, ScriptExe::_MergeMesh,				"MergeMesh",				{"srcIndices", "srcVertexCount", "indicesToAdd"} );
 
 		#ifdef AE_ENABLE_CDT
@@ -1657,7 +1660,9 @@ namespace {
 		AS_GLOBAL_FN( se, ScriptExe::_CM_CubeSC_Forward,		"CM_CubeSC_Forward",		{"snormCoord_cubeFace"},	"Convert 2D regular grid on cube face to 3D position on cube." );
 		AS_GLOBAL_FN( se, ScriptExe::_CM_IdentitySC_Forward,	"CM_IdentitySC_Forward",	{"snormCoord_cubeFace"},	"Convert 2D regular grid on cube face to 3D position on sphere using identity projection (normalization)." );
 		AS_GLOBAL_FN( se, ScriptExe::_CM_TangentialSC_Forward,	"CM_TangentialSC_Forward",	{"snormCoord_cubeFace"},	"Convert 2D regular grid on cube face to 3D position on sphere using tangential projection." );
-		
+
+		AS_GLOBAL_FN( se, ScriptExe::_GetMarchingCubeTable,		"GetMarchingCubeTable",		{"edgeTable", "triangleTable", "uvw"} );
+
 		AS_GLOBAL_FN( se, _GetGPUVendor,									"GPUVendor",						{} );
 		AS_GLOBAL_FN( se, _IsDiscreteGPU,									"IsDiscreteGPU",					{} );
 		AS_GLOBAL_FN( se, _IsRemoteGPU,										"IsRemoteGPU",						{} );
@@ -1858,7 +1863,7 @@ namespace {
 		CHECK_THROW( s_scriptExe != null );
 
 		const Bool	use_slang = Bool{AllBits( passFlags, ScriptBasePass::EFlags::UseSLang )};
-		
+
 	  #ifdef AE_METAL_TOOLS
 		try{
 			const auto	flags = UIInteraction::Instance().graphics->shaderFlags;
@@ -1991,6 +1996,27 @@ namespace {
 	{
 		CHECK_THROW( not path.empty() );
 
+		// pattern '*...'
+		if ( uint(path.native()[0]) == uint('*') )
+		{
+			Path	p = GetCurrentFile().replace_extension();	// throw
+
+			p += path.native().substr( 1 );
+
+			CHECK_THROW_MSG( FileSystem::IsFile( p ),
+				"Pipeline file '"s << ToString(p) << "' is not exists" );
+			return p;
+		}
+
+		// try current path
+		if ( path.parent_path().empty() )
+		{
+			Path	p = GetCurrentFile().replace_filename( path );	// throw
+
+			if ( FileSystem::IsFile( p ))
+				return p;
+		}
+
 		auto&	data = _GetTempData();
 		for (const auto& p : data.cfg.pipelineDirs)
 		{
@@ -2012,6 +2038,18 @@ namespace {
 	{
 		CHECK_THROW( not path.empty() );
 
+		// pattern '*...'
+		if ( uint(path.native()[0]) == uint('*') )
+		{
+			Path	p = GetCurrentFile().replace_extension();	// throw
+
+			p += path.native().substr( 1 );
+
+			CHECK_THROW_MSG( FileSystem::IsDirectory( p ),
+				"Pipeline directory '"s << ToString(p) << "' is not exists" );
+			return p;
+		}
+
 		auto&	data = _GetTempData();
 		for (const auto& p : data.cfg.pipelineDirs)
 		{
@@ -2020,7 +2058,8 @@ namespace {
 			if ( FileSystem::IsDirectory( pp ))
 				return pp;
 		}
-		CHECK_THROW( false );
+		CHECK_THROW_MSG( false,
+			"Can't find pipeline directory '"s << ToString(path) << "'" );
 	}
 
 /*
@@ -2178,7 +2217,7 @@ namespace {
 
 				obj_storage.spirvCompiler	= MakeUnique<SpirvCompiler>( _GetTempData().cfg.includeDirs );
 				obj_storage.spirvCompiler->SetDefaultResourceLimits();
-				
+
 			  #ifdef AE_METAL_TOOLS
 				if ( compileMSL )
 				{
@@ -2187,6 +2226,7 @@ namespace {
 				}
 			  #endif
 			  #ifdef AE_ENABLE_SLANG
+				if ( useSlang )
 				{
 					obj_storage.slangCompiler = MakeUnique<SLangCompiler>( _GetTempData().cfg.includeDirs );
 				}
@@ -2203,7 +2243,7 @@ namespace {
 
 				cfg.SetDefaultLayout( EStructLayout::Compatible_Std140 );
 				cfg.SetPreprocessor( EShaderPreprocessor::AEStyle );
-				
+
 				const auto		flags	 = UIInteraction::Instance().graphics->shaderFlags;
 				EShaderOpt		sh_opt	 = Default;
 				EPipelineOpt	ppln_opt = Default;
@@ -2218,10 +2258,10 @@ namespace {
 					sh_opt   = EShaderOpt::Optimize;
 					ppln_opt |= EPipelineOpt::Optimize;
 				}
-		
+
 				if ( flags.contains( UIInteraction::EShaderFlags::CaptureStatistics ))
 					ppln_opt |= EPipelineOpt::CaptureStatistics;
-		
+
 				if ( flags.contains( UIInteraction::EShaderFlags::CaptureInternalRepresentation ))
 					ppln_opt |= EPipelineOpt::CaptureInternalRepresentation;
 

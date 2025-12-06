@@ -98,7 +98,7 @@ namespace AE::Base
 			_visitor_( ARM_ISA_9_1,		)\
 			_visitor_( ARM_ISA_9_2,		)\
 			_visitor_( ARM_ISA_9_3,		)\
-		
+
 		_AMD_Begin				= 0x1000,
 		_Intel_Begin			= 0x2000,
 		_Intel_Client_Begin		= _Intel_Begin,
@@ -145,7 +145,7 @@ namespace AE::Base
 		// ARM: Cortex X1, X2, X925, ...
 		HighPerformance,
 
-		// ARM: Cortex A72 - A78, A720, ... 
+		// ARM: Cortex A72 - A78, A720, ...
 		// All cores on x64 type processors.
 		Performance,
 
@@ -338,23 +338,23 @@ namespace AE::Base
 
 	// methods
 	private:
-		CpuArchInfo ()												__NE___;
+		CpuArchInfo ()																		__NE___;
 
-		void  _Validate ()											__NE___;
+		void  _Validate ()																	__NE___;
 
 	public:
-		ND_ String		Print ()									C_NE___;
-		ND_ bool		CheckCompilationOptions ()					C_NE___;
+		ND_ String		Print ()															C_NE___;
+		ND_ bool		CheckCompilationOptions ()											C_NE___;
 
-		ND_ Core const*	GetCore (uint threadIdx)					C_NE___;
-		ND_ Core const*	GetCore (ECoreType type)					C_NE___;
+		ND_ Core const*	GetCore (uint threadIdx)											C_NE___;
+		ND_ Core const*	GetCore (ECoreType type)											C_NE___;
 
-		ND_ CacheGeom const*  GetCache (ECacheType, ECoreType)		C_NE___;
+		ND_ CacheGeom const*  GetCache (ECacheType, ECoreType)								C_NE___;
 
-		ND_ CoreBits_t	LogicalCoreMask ()							C_NE___;
-		ND_ CoreBits_t	PhysicalCoreMask ()							C_NE___;
+		ND_ CoreBits_t	LogicalCoreMask (ECoreType excludeIfLessThan = ECoreType::_Count)	C_NE___;
+		ND_ CoreBits_t	PhysicalCoreMask (ECoreType excludeIfLessThan = ECoreType::_Count)	C_NE___;
 
-		ND_ static CpuArchInfo const&  Get ()						__NE___;
+		ND_ static CpuArchInfo const&  Get ()												__NE___;
 	};
 //-----------------------------------------------------------------------------
 
@@ -427,7 +427,7 @@ namespace AE::Base
 		switch_end
 		return "";
 	}
-	
+
 /*
 =================================================
 	ToString (ECacheType)
@@ -478,7 +478,7 @@ namespace AE::Base
 		switch_end
 		return "";
 	}
-	
+
 /*
 =================================================
 	ToString (ECPUMicroArch)

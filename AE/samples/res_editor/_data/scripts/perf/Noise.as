@@ -13,7 +13,7 @@
 		RC<DynamicUInt>		octaves	= DynamicUInt();
 		RC<DynamicUInt>		count	= DynamicUInt();
 		RC<DynamicUInt>		tex_pot	= DynamicUInt();
-		RC<DynamicDim>		tex_dim	= tex_pot.PowOf2().Dimension2();
+		RC<DynamicDim>		tex_dim	= tex_pot.Exp2().Dimension2();
 		RC<Image>			rt		= Image( EPixelFormat::RGBA8_UNorm, tex_dim );
 		RC<DynamicUInt>		mode	= DynamicUInt();
 		array<string>		mode_arr = {

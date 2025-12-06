@@ -38,7 +38,7 @@ namespace AE::ResEditor
 		TDynamicVec ()										__NE___	{}
 		explicit TDynamicVec (const Value_t &v)				__NE___	: _vec{v} {}
 		TDynamicVec (RC<> base, GetValueFn_t getValue)		__NE___	: _base{RVRef(base)}, _getValue{getValue} {}
-		
+
 			void		SetOp (RC<Self>, EOperator)			__NE___;
 			void		SetOp (const Value_t &, EOperator)	__NE___;
 			void		Set (const Value_t &v)				__NE___;
@@ -52,9 +52,11 @@ namespace AE::ResEditor
 		ND_ RC<TDynamicScalar<T>>	GetDynamicY ()			__NE___;
 		ND_ RC<TDynamicScalar<T>>	GetDynamicZ ()			__NE___;
 		ND_ RC<TDynamicScalar<T>>	GetDynamicW ()			__NE___;
-		
+
 		ND_ RC<TDynamicScalar<T>>	GetDynamicArea ()		__NE___;
 		ND_ RC<TDynamicScalar<T>>	GetDynamicVolume ()		__NE___;
+
+		ND_ RC<TDynamicVec<T,2>>	GetDynamicXY ()			__NE___;
 
 		ND_ RC<DynamicDim>			ToDim ()				__NE___;
 
@@ -65,6 +67,7 @@ namespace AE::ResEditor
 		ND_ static T		_GetY (EnableRCBase*)			__NE___;
 		ND_ static T		_GetZ (EnableRCBase*)			__NE___;
 		ND_ static T		_GetW (EnableRCBase*)			__NE___;
+		ND_ static Vec<T,2>	_GetXY (EnableRCBase*)			__NE___;
 		ND_ static uint3	_GetDim (EnableRCBase*)			__NE___;
 		ND_ static uint		_GetArea (EnableRCBase*)		__NE___;
 		ND_ static uint		_GetVolume (EnableRCBase*)		__NE___;
@@ -138,21 +141,21 @@ namespace AE::ResEditor
 
 		if_unlikely( _getValue != null )
 			result = _getValue( _base.get() );
-		
+
 		if ( _opDynamic )
 			r_value = _opDynamic->Get();
 
 		switch_enum( _op )
 		{
 			case_likely EOperator::Unknown :	break;
-			case EOperator::Mul :				result *= r_value;								break;
-			case EOperator::Div :				result /= r_value;								break;
-			case EOperator::DivNear :			result = (result + r_value / T(2)) / r_value;	break;
-			case EOperator::DivCeil :			result = (result + r_value - T(1)) / r_value;	break;
-			case EOperator::Add :				result += r_value;								break;
-			case EOperator::Sub :				result -= r_value;								break;
-			case EOperator::Min :				result = Min( result, r_value );				break;
-			case EOperator::Max :				result = Max( result, r_value );				break;
+			case EOperator::Mul :				result *= r_value;										break;
+			case EOperator::Div :				result = SafeDiv( result, r_value );					break;
+			case EOperator::DivNear :			result = SafeDiv( result + r_value / T(2), r_value );	break;
+			case EOperator::DivCeil :			result = SafeDiv( result + r_value - T(1), r_value );	break;
+			case EOperator::Add :				result += r_value;										break;
+			case EOperator::Sub :				result -= r_value;										break;
+			case EOperator::Min :				result = Min( result, r_value );						break;
+			case EOperator::Max :				result = Max( result, r_value );						break;
 
 			case EOperator::FloorPOT :
 				if constexpr( IsInteger<T> )
@@ -163,13 +166,13 @@ namespace AE::ResEditor
 				if constexpr( IsInteger<T> )
 					result = CeilPOT( result );
 				break;
-				
+
 			case EOperator::NearPOT :
 				if constexpr( IsInteger<T> )
 					result = NearPOT( result );
 				break;
 
-			case EOperator::PowOf2 :
+			case EOperator::Exp2 :
 				if constexpr( IsFloatPoint<T> )
 					result = r_value * Pow( Value_t{T(2)}, result );
 				else
@@ -291,7 +294,26 @@ namespace AE::ResEditor
 		StaticAssert( I >= 4 );
 		return MakeRC<TDynamicScalar<T>>( RC<>{this->GetRC()}, &_GetW );
 	}
-	
+
+/*
+=================================================
+	GetDynamicXY
+=================================================
+*/
+	template <typename T, int I>
+	Vec<T,2>  TDynamicVec<T,I>::_GetXY (EnableRCBase* base) __NE___
+	{
+		auto	v = Cast<Self>(base)->Get();
+		return Vec<T,2>{ v.x, v.y };
+	}
+
+	template <typename T, int I>
+	RC<TDynamicVec<T,2>>  TDynamicVec<T,I>::GetDynamicXY () __NE___
+	{
+		StaticAssert( I >= 2 );
+		return MakeRC<TDynamicVec<T,2>>( RC<>{this->GetRC()}, &_GetXY );
+	}
+
 /*
 =================================================
 	GetDynamicArea
@@ -310,7 +332,7 @@ namespace AE::ResEditor
 		StaticAssert( I >= 2 );
 		return MakeRC<TDynamicScalar<T>>( RC<>{this->GetRC()}, &_GetArea );
 	}
-	
+
 /*
 =================================================
 	GetDynamicVolume
@@ -350,7 +372,7 @@ namespace AE::ResEditor
 	{
 		return MakeRC<TDynamicVec<T,2>>( RC<>{this->GetRC()}, &_GetX1 );
 	}
-	
+
 /*
 =================================================
 	ToXX
@@ -386,7 +408,7 @@ namespace AE::ResEditor
 	{
 		return MakeRC<TDynamicVec<T,3>>( RC<>{this->GetRC()}, &_GetX11 );
 	}
-	
+
 /*
 =================================================
 	ToXXX

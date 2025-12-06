@@ -92,7 +92,7 @@ namespace AE::ResEditor
 	public:
 		SceneGraphicsSubpass ()											__NE___	{}
 		~SceneGraphicsSubpass ();
-		
+
 	// IPass //
 		EPassType	GetType ()											C_NE_OV	{ return EPassType::Sync | EPassType::Update; }
 		bool		Execute (SyncPassData &)							__Th_OV { return false; }

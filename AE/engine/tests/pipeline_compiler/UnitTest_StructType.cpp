@@ -87,7 +87,7 @@ namespace
 				// int8 and double types are not supported
 				compatible = false;
 			}
-			
+
 			if ( layout == EStructLayout::Metal and HasSubString( t.name, "double" ))
 			{
 				// double type is not supported
@@ -99,7 +99,7 @@ namespace
 				// int8 types are not supported
 				compatible = false;
 			}
-			
+
 			if ( layout == EStructLayout::Compatible_Std140			and
 				 arraySize > 1										and
 				 (t.align < 16_b or not IsMultipleOf( t.size, 16_b )) )
@@ -107,7 +107,7 @@ namespace
 				// not compatible with Metal
 				compatible = false;
 			}
-			
+
 			if ( AnyEqual( layout, EStructLayout::Std140, EStructLayout::HLSL_Const )	and
 				 StartsWith( t.name, "packed_" )										and
 				 arraySize > 1															and
@@ -142,7 +142,7 @@ namespace
 
 			if ( arraySize > 1 )
 				req_size = AlignUp( req_size, req_align );
-			
+
 			TEST_Eq( st->Align(),		req_align );
 			TEST_Eq( st->StaticSize(),	req_size * arraySize );
 		}
@@ -221,7 +221,7 @@ namespace
 			}
 
 			ShaderStructTypePtr	st{ new ShaderStructType{ "MatTest"s << ToString(idx++) }};
-			
+
 			try{
 				st->Set( layout, String{t.name} << " val;" );
 				TEST( compatible );
@@ -241,7 +241,7 @@ namespace
 				uint	rows = t.size / t.align;
 				req_size = rows * AlignUp( t.align, 16_b );
 			}
-			
+
 			if ( AnyEqual( layout, EStructLayout::Compatible_Std140, EStructLayout::Std140, EStructLayout::HLSL_Const ))
 			{
 				req_align = AlignUp( req_align, 16_b );
@@ -1991,7 +1991,7 @@ struct StType16
 		TEST_PASSED();
 	}
 
-	
+
 #ifndef StType16A_DEFINED
 #	define StType16A_DEFINED
 	// size: 12, align: 4
@@ -2048,7 +2048,7 @@ struct StType16
 
 			unique.clear();
 			msl = st->ToShaderIO_MSL( EShader::Fragment, true, unique );		// throw
-			
+
 			unique.clear();
 			hlsl = st->ToShaderIO_HLSL( EShader::Fragment, true, unique );		// throw
 		}
@@ -2208,7 +2208,7 @@ struct StType18
 		TEST_PASSED();
 	}
 
-	
+
 #ifndef StType18_DEFINED
 #	define StType18_DEFINED
 	// size: 76 (80), align: 16
@@ -2379,7 +2379,7 @@ struct StType19
 				 "packed_float3	m;"		// size: 12		offset: 120	- packed
 				// end									offset: 132
 				);
-		
+
 		ShaderStructTypePtr	st{ new ShaderStructType{ "StType20" }};
 		st->Set( EStructLayout::Std430,
 				 "StType20A		a;"
@@ -2558,7 +2558,7 @@ Buffer {
 		st1->Set( EStructLayout::Compatible_Std430,
 				  "uint			a;"
 				  "uint2		b;" );
-		
+
 		ShaderStructTypePtr	st2{ new ShaderStructType{ "StType21B" }};
 		st2->Set( EStructLayout::Compatible_Std430,
 				  "StType21A	a;"
@@ -2754,7 +2754,7 @@ struct StType21
 		const String	msl  = ToMSL( st );
 		const String	cpp  = ToCPP( st );
 		const String	hlsl = ToHLSL( st );
-		
+
 		const String	ref_glsl = R"#(
 Buffer {
 	layout(offset=0, align=4)  uint   a;       // size: 4
@@ -2831,25 +2831,25 @@ struct StType22
 	{
 		ShaderStructTypePtr	st430{ new ShaderStructType{ "StType21_std430" }};
 		st430->Set( EStructLayout::Std430, "float  a;" );
-		
+
 		ShaderStructTypePtr	st140{ new ShaderStructType{ "StType21_std140" }};
 		st140->Set( EStructLayout::Std140, "float  a;" );
-		
+
 		ShaderStructTypePtr	stC430{ new ShaderStructType{ "StType21_C430" }};
 		stC430->Set( EStructLayout::Compatible_Std430, "float  a;" );
-		
+
 		ShaderStructTypePtr	stC140{ new ShaderStructType{ "StType21_C140" }};
 		stC140->Set( EStructLayout::Compatible_Std140, "float  a;" );
-		
+
 		ShaderStructTypePtr	stMtl{ new ShaderStructType{ "StType21_mtl" }};
 		stMtl->Set( EStructLayout::Metal, "float  a;" );
-		
+
 		ShaderStructTypePtr	stIO{ new ShaderStructType{ "StType21_IO" }};
 		stIO->Set( EStructLayout::InternalIO, "float  a;" );
-		
+
 		ShaderStructTypePtr	stHLSLc{ new ShaderStructType{ "StType21_hlslC" }};
 		stHLSLc->Set( EStructLayout::HLSL_Const, "float  a;" );
-		
+
 		ShaderStructTypePtr	stHLSLsb{ new ShaderStructType{ "StType21_hlslSB" }};
 		stHLSLsb->Set( EStructLayout::HLSL_Struct, "float  a;" );
 
@@ -2888,7 +2888,7 @@ struct StType22
 				st->Set( EStructLayout::Std140, "StType21_hlslSB  a;" );
 				TEST(false);
 			}catch(...) {}
-			
+
 			// ok
 			try{
 				ShaderStructTypePtr	st{ new ShaderStructType{ "StType21_std140_C140" }};
@@ -2937,7 +2937,7 @@ struct StType22
 				st->Set( EStructLayout::Std430, "StType21_hlslSB  a;" );
 				TEST(false);
 			}catch(...) {}
-			
+
 			// ok
 			try{
 				ShaderStructTypePtr	st{ new ShaderStructType{ "StType21_std430_std430" }};
@@ -2991,7 +2991,7 @@ struct StType22
 				st->Set( EStructLayout::Compatible_Std140, "StType21_hlslSB  a;" );
 				TEST(false);
 			}catch(...) {}
-			
+
 			// ok
 			try{
 				ShaderStructTypePtr	st{ new ShaderStructType{ "StType21_C140_C140" }};
@@ -3000,7 +3000,7 @@ struct StType22
 				TEST(false);
 			}
 		}
-		
+
 		// Compatible_Std430 is only compatible with Compatible_Std430
 		{
 			// error
@@ -3039,7 +3039,7 @@ struct StType22
 				st->Set( EStructLayout::Compatible_Std430, "StType21_hlslSB  a;" );
 				TEST(false);
 			}catch(...) {}
-			
+
 			// ok
 			try{
 				ShaderStructTypePtr	st{ new ShaderStructType{ "StType21_C430_C430" }};
@@ -3087,7 +3087,7 @@ struct StType22
 				st->Set( EStructLayout::Metal, "StType21_hlslSB  a;" );
 				TEST(false);
 			}catch(...) {}
-			
+
 			// ok
 			try{
 				ShaderStructTypePtr	st{ new ShaderStructType{ "StType21_Mtl_mtl" }};
@@ -3096,7 +3096,7 @@ struct StType22
 				TEST(false);
 			}
 		}
-		
+
 		// InternalIO is only compatible with InternalIO
 		{
 			// error
@@ -3144,7 +3144,7 @@ struct StType22
 				TEST(false);
 			}
 		}
-		
+
 		// HLSL_Const is compatible with HLSL_Const and Compatible_std140
 		{
 			// error
@@ -3193,7 +3193,7 @@ struct StType22
 				TEST(false);
 			}
 		}
-		
+
 		// HLSL_Struct is compatible with HLSL_Struct and Compatible_std430
 		{
 			// error

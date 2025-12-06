@@ -150,7 +150,7 @@ namespace
 
 	// variables
 		hwcpipe::gpu				gpu;
-		gpu_family					gpuFamily;					
+		gpu_family					gpuFamily;
 
 		Unique<hwcpipe::sampler<>>	sampler;
 		ECounterSet					enabled;

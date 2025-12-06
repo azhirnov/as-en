@@ -93,7 +93,7 @@
 		for (;;)
 		{
 			uint	id = gl.subgroup.BroadcastFirst( In.objId );
-			
+
 			[[branch]]
 			if ( id == In.objId )
 			{

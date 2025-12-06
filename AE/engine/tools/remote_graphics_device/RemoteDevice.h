@@ -89,7 +89,7 @@ namespace AE::RemoteGraphics
 			Array<RC<SharedMem>>	memStack;
 		};
 		using ThreadArr_t = StaticArray< PerThreadData, RmNetConfig::socketCount >;
-		
+
 		class RenderTask2;
 		class DrawTask2;
 

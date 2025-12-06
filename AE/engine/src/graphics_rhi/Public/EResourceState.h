@@ -201,7 +201,7 @@ namespace AE::Graphics
 		PreRasterizationShaders					= MeshTaskShader | VertexProcessingShaders,
 		PostRasterizationShaders				= TileShader | FragmentShader,
 		AllGraphicsShaders						= PreRasterizationShaders | PostRasterizationShaders,
-		
+
 		AllShaderStages							= PreRasterizationShaders | PostRasterizationShaders | ComputeShader | RayTracingShaders,
 		AllStages								= AllShaderStages | CoopVecConvertStage,
 

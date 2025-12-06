@@ -1,12 +1,14 @@
-//f51b9fa2
+//9feb6265
+#pragma once
 #include <vector>
 #include <string>
+
+#define funcdef // typedef for function
 
 using int8		= std::int8_t;
 using uint8		= std::uint8_t;
 using int16		= std::int16_t;
 using uint16	= std::uint16_t;
-using int		= std::int32_t;
 using uint		= std::uint32_t;
 using int32		= std::int32_t;
 using uint32	= std::uint32_t;
@@ -20,10 +22,63 @@ struct RC;
 template <typename T>
 using array = std::vector<T>;
 
-struct OS;
-struct ECopyMode;
-struct ECompiler;
-struct CPUArch;
+using namespace std::string_literals;
+
+
+enum class CPUArch : uint8
+{
+	x86,
+	x64,
+	Armv7,
+	Armv8,
+	Arm64,
+	RISCV,
+	RISCV_64,
+	Loong64,
+	E2K,
+};
+uint8  operator | (CPUArch lhs, CPUArch rhs);
+uint8  operator | (uint8 lhs, CPUArch rhs);
+uint8  operator | (CPUArch lhs, uint8 rhs);
+
+enum class OS : uint8
+{
+	Windows,
+	Android,
+	Linux,
+	MacOS,
+	BSD,
+};
+uint8  operator | (OS lhs, OS rhs);
+uint8  operator | (uint8 lhs, OS rhs);
+uint8  operator | (OS lhs, uint8 rhs);
+
+enum class ECompiler : uint8
+{
+	MSVC,
+	MSVC_Clang,
+	Linux_GCC,
+	Linux_Clang,
+	Linux_Clang_Ninja,
+	MacOS_Clang,
+	iOS_Clang,
+};
+uint8  operator | (ECompiler lhs, ECompiler rhs);
+uint8  operator | (uint8 lhs, ECompiler rhs);
+uint8  operator | (ECompiler lhs, uint8 rhs);
+
+enum class ECopyMode : uint8
+{
+	FileReplace,
+	FileMerge,
+	FolderReplace,
+	FolderMerge_FileReplace,
+	FolderMerge_FileMerge,
+	FolderMerge_FileKeep,
+};
+uint8  operator | (ECopyMode lhs, ECopyMode rhs);
+uint8  operator | (uint8 lhs, ECopyMode rhs);
+uint8  operator | (ECopyMode lhs, uint8 rhs);
 
 string  FindAndReplace (const string &, const string &, const string &);
 bool  StartsWith (const string &, const string &);
@@ -36,59 +91,6 @@ void  LogDebug (const string & msg);
 void  LogFatal (const string & msg);
 void  Assert (bool expr);
 void  Assert (bool expr, const string & msg);
-struct CPUArch
-{
-	CPUArch () {}
-	CPUArch (uint8) {}
-	operator uint8 () const;
-	static constexpr uint8 x86 = 0;
-	static constexpr uint8 x64 = 1;
-	static constexpr uint8 Armv7 = 2;
-	static constexpr uint8 Armv8 = 3;
-	static constexpr uint8 Arm64 = 3;
-	static constexpr uint8 RISCV = 4;
-	static constexpr uint8 RISCV_64 = 5;
-};
-
-struct OS
-{
-	OS () {}
-	OS (uint8) {}
-	operator uint8 () const;
-	static constexpr uint8 Windows = 1;
-	static constexpr uint8 Android = 2;
-	static constexpr uint8 Linux = 3;
-	static constexpr uint8 MacOS = 4;
-	static constexpr uint8 BSD = 6;
-};
-
-struct ECompiler
-{
-	ECompiler () {}
-	ECompiler (uint8) {}
-	operator uint8 () const;
-	static constexpr uint8 MSVC = 1;
-	static constexpr uint8 MSVC_Clang = 2;
-	static constexpr uint8 Linux_GCC = 3;
-	static constexpr uint8 Linux_Clang = 4;
-	static constexpr uint8 Linux_Clang_Ninja = 5;
-	static constexpr uint8 MacOS_Clang = 6;
-	static constexpr uint8 iOS_Clang = 7;
-};
-
-struct ECopyMode
-{
-	ECopyMode () {}
-	ECopyMode (uint8) {}
-	operator uint8 () const;
-	static constexpr uint8 FileReplace = 1;
-	static constexpr uint8 FileMerge = 2;
-	static constexpr uint8 FolderReplace = 3;
-	static constexpr uint8 FolderMerge_FileReplace = 4;
-	static constexpr uint8 FolderMerge_FileMerge = 5;
-	static constexpr uint8 FolderMerge_FileKeep = 6;
-};
-
 void  Server_SetFolder (const string &);
 void  StartBuild (OS os, CPUArch arch);
 void  StartBuild (OS os, CPUArch arch, const string & name);

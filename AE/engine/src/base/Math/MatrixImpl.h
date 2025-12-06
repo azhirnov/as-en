@@ -171,7 +171,7 @@ namespace AE::Base
 		ND_ static Self  InfinitePerspective (Rad_t fovY, T aspectRatio, T zNear)			__NE___;
 		ND_ static Self  Perspective (Rad_t fovY, T aspectRatio, const Vec2_t &range)		__NE___	{ return Self{ glm::perspective( T(fovY), aspectRatio, range[0], range[1] )}; }
 		ND_ static Self  Ortho (const Rect_t &viewport)										__NE___	{ return Self{ glm::ortho( viewport.left, viewport.right, viewport.top, viewport.bottom )}; }
-		ND_ static Self  Perspective (Rad_t fovY, const Vec2_t &viewport, const Vec2_t &range)	__NE___	{ return Self{ glm::perspectiveFov( T(fovY), viewport.x, viewport.y, range[0], range[1] )}; }
+		ND_ static Self  Perspective (Rad_t fovY, const Vec2_t &viewport, const Vec2_t &range) __NE___	{ return Self{ glm::perspectiveFov( T(fovY), viewport.x, viewport.y, range[0], range[1] )}; }
 		ND_ static Self  Frustum (const Rect_t &viewport, const Vec2_t &range)				__NE___	{ return Self{ glm::frustum( viewport.left, viewport.right, viewport.top, viewport.bottom, range[0], range[1] )}; }
 		ND_ static Self  InfiniteFrustum (const Rect_t &viewport, T zNear)					__NE___;
 
@@ -186,13 +186,15 @@ namespace AE::Base
 		ND_ T			 FastProjectZ (T z)													C_NE___;
 		ND_ static T	 FastProjectZInf (T zNear, T z)										__NE___;
 		ND_ static T	 FastProjectRevZInf (T zNear, T z)									__NE___;
-		
+
+		ND_ Vec2_t		 ExtractClipPlanes ()												C_NE___;
+
 		ND_ Vec3_t		 UnProject (const Vec3_t &pos, const Rect_t &viewport)				C_NE___;
 		ND_ T			 FastUnProjectZ (T zw)												C_NE___;
 		ND_ static T	 FastUnProjectZInf (T zNear, T zw)									__NE___;
 		ND_ static T	 FastUnProjectRevZInf (T zNear, T zw)								__NE___;
 
-		ND_ static Self  Rotate  (Rad_t angle, const Vec3_t &axis)							__NE___;
+		ND_ static Self  Rotate (Rad_t angle, const Vec3_t &axis)							__NE___;
 
 		ND_ static Self  ReverseZTransform ()												__NE___;
 	#endif
@@ -514,7 +516,7 @@ namespace AE::Base
 
 		return temp;
 	}
-	
+
 /*
 =================================================
 	ProjectToNormClipSpace
@@ -527,7 +529,7 @@ namespace AE::Base
 		Vec4_t	temp = (*this) * Vec4_t{ pos, T(1) };
 		return	Vec4_t{ Vec3_t{temp} / temp.w, temp.w };	// xy - snorm, z - unorm
 	}
-	
+
 /*
 =================================================
 	FastProjectZ
@@ -561,6 +563,24 @@ namespace AE::Base
 
 /*
 =================================================
+	ExtractClipPlanes
+=================================================
+*/
+	template <typename T, glm::qualifier Q>
+	typename TMatrix<T, Columns, Rows, Q>::Vec2_t
+		TMatrix<T, Columns, Rows, Q>::ExtractClipPlanes () C_NE___
+	{
+		T	p22 = (*this)[2][2];	// zFar / (zFar - zNear);
+		T	p32 = (*this)[3][2];	// -(zFar * zNear) / (zFar - zNear);
+
+		T	near = -p32 / p22;
+		T	far  = -p32 / (p22 - T{1});
+
+		return Vec2_t{ near, far };
+	}
+
+/*
+=================================================
 	UnProject
 =================================================
 */
@@ -579,7 +599,7 @@ namespace AE::Base
 
 		return Vec3_t{ temp };
 	}
-	
+
 /*
 =================================================
 	FastUnProjectZ
@@ -594,13 +614,13 @@ namespace AE::Base
 
 		return p32 / (zw * p23 - p22);
 	}
-	
+
 	template <typename T, glm::qualifier Q>
 	T  TMatrix<T, Columns, Rows, Q>::FastUnProjectZInf (T zNear, T zw) __NE___
 	{
 		return	-zNear / (zw - T(1));
 	}
-	
+
 	template <typename T, glm::qualifier Q>
 	T  TMatrix<T, Columns, Rows, Q>::FastUnProjectRevZInf (T zNear, T zw) __NE___
 	{

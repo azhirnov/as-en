@@ -27,8 +27,8 @@ namespace
 		#endif
 		TEST_Eq( loc.FunctionName(), "SomeFunction" );
 		TEST_Eq( loc.Line(), 9 );
-	} 
-	
+	}
+
 
 	template <typename T>
 	static SourceLoc  SomeTemplateFn (T t = {})
@@ -44,7 +44,7 @@ namespace
 		TEST( Path{loc.FileName()}.filename() == "UnitTest_SourceLoc.cpp" );
 		#if defined(AE_COMPILER_CLANG) or defined(AE_COMPILER_GCC)
 			TEST_Eq( loc.FunctionSignature(), "SourceLoc (anonymous namespace)::SomeTemplateFn(T) [T = int]" );
-			
+
 		#elif defined(AE_COMPILER_CLANG_CL)
 			TEST_Eq( loc.FunctionSignature(), "SourceLoc __cdecl (anonymous namespace)::SomeTemplateFn(T) [T = int]" );
 
@@ -55,6 +55,9 @@ namespace
 		#endif
 		TEST_Eq( loc.FunctionName(), "SomeTemplateFn" );
 		TEST_Eq( loc.Line(), 37 );
+
+
+		// TODO: 'struct AE::Base::RC<class AE::_Coro_::AsyncTaskImpl> __cdecl AE::Graphics::CommandBatch::SubmitAsTask<struct AE::Base::ArrayView<struct AE::Base::RC<class AE::_Coro_::AsyncTaskImpl>,unsigned __int64>>(const struct AE::Base::Tuple<struct AE::Base::ArrayView<struct AE::Base::RC<class AE::_Coro_::AsyncTaskImpl>,unsigned __int64> > &) noexcept'
 	}
 }
 

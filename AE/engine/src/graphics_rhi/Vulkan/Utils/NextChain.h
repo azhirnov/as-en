@@ -12,7 +12,7 @@ namespace AE::Graphics
 		{&T::sType} -> SameAs< VkStructureType T::* >;
 		{&T::pNext} -> SameAs< void* T::* >;
 	};
-	
+
 	template <typename T>
 	concept IsConstVkPNext = requires
 	{
@@ -39,7 +39,7 @@ namespace AE::Graphics
 		explicit VNextChain (T &st)				__NE___
 		{
 			StaticAssert( IsMutableVkPNext<T> or IsConstVkPNext<T> );
-			
+
 			_next  = &st.pNext;
 			*_next = null;
 		}
@@ -67,7 +67,7 @@ namespace AE::Graphics
 		}
 	};
 
-	
+
 	template <typename T>
 	VNextChain (T &) -> VNextChain<T>;
 

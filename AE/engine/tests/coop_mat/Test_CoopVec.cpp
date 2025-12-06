@@ -18,10 +18,10 @@ namespace
 	{
 		ASSERT( rowColB.x == rowC );
 		ASSERT( rowColB.y == rowA );
-		
+
 		Array<float>	output;
 		output.resize( rowC );
-		
+
 		Array<float>	ref_output;
 		ref_output.resize( rowC );
 
@@ -31,7 +31,7 @@ namespace
 			{
 				float	ref = float(refOutput[i]);
 				float	sum = 0.f;
-				
+
 				for (uint j = 0; j < rowA; ++j)
 				{
 					sum += float(inputB[ i + j * rowC ]) * float(inputA[j]);
@@ -47,7 +47,7 @@ namespace
 			{
 				float	ref = float(refOutput[i]);
 				float	sum = 0.f;
-				
+
 				for (uint j = 0; j < rowA; ++j)
 				{
 					sum += float(inputB[ i * rowA + j ]) * float(inputA[j]);
@@ -57,10 +57,10 @@ namespace
 				ref_output[i] = ref;
 			}
 		}
-		
+
 		String	str		= "\n";
 		float	max_err	= 0.f;
-		
+
 		for (uint i = 0; i < rowC; ++i)
 		{
 			float	err	= Abs( (output[i] - ref_output[i]) * 100.f / output[i] );
@@ -81,20 +81,20 @@ namespace
 	{
 		ASSERT( rowColB.x == rowC );
 		ASSERT( rowColB.y == rowA );
-		
+
 		Array<float>	output;
 		output.resize( rowC );
-		
+
 		Array<float>	ref_output;
 		ref_output.resize( rowC );
-		
+
 		if ( columnMajor )
 		{
 			for (uint i = 0; i < rowC; ++i)
 			{
 				float	ref = float(refOutput[i]);
 				float	sum = float(inputC[i]);
-				
+
 				for (uint j = 0; j < rowA; ++j)
 				{
 					sum += float(inputB[ i + j * rowC ]) * float(inputA[j]);
@@ -110,7 +110,7 @@ namespace
 			{
 				float	ref = float(refOutput[i]);
 				float	sum = float(inputC[i]);
-				
+
 				for (uint j = 0; j < rowA; ++j)
 				{
 					sum += float(inputB[ i * rowA + j ]) * float(inputA[j]);
@@ -120,10 +120,10 @@ namespace
 				ref_output[i] = ref;
 			}
 		}
-		
+
 		String	str		= "\n";
 		float	max_err	= 0.f;
-		
+
 		for (uint i = 0; i < rowC; ++i)
 		{
 			float	err	= Abs( (output[i] - ref_output[i]) * 100.f / output[i] );
@@ -138,7 +138,7 @@ namespace
 		CHECK( max_err < 1.f );
 	}
 
-	
+
 	void  FillWithLinearData (INOUT Array<half> &arr, float scale, float bias)
 	{
 		for (usize i = 0; i < arr.size(); ++i) {
@@ -230,7 +230,7 @@ namespace
 			}
 		}
 	}
-	
+
 
 	static void  CoopVec_Test2 (Executor &ex)
 	{
@@ -255,7 +255,7 @@ namespace
 			input_b.resize( cols_b * rows_b * vec_count,	half::Zero() );
 			input_c.resize( rows_c * vec_count,				half::Zero() );
 			output .resize( rows_c * vec_count,				half::Zero() );
-		
+
 			FillWithLinearData( input_a, 0.001f,	1.f );		// vec
 			FillWithLinearData( input_b, 0.01f,		0.f );		// mat
 			FillWithLinearData( input_c, 0.1f,		2.f );		// vec
@@ -333,10 +333,10 @@ namespace
 
 			Array<half>		input_b, input_b_opt;
 			Array<half>		output;
-		
+
 			input_b.resize( cols_b * rows_b * vec_count,	half::Zero() );
 			output .resize( cols_b * rows_b * vec_count,	half::Zero() );
-		
+
 			FillWithLinearData( input_b, 0.01f, 0.f );
 
 			BytesUSize		opt_size;
@@ -362,7 +362,7 @@ namespace
 					cmd.srcData	= &input_b[ i * cols_b * rows_b ];
 					cmd.dstSize	= opt_size;
 					cmd.dstData	= input_b_opt.data() + opt_size * i;
-			
+
 					CHECK_FATAL( ex.GetDevice().ConvertCooperativeVectorMatrix( {cmd} ));
 				}
 			}{
@@ -381,7 +381,7 @@ namespace
 				{
 					cmd.srcData		= input_b_opt.data() + opt_size * i;
 					cmd.dstData		= &output[ i * cols_b * rows_b ];
-			
+
 					CHECK_FATAL( ex.GetDevice().ConvertCooperativeVectorMatrix( {cmd} ));
 				}
 			}
@@ -414,11 +414,11 @@ namespace
 			input_b.resize( cols_b * rows_b * vec_count,	half::Zero() );
 			input_c.resize( rows_c * vec_count,				half::Zero() );
 			output .resize( rows_c * vec_count,				half::Zero() );
-		
+
 			FillWithLinearData( input_a, 0.001f,	1.f );		// vec
 			FillWithLinearData( input_b, 0.01f,		0.f );		// mat
 			FillWithLinearData( input_c, 0.1f,		2.f );		// vec
-		
+
 			BytesUSize		opt_size;
 			{
 				Graphics::ConvertCoopMatrixOnHost	cmd;
@@ -442,7 +442,7 @@ namespace
 					cmd.srcData	= &input_b[ i * cols_b * rows_b ];
 					cmd.dstSize	= opt_size;
 					cmd.dstData	= input_b_opt.data() + opt_size * i;
-			
+
 					CHECK_FATAL( ex.GetDevice().ConvertCooperativeVectorMatrix( {cmd} ));
 				}
 			}
@@ -518,6 +518,6 @@ extern void Test_CoopVec (Executor &ex)
 	CoopVec_Test2( ex );
 	CoopVec_Test3( ex );
 	CoopVec_Test4( ex );
-	
+
 	TEST_PASSED();
 }

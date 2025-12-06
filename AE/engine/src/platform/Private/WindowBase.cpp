@@ -86,7 +86,7 @@ namespace
 
 		if_unlikely( not _listener )
 			return;
-		
+
 		switch_enum( _wndState )
 		{
 			case EState::Started :
@@ -136,7 +136,7 @@ namespace
 //-----------------------------------------------------------------------------
 
 
-	
+
 /*
 =================================================
 	destructor

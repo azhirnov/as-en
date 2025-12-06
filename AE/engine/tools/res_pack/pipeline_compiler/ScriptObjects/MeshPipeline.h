@@ -48,7 +48,7 @@ namespace AE::PipelineCompiler
 		void  SetViewportCount (uint value)								__Th___;
 
 		void  AddToRenderTech (const String &rtech, const String &pass) __Th___	{ return BasePipelineSpec::_AddToRenderTech( rtech, pass ); }
-		
+
 		ND_ uint	GetSubpassIndex ()									C_NE___;
 
 		ND_ const MeshPipelineScriptBinding*	GetBase ()				const;

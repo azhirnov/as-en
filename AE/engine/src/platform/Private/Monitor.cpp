@@ -86,7 +86,7 @@ namespace AE::App
 		switch_end
 		RETURN_ERR( "unknown surface transform" );
 	}
-	
+
 /*
 =================================================
 	FieldOfView
@@ -97,7 +97,7 @@ namespace AE::App
 		return Rad2{ ATan( physicalSize.meters.x * 0.5f, distInMeters ),
 					 ATan( physicalSize.meters.y * 0.5f, distInMeters )} * 2.0f;
 	}
-	
+
 /*
 =================================================
 	PixelsPerDegree

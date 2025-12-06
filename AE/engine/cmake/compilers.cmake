@@ -2,8 +2,8 @@
 #
 # Build config:
 #	- Debug    -- enable all checks
-#	- Develop  -- enable some optimization but keep most debug checks, exclude long-time checks
-#	- Profile  -- enable some optimizations but keep debug info for profiling
+#	- Develop  -- enable some optimization, but keep most debug checks, exclude long-time checks
+#	- Profile  -- enable most optimizations, but keep debug info for profiling
 #	- Release  -- enable all optimizations
 #
 # feature support:
@@ -1028,7 +1028,7 @@ if (TRUE)
 	if ( ${HAS_CPP23} LESS 0 )
 		message( STATUS "C++23 is NOT supported" )
 	endif()
-	
+
 	list( FIND CMAKE_CXX_COMPILE_FEATURES "cxx_std_26" HAS_CPP26 )
 	if ( ${HAS_CPP26} LESS 0 )
 		message( STATUS "C++26 is NOT supported" )
@@ -1047,7 +1047,7 @@ if (TRUE)
 		set( AE_CXX_23	ON	CACHE INTERNAL "" FORCE )
 		set( AE_CXX_26	OFF	CACHE INTERNAL "" FORCE )
 		message( STATUS "Used C++23" )
-		
+
 	# use C++ 26
 	elseif( ${HAS_CPP26} GREATER_EQUAL 0 )
 		set( AE_CXX_20	OFF	CACHE INTERNAL "" FORCE )

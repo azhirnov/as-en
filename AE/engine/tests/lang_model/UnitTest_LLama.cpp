@@ -31,7 +31,7 @@ namespace
 			response << piece;
 			return true;  // continue
 		}
-		
+
 		void  OnComplete (U8StringView completeResponse, uint count) __NE_OV
 		{
 			TEST( response == completeResponse );
@@ -74,7 +74,7 @@ namespace
 		AE_LOGI( "Generate response" );
 		{
 			auto	listener = MakeRC<ResponseListener>();
-			
+
 			TEST( ctx->Generate( u8"What you can do?", listener ));
 
 			TEST( not listener->response.empty() );
@@ -105,7 +105,7 @@ namespace
 			model = LMFactory::CreateLLama( params );
 			TEST( model );
 		}
-		
+
 		AE_LOGI( "Create context" );
 
 		RC<ILanguageModelContext>	ctx;
@@ -122,7 +122,7 @@ namespace
 		}
 
 		TEST( ctx->Append( ERole::System, u8"Answer as experienced programmer. By default use C++ and HLSL. Prefer snake_case style." ));
-		
+
 		AE_LOGI( "Generate response" );
 
 		for (uint i = 0; i < 4; ++i)

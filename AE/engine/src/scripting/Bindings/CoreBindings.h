@@ -61,6 +61,7 @@ namespace AE::Scripting
 		static void  BindLog (const ScriptEnginePtr &se)			__Th___;	// requires 'String'
 		static void  BindPhysicalTypes (const ScriptEnginePtr &se)	__Th___;
 		static void  BindRandom (const ScriptEnginePtr &se)			__Th___;
+		static void  BindHash (const ScriptEnginePtr &se)			__Th___;
 		static void  BindFileSystem (const ScriptEnginePtr &se,
 									 bool allowWrite)				__Th___;	// requires 'String'
 

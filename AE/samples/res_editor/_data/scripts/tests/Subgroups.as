@@ -58,7 +58,7 @@
 
 		float4	c = Rainbow( y );
 		c.a = y;
-		
+
 		if ( gl.subgroup.Index+1 == gl.subgroup.Size or
 			 i != int(GetGlobalCoordUNorm(int3(1)).y * y_max) )
 		{

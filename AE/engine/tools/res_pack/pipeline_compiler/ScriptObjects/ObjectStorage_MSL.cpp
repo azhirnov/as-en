@@ -64,7 +64,7 @@ namespace AE::PipelineCompiler
 					<< "#define AE_HAS_ATOMICS 1\n";
 			}
 		}
-		
+
 		str << "using namespace metal;\n\n";
 		return str;
 	}

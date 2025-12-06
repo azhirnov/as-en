@@ -51,7 +51,7 @@ namespace AE::ResLoader
 
 		_boundingBox = bbox;
 	}
-	
+
 /*
 =================================================
 	CalcSphere
@@ -60,7 +60,7 @@ namespace AE::ResLoader
 	void  IntermMesh::CalcSphere () __NE___
 	{
 		CHECK_ERRV( _attribs and _vertexStride > 0 and _vertices.size() );
-		
+
 		auto	positions = _attribs->GetData< packed_float3 >( VertexAttributeName::Position, _vertices.data(),
 																VertexCount(), _vertexStride );
 		if ( positions.empty() )
@@ -71,7 +71,7 @@ namespace AE::ResLoader
 
 		packed_float3	center	= _boundingBox->Center();
 		float			radius	= 0.0f;
-		
+
 		for (size_t i = 1; i < positions.size(); ++i)
 		{
 			float	r = Distance( positions[i], center );

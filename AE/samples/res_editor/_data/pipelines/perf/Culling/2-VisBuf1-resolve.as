@@ -6,5 +6,5 @@
 	{
 		CreatePipeline( "VisibilityBuffer1Pass2" );
 	}
-	
+
 #endif

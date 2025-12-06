@@ -4,36 +4,59 @@
 void ASmain ()
 {
 	// include:
-	//	Adreno driver 512.797.0 on Windows 11
-	//	Adreno (TM) 660 driver 512.530.0 on Android 11.0
-	//	Adreno (TM) 505 driver 512.454.0 on Android 9.0
-	//	nubia NX729J driver 512.746.0 on Android 13.0
-	//	Oculus Quest 3 driver 512.746.0 on Android 12.0
-	//	Oppo A77 driver 58.722.917 on Android 7.1
-	//	Adreno (TM) 730 driver 512.615.0 on Android 12.0
-	//	samsung SM-S901E driver 512.744.6 on Android 13.0
-	//	Snapdragon(R) X Elite - X1E80100 - Qualcomm(R) Adreno(TM) GPU driver 512.780.0 on Windows 11
-	//	Adreno (TM) 610 driver 512.502.0 on Android 11.0
-	//	Xiaomi 22081212G driver 512.744.1 on Android 14.0
-	//	Adreno (TM) 612 driver 512.502.0 on Android 12.0
+	//	Adreno-505-1.1.87
+	//	Adreno-540-1.1.128
+	//	Adreno-660-1.1.128
+	//	Adreno-660-1.1.276
+	//	Adreno-660-1.1.295
+	//	Adreno-740-1.3.128
+	//	Adreno-740-1.3.295
+	//	Adreno-830-1.3.284
+	//	Adreno-830-1.4.295
+	//	Turnip-Adreno-650-1.3.328
 
 	const EFeature  True = EFeature::RequireTrue;
 
 	RC<FeatureSet>  fset = FeatureSet( "MinMobileAdreno" );
 
+	fset.alphaToOne (True);
+	fset.depthBiasClamp (True);
+	fset.depthClamp (True);
+	fset.dualSrcBlend (True);
+	fset.fillModeNonSolid (True);
 	fset.independentBlend (True);
 	fset.sampleRateShading (True);
 	fset.constantAlphaColorBlendFactors (True);
 	fset.pointPolygons (True);
 	fset.triangleFans (True);
+	fset.largePoints (True);
+	fset.AddSubgroupOperationRange( ESubgroupOperation::_Basic_Begin, ESubgroupOperation::_Basic_End );
+	fset.subgroupTypes(ESubgroupTypes(
+		ESubgroupTypes::Float32 | 
+		ESubgroupTypes::Int32
+	));
+	fset.subgroupStages(EShaderStages(
+		EShaderStages::Fragment | 
+		EShaderStages::Compute
+	));
+	fset.minSubgroupSize (32);
+	fset.maxSubgroupSize (32);
+	fset.subgroup (True);
+	fset.shaderInt16 (True);
 	fset.fragmentStoresAndAtomics (True);
+	fset.vertexPipelineStoresAndAtomics (True);
 	fset.shaderClipDistance (True);
 	fset.shaderCullDistance (True);
 	fset.shaderSampleRateInterpolationFunctions (True);
 	fset.shaderSampledImageArrayDynamicIndexing (True);
+	fset.shaderStorageBufferArrayDynamicIndexing (True);
+	fset.shaderStorageImageArrayDynamicIndexing (True);
 	fset.shaderUniformBufferArrayDynamicIndexing (True);
-	fset.maxSpirvVersion (100);
-	fset.maxDrawIndirectCount (1);
+	fset.shaderStorageImageWriteWithoutFormat (True);
+	fset.maxSpirvVersion (130);
+	fset.maxDrawIndirectCount (4294967295);
+	fset.multiview (True);
+	fset.maxMultiviewViewCount (6);
 	fset.maxViewports (1);
 	fset.tessellationIsolines (True);
 	fset.tessellationPointMode (True);
@@ -49,11 +72,11 @@ void ASmain ()
 	fset.perPipeline_maxStorageBuffers (24);
 	fset.perPipeline_maxStorageImages (24);
 	fset.perPipeline_maxUniformBuffers (84);
-	fset.perPipeline_maxTotalResources (512);
+	fset.perPipeline_maxTotalResources (8388608);
 	fset.perStage_maxInputAttachments (8);
 	fset.perStage_maxSampledImages (128);
 	fset.perStage_maxSamplers (16);
-	fset.perStage_maxStorageBuffers (4);
+	fset.perStage_maxStorageBuffers (24);
 	fset.perStage_maxStorageImages (4);
 	fset.perStage_maxUniformBuffers (14);
 	fset.perStage_maxTotalResources (158);
@@ -61,16 +84,17 @@ void ASmain ()
 	fset.maxTexelOffset (7);
 	fset.maxTexelGatherOffset (31);
 	fset.maxFragmentOutputAttachments (8);
+	fset.maxFragmentDualSrcAttachments (1);
 	fset.maxFragmentCombinedOutputResources (72);
 	fset.maxPushConstantsSize (128);
-	fset.maxComputeSharedMemorySize (16 << 10);
+	fset.maxComputeSharedMemorySize (32 << 10);
 	fset.maxComputeWorkGroupInvocations (512);
 	fset.maxComputeWorkGroupSizeX (512);
 	fset.maxComputeWorkGroupSizeY (512);
 	fset.maxComputeWorkGroupSizeZ (64);
 	fset.computeShader (True);
-	fset.maxVertexAttributes (16);
-	fset.maxVertexBuffers (16);
+	fset.maxVertexAttributes (32);
+	fset.maxVertexBuffers (32);
 	fset.AddVertexFormats({
 		EVertexType::Byte, EVertexType::Byte2, EVertexType::Byte4, EVertexType::UByte, 
 		EVertexType::UByte2, EVertexType::UByte4, EVertexType::Short, EVertexType::Short2, 
@@ -107,6 +131,7 @@ void ASmain ()
 	fset.textureCompressionASTC_LDR (True);
 	fset.textureCompressionETC2 (True);
 	fset.multisampleArrayImage (True);
+	fset.imageViewExtendedUsage (True);
 	fset.maxImageDimension1D (16 << 10);
 	fset.maxImageDimension2D (16 << 10);
 	fset.maxImageDimension3D (2 << 10);
@@ -135,7 +160,8 @@ void ASmain ()
 		EPixelFormat::R16U, EPixelFormat::RG16U, EPixelFormat::RGBA16U, EPixelFormat::R32U, 
 		EPixelFormat::RG32U, EPixelFormat::RGBA32U, EPixelFormat::RGB10_A2U, EPixelFormat::R16F, 
 		EPixelFormat::RG16F, EPixelFormat::RGBA16F, EPixelFormat::R32F, EPixelFormat::RG32F, 
-		EPixelFormat::RGBA32F, EPixelFormat::Depth16, EPixelFormat::Depth24, EPixelFormat::Depth24_Stencil8
+		EPixelFormat::RGBA32F, EPixelFormat::Depth16, EPixelFormat::Depth24, EPixelFormat::Depth32F, 
+		EPixelFormat::Depth24_Stencil8
 	});
 	fset.AddTexelFormats( EFormatFeature::LinearSampled, {
 		EPixelFormat::RGBA8_SNorm, EPixelFormat::RG8_SNorm, EPixelFormat::R8_SNorm, EPixelFormat::RGBA8_UNorm, 
@@ -151,28 +177,17 @@ void ASmain ()
 		EPixelFormat::ASTC_RGBA8_12x10, EPixelFormat::ASTC_RGBA8_12x12, EPixelFormat::ASTC_sRGB8_A8_4x4, EPixelFormat::ASTC_sRGB8_A8_5x4, 
 		EPixelFormat::ASTC_sRGB8_A8_5x5, EPixelFormat::ASTC_sRGB8_A8_6x5, EPixelFormat::ASTC_sRGB8_A8_6x6, EPixelFormat::ASTC_sRGB8_A8_8x5, 
 		EPixelFormat::ASTC_sRGB8_A8_8x6, EPixelFormat::ASTC_sRGB8_A8_8x8, EPixelFormat::ASTC_sRGB8_A8_10x5, EPixelFormat::ASTC_sRGB8_A8_10x6, 
-		EPixelFormat::ASTC_sRGB8_A8_10x8, EPixelFormat::ASTC_sRGB8_A8_10x10, EPixelFormat::ASTC_sRGB8_A8_12x10, EPixelFormat::ASTC_sRGB8_A8_12x12
+		EPixelFormat::ASTC_sRGB8_A8_10x8, EPixelFormat::ASTC_sRGB8_A8_10x10, EPixelFormat::ASTC_sRGB8_A8_12x10, EPixelFormat::ASTC_sRGB8_A8_12x12, 
+		EPixelFormat::G8_B8R8_420_UNorm, EPixelFormat::G8_B8_R8_420_UNorm
 	});
-	/*
-	fset.AddTexelFormats( EFormatFeature::HWCompressedAttachment, {
-		// Adreno 500
-		EPixelFormat::RGBA8_UNorm, EPixelFormat::sRGB8_A8, EPixelFormat::BGRA8_UNorm, EPixelFormat::sBGR8_A8,
-		EPixelFormat::RGB10_A2_UNorm, EPixelFormat::R8_UNorm, EPixelFormat::RG8_UNorm, EPixelFormat::RGB8_UNorm,
-		EPixelFormat::R5G6B5_UNorm, EPixelFormat::RGB5_A1_UNorm, EPixelFormat::RGBA4_UNorm,
-		EPixelFormat::Depth16, EPixelFormat::Depth24_Stencil8, EPixelFormat::Depth32F,
-
-		// Adreno 600
-		EPixelFormat::R16_UNorm, EPixelFormat::RG16_UNorm, EPixelFormat::R16_SNorm, EPixelFormat::RG16_SNorm,
-		EPixelFormat::R16F, EPixelFormat::RG16F, EPixelFormat::R11G11B10F,
-		EPixelFormat::RGBA16_UNorm, EPixelFormat::RGBA16_SNorm, EPixelFormat::RGBA16F
-	});
-	*/
 	fset.samplerAnisotropy (True);
+	fset.filterMinmaxImageComponentMapping (True);
 	fset.samplerMipLodBias (True);
+	fset.samplerYcbcrConversion (True);
 	fset.maxSamplerAnisotropy (16.00);
 	fset.maxSamplerLodBias (16.00);
 	fset.framebufferColorSampleCounts({ 1, 2, 4 });
 	fset.framebufferDepthSampleCounts({ 1, 2, 4 });
-	fset.maxFramebufferLayers (2 << 10);
+	fset.maxFramebufferLayers (1 << 10);
 	fset.supportedQueues(EQueueMask( EQueueMask::Graphics ));
 }

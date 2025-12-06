@@ -18,7 +18,7 @@ if (TARGET "Threading")
 	target_link_libraries( ${TEST_NAME} PUBLIC "Threading" )
 
 	target_include_directories( ${TEST_NAME} PUBLIC "${MAIN_SOURCE_DIR}/engine" )
-	
+
 	UseEnginePCH2( ${TEST_NAME} )
 	#add_test( NAME ${TEST_NAME} COMMAND ${TEST_NAME} )
 endif()

@@ -592,7 +592,8 @@ namespace AE::Graphics
 		uint	count	= 0;
 		CHECK_ERR( des( OUT fs_hash, OUT count ));
 		CHECK_ERR( count <= FeatureSetSerializer::MaxCount );
-		CHECK_ERR( fs_hash == ulong(FeatureSet::GetHashOfFS_Precalculated()) );
+		CHECK_ERR_MSG( fs_hash == ulong(FeatureSet::GetHashOfFS_Precalculated()),
+			"Incorrect FS hash, rebuild resources and try again" );
 
 		size -= 8_b;	// header & version
 		size -= 12_b;	// fs_hash & count

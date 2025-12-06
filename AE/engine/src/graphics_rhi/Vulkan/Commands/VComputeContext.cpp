@@ -18,7 +18,7 @@ namespace AE::Graphics::_hidden_
 
 		this->vkCmdPushConstants( this->_cmdbuf.Get(), _states.pplnLayout, VEnumCast(stages), uint(offset), uint(size), values );
 	}
-	
+
 /*
 =================================================
 	_ConvertCooperativeVectorMatrix
@@ -46,7 +46,7 @@ namespace AE::Graphics::_hidden_
 
 			GCTX_CHECK( src.srcOffset < src_buf.Size() );
 			GCTX_CHECK( src.srcOffset + src.srcSize <= src_buf.Size() );
-			
+
 			GCTX_CHECK( src.dstOffset < dst_buf.Size() );
 			GCTX_CHECK( src.dstOffset + src.dstSize <= dst_buf.Size() );
 
@@ -130,7 +130,7 @@ namespace AE::Graphics::_hidden_
 
 		return VBaseIndirectContext::_ReleaseCommandBuffer();
 	}
-	
+
 /*
 =================================================
 	_ConvertCooperativeVectorMatrix
@@ -144,7 +144,7 @@ namespace AE::Graphics::_hidden_
 		cmd.count = uint(inCommands.size());
 		MemCopy( OUT dst_cmds, inCommands.data(), ArraySizeOf(inCommands) );
 	}
-	
+
 /*
 =================================================
 	_ConvertCooperativeVectorMatrix
@@ -162,7 +162,7 @@ namespace AE::Graphics::_hidden_
 
 			GCTX_CHECK( src.srcOffset < src_buf.Size() );
 			GCTX_CHECK( src.srcOffset + src.srcSize <= src_buf.Size() );
-			
+
 			GCTX_CHECK( src.dstOffset < dst_buf.Size() );
 			GCTX_CHECK( src.dstOffset + src.dstSize <= dst_buf.Size() );
 

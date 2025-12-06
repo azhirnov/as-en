@@ -32,7 +32,7 @@ Download `AsEn-Tools-<platform>-<compiler>-<config>` archive with `RemoteGraphic
 On CI ResourceEditor compiled with `AE_PORTABLE_APP=ON` which requires different folder structure than in git.
 
 ```
-data                -- git: AE/samples/res_editor/_data
+src                 -- git: AE/samples/res_editor/_data
 docs                -- git: AE/samples/res_editor/docs  -- optional
 res_editor_data     -- git: AE-Data/res_editor_data  -- optional
 shadertoy_data      -- git: AE-Data/shadertoy_data  -- optional
@@ -41,8 +41,9 @@ ui                  -- unpack resources from CI (or AE-Temp/samples/res_editor)
 - vk
 -- ui_pipelines.bin
 - controls.bin
-ResourceEditor      -- executable from CI (or _build/bin/<config>/ResourceEditor)
-GraphicsRHI-shared  -- shared lib from CI, optional, see 'Remote version'
+din
+- ResourceEditor      -- executable from CI (or build/bin/<config>/ResourceEditor)
+- GraphicsRHI-shared  -- shared lib from CI, optional, see 'Remote version'
 ```
 
 ## Download resources

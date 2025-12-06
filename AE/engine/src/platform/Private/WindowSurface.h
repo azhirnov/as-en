@@ -93,7 +93,7 @@ namespace AE::App
 		void  _UpdateDesc (SurfaceDataSync_t::WriteNoLock_t &)								__NE___;
 
 		bool  _CreateSwapchain (SurfaceDataSync_t::WriteNoLock_t &)							__NE___;
-		
+
 		ND_ static AsyncCoro  _AcquireNextImageTask (WindowSurface &	surface,
 													 CommandBatchPtr	beginCmdBatch,
 													 CommandBatchPtr	endCmdBatch)		__NE___;

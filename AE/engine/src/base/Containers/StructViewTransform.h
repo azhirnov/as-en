@@ -6,7 +6,7 @@
 
 namespace AE::Base
 {
-	
+
 	//
 	// Structure View Transform Converter
 	//

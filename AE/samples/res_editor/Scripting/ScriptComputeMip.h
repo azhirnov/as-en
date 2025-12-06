@@ -31,7 +31,7 @@ namespace AE::ResEditor
 	// variables
 	private:
 		const Path			_pplnPath;
-		
+
 		Array<Variable>		_variables;
 
 

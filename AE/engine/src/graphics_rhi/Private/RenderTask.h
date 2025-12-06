@@ -34,7 +34,7 @@ namespace AE::_Coro_
 		using CmdBufExeIndex	= Graphics::CmdBufExeIndex;
 		using DebugLabel		= Graphics::DebugLabel;
 		using Coroutine_t		= BaseCoro< RenderTaskImpl >;
-		
+
 		static constexpr bool	_allowImplicitCastToAsyncTask = true;
 
 
@@ -57,7 +57,7 @@ namespace AE::_Coro_
 			Nd__IF EQueueType			QueueType ()				C_NE___	{ return _rt->_batch->GetQueueType(); }
 			Nd__IF EQueueMask			QueueMask ()				C_NE___	{ return EQueueMask(0) | QueueType(); }
 			Nd__IF bool					IsFirstInBatch ()			C_NE___	{ return _rt->_batch->CmdPool_IsFirst( ExecutionIndex() ); }
-			
+
 			Nd__IF StringView			DbgName ()					C_NE___	{ return _rt->DbgName(); }
 			Nd__IF String				DbgFullName ()				C_NE___	{ return _rt->DbgFullName(); }
 			Nd__IF RGBA8u				DbgColor ()					C_NE___	{ return _rt->DbgColor(); }
@@ -118,14 +118,14 @@ namespace AE::_Coro_
 
 		// Coroutine //
 		ND_ auto			initial_suspend ()							C_NE___	{ return std::suspend_always{}; }
-		
+
 			void			return_void ()								__NE___	{}
 
 		ND_ auto			get_return_object ()						__NE___	{ return Coroutine_t{ *this }; }
 		ND_ static auto		get_return_object_on_allocation_failure ()	__NE___	{ return Coroutine_t{}; }
-		
+
 		ND_ auto			yield_value (AsyncTaskCoro_Error v)			__NE___	{ SkipCommandBuffer();  return AsyncTaskImpl::yield_value(v); }
-		
+
 		ND_ static void*	operator new (usize size)					__NE___	{ return NothrowAllocatable::operator new( size ); }	// fixed crash on MSVC
 
 	private:
@@ -210,7 +210,7 @@ namespace AE::_Coro_
 		ASSERT_MSG( not IsValid(),
 			"Call 'RenderCoro_Execute(ctx)' to add command buffer to pending for submission queue or "
 			"call 'Coro_Error()' or 'RenderCoro_SkipCommands()' to mark command buffer as unused, so other pending command buffers can be submitted when they are ready." );
-		
+
 		SkipCommandBuffer();
 	}
 
@@ -292,7 +292,7 @@ namespace AE::_Coro_
 	{
 		self._batch		= RVRef(batch);
 		self._exeIndex	= self._GetPool().Acquire( exeIndex );
-		
+
 		#if AE_ENABLE_TASK_NAME
 			self._SetDebugName( dbg.label );
 		#endif

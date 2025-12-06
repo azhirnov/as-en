@@ -107,7 +107,7 @@ namespace
 		if ( subType == EStructLayout::Compatible_Std140 and
 			 (mainType == EStructLayout::Std140 or mainType == EStructLayout::HLSL_Const) )
 			return true;
-		
+
 		if ( subType == EStructLayout::Compatible_Std430 and
 			 (mainType == EStructLayout::Std430 or mainType == EStructLayout::HLSL_Struct) )
 			return true;
@@ -226,7 +226,7 @@ namespace
 				align		== rhs.align		and
 				offset		== rhs.offset;
 	}
-	
+
 	bool  ShaderStructType::Field::IsAnyPadding () const	{ return AnyBits( flags, EFlags::Padding_GLSL | EFlags::Padding_MSL | EFlags::Padding_HLSL ); }
 //-----------------------------------------------------------------------------
 
@@ -872,7 +872,7 @@ namespace
 			structAlign = Max( structAlign, 16_b );
 		}
 	}
-	
+
 /*
 =================================================
 	ValueTypeSizeOf
@@ -981,7 +981,7 @@ namespace {
 		}
 
 		CHECK_THROW_MSG( not (field.IsStruct() or field.IsDeviceAddress()) );
-		
+
 		const bool	packed = AnyBits( field.flags, EFlags::Packed | EFlags::PackedAlias );
 
 		if ( field.IsScalar() )
@@ -1177,7 +1177,7 @@ namespace {
 				size = AlignUp( size, align );
 				size = AlignUp( size * field.cols, align );
 			}
-			
+
 			if ( field.IsArray() )
 				align = Max( align, 16_b );
 		}
@@ -1189,7 +1189,7 @@ namespace {
 				size = AlignUp( size * field.cols, align );
 			}
 		}
-		
+
 		if ( field.IsStaticArray() )
 		{
 			size  = AlignUp( size, align );
@@ -1215,7 +1215,7 @@ namespace {
 
 		// 5. Vectors are aligned by the size of a single vector element type
 		// unless that alignment results in crossing the 16-byte row boundary, in which case it is aligned to the next row.
-		
+
 		if ( not field.IsPacked() )
 			align *= (field.rows == 3 ? 4 : field.rows);
 
@@ -1226,10 +1226,10 @@ namespace {
 
 		if ( IsStd140( layout ))
 		{
-			// 9.5.3 Constant Buffer Layout 
+			// 9.5.3 Constant Buffer Layout
 			if ( not field.IsPacked() and field.IsMat() )
 				align = Max( align, 16_b );
-			
+
 			if ( field.cols > 1 )
 			{
 				size = AlignUp( size, align );
@@ -1248,7 +1248,7 @@ namespace {
 				size = AlignUp( size * field.cols, align );
 			}
 		}
-		
+
 		if ( field.IsStaticArray() )
 		{
 			size  = AlignUp( size, align );
@@ -1450,7 +1450,7 @@ namespace {
 					data.mslOffset	= AlignUp( data.mslOffset, align );
 					msl_offset		= data.mslOffset + size;
 				}
-				
+
 				// HLSL
 				if ( hlsl_compat )
 				{
@@ -1569,7 +1569,7 @@ namespace {
 							pad.type	= EValueType::Int8;
 							pad.align	= 1_b;
 						}
-						
+
 						pad.offset	= AlignUp( begin, pad.align );
 						pad.size	= end - pad.offset;
 						pad.rows	= ubyte(pad.size / pad.align);
@@ -1761,13 +1761,15 @@ namespace {
 		}
 
 		// Slang / HLSL
-		if ( storage.slangCompiler != null and IsHLSLCompatible( _layout ) and not HasDynamicArray() )
+		if ( storage.slangCompiler != null						and
+			 storage.slangCompiler->IsInitialized()				and
+			 IsHLSLCompatible( _layout ) and not HasDynamicArray() )
 		{
 			String	dsl_src;
 			String	test;
 			CHECK_THROW_MSG( ToHLSL( OUT dsl_src, OUT &test ));
 			ASSERT( IsStd140( _layout ) or IsStd430( _layout ));
-			
+
 			String	header, source;
 			header	<< "typedef uint64_t DeviceAddress;\n"
 					<< dsl_src
@@ -1781,14 +1783,14 @@ namespace {
 			in.header		= header;
 			in.source		= source;
 			in.dstVersion	= EShaderVersion::SPIRV_1_5;	// TODO
-			
+
 			SLangCompiler::Output	out;
 
 			CHECK_THROW_MSG( storage.slangCompiler->Compile( in, out ),
 				"Failed to compile temp shader:\n"s << out.log );
 
 			CHECK_THROW( not out.spirv.empty() ); // internal error
-			
+
 			auto&	refl = out.reflection;
 			CHECK_THROW_MSG( refl.layout.descrSets.size() == 1, "internal error" );
 			CHECK_THROW_MSG( refl.layout.descrSets.front().layout.uniforms.size() == 1, "internal error" );
@@ -1820,7 +1822,7 @@ namespace {
 	{
 		CHECK_ERR_MSG( not (field.IsScalar() or field.IsStruct() or field.IsDeviceAddress()),
 			"Field '"s << field.name << "' has unsupported type" );
-		
+
 		CHECK_ERR_MSG( not field.IsArray(),
 			"Field '"s << field.name << "': can not use packed type in array when used std140 layout" );
 
@@ -2148,7 +2150,7 @@ namespace {
 			{
 				memt = (isStd140 ? "inplace_"s : "packed_"s) << public_name << ToString( field.rows );
 				packed << ToString( field.cols ) << 'x' << ToString( field.rows );
-				
+
 				// add packed vec type
 				if ( uniqueTypes.insert( memt ).second )
 				{
@@ -2287,7 +2289,7 @@ namespace {
 				const StringView	type_name = field.stType->Typename();
 
 				CHECK_ERR( field.stType->StructToGLSL( INOUT outTypes, INOUT uniqueTypes ));
-				
+
 				part1 << type_name;
 				part2 << field.name;
 			}
@@ -2314,7 +2316,7 @@ namespace {
 					<< ", size: " << ToString(usize( field.size ));
 			}
 		}
-		
+
 		// format fields
 		usize	part0_len	= 0;
 		usize	part1_len	= 0;
@@ -2332,7 +2334,7 @@ namespace {
 		part2_len = (part2_len == 0 ? 0 : part2_len + 2);
 
 		outFields.reserve( outFields.size() + total_len );
-		
+
 		for (auto& [part0, part1, part2, part3] : field_parts)
 		{
 			outFields << part0;
@@ -2613,7 +2615,7 @@ namespace {
 		}};
 
 		CHECK_ERR( Layout() == EStructLayout::InternalIO or IsMSLCompatible( Layout() ));
-		
+
 		Array<Tuple< String, String, String >>		field_parts;	// typename, name, comment
 
 		for (auto& field : _fields)
@@ -2663,7 +2665,7 @@ namespace {
 
 		String	src;
 		src << "struct " << Typename() << "\n{\n";
-		
+
 		// format fields
 		{
 			usize	part0_len	= 0;
@@ -2680,7 +2682,7 @@ namespace {
 			part1_len = (part1_len == 0 ? 0 : part1_len + 2);
 
 			src.reserve( src.size() + total_len );
-		
+
 			for (auto& [part0, part1, part2] : field_parts)
 			{
 				src << part0;
@@ -2803,7 +2805,7 @@ namespace {
 				<< " * count); }\n";
 		}
 		src << "\n";
-		
+
 		Array<Tuple< String, String, String, bool >>	field_parts;	// typename, name, comment, is_dynamic_array
 
 		for (auto& field : _fields)
@@ -2869,7 +2871,7 @@ namespace {
 			part1_len = (part1_len == 0 ? 0 : part1_len + 2);
 
 			src.reserve( src.size() + total_len );
-		
+
 			for (auto& [part0, part1, part2, is_dyn_arr] : field_parts)
 			{
 				src << part0;
@@ -3057,7 +3059,7 @@ namespace {
 			{
 				if ( uniqueTypes.insert( String{field.stType->Typename()} ).second )
 					CHECK_ERR( field.stType->ToHLSL( INOUT outTypes, INOUT uniqueTypes ));
-				
+
 				str << field.stType->Typename();
 				return true;
 			}
@@ -3080,7 +3082,7 @@ namespace {
 				continue;
 
 			auto& [part0, part1, part2] = field_parts.emplace_back();
-			
+
 			part0 << "\t";
 
 			if ( field.IsDeviceAddress() )
@@ -3113,11 +3115,11 @@ namespace {
 				<< ", align: " << ToString(usize( field.align ))
 				<< ", size: " << ToString(usize( field.size ));
 		}
-		
+
 		String	src;
 		src << "// size: " << ToString(usize( _size )) << ", align: " << ToString(usize( _maxAlign )) << '\n';
 		src << "struct " << Typename() << "\n{\n";
-		
+
 		// format fields
 		{
 			usize	part0_len	= 0;
@@ -3134,7 +3136,7 @@ namespace {
 			part1_len = (part1_len == 0 ? 0 : part1_len + 2);
 
 			src.reserve( src.size() + total_len );
-		
+
 			for (auto& [part0, part1, part2] : field_parts)
 			{
 				src << part0;
@@ -3418,7 +3420,7 @@ namespace {
 
 		Array<Tuple< String, String, String >>	field_parts;
 		_ToShaderIO_GLSL( shaderType, "", not is_array, INOUT loc, INOUT field_parts );
-		
+
 		// format fields
 		{
 			usize	part0_len	= 0;
@@ -3434,7 +3436,7 @@ namespace {
 			part1_len = (part1_len == 0 ? 0 : part1_len + 2);
 
 			str.reserve( str.size() + total_len );
-		
+
 			for (auto& [part0, part1, part2] : field_parts)
 			{
 				str << part0;
@@ -3511,7 +3513,7 @@ namespace {
 	String  ShaderStructType::ToShaderIO_MSL (EShader shaderType, bool, INOUT UniqueTypes_t &) C_Th___
 	{
 		_usage |= EUsage::ShaderIO;
-		
+
 		String	str;
 		str << "struct "s << Typename() << "\n{\n";
 
@@ -3519,7 +3521,7 @@ namespace {
 		field_parts.emplace_back( "  float4", "position", "[[position]];\n" );
 
 		_ToShaderIO_MSL( shaderType, "", INOUT field_parts );
-		
+
 		// format fields
 		{
 			usize	part0_len	= 0;
@@ -3536,7 +3538,7 @@ namespace {
 			part1_len = (part1_len == 0 ? 0 : part1_len + 2);
 
 			str.reserve( str.size() + total_len );
-		
+
 			for (auto& [part0, part1, part2] : field_parts)
 			{
 				str << part0;
@@ -3555,7 +3557,7 @@ namespace {
 		str << "};\n\n";
 		return str;
 	}
-	
+
 /*
 =================================================
 	_ToShaderIO_MSL
@@ -3583,7 +3585,7 @@ namespace {
 			{
 				CHECK_THROW_MSG( not field.IsMat(),
 					"Matrix is not supported for MSL ShaderIO" );
-				
+
 				auto& [part0, part1, part2] = fieldParts.emplace_back();
 
 				const auto	mask = (shaderType == EShader::Fragment ? EFlags_ShaderIO : EFlags_VSCompatible);
@@ -3601,7 +3603,7 @@ namespace {
 			}
 		}
 	}
-	
+
 /*
 =================================================
 	ToShaderIO_HLSL
@@ -3610,6 +3612,7 @@ namespace {
 	String  ShaderStructType::ToShaderIO_HLSL (EShader shaderType, bool input, INOUT UniqueTypes_t &uniqueTypes) C_Th___
 	{
 		// TODO
+		Unused( shaderType, input, uniqueTypes );
 		return "";
 	}
 

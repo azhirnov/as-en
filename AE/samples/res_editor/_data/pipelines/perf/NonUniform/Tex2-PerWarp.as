@@ -6,5 +6,5 @@
 	{
 		CreatePipeline( "bindless-tex-pw" );
 	}
-	
+
 #endif

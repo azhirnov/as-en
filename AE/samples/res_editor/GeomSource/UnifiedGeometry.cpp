@@ -166,7 +166,8 @@ namespace AE::ResEditor
 		DescriptorSetID		mtr_ds		= mtr.descSets[ fid ];
 		PplnID_t			prev_ppln;
 
-		CHECK( _drawCommands.size() <= mtr.pipelineMap.size() );
+		//CHECK( _drawCommands.size() <= mtr.pipelineMap.size() );
+		// TODO: check render layer
 
 		auto	BindPipeline = [&, first = true] (const auto &pplnId, usize i) M_Th___
 		{{
@@ -289,7 +290,7 @@ namespace AE::ResEditor
 
 		return true;
 	}
-	
+
 /*
 =================================================
 	PostProcess

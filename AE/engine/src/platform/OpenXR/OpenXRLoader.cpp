@@ -76,7 +76,7 @@ namespace {
 			CHECK_ERR( xrLib.module.GetProcAddr( "xrInitializeLoaderKHR", OUT initialize_loader ));
 			AE_LOG_DBG( "call xrInitializeLoaderKHR() before xrNegotiateLoaderRuntimeInterface" );
 		}
-		
+
 		XrLoaderInitInfoAndroidKHR	init_info = {};
 		init_info.type = XR_TYPE_LOADER_INIT_INFO_ANDROID_KHR;
 
@@ -113,7 +113,7 @@ namespace {
 		usize	end = str.find( "\",", begin );
 		CHECK_ERR( end < str.size() );
 
-		StringView	lib_name = SubString2( str, begin, end );
+		StringView	lib_name = SubStringBE( str, begin, end );
 		AE_LOG_DBG( "XR lib: '"s << lib_name << "'" );
 
 		CHECK_ERR( xrLib.module.Load( lib_name ));
@@ -166,7 +166,7 @@ namespace {
 
 		if ( not lib.module  )
 			return false;
-		
+
 	  #ifndef AE_PLATFORM_ANDROID
 		// write library path to log
 		AE_LOG_DBG( "OpenXR library path: \""s << ToString(lib.module.GetPath()) << '"' );
@@ -221,7 +221,7 @@ namespace {
 				return false;
 			}
 		}
-		
+
 	  #ifdef AE_PLATFORM_ANDROID
 		CHECK_ERR( InitializeAndroidLoader( lib ));
 	  #endif
@@ -381,7 +381,7 @@ namespace {
 	{
 		PFN_xrInitializeLoaderKHR	initialize_loader = null;
 		XR_CHECK_ERR( xrGetInstanceProcAddr( XR_NULL_HANDLE, "xrInitializeLoaderKHR", OUT Cast<PFN_xrVoidFunction>(&initialize_loader) ));
-		
+
 		XrLoaderInitInfoAndroidKHR	init_info = {};
 		init_info.type = XR_TYPE_LOADER_INIT_INFO_ANDROID_KHR;
 
@@ -444,10 +444,10 @@ namespace AE::App
 		{
 			SharedPtr<WindowAndroid>	wnd = app->_GetAppWindow( 0 );
 			CHECK_ERR( wnd );
-			
+
 			vm			= JavaEnv::GetJavaVM();
 			activity	= wnd->GetNative().activity;
-			
+
 			AE_LOG_DBG( "used ApplicationAndroid" );
 		}
 

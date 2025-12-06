@@ -30,7 +30,7 @@ if (TARGET "Scripting")
 		AE_BUILD_INPUT_ACTIONS_BINDING
 		AE_BUILD_PIPELINE_COMPILER
 	)
-	
+
 	UseEnginePCH2( "OfflinePacker" )
 
 	set( OFFLINE_PACKER_USE_STATIC_LIBS ON CACHE BOOL "use static libs instead of dynamic" FORCE )

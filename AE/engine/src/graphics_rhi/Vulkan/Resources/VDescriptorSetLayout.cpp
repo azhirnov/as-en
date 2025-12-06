@@ -86,7 +86,7 @@ namespace AE::Graphics
 		if ( dev.GetVExtensions().descriptorIndexing and not binding.flags.empty() )
 		{
 			CHECK_ERR( binding.desc.size() == binding.flags.size() );
-			
+
 			descriptor_info.pNext	= &ext_flags;
 
 			ext_flags.bindingCount	= uint(binding.flags.size());

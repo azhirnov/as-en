@@ -116,7 +116,7 @@ namespace AE::Base
 			Sleep_15ms();
 		}
 	}
-	
+
 /*
 =================================================
 	GetIntID
@@ -127,7 +127,7 @@ namespace AE::Base
 		auto	id = std::this_thread::get_id();
 		return usize{BitCast< ToUnsignedInteger<decltype(id)> >( id )};
 	}
-	
+
 	inline usize  ThreadUtils::GetIntID (const StdThread &t) __NE___
 	{
 		auto	id = t.get_id();

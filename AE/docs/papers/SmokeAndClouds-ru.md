@@ -84,6 +84,8 @@
 
 5. [Physically Based Sky, Atmosphere and Cloud Rendering in Frostbite](https://media.contentapi.ea.com/content/dam/eacom/frostbite/files/s2016-pbs-frostbite-sky-clouds-new.pdf)<br/>
 
+6. [Nubis3: Methods (and madness) to model and render immersive real-time voxel-based clouds](https://advances.realtimerendering.com/s2023/Nubis%20Cubed%20(Advances%202023).pdf)
+
 ## Примеры
 
 ### Shadertoy: 60FPS Volumetric Clouds on iGPU
@@ -99,15 +101,15 @@
 ```glsl
 //< строка 139
 float fog = pow(1.0 - (dist_from_camera / DRAW_DISTANCE), 0.5);
-                        
+
 vec3 lighting = lightMarch(current_position, direction);
-            
+
 vec3 cloud_color = mix(
     sky,
     lighting,
     clamp(fog, 0.0, 1.0)
 );
-            
+
 accumulation = alphaOver(accumulation, vec4(cloud_color, density));
 ```
 
@@ -133,7 +135,7 @@ vec3 lightMarch(vec3 start_position, vec3 view_direction) {
 ```glsl
 vec4 alphaOver(vec4 top, vec4 bottom) {
     float A1 = bottom.a * (1.0 - top.a);
-    
+
     float A0 = top.a + A1;
     return vec4(
         (top.rgb * top.a + bottom.rgb * A1) / A0,
@@ -163,7 +165,7 @@ tau += sigma * stepSize;                                 //< tau - оптиче�
 
 float T0 = T;                                            //< T - коэффициент пропускания, меняется от 1 до 0
 T = exp2(-tau);                                          //< поглощение света (Beer's law)
-                        
+
 float prob = T0 - T;                                     //< вероятность рассеивания
 r += rad * prob;                                         //< накопление света
 ```
@@ -205,7 +207,7 @@ float density = getCloudDensity(p, heightFract, true);
 if (density > 0.)
 {
     ambient = mix(CLOUDS_AMBIENT_BOTTOM, CLOUDS_AMBIENT_TOP, heightFract);
-                    
+
     // cloud illumination
     vec3 luminance = (ambient * SAT(pow(sun.z + .04, 1.4))
         + skyCol * .125 + (sunHeight * skyCol + vec3(.0075, .015, .03))
@@ -217,7 +219,7 @@ if (density > 0.)
     float transmittance = exp(-density * cameraRayStepSize);               //< поглощение света (Beer's law)
     vec3 integScatter = (luminance - luminance * transmittance) * (1. / density);  //< интеграл - тут похоже ошибка, так как luminance умножено на density и они сократятся
 
-    intScatterTrans.rgb += intScatterTrans.a * integScatter; 
+    intScatterTrans.rgb += intScatterTrans.a * integScatter;
     intScatterTrans.a *= transmittance;
 }
 ```
@@ -242,7 +244,7 @@ float marchToLight(vec3 p, vec3 sunDir, float sunDot, float scatterHeight)
         totalDensity += getCloudDensity(cp, y, false) * lightRayStepSize;
         lightRayDist += lightRayDir;
     }
-    
+
     return 32. *
            exp(-totalDensity * mix(CLOUD_ABSORPTION_BOTTOM, CLOUD_ABSORPTION_TOP, scatterHeight)) * //< поглощение света (Beer's law)
            (1. - exp(-totalDensity * 2.));                                                          //< темная обводка (powder effect)
@@ -288,16 +290,16 @@ float multipleOctaves(float extinction, float mu, float stepL){
 
     float luminance = 0.0;
     const float octaves = 4.0;
-    
+
     //Attenuation
     float a = 1.0;
     //Contribution
     float b = 1.0;
     //Phase attenuation
     float c = 1.0;
-    
+
     float phase;
-    
+
     for(float i = 0.0; i < octaves; i++){
         //Two-lobed HG
         phase = mix(HenyeyGreenstein(-0.1*c, mu), HenyeyGreenstein(0.3*c, mu), 0.7);  //< HG-функция
@@ -328,9 +330,9 @@ return mix(beersLaw * 2.0 * (1.0-(exp(-stepL*lightRayDensity*2.0))), beersLaw, 0
 ```glsl
 //< строка 445
 
-//Amount of sunlight that reaches the sample point through the cloud 
+//Amount of sunlight that reaches the sample point through the cloud
 //is the combination of ambient light and attenuated direct light.
-vec3 luminance = 0.2 * ambient + moonLight * phaseFunction * 
+vec3 luminance = 0.2 * ambient + moonLight * phaseFunction *
                 	lightRay(org, p, mu, lightDirection);
 
 //Scale light contribution by density of the cloud.
@@ -342,7 +344,7 @@ float transmittance = exp(-sampleSigmaE * stepS);
 //Better energy conserving integration
 //"From Physically based sky, atmosphere and cloud rendering in Frostbite" 5.6
 //by Sebastian Hillaire.
-colour += 
+colour +=
     totalTransmittance * (luminance - luminance * transmittance) / sampleSigmaE;  //< интеграл, тут luminance умножено на sampleSigmaS и делится на sampleSigmaE
 
 //Attenuate the amount of light that reaches the camera.

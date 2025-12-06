@@ -147,7 +147,7 @@ namespace AE::Graphics::_hidden_
 		using RawCtx::DispatchIndirect;
 
 		void  DispatchIndirect (BufferID buffer, Bytes offset)																__Th_OV;
-		
+
 		void  ConvertCooperativeVectorMatrix (ArrayView<ConvertCoopMatrixCmd> cmds)											__Th_OV	{ RawCtx::_ConvertCooperativeVectorMatrix( cmds ); }
 		void  ConvertCooperativeVectorMatrix (ArrayView<ConvertCoopMatrixCmd2> cmds)										__Th_OV	{ RawCtx::_ConvertCooperativeVectorMatrix( cmds ); }
 

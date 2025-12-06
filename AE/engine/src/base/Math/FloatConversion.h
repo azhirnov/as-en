@@ -59,7 +59,7 @@ namespace AE::Base
 	// utils
 		template <typename Bits>
 		__Cx__ static Bits	MinDelta (Bits x)										__NE___;
-		
+
 		template <typename Bits>
 		__Cx__ static Bits	Next (Bits x)											__NE___;	// x + ulp
 	};
@@ -109,7 +109,7 @@ namespace AE::Base
 		NdCx__ float		AsFloatPoint ()			C_NE___	{ return BitCast<float>(*this); }
 
 		NdCx__ float		MinDelta ()				C_NE___	{ return FloatConversion::MinDelta( *this ).AsFloatPoint(); }	// ULP
-		
+
 		NdCx__ bool  operator == (Float32Bits rhs)	C_NE___	{ return AsInteger() == rhs.AsInteger(); }
 
 		NdCx__ explicit operator float ()			C_NE___	{ return AsFloatPoint(); }
@@ -165,9 +165,9 @@ namespace AE::Base
 
 		NdCx__ ulong		AsInteger ()			C_NE___	{ return BitCast<ulong>(*this); }
 		NdCx__ double		AsFloatPoint ()			C_NE___	{ return BitCast<double>(*this); }
-		
+
 		NdCx__ double		MinDelta ()				C_NE___	{ return FloatConversion::MinDelta( *this ).AsFloatPoint(); }	// ULP
-		
+
 		NdCx__ bool  operator == (Float64Bits rhs)	C_NE___	{ return AsInteger() == rhs.AsInteger(); }
 
 		NdCx__ explicit operator double ()			C_NE___	{ return AsFloatPoint(); }
@@ -258,7 +258,7 @@ namespace AE::Base
 
 		template <typename T>
 		__Cx__ Self&		SetFast (T val)					__NE___	{ FC::Convert3< FC::EMode::RoundFast, Self >( val, OUT _bits );  return *this; }
-		
+
 		NdCx__ int			IntExp2 ()						C_NE___	{ return int(_bits.e) - int(Bits::_MidExp); }
 
 		NdCx__ bool			IsNaN ()						C_NE___	{ return _bits.e == Bits::_NaNExp and _bits.m != 0; }
@@ -356,7 +356,7 @@ namespace AE::Base
 
 		template <typename T>
 		__Cx__ Self&		SetFast (T val)					__NE___	{ FC::Convert3< FC::EMode::RoundFast, Self >( val, OUT _bits );  return *this; }
-		
+
 		NdCx__ int			IntExp2 ()						C_NE___	{ return int(_bits.e) - int(Bits::_MidExp); }
 
 		NdCx__ bool			IsNaN ()						C_NE___	{ return _bits.e == Bits::_NaNExp and _bits.m != 0; }
@@ -365,7 +365,7 @@ namespace AE::Base
 		NdCx__ bool			IsNegative ()					C_NE___	{ return false; }					// same as 'std::signbit'
 		NdCx__ bool			IsSubnormal ()					C_NE___	{ return _bits.e == 0 and _bits.m != 0; }
 		NdCx__ bool			IsZero ()						C_NE___	{ return _bits.e == 0 and _bits.m == 0; }
-		
+
 		NdCx__ Self			MinDelta ()						C_NE___	{ return Self{ FloatConversion::MinDelta( _bits )}; }	// ULP
 
 		NdCx__ explicit operator float ()					C_NE___	{ return Get<float>(); }
@@ -449,7 +449,7 @@ namespace AE::Base
 
 		template <typename T>
 		__Cx__ Self&		SetFast (T val)				__NE___	{ FC::Convert3< FC::EMode::RoundFast, Self >( val, OUT _bits );  return *this; }
-		
+
 		NdCx__ int			IntExp2 ()					C_NE___	{ return int(_bits.e) - int(Bits::_MidExp); }
 
 		NdCx__ bool			IsNaN ()					C_NE___	{ return _bits.e == Bits::_NaNExp and _bits.m != 0; }
@@ -458,7 +458,7 @@ namespace AE::Base
 		NdCx__ bool			IsNegative ()				C_NE___	{ return false; }				// same as 'std::signbit'
 		NdCx__ bool			IsSubnormal ()				C_NE___	{ return _bits.e == 0 and _bits.m != 0; }
 		NdCx__ bool			IsZero ()					C_NE___	{ return _bits.e == 0 and _bits.m == 0; }
-		
+
 		NdCx__ Self			MinDelta ()					C_NE___	{ return Self{ FloatConversion::MinDelta( _bits )}; }	// ULP
 
 		NdCx__ explicit operator float ()				C_NE___	{ return Get<float>(); }
@@ -545,7 +545,7 @@ namespace AE::Base
 
 		template <typename T>
 		__Cx__ Self&		SetFast (T val)					__NE___	{ FC::Convert3< FC::EMode::RoundFast, Self >( val, OUT _bits );  return *this; }
-		
+
 		NdCx__ int			IntExp2 ()						C_NE___	{ return int(_bits.e) - int(Bits::_MidExp); }
 
 		NdCx__ bool			IsNaN ()						C_NE___	{ return _bits.e == Bits::_NaNExp and _bits.m != 0; }
@@ -554,7 +554,7 @@ namespace AE::Base
 		NdCx__ bool			IsNegative ()					C_NE___	{ return _bits.s == 1; }			// same as 'std::signbit'
 		NdCx__ bool			IsSubnormal ()					C_NE___	{ return _bits.e == 0 and _bits.m != 0; }
 		NdCx__ bool			IsZero ()						C_NE___	{ return _bits.e == 0 and _bits.m == 0; }
-		
+
 		NdCx__ Self			MinDelta ()						C_NE___	{ return Self{ FloatConversion::MinDelta( _bits )}; }	// ULP
 
 		NdCx__ explicit operator float ()					C_NE___	{ return Get<float>(); }
@@ -937,7 +937,7 @@ namespace AE::Base
 			DstU	dst_u;
 			ConvertBits_Fast< Mode, SrcBits, DstBits >( BitCast<SrcU>(src), OUT dst_u );
 			dst = BitCast<Dst>( dst_u );
-			
+
 			if constexpr( AllBits( Mode, EMode::CheckNanInf ))
 			{
 				// TODO: may loose mantissa bit and NaN converted to Inf
@@ -958,7 +958,7 @@ namespace AE::Base
 			}
 		}
 	}
-	
+
 /*
 =================================================
 	MinDelta
@@ -969,7 +969,7 @@ namespace AE::Base
 	{
 		int		e	= int(cur.e) - Bits::_ManBits;
 		Bits	ulp;
-		
+
 		if constexpr( Bits::_Signed )
 			ulp.s = cur.s;
 
@@ -989,7 +989,7 @@ namespace AE::Base
 		}
 		return ulp;
 	}
-	
+
 /*
 =================================================
 	Next

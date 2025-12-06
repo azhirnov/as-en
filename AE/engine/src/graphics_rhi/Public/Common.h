@@ -124,15 +124,15 @@ namespace AE::Graphics
 		ND_ explicit operator bool ()							C_NE___	{ return not label.empty(); }
 	};
 
-	
-	
+
+
 	class ResourceManager;
 	class RenderTaskScheduler;
 	class DescriptorUpdater;
 
 	class CommandBatch;
 	using CommandBatchPtr		= RC< CommandBatch >;
-	
+
 	class DrawCommandBatch;
 	using DrawCommandBatchPtr	= RC< DrawCommandBatch >;
 

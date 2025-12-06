@@ -75,7 +75,8 @@ namespace AE::Graphics
 			FrameUID			lastUsage;
 		};
 
-		static constexpr Bytes	_SingleBufferSize	{1_MiB};
+		static constexpr Bytes	_SingleBufferSize	{4_MiB};
+		static constexpr Bytes	_AllocBlockSize		{16_MiB};
 		static constexpr Bytes	_OffsetAlign		{16_b};
 		static constexpr Bytes	_TraceHeaderSize	{16_b};
 
@@ -99,7 +100,7 @@ namespace AE::Graphics
 
 	// methods
 	public:
-		explicit ShaderDebugger (Bytes blockSize = 8_MiB)																		__NE___ : _blockSize{blockSize} {}
+		explicit ShaderDebugger (Bytes blockSize = _AllocBlockSize)																__NE___ : _blockSize{blockSize} {}
 		~ShaderDebugger ()																										__NE___;
 
 		ND_ bool  AllocForCompute (OUT Result &result, ITransferContext &ctx, ComputePipelineID ppln, const uint3 &globalID,

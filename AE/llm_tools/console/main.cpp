@@ -17,7 +17,7 @@
 #endif
 
 #ifdef AE_PLATFORM_LINUX
-# 	include <signal.h> 
+# 	include <signal.h>
 
 	std::atomic<bool> s_RequestInterrupt {false};
 
@@ -39,9 +39,7 @@ namespace
 	using namespace AE;
 	using namespace AE::LangModel;
 
-	static const char	c_ModelPath [] 	= R"(path/to/model)";
-	static const auto	c_Backend 		= LLama::EBackend::CUDA;
-	static const uint	c_GPULayers		= 999;
+	static uint		g_MaxCtxSize	= 0;
 
 	using TimePoint_t	= HighResClock::time_point;
 	using Duration_t	= HighResClock::duration;
@@ -101,7 +99,7 @@ namespace
 
 			return true;  // continue
 		}
-		
+
 		void  OnComplete (U8StringView, uint tokenCount) __NE_OV
 		{
 			CHECK( outTokens == tokenCount );
@@ -163,8 +161,9 @@ namespace
 		params.opOffload		= true;
 
 		#if 1
-			params.sampler.minP		= LLama::Sampler_MinP{ 0.05f, 1 };
+			params.sampler.minP			= LLama::Sampler_MinP{ 0.05f, 1 };
 			params.sampler.temperature	= 0.8f;
+			params.sampler.penalties	= LLama::Sampler_Penalties{ 64, 1.1f, 0.f, 0.f };
 		#endif
 		#if 0
 			params.sampler.topK		= LLama::Sampler_TopK{ 40 };
@@ -174,6 +173,31 @@ namespace
 		#endif
 
 		return model.CreateContext( params );
+	}
+
+
+	static void  FixUnicode (INOUT U8String &str)
+	{
+		const CharUtf8	c0[] = { CharUtf8(226), CharUtf8(128), CharUtf8(145) };
+
+		FindAndReplace( str, U8StringView{ c0, CountOf(c0) }, u8"-" );
+	}
+
+
+	static void  WrapThinkingBlock (INOUT U8String &str)
+	{
+		const U8StringView	block_begin	= u8"<|channel|>analysis<|message|>";
+		const U8StringView	block_end	= u8"<|end|><|start|>assistant<|channel|>final<|message|>";
+
+		{
+			usize	pos = str.find( block_begin );
+			if ( pos < str.size() )
+				str.insert( pos, u8"\n<details><summary>Thinking</summary>\n\n" );
+		}{
+			usize	pos = str.find( block_end );
+			if ( pos < str.size() )
+				str.insert( pos, u8"\n\n</details>\n" );
+		}
 	}
 
 
@@ -197,6 +221,9 @@ namespace
 			}
 			switch_end
 
+			FixUnicode( INOUT content );
+			WrapThinkingBlock( INOUT content );
+
 			Unused( file.Write( role_str ));
 			Unused( file.Write( content ));
 		}
@@ -214,9 +241,11 @@ namespace
 	{
 		ILanguageModel &			model;
 		RC<ILanguageModelContext>	ctx;
-		uint						ctxSize		= 16 << 10;
+		uint						ctxSize		= g_MaxCtxSize;
 		bool						success		= true;
 		StringView					prompt;
+
+		explicit CommandCtx (ILanguageModel &model) __NE___ : model{model} {}
 	};
 
 	static void  CmdHelp (CommandCtx &);
@@ -260,14 +289,14 @@ namespace
 	static void  CmdSaveContextAndOpen (CommandCtx &cmd)
 	{
 	#ifdef AE_PLATFORM_WINDOWS
-		String	cmdline = "start ";
-		cmdline << SaveContext( *cmd.ctx );
-		Unused( WindowsProcess::Execute( cmdline ));
+		String	cmdline = "start \"";
+		cmdline << SaveContext( *cmd.ctx ) << '"';
+		Unused( WindowsProcess::Execute( cmdline, WindowsProcess::EFlags::UsePowerShell | WindowsProcess::EFlags::NoWindow ));
 	#endif
 	#ifdef AE_PLATFORM_LINUX
-		String	cmdline = "xdg-open ";
-		cmdline << SaveContext( *cmd.ctx );
-		Unused( LinuxProcess::Execute( cmdline ));
+		String	cmdline = "xdg-open \"";
+		cmdline << SaveContext( *cmd.ctx ) << '"';
+		Unused( UnixProcess::Execute( cmdline ));
 	#endif
 	}
 
@@ -289,6 +318,7 @@ namespace
 		params.sampler.temperature	= 0.3f;
 		params.sampler.minP			= LLama::Sampler_MinP{ 0.05f, 1 };
 		params.sampler.topP			= LLama::Sampler_TopP{ 0.9f, 1 };
+		params.sampler.penalties	= LLama::Sampler_Penalties{ 64, 1.1f, 0.f, 0.f };
 
 		cmd.ctx = null;
 		cmd.ctx = cmd.model.CreateContext( params );
@@ -370,6 +400,7 @@ Refactoring goals:
 		params.sampler.temperature	= 0.2f;
 		params.sampler.minP			= LLama::Sampler_MinP{ 0.05f, 1 };
 		params.sampler.topP			= LLama::Sampler_TopP{ 0.3f, 1 };
+		params.sampler.penalties	= LLama::Sampler_Penalties{ 64, 1.1f, 0.f, 0.f };
 
 		cmd.ctx = null;
 		cmd.ctx = cmd.model.CreateContext( params );
@@ -390,6 +421,78 @@ Your primary objectives are:
 * If the full output won’t fit in one response, split it into numbered parts and stop mid-token only at safe boundaries. Begin with: PART 1/N — tell me to reply “CONTINUE” for the next part.
 * If you cannot confidently reconstruct a piece, include a TODO comment and embed the original DXIL snippet as a comment right above the HLSL you derived from it.
 * Keep resource bindings (t#, s#, u#, b#, space#) as in DXIL.
+)";
+
+			CHECK_ERRV( cmd.ctx->Append( ERole::System, RVRef(str) ));
+		}
+
+		for (bool first = true;; first = false)
+		{
+			RC<ResponseListener>	listener = MakeRC<ResponseListener>(cmd.ctxSize);
+			U8String				str;
+
+			if_unlikely( first )
+			{
+				String	ansi_str;
+				CHECK( PlatformUtils::ClipboardExtract( OUT ansi_str ));
+				CHECK( not ansi_str.empty() );
+
+				ansi_str << "\n```";
+				"Now refactor this shader:\n```\n" >> ansi_str;
+
+				str = U8String{ Cast<CharUtf8>(ansi_str.data()), ansi_str.size() };
+			}
+			else
+			{
+				str = u8"CONTINUE";
+			}
+
+			CHECK_ERRV( cmd.ctx->Generate( RVRef(str), listener ));
+
+			if ( listener->HasErrors() )
+				break;
+
+			bool	has_next_part = listener->GetResponse().contains( u8"CONTINUE" );
+			has_next_part |= listener->GetResponse().contains( u8"next part" );
+
+			if ( not has_next_part )
+				break;
+		}
+	}
+
+
+	static void  CmdRefactorDXBC (CommandCtx &cmd)
+	{
+		LLama::ContextParams	params;
+		params.contextSize		= cmd.ctxSize;
+		params.threadCount		= UMax;
+		params.offloadKQV		= true;
+		params.opOffload		= true;
+
+		params.sampler.temperature	= 0.2f;
+		params.sampler.minP			= LLama::Sampler_MinP{ 0.05f, 1 };
+		params.sampler.topP			= LLama::Sampler_TopP{ 0.3f, 1 };
+		params.sampler.penalties	= LLama::Sampler_Penalties{ 64, 1.1f, 0.f, 0.f };
+
+		cmd.ctx = null;
+		cmd.ctx = cmd.model.CreateContext( params );
+		cmd.success = bool{cmd.ctx};
+		if ( not cmd.success )
+			return;
+
+		{
+			U8String	str = u8"Reasoning: low";
+			CHECK_ERRV( cmd.ctx->Append( ERole::System, RVRef(str) ));
+		}{
+			U8String	str = u8R"(
+You are a decompiler specialized in converting DirectX DXBC disassembly into equivalent, readable HLSL with strict fidelity.
+Your primary objectives are:
+* Do not omit or elide any behavior. No “...” or “skipping for brevity”.
+* Preserve semantics, constants, resource bindings, and control flow.
+* Make code readable HLSL while annotating anything uncertain.
+* If the full output won’t fit in one response, split it into numbered parts and stop mid-token only at safe boundaries. Begin with: PART 1/N — tell me to reply “CONTINUE” for the next part.
+* If you cannot confidently reconstruct a piece, include a TODO comment and embed the original DXBC snippet as a comment right above the HLSL you derived from it.
+* Keep resource bindings (t#, s#, u#, b#) as in DXBC.
 )";
 
 			CHECK_ERRV( cmd.ctx->Append( ERole::System, RVRef(str) ));
@@ -453,9 +556,60 @@ Your primary objectives are:
 		"```\n" >> str;
 
 		U8String ustr{ Cast<CharUtf8>(str.data()), str.size() };
-		
+
 		U8StringView{ Cast<CharUtf8>(cmd.prompt.data()), cmd.prompt.size() } >> ustr;
 		CHECK( cmd.ctx->Append( ERole::User, RVRef(ustr) ));
+	}
+
+
+	static void  CmdCopyLastResponseToClipboard (CommandCtx &cmd)
+	{
+		auto	msgs = cmd.ctx->GetMessages();
+		if ( msgs.empty() )
+		{
+			std::cout << "nothing to copy\n";
+			return;
+		}
+
+		CHECK_ERRV( msgs.back().first == ERole::Assistant );
+
+		FixUnicode( INOUT msgs.back().second );
+		WrapThinkingBlock( INOUT msgs.back().second );
+
+		CHECK_ERRV( PlatformUtils::ClipboardPut( NtStringView{ Cast<char>(msgs.back().second.c_str()),
+																msgs.back().second.size() }));
+		std::cout << "> copied to clipboard\n";
+	}
+
+
+	static void  CmdCopyAllMessagesToClipboard (CommandCtx &cmd)
+	{
+		auto	msgs = cmd.ctx->GetMessages();
+		if ( msgs.empty() )
+		{
+			std::cout << "nothing to copy\n";
+			return;
+		}
+		U8String	str;
+		for (auto& [role, content] : msgs)
+		{
+			U8StringView	role_str;
+			switch_enum( role )
+			{
+				case ERole::User :			role_str = u8"\n\n# User:\n";		break;
+				case ERole::Assistant :		role_str = u8"\n# Assistant:\n";	break;
+				case ERole::System :		role_str = u8"\n# System:\n";		break;
+				case ERole::_Count :		break;
+			}
+			switch_end
+
+			FixUnicode( INOUT content );
+			WrapThinkingBlock( INOUT content );
+			str << role_str << content;
+		}
+
+		CHECK_ERRV( PlatformUtils::ClipboardPut( NtStringView{ Cast<char>(str.c_str()), str.size() }));
+		std::cout << "> copied to clipboard\n";
 	}
 
 
@@ -469,8 +623,12 @@ Your primary objectives are:
 		{ "-load",				&CmdLoadContext },
 		{ "-refactor-shader",	&CmdRefactorShader },
 		{ "-refactor-dxil",		&CmdRefactorDXIL },
+		{ "-refactor-dxbc",		&CmdRefactorDXBC },
 		{ "-paste",				&CmdPasteFromClipboard },
-		{ "-paste-code",		&CmdPasteCodeFromClipboard },
+		{ "-code",				&CmdPasteCodeFromClipboard },
+		{ "-copy",				&CmdCopyLastResponseToClipboard },
+		{ "-copy-all",			&CmdCopyAllMessagesToClipboard },
+		// TODO: save context/summary and continue with new
 	};
 
 
@@ -503,10 +661,13 @@ Your primary objectives are:
 			String	temp;
 
 			cmd_buf.clear();
-			std::getline( std::cin, OUT temp );
-		
+			std::getline( std::cin, OUT temp );		// TODO: utf8
+
+			if ( temp.empty() )
+				continue;
+
 			cmd_buf << temp << '\n';
-		
+
 			cmd_ctx.prompt = StringView{cmd_buf};
 
 			if ( cmd_ctx.prompt[0] == '-' )
@@ -525,13 +686,21 @@ Your primary objectives are:
 				it->second( cmd_ctx );
 				continue;
 			}
-		
+
 			std::cout << "\n> processing prompt...\n";
 
 			U8String str{ Cast<CharUtf8>(cmd_ctx.prompt.data()), cmd_ctx.prompt.size() };
 			Unused( cmd_ctx.ctx->Generate( RVRef(str), MakeRC<ResponseListener>(cmd_ctx.ctxSize) ));
 		}
 	}
+
+
+	static void  SelectModelParams (StringView pcName, StringView userName, INOUT LLama::OpenParams &params)
+	{
+
+		CHECK_MSG( false, "no configuration for PC "s << pcName );
+	}
+
 } // namespace
 
 
@@ -545,18 +714,18 @@ int main (const int argc, char* argv[])
 	StaticLogger::AddLogger( ILogger::CreateIDEOutput() );
 
 	#ifdef AE_PLATFORM_LINUX
-		::signal( SIGINT, OnUserInterrupt ); 
+		::signal( SIGINT, OnUserInterrupt );
 	#endif
 
 	RC<ILanguageModel>	model;
 	{
 		LLama::OpenParams	params;
-		params.modelFile			= c_ModelPath;
 		params.enableLogger			= true;
 		params.keepModelInMemory	= true;
 		params.useMMap				= true;
-		params.backend				= c_Backend;
-		params.gpuLayers			= c_GPULayers;
+
+		SelectModelParams( PlatformUtils::GetComputerName(), PlatformUtils::GetUserName(), INOUT params );
+
 
 		#if 1
 			params.listener = MakeRC<LoadingListener>();
@@ -566,10 +735,10 @@ int main (const int argc, char* argv[])
 		#else
 			// remote
 			Remote::OpenParams	r_params;
-			r_params.addr		= Networking::IpAddress::FromInt( 192,168,0,100, 3000 );	// set your server address
+			r_params.addr		= AE_LLM_IPv4;
 			r_params.listener	= MakeRC<LoadingListener>();
 			r_params.llama		= MakeUnique<LLama::OpenParams>( params );
-			
+
 			model = LMFactory::CreateRemote( r_params );
 			CHECK_ERR( model, -1 );
 		#endif

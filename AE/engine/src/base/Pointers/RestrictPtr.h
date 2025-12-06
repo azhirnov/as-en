@@ -63,10 +63,10 @@ namespace AE::Base
 
 		NdCx__ Self		operator +  (Bytes offset)			C_NE___	{ return Self{ _ptr + offset }; }
 		__Cx__ Self&	operator += (Bytes offset)			__NE___	{ _ptr += offset;  return *this; }
-		
+
 		//template <typename B=T> requires( not IsVoid<B> and not IsConst<B> )
 		//NdCx__ T&		operator [] (usize idx)				__NE___	{ return _ptr[idx]; }
-		
+
 		//template <typename B=T> requires( not IsVoid<B> )
 		//NdCx__ T const&	operator [] (usize idx)				C_NE___	{ return _ptr[idx]; }
 

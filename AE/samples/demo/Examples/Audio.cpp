@@ -96,7 +96,7 @@ namespace AE::Samples::Demo
 
 			AudioSystem().Apply3D();
 		}};
-		
+
 		CHECK_CE( t->imgui.Draw( RenderCoro_Get(), surface, UpdateUI, Default ));
 		co_return;
 	}
@@ -158,7 +158,7 @@ namespace AE::Samples::Demo
 					"Audio::ProcessInput"
 				);
 	}
-	
+
 /*
 =================================================
 	_ProcessInputTask

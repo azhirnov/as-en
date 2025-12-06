@@ -177,7 +177,7 @@ namespace AE::App
 			glfwSetWindowSize( _window, int(size.x), int(size.y) );
 		}
 	}
-	
+
 	void  WindowGLFW::SetSize (const uint2 &size, float targetPPI) __NE___
 	{
 		ASSERT( targetPPI > 0.f );
@@ -468,7 +468,8 @@ namespace AE::App
 		glfwWindowHint( GLFW_FOCUSED,					GLFW_TRUE );
 		glfwWindowHint( GLFW_FOCUS_ON_SHOW,				GLFW_TRUE );
 		glfwWindowHint( GLFW_TRANSPARENT_FRAMEBUFFER,	GLFW_FALSE );
-		glfwWindowHint( GLFW_SCALE_TO_MONITOR,			GLFW_TRUE );
+		glfwWindowHint( GLFW_SCALE_TO_MONITOR,			GLFW_FALSE );
+		glfwWindowHint( GLFW_SCALE_FRAMEBUFFER,			GLFW_FALSE );
 		glfwWindowHint( GLFW_CLIENT_API,				GLFW_NO_API );
 		glfwWindowHint( GLFW_DECORATED,					borderless ? GLFW_FALSE : GLFW_TRUE );
 		glfwWindowHint( GLFW_FLOATING,					always_on_top ? GLFW_TRUE : GLFW_FALSE );
@@ -496,11 +497,9 @@ namespace AE::App
 		glfwSetScrollCallback( _window, &_GLFW_MouseWheelCallback );
 		glfwSetWindowIconifyCallback( _window, &_GLFW_IconifyCallback );
 		glfwSetWindowFocusCallback( _window, &_GLFW_WindowFocusCallback );
-		glfwSetWindowContentScaleCallback( _window, &_GLFW_WindowContentScaleCallback );
+		glfwSetCharCallback( _window, &_GLFW_CharCallback );
 
 		// TODO: joystick
-
-		glfwGetWindowContentScale( _window, OUT &_contentScale.x, OUT &_contentScale.y );
 
 		// can call 'Close()' and '_window' will be null
 
@@ -654,20 +653,7 @@ namespace AE::App
 		DRC_EXLOCK( self->_drCheck );
 
 		//if_likely( self->_HasFocus() )
-		self->_input.SetCursorPos( float2{float(xpos), float(ypos)} * self->_contentScale );
-	}
-
-/*
-=================================================
-	_GLFW_WindowContentScaleCallback
-=================================================
-*/
-	void  WindowGLFW::_GLFW_WindowContentScaleCallback (GLFWwindow* wnd, float xscale, float yscale) __NE___
-	{
-		auto*	self = Cast<WindowGLFW>( glfwGetWindowUserPointer( wnd ));
-		DRC_EXLOCK( self->_drCheck );
-
-		self->_contentScale = float2{ xscale, yscale };
+		self->_input.SetCursorPos( float2{float(xpos), float(ypos)} );
 	}
 
 /*
@@ -722,6 +708,19 @@ namespace AE::App
 		DRC_EXLOCK( self->_drCheck );
 
 		self->_SetStateV2( focused == GLFW_TRUE ? EState::Focused : EState::InForeground );
+	}
+
+/*
+=================================================
+	_GLFW_CharCallback
+=================================================
+*/
+	void  WindowGLFW::_GLFW_CharCallback (GLFWwindow* wnd, uint codepoint) __NE___
+	{
+		auto*	self = Cast<WindowGLFW>( glfwGetWindowUserPointer( wnd ));
+		DRC_EXLOCK( self->_drCheck );
+
+		self->_input.AddChar( CharUtf32(codepoint) );
 	}
 
 

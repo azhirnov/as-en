@@ -23,7 +23,7 @@ namespace{
 		constexpr uint	max_tasks	= 6;
 
 		auto&			sched		= Scheduler();
-		const auto		seed		= sched.GetDefaultSeed();
+		const auto		seed		= TaskScheduler::GetDefaultSeed();
 
 		for (uint a = 0; a < max_attempt; ++a)
 		{

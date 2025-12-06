@@ -23,7 +23,7 @@ namespace AE::LangModel
 		{
 		public:
 			static constexpr Bytes	c_BufferSize = 4_MiB;
-			
+
 			ND_ bool  InitServer (ushort port,
 								  Ptr<Serializing::ObjectFactory> factory)	__NE___	{ return _InitServer( port, c_BufferSize, factory ); }
 
@@ -127,7 +127,7 @@ namespace AE::LangModel
 		ND_ bool  _OpenLLama (const Msg::LangModelOpenLLama &)	__NE___;
 
 		ND_ bool  _RegisterMessages ();
-		
+
 		template <typename M>
 		ND_ bool  _Register (Serializing::SerializedID::Ref id);
 

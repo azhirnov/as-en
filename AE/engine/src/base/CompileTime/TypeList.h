@@ -139,7 +139,7 @@ namespace AE::Base
 	struct TypeList< Tuple<Types...> > final : TypeList< Types... >
 	{};
 
-	
+
 /*
 =================================================
 	IsTypeList
@@ -165,7 +165,7 @@ namespace _hidden_
 }
 	template <typename T>
 	static constexpr bool	IsTypeList = Base::_hidden_::_IsTypeList< T >::value;
-												
+
 /*
 =================================================
 	TypeListFill
@@ -178,7 +178,7 @@ namespace _hidden_
 	{
 		using type = typename _TypeListFill< T, Count-1 >::type::template PushBack< T >;
 	};
-	
+
 	template <typename T>
 	struct _TypeListFill< T, 0 >
 	{

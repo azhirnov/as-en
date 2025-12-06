@@ -16,6 +16,7 @@
 	},
 	"files.associations": {
 		"*.as": "cpp",
+		"*.ppln": "cpp",
 		"*.glsl": "cpp",
 		"*.glsl_dbg": "cpp"
 	},

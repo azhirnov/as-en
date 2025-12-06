@@ -160,7 +160,7 @@ ND_ float2  SinCos (const float x)		{ return float2(sin(x), cos(x)); }
 #	define half_Euler		(2.71828182845904523536hf)
 #endif
 #if 1
-#	define float_zero		(1.0f)
+#	define float_zero		(0.0f)
 #	define float_min		(1.1754943508e-38f)			// smallest positive normal number
 #	define float_max		(3.4028234664e+38f)
 #	define float_inf		(uintBitsToFloat( 0x7F800000u ))
@@ -172,7 +172,7 @@ ND_ float2  SinCos (const float x)		{ return float2(sin(x), cos(x)); }
 #	define float_Pi2		(6.28318530717958647692f)
 #	define float_HalfPi		(1.57079632679489661923f)
 #	define float_InvPi		(0.31830988618379067153f)
-#	define float_SqrtOf2	(1.41421356237309504880f)
+#	define float_SqrtOf2	(1.41421356237309504880f)			// Sqrt(2.0f)
 #	define float_Euler		(2.71828182845904523536f)
 #	define float_epsilon	(2.0e-5f)
 #endif
@@ -336,31 +336,6 @@ Gen_SATURATE( float, float_vec_t )
 
 #undef Gen_SATURATE1
 #undef Gen_SATURATE
-	
-/*
-=================================================
-	Rcp
-----
-	Reciprocal - fast division with less accuracy
-=================================================
-*/
-ND_ float	Rcp (const float  x)	{ return 1.0f / x; }
-ND_ float2	Rcp (const float2 x)	{ return 1.0f / x; }
-ND_ float3	Rcp (const float3 x)	{ return 1.0f / x; }
-ND_ float4	Rcp (const float4 x)	{ return 1.0f / x; }
-
-#if AE_ENABLE_HALF_TYPE
-	ND_ half	Rcp (const half  x)	{ return 1.0hf / x; }
-	ND_ half2	Rcp (const half2 x)	{ return 1.0hf / x; }
-	ND_ half3	Rcp (const half3 x)	{ return 1.0hf / x; }
-	ND_ half4	Rcp (const half4 x)	{ return 1.0hf / x; }
-#endif
-#if AE_ENABLE_DOUBLE_TYPE
-	ND_ double	Rcp (const double  x)	{ return 1.0lf / x; }
-	ND_ double2	Rcp (const double2 x)	{ return 1.0lf / x; }
-	ND_ double3	Rcp (const double3 x)	{ return 1.0lf / x; }
-	ND_ double4	Rcp (const double4 x)	{ return 1.0lf / x; }
-#endif
 
 /*
 =================================================
@@ -412,6 +387,7 @@ Gen_FPBOOL( float, float_vec_t )
 	May return NaN if one of branches returns NaN, even if it is inactive branch.
 	'SelectFSat()' convert 'ifLess' and 'ifNot' to unorm to avoid NaNs.
 	GLSL specs: both 'if' and '?' are branches.
+	Note: 'Select()' or 'Branchless()' may be faster on modern GPUs.
 =================================================
 */
 #define SelectF( _x_, _y_, _ifLess_, _ifNot_ )		Lerp( (_ifNot_), (_ifLess_), LessF( _x_, _y_ ))
@@ -454,214 +430,26 @@ Gen_DIAGONAL( float, float_vec_t )
 
 /*
 =================================================
-	SafeSqrt
-----
-	T  SafeSqrt (T x)
-----
-	doesn't return undefined result
-=================================================
-*/
-#define Gen_SafeSqrt1( _type_, _zero_ )			\
-	ND_ _type_  SafeSqrt (const _type_ x) {		\
-		return sqrt( max( x, _type_(_zero_) ));	\
-	}
-
-#define Gen_SafeSqrt( _stype_, _vtype_, _zero_ )\
-	Gen_SafeSqrt1( _stype_,				_zero_ )\
-	Gen_SafeSqrt1( UNITE( _vtype_, 2 ), _zero_ )\
-	Gen_SafeSqrt1( UNITE( _vtype_, 3 ), _zero_ )\
-	Gen_SafeSqrt1( UNITE( _vtype_, 4 ), _zero_ )
-
-Gen_SafeSqrt( float, float_vec_t, float_zero )
-
-#if AE_ENABLE_HALF_TYPE
-	Gen_SafeSqrt( half, half_vec_t, half_zero )
-#endif
-#if AE_ENABLE_DOUBLE_TYPE
-	Gen_SafeSqrt( double, double_vec_t, double_zero )
-#endif
-
-#undef Gen_SafeSqrt1
-#undef Gen_SafeSqrt
-
-/*
-=================================================
-	SafeInvSqrt
-----
-	T  SafeInvSqrt (T x)
-----
-	doesn't return undefined result
-=================================================
-*/
-#define Gen_SafeInvSqrt1( _type_, _zero_ )				\
-	ND_ _type_  SafeInvSqrt (const _type_ x) {			\
-		return inversesqrt( max( x, _type_(_zero_) ));	\
-	}
-
-#define Gen_SafeInvSqrt( _stype_, _vtype_, _zero_ )\
-	Gen_SafeInvSqrt1( _stype_,				_zero_ )\
-	Gen_SafeInvSqrt1( UNITE( _vtype_, 2 ),	_zero_ )\
-	Gen_SafeInvSqrt1( UNITE( _vtype_, 3 ),	_zero_ )\
-	Gen_SafeInvSqrt1( UNITE( _vtype_, 4 ),	_zero_ )
-
-Gen_SafeInvSqrt( float, float_vec_t, float_min )
-
-#if AE_ENABLE_HALF_TYPE
-	Gen_SafeInvSqrt( half, half_vec_t, half_min )
-#endif
-#if AE_ENABLE_DOUBLE_TYPE
-	Gen_SafeInvSqrt( double, double_vec_t, double_min )
-#endif
-
-#undef Gen_SafeInvSqrt1
-#undef Gen_SafeInvSqrt
-
-/*
-=================================================
-	SafeLn
-----
-	T  SafeLn (T x)
-----
-	doesn't return undefined result
-=================================================
-*/
-#define Gen_SafeLn1( _type_, _zero_ )			\
-	ND_ _type_  SafeLn (const _type_ x) {		\
-		return log( max( x, _type_(_zero_) ));	\
-	}
-
-#define Gen_SafeLn( _stype_, _vtype_, _zero_ )\
-	Gen_SafeLn1( _stype_,				_zero_ )\
-	Gen_SafeLn1( UNITE( _vtype_, 2 ),	_zero_ )\
-	Gen_SafeLn1( UNITE( _vtype_, 3 ),	_zero_ )\
-	Gen_SafeLn1( UNITE( _vtype_, 4 ),	_zero_ )
-
-Gen_SafeLn( float, float_vec_t, float_min )
-
-#if AE_ENABLE_HALF_TYPE
-	Gen_SafeLn( half, half_vec_t, half_min )
-#endif
-
-#undef Gen_SafeLn1
-#undef Gen_SafeLn
-
-/*
-=================================================
-	SafeLog2
-----
-	T  SafeLog2 (T x)
-----
-	doesn't return undefined result
-=================================================
-*/
-#define Gen_SafeLog21( _type_, _zero_ )			\
-	ND_ _type_  SafeLog2 (const _type_ x) {		\
-		return log2( max( x, _type_(_zero_) ));	\
-	}
-
-#define Gen_SafeLog2( _stype_, _vtype_, _zero_ )\
-	Gen_SafeLog21( _stype_,				_zero_ )\
-	Gen_SafeLog21( UNITE( _vtype_, 2 ), _zero_ )\
-	Gen_SafeLog21( UNITE( _vtype_, 3 ),	_zero_ )\
-	Gen_SafeLog21( UNITE( _vtype_, 4 ),	_zero_ )
-
-Gen_SafeLog2( float, float_vec_t, float_min )
-
-#if AE_ENABLE_HALF_TYPE
-	Gen_SafeLog2( half, half_vec_t, half_min )
-#endif
-
-#undef Gen_SafeLog21
-#undef Gen_SafeLog2
-
-/*
-=================================================
-	SafePow
-----
-	T  SafePow (T x, T y)
-----
-	doesn't return undefined result
-	supports only positive X, supports negative Y.
-=================================================
-*/
-#define Gen_SafePow1( _type_, _zero_ )						\
-	ND_ _type_  SafePow (const _type_ x, const _type_ y) {	\
-		return pow( max( abs(x), _type_(_zero_) ), y );		\
-	}
-
-#define Gen_SafePow( _stype_, _vtype_, _zero_ )\
-	Gen_SafePow1( _stype_,				_zero_ )\
-	Gen_SafePow1( UNITE( _vtype_, 2 ),	_zero_ )\
-	Gen_SafePow1( UNITE( _vtype_, 3 ),	_zero_ )\
-	Gen_SafePow1( UNITE( _vtype_, 4 ),	_zero_ )
-
-Gen_SafePow( float, float_vec_t, float_min )
-
-#if AE_ENABLE_HALF_TYPE
-	Gen_SafePow( half, half_vec_t, half_min )
-#endif
-
-#undef Gen_SafePow1
-#undef Gen_SafePow
-
-/*
-=================================================
-	SafeDiv
-----
-	T  SafeDiv (T x, T y)
-----
-	doesn't return undefined result
-=================================================
-*/
-#define Gen_SafeDiv1( _type_, _zero_ )							\
-	ND_ _type_  SafeDiv (const _type_ x, const _type_ y) {		\
-		return (x * sign(y)) / max( abs(y), _type_(_zero_) );	\
-	}
-
-#define Gen_SafeDiv( _stype_, _vtype_, _zero_ )\
-	Gen_SafeDiv1( _stype_,				_zero_ )\
-	Gen_SafeDiv1( UNITE( _vtype_, 2 ),	_zero_ )\
-	Gen_SafeDiv1( UNITE( _vtype_, 3 ),	_zero_ )\
-	Gen_SafeDiv1( UNITE( _vtype_, 4 ),	_zero_ )
-
-Gen_SafeDiv( float, float_vec_t, float_min )
-
-#if AE_ENABLE_HALF_TYPE
-	Gen_SafeDiv( half, half_vec_t, half_min )
-#endif
-#if AE_ENABLE_DOUBLE_TYPE
-	Gen_SafeDiv( double, double_vec_t, double_min )
-#endif
-
-#undef Gen_SafeDiv1
-#undef Gen_SafeDiv
-
-/*
-=================================================
-	Cbrt / SafeCbrt
+	Cbrt
 ----
 	T  Cbrt (T x)
-	T  SafeCbrt (T x)
 =================================================
 */
-#define Gen_CBRT1( _stype_, _type_, _zero_ )										\
-	ND_ _type_  Cbrt (const _type_ x) {												\
-		return pow( x, _type_(_stype_(1.0)/_stype_(3.0)) );							\
-	}																				\
-	ND_ _type_  SafeCbrt (const _type_ x) {											\
-		return pow( max( x, _type_(_zero_) ), _type_(_stype_(1.0)/_stype_(3.0)) );	\
+#define Gen_CBRT1( _stype_, _type_ )						\
+	ND_ _type_  Cbrt (const _type_ x) {						\
+		return pow( x, _type_(_stype_(1.0)/_stype_(3.0)) );	\
 	}
 
-#define Gen_CBRT( _stype_, _vtype_, _zero_ )\
-	Gen_CBRT1( _stype_, _stype_,			 _zero_ )\
-	Gen_CBRT1( _stype_, UNITE( _vtype_, 2 ), _zero_ )\
-	Gen_CBRT1( _stype_, UNITE( _vtype_, 3 ), _zero_ )\
-	Gen_CBRT1( _stype_, UNITE( _vtype_, 4 ), _zero_ )
+#define Gen_CBRT( _stype_, _vtype_ )\
+	Gen_CBRT1( _stype_, _stype_			  )\
+	Gen_CBRT1( _stype_, UNITE( _vtype_, 2 ))\
+	Gen_CBRT1( _stype_, UNITE( _vtype_, 3 ))\
+	Gen_CBRT1( _stype_, UNITE( _vtype_, 4 ))
 
-Gen_CBRT( float, float_vec_t, float_zero )
+Gen_CBRT( float, float_vec_t )
 
 #if AE_ENABLE_HALF_TYPE
-	Gen_CBRT( half, half_vec_t, half_zero )
+	Gen_CBRT( half, half_vec_t )
 #endif
 
 #undef Gen_CBRT1
@@ -708,7 +496,6 @@ Gen_TOUSNORM( float, float_vec_t )
 
 #undef Gen_TOUSNORM1
 #undef Gen_TOUSNORM
-
 
 /*
 =================================================
@@ -843,6 +630,7 @@ Gen_BRANCHLESS( uint,	uint_vec_t )
 	Min / Max
 	MinAbs / MaxAbs
 	MinOf / MaxOf
+	MinAbsOf / MaxAbsOf
 =================================================
 */
 #define Min3( a, b, c )			Min( Min( (a), (b) ), (c) )
@@ -852,6 +640,9 @@ Gen_BRANCHLESS( uint,	uint_vec_t )
 
 #define MinAbs( _a_, _b_ )		Select( Less(Abs(_a_), Abs(_b_)), (_a_), (_b_) )
 #define MaxAbs( _a_, _b_ )		Select( Greater(Abs(_a_), Abs(_b_)), (_a_), (_b_) )
+
+#define MaxAbsOf( _vec_ )		MaxOf( Abs( _vec_ ))
+#define MinAbsOf( _vec_ )		MinOf( Abs( _vec_ ))
 
 #define Gen_MINMAX( _stype_, _vtype_ )													\
 	ND_ _stype_  MinOf (UNITE( _vtype_, 2)  a)	{ return Min( a.x, a.y ); }				\
@@ -927,8 +718,8 @@ Gen_LENGTHSQ_DISTANCESQ( float, float_vec_t )
 	T  Sign (T x)
 ----
 	returns -1 or +1
-	see [GPU Benchmarks: Shader instructions performance groups](https://github.com/azhirnov/as-en/blob/dev/AE/docs/papers/GPU_Benchmarks.md) for fast Sign performance.
-	see [GPU Benchmarks: NaN](https://github.com/azhirnov/as-en/blob/dev/AE/docs/papers/GPU_Benchmarks.md) for 'Step()' results.
+	see [GPU Benchmarks: Shader instructions performance groups line:Shader-instructions-performance-groups](https://github.com/azhirnov/as-en/blob/dev/AE/docs/papers/GPU_Benchmarks.md) for fast Sign performance.
+	see [GPU Benchmarks: NaN line:NaN](https://github.com/azhirnov/as-en/blob/dev/AE/docs/papers/GPU_Benchmarks.md) for 'Step()' results.
 =================================================
 */
 #define Gen_SIGN1( _vtype_ )\
@@ -973,7 +764,7 @@ Gen_SIGN( int,		int_vec_t )
 #endif
 #undef Gen_SIGN1
 #undef Gen_SIGN
-		
+
 /*
 =================================================
 	SignBit
@@ -997,6 +788,31 @@ ND_ bool4	SignBit (float4 v)	{ return bool4( SignBit( v.x ), SignBit( v.y ), Sig
 	ND_ bool2	SignBit (double2 v)	{ return bool2( SignBit( v.x ), SignBit( v.y )); }
 	ND_ bool3	SignBit (double3 v)	{ return bool3( SignBit( v.x ), SignBit( v.y ), SignBit( v.z )); }
 	ND_ bool4	SignBit (double4 v)	{ return bool4( SignBit( v.x ), SignBit( v.y ), SignBit( v.z ), SignBit( v.w )); }
+#endif
+
+/*
+=================================================
+	Rcp
+----
+	Reciprocal - fast division with less accuracy
+=================================================
+*/
+ND_ float	Rcp (const float  x)		{ return 1.0f / x; }
+ND_ float2	Rcp (const float2 x)		{ return 1.0f / x; }
+ND_ float3	Rcp (const float3 x)		{ return 1.0f / x; }
+ND_ float4	Rcp (const float4 x)		{ return 1.0f / x; }
+
+#if AE_ENABLE_HALF_TYPE
+	ND_ half	Rcp (const half  x)		{ return 1.0hf / x; }
+	ND_ half2	Rcp (const half2 x)		{ return 1.0hf / x; }
+	ND_ half3	Rcp (const half3 x)		{ return 1.0hf / x; }
+	ND_ half4	Rcp (const half4 x)		{ return 1.0hf / x; }
+#endif
+#if AE_ENABLE_DOUBLE_TYPE
+	ND_ double	Rcp (const double  x)	{ return 1.0lf / x; }
+	ND_ double2	Rcp (const double2 x)	{ return 1.0lf / x; }
+	ND_ double3	Rcp (const double3 x)	{ return 1.0lf / x; }
+	ND_ double4	Rcp (const double4 x)	{ return 1.0lf / x; }
 #endif
 
 /*
@@ -1478,13 +1294,25 @@ ND_ bool  HasBit (const uint value, const uint index)
 	return (value & (1u << index)) != 0;
 }
 
+//	extract lowest non-zero bit.
+//	returns zero if 'bits' is zero.
 ND_ uint  ExtractBit (inout uint bits)
 {
-	uint	result = bits & ~(bits - 1);
+	uint	result = bits & ~(bits - 1u);
 	bits = bits & ~result;
 	return result;
 }
 
+//	extract highest non-zero bit.
+//	returns zero if 'value' is zero.
+ND_ uint  ExtractHighBit (inout uint bits)
+{
+	uint	result = bits & ~(bits >> 1);
+	bits = bits & ~result;
+	return result;
+}
+
+//  return '~0u' if 'bits' is zero.
 ND_ uint  ExtractBitIndex (inout uint bits)
 {
 	return uint(IntLog2( ExtractBit( INOUT bits )));
@@ -1564,7 +1392,7 @@ Gen_BILERP( float, float_vec_t )
 	Remap - map 'v' in 'src' interval to 'dst' interval.
 	RemapDst - map 'v' in [0,1] interval to 'dst' interval.
 	RemapSrc - map 'v' in 'src' interval to [0,1] interval.
-	Interval is a scalar range which specified for all components.
+	Interval is a scalar range which specified for all components in vector.
 =================================================
 */
 #define Gen_REMAP1( _type_, _range_ )\
@@ -1662,15 +1490,32 @@ ND_ float4  UIndexToUNormRound (const float4 index, const float4 count)		{ retur
 	IndexToVec2 / IndexToVec3
 =================================================
 */
-ND_ int2   IndexToVec2 (const int  index, const int2  tile)				{ return int2(  index % tile.x, (index / tile.x) % tile.y ); }
-ND_ uint2  IndexToVec2 (const uint index, const uint2 tile)				{ return uint2( index % tile.x, (index / tile.x) % tile.y ); }
-ND_ int3   IndexToVec3 (const int  index, const int3  tile)				{ return int3(  index % tile.x, (index / tile.x) % tile.y, (index / (tile.x * tile.y)) % tile.z ); }
-ND_ uint3  IndexToVec3 (const uint index, const uint3 tile)				{ return uint3( index % tile.x, (index / tile.x) % tile.y, (index / (tile.x * tile.y)) % tile.z ); }
+ND_ int2   IndexToVec2 (const int  index, const int2  tile)					{ return int2(  index % tile.x, (index / tile.x) % tile.y ); }
+ND_ uint2  IndexToVec2 (const uint index, const uint2 tile)					{ return uint2( index % tile.x, (index / tile.x) % tile.y ); }
+ND_ int3   IndexToVec3 (const int  index, const int3  tile)					{ return int3(  index % tile.x, (index / tile.x) % tile.y, (index / (tile.x * tile.y)) % tile.z ); }
+ND_ uint3  IndexToVec3 (const uint index, const uint3 tile)					{ return uint3( index % tile.x, (index / tile.x) % tile.y, (index / (tile.x * tile.y)) % tile.z ); }
 
-ND_ int2   IndexToVec2 (const int  index, const int   tile)				{ return IndexToVec2( index,  int2(tile) ); }
-ND_ uint2  IndexToVec2 (const uint index, const uint  tile)				{ return IndexToVec2( index, uint2(tile) ); }
-ND_ int3   IndexToVec3 (const int  index, const int   tile)				{ return IndexToVec3( index,  int3(tile) ); }
-ND_ uint3  IndexToVec3 (const uint index, const uint  tile)				{ return IndexToVec3( index, uint3(tile) ); }
+ND_ int2   IndexToVec2 (const int  index, const int   tile)					{ return IndexToVec2( index,  int2(tile) ); }
+ND_ uint2  IndexToVec2 (const uint index, const uint  tile)					{ return IndexToVec2( index, uint2(tile) ); }
+ND_ int3   IndexToVec3 (const int  index, const int   tile)					{ return IndexToVec3( index,  int3(tile) ); }
+ND_ uint3  IndexToVec3 (const uint index, const uint  tile)					{ return IndexToVec3( index, uint3(tile) ); }
+
+/*
+=================================================
+	VecToIndex
+=================================================
+*/
+ND_ int		VecToIndex (const int2  coord, const int   dimX)				{ return coord.x + coord.y * dimX; }
+ND_ uint	VecToIndex (const uint2 coord, const uint  dimX)				{ return coord.x + coord.y * dimX; }
+
+ND_ int		VecToIndex (const int2  coord, const int2  dim)					{ return VecToIndex( coord, dim.x ); }
+ND_ uint	VecToIndex (const uint2 coord, const uint2 dim)					{ return VecToIndex( coord, dim.x ); }
+
+ND_ int		VecToIndex (const int3  coord, const int2  dimXY)				{ return coord.x + coord.y * dimXY.x + coord.z * dimXY.x * dimXY.y; }
+ND_ uint	VecToIndex (const uint3 coord, const uint2 dimXY)				{ return coord.x + coord.y * dimXY.x + coord.z * dimXY.x * dimXY.y; }
+
+ND_ int		VecToIndex (const int3  coord, const int3  dim)					{ return VecToIndex( coord, dim.xy ); }
+ND_ uint	VecToIndex (const uint3 coord, const uint3 dim)					{ return VecToIndex( coord, dim.xy ); }
 
 /*
 =================================================
@@ -1859,12 +1704,135 @@ Gen_FPEQUAL( float,	float_vec_t )
 	void  Swap (T& lhs, T& rhs)
 =================================================
 */
-#define Gen_SWAP( _type_ )\
+#define Gen_SWAP1( _type_ )\
 	void  Swap (inout _type_ lhs, inout _type_ rhs)	{ _type_ tmp = lhs;  lhs = rhs;  rhs = tmp; }
 
-Gen_SWAP( float )
+#define Gen_SWAP( _stype_, _vtype_ )\
+	Gen_SWAP1( _stype_ )\
+	Gen_SWAP1( UNITE(_vtype_,2) )\
+	Gen_SWAP1( UNITE(_vtype_,3) )\
+	Gen_SWAP1( UNITE(_vtype_,4) )
 
+Gen_SWAP( float,	float_vec_t )
+Gen_SWAP( int,		int_vec_t )
+Gen_SWAP( uint,		uint_vec_t )
+
+#if AE_ENABLE_HALF_TYPE
+	Gen_SWAP( half,		half_vec_t )
+#endif
+#if AE_ENABLE_DOUBLE_TYPE
+	Gen_SWAP( double,	double_vec_t )
+#endif
+#if AE_ENABLE_BYTE_TYPE
+	Gen_SWAP( sbyte,	sbyte_vec_t )
+	Gen_SWAP( ubyte,	ubyte_vec_t )
+#endif
+#if AE_ENABLE_SHORT_TYPE
+	Gen_SWAP( sshort,	sshort_vec_t )
+	Gen_SWAP( ushort,	ushort_vec_t )
+#endif
+#if AE_ENABLE_LONG_TYPE
+	Gen_SWAP( slong,	slong_vec_t )
+	Gen_SWAP( ulong,	ulong_vec_t )
+#endif
+
+#undef Gen_SWAP1
 #undef Gen_SWAP
+
+/*
+=================================================
+	DivCeil
+----
+	T  DivCeil (T lhs, T rhs)
+=================================================
+*/
+#define Gen_DIVCEIL1( _stype_, _vtype_ )																		\
+	ND_ _vtype_  DivCeil (const _vtype_ lhs, const _vtype_ rhs)		{ return (lhs + rhs - _stype_(1)) / rhs; }	\
+	ND_ _vtype_  DivCeil (const _vtype_ lhs, const _stype_ rhs)		{ return (lhs + rhs - _stype_(1)) / rhs; }
+
+#define Gen_DIVCEIL( _stype_, _vtype_ )																			\
+	ND_ _stype_  DivCeil (const _stype_ lhs, const _stype_ rhs)		{ return (lhs + rhs - _stype_(1)) / rhs; }	\
+	Gen_DIVCEIL1( _stype_, UNITE( _vtype_, 2))																	\
+	Gen_DIVCEIL1( _stype_, UNITE( _vtype_, 3))																	\
+	Gen_DIVCEIL1( _stype_, UNITE( _vtype_, 4))
+
+Gen_DIVCEIL( int,	int_vec_t )
+Gen_DIVCEIL( uint,	uint_vec_t )
+
+#if AE_ENABLE_LONG_TYPE
+	Gen_DIVCEIL( slong,	slong_vec_t )
+	Gen_DIVCEIL( ulong,	ulong_vec_t )
+#endif
+
+#undef Gen_DIVCEIL1
+#undef Gen_DIVCEIL
+
+/*
+=================================================
+	Cross2
+=================================================
+*/
+#define Gen_CROSS2( _stype_, _vtype_ )\
+	ND_ _stype_  Cross2 (const _vtype_ v0, const _vtype_ v1)	{ return (v0.x * v1.y) - (v0.y * v1.x); }
+
+Gen_CROSS2( float, float2 )
+
+#if AE_ENABLE_HALF_TYPE
+	Gen_CROSS2( half, half2 )
+#endif
+#if AE_ENABLE_DOUBLE_TYPE
+	Gen_CROSS2( double, double2 )
+#endif
+#undef Gen_CROSS2
+
+/*
+=================================================
+	MaxIndexOf
+----
+	uint  MaxIndexOf (T vec)
+----
+	return index of max element in vector
+=================================================
+*/
+//ND_ uint	MaxIndexOf (const float2 v)		{ bool2 m = Less( v, v.yx );  return Dot( uint2(m), uint2(0,1) ) & 1; }		// TODO: check
+
+ND_ uint	MaxIndexOf (const float3 v)
+{
+	float	max_val = v.x;
+	uint	idx		= 0;
+	if ( v.y > max_val ) { max_val = v.y;  idx = 1; }
+	if ( v.z > max_val ) { max_val = v.z;  idx = 2; }
+	return idx;
+}
+
+ND_ uint	MaxIndexOf (const float4 v)
+{
+#if 1
+	float	max_val = v.x;
+	uint	idx		= 0;
+	if ( v.y > max_val ) { max_val = v.y;  idx = 1; }
+	if ( v.z > max_val ) { max_val = v.z;  idx = 2; }
+	if ( v.w > max_val ) { max_val = v.w;  idx = 3; }
+	return idx;
+#else
+	float maxVal = v.x;
+	uint  idx    = 0;
+
+	bool b1 = v.y > maxVal;
+	maxVal  = b1 ? v.y : maxVal;
+	idx     = b1 ? 1u  : idx;
+
+	bool b2 = v.z > maxVal;
+	maxVal  = b2 ? v.z : maxVal;
+	idx     = b2 ? 2u  : idx;
+
+	bool b3 = v.w > maxVal;
+	maxVal  = b3 ? v.w : maxVal;
+	idx     = b3 ? 3u  : idx;
+
+	return idx;
+#endif
+}
 
 /*
 =================================================

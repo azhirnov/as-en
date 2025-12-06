@@ -47,7 +47,7 @@
 
 			if ( name == "DrawQuad" ) {
 				rs.inputAssembly.topology	= EPrimitive::TriangleStrip;
-		
+
 				RenderState_ColorBuffer		cb;
 				cb.SrcBlendFactor( EBlendFactor::SrcAlpha,			EBlendFactor::One				);
 				cb.DstBlendFactor( EBlendFactor::OneMinusSrcAlpha,	EBlendFactor::OneMinusSrcAlpha	);
@@ -61,7 +61,7 @@
 			spec.SetRenderState( rs );
 		}
 	}
-	
+
 	void ASmain ()
 	{
 		{
@@ -79,7 +79,7 @@
 			pl.DSLayout( "pass",	 0, "pass.ds" );
 			pl.DSLayout( "material", 1, "mtr.ds" );
 		}
-		
+
 		CreatePipeline( "DrawSphere" );
 		CreatePipeline( "DrawQuad" );
 	}
@@ -125,7 +125,7 @@
 //=============================================================================
 #ifdef QUAD
 # ifdef SH_VERT
-	#include "Culling.glsl"
+	#include "Sphere.glsl"
 
 	void Main ()
 	{
@@ -135,7 +135,7 @@
 
 		if ( view_space.z - obj.scale > un_PerPass.camera.clipPlanes.x )
 		{
-			aabb = ProjectSphere( view_space, obj.scale, un_PerPass.camera.proj[0][0], un_PerPass.camera.proj[1][1] );
+			aabb = Sphere_FastProject( Sphere_Create( view_space, obj.scale ), un_PerPass.camera.proj[0][0], un_PerPass.camera.proj[1][1] );
 
 			// padding for AA border
 			const float	padding = 2.0;

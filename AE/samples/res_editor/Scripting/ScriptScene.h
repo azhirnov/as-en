@@ -156,7 +156,7 @@ namespace AE::ResEditor
 		void  AddPipelines (const String &pplnsFolder)										__Th___;
 
 		void  SetLayer (ERenderLayer layer)													__Th___;
-		
+
 		void  NextSubpass1 ()																__Th___;
 		void  NextSubpass2 (const String &passName)											__Th___;
 
@@ -179,7 +179,7 @@ namespace AE::ResEditor
 											const ScriptDynamicDim* dynamicDim)				__Th___;
 
 		ND_ static auto  _CreateUBType ()													__Th___;
-		
+
 		void  _MoveTo (OUT ScriptSceneGraphicsSubpass &dst)									__NE___;
 
 		void  _WithPipelineCompiler ()														C_Th___;
@@ -188,7 +188,7 @@ namespace AE::ResEditor
 	// ScriptBasePass //
 		void  _OnAddArg (INOUT ScriptPassArgs::Argument &arg)								C_Th_OV;
 	};
-	
+
 
 
 	//

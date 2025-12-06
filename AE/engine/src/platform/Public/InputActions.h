@@ -96,10 +96,10 @@ namespace AE::App
 		public:
 			struct Header
 			{
-				InputActionName	name;
-				Bytes32u		offset;			// TODO: use ushort ?
-				ControllerID	controllerId;
-				EGestureState	state;
+				InputActionName::Optimized_t	name;
+				Bytes32u						offset;
+				ControllerID					controllerId;
+				EGestureState					state;
 			};
 			static constexpr Bytes	_DataAlign {4};
 

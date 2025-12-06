@@ -162,13 +162,13 @@ namespace
 				if ( trace_str.size() == 1 )
 				{
 					const StringView	ref_str =
-R"(//> gl_GlobalInvocationID: uint3 {400, 300, 0}
-//> gl_LocalInvocationID: uint3 {0, 4, 0}
-//> gl_WorkGroupID: uint3 {50, 37, 0}
+R"(//> gl_GlobalInvocationID: uint3 {400, 300, 0} | {0x190, 0x12c, 0x0}
+//> gl_LocalInvocationID: uint3 {0, 4, 0} | {0x0, 0x4, 0x0}
+//> gl_WorkGroupID: uint3 {50, 37, 0} | {0x32, 0x25, 0x0}
 no source
 
 //> uv: float2 {0.500625, 0.500833}
-//  gl_GlobalInvocationID: uint3 {400, 300, 0}
+//  gl_GlobalInvocationID: uint3 {400, 300, 0} | {0x190, 0x12c, 0x0}
 5. uv		 = (vec2(gl_GlobalInvocationID.xy) + 0.5) / vec2(gl_WorkGroupSize.xy * gl_NumWorkGroups.xy);
 
 //> origin: float3 {0.500625, 0.499167, -1.000000}
@@ -183,11 +183,11 @@ no source
 //> rayQueryProceed(): bool {true}
 13. 	while ( rayQueryProceedEXT( ray_query ))
 
-//> rayQueryGetIntersectionType(): uint {0}
+//> rayQueryGetIntersectionType(): uint {0} | {0x0}
 15. 		if ( rayQueryGetIntersectionTypeEXT( ray_query, false ) == gl_RayQueryCandidateIntersectionTriangleEXT )
 
 //> (out): bool {true}
-//  rayQueryGetIntersectionType(): uint {0}
+//  rayQueryGetIntersectionType(): uint {256} | {0x100}
 15. if ( rayQueryGetIntersectionTypeEXT( ray_query, false ) == gl_RayQueryCandidateIntersectionTriangleEXT )
 
 //> rayQueryConfirmIntersection(): void
@@ -196,11 +196,11 @@ no source
 //> rayQueryProceed(): bool {false}
 13. 	while ( rayQueryProceedEXT( ray_query ))
 
-//> rayQueryGetIntersectionType(): uint {1}
+//> rayQueryGetIntersectionType(): uint {1} | {0x1}
 21. 	if ( rayQueryGetIntersectionTypeEXT( ray_query, true ) == gl_RayQueryCommittedIntersectionNoneEXT )
 
 //> (out): bool {false}
-//  rayQueryGetIntersectionType(): uint {1}
+//  rayQueryGetIntersectionType(): uint {1} | {0x1}
 21. if ( rayQueryGetIntersectionTypeEXT( ray_query, true ) == gl_RayQueryCommittedIntersectionNoneEXT )
 
 //> attribs: float2 {0.252083, 0.498333}
@@ -215,7 +215,7 @@ no source
 31. color = vec4(barycentrics, 1.0);
 
 //> imageStore(): void
-//  gl_GlobalInvocationID: uint3 {400, 300, 0}
+//  gl_GlobalInvocationID: uint3 {400, 300, 0} | {0x190, 0x12c, 0x0}
 //  color: float4 {0.249583, 0.252083, 0.498333, 1.000000}
 34. 	imageStore( un_OutImage, ivec2(gl_GlobalInvocationID.xy), color );
 

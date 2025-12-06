@@ -36,7 +36,8 @@ ND_ float  SDF_RoundedBox (const float3 position, const float3 halfSize, const f
 ND_ float  SDF_BoxFrame (const float3 position, const float3 halfSize, const float width);
 ND_ float  SDF_Torus (const float3 position, const float2 outerAndInnerRadius);
 ND_ float  SDF_Cylinder (const float3 position, const float2 radiusHeight);
-ND_ float  SDF_Cone (const float3 position, const float2 direction);
+ND_ float  SDF_InfiniteCone (const float3 position, const float2 direction);
+ND_ float  SDF_Cone (const float3 position, const float2 angleSinCos, const float height);
 ND_ float  SDF_Plane (const float3 position, const float3 norm, const float dist);
 ND_ float  SDF_Plane (const float3 center, const float3 planePos, const float3 pos);
 ND_ float  SDF_HexagonalPrism (const float3 position, const float2 h);
@@ -386,7 +387,7 @@ float  AA_Lines (float x, const float invStep, const float falloffPx)
 		float r = Length( uv );
 		return AA_Line_dxdy( r, TriangleWave( r ), thicknessAndFalloffPx );
 	}
-	
+
 /*
 =================================================
 	AA_CirclesSubDiv_dxdy
@@ -414,7 +415,7 @@ float  AA_Lines (float x, const float invStep, const float falloffPx)
 
 		return float3( Saturate(d), s, float(d==d0) );
 	}
-	
+
 	float3  AA_CirclesSubDiv_dxdy (const float2 uv, const float2 thicknessAndFalloffPx)
 	{
 		return AA_CirclesSubDiv_dxdy( uv, float3(60.0, 0.6, 0.1), thicknessAndFalloffPx );
@@ -461,7 +462,7 @@ float  AA_Lines (float x, const float invStep, const float falloffPx)
 		float	s2		= s3 * 2.0;								// values: 1, 2, 4, 8 ...
 		float	s4		= Exp2( s - 1.0 );
 		float	f		= Saturate( (s4 - s3) / (s2 - s3) );
-		
+
 		float	angle	= ATan( uv.y, uv.x );			// -Pi..+Pi
 		float	da		= AA_Helper_minDist( angle );	// minimal difference for 1px
 				da		= Min( da, float_Pi2 - da );	// fix discontinuity
@@ -474,12 +475,12 @@ float  AA_Lines (float x, const float invStep, const float falloffPx)
 
 		return float3( d, s, float(d==d0) );
 	}
-	
+
 	float3  AA_RadialLinesSubDiv_dxdy (const float2 uv, const float lineCount, const float2 thicknessAndFalloffPx)
 	{
 		return AA_RadialLinesSubDiv_dxdy( uv, lineCount, float3(60.0, 0.6, 0.1), thicknessAndFalloffPx );
 	}
-	
+
 /*
 =================================================
 	AA_Rect_dxdy

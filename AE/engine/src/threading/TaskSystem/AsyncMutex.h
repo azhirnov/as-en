@@ -29,7 +29,7 @@ namespace AE::Threading
 		private:
 			Task *			_cur	= null;
 			AsyncMutex *	_am		= null;
-		
+
 			friend class AsyncMutex;
 			ExclusiveLock (AsyncMutex& am, Task* cur)			__NE___ : _cur{cur}, _am{&am} {}
 
@@ -49,7 +49,7 @@ namespace AE::Threading
 
 			ND_ explicit operator bool ()						C_NE___	{ return _cur != null; }
 		};
-		
+
 	private:
 		struct Awaiter
 		{
@@ -70,7 +70,7 @@ namespace AE::Threading
 				StaticAssert( IsBaseOf< Task, P >);
 
 				_cur = &curCoro.promise();
-				
+
 				AsyncTask	other = _am._TryLock( _cur );
 				if ( other )
 				{

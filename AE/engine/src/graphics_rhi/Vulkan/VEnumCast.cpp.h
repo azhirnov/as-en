@@ -118,7 +118,7 @@ namespace AE::Graphics
 				CHECK_MSG( sh_stages == Zero,
 					"Resource state ("s << ToString( value ) << ") should not contain shader stage." );
 			}
-			
+
 			if ( AnyBits( info.stage, UseDSStages )) {
 				CHECK_MSG( ds_stages != Zero,
 					"Resource state ("s << ToString( value ) << ") must contain depth stage." );

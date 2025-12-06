@@ -9,7 +9,7 @@ namespace AE::Base
 	template <typename T1, typename T2>
 	concept SameAs = std::same_as< T1, T2 >;
 
-	
+
 	template <typename To, typename From>
 	concept ExplicitlyConvertibe = requires (From from)
 	{
@@ -28,7 +28,7 @@ namespace AE::Base
 	{
 		[](To){}( from );
 	};
-	
+
 	template <typename To, typename From>
 	concept ImplicitlyMoveConvertible = requires (From from)
 	{
@@ -41,13 +41,13 @@ namespace AE::Base
 	{
 		to = from;
 	};
-	
+
 	template <typename To, typename From>
 	concept ImplicitlyMoveCopyable = requires (To to, From from)
 	{
 		to = RVRef( from );
 	};
-	
+
 
 	// return 'true' if 'operator()' is not a template
 	// and doesn't contains 'auto' arguments
@@ -78,14 +78,14 @@ namespace AE::Base
 				return CountTemplateArgs< Tmpl >( std::make_index_sequence< count - 1 >{});
 		}
 	}
-	
+
 	template <template <class...> class Tmpl>
 	NdCx__ usize  GetNumberOfTemplateArgs ()
 	{
 		constexpr usize	max_count = 20;
 		return Base::_hidden_::CountTemplateArgs< Tmpl >( std::make_index_sequence< max_count >{});
 	}
-	
+
 
 	template <typename T>
 	concept AllowEnumBitOps = IsEnum<T> and

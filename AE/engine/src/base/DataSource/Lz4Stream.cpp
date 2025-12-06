@@ -13,7 +13,7 @@
 
 namespace AE::Base
 {
-	
+
 /*
 =================================================
 	constructor
@@ -28,13 +28,13 @@ namespace AE::Base
 		LZ4F_errorCode_t	err = LZ4F_createDecompressionContext( OUT &ctx, LZ4F_VERSION );
 
 		_context = ctx;
-		
+
 		Unused( err );
 		ASSERT_MSG( not LZ4F_isError( err ),
 			"LZ4 error: "s << LZ4F_getErrorName(err) );
 		ASSERT( _context != null );
 	}
-	
+
 /*
 =================================================
 	destructor
@@ -44,7 +44,7 @@ namespace AE::Base
 	{
 		LZ4F_freeDecompressionContext( static_cast< LZ4F_dctx *>(_context) );
 	}
-	
+
 /*
 =================================================
 	IsOpen
@@ -100,7 +100,7 @@ namespace AE::Base
 		Bytes	written;
 		char	temp		[c_ReadBuffer];
 		usize	exp_size	= 1;
-		
+
 		const LZ4F_decompressOptions_t	options = {};
 
 		for (; (exp_size != 0) and (written < bufferSize);)
@@ -159,7 +159,7 @@ namespace {
 
 		LZ4F_cctx*			ctx = null;
 		LZ4F_errorCode_t	err = LZ4F_createCompressionContext( OUT &ctx, LZ4F_VERSION );
-		
+
 		_context = ctx;
 
 		Unused( err );
@@ -169,7 +169,7 @@ namespace {
 
 		ExtractConfig( cfg, OUT _compressionLevel );
 	}
-	
+
 /*
 =================================================
 	destructor
@@ -179,7 +179,7 @@ namespace {
 	{
 		LZ4F_freeCompressionContext( static_cast< LZ4F_cctx *>(_context) );
 	}
-	
+
 /*
 =================================================
 	WriteSeq
@@ -189,10 +189,10 @@ namespace {
 	{
 		ASSERT( IsOpen() );
 		ASSERT( bufferSize < MaxValue<int>() );
-		
+
 		LZ4F_preferences_t	pref LZ4F_INIT_PREFERENCES;
 		pref.compressionLevel = _compressionLevel;
-		
+
 		Array<char>		temp;
 		temp.resize( LZ4F_compressBound( usize{bufferSize}, &pref ));  // throw
 
@@ -219,7 +219,7 @@ namespace {
 		_position += exp_size;
 		return bufferSize;
 	}
-	
+
 /*
 =================================================
 	Reserve
@@ -229,7 +229,7 @@ namespace {
 	{
 		return 0_b;
 	}
-	
+
 /*
 =================================================
 	_Flush
@@ -242,18 +242,18 @@ namespace {
 
 		Array<char>		temp;
 		temp.resize( LZ4F_compressBound( 0, &pref ) + c_BufferSize );  // throw
-		
+
 		const LZ4F_compressOptions_t	options = {};
 
 		usize	written = LZ4F_flush( static_cast< LZ4F_cctx *>(_context), OUT temp.data(), temp.size(), &options );
-		
+
 		CHECK_ERR_MSG( not LZ4F_isError( written ),
 			"LZ4 error: "s << LZ4F_getErrorName( written ));
 
 		CHECK_ERR( _stream->Write( &temp[0], Bytes{written} ));
 		return true;
 	}
-	
+
 /*
 =================================================
 	_End
@@ -266,11 +266,11 @@ namespace {
 
 		Array<char>		temp;
 		temp.resize( LZ4F_compressBound( 0, &pref ) + c_BufferSize );  // throw
-		
+
 		const LZ4F_compressOptions_t	options = {};
 
 		usize	written = LZ4F_compressEnd( static_cast< LZ4F_cctx *>(_context), OUT temp.data(), temp.size(), &options );
-		
+
 		CHECK_ERR_MSG( not LZ4F_isError( written ),
 			"LZ4 error: "s << LZ4F_getErrorName( written ));
 
@@ -341,7 +341,7 @@ namespace {
 		dstSize = Bytes{uint(decomp_size)};
 		return true;
 	}
-	
+
 /*
 =================================================
 	CompressFrame
@@ -352,7 +352,7 @@ namespace {
 									const Lz4WStream::Config &cfg) __NE___
 	{
 		LZ4F_preferences_t	pref LZ4F_INIT_PREFERENCES;
-		
+
 		ExtractConfig( cfg, OUT pref.compressionLevel );
 
 		const size_t comp_size = LZ4F_compressFrame( OUT dstData, size_t{dstSize}, srcData, size_t{srcSize}, &pref );
@@ -362,7 +362,7 @@ namespace {
 		dstSize = Bytes{comp_size};
 		return true;
 	}
-	
+
 /*
 =================================================
 	DecompressFrame
@@ -405,7 +405,7 @@ namespace {
 //-----------------------------------------------------------------------------
 
 
-	
+
 /*
 =================================================
 	Allocate
@@ -428,7 +428,7 @@ namespace {
 
 		return true;
 	}
-	
+
 /*
 =================================================
 	Deallocate
@@ -447,7 +447,7 @@ namespace {
 		_capacity			= 0;
 		_compressedSize		= 0;
 	}
-	
+
 /*
 =================================================
 	Write

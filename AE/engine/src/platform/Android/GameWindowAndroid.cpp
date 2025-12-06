@@ -139,7 +139,7 @@ namespace AE::App
 
 		return false;
 	}
-	
+
 /*
 =================================================
 	ProcessMessages

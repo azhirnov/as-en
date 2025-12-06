@@ -36,6 +36,8 @@ namespace AE::CICD
 		AVX,
 		AVX2,
 		AVX512F,
+		AVX512_Zen4,
+		AVX2_VNNI,
 
 		// ARM
 		Neon,
@@ -443,14 +445,16 @@ namespace AE::Base
 	{
 		switch_enum( value )
 		{
-			case ECPUFeatureSet::AVX :		return "AVX";
-			case ECPUFeatureSet::AVX2 :		return "AVX2";
-			case ECPUFeatureSet::AVX512F :	return "AVX512F";
-			case ECPUFeatureSet::Neon :		return "Neon";
-			case ECPUFeatureSet::SVE :		return "SVE";
-			case ECPUFeatureSet::SVE2 :		return "SVE2";
+			case ECPUFeatureSet::AVX :			return "AVX";
+			case ECPUFeatureSet::AVX2 :			return "AVX2";
+			case ECPUFeatureSet::AVX512F :		return "AVX512F";
+			case ECPUFeatureSet::AVX512_Zen4 :	return "AVX512_Zen4";
+			case ECPUFeatureSet::AVX2_VNNI :	return "AVX2_VNNI";
+			case ECPUFeatureSet::Neon :			return "Neon";
+			case ECPUFeatureSet::SVE :			return "SVE";
+			case ECPUFeatureSet::SVE2 :			return "SVE2";
 			case ECPUFeatureSet::Unknown :
-			case ECPUFeatureSet::_Count :	break;
+			case ECPUFeatureSet::_Count :		break;
 		}
 		switch_end
 		return Default;

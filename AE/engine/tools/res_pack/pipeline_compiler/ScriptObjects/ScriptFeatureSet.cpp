@@ -274,6 +274,9 @@ namespace
 		ptr->fs.fragmentShadingRateTexelSize.maxX		= POTValue{ maxTexelSize[0] }.GetPOT();
 		ptr->fs.fragmentShadingRateTexelSize.maxY		= POTValue{ maxTexelSize[1] }.GetPOT();
 		ptr->fs.fragmentShadingRateTexelSize.aspectRatio= POTValue{ aspect }.GetPOT();
+
+		CHECK_THROW( ptr->fs.fragmentShadingRateTexelSize.minX <= ptr->fs.fragmentShadingRateTexelSize.maxX );
+		CHECK_THROW( ptr->fs.fragmentShadingRateTexelSize.minY <= ptr->fs.fragmentShadingRateTexelSize.maxY );
 	}
 
 	static void  FS_AddIntegerDotProduct (ScriptFeatureSet* ptr,  const ScriptArray<EIntegerDotProductFeat> &idotFeats) __Th___
@@ -308,35 +311,35 @@ namespace
 	static bool  Has_FS_uniformTexBufferFormat (ScriptFeatureSet* ptr, EPixelFormat fmt) __Th___ {
 		return ptr->fs.uniformTexBufferFormats.contains( fmt );
 	}
-	
+
 	static bool  Has_FS_storageTexBufferFormat (ScriptFeatureSet* ptr, EPixelFormat fmt) __Th___ {
 		return ptr->fs.storageTexBufferFormats.contains( fmt );
 	}
-	
+
 	static bool  Has_FS_storageTexBufferAtomicFormat (ScriptFeatureSet* ptr, EPixelFormat fmt) __Th___ {
 		return ptr->fs.storageTexBufferAtomicFormats.contains( fmt );
 	}
-	
+
 	static bool  Has_FS_storageImageAtomicFormat (ScriptFeatureSet* ptr, EPixelFormat fmt) __Th___ {
 		return ptr->fs.storageImageAtomicFormats.contains( fmt );
 	}
-	
+
 	static bool  Has_FS_storageImageFormat (ScriptFeatureSet* ptr, EPixelFormat fmt) __Th___ {
 		return ptr->fs.storageImageFormats.contains( fmt );
 	}
-	
+
 	static bool  Has_FS_attachmentBlendFormat (ScriptFeatureSet* ptr, EPixelFormat fmt) __Th___ {
 		return ptr->fs.attachmentBlendFormats.contains( fmt );
 	}
-	
+
 	static bool  Has_FS_attachmentFormat (ScriptFeatureSet* ptr, EPixelFormat fmt) __Th___ {
 		return ptr->fs.attachmentFormats.contains( fmt );
 	}
-	
+
 	static bool  Has_FS_linearSampledFormat (ScriptFeatureSet* ptr, EPixelFormat fmt) __Th___ {
 		return ptr->fs.linearSampledFormats.contains( fmt );
 	}
-	
+
 	static bool  Has_FS_minmaxFilterFormat (ScriptFeatureSet* ptr, EPixelFormat fmt) __Th___ {
 		return ptr->fs.minmaxFilterFormats.contains( fmt );
 	}
@@ -344,7 +347,7 @@ namespace
 	static bool  Has_FS_hwCompressedAttachmentFormat (ScriptFeatureSet* ptr, EPixelFormat fmt) __Th___ {
 		return ptr->fs.hwCompressedAttachmentFormats.contains( fmt );
 	}
-	
+
 	static bool  Has_FS_lossyCompressedAttachmentFormat (ScriptFeatureSet* ptr, EPixelFormat fmt) __Th___ {
 		return ptr->fs.lossyCompressedAttachmentFormats.contains( fmt );
 	}
@@ -352,7 +355,7 @@ namespace
 	static bool  Has_FS_vertexFormat (ScriptFeatureSet* ptr, EVertexType fmt) __Th___ {
 		return ptr->fs.vertexFormats.contains( fmt );
 	}
-	
+
 	static bool  Has_FS_accelStructVertexFormat (ScriptFeatureSet* ptr, EVertexType fmt) __Th___ {
 		return ptr->fs.accelStructVertexFormats.contains( fmt );
 	}
@@ -360,15 +363,15 @@ namespace
 	static bool  Has_FS_surfaceFormat (ScriptFeatureSet* ptr, ESurfaceFormat fmt) __Th___ {
 		return ptr->fs.surfaceFormats.contains( fmt );
 	}
-	
+
 	static bool  Has_FS_cooperativeMatrixConfig (ScriptFeatureSet* ptr, ECoopMatrixCfg cfg) __Th___ {
 		return ptr->fs.cooperativeMatrixConfig.contains( cfg );
 	}
-	
+
 	static bool  Has_FS_cooperativeVectorConfig (ScriptFeatureSet* ptr, ECoopVecCfg cfg) __Th___ {
 		return ptr->fs.cooperativeVectorConfig.contains( cfg );
 	}
-	
+
 	static bool  Has_FS_integerDotProductFeature (ScriptFeatureSet* ptr, EIntegerDotProductFeat feat) __Th___ {
 		return ptr->fs.integerDotProductFeatures.contains( feat );
 	}

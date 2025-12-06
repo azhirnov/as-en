@@ -14,7 +14,7 @@ namespace AE::Scripting
 		using namespace AngelScript;
 
 		using T = RemoveAllQualifiers< B >;
-		
+
 		CHECK_THROW( idx < ArgCount() );
 		CHECK_THROW( IsArg<B>( idx ));
 

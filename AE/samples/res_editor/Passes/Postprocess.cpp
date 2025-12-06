@@ -44,11 +44,17 @@ namespace AE::ResEditor
 			if ( it != _pipelines.end()							and
 				 AnyBits( pd.dbg.stage, EShaderStages::Fragment ))
 			{
+				const uint2		coord = pd.dbg.exactCoord.has_value() ?
+											uint2{*pd.dbg.exactCoord} :
+											uint2{pd.dbg.coord * float2(dim-1u)};
+
 				ppln = it->second;
 
 				DirectCtx::Transfer		tctx{ pd.rtask, RVRef(pd.cmdbuf) };
-				CHECK( pd.dbg.debugger->AllocForGraphics( OUT dbg, tctx, ppln, uint2{pd.dbg.coord * float2(dim-1u)} ));
+				CHECK( pd.dbg.debugger->AllocForGraphics( OUT dbg, tctx, ppln, coord ));
 				pd.cmdbuf = tctx.ReleaseCommandBuffer();
+
+				//UIInteraction::Instance().SetShaderDebugCoord( coord );	// TODO
 			}
 		}
 

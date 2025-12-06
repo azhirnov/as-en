@@ -333,7 +333,7 @@ namespace AE::Graphics
 		VkDeviceAddress		callableShaderBindingTableAddress;	// optional
 		VkDeviceSize		callableShaderBindingTableSize;		// multiple of 'callableShaderBindingTableStride'
 		VkDeviceSize		callableShaderBindingTableStride;	// >= shaderGroupHandleSize
-		
+
 		//	'width', 'height', 'depth' must be <= 'DeviceProperties::RayTracingProperties::maxThreadCount'.
 		//	'width x height x depth' must be <= 'DeviceProperties::RayTracingProperties::maxDispatchInvocations'.
 		uint				width;								// >= 1

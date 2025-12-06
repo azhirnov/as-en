@@ -182,7 +182,7 @@ namespace
 		CHECK_CE( lock.try_lock() );
 
 		Ctx		ctx{ RenderCoro_Get() };
-		
+
 		for (uint i = 0; i < 3; ++i)
 		{
 			t.result[i] = ctx.ReadbackImage( t.img[i], Default ).Then( t, i,
@@ -192,7 +192,7 @@ namespace
 									t->isOK[i] = t->imgCmps[i]->Compare( view );
 								});
 		}
-		
+
 		ctx.AccumBarriers().MemoryBarrier( EResourceState::CopyDst, EResourceState::Host_Read );
 
 		RenderCoro_Execute( ctx );

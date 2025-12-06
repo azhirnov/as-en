@@ -252,10 +252,12 @@ namespace
 
 		Unused( &CreateKtxWStream, &EPixelFormatToGLFormat, &EPixelFormatToVkFormat );
 
+		const Bytes		start_pos	= stream.Position();
 		ktxStream		ktx_stream	= CreateKtxRStream( stream );
 		ktxTexture1*	temp_tex1	= null;
 		ktxTexture2*	temp_tex2	= null;
-		const auto		flags		= PRELOAD_DATA ? KTX_TEXTURE_CREATE_LOAD_IMAGE_DATA_BIT : KTX_TEXTURE_CREATE_NO_FLAGS;
+		const auto		flags		= (PRELOAD_DATA ? KTX_TEXTURE_CREATE_LOAD_IMAGE_DATA_BIT : KTX_TEXTURE_CREATE_NO_FLAGS)
+										| KTX_TEXTURE_CREATE_SKIP_KVDATA_BIT;
 
 		if ( auto* mem_stream = DynCast<MemRefRStream>( &stream ))
 		{
@@ -265,7 +267,10 @@ namespace
 			auto	err = ktxTexture2_CreateFromMemory( data, size, flags, OUT &temp_tex2 );
 
 			if ( err == KTX_UNKNOWN_FILE_FORMAT )
+			{
+				CHECK_ERR( stream.SeekSet( start_pos ));
 				err = ktxTexture1_CreateFromMemory( data, size, flags, OUT &temp_tex1 );
+			}
 
 			if ( err != KTX_SUCCESS )
 				return false;
@@ -275,7 +280,10 @@ namespace
 			 auto	err = ktxTexture2_CreateFromStream( &ktx_stream, flags, OUT &temp_tex2 );
 
 			if ( err == KTX_UNKNOWN_FILE_FORMAT )
+			{
+				CHECK_ERR( stream.SeekSet( start_pos ));
 				err = ktxTexture1_CreateFromStream( &ktx_stream, flags, OUT &temp_tex1 );
+			}
 
 			if ( err != KTX_SUCCESS )
 				return false;

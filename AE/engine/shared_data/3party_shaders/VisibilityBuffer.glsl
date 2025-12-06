@@ -153,7 +153,7 @@
 		result.dy.y = dot(attr1, deriv.m_ddy);
 		return result;
 	}
-	
+
 	// generates dx and dy for for 3x3 attributes
 	DerivativesOutput  Cal3DDeriv (BarycentricDeriv deriv, float3x3 attributes)
 	{

@@ -37,7 +37,7 @@ namespace
 		StaticAssert( IsPromise< ScheduledPromise<int> >);
 	}
 
-	
+
 	static void  CoroutineTraits_Test2 ()
 	{
 		// explicit cast
@@ -51,13 +51,13 @@ namespace
 		Unused( AsyncCoro{ InlineCoro<>{null} });
 		AsyncCoro{ UncancellableCoro{} };
 		AsyncCoro{ ScheduledCoro<>{} };
-		
+
 		StaticAssert( not ExplicitlyConvertibe< Promise<String>,		Promise<int> >);			// Promise<String>{ Promise<int> }
 		StaticAssert( not ExplicitlyConvertibe< InlinePromise<int>,		Promise<int> >);			// InlinePromise<int>{ Promise<int> }
 		StaticAssert( not ExplicitlyConvertibe< ScheduledPromise<int>,	Promise<int> >);			// ScheduledPromise<int>{ Promise<int> }
 		StaticAssert( not ExplicitlyConvertibe< ScheduledCoro<>,		AsyncCoro >);				// ScheduledCoro<>{ AsyncCoro }
 		StaticAssert( not ExplicitlyConvertibe< ScheduledCoro<>,		InlineCoro<> >);			// ScheduledCoro<>{ InlineCoro<> }
-		
+
 		StaticAssert( not ExplicitlyConvertibe< UncancellableCoro,		AsyncCoro >);				// UncancellableCoro{ AsyncCoro }
 		StaticAssert( not ExplicitlyConvertibe< UncancellableCoro,		InlineCoro<> >);			// UncancellableCoro{ InlineCoro<> }
 	//	StaticAssert( not ExplicitlyConvertibe< UncancellableCoro,		ScheduledCoro<> >);			// UncancellableCoro{ ScheduledCoro<> }	// TODO
@@ -73,7 +73,7 @@ namespace
 		StaticAssert( ImplicitlyMoveConvertible< AsyncTask,				InlineCoro<> >);			// AsyncTask{ InlineCoro<> }
 		StaticAssert( ImplicitlyMoveConvertible< Promise<int>,			InlinePromise<int> >);		// Promise<int>{ InlinePromise<int> }
 		StaticAssert( not ImplicitlyMoveConvertible< AsyncTask,			InlinePromise<int> >);		// AsyncTask{ InlinePromise<int> }
-		
+
 		StaticAssert( not ImplicitlyConvertible< AsyncCoro,				AsyncTask >);				// AsyncCoro{ AsyncTask }
 		StaticAssert( not ImplicitlyConvertible< InlineCoro<>,			AsyncTask >);				// InlineCoro<>{ AsyncTask }
 		StaticAssert( not ImplicitlyConvertible< ScheduledCoro<>,		AsyncTask >);				// ScheduledCoro<>{ AsyncTask }
@@ -88,7 +88,7 @@ namespace
 		StaticAssert( ImplicitlyCopyable< AsyncTask,					AsyncCoro >);				// AsyncTask = AsyncCoro
 		StaticAssert( ImplicitlyCopyable< AsyncTask,					ScheduledCoro<> >);			// AsyncTask = ScheduledCoro<>
 		StaticAssert( ImplicitlyCopyable< AsyncTask,					UncancellableCoro >);		// AsyncTask = UncancellableCoro
-		
+
 		StaticAssert( ImplicitlyMoveCopyable< AsyncTask,				InlineCoro<> >);			// AsyncTask = InlineCoro<>
 		StaticAssert( not ImplicitlyMoveCopyable< AsyncTask,			InlinePromise<int> >);		// AsyncTask = InlinePromise<int>
 
@@ -106,7 +106,7 @@ namespace
 	{
 		return _Coro_::SafeCoro_CheckAll< CoroCtor, TypeList<> >().first == _Coro_::ESafeCoroError::OK;
 	}
-	
+
 	template <typename CoroCtor, typename ArgsTL>
 	NdCe__ bool  IsSafeCoro2 ()
 	{
@@ -120,7 +120,7 @@ namespace
 	};
 
 	class CoroArgClass;
-	
+
 	static AsyncCoro  _CoroWithCopy1 (int i, String s, Tuple<bool, Array<float>>);
 	static AsyncCoro  _CoroWithCopy2 (AsyncTask, Unique<int>, std::shared_ptr<int>);
 	static AsyncCoro  _CoroWithRef1  (int &ref);
@@ -149,7 +149,7 @@ namespace
 		#define SAFE_CORO( _coro_, ... ) \
 			StaticAssert( IsValidCoro< decltype(_coro_), __VA_ARGS__ >); \
 			StaticAssert( IsSafeCoro< decltype(_coro_) >() );
-		
+
 		#define UNSAFE_CORO( _coro_, ... ) \
 			StaticAssert(     IsValidCoro< decltype(_coro_), __VA_ARGS__ >); \
 			StaticAssert( not IsSafeCoro< decltype(_coro_) >() );
@@ -163,7 +163,7 @@ namespace
 		StaticAssert( not IsSafeCoro< decltype(_CoroWithRef3) >() );
 		StaticAssert( not IsSafeCoro< decltype(_CoroWithRef4) >() );
 		StaticAssert( IsSafeCoro< decltype(_CoroWithRef5) >() );
-		
+
 		StaticAssert( IsSafeCoro< decltype(_CoroWithGPtr1) >() );
 		StaticAssert( IsSafeCoro< decltype(_CoroWithMPtr1) >() );
 		StaticAssert( IsSafeCoro< decltype(_CoroWithMPtr2) >() );
@@ -178,17 +178,17 @@ namespace
 		UNSAFE_CORO( _CoroWithView5,	NtStringView );
 		UNSAFE_CORO( _CoroWithView6,	StructView<int> );
 		UNSAFE_CORO( _CoroWithView7,	TupleArrayView<int, float, bool> );
-		
+
 		UNSAFE_CORO( _CoroWithTuple1,	Tuple<int, Ptr<bool>> );
 
 		const auto	Lambda1 = [](int) -> AsyncCoro { co_return; };
 		const auto	Lambda2 = [j = 0u](int) -> AsyncCoro { Unused(j); co_return; };
 		const auto	Lambda3 = [](int) -> int { return 1; };
-		
+
 		SAFE_CORO(   Lambda1,		int );
 		UNSAFE_CORO( Lambda2,		int );
 		StaticAssert( not IsValidCoro< decltype(Lambda3), int >);
-		
+
 		const auto	LambdaT1 = [](const auto &) -> AsyncCoro { co_return; };
 		const auto	LambdaT2 = [](auto &) -> AsyncCoro { co_return; };
 		const auto	LambdaT3 = [](auto &&) -> AsyncCoro { co_return; };
@@ -205,7 +205,7 @@ namespace
 		#undef SAFE_CORO
 	}
 
-	
+
 	static void  CoroutineTraits_Test4 ()
 	{
 		auto	c0 = []() -> AsyncCoro { co_return; };
@@ -252,7 +252,7 @@ namespace
 								TEST( not Coro_IsCanceled );
 								TEST( Coro_Get().Status() == ETaskStatus::InProgress );
 								TEST( Coro_Get().QueueType() == ETaskQueue::PerFrame );
-								
+
 								CHECK_CE( true );
 
 								DeferExLock  guard {val.guard};
@@ -278,7 +278,7 @@ namespace
 
 		scheduler->Run( task2, Tuple{ task1 });
 		scheduler->Run( task1, Tuple{} );
-		
+
 		TEST( task1->Status() == ETaskStatus::Pending );
 		TEST( task2->Status() == ETaskStatus::Pending );
 
@@ -395,7 +395,7 @@ namespace
 								val.str += '3';
 								co_return;
 							}( value, task2 );
-		
+
 		scheduler->Run( task3 );
 		scheduler->Run( task2 );
 		scheduler->Run( task1 );
@@ -484,7 +484,7 @@ namespace
 		LocalTaskScheduler	scheduler {WorkerQueueCount(1)};
 
 		ExeOrder	value;	// access to value protected by internal synchronizations
-		
+
 		AsyncTask	task1 = [] (ExeOrder &val) -> AsyncCoro
 							{
 								TEST( not Coro_IsCanceled );
@@ -623,7 +623,7 @@ namespace
 		TEST_Eq( task1.use_count(), 2 );
 
 		AsyncTask	task2 = [] () -> AsyncCoro { co_return; }();
-		
+
 		StaticLogger::Deinitialize( false );
 		AsyncTask	task3 = scheduler->Run( AsyncTask{} );
 		StaticLogger::InitDefault();
@@ -681,7 +681,7 @@ namespace
 
 									val.str += '4';
 								}
-								
+
 								// at this point coroutine will be added to queue
 								Coro_Continue();
 								TEST( Coro_Get().Status() == ETaskStatus::InProgress );
@@ -700,7 +700,7 @@ namespace
 								TEST( Coro_Get().Status() == ETaskStatus::InProgress );
 								TEST( not Coro_IsCanceled );
 								TEST( Coro_Get().QueueType() == ETaskQueue::Background );
-								
+
 								{
 									DeferExLock  guard {val.guard};
 									TEST( guard.try_lock() );
@@ -712,7 +712,7 @@ namespace
 							}
 							( value, task1 );
 		TEST( task2->Status() == ETaskStatus::Pending );
-							
+
 		{
 			DeferExLock  guard {value.guard};
 			TEST( guard.try_lock() );
@@ -740,7 +740,7 @@ namespace
 		LocalTaskScheduler	scheduler {WorkerQueueCount(1)};
 
 		ExeOrder	value;	// access to value protected by internal synchronizations
-		
+
 		AsyncTask	task1 = [] (ExeOrder &val) -> AsyncCoro
 							{
 								TEST( not Coro_IsCanceled );
@@ -819,7 +819,7 @@ namespace
 		LocalTaskScheduler	scheduler {WorkerQueueCount(1)};
 
 		ExeOrder	value;	// access to value protected by internal synchronizations
-		
+
 		AsyncTask	task1 = [] (ExeOrder &val) -> AsyncCoro
 							{
 								TEST( not Coro_IsCanceled );
@@ -843,7 +843,7 @@ namespace
 		AsyncTask	task3 = [] (ExeOrder &val) -> AsyncCoro
 							{
 								TEST( not Coro_IsCanceled );
-								
+
 								DeferExLock  guard {val.guard};
 								TEST( guard.try_lock() );
 
@@ -894,7 +894,7 @@ namespace
 		LocalTaskScheduler	scheduler {WorkerQueueCount(1)};
 
 		ExeOrder	value;	// access to value protected by internal synchronizations
-		
+
 		AsyncTask	task1 = [] (ExeOrder &val) -> AsyncCoro
 							{
 								TEST( not Coro_IsCanceled );
@@ -991,7 +991,7 @@ namespace
 								TEST( Coro_Get().QueueType() == ETaskQueue::PerFrame );
 
 								co_await task;
-								
+
 								TEST( Coro_Get().QueueType() == ETaskQueue::PerFrame );
 								{
 									DeferExLock  guard {val.guard};

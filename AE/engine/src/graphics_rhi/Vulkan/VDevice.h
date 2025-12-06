@@ -29,7 +29,7 @@ namespace AE::Graphics
 		#define VKFEATS_STRUCT
 		#include "vulkan_loader/vk_features.h"
 		#undef  VKFEATS_STRUCT
-		
+
 		static constexpr VkDebugUtilsMessageSeverityFlagsEXT	c_DefaultDebugMessageSeverity =	//VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT |
 																								//VK_DEBUG_UTILS_MESSAGE_SEVERITY_INFO_BIT_EXT |
 																								VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT |

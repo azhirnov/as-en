@@ -1,4 +1,5 @@
 
+
 # Copy Memory
 
 [source code](https://github.com/azhirnov/as-en/blob/dev/AE/engine/performance/base/Perf_MemCopy.cpp)<br/>
@@ -19,7 +20,7 @@ Notes:
 * 4x unrolling is much faster (+40%).
 	- 8x unrolling has no effect.
 	- instruction latency is 4 cycles, so 4x unrolling can hide it.
-	
+
 
 # Find Char
 

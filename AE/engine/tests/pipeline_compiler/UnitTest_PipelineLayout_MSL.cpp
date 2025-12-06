@@ -15,7 +15,7 @@ namespace
 		samp->SetFilter( EFilter::Linear, EFilter::Linear, EMipmapFilter::Nearest );
 		samp->SetAddressMode( EAddressMode::ClampToEdge, EAddressMode::Repeat, EAddressMode::MirrorRepeat );
 		samp->SetAnisotropy( 8.f );
-		
+
 		DescriptorSetLayoutPtr	dsl0{ new DescriptorSetLayout{ "PerDraw" }};
 		dsl0->AddUniformBuffer( EShaderStages::Vertex, "constBuf", ArraySize{1}, "ubuf", EResourceState::ShaderUniform, False{} );
 		dsl0->AddUniformBuffer( EShaderStages::Vertex, "constBuf2", ArraySize{1}, "ubuf", EResourceState::ShaderUniform, True{"dynamic"} );
@@ -31,7 +31,7 @@ namespace
 		DescriptorSetLayoutPtr	dsl1{ new DescriptorSetLayout{ "Material" }};
 		dsl1->AddSampledImage( EShaderStages::Fragment, "diffuseTex", ArraySize{1}, EImageType::Float | EImageType::Dim2DArray, EResourceState::ShaderSample );
 		dsl1->AddSampledImage( EShaderStages::Fragment, "noiseTex", ArraySize{1}, EImageType::Float | EImageType::Dim3D, EResourceState::ShaderSample );
-		
+
 		DescriptorSetLayoutPtr	dsl2{ new DescriptorSetLayout{ "PerPass" }};
 	//	dsl2->AddSubpassInput( EShaderStages::Fragment, "inputTex", 0, EImageType::Float | EImageType::Dim2DMS, EResourceState::InputColorAttachment );		// TODO
 		dsl2->AddRayTracingScene( EShaderStages::Fragment, "rtScene", ArraySize{1} );
@@ -85,6 +85,16 @@ constexpr sampler imtblSampler (
   /* state: ShaderSample | FragmentShader */
   texture3d< float, access::sample > noiseTex [[texture(6)]],
   instance_acceleration_structure rtScene [[buffer(2)]],
+#define DESCRIPTOR_StorageBuffer_storageBuf
+#define DESCRIPTOR_UniformTexelBuffer_texBuffer
+#define DESCRIPTOR_StorageTexelBuffer_texStorage
+#define DESCRIPTOR_StorageImage_storageImage
+#define DESCRIPTOR_SampledImage_colorTex
+#define DESCRIPTOR_CombinedImage_ImmutableSampler_sampledTex2
+#define DESCRIPTOR_ImmutableSampler_imtblSampler
+#define DESCRIPTOR_SampledImage_diffuseTex
+#define DESCRIPTOR_SampledImage_noiseTex
+#define DESCRIPTOR_RayTracingScene_rtScene
 )#";
 		TEST( src  == ref );
 	}
@@ -103,7 +113,7 @@ extern void  UnitTest_PipelineLayout_MSL ()
 	obj.spirvCompiler		= MakeUnique<SpirvCompiler>( Array<Path>{} );
 	obj.spirvCompiler->SetDefaultResourceLimits();
 	ObjectStorage::SetInstance( &obj );
-	
+
 	ScriptFeatureSetPtr	fs {new ScriptFeatureSet{ "DefaultFS" }};
 	fs->fs.Init( FeatureSet::EFeature::RequireTrue );
 	fs->fs.storageImageFormats.insert( EPixelFormat::RGBA8_UNorm );

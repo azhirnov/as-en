@@ -132,13 +132,13 @@ namespace AE::Graphics
 
 			// signal semaphores
 			CHECK_ERR( batch->_GetSignalSemaphores( allocator, OUT submit.pSignalSemaphores, OUT submit.signalSemaphoreCount ));
-			
+
 			// extensions
 		  #ifdef AE_PLATFORM_WINDOWS
 			if ( void* keyed_mtx = batch->ExtractKeyedMutexAcquireRelease() )
 				next.Add( *Cast<VkWin32KeyedMutexAcquireReleaseInfoKHR>(keyed_mtx) );
 		  #endif
-			
+
 		  #ifdef AE_DEBUG
 			if ( dev.GetVExtensions().frameBoundary )
 			{

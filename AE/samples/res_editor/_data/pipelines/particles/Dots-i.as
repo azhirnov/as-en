@@ -71,6 +71,7 @@
 //-----------------------------------------------------------------------------
 #ifdef SH_VERT
 	#include "Transform.glsl"
+	#include "CodeTemplates.glsl"
 
 	#ifndef iSize
 	# define iSize	1.f
@@ -81,7 +82,7 @@
 		Particle	p		= un_Particles.elements[ gl.InstanceIndex ];
 		float		size	= (p.position_size.w * 2.0 * iSize) / Min( un_PerPass.resolution.x, un_PerPass.resolution.y );
 
-		Out.uv		= ToSNorm( float2( (gl.VertexIndex>>1)&1, gl.VertexIndex&1 ));
+		Out.uv		= ToSNorm( ProceduralQuadUV() );
 		Out.color	= unpackUnorm4x8( floatBitsToUint( p.velocity_color.w ));
 
 		float4	pos	= LocalPosToViewSpace( p.position_size.xyz );

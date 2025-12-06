@@ -6,10 +6,12 @@ GPUs:
 * [Apple M1](bench-gpu/Apple_M1.md)
 * [Intel UHD 620 (gen9.5)](bench-gpu/Intel_UHD620.md)
 * [Intel N150 (Twin Lake, Xe Graphics)](bench-gpu/Intel_N150.md)
+* [Intel Arc 140T](bench-gpu/Intel_Arc140T.md)
 * [Mali G57 (Valhall gen1)](bench-gpu/ARM_Mali_G57.md)
 * [Mali G610 (Valhall gen3)](bench-gpu/ARM_Mali_G610.md)
 * [Mali T830](bench-gpu/ARM_Mali_T830.md)
 * [NVidia RTX 2080 (Turing)](bench-gpu/NVidia_RTX2080.md)
+* [NVidia RTX 5070 Ti (Blackwell)](bench-gpu/NVidia_RTX5070Ti.md)
 * [PowerVR BXM-8-256](bench-gpu/PowerVR_BXM.md)
 
 Other:
@@ -34,6 +36,8 @@ Other:
 	- [12](#12-Branching)
 	- [13](#13-Circle-geometry)
 	- [14](#14-Nonuniform)
+	- [15](#15-ray-tracing-performance)
+	- [16](#16-tensor-performance)
 
 
 # Comparison of Results
@@ -55,8 +59,10 @@ Other:
 | ARM Mali Midgard gen4 | (4)    | 16x16                | ?       | ?       | ?              | ?       |
 | ARM Mali Valhall gen1 | 16     | 16x16                | **yes** | **yes** | **yes** (rare) | no      |
 | Intel UHD 6xx 9.5gen  | 16     | -                    | no      | no      | no             | ?       |
-| Intel Xe-LP 12gen     |
+| Intel UHD 730         | 16     |
+| Intel Arc 140T        | 16     | 16x16                | no      | **yes** | no             | no      |
 | NV RTX 20xx           | 32     | 16x16                | no      | **yes** | no             | no      |
+| NV RTX 50xx           | 32     | 16x16                | no ?    | **yes** | yes?           | no      |
 | PowerVR B‑Series      | 128    | 32x32?               | no      | **yes** | no             | **yes** |
 
 
@@ -72,17 +78,19 @@ Other:
 
 | GPU | fp32 FMA/MAD | fp16x2 FMA/MAD | fp16 FMA/MAD | FAdd rate | parallel fp32 & i32<br/>(confirmed in specs) | parallel fp16 & i16<br/>(confirmed in specs) |
 |----------|---|---|---|---|---|---|
-| Adreno 5xx            | fma/mad | mad     | -       | 1     | no  | no  |
-| Adreno 6xx            | fma/mad | mad     | -       | 1     | 2:1 | 2:1 |
-| AMD GCN4              | fma/mad | -       | -       | 1     | no  | no  |
-| AMD RDNA3             | ?       | ?       | ?       | ?     | ?   | ?   |
-| Apple M1              | fma/mad | no      | fma/mad | 1     | 2:1 | 2:1 |
-| ARM Mali Midgard gen4 | **mad** | no      | mad     | 1     | no  | no  |
-| ARM Mali Valhall gen1 | fma/mad | mad     | -       | 1     | 2:1 | 2:1 |
-| Intel UHD 6xx 9.5gen  | fma/mad | **fma** | -       | **2** | 2:1 | no  |
-| Intel Xe-LP 12gen     |
-| NV RTX 20xx (Turing)  | fma/mad | **fma** | -       | **2** | 1:1 **(specs)** | 2:1 |
-| PowerVR B‑Series      | fma/mad | no      | mad     | 1     | 1:1 | no  |
+| Adreno 5xx              | fma/mad | mad     | -       | 1     | no  | no  |
+| Adreno 6xx              | fma/mad | mad     | -       | 1     | 2:1 | 2:1 |
+| AMD GCN4                | fma/mad | -       | -       | 1     | no  | no  |
+| AMD RDNA3               | ?       | ?       | ?       | ?     | ?   | ?   |
+| Apple M1                | fma/mad | no      | fma/mad | 1     | 2:1 | 2:1 |
+| ARM Mali Midgard gen4   | **mad** | no      | mad     | 1     | no  | no  |
+| ARM Mali Valhall gen1   | fma/mad | mad     | -       | 1     | 2:1 | 2:1 |
+| Intel UHD 6xx 9.5gen    | fma/mad | **fma** | -       | **2** | 2:1 | no  |
+| Intel UHD 730           |
+| Intel Arc 140T          | fma/mad | **fma** | -       | **2** | 2:1 | ?   |
+| NV RTX 20xx (Turing)    | fma/mad | **fma** | -       | **2** | 1:1 **(specs)** | 2:1 |
+| NV RTX 50xx (Blackwell) |         |         | -       | **2** | no  | ?   |
+| PowerVR B‑Series        | fma/mad | no      | mad     | 1     | 1:1 | no  |
 
 
 ## Shader instructions performance groups
@@ -96,8 +104,10 @@ Other:
 | ARM Mali Midgard gen4 |
 | ARM Mali Valhall gen1 |
 | Intel UHD 6xx 9.5gen  |
-| Intel Xe-LP 12gen     |
+| Intel UHD 730         |
+| Intel Arc 140T        |
 | NV RTX 20xx (Turing)  |
+| NV RTX 50xx           |
 | PowerVR B‑Series      |
 
 ## Branching
@@ -119,8 +129,10 @@ How match Mul and Matrix variants are slower than uniform Branch. [[12](#12-Bran
 | ARM Mali Valhall gen1 | 2.1 | 1.4  |   2.3 | **2.1** | 3.5 |   2.18 | **1.56** | 2.45 |
 | ARM Mali Valhall gen3 | 1.7 | 1.2  |   2.1 | **1.6** | 3.0 |   1.9  | **1.3**  | 2.1  |
 | Intel UHD 6xx 9.5gen  | 1.3 | 0.87 |   1.9 | **1.2** | 2.6 |   1.59 | **1.07** | 1.71 |
-| Intel Xe-LP 12gen     |
+| Intel UHD 730         |
+| Intel Arc 140T        |
 | NV RTX 20xx (Turing)  | 2.1 | 1.5  |   **2.4** | 3.1 | 3.0 |   2.1  | 2.1      | 2.1  |
+| NV RTX 50xx           |
 | PowerVR B‑Series      | 2.3 | 1.5  |   **2.6** | 3.5 | 3.1 |   2.46 | **2.25** | 2.33 |
 
 
@@ -128,17 +140,16 @@ How match Mul and Matrix variants are slower than uniform Branch. [[12](#12-Bran
 
 | GPU | graphics (quads) | graphics (image) | compute wg:8x8 (threads) | compute (image) |
 |----------|---|---|---|---|
-| Adreno 5xx            | ? |
-| Adreno 6xx            | grid of 4 large quads (4x4 threads) with 4 quads, row major | ![](bench-gpu/img/graphics-subgroups/adreno-600.png)   | row major 8x8    | ![](bench-gpu/img/compute-subgroups/adreno-600.png) |
-| AMD GCN4              | grid of 4 large quads (4x4 threads) with 4 quads, row major | ![](bench-gpu/img/graphics-subgroups/amd-gcn4.png)     | column major 8x4, 2 threads in row per column | ![](bench-gpu/img/compute-subgroups/amd-gcn4.png) |
-| AMD RDNA3             |
-| Apple M1              | row major 4x2                                               | ![](bench-gpu/img/graphics-subgroups/mac-m1.png)       | row major 8x4    | ![](bench-gpu/img/compute-subgroups/mac-m1.png) |
-| ARM Mali Valhall gen1 | random                                                      | ![](bench-gpu/img/graphics-subgroups/valhall-1.png)    | row major 8x2    | ![](bench-gpu/img/compute-subgroups/valhall-1.png) |
-| ARM Mali Valhall gen3 |
-| Intel UHD 6xx 9.5gen  | grid of 4 quads, row major                                  | ![](bench-gpu/img/graphics-subgroups/intel-gen9_5.png) | column major 4x4 | ![](bench-gpu/img/compute-subgroups/intel-gen9_5.png) |
-| Intel Xe-LP 12gen     |
-| NV RTX 20xx (Turing)  | column major 2x4                                            | ![](bench-gpu/img/graphics-subgroups/nv-turing.png)    | row major 8x4    | ![](bench-gpu/img/compute-subgroups/nv-turing.png) |
-| PowerVR B‑Series      | [_]-curve, row major 8x4 (Hilbert curve?)                   | ![](bench-gpu/img/graphics-subgroups/powervr-bxm.png)  | row major 8x16   | ![](bench-gpu/img/compute-subgroups/powervr-bxm-16x16.png) |
+| Adreno 5xx             | ? |
+| Adreno 6xx             | grid of 4 large quads (4x4 threads) with 4 quads, row major | ![](bench-gpu/img/graphics-subgroups/adreno-600.png)   | row major 8x8    | ![](bench-gpu/img/compute-subgroups/adreno-600.png) |
+| AMD GCN4               | grid of 4 large quads (4x4 threads) with 4 quads, row major | ![](bench-gpu/img/graphics-subgroups/amd-gcn4.png)     | column major 8x4, 2 threads in row per column | ![](bench-gpu/img/compute-subgroups/amd-gcn4.png) |
+| AMD RDNA3              |
+| Apple M1               | row major 4x2                                               | ![](bench-gpu/img/graphics-subgroups/mac-m1.png)       | row major 8x4    | ![](bench-gpu/img/compute-subgroups/mac-m1.png) |
+| ARM Mali Valhall gen1  | random                                                      | ![](bench-gpu/img/graphics-subgroups/valhall-1.png)    | row major 8x2    | ![](bench-gpu/img/compute-subgroups/valhall-1.png) |
+| ARM Mali Valhall gen3  |
+| Intel 9.5gen -<br/> Arc140T | grid of 4 quads, row major                                  | ![](bench-gpu/img/graphics-subgroups/intel-gen9_5.png) | column major 4x4 | ![](bench-gpu/img/compute-subgroups/intel-gen9_5.png) |
+| NV RTX 20xx -<br/> RTX 50xx | column major 2x4                                            | ![](bench-gpu/img/graphics-subgroups/nv-turing.png)    | row major 8x4    | ![](bench-gpu/img/compute-subgroups/nv-turing.png) |
+| PowerVR B‑Series       | [_]-curve, row major 8x4 (Hilbert curve?)                   | ![](bench-gpu/img/graphics-subgroups/powervr-bxm.png)  | row major 8x16   | ![](bench-gpu/img/compute-subgroups/powervr-bxm-16x16.png) |
 
 ## NaN
 
@@ -182,7 +193,7 @@ How match Mul and Matrix variants are slower than uniform Branch. [[12](#12-Bran
 	| SignOrZero(‑x) | 0 | 0 | 0 | 0 |  |  |  |  |
 	| Normalize(x) |  |  |  |  | nan | nan | 0 | -0 |
 
-* FP32 on **Intel gen 9**
+* FP32 on **Intel gen 9** and **Xe-LP+**
 
 	| op \ type | nan1 | nan2 | nan3 | nan4 | inf | -inf | max | -max |
 	|---|---|---|---|---|---|---|---|---|
@@ -261,6 +272,7 @@ How match Mul and Matrix variants are slower than uniform Branch. [[12](#12-Bran
 	| SignOrZero(‑x) | 0 | 0 | 0 | 0 |  |  |  |  |
 	| Normalize(x) |  |  |  |  | nan | nan | 0 | -0 |
 
+
 </details>
 
 ### FP16
@@ -304,7 +316,7 @@ How match Mul and Matrix variants are slower than uniform Branch. [[12](#12-Bran
 	| SignOrZero(‑x) | 0 | 0 | 0 | 0 |  |  |  |  |
 	| Normalize(x) | nan | nan | nan | nan | nan | nan |  |  |
 
-* FP16 on **Intel gen 9**
+* FP16 on **Intel gen 9** and **Xe-LP+**
 
 	| op \ type | nan1 | nan2 | nan3 | nan4 | inf | -inf | max | -max |
 	|---|---|---|---|---|---|---|---|---|
@@ -547,8 +559,10 @@ How match Mul and Matrix variants are slower than uniform Branch. [[12](#12-Bran
 | ARM Mali G57 (Valhall gen1)  | 17.07 | 14.2 | | | | |
 | ARM Mali G610 (Valhall gen3) |
 | Intel UHD 620 (9.5gen)       | 29.8  | 23   | | | | |
-| Intel N150 (Xe-LP 12gen)     |
+| Intel UHD 730                |
+| Intel Arc 140T               |
 | NV RTX 2080 (Turing)         | 448.0 | 403  | | | | |
+| NV RTX 5070 Ti               |
 | PowerVR BXM‑8‑256            | 51.2  | 14.2 | | | | |
 
 ### Cache
@@ -568,9 +582,11 @@ How match Mul and Matrix variants are slower than uniform Branch. [[12](#12-Bran
 | ARM Mali G57 (Valhall gen1)  | 8    | 512  | 49  | 64 | 32?  | 32  | ?    |
 | ARM Mali G610 (Valhall gen3) |
 | Intel UHD 620 (9.5gen)       | -    | 128  | 48? |    | 8?   | 8?  | 112? |
-| Intel N150 (Xe-LP 12gen)     |
-| NV RTX 2080 (Turing)         | -    | 4096 | ?   |    | 64   | 32  | ?    |
-| PowerVR BXM‑8‑256            | ?    | 1024 | ?   | ?  | 256? | 256 | ?    |
+| Intel UHD 730                |
+| Intel Arc 140T (Xe-LP+)      | -    | 8K shared | 160 | - | 256 | - | 520 |
+| NV RTX 2080 (Turing)         | -    | 4K   | ?   |    | 64   | 32  | ?    |
+| NV RTX 5070 Ti               | -    |
+| PowerVR BXM‑8‑256            | ?    | 1K   | ?   | ?  | 256? | 256 | ?    |
 
 ## Render target compression
 
@@ -585,8 +601,10 @@ How match Mul and Matrix variants are slower than uniform Branch. [[12](#12-Bran
 | AMD RDNA3             |
 | Apple M1              | 8x8   | 3.4 | 3.4 | 6.8 | 6.8  | exec time       |
 | Intel UHD 6xx 9.5gen  | 8x8   | 1.6 | 1.8 | 1.8 | 1.85 | exec time       |
-| Intel Xe-LP 12gen     |
+| Intel UHD 730         |
+| Intel Arc 140T        |
 | NV RTX 20xx           | 4x4   | 3   | 3.2 | 4.1 | 4.1  | exec time       |
+| NV RTX 50xx           |
 | ARM Mali Valhall gen1 | 4x4   | 1.9 | 3.9 | 1.9 | 3.7  | exec time       | only 32bit formats, **V2** |
 | ARM Mali Valhall gen1 | 4x4   | 5.9 | 19  | 5.7 | 20   | **mem traffic** | used performance counters |
 | ARM Mali Valhall gen3 |
@@ -608,8 +626,10 @@ How match Mul and Matrix variants are slower than uniform Branch. [[12](#12-Bran
 | AMD RDNA3             |                                   |
 | Apple M1              |                                   |
 | Intel UHD 6xx 9.5gen  |                                   |
-| Intel Xe-LP 12gen     | same                              | same                                |
+| Intel UHD 730         | same                              | same                                |
+| Intel Arc 140T        |
 | NV RTX 20xx           | same                              |
+| NV RTX 50xx           |
 | ARM Mali Midgard gen4 | not supported                     | indirect is faster (120ms vs 130ms) |
 | ARM Mali Valhall gen1 | not supported                     | indirect is faster (12ms vs 15ms)   |
 | ARM Mali Valhall gen3 | indirect is faster (25ms vs 31ms) |
@@ -689,8 +709,17 @@ Used 6 branches.
 
 ### 14. Nonuniform
 
-1. [Stress test](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/scripts/perf/NonUniform-Stress.as)
-2. [Depth pre-pass](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/scripts/perf/NonUniform-DPP.as)
-3. [Visibility buffer](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/scripts/perf/NonUniform-VB.as)
+1. [Stress test](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/scripts/nonuniform/NonUniform-Stress.as)
+2. [Depth pre-pass](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/scripts/nonuniform/NonUniform-DPP.as)
+3. [Visibility buffer](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/scripts/nonuniform/NonUniform-VB.as)
 
+### 15. Ray tracing performance
 
+Test intersection with low poly spheres.
+1. [Ray query](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/scripts/ray-trace/perf-RayQuery.as)
+
+### 16. Tensor performance
+
+1. [Cooperative matrix fp16](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/scripts/neural-shader/perf-CoopMatrix-fp16.as)
+2. [Cooperative matrix int8](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/scripts/neural-shader/perf-CoopMatrix-i8.as)
+3. [Cooperative vector](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/scripts/neural-shader/perf-CoopVec.as)

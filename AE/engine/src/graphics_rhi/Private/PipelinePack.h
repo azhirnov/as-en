@@ -50,7 +50,7 @@ namespace AE::Graphics
 		//
 		// Shader Module
 		//
-		struct alignas(AE_CACHE_LINE) ShaderModule
+		struct alignas(64) ShaderModule
 		{
 			mutable Threading::RWSpinLock								guard;		// protects 'module', 'dbgTrace', 'constants'
 			Bytes32u													offset;

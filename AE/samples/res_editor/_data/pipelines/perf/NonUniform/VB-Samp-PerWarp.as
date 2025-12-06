@@ -6,5 +6,5 @@
 	{
 		CreatePipeline( "vb2-bindless-samp-pw" );
 	}
-	
+
 #endif

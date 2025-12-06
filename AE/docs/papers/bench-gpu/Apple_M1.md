@@ -278,9 +278,9 @@ TODO
 ## Texture cache
 
 * RGBA8_UNorm texture with random access [[9](../GPU_Benchmarks.md#9-Texture-cache)]
-	- Measured cache size: 32K, 1MB.
-	- dim: 6400x3584
-	- 8 texels per pixel, 22.9MPix, 2 930 MB.
+	- Measured cache size: 64K, 1MB.
+	- RT dim: 6400x3584
+	- 8 texels per pixel, 4 texels for linear filter, 22.9MPix, 2.94 GB read per frame.
 
 	| size (B) | dimension (px) | exec time (ms) | diff | approx bandwidth (GB/s) | comments |
 	|---|---|---|---|---|---|
@@ -293,19 +293,19 @@ TODO
 	| 4K   | 32x32     | 6.21 | 1.22 |  472 |
 	| 8K   | 32x64     | 6.76 | 1.09 |  433 |
 	| 16K  | 64x64     | 7.03 | 1.04 |  417 |
-	| **32K** | 128x64 | 9.80 | 1.39 |  300 | L1 cache |
-	| 64K  | 128x128   | 24.4 | **2.5** | 120 |
+	| 32K  | 128x64    | 9.80 | 1.39 |  300 |
+	| 64K  | 128x128   | 24.4 | **2.5** | 120 | L1 cache |
 	| 128K | 256x128   | 31.9 | 1.31 | 92 |
 	| 256K | 256x256   | 35.5 | 1.11 | 82 |
 	| 512K | 512x256   | 37.4 | 1.05 | 78 |
-	| **1M** | 512x512  | 49.3 | 1.32 | 59 | near to RAM bandwidth, should be L2 cache |
+	| 1M   | 512x512   | 49.3 | 1.32 | 59 | near to RAM bandwidth, should be L2 cache |
 	| 2M   | 512x1024  | 95.4 | **1.93** | 31 |
 	| 4M   | 1024x1024 | 120  | 1.26 | 24 |
-	
+
 ## Nonuniform
 
 * __depth pre-pass__ [[14.2](../GPU_Benchmarks.md#14-Nonuniform)]<br/>
-	dpp = 1.8ms, 
+	dpp = 1.8ms,
 	Scale=0.6, Dim=8K, ObjCount=4K
 
 	| nonuniform              | per object (ms) | per warp (ms) | per quad (ms) | per pixel (ms) |

@@ -423,7 +423,7 @@ namespace AE::UI
 
 	// variables
 	private:
-		EStackOrigin	_origin	= Default;
+	//	EStackOrigin	_origin	= Default;
 	};
 
 
@@ -479,7 +479,7 @@ namespace AE::UI
 	{
 	// variables
 	private:
-		EDirection		_scroll		= Default;
+		//EDirection		_scroll		= Default;
 	};
 
 //-----------------------------------------------------------------------------

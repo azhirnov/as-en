@@ -22,18 +22,18 @@ if (${AE_INCLUDE_ANDROID_SRC})
 	endif()
 	file( GLOB_RECURSE ANDROID_SOURCES "${ANDROID_SRC_PATH}/*.java" "${ANDROID_SRC_PATH}/*.xml" )
 	list( APPEND ANDROID_SOURCES "${ANDROID_SRC_PATH}/../../build.gradle" )
-	
+
 	set( ANDROID_SRC_PATH2 "${MAIN_SOURCE_DIR}/android/engine_java/src/main" )
 	if (NOT EXISTS "${ANDROID_SRC_PATH2}")
 		message( FATAL_ERROR "Android source is not exists in ${ANDROID_SRC_PATH2}" )
 	endif()
-	
+
 	file( GLOB_RECURSE ANDROID_SOURCES2 "${ANDROID_SRC_PATH2}/*.java" "${ANDROID_SRC_PATH2}/*.xml" )
 	list( APPEND ANDROID_SOURCES ${ANDROID_SOURCES2} "${ANDROID_SRC_PATH2}/../../build.gradle" )
 endif()
 
 
-add_library( "Platform" STATIC ${SOURCES} ${ANDROID_SOURCES} ${EXP_SOURCES} )
+add_library( "Platform" STATIC ${SOURCES} ${ANDROID_SOURCES} ${EXP_SOURCES} ${ANDROID_NATIVE_APP} )
 source_group( TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${SOURCES} )
 source_group( TREE ${EXP_DIR} FILES ${EXP_SOURCES} )
 source_group( "Android/Apk" FILES ${ANDROID_SOURCES} )

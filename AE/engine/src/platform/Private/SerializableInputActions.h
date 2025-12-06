@@ -27,6 +27,7 @@ namespace AE::App
 
 		enum class ESensorBits : uint { Unknown = 0 };
 
+		static constexpr InputType_t	c_RawCharType = 0xFFFE;
 
 		struct ScriptActionInfo
 		{

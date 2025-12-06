@@ -122,14 +122,14 @@ namespace
 		CHECK_CE( lock.try_lock() );
 
 		Ctx		ctx{ RenderCoro_Get() };
-		
+
 		t.result = ctx.ReadbackImage( t.img, Default ).Then( t,
 							[] (Promise<ImageMemView> readRes, CoSafe<RT3_TestData &> t) -> InlineCoro<>
 							{
 								auto view = co_await readRes;
 								t->isOK = t->imgCmp->Compare( view );
 							});
-		
+
 		RenderCoro_Execute( ctx );
 	}
 

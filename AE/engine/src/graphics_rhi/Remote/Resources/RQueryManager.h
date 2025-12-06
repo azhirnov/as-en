@@ -56,7 +56,7 @@ namespace AE::Graphics
 			bool  GetTimestampCalibrated (const IQuery &, OUT ulong* result, OUT ulong* maxDeviation, Bytes size)				C_NE_OV;	// nanoseconds in CPU-space
 			bool  GetTimestampCalibrated (const IQuery &, OUT double* result, OUT double* maxDeviation, Bytes size)				C_NE_OV;	// nanoseconds in CPU-space
 			bool  GetTimestampCalibrated (const IQuery &, OUT nanosecondsd* result, OUT nanosecondsd* maxDeviation, Bytes size)	C_NE_OV;	// nanoseconds in CPU-space
-			
+
 			bool  GetPipelineStatistic (const IQuery &, OUT GraphicsPipelineStatistic* result, Bytes size)			C_NE_OV;
 			bool  GetPipelineStatistic (const IQuery &, OUT ComputePipelineStatistic* result, Bytes size)			C_NE_OV;
 			bool  GetPipelineStatistic (const IQuery &, OUT MeshPipelineStatistic* result, Bytes size)				C_NE_OV;

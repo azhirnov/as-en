@@ -26,7 +26,7 @@
 				dim		 = 1<<9;
 				iter_cnt = 1<<6;
 				break;
-				
+
 			case EGPUVendor::ARM :			// Mali
 				wg_size = uint2(8,8);
 				dim		 = 1<<10;
@@ -141,7 +141,7 @@
 				a += p;  a -= t;
 			}
 			OUTPUT(a);
-			
+
 		#elif MODE == ADD2
 			const type4	p0 = p * 1.1234;
 			const type4	t0 = t * 0.8463;
@@ -354,7 +354,7 @@
 				a = fma( a, t, p );		a = fma( a, t, p );
 			}
 			OUTPUT(a);
-			
+
 		#elif MODE == FMA2
 			type4	a = type4(1.23);
 			type4	b = type4(2.11);

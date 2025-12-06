@@ -55,7 +55,7 @@ namespace AE::Base
 						 EFileSystemWatchBits	events,
 						 Bool					recursive  = True{},
 						 Bytes					bufferSize = 64_KiB)	__NE___;
-		
+
 		ND_ bool  Start (const Path				&path,
 						 EFileSystemWatchBits	events,
 						 Bool					recursive,

@@ -753,14 +753,14 @@ namespace AE::VFS
 
 			CHECK( s_NetVFS_Client->_AddMessage( msg ));
 		}};
-		
+
 		const uint	max_failed		= 1'000;
 		const uint	max_attempts	= 10;
 		const auto	hash			= XXHash64( data, usize(dataSize) );
 
 		Bytes	sent;
 		uint	part_idx	= 0;
-		
+
 		for (uint fail_cnt = 0; dataSize > sent;)
 		{
 			// is alive
@@ -772,7 +772,7 @@ namespace AE::VFS
 					Coro_Error();  // failed
 				}
 			}
-			
+
 			if_unlikely( Coro_IsCanceled or fail_cnt > max_failed )
 			{
 				Cancel();
@@ -811,7 +811,7 @@ namespace AE::VFS
 		ASSERT( dataSize == sent );
 		data	= null;
 		memRC	= null;
-		
+
 		for (uint attempt = 0; attempt < max_attempts; ++attempt)
 		{
 			// send completion message
@@ -827,7 +827,7 @@ namespace AE::VFS
 					co_return;  // complete
 				}
 			}
-		
+
 			Coro_Continue();  // try again
 		}
 	}

@@ -103,7 +103,7 @@ namespace AE::Graphics
 
 		ECoopVecMatrixLayout		srcLayout		= Default;
 		ECoopVecMatrixLayout		dstLayout		= Default;
-		
+
 		ConvertCoopMatrixCmd2 ()											__NE___	{}
 		ConvertCoopMatrixCmd2 (const ConvertCoopMatrixCmd2 &)				__NE___	= default;
 		explicit ConvertCoopMatrixCmd2 (const ConvertCoopMatrixCmd &)		__NE___;
@@ -164,7 +164,7 @@ namespace AE::Graphics
 
 		explicit CoopMatrixConfig (ECoopMatrixCfg)	__NE___;
 		explicit operator ECoopMatrixCfg ()			C_NE___;
-		
+
 		ND_ ECoopMatrixCfg  ToECoopMatrixCfg ()		C_NE___;
 	};
 
@@ -181,7 +181,7 @@ namespace AE::Graphics
 		ECoopMatrixComponentType	biasInterpretation		= Default;
 		ECoopMatrixComponentType	resultType				= Default;
 		bool						transpose				= false;
-		
+
 	// methods
 		CoopVectorConfig ()							__NE___ {}
 		CoopVectorConfig (const CoopVectorConfig &)	__NE___ = default;

@@ -224,6 +224,8 @@ namespace AE::App
 		_Update< EGestureType::DoubleClick	>( INOUT key_it, timeSinceStart );
 		_Update< EGestureType::Hold			>( INOUT key_it, timeSinceStart );
 		_Update< EGestureType::LongPress	>( INOUT key_it, timeSinceStart );
+
+		_SendTextInput();
 	}
 
 /*
@@ -333,7 +335,6 @@ namespace AE::App
 		return null;
 	}
 
-
 /*
 =================================================
 	_UpdateKey1
@@ -421,5 +422,37 @@ namespace AE::App
 		}
 	}
 
+/*
+=================================================
+	_AddChar
+=================================================
+*/
+	void  InputActionsBase::_AddChar (CharUtf32 c) __NE___
+	{
+		_textInput.push_back( c );
+	}
+
+/*
+=================================================
+	_SendTextInput
+=================================================
+*/
+	void  InputActionsBase::_SendTextInput () __NE___
+	{
+		if ( _textInput.empty() )
+			return;
+
+		const ControllerID	id	= ControllerID::Keyboard;
+		const InputKey		key	= _Pack( SerializableInputActions::c_RawCharType, EGestureType::Unknown, EGestureState::Update );
+		auto				it	= _curMode->actions.find( key );
+
+		if ( it != _curMode->actions.end() )
+		{
+			_textInput.insert( _textInput.begin(), CharUtf32(_textInput.size()) );
+
+			_dbQueueRef.Insert( it->second.name, id, EGestureState::Update, _textInput.data(), StringSizeOf(_textInput) );
+		}
+		_textInput.clear();
+	}
 
 } // AE::App

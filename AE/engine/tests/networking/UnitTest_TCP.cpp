@@ -5,7 +5,7 @@
 
 namespace
 {
-	static const ushort		c_Port = 4001;
+	static const ushort		c_Port = AE_TEST_TCP_PORT_1;
 
 
 	template <typename Address>
@@ -29,7 +29,7 @@ namespace
 				sync.Wait();
 
 				Address		addr;
-				TcpSocket	client;
+				TcpSocket	client;		// client socket on server side
 
 				Array<char>	recv_data;
 				for (uint i = 0; i < 1'000; ++i)	// max: 100s
@@ -81,11 +81,13 @@ namespace
 
 		sync.Wait();
 
-		TcpSocket	client;
+		TcpSocket	client;		// on user side
 		TEST( client.Connect( Address::FromHostPortTCP( "localhost", c_Port ) ));
 		TEST( client.IsOpen() );
 
 		sync.Wait();
+
+		TEST( client.ConnectionStatus() == TcpSocket::EStatus::Connected );
 
 		{
 			auto [err, sent] = client.Send( send_data1, Sizeof(send_data1) );

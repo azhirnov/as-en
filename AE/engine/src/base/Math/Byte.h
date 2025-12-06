@@ -78,6 +78,10 @@ namespace AE::Base
 		NdCx__ explicit operator signed long ()						C_NE___ { return static_cast< signed long >(_value); }
 		NdCx__ explicit operator unsigned long ()					C_NE___ { return static_cast< unsigned long >(_value); }
 	  #endif
+	  #if defined(AE_PLATFORM_ANDROID)	or \
+		  defined(AE_PLATFORM_LINUX)
+		NdCx__ explicit operator long long ()						C_NE___	{ return static_cast< long long >(_value); }
+	  #endif
 
 		template <typename R>
 		NdCx__ R *			AsPtr ()								C_NE___	{ return BitCast<R *>( usize{CheckCast{ _value }}); }
@@ -290,7 +294,7 @@ namespace AE::Base
 	{
 		return TByte<T>{ CeilPOT( T{x} )};
 	}
-	
+
 	template <typename T>
 	NdCx__ TByte<T>  NearPOT (const TByte<T> x) __NE___
 	{

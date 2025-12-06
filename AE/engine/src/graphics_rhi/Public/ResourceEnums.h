@@ -173,7 +173,7 @@ namespace AE::Graphics
 
 		LossyRTCompression			= 1 << 16,		// allow to use hardware lossy compression for the color attachments
 		ExtendedUsage				= 1 << 17,		// image may not support all usage flags
-		
+
 		Subsampled					= 1 << 18,		// intermediate attachments to use with fragment density map,
 													// when used fragment density map all other attachments in render pass
 													// must be created with this flag.
@@ -268,9 +268,9 @@ namespace AE::Graphics
 	{
 		Unknown		= 0,
 		OneToOne,					// Present() return 'suboptimal' if swapchain doesn't match the surface size
-		AspectRatioStretch,			// image can be minified or magnified, aspect ratio must match to original swapchain image 
-		Stretch,					// 
-		
+		AspectRatioStretch,			// image can be minified or magnified, aspect ratio must match to original swapchain image
+		Stretch,					//
+
 		_Count,
 	};
 

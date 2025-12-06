@@ -119,7 +119,7 @@ namespace
 			a0 = a0.get();
 			TEST( a0 );
 			TEST( a0.Extra() == 0 );
-			
+
 			a0.SetExtra( 3 );
 
 			a0 = RVRef(b0);

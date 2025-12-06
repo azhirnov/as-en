@@ -62,7 +62,7 @@ namespace AE::Networking
 		}
 		return false;
 	}
-	
+
 /*
 =================================================
 	_WaitForClient
@@ -73,9 +73,9 @@ namespace AE::Networking
 		CHECK_ERR( not _server.IsOpen() );
 		CHECK_ERR( not _client.IsOpen() );
 		CHECK_ERR( mainServer._server.IsOpen() );
-		
+
 		AE_LOGI( "Waiting for client..." );
-		
+
 		for (uint i = 0; i < 10; ++i)
 		{
 			IpAddress	addr;

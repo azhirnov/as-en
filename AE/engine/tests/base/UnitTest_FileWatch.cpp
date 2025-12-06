@@ -42,13 +42,13 @@ namespace
 		CreateFile( watchDir / "AA/b0.tmp", 1_KiB );
 		CreateFile( watchDir / "AA/b1.tmp", 2_KiB );
 		CreateFile( watchDir / "AA/b3.tmp", 3_KiB );
-		
+
 		FileSystem::CreateDirectory( watchDir / "BB" );
 		CreateFile( watchDir / "BB/c0.tmp", 1_KiB );
 		CreateFile( watchDir / "BB/c1.tmp", 2_KiB );
 		CreateFile( watchDir / "BB/c2.tmp", 3_KiB );
 	}
-	
+
 	static void  AppendFile (const Path &path, Bytes size)
 	{
 		FileWStream		file { path, FileWStream::EMode::OpenAppend };
@@ -112,10 +112,10 @@ namespace
 		//---------------------------------------
 
 		TEST( FileSystem::DeleteFile( watchDir / "BB/c2.tmp" ));
-		
+
 		TEST( file_watch.GetEvents( OUT events ));
 		Compare( INOUT events, {{"BB/c2.tmp",	EFileSystemAction::Removed}} );
-		
+
 		TEST( not file_watch.GetEvents( OUT events ));
 		TEST_Eq( events.size(), 0 );
 		//---------------------------------------
@@ -128,13 +128,13 @@ namespace
 		TEST( file_watch.GetEvents( OUT events ));
 		Compare( INOUT events, {{"BB/c3.tmp",	EFileSystemAction::Added},
 								{"BB/c3.tmp",	EFileSystemAction::Modified}} );
-		
+
 		TEST( not file_watch.GetEvents( OUT events ));
 		TEST_Eq( events.size(), 0 );
 		//---------------------------------------
 
 		TEST( FileSystem::Rename( watchDir / "a0.tmp", watchDir / "AA/a0.tmp" ));
-		
+
 		TEST( file_watch.GetEvents( OUT events ));
 		Compare( INOUT events, {{"AA",			EFileSystemAction::Modified}} );
 
@@ -142,16 +142,16 @@ namespace
 		Compare( INOUT events, {{"a0.tmp",		EFileSystemAction::Removed},
 								{"AA/a0.tmp",	EFileSystemAction::Added},
 								{"AA",			EFileSystemAction::Modified}} );
-		
+
 		TEST( not file_watch.GetEvents( OUT events ));
 		TEST_Eq( events.size(), 0 );
 		//---------------------------------------
 
 		TEST( FileSystem::DeleteDirectory( watchDir / "BB" ));
-		
+
 		TEST( file_watch.GetEvents( OUT events ));
 		Compare( INOUT events, {{"BB",			EFileSystemAction::Modified}} );
-		
+
 		TEST( file_watch.GetEvents( OUT events ));
 		Compare( INOUT events, {{"BB/c0.tmp",	EFileSystemAction::Removed},
 								{"BB/c1.tmp",	EFileSystemAction::Removed},
@@ -162,21 +162,21 @@ namespace
 		TEST( not file_watch.GetEvents( OUT events ));
 		TEST_Eq( events.size(), 0 );
 		//---------------------------------------
-		
+
 		TEST( FileSystem::CreateDirectory( watchDir / "CCC" ));
-		
+
 		TEST( file_watch.GetEvents( OUT events ));
 		Compare( INOUT events, {{"CCC",			EFileSystemAction::Added}} );
-		
+
 		TEST( not file_watch.GetEvents( OUT events ));
 		TEST_Eq( events.size(), 0 );
 		//---------------------------------------
 
 		AppendFile( watchDir / "AA/a0.tmp", 1_KiB );
-		
+
 		TEST( file_watch.GetEvents( OUT events ));
 		Compare( INOUT events, {{"AA/a0.tmp",	EFileSystemAction::Modified}} );
-		
+
 		TEST( not file_watch.GetEvents( OUT events ));
 		TEST_Eq( events.size(), 0 );
 		//---------------------------------------
@@ -207,10 +207,10 @@ namespace
 		//---------------------------------------
 
 		TEST( FileSystem::DeleteFile( watchDir / "BB/c2.tmp" ));
-		
+
 		TEST( file_watch.GetEvents( OUT events ));
 		Compare( INOUT events, {{"BB/c2.tmp",		EFileSystemAction::Removed}} );
-		
+
 		TEST( not file_watch.GetEvents( OUT events ));
 		LogEvents( events );
 		TEST_Eq( events.size(), 0 );
@@ -221,7 +221,7 @@ namespace
 		TEST( file_watch.GetEvents( OUT events ));
 		Compare( INOUT events, {{"BB/c3.tmp",		EFileSystemAction::Added},
 								{"BB/c3.tmp",		EFileSystemAction::Modified}} );
-		
+
 		TEST( not file_watch.GetEvents( OUT events ));
 		LogEvents( events );
 		TEST_Eq( events.size(), 0 );
@@ -232,14 +232,14 @@ namespace
 		TEST( file_watch.GetEvents( OUT events ));
 		Compare( INOUT events, {{"a0.tmp",			EFileSystemAction::Renamed_OldName},
 								{"AA/a0.tmp",		EFileSystemAction::Renamed_NewName}} );
-		
+
 		TEST( not file_watch.GetEvents( OUT events ));
 		LogEvents( events );
 		TEST_Eq( events.size(), 0 );
 		//---------------------------------------
 
 		TEST( FileSystem::DeleteDirectory( watchDir / "BB" ));
-		
+
 		TEST( file_watch.GetEvents( OUT events ));
 		Compare( INOUT events, {{"BB",				EFileSystemAction::Removed},
 								{"BB/c0.tmp",		EFileSystemAction::Removed},
@@ -250,40 +250,40 @@ namespace
 		LogEvents( events );
 		TEST_Eq( events.size(), 0 );
 		//---------------------------------------
-		
+
 		TEST( FileSystem::CreateDirectory( watchDir / "CCC" ));
-		
+
 		TEST( file_watch.GetEvents( OUT events ));
 		Compare( INOUT events, {{"CCC",				EFileSystemAction::Added}} );
-		
+
 		TEST( not file_watch.GetEvents( OUT events ));
 		LogEvents( events );
 		TEST_Eq( events.size(), 0 );
 		//---------------------------------------
 
 		AppendFile( watchDir / "AA/a0.tmp", 1_KiB );
-		
+
 		TEST( file_watch.GetEvents( OUT events ));
 		Compare( INOUT events, {{"AA/a0.tmp",		EFileSystemAction::Modified}} );
-		
+
 		TEST( not file_watch.GetEvents( OUT events ));
 		LogEvents( events );
 		TEST_Eq( events.size(), 0 );
 		//---------------------------------------
-		
+
 		CreateFile( watchDir / "CCC/d0.tmp", 4_KiB );
-		
+
 		TEST( file_watch.GetEvents( OUT events ));
 		Compare( INOUT events, {{"CCC/d0.tmp",		EFileSystemAction::Added},
 								{"CCC/d0.tmp",		EFileSystemAction::Modified}} );
-		
+
 		TEST( not file_watch.GetEvents( OUT events ));
 		LogEvents( events );
 		TEST_Eq( events.size(), 0 );
 		//---------------------------------------
-		
+
 		TEST( FileSystem::CreateDirectory( watchDir / "CCC" / "DD" ));
-		
+
 		TEST( file_watch.GetEvents( OUT events ));
 		Compare( INOUT events, {{"CCC/DD",			EFileSystemAction::Added}} );
 
@@ -293,24 +293,24 @@ namespace
 		//---------------------------------------
 
 		CreateFile( watchDir / "CCC/DD/d1.tmp", 4_KiB );
-		
+
 		TEST( file_watch.GetEvents( OUT events ));
 		Compare( INOUT events, {{"CCC/DD/d1.tmp",	EFileSystemAction::Added},
 								{"CCC/DD/d1.tmp",	EFileSystemAction::Modified}} );
-		
+
 		TEST( not file_watch.GetEvents( OUT events ));
 		LogEvents( events );
 		TEST_Eq( events.size(), 0 );
 		//---------------------------------------
-		
+
 		TEST( FileSystem::DeleteDirectory( watchDir / "CCC" ));
-		
+
 		TEST( file_watch.GetEvents( OUT events ));
 		Compare( INOUT events, {{"CCC/d0.tmp",		EFileSystemAction::Removed},
 								{"CCC/DD/d1.tmp",	EFileSystemAction::Removed},
 								{"CCC/DD",			EFileSystemAction::Removed},
 								{"CCC",				EFileSystemAction::Removed}} );
-		
+
 		TEST( not file_watch.GetEvents( OUT events ));
 		LogEvents( events );
 		TEST_Eq( events.size(), 0 );
@@ -333,7 +333,7 @@ extern void UnitTest_FileWatch (const Path &curr)
 	Path	watch_dir = curr / "FSWatch";
 
 	FileWatch_Test1( watch_dir );
-	
+
 	FileSystem::DeleteDirectory( watch_dir );
 
 	TEST_PASSED();

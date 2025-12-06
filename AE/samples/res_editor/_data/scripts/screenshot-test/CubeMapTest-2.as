@@ -54,37 +54,43 @@
 				float2	uv2 = CM_TangentialSC_Forward( uv );
 						uv2 = CM_TangentialSC_Inverse( uv2 );
 				col.rg = Abs( uv - uv2 ) * scale;
-				col.b = IsFinite( uv2.x ) ? 0.0 : 1.0;
+				col.b  = IsFinite( uv2.x ) ? 0.0 : 1.0;
 				break;
 			}
 			case 1 : {
 				float2	uv2 = CM_EverittSC_Forward( uv );
 						uv2 = CM_EverittSC_Inverse( uv2 );
 				col.rg = Abs( uv - uv2 ) * scale;
-				col.b = IsFinite( uv2.x ) ? 0.0 : 1.0;
+				col.b  = IsFinite( uv2.x ) ? 0.0 : 1.0;
 				break;
 			}
 			case 2 : {
 				float2	uv2 = CM_5thPolySC_Forward( uv );
 						uv2 = CM_5thPolySC_Inverse( uv2 );
 				col.rg = Abs( uv - uv2 ) * scale;
-				col.b = IsFinite( uv2.x ) ? 0.0 : 1.0;
+				col.b  = IsFinite( uv2.x ) ? 0.0 : 1.0;
 				break;
 			}
 			case 3 : {
 				float2	uv2 = CM_COBE_SC_Forward( uv );
 						uv2 = CM_COBE_SC_Inverse( uv2 );
 				col.rg = Abs( uv - uv2 ) * scale;
-				col.b = IsFinite( uv2.x ) ? 0.0 : 1.0;
+				col.b  = IsFinite( uv2.x ) ? 0.0 : 1.0;
 				break;
 			}
 			case 4 : {
 				float2	uv2 = CM_ArvoSC_Forward( uv );
 						uv2 = CM_ArvoSC_Inverse( uv2 );
 				col.rg = Abs( uv - uv2 ) * scale;
-				col.b = IsFinite( uv2.x ) ? 0.0 : 1.0;
+				col.b  = IsFinite( uv2.x ) ? 0.0 : 1.0;
 				break;
 			}
+		}
+
+		if ( Any(IsNaN( col.rgb )) or Any(IsInfinity( col.rgb )))
+		{
+			out_Color = float4(0.2);
+			return;
 		}
 
 		if ( Fract(uv.x) > Fract(GetUV(1).x) )

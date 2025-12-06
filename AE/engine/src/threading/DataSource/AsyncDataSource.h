@@ -65,7 +65,7 @@ namespace AE::_Coro_
 
 			ND_ explicit operator bool ()	C_NE___	{ return status == EStatus::Completed; }
 		};
-		
+
 		struct CanceledRequest;
 
 	protected:
@@ -106,7 +106,7 @@ namespace AE::_Coro_
 			void  _SetDependencyCompleteStatus (bool complete)					__NE___;
 	};
 
-	
+
 	struct IAsyncDataSourceRequest::CanceledRequest
 	{
 		static constinit StaticRC<IAsyncDataSourceRequest>	s_canceled;
@@ -133,7 +133,7 @@ namespace AE::_Coro_
 			return CoroAwaiterImpl::AwaitSuspendImpl2( curCoro, Tuple{_req.GetRC()} );
 		}
 	};
-	
+
 	template <>
 	struct CoroTraits< RC< _Coro_::IAsyncDataSourceRequest >>
 	{
@@ -423,7 +423,7 @@ namespace AE::Threading
 	{
 		return _Coro_::IAsyncDataSourceRequest_Awaiter{ *req };
 	}
-	
+
 	forceinline auto  TaskScheduler::GetCanceledDSRequest () __NE___
 	{
 		return _Coro_::IAsyncDataSourceRequest::CanceledRequest::s_canceled.GetRC();

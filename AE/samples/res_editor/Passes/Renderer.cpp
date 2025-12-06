@@ -195,6 +195,7 @@ namespace AE::ResEditor
 			pass_debugger.mode		= dbg->mode;
 			pass_debugger.stage		= dbg->stage;
 			pass_debugger.coord		= dbg->coord;
+			pass_debugger.exactCoord = dbg->exactCoord;
 		}
 
 		// which passes need to update

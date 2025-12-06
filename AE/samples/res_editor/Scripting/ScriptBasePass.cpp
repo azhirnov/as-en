@@ -52,7 +52,7 @@ namespace AE::ResEditor
 	{
 		_baseFlags |= value;
 	}
-	
+
 /*
 =================================================
 	MeasureTime
@@ -772,7 +772,7 @@ namespace AE::ResEditor
 		rstate.AddResource( id, EResourceState::Invalidate, defaultState );
 		return id;
 	}
-	
+
 /*
 =================================================
 	_MoveTo

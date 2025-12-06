@@ -8,7 +8,7 @@
 
 namespace AE::PipelineCompiler
 {
-	
+
 String  SpirvCompiler::_SpirvToGLSL (const SpirvBytecode_t &spirv)
 {
 	try{

@@ -80,25 +80,25 @@ namespace
 
 				#if AE_SIMD_AVX >= 31  // AVX512_BW
 				{
-					auto*	found = Base::_hidden_::FindChar_AVX512( str.data(), &str.data()[str.size()], ch );
+					auto*	found = Cast<char>( Base::_hidden_::FindChar8_AVX512( Cast<sbyte>(str.data()), Cast<sbyte>(&str.data()[str.size()]), sbyte(ch) ));
 					TEST( found == &str[j] );
 				}
 				#endif
 				#if AE_SIMD_AVX >= 2
 				{
-					auto*	found = Base::_hidden_::FindChar_AVX2( str.data(), &str.data()[str.size()], ch );
+					auto*	found = Cast<char>( Base::_hidden_::FindChar8_AVX2( Cast<sbyte>(str.data()), Cast<sbyte>(&str.data()[str.size()]), sbyte(ch) ));
 					TEST( found == &str[j] );
 				}
 				#endif
 				#if AE_SIMD_SSE >= 20
 				{
-					auto*	found = Base::_hidden_::FindChar_SSE2( str.data(), &str.data()[str.size()], ch );
+					auto*	found = Cast<char>( Base::_hidden_::FindChar8_SSE2( Cast<sbyte>(str.data()), Cast<sbyte>(&str.data()[str.size()]), sbyte(ch) ));
 					TEST( found == &str[j] );
 				}
 				#endif
 				#if AE_SIMD_NEON
 				{
-					auto*	found = Base::_hidden_::FindChar_NEON( str.data(), &str.data()[str.size()], ch );
+					auto*	found = Cast<char>( Base::_hidden_::FindChar8_NEON( Cast<sbyte>(str.data()), Cast<sbyte>(&str.data()[str.size()]), sbyte(ch) ));
 					TEST( found == &str[j] );
 				}
 				#endif
@@ -168,7 +168,7 @@ namespace
 
 		auto	h0 = HashOf( a0 );
 		auto	h1 = HashOf( a1 );
-		
+
 		TEST( a0 == a1 );
 		TEST( h0 == h1 );
 	}

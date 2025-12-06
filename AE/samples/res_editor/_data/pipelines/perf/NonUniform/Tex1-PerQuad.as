@@ -6,5 +6,5 @@
 	{
 		CreatePipeline( "bind-tex-pq" );
 	}
-	
+
 #endif

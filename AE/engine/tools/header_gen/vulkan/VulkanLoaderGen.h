@@ -29,7 +29,7 @@ namespace AE::Parsers
 	public:
 		bool  GenVulkanLoaders (const Path &outputFolder, Version2 minVer) const;
 		bool  GenVulkanFeatures (const Path &outputFolder, Version2 minVer) const;
-		
+
 		bool  GenEnumToString (const Path &outputFolder) const;
 
 	private:

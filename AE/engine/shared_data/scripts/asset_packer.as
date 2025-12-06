@@ -338,7 +338,7 @@ enum class EBlendFactor : uint8
 	// S1 - from shader (dual src blend)
 	// cc - constant color
 	// result = srcColor * srcBlend [blendOp] dstColor * dstBlend
-	// 
+	//
 
 	// 0
 	Zero,
@@ -407,7 +407,7 @@ enum class EBlendOp : uint8
 	// S, srcColor - from shader
 	// D, dstColor - from render target
 	// result = srcColor * srcBlend [blendOp] dstColor * dstBlend
-	// 
+	//
 
 	// S + D
 	Add,
@@ -434,7 +434,7 @@ enum class ELogicOp : uint8
 	// S - from shader
 	// D - from render target
 	// result = S [logicOp] D
-	// 
+	//
 
 	// disabled
 	None,

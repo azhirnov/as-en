@@ -37,7 +37,7 @@ namespace AE::ResEditor
 		void  Add8  (const String &key, const ScriptBaseControllerPtr &value)			__Th___;
 		void  Add9  (const String &key, const ScriptRTGeometryPtr &value)				__Th___;
 		void  Add10 (const String &key, const ScriptRTScenePtr &value)					__Th___;
-		
+
 		void  Add11 (const String &key, const ScriptArray<ScriptImagePtr> &)			__Th___;
 		void  Add12 (const String &key, const ScriptArray<ScriptBufferPtr> &)			__Th___;
 
@@ -61,13 +61,13 @@ namespace AE::ResEditor
 	private:
 		template <typename T>
 		void  _Add (const String &key, const T &value)									__Th___;
-		
+
 		template <typename T>
 		void  _AddArr (const String &key, const ScriptArray<T> &value)					__Th___;
 
 		template <typename T>
 		T*    _Get (const String &key)													C_Th___;
-		
+
 		template <typename T>
 		void  _GetArr (const String &key, OUT ScriptArray<T> &)							C_Th___;
 	};

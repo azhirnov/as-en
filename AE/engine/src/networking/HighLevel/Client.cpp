@@ -99,7 +99,7 @@ namespace AE::Networking
 		for (auto& ch : _channels)
 		{
 			if ( ch )
-				result |= ch->IsConnected();
+				result |= ch->IsConnected();	// TODO: all channells must be connected ?
 		}
 		return result;
 	}

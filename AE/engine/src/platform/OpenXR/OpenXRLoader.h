@@ -25,7 +25,7 @@ namespace AE::App
 		#undef  XRLOADER_STAGE_INLINEFN
 
 		static PFN_xrGetInstanceProcAddr  _var_xrGetInstanceProcAddr;
-		
+
 		ND_ XRAPI_ATTR static XrResult xrGetInstanceProcAddr (XrInstance instance, const char* name, PFN_xrVoidFunction* function) __NE___ { return _var_xrGetInstanceProcAddr( instance, name, OUT function ); }
 	  #endif
 
@@ -83,7 +83,7 @@ namespace AE::App
 	}
 
 # endif // AE_CFG_RELEASE
-	
+
 # define AE_PRIVATE_XR_CHECK2_R( _func_, _ret_ )												\
 		AE_PRIVATE_XR_CHECK_R( (_func_), AE_TOSTRING( _func_ ), (_ret_) )
 

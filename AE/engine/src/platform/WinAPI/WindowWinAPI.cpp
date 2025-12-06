@@ -79,7 +79,7 @@ namespace AE::App
 			default :																			break;
 		}
 		switch_end
-		
+
 	  #ifdef AE_DEBUG
 		if ( PlatformUtils::IsUnderDebugger() )
 			always_on_top = false;

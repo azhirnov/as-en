@@ -47,7 +47,7 @@ Total ALUs = warp_width*2 * ALUs * Cores
 	| op | exec time (ms) | diff |
 	|---|---|---|
 	| Mul uniform          | 18.2 | 1.7 |
-	| Branch uniform       | **10.7** | - | 
+	| Branch uniform       | **10.7** | - |
 	| Matrix uniform       | 12.8 | 1.2 |
 	| - |
 	| Mul non-uniform      | 22.6 | 2.1 |

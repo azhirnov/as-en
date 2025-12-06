@@ -18,7 +18,7 @@ namespace AE::Base
 	// types
 	public:
 		static constexpr uint	count	= 8;
-		static constexpr uint	lanes	= 2;	// number of SSE vectors, cross lane operations may have additional cost
+		static constexpr uint	parts	= 2;	// number of SSE vectors, cross lane operations may have additional cost
 
 		using Scalar_t		= float;
 		using Self			= SimdFloat8;
@@ -249,10 +249,10 @@ namespace AE::Base
 
 	// conversion //
 		template <uint Idx>
-		ND_ auto		Lane ()									C_NE___ { StaticAssert( Idx < lanes );  return SimdFloat4{ _mm256_extractf128_ps( _value, Idx )}; }
+		ND_ auto		Part ()									C_NE___ { StaticAssert( Idx < parts );  return SimdFloat4{ _mm256_extractf128_ps( _value, Idx )}; }
 
 		template <uint Idx>
-		ND_ auto		ToDouble ()								C_NE___	{ return Lane<Idx>().ToDouble4(); }
+		ND_ auto		ToDouble ()								C_NE___	{ return Part<Idx>().ToDouble4(); }
 	//	ND_ SimdDouble8	ToDouble8 ()							C_NE___;	// _mm512_cvtps_pd (AVX512F), _mm512_cvtepi64_pd (AVX512DQ)
 
 		ND_ SimdInt8	ToInt ()								C_NE___;
@@ -274,7 +274,7 @@ namespace AE::Base
 		ND_ Self	Shuffle (const Self &v8)					C_NE___;
 
 		template <uint Low, uint High>
-		ND_ Self	SwizzleLanes ()								C_NE___;
+		ND_ Self	SwizzleParts ()								C_NE___;
 
 		template <typename DstType>
 		ND_ DstType	BitCast ()									C_NE___;
@@ -331,7 +331,7 @@ namespace AE::Base
 	// types
 	public:
 		static constexpr uint	count	= 4;
-		static constexpr uint	lanes	= 2;	// number of SSE vectors, cross lane operations may have additional cost
+		static constexpr uint	parts	= 2;	// number of SSE vectors, cross lane operations may have additional cost
 
 		using Scalar_t		= double;
 		using Self			= SimdDouble4;
@@ -565,13 +565,13 @@ namespace AE::Base
 		ND_ Self	Swizzle ()									C_NE___;
 
 		template <uint Low, uint High>
-		ND_ Self	SwizzleLanes ()								C_NE___;
+		ND_ Self	SwizzleParts ()								C_NE___;
 
 		template <uint X, uint Y, uint Z, uint W>
 		ND_ Self	Shuffle (const Self &b)						C_NE___;
 
 		template <uint Idx>
-		ND_ auto	Lane ()										C_NE___ { StaticAssert( Idx < lanes );  return SimdDouble2{ _mm256_extractf128_pd( _value, Idx )}; }
+		ND_ auto	Part ()										C_NE___ { StaticAssert( Idx < parts );  return SimdDouble2{ _mm256_extractf128_pd( _value, Idx )}; }
 
 		ND_ Array_t	ToArray ()									C_NE___	{ Array_t arr;  _mm256_storeu_pd( OUT arr.data(), _value );  return arr; }
 			void	ToArray (OUT Scalar_t* dst)					C_NE___	{ NonNull( dst );  _mm256_storeu_pd( OUT dst, _value ); }
@@ -710,8 +710,8 @@ namespace AE::Base
 		using Signed_t		= SimdTInt256< ToSignedInteger< IntType >>;
 		using Unsigned_t	= SimdTInt256< ToUnsignedInteger< IntType >>;
 		using Shift64_t		= SimdTInt128< slong >;
-		
-		static constexpr uint	lanes	= 2;	// number of SSE vectors, cross lane operations may have additional cost
+
+		static constexpr uint	parts	= 2;	// number of SSE vectors, cross lane operations may have additional cost
 		static constexpr uint	count	= sizeof(Native_t) / sizeof(IntType);
 		using Array_t					= StaticArray< Scalar_t, count >;
 		StaticAssert( sizeof(Array_t) == sizeof(Native_t) );
@@ -985,7 +985,7 @@ namespace AE::Base
 		ND_ Self	Shuffle (const Self &v4567)				C_NE___;
 
 		template <uint Low, uint High>
-		ND_ Self	SwizzleLanes ()							C_NE___;
+		ND_ Self	SwizzleParts ()							C_NE___;
 
 		template <uint I=0>	ND_ auto	ToShort ()			C_NE___;
 		template <uint I=0>	ND_ auto	ToInt ()			C_NE___;
@@ -1003,7 +1003,7 @@ namespace AE::Base
 		ND_ auto	Convert ()								C_NE___;
 
 		template <uint Idx>
-		ND_ auto	Lane ()									C_NE___	{ StaticAssert( Idx < lanes );  return SimdTInt128<Scalar_t>{_mm256_extractf128_si256( _value, Idx )}; }
+		ND_ auto	Part ()									C_NE___	{ StaticAssert( Idx < parts );  return SimdTInt128<Scalar_t>{_mm256_extractf128_si256( _value, Idx )}; }
 
 		template <typename T = Scalar_t> requires( IsUnsignedInteger<T> )
 		ND_ auto	ToSigned ()								C_NE___;

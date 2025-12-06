@@ -425,7 +425,7 @@ namespace
 
 		if ( viewType == EImage::Cube or viewType == EImage::CubeArray )
 			_desc.options |= EImageOpt::CubeCompatible;
-		
+
 		if ( _desc.imageDim == EImageDim_3D or viewType == EImage_2DArray )
 			_desc.options |= EImageOpt::Array2DCompatible;
 
@@ -484,7 +484,7 @@ namespace
 	{
 		return CreateView1( viewType, format, 0_mipmap, UMax, 0_layer, UMax );
 	}
-	
+
 /*
 =================================================
 	AddOption
@@ -749,7 +749,7 @@ namespace
 			if ( _inDynSize )
 			{
 				_desc.dimension = ImageDim_t{_inDynSize->Get()->Dimension3_NonZero()};
-				
+
 				if ( AllBits( _flags, Image::EImageFlags::AllMipmaps ))
 				{
 					uint	mip_count		= ImageUtils::NumberOfMipmaps( uint3{_desc.dimension} );
@@ -779,7 +779,7 @@ namespace
 		{
 			CHECK_THROW_MSG( res_mngr.IsSupported( _desc ),
 				"Image '"s << _dbgName << "' description is not supported by GPU device" );
-			
+
 			CHECK_THROW_MSG( res_mngr.IsSupported( _desc, _viewDesc ),
 				"Image '"s << _dbgName << "' description is not supported by GPU device" );
 

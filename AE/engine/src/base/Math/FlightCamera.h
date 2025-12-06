@@ -77,7 +77,7 @@ namespace AE::Base
 	void  TFlightCamera<T>::SetPerspective (Rad fovY, T aspectRatio, T zNear, T zFar, Bool reverseZ) __NE___
 	{
 		_camera.SetPerspective( fovY, aspectRatio, Vec2_t{zNear, zFar}, reverseZ );
-		_frustum.Setup( _camera );
+		_frustum.Setup( _camera, Vec2_t{zNear, zFar} );
 	}
 
 /*
@@ -122,7 +122,7 @@ namespace AE::Base
 			Quat_t::RotateY( -yaw ) * q;
 		q.Normalize();
 
-		_frustum.Setup( _camera );
+		_frustum.Setup( _camera, _camera.projection.ExtractClipPlanes() );
 		return *this;
 	}
 

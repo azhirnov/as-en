@@ -26,7 +26,7 @@
 				dim		 = 1<<9;
 				iter_cnt = 1<<6;
 				break;
-				
+
 			case EGPUVendor::ARM :			// Mali
 				wg_size = uint2(8,8);
 				iter_cnt = 1<<4;
@@ -42,7 +42,7 @@
 				iter_cnt = 1<<8;
 				break;
 		}
-		
+
 		RC<Image>			rt			= Image( EPixelFormat::RGBA8_UNorm, uint2(dim) );
 		RC<DynamicUInt>		count		= DynamicUInt();
 		RC<DynamicUInt>		mode		= DynamicUInt();
@@ -102,7 +102,7 @@
 	#define type2		half2
 	#define type4		half4
 	#define itype		sshort
-	
+
 	#define FOR()		[[unroll]] for (int i = 0, cnt = COUNT; i < cnt; ++i)
 
 	#ifdef SH_COMPUTE
@@ -140,7 +140,7 @@
 				a += p;  a -= t;
 			}
 			OUTPUT(a);
-			
+
 		#elif MODE == V4_ADD2
 			type4	a = t;
 			type4	b = p;

@@ -363,7 +363,7 @@ namespace _hidden_
 	{
 		return a.Max( b );
 	}
-	
+
 /*
 =================================================
 	Clamp
@@ -417,7 +417,7 @@ namespace _hidden_
 	}
 
 //-----------------------------------------------------------------------------
-	
+
 # ifdef AE_COMPILER_GCC
 #	pragma GCC diagnostic push
 #	pragma GCC diagnostic ignored "-Wignored-attributes"
@@ -483,7 +483,7 @@ namespace _hidden_
 	template <typename T>	struct TZeroMemAvailable< SimdTInt64<T> >	: TZeroMemAvailable< typename SimdTInt64<T>::Native_t >{};
 	template <typename T>	struct TUnwrap< SimdTInt64<T> >				: TUnwrap< typename SimdTInt64<T>::Scalar_t >{};
 # endif
-	
+
 # ifdef AE_COMPILER_GCC
 #	pragma GCC diagnostic pop
 # endif

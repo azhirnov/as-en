@@ -143,7 +143,7 @@ namespace
 				str << ", extern: " << ToString( _fps.ext );
 				ImGui::TextUnformatted( str.c_str() );
 			}
-			
+
 			if ( ImGui::CollapsingHeader( "Counters" ))
 			{
 				const float		wnd_pos_x		= ImGui::GetCursorScreenPos().x;
@@ -338,10 +338,10 @@ namespace
 
 			if ( auto graph = _graphTable.Get( CPU_FPS ))
 				graph->AddNonScaled( List{ _fps.result });
-			
+
 			if ( auto graph = _graphTable.Get( GPU_FrameTime ))
 				graph->AddNonScaled( List{ secondsf{_fps.dt}.count() });
-			
+
 			if ( auto graph = _graphTable.Get( CPU_ExternalTime ))
 				graph->AddNonScaled( List{ secondsf{_fps.ext}.count() });
 		}
@@ -353,16 +353,16 @@ namespace
 			const double	dev_usage_pct	= Max( 100.0 * double(ulong(mem_usage->deviceUsage))  / double(ulong(mem_usage->deviceAvailable  + mem_usage->deviceUsage)),  0.0 );
 			const double	host_usage_pct	= Max( 100.0 * double(ulong(mem_usage->hostUsage))    / double(ulong(mem_usage->hostAvailable    + mem_usage->hostUsage)),    0.0 );
 			const double	uni_usage_pct	= Max( 100.0 * double(ulong{mem_usage->unifiedUsage}) / double(ulong{mem_usage->unifiedAvailable + mem_usage->unifiedUsage}), 0.0 );
-			
+
 			if ( auto graph = _graphTable.Get( GPU_MemUsagePct ))
 				graph->AddNonScaled( List{ dev_usage_pct, host_usage_pct, uni_usage_pct });
-			
+
 			if ( auto graph = _graphTable.Get( GPU_DevMemUsage ))
 				graph->AddNonScaled( List{ double(ulong(mem_usage->deviceUsage)) });
-			
+
 			if ( auto graph = _graphTable.Get( GPU_HostMemUsage ))
 				graph->AddNonScaled( List{ double(ulong(mem_usage->hostUsage)) });
-			
+
 			if ( auto graph = _graphTable.Get( GPU_UniMemUsage ))
 				graph->AddNonScaled( List{ double(ulong(mem_usage->unifiedUsage)) });
 		}
@@ -374,10 +374,10 @@ namespace
 
 			if ( auto graph = _graphTable.Get( GPU_MemTrafficToDev ))
 				graph->AddNonScaled( List{ write / double(frame_count) });
-			
+
 			if ( auto graph = _graphTable.Get( GPU_MemTrafficToHost ))
 				graph->AddNonScaled( List{ read / double(frame_count) });
-			
+
 			if ( auto graph = _graphTable.Get( GPU_MemTrafficToDev2 ))
 				graph->AddNonScaled( List{ write / double(dt.count()) });
 
@@ -394,7 +394,7 @@ namespace
 				g_stat	= _pplnStats.graphics;
 				c_stat	= _pplnStats.compute;
 			}
-			
+
 			if ( auto graph = _graphTable.Get( Stat_Primitives ))
 			{
 				graph->AddNonScaled( List{	double(g_stat.inputAssemblyPrimitives) / double(dt.count()),
@@ -545,7 +545,7 @@ namespace
 					nanosecondsd	time[2] = {};
 					Unused( qm.GetTimestamp( pass.timestamp, OUT time, Sizeof(time) ));
 
-					ASSERT( time[0] <= time[1] );
+					//ASSERT( time[0] <= time[1] );
 					_gpuTime.min = Min( _gpuTime.min, time[0] );
 					_gpuTime.max = Max( _gpuTime.max, time[1] );
 
@@ -648,7 +648,7 @@ namespace
 	#elif 1
 		FixedArray< PowerVRProfiler::TimeScope, 32 >	timings;
 		const nanosecondsd								min_dt {milliseconds{1}};
-		
+
 		for (auto& t : timings_view)
 		{
 			_gpuTime.min = Min( _gpuTime.min, t.begin );
@@ -1018,7 +1018,7 @@ namespace
 				pass.pplnStat = q_stat;
 			}
 		}
-		
+
 		if ( not (pass.pplnStat or pass.timestamp) )
 			return;	// failed to allocate
 

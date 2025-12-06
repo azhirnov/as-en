@@ -16,6 +16,6 @@ namespace AE::PipelineCompiler
 	public:
 		ND_ static bool  Serialize (Serializing::Serializer &ser) __NE___;
 	};
-	
+
 } // AE::PipelineCompiler
 #endif // AE_BUILD_PIPELINE_COMPILER

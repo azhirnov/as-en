@@ -213,7 +213,7 @@ namespace AE::Base
 		StaticAssert( V5 < count );
 		StaticAssert( V6 < count );
 		StaticAssert( V7 < count );
-		
+
 		using Req	= UIntSequence< V0, V1, V2, V3, V4, V5, V6, V7 >;
 		using ReqHi	= UIntSequence< V4, V5, V6, V7 >;
 		using ReqLo	= UIntSequence< V0, V1, V2, V3 >;
@@ -263,7 +263,7 @@ namespace AE::Base
 		{
 			return Self{ _mm256_moveldup_ps( _value )};
 		}
-		
+
 		// AVX2
 		__m256i indices = _mm256_set_epi32( V7, V6, V5, V4, V3, V2, V1, V0 );
 		return Self{ _mm256_permutevar8x32_ps( _value, indices )};
@@ -294,14 +294,14 @@ namespace AE::Base
 
 /*
 =================================================
-	SwizzleLanes
+	SwizzleParts
 =================================================
 */
 	template <uint Low, uint High>
-	SimdFloat8  SimdFloat8::SwizzleLanes () C_NE___
+	SimdFloat8  SimdFloat8::SwizzleParts () C_NE___
 	{
-		StaticAssert( Low  < lanes );
-		StaticAssert( High < lanes );
+		StaticAssert( Low  < parts );
+		StaticAssert( High < parts );
 		return Self{_mm256_permute2f128_ps( _value, _value, Low | (High<<4) )};
 	}
 
@@ -476,14 +476,14 @@ namespace AE::Base
 
 /*
 =================================================
-	SwizzleLanes
+	SwizzleParts
 =================================================
 */
 	template <uint Low, uint High>
-	SimdDouble4  SimdDouble4::SwizzleLanes () C_NE___
+	SimdDouble4  SimdDouble4::SwizzleParts () C_NE___
 	{
-		StaticAssert( Low  < lanes );
-		StaticAssert( High < lanes );
+		StaticAssert( Low  < parts );
+		StaticAssert( High < parts );
 		return Self{_mm256_permute2f128_pd( _value, _value, Low | (High<<4) )};
 	}
 
@@ -905,10 +905,10 @@ namespace AE::Base
 	auto  SimdTInt256<IT>::ToDouble () C_NE___
 	{
 		if constexpr( isI32 )
-			return Lane<Idx>()._IntToDouble4();
+			return Part<Idx>()._IntToDouble4();
 
 		if constexpr( isU32 )
-			return Lane<Idx>()._UIntToDouble4();
+			return Part<Idx>()._UIntToDouble4();
 
 	  #if AE_SIMD_AVX >= 2
 		if constexpr( is8 )
@@ -1696,15 +1696,15 @@ namespace AE::Base
 
 /*
 =================================================
-	SwizzleLanes
+	SwizzleParts
 =================================================
 */
 	template <typename IT>
 	template <uint Low, uint High>
-	SimdTInt256<IT>  SimdTInt256<IT>::SwizzleLanes () C_NE___
+	SimdTInt256<IT>  SimdTInt256<IT>::SwizzleParts () C_NE___
 	{
-		StaticAssert( Low  < lanes );
-		StaticAssert( High < lanes );
+		StaticAssert( Low  < parts );
+		StaticAssert( High < parts );
 		return Self{_mm256_permute2x128_si256( _value, _value, Low | (High << 4) )};
 	}
 
@@ -1722,9 +1722,9 @@ namespace AE::Base
 		if constexpr( is8 )
 		{
 			StaticAssert( Idx < 2 );
-			const auto	lane = Lane<Idx>()._value;
-			if constexpr( isI8 )	return SimdShort16{ _mm256_cvtepi8_epi16( lane )};
-			else					return SimdUShort16{_mm256_cvtepu8_epi16( lane )};
+			const auto	part = Part<Idx>()._value;
+			if constexpr( isI8 )	return SimdShort16{ _mm256_cvtepi8_epi16( part )};
+			else					return SimdUShort16{_mm256_cvtepu8_epi16( part )};
 		}
 	}
 
@@ -1742,12 +1742,12 @@ namespace AE::Base
 		if constexpr( is8 )
 		{
 			StaticAssert( Idx < 4 );
-			const auto	lane = Lane<Idx/2>()._value;
+			const auto	part = Part<Idx/2>()._value;
 			if constexpr( (Idx & 1) == 0 ){
-				if constexpr( isI8 )	return SimdInt8{ _mm256_cvtepi8_epi32( lane )};
-				else					return SimdUInt8{_mm256_cvtepu8_epi32( lane )};
+				if constexpr( isI8 )	return SimdInt8{ _mm256_cvtepi8_epi32( part )};
+				else					return SimdUInt8{_mm256_cvtepu8_epi32( part )};
 			}else{
-				auto	high = _mm_shuffle_epi32( lane, _MM_SHUFFLE( 3, 2, 3, 2 ));
+				auto	high = _mm_shuffle_epi32( part, _MM_SHUFFLE( 3, 2, 3, 2 ));
 				if constexpr( isI8 )	return SimdInt8{ _mm256_cvtepi8_epi32( high )};
 				else					return SimdUInt8{_mm256_cvtepu8_epi32( high )};
 			}
@@ -1756,9 +1756,9 @@ namespace AE::Base
 		if constexpr( is16 )
 		{
 			StaticAssert( Idx < 2 );
-			const auto	lane = Lane<Idx>()._value;
-			if constexpr( isI16 )	return SimdInt8{ _mm256_cvtepi16_epi32( lane )};
-			else					return SimdUInt8{_mm256_cvtepu16_epi32( lane )};
+			const auto	part = Part<Idx>()._value;
+			if constexpr( isI16 )	return SimdInt8{ _mm256_cvtepi16_epi32( part )};
+			else					return SimdUInt8{_mm256_cvtepu16_epi32( part )};
 		}
 	}
 
@@ -1776,12 +1776,12 @@ namespace AE::Base
 		if constexpr( is8 )
 		{
 			StaticAssert( Idx < 8 );
-			const auto	lane = Lane<Idx/4>()._value;
+			const auto	part = Part<Idx/4>()._value;
 			if constexpr( Idx == 0 ){
-				if constexpr( isI8 )	return SimdLong4{ _mm256_cvtepi8_epi64( lane )};
-				else					return SimdULong4{_mm256_cvtepu8_epi64( lane )};
+				if constexpr( isI8 )	return SimdLong4{ _mm256_cvtepi8_epi64( part )};
+				else					return SimdULong4{_mm256_cvtepu8_epi64( part )};
 			}else{
-				auto	p = _mm_shuffle_epi32( lane, _MM_SHUFFLE( 0, 0, 0, Idx&3 ));
+				auto	p = _mm_shuffle_epi32( part, _MM_SHUFFLE( 0, 0, 0, Idx&3 ));
 				if constexpr( isI8 )	return SimdLong4{ _mm256_cvtepi8_epi64( p )};
 				else					return SimdULong4{_mm256_cvtepu8_epi64( p )};
 			}
@@ -1790,12 +1790,12 @@ namespace AE::Base
 		if constexpr( is16 )
 		{
 			StaticAssert( Idx < 4 );
-			const auto	lane = Lane<Idx/2>()._value;
+			const auto	part = Part<Idx/2>()._value;
 			if constexpr( (Idx & 1) == 0 ){
-				if constexpr( isI16 )	return SimdLong4{ _mm256_cvtepi16_epi64( lane )};
-				else					return SimdULong4{_mm256_cvtepu16_epi64( lane )};
+				if constexpr( isI16 )	return SimdLong4{ _mm256_cvtepi16_epi64( part )};
+				else					return SimdULong4{_mm256_cvtepu16_epi64( part )};
 			}else{
-				auto	high = _mm_shuffle_epi32( lane, _MM_SHUFFLE( 3, 2, 3, 2 ));
+				auto	high = _mm_shuffle_epi32( part, _MM_SHUFFLE( 3, 2, 3, 2 ));
 				if constexpr( isI16 )	return SimdLong4{ _mm256_cvtepi16_epi64( high )};
 				else					return SimdULong4{_mm256_cvtepu16_epi64( high )};
 			}
@@ -1804,9 +1804,9 @@ namespace AE::Base
 		if constexpr( is32 )
 		{
 			StaticAssert( Idx < 2 );
-			const auto	lane = Lane<Idx>()._value;
-			if constexpr( isI32 )	return SimdLong4{ _mm256_cvtepi32_epi64( lane )};
-			else					return SimdULong4{_mm256_cvtepu32_epi64( lane )};
+			const auto	part = Part<Idx>()._value;
+			if constexpr( isI32 )	return SimdLong4{ _mm256_cvtepi32_epi64( part )};
+			else					return SimdULong4{_mm256_cvtepu32_epi64( part )};
 		}
 	}
 

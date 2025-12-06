@@ -252,7 +252,7 @@ namespace
 			case aiTextureType_SHEEN :				GET_COLOR( AI_MATKEY_SHEEN_COLOR_FACTOR );
 			case aiTextureType_CLEARCOAT :			break;
 			case aiTextureType_TRANSMISSION :		break;
-				
+
 			case aiTextureType_MAYA_BASE :
 			case aiTextureType_MAYA_SPECULAR :
 			case aiTextureType_MAYA_SPECULAR_COLOR :

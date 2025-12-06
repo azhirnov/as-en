@@ -12,9 +12,9 @@ if (${AE_ENABLE_VULKAN} AND WIN32)
 
 	target_compile_definitions( "FeatureSetGen" PRIVATE
 		"FEATURE_SET_FOLDER=Path{\"${AE_ENGINE_SHARED_DATA}/feature_set\"}"
-		"DEVICE_INFO_FOLDER=Path{\"${CMAKE_CURRENT_SOURCE_DIR}/../dev_info\"}"
+		"DEVICE_INFO_FOLDER=Path{\"${CMAKE_CURRENT_SOURCE_DIR}/../device_info\"}"
 		"OUTPUT_FOLDER=Path{\"${CMAKE_CURRENT_SOURCE_DIR}/_output\"}"
 	)
-	
+
 	UseEnginePCH2( "FeatureSetGen" )
 endif()

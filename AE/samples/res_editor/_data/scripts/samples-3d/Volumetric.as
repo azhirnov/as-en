@@ -86,7 +86,7 @@
 		const float		step			= max_depth / float(c_MaxSteps);
 		const float3	center			= AABB_Center( c_VolumeAABB );
 		const float3	box_size		= AABB_Size( c_VolumeAABB );
-		
+
 		const uint		c_MaxLightSteps	= 10;
 
 		const float		light_step		= max_depth / float(c_MaxLightSteps) * iLightStep;
@@ -104,7 +104,7 @@
 		{
 			float3	local_pos	= ray.pos - center;
 			float	density		= -Density( local_pos );
-			
+
 			if ( density > 0.0 )
 			{
 				float	density_along_light = 0.0;

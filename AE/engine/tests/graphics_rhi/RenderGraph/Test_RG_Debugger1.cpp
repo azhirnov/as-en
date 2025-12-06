@@ -94,7 +94,7 @@ namespace
 
 		auto	task1 = ctx.ReadbackImage( t.img, Default );
 		auto	task2 = t.debugger.ReadAll( ctx );
-		
+
 		t.result =
 			[] (auto readOp, auto dbgRes, auto& t) -> InlineCoro<>
 			{
@@ -108,20 +108,20 @@ namespace
 				if ( trace_str.size() == 1 )
 				{
 					const StringView	ref_str =
-R"(//> gl_GlobalInvocationID: uint3 {8, 8, 0}
-//> gl_LocalInvocationID: uint3 {0, 0, 0}
-//> gl_WorkGroupID: uint3 {1, 1, 0}
+R"(//> gl_GlobalInvocationID: uint3 {8, 8, 0} | {0x8, 0x8, 0x0}
+//> gl_LocalInvocationID: uint3 {0, 0, 0} | {0x0, 0x0, 0x0}
+//> gl_WorkGroupID: uint3 {1, 1, 0} | {0x1, 0x1, 0x0}
 no source
 
 //> color: float4 {0.000000, 0.000000, 1.000000, 0.000000}
-//  gl_LocalInvocationID: uint3 {0, 0, 0}
+//  gl_LocalInvocationID: uint3 {0, 0, 0} | {0x0, 0x0, 0x0}
 7. color = vec4(float(gl_LocalInvocationID.x) / float(gl_WorkGroupSize.x),
 8. 					  float(gl_LocalInvocationID.y) / float(gl_WorkGroupSize.y),
 9. 					  1.0, 0.0);
 
 //> imageStore(): void
 //  color: float4 {0.000000, 0.000000, 1.000000, 0.000000}
-//  gl_GlobalInvocationID: uint3 {8, 8, 0}
+//  gl_GlobalInvocationID: uint3 {8, 8, 0} | {0x8, 0x8, 0x0}
 11. 	imageStore( un_OutImage, ivec2(gl_GlobalInvocationID.xy), color );
 
 )";
@@ -132,7 +132,7 @@ no source
 				}
 			}
 			( task1.readOp, task2, t );
-		
+
 		ctx.AccumBarriers().MemoryBarrier( EResourceState::CopyDst, EResourceState::Host_Read );
 
 		RenderCoro_Execute( ctx );

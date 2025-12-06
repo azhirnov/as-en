@@ -254,7 +254,7 @@ namespace AE::Base
 
 	template <typename T>
 	static constexpr bool	IsNothrowMoveCtor		= TNothrowMoveCtor<T>::value;
-	
+
 	template <typename ...Types>
 	static constexpr bool	AllNothrowMoveCtor		= (... and IsNothrowMoveCtor<Types>);
 
@@ -272,13 +272,13 @@ namespace AE::Base
 
 	template <typename T>
 	static constexpr bool	IsNothrowCopyAssignable	= TNothrowCopyAssignable<T>::value;
-	
+
 	template <typename ...Types>
 	static constexpr bool	AllNothrowCopyAssignable	= (... and IsNothrowCopyAssignable<Types>);
 
 	template <typename T>
 	static constexpr bool	IsNothrowMoveAssignable	= TNothrowMoveAssignable<T>::value;
-	
+
 	template <typename ...Types>
 	static constexpr bool	AllNothrowMoveAssignable	= (... and IsNothrowMoveAssignable<Types>);
 
@@ -387,7 +387,7 @@ namespace AE::Base
 
 		template <template <typename ...> class T>
 		struct _IsSameTemplates< T, T >	: CT_True {};
-		
+
 		template <typename T, usize = sizeof(T)>
 		CT_True   _IsCompleteType2 (T*);
 		CT_False  _IsCompleteType2 (...);
@@ -406,13 +406,13 @@ namespace AE::Base
 
 	template <template <typename ...> class Left, template <typename ...> class Right>
 	static constexpr bool	IsSameTemplates		= Base::_hidden_::_IsSameTemplates< Left, Right >::value;
-	
+
 	template <typename T>
 	struct TIsCompleteType : Base::_hidden_::_IsCompleteType< RemoveAllQualifiers<T> > {};
 
 	template <typename T>
 	static constexpr bool	IsCompleteType		= TIsCompleteType< T >::value;
-	
+
 	template <typename ...Types>
 	static constexpr bool	AllTypesAreComplete	= (... and IsCompleteType<Types>);
 
@@ -501,7 +501,7 @@ namespace AE::Base
 	#define IsConstExpr( ... )	(AE::Base::_hidden_::_is_constexpr([]{ __VA_ARGS__; }))
 //-----------------------------------------------------------------------------
 
-	
+
 
 	template <typename T>
 	static constexpr bool	IsScalarOrEnum		= IsScalar<T> or IsEnum<T>;
@@ -727,7 +727,7 @@ namespace AE::Base
 
 	template <typename T>
 	static constexpr bool	IsTriviallyConstructible = TTriviallyConstructible< RemoveCV<T> >::value;
-	
+
 /*
 =================================================
 	IsTriviallyMovable

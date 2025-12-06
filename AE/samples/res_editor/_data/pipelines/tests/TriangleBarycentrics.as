@@ -128,7 +128,7 @@
 
 		// v1 from 'The Forge'
 		float3	bar2	= CalcFullBary( p0, p1, p2, GetGlobalCoordSNorm().xy, 2.0 * un_PerPass.invResolution ).m_lambda;
-		
+
 		// v2 from 'The Forge'
 		// only for perspective projection
 		float3	bar3	= CalcRayBary( LocalToWorldSpace( un_VBuffer.vertices[iShape*3+0] ),

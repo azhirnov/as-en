@@ -152,7 +152,7 @@ namespace
 
 		ND_ VkPipelineStageFlags	ConvertVkPipelineStageFlags2 (VkPipelineStageFlags2 inStages, SyncScope scope)	C_NE___;
 		ND_ VkAccessFlags			ConvertVkAccessFlags2 (VkAccessFlags2 inAccess, VkPipelineStageFlags2 inStages)	C_NE___;
-		
+
 		ND_ static VulkanEmulation&				Get ()		__NE___	{ return *_Instance(); }
 
 		ND_ static InPlace<VulkanEmulation>&  _Instance ()	__NE___
@@ -224,7 +224,7 @@ namespace
 
 				if ( ext_name == VK_EXT_RASTERIZATION_ORDER_ATTACHMENT_ACCESS_EXTENSION_NAME )
 					has_ext_raster_order = true;
-				
+
 				if ( ext_name == VK_ARM_RASTERIZATION_ORDER_ATTACHMENT_ACCESS_EXTENSION_NAME )
 					has_arm_raster_order = true;
 			}

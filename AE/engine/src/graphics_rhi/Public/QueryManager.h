@@ -43,14 +43,14 @@ namespace AE::Graphics
 
 			void  operator += (const GraphicsPipelineStatistic &) __NE___;
 		};
-		
+
 		struct ComputePipelineStatistic
 		{
 			ulong	computeInvocations;			// VK_QUERY_PIPELINE_STATISTIC_COMPUTE_SHADER_INVOCATIONS_BIT
-			
+
 			void  operator += (const ComputePipelineStatistic &) __NE___;
 		};
-		
+
 		struct MeshPipelineStatistic : GraphicsPipelineStatistic
 		{
 			// requires 'meshShaderQueries' feature
@@ -109,7 +109,7 @@ namespace AE::Graphics
 		virtual bool  GetPipelineStatistic (const IQuery &, OUT MeshPipelineStatistic* result, Bytes size)				C_NE___ = 0;
 	};
 
-	
+
 /*
 =================================================
 	operator +=

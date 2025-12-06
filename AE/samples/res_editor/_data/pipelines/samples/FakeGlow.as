@@ -79,7 +79,7 @@
 			out_Color = float4( SDF_Isolines( d * 10.0 ), 1.0 );
 		else
 			out_Color = float4( d*d );
-		
+
 	#ifdef AE_fragment_shader_barycentric
 		if ( iWire == 1 )
 			out_Color += float4(1.0, 1.0, 0.0, 0.0) * (1.0 - FSBarycentricWireframe( 1.0, 2.5 ).x);

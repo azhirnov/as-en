@@ -25,7 +25,7 @@ namespace AE::Networking
 			// Warning: attacker may use it to open socket and avoid firewall.
 			// Used only for 'Listen()'.
 			bool	reuseAddress	= false;
-			
+
 			// Used only for 'Listen()'.
 			uint	maxConnections	= UMax;
 

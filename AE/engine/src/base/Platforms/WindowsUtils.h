@@ -76,7 +76,7 @@ namespace AE::Base
 			static bool		SetCurrentThreadAffinity (uint logicalCoreIdx)					__NE___;
 			static bool		ResetCurrentThreadAffinity ()									__NE___;
 			static bool		SetCurrentThreadPriority (EThreadPriority priority)				__NE___;
-			
+
 			static bool		SetThreadThrottling (const ThreadHandle &, EThreadPowerThrottling)	__NE___;
 
 		ND_	static uint		GetLogicalCoreIndex ()											__NE___;
@@ -96,7 +96,10 @@ namespace AE::Base
 													StringView			ruleName,
 													Bool				inbound,
 													Bool				isTCP,
-													ArrayView<ushort>	ports)					__NE___;
+													ArrayView<ushort>	ports)				__NE___;
+
+		ND_ static bool		IsRunningAsAdmin ()												__NE___;
+		ND_ static bool		RunAsAdmin (const Path &path)									__NE___;
 
 
 		// OS //
@@ -134,6 +137,10 @@ namespace AE::Base
 		ND_ static bool		ClipboardPut (NtWStringView str, void* wnd = null)				__NE___;
 		ND_ static bool		ClipboardPut (NtStringView str, void* wnd = null)				__NE___;
 		ND_ static bool		ClipboardClear (void* wnd = null)								__NE___;
+
+
+		// Dialog //
+		ND_ static int		Dialog_OkCancel (NtStringView caption, NtStringView msg)		__NE___;
 
 
 		// Time //

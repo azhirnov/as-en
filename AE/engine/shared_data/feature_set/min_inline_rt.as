@@ -4,33 +4,46 @@
 void ASmain ()
 {
 	// include:
-	//	NVIDIA GeForce RTX 2080.json
-	//	AMD Radeon 780M driver 2.0.321 on Arch unknown
-	//	AMD Radeon Graphics (RADV PHOENIX) driver 25.0.1 on Ubuntu 22.04
-	//	AMD Radeon RX 6500 XT driver 2.0.220 on Windows 10
-	//	AMD Radeon RX 6750 XT (RADV NAVI22) driver 23.3.4 on Arch unknown
-	//	AMD Radeon RX 6800 XT driver 2.0.213 on Windows 10
-	//	AMD Radeon RX 6900 XT (RADV NAVI21) driver 22.2.99 on Debian unknown
-	//	AMD Radeon RX 7800 XT (RADV NAVI32) driver 24.0.99 on Arch unknown
-	//	AMD Radeon RX 7900 XTX (RADV GFX1100) driver 23.2.1 on Arch unknown
-	//	Intel(R) Arc(tm) A770M Graphics (DG2) driver 24.3.1 on Endeavouros unknown
-	//	Intel(R) Arc(tm) A770 Graphics (DG2) driver 23.3.3 on Arch unknown
-	//	Intel(R) Arc(TM) B580 Graphics driver 0.405.2156 on Windows 11
-	//	llvmpipe (LLVM 18.1.8, 256 bits) driver 0.0.1 on Arch unknown
-	//	llvmpipe (LLVM 20.1.0, 256 bits) driver 25.0.99 on Windows 11
-	//	NVIDIA GeForce RTX 2080 driver 553.31.0.0 on Windows 11
-	//	NVIDIA GeForce RTX 3060 Ti driver 553.22.0.0 on Windows 11
-	//	NVIDIA GeForce RTX 3090 driver 473.11.0.0 on Windows 10
-	//	NVIDIA GeForce RTX 4090 driver 526.98.0.0 on Windows 10
-	//	NVIDIA GeForce RTX 4090 driver 553.51.0.0 on Windows 11
-	//	NVIDIA Tegra Orin (nvgpu) driver 540.2.0.0 on Ubuntu 22.04
-	//	Qualcomm(R) Adreno(TM) X1-85 GPU driver 512.791.0 on Windows 11
-	//	Adreno driver 512.797.0 on Windows 11
-	//	samsung SM-S901B driver 2.0.0 on Android 14.0
-	//	Samsung Xclipse 920 driver 2.0.0 on Android 12.0
-	//	samsung SM-S926B driver 2.0.0 on Android 14.0
-	//	Snapdragon(R) X Elite - X1E80100 - Qualcomm(R) Adreno(TM) GPU driver 512.780.0 on Windows 11
-	//	vivo V2324A driver 44.1.0 on Android 14.0
+	//	Lin-AMD-RDNA3-780M-1.4.313
+	//	Lin-NV-RTX2000-1.4.312
+	//	Mesa-AMD-RDNA3-780M-1.4.328
+	//	Mesa-AMD-RDNA3.5-890M-1.4.318
+	//	Mesa-AMD-RDNA4-1.4.328
+	//	Mesa-Intel-Arc-1.4.318
+	//	Mesa-Intel-Xe1-1.4.328
+	//	Mesa-Intel-Xe2-1.4.318
+	//	Win-Adreno-X1-85-1.3.295
+	//	Win-AMD-RDNA2-1.4.315
+	//	Win-AMD-RDNA2-610M-1.4.315
+	//	Win-AMD-RDNA3-1.4.315
+	//	Win-AMD-RDNA3-780M-1.4.329
+	//	Win-AMD-RDNA3.5-8060S-1.4.325
+	//	Win-AMD-RDNA3.5-890M-1.4.329
+	//	Win-AMD-RDNA4-1.4.329
+	//	Win-Intel-Xe1-1.3.297
+	//	Win-Intel-Xe1-1.4.325
+	//	Win-Intel-Xe1-LPG-1.4.325
+	//	Win-Intel-Xe2-1.4.325
+	//	Win-Intel-Xe2-LPG-1.4.323
+	//	Win-llvmpipe-1.4.328
+	//	Win-NV-RTX2000-1.4.312
+	//	Win-NV-RTX3000-1.4.328
+	//	Win-NV-RTX4000-1.4.328
+	//	Win-NV-RTX5000-1.4.319
+	//	Adreno-740-1.3.128
+	//	Adreno-740-1.3.295
+	//	Adreno-830-1.3.284
+	//	Adreno-830-1.4.295
+	//	Mali-G615-1.3.247
+	//	Mali-G720-1.3.247
+	//	Mali-G720-1.3.278
+	//	Mali-G925-1.3.278
+	//	SamsungX920-1.1.179
+	//	SamsungX920-1.3.279
+	//	SamsungX940-1.3.231
+	//	SamsungX940-1.3.279
+	//	OculusQuest3-1.3.295
+	//	Pico4U-1.3.276
 	//	Apple9
 	//	Apple8
 	//	Apple8_Mac
@@ -53,15 +66,6 @@ void ASmain ()
 	fset.constantAlphaColorBlendFactors (True);
 	fset.largePoints (True);
 	fset.AddSubgroupOperationRange( ESubgroupOperation::_Basic_Begin, ESubgroupOperation::_Basic_End );
-	fset.AddSubgroupOperationRange( ESubgroupOperation::_Shuffle_Begin, ESubgroupOperation::_Shuffle_End );
-	fset.AddSubgroupOperationRange( ESubgroupOperation::_ShuffleRelative_Begin, ESubgroupOperation::_ShuffleRelative_End );
-	fset.AddSubgroupOperations({
-		ESubgroupOperation::Any, ESubgroupOperation::All, ESubgroupOperation::Add, ESubgroupOperation::Mul, 
-		ESubgroupOperation::Min, ESubgroupOperation::Max, ESubgroupOperation::And, ESubgroupOperation::Or, 
-		ESubgroupOperation::Xor, ESubgroupOperation::InclusiveMul, ESubgroupOperation::InclusiveAdd, ESubgroupOperation::ExclusiveAdd, 
-		ESubgroupOperation::ExclusiveMul, ESubgroupOperation::Ballot, ESubgroupOperation::Broadcast, ESubgroupOperation::BroadcastFirst, 
-		ESubgroupOperation::QuadBroadcast
-	});
 	fset.subgroupTypes(ESubgroupTypes(
 		ESubgroupTypes::Float32 | 
 		ESubgroupTypes::Int32 | 
@@ -73,10 +77,6 @@ void ASmain ()
 		EShaderStages::Fragment | 
 		EShaderStages::Compute
 	));
-	fset.subgroupQuadStages(EShaderStages(
-		EShaderStages::Fragment | 
-		EShaderStages::Compute
-	));
 	fset.minSubgroupSize (4);
 	fset.maxSubgroupSize (8);
 	fset.subgroup (True);
@@ -84,6 +84,7 @@ void ASmain ()
 	fset.shaderInt8 (True);
 	fset.shaderInt16 (True);
 	fset.shaderFloat16 (True);
+	fset.storageBuffer16BitAccess (True);
 	fset.storageBuffer8BitAccess (True);
 	fset.uniformBufferStandardLayout (True);
 	fset.scalarBlockLayout (True);
@@ -120,18 +121,18 @@ void ASmain ()
 	fset.perPipeline_maxStorageBuffersDynamic (4);
 	fset.perPipeline_maxTotalBuffersDynamic (8);
 	fset.perPipeline_maxInputAttachments (7);
-	fset.perPipeline_maxSampledImages (393210);
+	fset.perPipeline_maxSampledImages (500000);
 	fset.perPipeline_maxSamplers (1024);
-	fset.perPipeline_maxStorageBuffers (393210);
-	fset.perPipeline_maxStorageImages (393210);
+	fset.perPipeline_maxStorageBuffers (500000);
+	fset.perPipeline_maxStorageImages (500000);
 	fset.perPipeline_maxUniformBuffers (216);
 	fset.perPipeline_maxAccelStructures (16);
-	fset.perPipeline_maxTotalResources (512);
+	fset.perPipeline_maxTotalResources (1024);
 	fset.perStage_maxInputAttachments (7);
-	fset.perStage_maxSampledImages (65535);
+	fset.perStage_maxSampledImages (500000);
 	fset.perStage_maxSamplers (8192);
-	fset.perStage_maxStorageBuffers (65535);
-	fset.perStage_maxStorageImages (65535);
+	fset.perStage_maxStorageBuffers (500000);
+	fset.perStage_maxStorageImages (500000);
 	fset.perStage_maxUniformBuffers (36);
 	fset.perStage_maxAccelStructures (16);
 	fset.perStage_maxTotalResources (500000);
@@ -209,13 +210,13 @@ void ASmain ()
 		EPixelFormat::RGBA16_SNorm, EPixelFormat::RGBA8_SNorm, EPixelFormat::RG16_SNorm, EPixelFormat::RG8_SNorm, 
 		EPixelFormat::R16_SNorm, EPixelFormat::R8_SNorm, EPixelFormat::RGBA16_UNorm, EPixelFormat::RGBA8_UNorm, 
 		EPixelFormat::RG16_UNorm, EPixelFormat::RG8_UNorm, EPixelFormat::R16_UNorm, EPixelFormat::R8_UNorm, 
-		EPixelFormat::RGB10_A2_UNorm, EPixelFormat::BGRA8_UNorm, EPixelFormat::R8I, EPixelFormat::RG8I, 
-		EPixelFormat::RGBA8I, EPixelFormat::R16I, EPixelFormat::RG16I, EPixelFormat::RGBA16I, 
-		EPixelFormat::R32I, EPixelFormat::RG32I, EPixelFormat::RGBA32I, EPixelFormat::R8U, 
-		EPixelFormat::RG8U, EPixelFormat::RGBA8U, EPixelFormat::R16U, EPixelFormat::RG16U, 
-		EPixelFormat::RGBA16U, EPixelFormat::R32U, EPixelFormat::RG32U, EPixelFormat::RGBA32U, 
-		EPixelFormat::RGB10_A2U, EPixelFormat::R16F, EPixelFormat::RG16F, EPixelFormat::RGBA16F, 
-		EPixelFormat::R32F, EPixelFormat::RG32F, EPixelFormat::RGBA32F, EPixelFormat::R11G11B10F
+		EPixelFormat::RGB10_A2_UNorm, EPixelFormat::R8I, EPixelFormat::RG8I, EPixelFormat::RGBA8I, 
+		EPixelFormat::R16I, EPixelFormat::RG16I, EPixelFormat::RGBA16I, EPixelFormat::R32I, 
+		EPixelFormat::RG32I, EPixelFormat::RGBA32I, EPixelFormat::R8U, EPixelFormat::RG8U, 
+		EPixelFormat::RGBA8U, EPixelFormat::R16U, EPixelFormat::RG16U, EPixelFormat::RGBA16U, 
+		EPixelFormat::R32U, EPixelFormat::RG32U, EPixelFormat::RGBA32U, EPixelFormat::RGB10_A2U, 
+		EPixelFormat::R16F, EPixelFormat::RG16F, EPixelFormat::RGBA16F, EPixelFormat::R32F, 
+		EPixelFormat::RG32F, EPixelFormat::RGBA32F, EPixelFormat::R11G11B10F
 	});
 	fset.AddTexelFormats( EFormatFeature::AttachmentBlend, {
 		EPixelFormat::RGBA16_UNorm, EPixelFormat::RGBA8_UNorm, EPixelFormat::RG16_UNorm, EPixelFormat::RG8_UNorm, 

@@ -348,12 +348,12 @@ namespace AE::Base
 		}
 
 		// returns first 1 bit
-		ND_ T		GetFirstBit ()											C_NE___	{ return Load().GetFirstBit(); }
-		ND_ int		GetFirstBitIndex ()										C_NE___	{ return Load().GetFirstBitIndex(); }
+		ND_ T		GetLowBit ()											C_NE___	{ return Load().GetLowBit(); }
+		ND_ int		GetLowBitIndex ()										C_NE___	{ return Load().GetLowBitIndex(); }
 
 		// change first 0 bit to 1
-		ND_ int		SetFirstZeroBitIndex ()									__NE___	{ return IntLog2( SetFirstZeroBit() ); }
-		ND_ T		SetFirstZeroBit ()										__NE___
+		ND_ int		ExtractLowZeroBitIndex ()								__NE___	{ return IntLog2( ExtractLowZeroBit() ); }
+		ND_ T		ExtractLowZeroBit ()									__NE___
 		{
 			for (T bits = _value.load( EMemoryOrder::Relaxed );;)
 			{
@@ -365,8 +365,8 @@ namespace AE::Base
 		}
 
 		// returns first 0 bit
-		ND_ int		GetFirstZeroBitIndex ()									C_NE___	{ return Load().GetFirstZeroBitIndex(); }
-		ND_ T		GetFirstZeroBit ()										C_NE___	{ return Load().GetFirstZeroBit(); }
+		ND_ int		GetLowZeroBitIndex ()									C_NE___	{ return Load().GetLowZeroBitIndex(); }
+		ND_ T		GetLowZeroBit ()										C_NE___	{ return Load().GetLowZeroBit(); }
 
 	private:
 		Nd__IF static T  _Range (usize first, usize count)					__NE___	{ ASSERT( first < _BitCount );  ASSERT( first+count <= _BitCount );  return ToBitMask<T>( count ) << first; }

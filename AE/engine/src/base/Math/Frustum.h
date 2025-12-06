@@ -25,13 +25,23 @@ namespace AE::Base
 
 		enum class EPlane
 		{
-			Near,
-			Far,
-			Left,
-			Right,
-			Top,
-			Bottom,
+			Near	= 0,
+			Far		= 1,
+			Left	= 2,
+			Right	= 3,
+			Top		= 4,
+			Bottom	= 5,
 			_Count
+		};
+
+		struct Rays
+		{
+			Vec3_t	leftTop;
+			Vec3_t	leftBottom;
+			Vec3_t	rightTop;
+			Vec3_t	rightBottom;
+
+			ND_ Vec3_t const&	operator [] (usize idx)		C_NE___	{ ASSERT( idx < 4 );  return (&leftTop)[idx]; }
 		};
 
 	private:
@@ -46,7 +56,7 @@ namespace AE::Base
 		struct Plane
 		{
 			Vec3_t		norm;
-			Value_t		dist;
+			Value_t		dist	= T{0};
 
 			ND_ explicit operator float4 ()		C_NE___	{ return float4{ norm, dist }; }
 		};
@@ -67,35 +77,40 @@ namespace AE::Base
 	public:
 		TFrustum ()															__NE___ {}
 
-			void  Setup (const Matrix<T,4,4> &mvp)							__NE___;
-			void  Setup (const TCamera<T> &camera)							__NE___;
-			void  Setup (const TCamera<T> &camera, const Vec2_t &range)		__NE___;
+			void  Setup (const Matrix<T,4,4> &vp, const Vec2_t &clipPlanes)	__NE___;
+			void  Setup (const TCamera<T> &camera, const Vec2_t &clipPlanes)__NE___;
+
+			bool  FromCornerPoints (ArrayView<Vec3_t> points)				__NE___;
+			void  FromRays (const Rays &rays, const Vec2_t &clipPlanes)		__NE___;
 
 		ND_ bool  IsVisible (const BoundingSphere<T> &)						C_NE___;
 		ND_ bool  IsVisible (const AxisAlignedBoundingBox<T> &)				C_NE___;
 		ND_ bool  IsVisible (const Vec3_t &point)							C_NE___;
 		ND_ bool  IsVisible (const TFrustum<T> &)							C_NE___;
 
+		ND_ bool  GetRays (OUT Rays &rays)									C_NE___;
+
+		ND_ Plane const&	GetPlane (EPlane type)							C_NE___	{ return _planes[ uint(type) ]; }
+		ND_ Plane const&	GetPlane (uint idx)								C_NE___	{ return _planes[ idx ]; }
+
+		ND_ auto			ToAABB ()										C_NE___ -> AxisAlignedBoundingBox<T>;
+
+		ND_ Vec3_t			GetRay (const Vec2_t &unormCoord)				C_NE___;
+
 		// experimental
 			void  Test (const AxisAlignedBoundingBox<T> &,
 						OUT bool &isVisible, OUT float &detailLevel)		C_NE___;
 
-		ND_ Plane const&				GetPlane (EPlane type)				C_NE___	{ return _planes[ uint(type) ]; }
-		ND_ Plane const&				GetPlane (uint idx)					C_NE___	{ return _planes[ idx ]; }
-
-		ND_ AxisAlignedBoundingBox<T>	ToAABB ()							C_NE___;
-
-		ND_ Vec3_t						GetRay (const Vec2_t &unormCoord)	C_NE___;
-
-
-		bool  GetRays (OUT Vec3_t &leftTop, OUT Vec3_t &leftBottom,
-					   OUT Vec3_t &rightTop, OUT Vec3_t &rightBottom)		C_NE___;
-
 
 	private:
+		ND_ Plane &			_GetPlane (EPlane type)							__NE___	{ return _planes[ uint(type) ]; }
+
+
 		void  _SetPlane (EPlane type, T a, T b, T c, T d)					__NE___;
 		bool  _GetIntersection (EPlane lhs, EPlane rhs, OUT Vec3_t &result)	C_NE___;
 		void  _GetCorners (OUT StaticArray<Vec3_t, 8> &)					C_NE___;
+
+		ND_ Plane  _PlaneFromPoints (Vec3_t p0, Vec3_t p1, Vec3_t p2)		C_NE___;
 
 		ND_ Vec3_t  _IntersectPlanes (EPlane p0, EPlane p1, EPlane p2)		C_NE___;
 	};
@@ -107,20 +122,13 @@ namespace AE::Base
 =================================================
 */
 	template <typename T>
-	inline void  TFrustum<T>::Setup (const TCamera<T> &camera, const Vec2_t &) __NE___
+	void  TFrustum<T>::Setup (const TCamera<T> &camera, const Vec2_t &clipPlanes) __NE___
 	{
-		// temp
-		Setup( camera );
+		Setup( camera.ToViewProjMatrix(), clipPlanes );
 	}
 
 	template <typename T>
-	inline void  TFrustum<T>::Setup (const TCamera<T> &camera) __NE___
-	{
-		return Setup( camera.ToViewProjMatrix() );
-	}
-
-	template <typename T>
-	inline void  TFrustum<T>::Setup (const Matrix<T,4,4> &mat) __NE___
+	void  TFrustum<T>::Setup (const Matrix<T,4,4> &mat, const Vec2_t &clipPlanes) __NE___
 	{
 		_SetPlane( EPlane::Top,    mat[0][3] - mat[0][1], mat[1][3] - mat[1][1], mat[2][3] - mat[2][1], -mat[3][3] + mat[3][1] );
 		_SetPlane( EPlane::Bottom, mat[0][3] + mat[0][1], mat[1][3] + mat[1][1], mat[2][3] + mat[2][1], -mat[3][3] - mat[3][1] );
@@ -128,6 +136,10 @@ namespace AE::Base
 		_SetPlane( EPlane::Right,  mat[0][3] - mat[0][0], mat[1][3] - mat[1][0], mat[2][3] - mat[2][0], -mat[3][3] + mat[3][0] );
 		_SetPlane( EPlane::Near,   mat[0][3] + mat[0][2], mat[1][3] + mat[1][2], mat[2][3] + mat[2][2], -mat[3][3] - mat[3][2] );
 		_SetPlane( EPlane::Far,    mat[0][3] - mat[0][2], mat[1][3] - mat[1][2], mat[2][3] - mat[2][2], -mat[3][3] + mat[3][2] );
+
+		// correction for Vulkan style matrix
+		_GetPlane( EPlane::Near ).dist = -clipPlanes.x;
+		_GetPlane( EPlane::Far  ).dist = clipPlanes.y;
 
 		DEBUG_ONLY( _initialized = true );
 	}
@@ -138,7 +150,7 @@ namespace AE::Base
 =================================================
 */
 	template <typename T>
-	inline void  TFrustum<T>::_SetPlane (EPlane type, T a, T b, T c, T d) __NE___
+	void  TFrustum<T>::_SetPlane (EPlane type, T a, T b, T c, T d) __NE___
 	{
 		const T	len		= Length(Vec3_t{ a, b, c });
 		const T	inv_len	= Equal( len, T{0}, _err ) ? T{1} : (T{1} / len);
@@ -152,7 +164,7 @@ namespace AE::Base
 =================================================
 */
 	template <typename T>
-	inline bool  TFrustum<T>::IsVisible (const Vec3_t &point) C_NE___
+	bool  TFrustum<T>::IsVisible (const Vec3_t &point) C_NE___
 	{
 		ASSERT( _initialized );
 
@@ -171,7 +183,7 @@ namespace AE::Base
 =================================================
 */
 	template <typename T>
-	inline bool  TFrustum<T>::IsVisible (const BoundingSphere<T> &sphere) C_NE___
+	bool  TFrustum<T>::IsVisible (const BoundingSphere<T> &sphere) C_NE___
 	{
 		ASSERT( _initialized );
 
@@ -191,7 +203,7 @@ namespace AE::Base
 =================================================
 */
 	template <typename T>
-	inline bool  TFrustum<T>::IsVisible (const AxisAlignedBoundingBox<T> &aabb) C_NE___
+	bool  TFrustum<T>::IsVisible (const AxisAlignedBoundingBox<T> &aabb) C_NE___
 	{
 		ASSERT( _initialized );
 
@@ -214,7 +226,7 @@ namespace AE::Base
 =================================================
 */
 	template <typename T>
-	inline void  TFrustum<T>::Test (const AxisAlignedBoundingBox<T> &aabb, OUT bool &isVisible, OUT float &detailLevel) C_NE___
+	void  TFrustum<T>::Test (const AxisAlignedBoundingBox<T> &aabb, OUT bool &isVisible, OUT float &detailLevel) C_NE___
 	{
 		ASSERT( _initialized );
 
@@ -246,7 +258,7 @@ namespace AE::Base
 =================================================
 */
 	template <typename T>
-	inline bool  TFrustum<T>::IsVisible (const TFrustum<T> &frustum) C_NE___
+	bool  TFrustum<T>::IsVisible (const TFrustum<T> &frustum) C_NE___
 	{
 		ASSERT( _initialized );
 
@@ -282,7 +294,7 @@ namespace AE::Base
 =================================================
 */
 	template <typename T>
-	inline AxisAlignedBoundingBox<T>  TFrustum<T>::ToAABB () C_NE___
+	auto  TFrustum<T>::ToAABB () C_NE___ -> AxisAlignedBoundingBox<T>
 	{
 		ASSERT( _initialized );
 
@@ -301,7 +313,7 @@ namespace AE::Base
 =================================================
 */
 	template <typename T>
-	inline void  TFrustum<T>::_GetCorners (OUT StaticArray<Vec3_t, 8> &result) C_NE___
+	void  TFrustum<T>::_GetCorners (OUT StaticArray<Vec3_t, 8> &result) C_NE___
 	{
 		result[0] = _IntersectPlanes( EPlane::Near, EPlane::Left,  EPlane::Bottom );
 		result[1] = _IntersectPlanes( EPlane::Near, EPlane::Left,  EPlane::Top    );
@@ -319,7 +331,7 @@ namespace AE::Base
 =================================================
 */
 	template <typename T>
-	inline typename TFrustum<T>::Vec3_t
+	typename TFrustum<T>::Vec3_t
 		TFrustum<T>::_IntersectPlanes (EPlane p0, EPlane p1, EPlane p2) C_NE___
 	{
 		auto&	P0	= _planes[ uint(p0) ];
@@ -330,7 +342,7 @@ namespace AE::Base
 		Vec3_t	cxa	= Cross( P2.norm, P0.norm );
 		Vec3_t	axb	= Cross( P0.norm, P1.norm );
 		Vec3_t	r	= -P0.dist * bxc - P1.dist * cxa - P2.dist * axb;
-		return r * (T{1} / Dot(P0.norm, bxc));
+		return r * (T{1} / Dot( P0.norm, bxc ));
 	}
 
 /*
@@ -341,14 +353,14 @@ namespace AE::Base
 =================================================
 */
 	template <typename T>
-	inline bool  TFrustum<T>::GetRays (OUT Vec3_t &leftTop, OUT Vec3_t &leftBottom, OUT Vec3_t &rightTop, OUT Vec3_t &rightBottom) C_NE___
+	bool  TFrustum<T>::GetRays (OUT Rays &rays) C_NE___
 	{
 		ASSERT( _initialized );
 
-		return	_GetIntersection( EPlane::Bottom, EPlane::Left,   OUT leftBottom  ) and
-				_GetIntersection( EPlane::Left,   EPlane::Top,    OUT leftTop     ) and
-				_GetIntersection( EPlane::Right,  EPlane::Bottom, OUT rightBottom ) and
-				_GetIntersection( EPlane::Top,    EPlane::Right,  OUT rightTop    );
+		return	_GetIntersection( EPlane::Left,		EPlane::Bottom,	OUT rays.leftBottom  ) and
+				_GetIntersection( EPlane::Top,		EPlane::Left,	OUT rays.leftTop     ) and
+				_GetIntersection( EPlane::Bottom,	EPlane::Right,	OUT rays.rightBottom ) and
+				_GetIntersection( EPlane::Right,	EPlane::Top,	OUT rays.rightTop    );
 	}
 
 /*
@@ -357,18 +369,16 @@ namespace AE::Base
 =================================================
 */
 	template <typename T>
-	inline typename TFrustum<T>::Vec3_t  TFrustum<T>::GetRay (const Vec2_t &unormCoord) C_NE___
+	typename TFrustum<T>::Vec3_t  TFrustum<T>::GetRay (const Vec2_t &unormCoord) C_NE___
 	{
-		Vec3_t	left_bottom, left_top, right_bottom, right_top;
-		_GetIntersection( EPlane::Bottom, EPlane::Left,   OUT left_bottom  );
-		_GetIntersection( EPlane::Left,   EPlane::Top,    OUT left_top     );
-		_GetIntersection( EPlane::Right,  EPlane::Bottom, OUT right_bottom );
-		_GetIntersection( EPlane::Top,    EPlane::Right,  OUT right_top    );
+		Rays	rays;
+		if ( not GetRays( OUT rays ))
+			return Vec3_t{};
 
-		const Vec3_t	vec	= Lerp( Lerp( left_bottom, right_bottom, unormCoord.x ),
-									Lerp( left_top, right_top, unormCoord.x ),
+		const Vec3_t	vec	= Lerp( Lerp( rays.leftBottom, rays.rightBottom, unormCoord.x ),
+									Lerp( rays.leftTop, rays.rightTop, unormCoord.x ),
 									unormCoord.y );
-		return normalize( vec );
+		return Normalize( vec );
 	}
 
 /*
@@ -377,7 +387,7 @@ namespace AE::Base
 =================================================
 */
 	template <typename T>
-	inline bool  TFrustum<T>::_GetIntersection (EPlane lhs, EPlane rhs, OUT Vec3_t &result) C_NE___
+	bool  TFrustum<T>::_GetIntersection (EPlane lhs, EPlane rhs, OUT Vec3_t &result) C_NE___
 	{
 		auto&	lp = _planes[ uint(lhs) ];
 		auto&	rp = _planes[ uint(rhs) ];
@@ -392,5 +402,77 @@ namespace AE::Base
 		return true;
 	}
 
+/*
+=================================================
+	_PlaneFromPoints
+=================================================
+*/
+	template <typename T>
+	typename TFrustum<T>::Plane
+		TFrustum<T>::_PlaneFromPoints (const Vec3_t p0, const Vec3_t p1, const Vec3_t p2) C_NE___
+	{
+		Vec3_t	v0	= p1 - p0;
+		Vec3_t	v1	= p2 - p0;
+		Vec3_t	n	= Cross( v0, v1 );
+		T		len	= Length( n );
+
+		if ( IsZero( len ))
+			return Plane{};
+
+		n /= len;
+
+		Plane	plane;
+		plane.norm	= n;
+		plane.dist	= -Dot( n, p0 );
+		return plane;
+	}
+
+/*
+=================================================
+	FromCornerPoints
+=================================================
+*/
+	template <typename T>
+	bool  TFrustum<T>::FromCornerPoints (ArrayView<Vec3_t> points) __NE___
+	{
+		CHECK_ERR( points.size() == 8 );
+
+		_planes[uint( EPlane::Near	 )] = _PlaneFromPoints( points[0], points[2], points[1] );
+		_planes[uint( EPlane::Far	 )] = _PlaneFromPoints( points[4], points[5], points[6] );
+		_planes[uint( EPlane::Left	 )] = _PlaneFromPoints( points[0], points[4], points[2] );
+		_planes[uint( EPlane::Right	 )] = _PlaneFromPoints( points[1], points[3], points[5] );
+		_planes[uint( EPlane::Top	 )] = _PlaneFromPoints( points[0], points[5], points[4] );
+		_planes[uint( EPlane::Bottom )] = _PlaneFromPoints( points[2], points[6], points[3] );
+		return true;
+	}
+
+/*
+=================================================
+	FromRays
+=================================================
+*/
+	template <typename T>
+	void  TFrustum<T>::FromRays (const Rays &rays, const Vec2_t &clipPlanes) __NE___
+	{
+		const auto	CreatePlane = [](const Vec3_t &r0, const Vec3_t &r1, const Vec3_t &origin)
+		{{
+			Plane	plane;
+			plane.norm	= Normalize( Cross( r0, r1 ));
+			plane.dist	= -Dot( plane.norm, origin );
+			return plane;
+		}};
+
+		const Vec3_t	origin; // zero
+
+		_planes[uint( EPlane::Left	 )] = CreatePlane( rays.leftTop,	 rays.leftBottom,	origin );
+		_planes[uint( EPlane::Right	 )] = CreatePlane( rays.rightBottom, rays.rightTop,		origin );
+		_planes[uint( EPlane::Top	 )] = CreatePlane( rays.rightTop,	 rays.leftTop,		origin );
+		_planes[uint( EPlane::Bottom )] = CreatePlane( rays.leftBottom,  rays.rightBottom,	origin );
+
+		const Vec3_t	avr_dir = Normalize( rays.leftBottom + rays.leftTop + rays.rightBottom + rays.rightTop );
+
+		_planes[uint( EPlane::Near	 )] = Plane{  avr_dir, -clipPlanes.x };
+		_planes[uint( EPlane::Far	 )] = Plane{ -avr_dir,  clipPlanes.y };
+	}
 
 } // AE::Base

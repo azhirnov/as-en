@@ -629,7 +629,7 @@ namespace
 		str << "//------------------------\n\n";
 		return str;
 	}
-	
+
 /*
 =================================================
 	SpecToHLSL
@@ -638,7 +638,7 @@ namespace
 	String  ScriptShader::SpecToHLSL () C_Th___
 	{
 		_Validate();  // throw
-		
+
 		String	str;
 
 		str << "\t[shader(\"";
@@ -661,7 +661,7 @@ namespace
 			case EShader::RayMiss :			str << "miss";			break;
 			case EShader::RayIntersection :	str << "intersection";	break;
 			case EShader::RayCallable :		str << "callable";		break;
-				
+
 			case EShader::Tile :
 			case EShader::_Count :
 			default :						CHECK_THROW_MSG( false, "unsupported shader stage" );
@@ -671,13 +671,13 @@ namespace
 
 		CHECK_THROW_MSG( _specId == 0,
 			"Specialization is not supported yet" );
-		
+
 		if ( AnyBits( _requiredStages, EShaderStages::Compute | EShaderStages::Mesh | EShaderStages::MeshTask ))
 		{
 			CHECK_THROW_MSG( AnyEqual( type, EShader::Compute, EShader::Mesh, EShader::MeshTask ));
-			
+
 			uint3	size = Max( _defaultLocalSize, uint3{1} );
-			
+
 			str << "\t[numthreads(" << ToString( size.x ) << ", " << ToString( size.y )
 				<< ", " << ToString( size.z ) << ")] \\\n";
 
@@ -722,7 +722,7 @@ namespace
 		"#define SLANG_ENTRY_OUT \\\n" >> str;
 		return str;
 	}
-	
+
 /*
 =================================================
 	InputToHLSL
@@ -731,7 +731,7 @@ namespace
 	String  ScriptShader::InputToHLSL () C_Th___
 	{
 		String	str = "#define SLANG_ENTRY_IN \\\n";
-		
+
 		switch_enum( type )
 		{
 			case EShader::Compute :
@@ -760,7 +760,7 @@ namespace
 				str << "\tconst uint hl_GSInstanceID : SV_GSInstanceID, \\\n";
 				break;
 			}
-			
+
 			case EShader::Vertex :
 			case EShader::Fragment :
 
@@ -770,7 +770,7 @@ namespace
 			case EShader::RayMiss :
 			case EShader::RayIntersection :
 			case EShader::RayCallable :		break;
-				
+
 			case EShader::Tile :
 			case EShader::_Count :
 			default :						CHECK_THROW_MSG( false, "unsupported shader stage" );

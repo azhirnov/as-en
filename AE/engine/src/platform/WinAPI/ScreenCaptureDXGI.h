@@ -56,7 +56,7 @@ namespace AE::App
 	public:
 		ScreenCaptureDXGI (const ApplicationBase &app)	__NE___ : _app{app} {}
 		~ScreenCaptureDXGI ()							__NE_OV;
-		
+
 		Description  GetDescription ()					C_NE_OV;
 
 	protected:
@@ -77,7 +77,7 @@ namespace AE::App
 //-----------------------------------------------------------------------------
 
 
-	
+
 	//
 	// Screen Capture DXGI with Host access
 	//
@@ -118,13 +118,13 @@ namespace AE::App
 	public:
 		ScreenCaptureDXGI_HostAccess (const ApplicationBase &app)			__NE___ : ScreenCaptureDXGI{app} {}
 		~ScreenCaptureDXGI_HostAccess ()									__NE_OV;
-		
+
 		bool  Start (const Config &)										__NE___;
 		void  Finish ()														__NE_OV;
 
 		ErrorCode  AcquireImage (OUT ImageID &, OUT ImageViewID &, OUT FrameInfo &,
 								 Graphics::CommandBatch&, milliseconds)		__NE_OV  { return ErrorCode::Error_NotSupported; }
-		
+
 		ErrorCode  ReadHostImage (const ReadImageFn_t &)					__NE_OV;
 
 		bool  SetReadImageCallback (SyncReadImageFn_t fn)					__NE_OV;
@@ -139,7 +139,7 @@ namespace AE::App
 //-----------------------------------------------------------------------------
 
 
-	
+
 # ifdef AE_ENABLE_VULKAN
 
 	//
@@ -172,8 +172,8 @@ namespace AE::App
 	public:
 		ScreenCaptureDXGI_Vulkan (const ApplicationBase &app)			__NE___ : ScreenCaptureDXGI{app} {}
 		~ScreenCaptureDXGI_Vulkan ()									__NE_OV;
-		
-		
+
+
 		bool  Start (const Config &)									__NE___;
 		void  Finish ()													__NE_OV;
 
@@ -184,7 +184,7 @@ namespace AE::App
 								 milliseconds			timeout)		__NE_OV;
 
 		ErrorCode  ReadHostImage (const ReadImageFn_t &)				__NE_OV	{ return ErrorCode::Error_NotSupported; }
-		
+
 		bool  SetReadImageCallback (SyncReadImageFn_t)					__NE_OV	{ return false; }
 
 	private:

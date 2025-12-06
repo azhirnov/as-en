@@ -59,13 +59,14 @@ ND_ float  GetGlobalIndexSNorm ();					// -1..1
 // global coordinate in 3D
 ND_ int3    GetGlobalSize ();
 ND_ int3    GetGlobalCoord ();						// 0..size-1
+ND_ int3    GetGlobalCoordSI ();					// -size/2 .. +size/2-1
 ND_ float3  GetGlobalCoordUNorm ();					//  0..1
 ND_ float3  GetGlobalCoordSNorm ();					// -1..1
 ND_ float3  GetGlobalCoordUNorm (int3 offset);		//  0..1
 ND_ float3  GetGlobalCoordSNorm (int3 offset);		// -1..1
 ND_ float3  GetGlobalCoordSF ();					// -size/2 .. +size/2
 ND_ float3  GetGlobalCoordUF ();					// 0..size-1
-ND_ float3  GetGlobalSizeRcp ();
+ND_ float3  GetGlobalSizeRcp ();					// 1/size
 
 // global normalized coordinate in 2D with same aspect ratio
 ND_ float2  GetGlobalCoordUNormCorrected ();		//  0..1
@@ -395,6 +396,11 @@ float3  GetGlobalCoordUNorm (int3 offset)
 float3  GetGlobalCoordSNorm (int3 offset)
 {
 	return ToSNorm( GetGlobalCoordUNorm( offset ));
+}
+
+int3  GetGlobalCoordSI ()
+{
+	return GetGlobalCoord() - GetGlobalSize()/2;
 }
 
 float3  GetGlobalCoordSF ()

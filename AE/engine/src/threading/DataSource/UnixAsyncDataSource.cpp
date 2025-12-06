@@ -229,7 +229,7 @@ namespace AE::Threading
 
 	UnixAsyncRDataSource::UnixAsyncRDataSource (NtStringView filename, EMode mode)	__NE___ : UnixAsyncRDataSource{ filename.c_str(), mode } {}
 	UnixAsyncRDataSource::UnixAsyncRDataSource (const String &filename, EMode mode)	__NE___ : UnixAsyncRDataSource{ filename.c_str(), mode } {}
-	UnixAsyncRDataSource::UnixAsyncRDataSource (const Path &path, EMode mode)			__NE___ : UnixAsyncRDataSource{ path.c_str(), mode } {}
+	UnixAsyncRDataSource::UnixAsyncRDataSource (const Path &path, EMode mode)		__NE___ : UnixAsyncRDataSource{ path.c_str(), mode } {}
 
 /*
 =================================================
@@ -298,7 +298,7 @@ namespace AE::Threading
 
 	UnixAsyncWDataSource::UnixAsyncWDataSource (NtStringView filename, EMode mode)	__NE___	: UnixAsyncWDataSource{ filename.c_str(), mode } {}
 	UnixAsyncWDataSource::UnixAsyncWDataSource (const String &filename, EMode mode)	__NE___	: UnixAsyncWDataSource{ filename.c_str(), mode } {}
-	UnixAsyncWDataSource::UnixAsyncWDataSource (const Path &path, EMode mode)			__NE___	: UnixAsyncWDataSource{ path.c_str(), mode } {}
+	UnixAsyncWDataSource::UnixAsyncWDataSource (const Path &path, EMode mode)		__NE___	: UnixAsyncWDataSource{ path.c_str(), mode } {}
 
 /*
 =================================================

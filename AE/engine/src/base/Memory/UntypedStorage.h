@@ -9,6 +9,7 @@
 #include "base/CompileTime/TypeList.h"
 #include "base/Math/Byte.h"
 #include "base/Utils/Helpers.h"
+#include "base/Memory/MemUtils.h"
 
 namespace AE::Base
 {
@@ -39,6 +40,8 @@ namespace AE::Base
 
 		UntypedStorage ()										__NE___	{ DEBUG_ONLY( DbgInitMem( _buffer, Size() )); }
 		~UntypedStorage ()										__NE___	{ DEBUG_ONLY( DbgFreeMem( _buffer, Size() )); }
+
+		void  ZeroMem ()										__NE___	{ Base::ZeroMem( _buffer, Size() ); }
 
 		template <typename T>
 		ND_ T*			Ptr (Bytes offset = 0_b)				__NE___;

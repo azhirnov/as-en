@@ -1677,7 +1677,7 @@ namespace _hidden_
 		}
 		return result;
 	}
-	
+
 	template <typename T, int I, glm::qualifier Q> requires(IsInteger<T>)
 	ND_ TVec<T,I,Q>  NearPOT (const TVec<T,I,Q> &v) __NE___
 	{
@@ -1850,7 +1850,7 @@ namespace _hidden_
 	{
 		return glm::inversesqrt( v );
 	}
-	
+
 /*
 =================================================
 	FastSqrt
@@ -1861,7 +1861,7 @@ namespace _hidden_
 	{
 		return InvSqrt( value ) * value;
 	}
-	
+
 	template <typename T, int I, glm::qualifier Q> requires(IsFloatPoint<T>)
 	ND_ TVec<T,I,Q>  FastSqrt (const TVec<T,I,Q> &v)
 	{
@@ -2598,7 +2598,7 @@ namespace _hidden_
 		ASSERT_Cx( begin2 <= end2 );
 		return (end1 > begin2) and (begin1 < end2);
 	}
-	
+
 	template <typename T, int I, glm::qualifier Q>
 	NdCx__ bool  IsIntersects (const TVec<T,I,Q> &begin1, const TVec<T,I,Q> &end1,
 							   const TVec<T,I,Q> &begin2, const TVec<T,I,Q> &end2) __NE___

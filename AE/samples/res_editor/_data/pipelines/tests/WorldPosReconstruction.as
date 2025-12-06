@@ -45,7 +45,7 @@
 			spec.AddToRenderTech( "rtech", "main" );  // in ScriptSceneGraphicsPass
 
 			RenderState	rs;
-			
+
 			rs.depth.test					= true;
 			rs.depth.write					= true;
 			rs.depth.compareOp				= ECompareOp::LEqual;

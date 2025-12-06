@@ -138,7 +138,7 @@ namespace AE::Graphics
 		CHECK_ERR( resMngr.GetDevice().SendAndWait( msg, OUT res ));
 		return res->supported;
 	}
-	
+
 /*
 =================================================
 	IsSupported

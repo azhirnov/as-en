@@ -1,7 +1,7 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 /*
 	Draw particles as rays.
-	Used geometry shader to build oriented quad.
+	Used geometry shader to build oriented ray.
 */
 #ifdef __INTELLISENSE__
 #	include <pipeline_compiler.as>

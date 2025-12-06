@@ -1,14 +1,14 @@
-//> gl_GlobalInvocationID: uint3 {8, 8, 0}
-//> gl_LocalInvocationID: uint3 {0, 0, 0}
-//> gl_WorkGroupID: uint3 {8, 8, 0}
+//> gl_GlobalInvocationID: uint3 {8, 8, 0} | {0x8, 0x8, 0x0}
+//> gl_LocalInvocationID: uint3 {0, 0, 0} | {0x0, 0x0, 0x0}
+//> gl_WorkGroupID: uint3 {8, 8, 0} | {0x8, 0x8, 0x0}
 no source
 
 //> point: float2 {0.533333, 0.533333}
-//  gl_GlobalInvocationID: uint3 {8, 8, 0}
+//  gl_GlobalInvocationID: uint3 {8, 8, 0} | {0x8, 0x8, 0x0}
 8. point = (vec3(gl_GlobalInvocationID) / vec3(gl_NumWorkGroups * gl_WorkGroupSize - 1)).xy;
 
 //> (out): bool {false}
-//  gl_GlobalInvocationID: uint3 {8, 8, 0}
+//  gl_GlobalInvocationID: uint3 {8, 8, 0} | {0x8, 0x8, 0x0}
 10. if ( (gl_GlobalInvocationID.x & 1) == 1 )
 
 //> color: float4 {0.533333, 0.533333, 0.533333, 0.533333}
@@ -19,7 +19,7 @@ no source
 //  color: float4 {0.533333, 0.533333, 0.533333, 0.533333}
 17. 	color.x = cos(color.y) * color.z;
 
-//> color: float4 {0.459263, 0.533333, 0.533333, 0.533333}
+//> color.x: float {0.459263}
 //  cos(): float {0.861117}
 17. color.x = cos(color.y) * color.z;
 
@@ -27,7 +27,7 @@ no source
 23. 	Test1( color );
 
 //> imageStore(): void
-//  gl_GlobalInvocationID: uint3 {8, 8, 0}
+//  gl_GlobalInvocationID: uint3 {8, 8, 0} | {0x8, 0x8, 0x0}
 24. 	imageStore( un_OutImage, ivec2(gl_GlobalInvocationID.xy), color );
 
 //---------------------------

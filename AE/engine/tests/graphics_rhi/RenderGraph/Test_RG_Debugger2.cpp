@@ -82,7 +82,7 @@ namespace
 
 		auto	task1 = ctx.ReadbackImage( t.img, Default );
 		auto	task2 = t.debugger.ReadAll( ctx );
-		
+
 		t.result =
 			[](auto readOp, auto dbgRes, auto& t) -> InlineCoro<>
 			{
@@ -98,30 +98,30 @@ namespace
 				if ( trace_str.size() == 3 )
 				{
 					const StringView	vs1_ref_str =
-R"(//> gl_VertexIndex: int {1}
-//> gl_InstanceIndex: int {0}
+R"(//> gl_VertexIndex: int {1} | {0x1}
+//> gl_InstanceIndex: int {0} | {0x0}
 no source
 
 //> (out): float4 {0.500000, 0.500000, 0.000000, 1.000000}
-//  gl_VertexIndex: int {1}
+//  gl_VertexIndex: int {1} | {0x1}
 23. gl_Position	= vec4( g_Positions[gl_VertexIndex], 0.0, 1.0 );
 
 //> v_Color: float3 {0.000000, 1.000000, 0.000000}
-//  gl_VertexIndex: int {1}
+//  gl_VertexIndex: int {1} | {0x1}
 24. v_Color		= g_Colors[gl_VertexIndex];
 
 )";
 					const StringView	vs2_ref_str =
-R"(//> gl_VertexIndex: int {2}
-//> gl_InstanceIndex: int {0}
+R"(//> gl_VertexIndex: int {2} | {0x2}
+//> gl_InstanceIndex: int {0} | {0x0}
 no source
 
 //> (out): float4 {-0.500000, 0.500000, 0.000000, 1.000000}
-//  gl_VertexIndex: int {2}
+//  gl_VertexIndex: int {2} | {0x2}
 23. gl_Position	= vec4( g_Positions[gl_VertexIndex], 0.0, 1.0 );
 
 //> v_Color: float3 {0.000000, 0.000000, 1.000000}
-//  gl_VertexIndex: int {2}
+//  gl_VertexIndex: int {2} | {0x2}
 24. v_Color		= g_Colors[gl_VertexIndex];
 
 )";
@@ -130,11 +130,11 @@ R"(//> gl_FragCoord: float4 {400.500000, 300.500000, 0.000000, 1.000000}
 //> v_Color: float3 {0.498333, 0.252083, 0.249583}
 no source
 
-//> out_Color: float3 {0.498333, 0.252083, 0.249583}
+//> out_Color.xyz: float3 {0.498333, 0.252083, 0.249583}
 //  v_Color: float3 {0.498333, 0.252083, 0.249583}
 12. out_Color.rgb = v_Color.rgb;
 
-//> out_Color: float4 {0.498333, 0.252083, 0.249583, 0.500000}
+//> out_Color.w: float {0.500000}
 //  v_Color: float3 {0.498333, 0.252083, 0.249583}
 13. out_Color.a   = fract(v_Color.r + v_Color.g + v_Color.b + 0.5f);
 
@@ -148,7 +148,7 @@ no source
 					t.isOK = ok;
 				}
 			}( task1.readOp, task2, t );
-		
+
 		ctx.AccumBarriers().MemoryBarrier( EResourceState::CopyDst, EResourceState::Host_Read );
 
 		RenderCoro_Execute( ctx );

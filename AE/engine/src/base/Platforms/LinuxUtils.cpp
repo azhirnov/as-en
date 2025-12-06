@@ -104,7 +104,7 @@ namespace AE::Base
 
 		return ::sched_setaffinity( 0, sizeof(mask), &mask ) == 0;
 	}
-	
+
 /*
 =================================================
 	ResetThreadAffinity
@@ -114,7 +114,7 @@ namespace AE::Base
 	{
 		cpu_set_t cpuset;
 		CPU_ZERO( &cpuset );
-		
+
 		for (uint i = 0, cnt = std::thread::hardware_concurrency(); i < cnt; ++i)
 			CPU_SET( i, &cpuset );
 
@@ -215,7 +215,7 @@ namespace AE::Base
 	ClipboardPut
 =================================================
 */
-	bool  LinuxUtils::ClipboardPut (StringView str, void* disp, void* wnd) __NE___
+	bool  LinuxUtils::ClipboardPut (NtStringView str, void* disp, void* wnd) __NE___
 	{
 		// TODO
 		return false;
@@ -283,7 +283,7 @@ namespace AE::Base
 
 		NOTHROW_ERR( return Path{ StringView( buf, size )};)
 	}
-	
+
 /*
 =================================================
 	SetSystemSleepState
@@ -295,6 +295,19 @@ namespace AE::Base
 		return false;
 	}
 
+/*
+=================================================
+	GetUserName
+=================================================
+*/
+	String  LinuxUtils::GetUserName () __NE___
+	{
+		char	username [LOGIN_NAME_MAX] = {};
+		int		result = ::getlogin_r( OUT username, LOGIN_NAME_MAX );
+
+		CHECK_ERR( result == 0 );
+		return String{username};
+	}
 
 } // AE::Base
 

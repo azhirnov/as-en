@@ -12,7 +12,7 @@ extern bool  ConvertAEImage (RDataSource &src, WDataSource &dst);
 int main (const int argc, char* argv[])
 {
 	Unused( argc, argv );
-	AE::Base::StaticLogger::LoggerDbgScope log{};
+	StaticLogger::LoggerScope log{};
 
 	{
 		FileRDataSource		src {Path{R"()"}};

@@ -217,7 +217,7 @@ namespace AE::AppV1
 
 		if ( not _windows.empty() )
 			ia = &_windows[0]->InputActions();
-		
+
 		for (auto type : _config.vrDevices)
 		{
 			WindowPtr	vr_wnd = app.CreateVRSession( MakeUnique<AppCoreV1::WindowEventListener>( _impl, *this ), ia, type );
@@ -368,7 +368,7 @@ namespace AE::AppV1
 	{
 		// create render surface
 		CHECK_FATAL( wnd.CreateRenderSurface( _app.GetConfig().graphics.swapchain ));
-		
+
 		_impl->StartRendering( &wnd.InputActions(), &wnd.GetSurface(), EState::InForeground );
 
 		CHECK_FATAL( _impl->OnSurfaceCreated( wnd ));
@@ -385,7 +385,7 @@ namespace AE::AppV1
 		_impl->WaitFrame( _app.GetMainThreadMask(), null );
 
 		// 'WaitFrame' may not process any task, so we need to process them here too.
-		Unused( Scheduler().ProcessTasks( _app.GetMainThreadMask(), Scheduler().GetDefaultSeed() ));
+		Unused( Scheduler().ProcessTasks( _app.GetMainThreadMask(), TaskScheduler::GetDefaultSeed() ));
 
 		Unused( GraphicsScheduler().WaitAll( AE::DefaultTimeout ));
 	}

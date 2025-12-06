@@ -427,7 +427,7 @@ namespace AE::Graphics
 		_cmdbuf->AddCommand( cmd );
 
 		ArrayView<ubyte>	mem_view = ArrayView<ubyte>{ Cast<ubyte>(ptr + offset), usize(size) };
-		
+
 		return	ReadHostBufferResult{
 					Scheduler().Run(
 						ETaskQueue::PerFrame,

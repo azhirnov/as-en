@@ -34,6 +34,7 @@ jobs:
  
     - name: Release ResEditor
       working-directory: ${{github.workspace}}
+      if: false
       shell: cmd
       run: |
         mkdir _res_editor
@@ -44,12 +45,13 @@ jobs:
         copy /Y "${{github.workspace}}\AE\build_scripts\utils-win\download-resources.bat" "${{github.workspace}}\_res_editor"
         
     - uses: actions/upload-artifact@v4
+      if: false
       with:
         name: AsEn-ResourceEditor-windows-x64-msvc-${{matrix.config}}
         path: ${{github.workspace}}/_res_editor
 
     - uses: actions/upload-artifact@v4
-      if: success() || steps.build.conclusion == 'success'
+      if: false
       with:
         name: AsEn-Tools-windows-x64-msvc-${{matrix.config}}
         path: |

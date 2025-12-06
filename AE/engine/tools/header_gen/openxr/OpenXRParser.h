@@ -20,9 +20,9 @@ namespace AE::Parsers
 	// methods
 	public:
 		OpenXRParser ();
-		
+
 		bool  ParseXrHeaders (const Path &folder);
-		
+
 		bool  SetFunctionsScope ();
 		bool  BuildBasicTypeMap ();
 		bool  BuildResourceTypeMap ();

@@ -18,7 +18,9 @@ namespace AE::Base
 	template <typename T>	void  FillMem_NonCached (OUT void* dst, Bytes size, T value)	__NE___;
 	template <typename T>	void  FillMem (OUT void* dst, Bytes size, T value)				__NE___;
 
-	const char*  FindChar_SIMD (char const* begin, char const* end, char ch)				__NE___;
+	const sbyte*	FindChar8_SIMD (sbyte const* begin, sbyte const* end, sbyte ch)			__NE___;
+	const ushort*	FindChar16_SIMD (ushort const* begin, ushort const* end, ushort ch)		__NE___;
+	const uint*		FindChar32_SIMD (uint const* begin, uint const* end, uint ch)			__NE___;
 //-----------------------------------------------------------------------------
 
 
@@ -637,7 +639,7 @@ namespace AE::Base
 
 /*
 =================================================
-	FindChar_SIMD
+	FindChar8_SIMD
 ----
 	AVX2 is 4-5 times faster than std::string::find()
 	Neon is 50% faster than std::string::find()
@@ -646,7 +648,7 @@ namespace AE::Base
 namespace _hidden_
 {
 #if AE_SIMD_AVX >= 31	// AVX512_BW
-	Nd__IF const char*  FindChar_AVX512 (char const* str, char const* const end, const char ch) __NE___
+	Nd__IF const sbyte*  FindChar8_AVX512 (sbyte const* str, sbyte const* const end, const sbyte ch) __NE___
 	{
 		if_likely( str+64_b <= end )
 		{
@@ -696,7 +698,7 @@ namespace _hidden_
 #endif
 
 #if AE_SIMD_AVX >= 2
-	Nd__IF const char*  FindChar_AVX2 (char const* str, char const* const end, const char ch) __NE___
+	Nd__IF const sbyte*  FindChar8_AVX2 (sbyte const* str, sbyte const* const end, const sbyte ch) __NE___
 	{
 		if_likely( str+32_b <= end )
 		{
@@ -756,7 +758,7 @@ namespace _hidden_
 #endif
 
 #if AE_SIMD_SSE >= 20
-	Nd__IF const char*  FindChar_SSE2 (char const* str, char const* const end, const char ch) __NE___
+	Nd__IF const sbyte*  FindChar8_SSE2 (sbyte const* str, sbyte const* const end, const sbyte ch) __NE___
 	{
 		if_likely( str+16_b <= end )
 		{
@@ -812,7 +814,7 @@ namespace _hidden_
 #endif
 
 #if AE_SIMD_NEON
-	Nd__IF const char*  FindChar_NEON (char const* str, char const* const end, const char ch) __NE___
+	Nd__IF const sbyte*  FindChar8_NEON (sbyte const* str, sbyte const* const end, const sbyte ch) __NE___
 	{
 		const ubyte			vals[]	= { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 };
 		const uint8x16_t	v_mask0	= vmvnq_u8( vld1q_u8(vals) );
@@ -880,22 +882,22 @@ namespace _hidden_
 #endif
 }
 
-	Nd__IF const char*  FindChar_SIMD (char const* const begin, char const* const end, const char ch) __NE___
+	Nd__IF const sbyte*  FindChar8_SIMD (sbyte const* const begin, sbyte const* const end, const sbyte ch) __NE___
 	{
 		#if AE_SIMD_AVX >= 31  // AVX512_BW
-			return Base::_hidden_::FindChar_AVX512( begin, end, ch );
+			return Base::_hidden_::FindChar8_AVX512( begin, end, ch );
 
 		#elif AE_SIMD_AVX >= 2
-			return Base::_hidden_::FindChar_AVX2( begin, end, ch );
+			return Base::_hidden_::FindChar8_AVX2( begin, end, ch );
 
 		#elif AE_SIMD_SSE >= 20
-			return Base::_hidden_::FindChar_SSE2( begin, end, ch );
+			return Base::_hidden_::FindChar8_SSE2( begin, end, ch );
 
 		#elif AE_SIMD_NEON
-			return Base::_hidden_::FindChar_NEON( begin, end, ch );
+			return Base::_hidden_::FindChar8_NEON( begin, end, ch );
 
 		#else
-			const char* p = Cast<char>( std::memchr( begin, ch, end - begin ));
+			const sbyte* p = Cast<sbyte>( std::memchr( begin, ch, end - begin ));
 			return (p != null ? p : end);
 		#endif
 	}

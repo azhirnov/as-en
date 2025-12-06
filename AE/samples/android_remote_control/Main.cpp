@@ -20,10 +20,6 @@ using namespace AE::Networking;
 
 namespace
 {
-	static constexpr const char*	c_ServerAddr	= "192.168.0.xxx";
-	static constexpr ushort			c_ServerPort	= 3000;
-
-
 	class MsgProducer final : public IAsyncCSMessageProducer
 	{
 	public:
@@ -156,7 +152,7 @@ namespace
 
 		auto	mf = MakeRC<MessageFactory>();
 
-		CHECK_FATAL( _Initialize( mf, MakeRC<DefaultServerProviderV1>( IpAddress::FromHostPortTCP( c_ServerAddr, c_ServerPort )), null, _frameId ));
+		CHECK_FATAL( _Initialize( mf, MakeRC<DefaultServerProviderV1>( AE_ANDREMCTRL_SERVER_IPv4 ), null, _frameId ));
 
 		CHECK_FATAL( Register_RemoteControl( *mf ));
 		CHECK_FATAL( Register_RemoteProfilers( *mf ));

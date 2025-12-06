@@ -1328,7 +1328,7 @@ namespace
 		}
 		switch_end
 	}
-	
+
 /*
 =================================================
 	Bind_EIntegerDotProductFeat
@@ -1338,7 +1338,7 @@ namespace
 	{
 		EnumBinder<EIntegerDotProductFeat>	binder{ se };
 		binder.Create();
-		
+
 		switch_enum( EIntegerDotProductFeat::_Count )
 		{
 			case EIntegerDotProductFeat::_Count :
@@ -1377,7 +1377,7 @@ namespace
 		}
 		switch_end
 	}
-	
+
 /*
 =================================================
 	Bind_ECoopMatrixComponentType
@@ -1387,7 +1387,7 @@ namespace
 	{
 		EnumBinder<ECoopMatrixComponentType>	binder{ se };
 		binder.Create();
-		
+
 		switch_enum( ECoopMatrixComponentType::_Count )
 		{
 			case ECoopMatrixComponentType::_Count :
@@ -1412,7 +1412,7 @@ namespace
 		}
 		switch_end
 	}
-	
+
 /*
 =================================================
 	Bind_ECoopVecMatrixLayout
@@ -1422,7 +1422,7 @@ namespace
 	{
 		EnumBinder<ECoopVecMatrixLayout>	binder{ se };
 		binder.Create();
-		
+
 		switch_enum( ECoopVecMatrixLayout::_Count )
 		{
 			case ECoopVecMatrixLayout::_Count :
@@ -1435,7 +1435,7 @@ namespace
 		}
 		switch_end
 	}
-	
+
 /*
 =================================================
 	Bind_ECoopMatrixCfg
@@ -1445,7 +1445,7 @@ namespace
 	{
 		EnumBinder<ECoopMatrixCfg>	binder{ se };
 		binder.Create();
-		
+
 		switch_enum( ECoopMatrixCfg::_Count )
 		{
 			case ECoopMatrixCfg::_Count :
@@ -1461,7 +1461,7 @@ namespace
 		}
 		switch_end
 	}
-	
+
 /*
 =================================================
 	Bind_ECoopVecCfg
@@ -1471,7 +1471,7 @@ namespace
 	{
 		EnumBinder<ECoopVecCfg>	binder{ se };
 		binder.Create();
-		
+
 		switch_enum( ECoopVecCfg::_Count )
 		{
 			case ECoopVecCfg::_Count :
@@ -1920,7 +1920,7 @@ namespace
 		binder.AddProperty( &RenderState::MultisampleState::alphaToCoverage,	"alphaToCoverage" );
 		binder.AddProperty( &RenderState::MultisampleState::alphaToOne,			"alphaToOne" );
 	}
-	
+
 /*
 =================================================
 	Bind_RenderState_RasterizationOrderAccess

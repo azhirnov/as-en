@@ -6,5 +6,5 @@
 	{
 		CreatePipeline( "DepthPrePass", "pass-0" );
 	}
-	
+
 #endif

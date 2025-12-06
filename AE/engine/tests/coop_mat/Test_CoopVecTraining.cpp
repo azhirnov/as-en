@@ -26,19 +26,19 @@ namespace
 
 		Array<float>	output;
 		output.resize( rowA );
-		
+
 		for (usize i = 0; i < rowA; ++i)
 		{
 			float	a	= float(inputA[i]);
 			float	b	= float(inputB[i]);
-			
+
 			output[i] = a + b;
 			ref_output[i] = float(refOutput[i]);
 		}
 
 		String	str		= "\n";
 		float	max_err	= 0.f;
-		
+
 		for (usize i = 0; i < rowA; ++i)
 		{
 			float	err	= Abs( (output[i] - ref_output[i]) * 100.f / output[i] );
@@ -65,7 +65,7 @@ namespace
 
 		Array<float>	output;
 		output.resize( refOutput.size() );
-		
+
 		for (usize i = 0; i < inputC.size(); ++i)
 		{
 			output[i] = float(inputC[i]);
@@ -103,10 +103,10 @@ namespace
 				}
 			}
 		}
-		
+
 		String	str		= "\n";
 		float	max_err	= 0.f;
-		
+
 		for (usize i = 0; i < refOutput.size(); ++i)
 		{
 			float	err	= Abs( (output[i] - ref_output[i]) * 100.f / output[i] );
@@ -121,7 +121,7 @@ namespace
 		CHECK( max_err < 1.f );
 	}
 
-	
+
 	void  FillWithLinearData (INOUT Array<half> &arr, float scale, float bias)
 	{
 		for (usize i = 0; i < arr.size(); ++i) {
@@ -129,7 +129,7 @@ namespace
 		}
 	}
 
-	
+
 	static void  CoopVecTraining_Test1 (Executor &ex)
 	{
 		CHECK_FATAL( ex.GetDevice().GetVProperties().cooperativeVectorNVProps.cooperativeVectorTrainingFloat16Accumulation == VK_TRUE );
@@ -242,7 +242,7 @@ namespace
 					cmd.srcData	= &output[ i * cols_c * rows_c ];
 					cmd.dstSize	= opt_size;
 					cmd.dstData	= output_opt.data() + opt_size * i;
-			
+
 					CHECK_FATAL( ex.GetDevice().ConvertCooperativeVectorMatrix( {cmd} ));
 				}
 			}
@@ -307,7 +307,7 @@ namespace
 				{
 					cmd.srcData		= output_opt.data() + opt_size * i;
 					cmd.dstData		= &output[ i * cols_c * rows_c ];
-			
+
 					CHECK_FATAL( ex.GetDevice().ConvertCooperativeVectorMatrix( {cmd} ));
 				}
 			}
@@ -334,6 +334,6 @@ extern void Test_CoopVecTraining (Executor &ex)
 
 	CoopVecTraining_Test1( ex );
 	CoopVecTraining_Test2( ex );
-	
+
 	TEST_PASSED();
 }

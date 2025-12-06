@@ -149,7 +149,7 @@ namespace
 
 		const EShaderStages		stage	= EShaderStages::Unknown | inShader->type;
 		const EShaderVersion	version	= (inShader->version == Default ? _GetShaderVersion() : inShader->version);
-		
+
 		if ( AllBits( version, EShaderVersion::_GLSL_SPIRV, EShaderVersion::_Mask ))
 		{
 			PipelineLayout::UniqueTypes_t	unique_types;
@@ -1001,7 +1001,7 @@ namespace
 			state.depth.compareOp	= ECompareOp::Always;
 		}
 
-		// same as FeatureSet::IsSupported (RenderState) 
+		// same as FeatureSet::IsSupported (RenderState)
 		{
 			if ( state.multisample.alphaToOne )
 				TEST_FEATURE( features, alphaToOne );
@@ -1011,7 +1011,7 @@ namespace
 
 			if ( state.depth.bounds )
 				TEST_FEATURE( features, depthBounds );
-			
+
 			if ( state.rasterization.depthBiasClamp != 0.f )
 				TEST_FEATURE( features, depthBiasClamp );
 
@@ -1091,10 +1091,10 @@ namespace
 
 			if ( state.rasterOrderAccess.color )
 				TEST_FEATURE( features, rasterizationOrderColorAttachmentAccess );
-			
+
 			if ( state.rasterOrderAccess.depth )
 				TEST_FEATURE( features, rasterizationOrderDepthAttachmentAccess );
-			
+
 			if ( state.rasterOrderAccess.stencil )
 				TEST_FEATURE( features, rasterizationOrderStencilAttachmentAccess );
 		}

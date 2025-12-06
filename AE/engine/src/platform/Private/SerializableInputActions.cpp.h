@@ -340,8 +340,18 @@ namespace AE::App
 				break;
 			}
 
-			case EGestureType::_Count :
 			case EGestureType::Unknown :
+			{
+				CHECK_THROW_MSG( info.valueType == EValueType::Chars,
+					GetMsgTemplate() << "has 'Unknown' gesture type which is supported only for 'EValueType::Chars'" );
+
+				CHECK_THROW_MSG(
+					_mode->actions.insert_or_assign( _Pack( type, info.gesture, EGestureState::Update ), info ).second,
+				GetMsgTemplate() << "with gesture 'Unknown' override 'Update' event." );
+				break;
+			}
+
+			case EGestureType::_Count :
 			default :
 				CHECK_THROW_MSG( false,
 					GetMsgTemplate() << "has unsupported gesture type" );

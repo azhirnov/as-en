@@ -7,16 +7,19 @@ void ASmain ()
 
 	RC<FeatureSet>  fset = FeatureSet( "MinimalFS" );
 
+	fset.depthBiasClamp (True);
 	fset.independentBlend (True);
 	fset.sampleRateShading (True);
 	fset.constantAlphaColorBlendFactors (True);
+	fset.largePoints (True);
 	fset.shaderSampleRateInterpolationFunctions (True);
+	fset.shaderUniformBufferArrayDynamicIndexing (True);
 	fset.maxSpirvVersion (100);
 	fset.maxMetalVersion (200);
 	fset.maxDrawIndirectCount (1);
 	fset.maxViewports (1);
 	fset.maxTexelBufferElements (64 << 10);
-	fset.maxUniformBufferSize (16 << 10);
+	fset.maxUniformBufferSize (64 << 10);
 	fset.maxStorageBufferSize (64 << 10);
 	fset.perPipeline_maxUniformBuffersDynamic (8);
 	fset.perPipeline_maxStorageBuffersDynamic (4);
@@ -31,14 +34,14 @@ void ASmain ()
 	fset.perStage_maxInputAttachments (4);
 	fset.perStage_maxSampledImages (16);
 	fset.perStage_maxSamplers (16);
-	fset.perStage_maxStorageBuffers (4);
+	fset.perStage_maxStorageBuffers (24);
 	fset.perStage_maxStorageImages (4);
 	fset.perStage_maxUniformBuffers (12);
-	fset.perStage_maxTotalResources (44);
+	fset.perStage_maxTotalResources (79);
 	fset.maxDescriptorSets (4);
 	fset.maxTexelOffset (7);
 	fset.maxFragmentOutputAttachments (4);
-	fset.maxFragmentCombinedOutputResources (4);
+	fset.maxFragmentCombinedOutputResources (8);
 	fset.maxPushConstantsSize (128);
 	fset.maxComputeSharedMemorySize (16 << 10);
 	fset.maxComputeWorkGroupInvocations (64);
@@ -77,9 +80,6 @@ void ASmain ()
 		EPixelFormat::RGBA16U, EPixelFormat::R32U, EPixelFormat::RG32U, EPixelFormat::RGBA32U, 
 		EPixelFormat::RGBA16F, EPixelFormat::R32F, EPixelFormat::RG32F, EPixelFormat::RGBA32F
 	});
-	fset.AddTexelFormats( EFormatFeature::StorageTexelBufferAtomic, {
-		EPixelFormat::R32I, EPixelFormat::R32U
-	});
 	fset.imageCubeArray (True);
 	fset.multisampleArrayImage (True);
 	fset.maxImageDimension1D (4 << 10);
@@ -87,9 +87,6 @@ void ASmain ()
 	fset.maxImageDimension3D (512);
 	fset.maxImageDimensionCube (4 << 10);
 	fset.maxImageArrayLayers (256);
-	fset.AddTexelFormats( EFormatFeature::StorageImageAtomic, {
-		EPixelFormat::R32I, EPixelFormat::R32U
-	});
 	fset.AddTexelFormats( EFormatFeature::StorageImage, {
 		EPixelFormat::RGBA8_SNorm, EPixelFormat::RGBA8_UNorm, EPixelFormat::RGBA8I, EPixelFormat::RGBA16I, 
 		EPixelFormat::R32I, EPixelFormat::RG32I, EPixelFormat::RGBA32I, EPixelFormat::RGBA8U, 
@@ -110,7 +107,7 @@ void ASmain ()
 		EPixelFormat::RG16U, EPixelFormat::RGBA16U, EPixelFormat::R32U, EPixelFormat::RG32U, 
 		EPixelFormat::RGBA32U, EPixelFormat::RGB10_A2U, EPixelFormat::R16F, EPixelFormat::RG16F, 
 		EPixelFormat::RGBA16F, EPixelFormat::R32F, EPixelFormat::RG32F, EPixelFormat::RGBA32F, 
-		EPixelFormat::Depth16
+		EPixelFormat::Depth16, EPixelFormat::Depth32F
 	});
 	fset.AddTexelFormats( EFormatFeature::LinearSampled, {
 		EPixelFormat::RGBA8_SNorm, EPixelFormat::RG8_SNorm, EPixelFormat::R8_SNorm, EPixelFormat::RGBA8_UNorm, 
@@ -119,7 +116,7 @@ void ASmain ()
 		EPixelFormat::RGBA16F, EPixelFormat::R11G11B10F, EPixelFormat::RGB9F_E5
 	});
 	fset.maxSamplerAnisotropy (1.00);
-	fset.maxSamplerLodBias (2.00);
+	fset.maxSamplerLodBias (4.00);
 	fset.framebufferColorSampleCounts({ 1, 4 });
 	fset.framebufferDepthSampleCounts({ 1, 4 });
 	fset.maxFramebufferLayers (256);

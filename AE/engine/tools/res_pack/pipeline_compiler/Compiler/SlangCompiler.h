@@ -46,7 +46,7 @@ namespace AE::PipelineCompiler
 			String				log;
 			ShaderReflection	reflection;
 		};
-		
+
 		using slang_shutdown_t = void (*) ();
 
 
@@ -59,27 +59,27 @@ namespace AE::PipelineCompiler
 		slang_shutdown_t			_shutdown		= null;
 
 		Array<String>				_includeDirs;
-		
+
 		static constexpr bool		_quietWarnings		= true;
 
 
 	// methods
 	public:
-		explicit SLangCompiler (ArrayView<Path> includeDirs)		__NE___;
-		~SLangCompiler ()											__NE___;
+		explicit SLangCompiler (ArrayView<Path> includeDirs, Path libPath = {})	__NE___;
+		~SLangCompiler ()														__NE___;
 
-		ND_ bool  IsInitialized ()									C_NE___	{ return _session != null; }
+		ND_ bool  IsInitialized ()												C_NE___	{ return _globalSession != null; }
 
-		ND_ bool  Compile (const Input &in, OUT Output &out)		__NE___;
+		ND_ bool  Compile (const Input &in, OUT Output &out)					__NE___;
 
 	private:
-		ND_ bool  _Initialize (ArrayView<Path> includeDirs);
+		ND_ bool  _Initialize (ArrayView<Path> includeDirs, Path libPath);
 			void  _Deinitialize ();
 
 		ND_ bool  _BeginSession (const Input &in);
 			void  _EndSession ();
-			
-		ND_ bool  _CompileImpl (const Input &in, OUT Output &out)	__Th___;
+
+		ND_ bool  _CompileImpl (const Input &in, OUT Output &out)						__Th___;
 
 		ND_ bool  _ParseReflection (slang::ShaderReflection &layout, OUT ShaderReflection &result) __Th___;
 	};

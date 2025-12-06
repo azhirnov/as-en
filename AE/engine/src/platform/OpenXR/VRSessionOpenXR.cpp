@@ -43,7 +43,7 @@ namespace AE::App
 	{
 		EXLOCK( surface._guard );
 
-		
+
 		return null;
 	}
 
@@ -199,7 +199,7 @@ namespace AE::App
 		return _surface.Create( desc );
 	}
 */
-	
+
 /*
 =================================================
 	Close
@@ -208,7 +208,7 @@ namespace AE::App
 	void  VRSessionOpenXR::Close () __NE___
 	{
 	}
-	
+
 /*
 =================================================
 	CreateRenderSurface
@@ -218,7 +218,7 @@ namespace AE::App
 	{
 		return false;
 	}
-	
+
 /*
 =================================================
 	ProcessMessages
@@ -228,7 +228,7 @@ namespace AE::App
 	{
 		return false;
 	}
-	
+
 /*
 =================================================
 	_CreateSwapchain
@@ -237,7 +237,7 @@ namespace AE::App
 	void  VRSessionOpenXR::_CreateSwapchain () __NE___
 	{
 	}
-	
+
 /*
 =================================================
 	_DestroySwapchain

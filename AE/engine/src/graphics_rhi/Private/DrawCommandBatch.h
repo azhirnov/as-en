@@ -244,7 +244,7 @@ namespace AE::Graphics
 				return Scheduler().Run( ETaskQueue::Renderer, AsyncTask{coro}, deps, dbg.label, loc );
 			}
 		}
-		return Scheduler().GetCanceledTask();
+		return Threading::TaskScheduler::GetCanceledTask();
 	}
 
 	template <typename ...Deps>

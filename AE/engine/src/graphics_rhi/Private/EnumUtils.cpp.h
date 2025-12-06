@@ -131,7 +131,7 @@ namespace AE::Graphics
 				CHECK_ERR_MSG( AnyBits( stages, EResourceState::AllGraphicsShaders ),  "Resource state ("s << ToString( state ) << ") must contain graphics shader stage." );
 				CHECK_ERR_MSG( not has_pre_raster_shaders,  "Resource state ("s << ToString( state ) << ") should not contain pre-rasterization shaders." );
 				break;
-				
+
 			case _EResState::DepthStencilTest :
 			case _EResState::DepthStencilAttachment_RW :
 			case _EResState::DepthTest_StencilRW :
@@ -1426,7 +1426,7 @@ namespace AE::Graphics
 		//  "Color formats with the same texel block size are considered size-compatible"
 		if ( a.IsColor() and b.IsColor() and a.bitsPerBlock == b.bitsPerBlock )
 			return true;
-		
+
 		// Vulkan docs:
 		// "Copy operations between color formats and a depth-stencil are size-compatible as defined by the list of compatible depth-stencil and color formats."
 		// TODO: requires maintenance8
@@ -1655,7 +1655,7 @@ namespace AE::Graphics
 			case 0x0000'9A49 :
 			case 0x0000'4692 :	// UHD 730
 			case 0x0000'A780 :	return EGraphicsDeviceID::Intel_Gen12;
-			case 0x0000'56A5 :	return EGraphicsDeviceID::Intel_Gen12_7;
+			case 0x0000'56A5 :	return EGraphicsDeviceID::Intel_Xe1;
 
 			// Mali //
 			case 0x0750'0011 :	break;	// T-760
@@ -1717,6 +1717,10 @@ namespace AE::Graphics
 			if ( HasSubString( name, " 7" ))
 				return EGraphicsDeviceID::Adreno_700;
 
+			if ( HasSubString( name, " 8" ))
+				return EGraphicsDeviceID::Adreno_800;
+
+			StaticAssert( EGraphicsDeviceID::_Adreno_End == EGraphicsDeviceID::Adreno_800 );
 			return Default;
 		}
 
@@ -1745,6 +1749,9 @@ namespace AE::Graphics
 				 HasSubString( name, " 6950" ))
 				return EGraphicsDeviceID::AMD_RDNA2;
 
+			// TODO
+
+			StaticAssert( EGraphicsDeviceID::_AMD_End == EGraphicsDeviceID::AMD_RDNA4 );
 			return Default;
 		}
 
@@ -1775,6 +1782,7 @@ namespace AE::Graphics
 			if ( HasSubString( name, " A8" ))
 				return EGraphicsDeviceID::Apple_A8;
 
+			StaticAssert( EGraphicsDeviceID::_Apple_End == EGraphicsDeviceID::Apple_A17_M3 );
 			return Default;
 		}
 
@@ -1810,6 +1818,7 @@ namespace AE::Graphics
 			if ( HasSubStringIC( name, "-T8" ))
 				return EGraphicsDeviceID::Mali_Midgard_Gen4;
 
+			StaticAssert( EGraphicsDeviceID::_Mali_End == EGraphicsDeviceID::Mali_5thGen_Gen2 );
 			return Default;
 		}
 
@@ -1819,6 +1828,15 @@ namespace AE::Graphics
 			 HasSubStringIC( name, "GTX " )		or
 			 HasSubStringIC( name, "RTX " ))
 		{
+			if ( HasSubStringIC( name, "RTX 50" ))
+				return EGraphicsDeviceID::NV_Blackwell;
+
+			if ( HasSubStringIC( name, "RTX 40" ))
+				return EGraphicsDeviceID::NV_Ada;
+
+			if ( HasSubStringIC( name, "RTX 30" ))
+				return EGraphicsDeviceID::NV_Ampere;
+
 			if ( HasSubStringIC( name, "RTX 20" )			or
 				 HasSubStringIC( name, "TITAN RTX" )		or
 				 HasSubStringIC( name, "Quadro RTX " ))
@@ -1862,6 +1880,7 @@ namespace AE::Graphics
 			if ( HasSubStringIC( name, "Tegra X2" ))
 				return EGraphicsDeviceID::NV_Pascal_Tegra;
 
+			StaticAssert( EGraphicsDeviceID::_NV_End == EGraphicsDeviceID::NV_Blackwell );
 			return Default;
 		}
 
@@ -1888,6 +1907,10 @@ namespace AE::Graphics
 				 HasSubStringIC( name, "Iris(TM) Xe" ))
 				return EGraphicsDeviceID::Intel_Gen12;
 
+			if ( HasSubStringIC( name, " Arc" ))
+				return EGraphicsDeviceID::Intel_Xe1;
+
+			StaticAssert( EGraphicsDeviceID::_Intel_End == EGraphicsDeviceID::Intel_Xe2 );
 			return Default;
 		}
 
@@ -1900,6 +1923,13 @@ namespace AE::Graphics
 			if ( HasSubStringIC( name, "Rogue GE8" ))
 				return EGraphicsDeviceID::PowerVR_Series8;
 
+			if ( HasSubString( name, "BXM" ))
+				return EGraphicsDeviceID::PowerVR_SeriesB;
+
+			if ( HasSubString( name, "DXM" ))
+				return EGraphicsDeviceID::PowerVR_SeriesD;
+
+			StaticAssert( EGraphicsDeviceID::_PowerVR_End == EGraphicsDeviceID::PowerVR_SeriesD );
 			return Default;
 		}
 
@@ -1929,7 +1959,7 @@ namespace AE::Graphics
 			case ESurfaceFormat::BGRA8_sRGB_nonlinear :				return { EPixelFormat::BGRA8_UNorm,		EColorSpace::sRGB_nonlinear			};
 			case ESurfaceFormat::RGBA8_sRGB_nonlinear :				return { EPixelFormat::RGBA8_UNorm,		EColorSpace::sRGB_nonlinear			};
 			case ESurfaceFormat::BGRA8_BT709_nonlinear :			return { EPixelFormat::BGRA8_UNorm,		EColorSpace::BT709_nonlinear		};
-													   
+
 			case ESurfaceFormat::RGBA16F_sRGB_nonlinear :			return { EPixelFormat::RGBA16F,			EColorSpace::sRGB_nonlinear			};
 			case ESurfaceFormat::RGBA16F_Extended_sRGB_linear :		return { EPixelFormat::RGBA16F,			EColorSpace::Extended_sRGB_linear	};
 			case ESurfaceFormat::RGBA16F_Extended_sRGB_nonlinear :	return { EPixelFormat::RGBA16F,			EColorSpace::Extended_sRGB_nonlinear };
@@ -1958,7 +1988,7 @@ namespace AE::Graphics
 		if ( format == EPixelFormat::BGRA8_UNorm	and space == EColorSpace::sRGB_nonlinear )			return ESurfaceFormat::BGRA8_sRGB_nonlinear;
 		if ( format == EPixelFormat::RGBA8_UNorm	and space == EColorSpace::sRGB_nonlinear )			return ESurfaceFormat::RGBA8_sRGB_nonlinear;
 		if ( format == EPixelFormat::BGRA8_UNorm	and space == EColorSpace::BT709_nonlinear )			return ESurfaceFormat::BGRA8_BT709_nonlinear;
-		
+
 		if ( format == EPixelFormat::RGBA16F		and space == EColorSpace::sRGB_nonlinear )			return ESurfaceFormat::RGBA16F_sRGB_nonlinear;
 		if ( format == EPixelFormat::RGBA16F		and space == EColorSpace::Extended_sRGB_linear )	return ESurfaceFormat::RGBA16F_Extended_sRGB_linear;
 		if ( format == EPixelFormat::RGBA16F		and space == EColorSpace::Extended_sRGB_nonlinear )	return ESurfaceFormat::RGBA16F_Extended_sRGB_nonlinear;
@@ -2052,7 +2082,7 @@ namespace AE::Graphics
 
 		RETURN_ERR( "invalid vertex type", float_type );
 	}
-	
+
 /*
 =================================================
 	EVertexType_SetVec
@@ -2071,7 +2101,7 @@ namespace AE::Graphics
 		const EVertexType	other		= (type & ~EVertexType::_VecMask);
 		return other | vec_size;
 	}
-	
+
 	uint  EVertexType_GetVec (EVertexType type) __NE___
 	{
 		EVertexType	vec_size	= type & EVertexType::_VecMask;

@@ -30,7 +30,7 @@ namespace
 		// see 'enable_environment' field in 'renderdoc.json'
 		return PlatformUtils::SetEnvironmentVariable( "ENABLE_VULKAN_RENDERDOC_CAPTURE", "1" );
 	}
-	
+
 /*
 =================================================
 	Initialize
@@ -84,7 +84,7 @@ namespace
 		CHECK_ERR( _device != null );
 		return true;
 	}
-	
+
 /*
 =================================================
 	Deinitialize
@@ -118,11 +118,11 @@ namespace
 		#else
 		#	error Unsupported platform!
 		#endif
-			
+
 		auto*	rdoc_api = Cast<RDocApi_t>(_api);
 		rdoc_api->SetActiveWindow( _device, _wndHandle.load() );
 	}
-	
+
 /*
 =================================================
 	CaptureFolder
@@ -131,7 +131,7 @@ namespace
 	void  RenderDocApi::CaptureFolder (NtStringView path) C_NE___
 	{
 		CHECK_ERRV( not path.empty() );
-		
+
 		auto*	rdoc_api = Cast<RDocApi_t>(_api);
 		rdoc_api->SetCaptureFilePathTemplate( path.c_str() );
 	}
@@ -172,13 +172,13 @@ namespace
 	{
 		if ( _api == null )
 			return false;
-		
+
 		auto*	rdoc_api = Cast<RDocApi_t>(_api);
 		rdoc_api->StartFrameCapture( _device, _wndHandle.load() );
 
 		if ( not name.empty() )
 			rdoc_api->SetCaptureTitle( name.c_str() );
-		
+
 		_captureIdx.Inc();
 		return true;
 	}
@@ -222,7 +222,7 @@ namespace
 	{
 		if ( _api == null )
 			return false;
-		
+
 		auto*	rdoc_api = Cast<RDocApi_t>(_api);
 		rdoc_api->TriggerCapture();
 
@@ -244,7 +244,7 @@ namespace
 			return false;
 
 		Cast<RDocApi_t>(_api)->TriggerMultiFrameCapture( count );
-		
+
 		_captureIdx.fetch_add( count );
 		return true;
 	}

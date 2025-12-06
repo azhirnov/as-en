@@ -24,7 +24,7 @@ namespace AE::ResLoader
 
 		Setter&  AddBuffer (Bytes stride, EVertexInputRate rate = EVertexInputRate::Vertex);
 		Setter&  AddBuffer (const Name_t &bufferId, Bytes stride, EVertexInputRate rate = EVertexInputRate::Vertex);
-		
+
 		Setter&  AddVertex (const Name_t &id, EVertexType type, Bytes offset, BufferIndex bufferIdx);
 
 		// add vertex to last buffer

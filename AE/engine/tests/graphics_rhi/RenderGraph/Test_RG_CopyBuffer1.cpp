@@ -31,14 +31,14 @@ namespace
 
 		auto	read_res = ctx.ReadbackBuffer( t.buf_2, ReadbackBufferDesc{}.DataSize( t.buf_size ));
 		CHECK_CE( read_res.IsCompleted() );
-		
+
 		t.result = read_res.Then( t,
 						[] (Promise<BufferMemView> readRes, CoSafe<CB1_TestData&> t) -> InlineCoro<>
 						{
 							BufferMemView view = co_await readRes;
 							t->isOK = (view == ArrayView<ubyte>{ t->buffer_data });
 						});
-		
+
 		ctx.AccumBarriers()
 			.MemoryBarrier( EResourceState::CopyDst, EResourceState::Host_Read );
 

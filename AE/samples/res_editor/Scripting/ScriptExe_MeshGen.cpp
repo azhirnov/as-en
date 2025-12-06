@@ -248,7 +248,7 @@ namespace AE::ResEditor
 			indices.push_back( idx );
 		}
 	}
-	
+
 	void  ScriptExe::_GetSphere5 (uint								lod,
 								  OUT ScriptArray<packed_float3>	&positions,
 								  OUT ScriptArray<packed_float2>	&texcoords,
@@ -411,25 +411,6 @@ namespace AE::ResEditor
 
 		for (usize i = 0; i < indices.size(); i += 3) {
 			primitives.emplace_back( indices[i+0], indices[i+1], indices[i+2] );
-		}
-	}
-
-/*
-=================================================
-	_GetFrustumPlanes
-=================================================
-*/
-	void  ScriptExe::_GetFrustumPlanes (const packed_float4x4			&viewProj,
-										OUT ScriptArray<packed_float4>	&planes) __Th___
-	{
-		planes.clear();
-		planes.resize( 6 );
-
-		TFrustum<float>		frustum;
-		frustum.Setup( float4x4{viewProj} );
-
-		for (uint i = 0; i < 6; ++i) {
-			planes[i] = float4{frustum.GetPlane( i )};
 		}
 	}
 
@@ -768,6 +749,87 @@ namespace AE::ResEditor
 		}
 	}
 
+/*
+=================================================
+	_GetCone
+=================================================
+*/
+	void  ScriptExe::_GetCone1 (const uint						segmentCount,
+								const float						radius,
+								const float						height,
+								OUT ScriptArray<packed_float3>	&positions,
+								OUT ScriptArray<uint>			&indices) __Th___
+	{
+		positions.clear();
+		indices.clear();
+
+		CHECK_THROW_MSG( segmentCount >= 3 );
+
+		positions.resize( segmentCount + 2 );
+		indices.resize( segmentCount * 2 * 3 );
+
+		// circle (base)
+		for (uint i = 0; i < segmentCount; ++i)
+		{
+			Rad		a = 2.f * Pi * float(i) / float(segmentCount);
+			float	x = radius * Cos( a );
+			float	y = radius * Sin( a );
+			positions[i] = packed_float3{ x, y, height };
+		}
+
+		positions[segmentCount]		= packed_float3{ 0.f, 0.f, 0.f };		// apex
+		positions[segmentCount+1]	= packed_float3{ 0.f, 0.f, height };	// circle center
+
+		const uint	apex_idx	= segmentCount;
+		const uint	base_idx	= segmentCount + 1;
+
+		// side
+		for (uint i = 0, j = 0; i < segmentCount; ++i, j += 3)
+		{
+			uint	next	= (i + 1) % segmentCount;
+			indices[j]		= i;
+			indices[j+1]	= next;
+			indices[j+2]	= apex_idx;
+		}
+
+		// base
+		for (uint i = 0, j = segmentCount*3; i < segmentCount; ++i, j += 3)
+		{
+			uint	next	= (i + 1) % segmentCount;
+
+			indices[j]		= i;
+			indices[j+1]	= next;
+			indices[j+2]	= base_idx;
+		}
+	}
+
+	void  ScriptExe::_GetCone2 (uint							segmentCount,
+								const float						radius,
+								const float						height,
+								OUT ScriptArray<packed_float3>	&positions,
+								OUT ScriptArray<packed_float3>	&normals,
+								OUT ScriptArray<packed_float2>	&texcoords,
+								OUT ScriptArray<uint>			&indices) __Th___
+	{
+		// TODO
+		CHECK( false );
+		Unused( segmentCount, radius, height, positions, normals, texcoords, indices );
+	}
+
+	void  ScriptExe::_GetCone3 (uint							segmentCount,
+								const float						radius,
+								const float						height,
+								OUT ScriptArray<packed_float3>	&positions,
+								OUT ScriptArray<packed_float3>	&normals,
+								OUT ScriptArray<packed_float3>	&tangents,
+								OUT ScriptArray<packed_float3>	&bitangents,
+								OUT ScriptArray<packed_float2>	&texcoords,
+								OUT ScriptArray<uint>			&indices) __Th___
+	{
+		// TODO
+		CHECK( false );
+		Unused( segmentCount, radius, height, positions, normals, tangents, bitangents, texcoords, indices );
+	}
 
 /*
 =================================================
@@ -793,6 +855,5 @@ namespace AE::ResEditor
 		using namespace AE::GeometryTools;
 		return packed_float3{ SCProj2_Spherical< SCProj1_Tangential >::Forward( double2{float2{c.x, c.y}}, ECubeFace(c.z) )};
 	}
-
 
 } // AE::ResEditor

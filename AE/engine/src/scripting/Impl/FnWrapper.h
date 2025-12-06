@@ -12,7 +12,7 @@ namespace AE::Scripting::_hidden_
 		using A = Base::RemoveAllQualifiers<T>;
 		static constexpr bool	value = IsVoid<T> or IsInteger<A> or IsFloatPoint<A> or IsCompleteType< ScriptTypeInfo<A> >;
 	};
-	
+
 	template <typename ...Types>
 	static constexpr bool	AllArgsValid = TypeList< Types... >::template ForEach_And< IsValidArg >();
 
@@ -51,7 +51,7 @@ namespace AE::Scripting::_hidden_
 				args.Return<R>( fp( args.Arg<Args>(I)... ));
 		}
 	};
-	
+
 	template <typename R, typename ...Args>
 	struct FnWrap< R (*) (Args...) noexcept >
 	{
@@ -77,8 +77,8 @@ namespace AE::Scripting::_hidden_
 		}
 	};
 
-	
-	
+
+
 	//
 	// Assign Operator Wrapper
 	//
@@ -104,7 +104,7 @@ namespace AE::Scripting::_hidden_
 	};
 
 
-	
+
 	//
 	// Binary Operator Wrapper
 	//
@@ -195,7 +195,7 @@ namespace AE::Scripting::_hidden_
 	};
 
 
-	
+
 	//
 	// Unary Operator Wrapper
 	//
@@ -219,7 +219,7 @@ namespace AE::Scripting::_hidden_
 	};
 
 
-	
+
 	//
 	// Member Function Wrapper
 	//
@@ -268,7 +268,7 @@ namespace AE::Scripting::_hidden_
 		}
 	};
 
-	
+
 	template <typename R, typename Class, typename ...Args>
 	struct FnWrap_ObjFirst< R (Class::*) (Args...) noexcept >
 	{
@@ -377,7 +377,7 @@ namespace AE::Scripting::_hidden_
 		{
 			auto*	obj = args.GetObject<C>();
 			CHECK_THROW( obj != null );
-			
+
 			if constexpr( IsVoid<R> )
 				fp( PtrOrRef<Class>(obj), args.Arg<Args>(I)... );
 			else
@@ -407,7 +407,7 @@ namespace AE::Scripting::_hidden_
 		{
 			auto*	obj = args.GetObject<C>();
 			CHECK_THROW( obj != null );
-			
+
 			if constexpr( IsVoid<R> )
 				fp( PtrOrRef<Class>(obj), args.Arg<Args>(I)... );
 			else
@@ -475,7 +475,7 @@ namespace AE::Scripting::_hidden_
 	#define AS_OP_EQUAL( _binder_, _fn_ )																					\
 		(_binder_).AddGenericMethod< typename AE::Scripting::_hidden_::FnWrap_BinConstOp< decltype(&_fn_) >::type >(		\
 			&AE::Scripting::_hidden_::FnWrap_BinConstOp< decltype(&_fn_) >::template Call< (&_fn_) >, "opEquals", {} )
-	
+
 	#define AS_OP_EQUAL_T( _binder_, _fn_ )																					\
 		(_binder_).template AddGenericMethod< typename AE::Scripting::_hidden_::FnWrap_BinConstOp< decltype(&_fn_) >::type >(\
 			&AE::Scripting::_hidden_::FnWrap_BinConstOp< decltype(&_fn_) >::template Call< (&_fn_) >, "opEquals", {} )
@@ -483,7 +483,7 @@ namespace AE::Scripting::_hidden_
 	#define AS_OP_CMP( _binder_, _fn_ )																						\
 		(_binder_).AddGenericMethod< typename AE::Scripting::_hidden_::FnWrap_BinConstOp< decltype(&_fn_) >::type >(		\
 			&AE::Scripting::_hidden_::FnWrap_BinConstOp< decltype(&_fn_) >::template Call< (&_fn_) >, "opCmp", {} )
-	
+
 	#define AS_OP_CMP_T( _binder_, _fn_ )																					\
 		(_binder_).template AddGenericMethod< typename AE::Scripting::_hidden_::FnWrap_BinConstOp< decltype(&_fn_) >::type >(\
 			&AE::Scripting::_hidden_::FnWrap_BinConstOp< decltype(&_fn_) >::template Call< (&_fn_) >, "opCmp", {} )

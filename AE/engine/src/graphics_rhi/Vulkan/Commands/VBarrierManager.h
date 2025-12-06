@@ -98,7 +98,7 @@ namespace AE::Graphics::_hidden_
 		void  MemoryBarrier (EResourceState srcState, EResourceState dstState)															__NE___;
 		void  MemoryBarrier (EPipelineScope srcScope, EPipelineScope dstScope)															__NE___;
 		void  MemoryBarrier ()																											__NE___;
-		
+
 		void  ExecutionBarrier (EResourceState srcState, EResourceState dstState)														__NE___;
 		void  ExecutionBarrier (EPipelineScope srcScope, EPipelineScope dstScope)														__NE___;
 		void  ExecutionBarrier ()																										__NE___;

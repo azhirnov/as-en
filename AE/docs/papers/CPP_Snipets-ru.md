@@ -158,7 +158,7 @@ struct ClassA
     template <typename B = T>
       requires( B::allowImplicitCast )
     operator T ();  // implicit cast
-  
+
     template <typename B = T>
       requires( not B::allowImplicitCast )
     explicit operator T ();  // explicit cast
@@ -175,7 +175,7 @@ concept IsCoroutine = requires()
     (typename T::promise_type{}).final_suspend();
 
     (typename T::promise_type{}).unhandled_exception();
-        
+
     (typename T::promise_type{}).get_return_object();
     T::promise_type::get_return_object_on_allocation_failure();
 };

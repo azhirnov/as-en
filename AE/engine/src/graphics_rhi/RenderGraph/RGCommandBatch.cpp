@@ -289,7 +289,7 @@ namespace AE::RG::_hidden_
 =================================================
 	_CheckResourceState
 ----
-	Used in DrawContext, where barriers are not allowed, to check that resource is compatible with required state.		
+	Used in DrawContext, where barriers are not allowed, to check that resource is compatible with required state.
 =================================================
 */
 	bool  RGCommandBatchPtr::RGBatchData::_CheckResourceState (uint taskIdx, ResourceKey key, const EResourceState state) C_NE___

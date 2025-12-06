@@ -17,9 +17,9 @@ namespace AE
 	using ulong		= uint64_t;		// ull
 	using ssize		= intptr_t;
 	using usize		= size_t;
-	using CharUtf8	= char8_t;		// u8''  (C++20)
 
 	using CharAnsi	= char;
+	using CharUtf8	= char8_t;		// u8''  (C++20)
 	using CharUtf16	= char16_t;		// u''
 	using CharUtf32	= char32_t;		// U''	used 21 bits
 
@@ -74,7 +74,7 @@ namespace AE::Base
 	using U16StringView		= BasicStringView< CharUtf16 >;
 	using U32StringView		= BasicStringView< CharUtf32 >;
 
-	
+
 	using Path				= std::filesystem::path;
 
 
@@ -145,7 +145,7 @@ namespace AE::Base
 	{
 		return StringView{ typeid(T).name() };
 	}
-	
+
 	// bugfix: link error in MacOS clang14-15
 # ifdef AE_PLATFORM_APPLE
 #	ifdef __cpp_char8_t

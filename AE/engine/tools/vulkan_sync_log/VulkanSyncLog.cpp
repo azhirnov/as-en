@@ -372,7 +372,7 @@ namespace
 
 		return VkPipelineStageFlags2ToString( stages );
 	}
-	
+
 /*
 =================================================
 	PrintName
@@ -761,7 +761,7 @@ namespace
 			rp.barriers[i].pNext	= null;
 			dep.pNext				= &rp.barriers[i];
 		}
-		
+
 		for (auto* next = Cast<VkBaseInStructure>(pCreateInfo->pNext); next != null; next = next->pNext)
 		{
 			switch ( next->sType )
@@ -2331,7 +2331,7 @@ namespace
 				log << "\n      aspect:  " << VkImageAspectFlagsToString( prev.second ) << '\n';
 			}
 		}
-		
+
 		if ( subpassIndex == 0 )
 		{
 			if ( rp.densityMapRef.attachment != VK_ATTACHMENT_UNUSED )
@@ -4182,7 +4182,7 @@ namespace
 		auto&		logger	= VulkanLogger::Get();
 		{
 			EXLOCK( logger.guard );
-			
+
 			auto	it = logger.accelStructMap.find( accelerationStructure );
 			if ( it != logger.accelStructMap.end() )
 			{

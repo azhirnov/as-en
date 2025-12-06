@@ -30,7 +30,7 @@ namespace
 
 		int	pot = IntLog2( src );
 		CHECK( pot >= 0 );
-		
+
 		if ( (1u<<pot) != src )
 			AE_LOGW( "Not a POT value: ("s << ToString(1u<<pot) << ") != (" << ToString(src) << ") in " << name );
 
@@ -50,7 +50,7 @@ namespace
 
 		return POTBytes{PowerOfTwo(pot)};
 	}
-	
+
 /*
 =================================================
 	CastSat
@@ -672,13 +672,13 @@ namespace
 		CHECK( prev != Default );
 		return prev;
 	}
-	
+
 /*
 =================================================
 	FS_ParseJSON (EIntegerDotProductFeats)
 =================================================
 */
-	ND_ static EIntegerDotProductFeats  FS_ParseJSON (const EIntegerDotProductFeats &prev, StringView json, StringView name)
+	ND_ static EIntegerDotProductFeats  FS_ParseJSON (const EIntegerDotProductFeats &prev, StringView json, StringView)
 	{
 		#define INTDOT_FEATS( _visitor_ )\
 			_visitor_( integerDotProduct8BitUnsignedAccelerated,										Unsigned8bit )\
@@ -715,7 +715,7 @@ namespace
 		#define INTDOT_VISIT( _vkFeat_, _aeEnum_ )\
 			if ( FS_ParseJSON( FeatureSet::EFeature::Ignore, json, AE_TOSTRING(_vkFeat_) ) == FeatureSet::EFeature::RequireTrue )\
 				new_feats.insert( EIntegerDotProductFeat::_aeEnum_ );
-		
+
 		EIntegerDotProductFeats		new_feats = prev;
 
 		INTDOT_FEATS( INTDOT_VISIT )
@@ -724,7 +724,7 @@ namespace
 		#undef INTDOT_FEATS
 		return new_feats;
 	}
-	
+
 /*
 =================================================
 	FS_ParseJSON (other)
@@ -1237,7 +1237,7 @@ namespace
 			{ "maxUniformBufferSize",					"maxUniformBufferRange"					},
 			{ "maxStorageBufferSize",					"maxStorageBufferRange"					},
 			{ "maxDescriptorSets",						"maxBoundDescriptorSets"				},
-			{ "imageViewMinLod",						"minLod"								},
+		//	{ "imageViewMinLod",						"minLod"								},
 			{ "subgroupOperations",						"subgroupSupportedOperations"			},
 			{ "subgroupStages",							"subgroupSupportedStages"				},
 			{ "subgroupTypes",							"shaderSubgroupExtendedTypes"			},
@@ -1289,9 +1289,9 @@ namespace
 													  HasSubString( json, "VK_KHR_spirv_1_4" )	? 140 :
 													  ver >= Version2{1,1}						? 130 : 100;
 
-			outName = FS_ParseJSON_Str( json, "\"label\"" );
-			if ( outName.empty() )
-				outName = jsonFile.filename().string();
+			//outName = FS_ParseJSON_Str( json, "\"label\"" );
+			//if ( outName.empty() )
+			outName = ToString( jsonFile.stem() );
 		}
 
 		if ( not HasSubString( json, "VK_KHR_portability_subset" ))
@@ -1415,7 +1415,13 @@ namespace
 			outFeatureSet.fragmentShadingRateTexelSize.minY			= POTValue{ min.height	}.GetPOT();
 			outFeatureSet.fragmentShadingRateTexelSize.maxX			= POTValue{ max.width	}.GetPOT();
 			outFeatureSet.fragmentShadingRateTexelSize.maxY			= POTValue{ max.height	}.GetPOT();
-			outFeatureSet.fragmentShadingRateTexelSize.aspectRatio	= POTValue{ aspect_ratio		}.GetPOT();
+			outFeatureSet.fragmentShadingRateTexelSize.aspectRatio	= POTValue{ aspect_ratio}.GetPOT();
+
+			CHECK( outFeatureSet.fragmentShadingRateTexelSize.minX <= outFeatureSet.fragmentShadingRateTexelSize.maxX );
+			CHECK( outFeatureSet.fragmentShadingRateTexelSize.minY <= outFeatureSet.fragmentShadingRateTexelSize.maxY );
+			CHECK( All( outFeatureSet.fragmentShadingRateTexelSize.Min() == uint2{min.width, min.height} ));
+			CHECK( All( outFeatureSet.fragmentShadingRateTexelSize.Max() == uint2{max.width, max.height} ));
+			CHECK( outFeatureSet.fragmentShadingRateTexelSize.MaxAspectRatio() == aspect_ratio );
 		}
 
 		// deviceID, vendorID
@@ -1549,7 +1555,7 @@ namespace
 	{
 		FS_ToString( INOUT str, POTValue{value}, name );
 	}
-	
+
 /*
 =================================================
 	FS_ToString (Bytes)
@@ -1984,7 +1990,7 @@ namespace
 	{
 		// properties are not presented
 	}
-	
+
 /*
 =================================================
 	FS_ToString (EIntegerDotProductFeats)
@@ -2000,11 +2006,12 @@ namespace
 		uint	count = 0;
 		for (EIntegerDotProductFeat e : feats)
 		{
+			if ( count > 0 )
+				str << ", ";
+
 			++count;
 			if ( count > 5 )
-			{
 				str << "\n\t\t\t";
-			}
 
 			switch_enum( e )
 			{

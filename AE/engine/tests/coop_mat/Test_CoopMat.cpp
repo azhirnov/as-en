@@ -26,7 +26,7 @@ namespace
 
 		Array<float>	output;
 		output.resize( rowColC.x * rowColC.y );
-		
+
 		Array<float>	ref_output;
 		ref_output.resize( rowColC.x * rowColC.y );
 
@@ -97,7 +97,7 @@ namespace
 		CHECK( max_err < 1.f );
 	}
 
-	
+
 	void  FillWithLinearData (INOUT Array<half> &arr, float scale, float bias)
 	{
 		for (usize i = 0; i < arr.size(); ++i) {
@@ -119,7 +119,7 @@ namespace
 
 			const uint		mat_count	= 2;
 			const bool		col_major	= (t == 0);
-		
+
 			StaticAssert( cols_a == rows_b );
 			StaticAssert( rows_a == rows_c );
 			StaticAssert( cols_b == cols_c );

@@ -245,7 +245,7 @@ namespace _hidden_
 	inline void  MemCopy (OUT void* dst, const void* src, const Bytes size) __NE___
 	{
 		Base::_hidden_::MemCopyChecks( dst, src, size );
-		
+
 		// spec: "If either dest or src is an invalid or null pointer, the behavior is undefined, even if count is zero."
 		if_likely( dst != null and src != null and size != 0 )
 		{
@@ -265,7 +265,7 @@ namespace _hidden_
 	{
 		StaticAssert( IsMemCopyAvailable<T> );
 		Base::_hidden_::MemCopyChecks( dst, src, SizeOf<T>*count );
-		
+
 		// spec: "If either dest or src is an invalid or null pointer, the behavior is undefined, even if count is zero."
 		if_likely( dst != null and src != null and count != 0 )
 		{
@@ -283,7 +283,7 @@ namespace _hidden_
 	inline void  MemMove (OUT void* dst, const void* src, Bytes size) __NE___
 	{
 		Base::_hidden_::MemMoveChecks( dst, src );
-		
+
 		// spec: "If either dest or src is an invalid or null pointer, the behavior is undefined, even if count is zero."
 		if_likely( dst != null and src != null and size != 0 )
 		{
@@ -303,7 +303,7 @@ namespace _hidden_
 	{
 		StaticAssert( IsMemCopyAvailable<T> );
 		Base::_hidden_::MemMoveChecks( dst, src );
-		
+
 		// spec: "If either dest or src is an invalid or null pointer, the behavior is undefined, even if count is zero."
 		if_likely( dst != null and src != null and count != 0 )
 		{
@@ -344,7 +344,7 @@ namespace _hidden_
 	{
 		StaticAssert( not IsVoid<T> );
 		StaticAssert( IsZeroMemAvailable<T> );
-		
+
 		if_likely( ptr != null and count > 0 )
 		{
 			std::memset( OUT ptr, 0, sizeof(T) * count );

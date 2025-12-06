@@ -178,28 +178,28 @@ namespace AE::Base
 	Nd__IF const T*  FindChar (T const* begin, T const* end, const T ch) __NE___
 	{
 		if constexpr( sizeof(T) == 1 )
-			return Cast<T>( FindChar_SIMD( Cast<char>(begin), Cast<char>(end), char(ch) ));
+			return Cast<T>( FindChar8_SIMD( Cast<sbyte>(begin), Cast<sbyte>(end), sbyte(ch) ));
 		else
 		if constexpr( sizeof(T) == 2 )
-			return FindChar16_SIMD( begin, end, ch );
+			return Cast<T>( FindChar16_SIMD( Cast<ushort>(begin), Cast<ushort>(end), ushort(ch) ));
 		else
 		if constexpr( sizeof(T) == 4 )
-			return FindChar32_SIMD( begin, end, ch );
+			return Cast<T>( FindChar32_SIMD( Cast<uint>(begin), Cast<uint>(end), uint(ch) ));
 	}
-	
+
 	template <typename T>
 	Nd__IF T*  FindChar (T* begin, T const* end, const T ch) __NE___
 	{
 		if constexpr( sizeof(T) == 1 )
-			return const_cast<T*>( Cast<T>( FindChar_SIMD( Cast<char>(begin), Cast<char>(end), char(ch) )));
+			return const_cast<T*>( Cast<T>( FindChar8_SIMD( Cast<sbyte>(begin), Cast<sbyte>(end), sbyte(ch) )));
 		else
 		if constexpr( sizeof(T) == 2 )
-			return const_cast<T*>( FindChar16_SIMD( begin, end, ch ));
+			return const_cast<T*>( Cast<T>( FindChar16_SIMD( Cast<ushort>(begin), Cast<ushort>(end), ushort(ch) )));
 		else
 		if constexpr( sizeof(T) == 4 )
-			return const_cast<T*>( FindChar32_SIMD( begin, end, ch ));
+			return const_cast<T*>( Cast<T>( FindChar32_SIMD( Cast<uint>(begin), Cast<uint>(end), uint(ch) )));
 	}
-	
+
 	template <typename T>
 	Nd__IF const T*  FindChar (BasicStringView<T> str, const T ch, const usize first = 0) __NE___
 	{
@@ -225,9 +225,14 @@ namespace AE::Base
 	IsUpperCase
 =================================================
 */
-	Nd__IF bool  IsUpperCase (const char c) __NE___
+	Nd__IF bool  IsUpperCase (const CharAnsi c) __NE___
 	{
 		return (c >= 'A') and (c <= 'Z');
+	}
+
+	Nd__IF bool  IsUpperCase (const CharUtf32 c) __NE___
+	{
+		return Utf32ToUpper( c );
 	}
 
 /*
@@ -235,9 +240,14 @@ namespace AE::Base
 	IsLowerCase
 =================================================
 */
-	Nd__IF bool  IsLowerCase (const char c) __NE___
+	Nd__IF bool  IsLowerCase (const CharAnsi c) __NE___
 	{
 		return (c >= 'a') and (c <= 'z');
+	}
+
+	Nd__IF bool  IsLowerCase (const CharUtf32 c) __NE___
+	{
+		return Utf32IsLower( c );
 	}
 
 /*
@@ -245,9 +255,14 @@ namespace AE::Base
 	ToLowerCase
 =================================================
 */
-	Nd__IF char  ToLowerCase (const char c) __NE___
+	Nd__IF CharAnsi  ToLowerCase (const CharAnsi c) __NE___
 	{
 		return IsUpperCase( c ) ? (c - 'A' + 'a') : c;
+	}
+
+	Nd__IF CharUtf32  ToLowerCase (const CharUtf32 c) __NE___
+	{
+		return Utf32ToLower( c );
 	}
 
 /*
@@ -255,9 +270,14 @@ namespace AE::Base
 	ToUpperCase
 =================================================
 */
-	Nd__IF char  ToUpperCase (const char c) __NE___
+	Nd__IF CharAnsi  ToUpperCase (const CharAnsi c) __NE___
 	{
 		return IsLowerCase( c ) ? (c - 'a' + 'A') : c;
+	}
+
+	Nd__IF CharUtf32  ToUpperCase (const CharUtf32 c) __NE___
+	{
+		return Utf32ToUpper( c );
 	}
 
 /*
@@ -282,7 +302,7 @@ namespace AE::Base
 	}
 
 	template <typename T>
-	Nd__IF BasicStringView<T>  SubString2 (BasicStringView<T> src, usize begin, usize end) __NE___
+	Nd__IF BasicStringView<T>  SubStringBE (BasicStringView<T> src, usize begin, usize end) __NE___
 	{
 		ASSERT( begin <= end );
 		ASSERT( end <= src.size() );
@@ -293,9 +313,9 @@ namespace AE::Base
 	}
 
 	template <typename T>
-	Nd__IF BasicStringView<T>  SubString2 (const BasicString<T> &src, usize begin, usize end) __NE___
+	Nd__IF BasicStringView<T>  SubStringBE (const BasicString<T> &src, usize begin, usize end) __NE___
 	{
-		return SubString2( BasicStringView<T>{src}, begin, end );
+		return SubStringBE( BasicStringView<T>{src}, begin, end );
 	}
 
 /*
@@ -340,7 +360,9 @@ namespace AE::Base
 	comparison is case insensitive.
 =================================================
 */
-	Nd__In bool  EqualIC (StringView lhs, StringView rhs) __NE___
+namespace _hidden_ {
+	template <typename T>
+	bool  EqualICImpl (BasicStringView<T> lhs, BasicStringView<T> rhs) __NE___
 	{
 		if ( lhs.size() != rhs.size() )
 			return false;
@@ -352,6 +374,9 @@ namespace AE::Base
 		}
 		return true;
 	}
+}
+	Nd__In bool  EqualIC (StringView    lhs, StringView    rhs) __NE___	{ return Base::_hidden_::EqualICImpl( lhs, rhs ); }
+	Nd__In bool  EqualIC (U32StringView lhs, U32StringView rhs) __NE___	{ return Base::_hidden_::EqualICImpl( lhs, rhs ); }
 
 /*
 =================================================
@@ -363,7 +388,7 @@ namespace AE::Base
 */
 namespace _hidden_ {
 	template <typename T>
-	Nd__In const T*  FindStringImpl (BasicStringView<T> str, BasicStringView<T> substr, usize first) __NE___
+	const T*  FindStringImpl (BasicStringView<T> str, BasicStringView<T> substr, usize first) __NE___
 	{
 		if ( str.size() < substr.size() )
 			return str.data() + str.size();
@@ -387,8 +412,9 @@ namespace _hidden_ {
 		return str.data() + str.size();
 	}
 }
-	Nd__In const char*		FindString (StringView str, StringView substr, usize first)		__NE___	{ return Base::_hidden_::FindStringImpl( str, substr, first ); }
-	Nd__In const CharUtf8*	FindString (U8StringView str, U8StringView substr, usize first)	__NE___	{ return Base::_hidden_::FindStringImpl( str, substr, first ); }
+	Nd__In const char*		FindString (StringView str, StringView substr, usize first)			__NE___	{ return Base::_hidden_::FindStringImpl( str, substr, first ); }
+	Nd__In const CharUtf8*	FindString (U8StringView str, U8StringView substr, usize first)		__NE___	{ return Base::_hidden_::FindStringImpl( str, substr, first ); }
+	Nd__In const CharUtf32*	FindString (U32StringView str, U32StringView substr, usize first)	__NE___	{ return Base::_hidden_::FindStringImpl( str, substr, first ); }
 
 /*
 =================================================
@@ -440,7 +466,7 @@ namespace _hidden_ {
 		}
 		return str.data() + str.size();
 	}
-	
+
 /*
 =================================================
 	HasChar
@@ -465,7 +491,7 @@ namespace _hidden_ {
 */
 namespace _hidden_ {
 	template <typename T>
-	Nd__In bool  HasSubStringImpl (BasicStringView<T> str, BasicStringView<T> substr) __NE___
+	bool  HasSubStringImpl (BasicStringView<T> str, BasicStringView<T> substr) __NE___
 	{
 		auto*	end = str.data() + str.size();
 		return FindStringImpl<T>( str, substr, 0u ) < end;
@@ -473,6 +499,7 @@ namespace _hidden_ {
 }
 	Nd__In bool  HasSubString (StringView str, StringView substr)		__NE___	{ return Base::_hidden_::HasSubStringImpl( str, substr ); }
 	Nd__In bool  HasSubString (U8StringView str, U8StringView substr)	__NE___	{ return Base::_hidden_::HasSubStringImpl( str, substr ); }
+	Nd__In bool  HasSubString (U32StringView str, U32StringView substr)	__NE___	{ return Base::_hidden_::HasSubStringImpl( str, substr ); }
 
 /*
 =================================================
@@ -498,7 +525,7 @@ namespace _hidden_ {
 */
 namespace _hidden_ {
 	template <typename T>
-	Nd__In bool  StartsWithImpl (BasicStringView<T> str, BasicStringView<T> substr) __NE___
+	bool  StartsWithImpl (BasicStringView<T> str, BasicStringView<T> substr) __NE___
 	{
 		if ( str.length() < substr.length() )
 			return false;
@@ -508,6 +535,7 @@ namespace _hidden_ {
 }
 	Nd__In bool  StartsWith (StringView str, StringView substr)			__NE___	{ return Base::_hidden_::StartsWithImpl( str, substr ); }
 	Nd__In bool  StartsWith (U8StringView str, U8StringView substr)		__NE___	{ return Base::_hidden_::StartsWithImpl( str, substr ); }
+	Nd__In bool  StartsWith (U32StringView str, U32StringView substr)	__NE___	{ return Base::_hidden_::StartsWithImpl( str, substr ); }
 
 /*
 =================================================
@@ -540,7 +568,7 @@ namespace _hidden_ {
 */
 namespace _hidden_ {
 	template <typename T>
-	Nd__In bool  EndsWithImpl (BasicStringView<T> str, BasicStringView<T> substr) __NE___
+	bool  EndsWithImpl (BasicStringView<T> str, BasicStringView<T> substr) __NE___
 	{
 		if ( str.length() < substr.length() )
 			return false;
@@ -550,6 +578,7 @@ namespace _hidden_ {
 }
 	Nd__In bool  EndsWith (StringView str, StringView substr)		__NE___	{ return Base::_hidden_::EndsWithImpl( str, substr ); }
 	Nd__In bool  EndsWith (U8StringView str, U8StringView substr)	__NE___	{ return Base::_hidden_::EndsWithImpl( str, substr ); }
+	Nd__In bool  EndsWith (U32StringView str, U32StringView substr)	__NE___	{ return Base::_hidden_::EndsWithImpl( str, substr ); }
 
 /*
 =================================================
@@ -581,7 +610,7 @@ namespace _hidden_ {
 */
 namespace _hidden_ {
 	template <typename T>
-	inline uint  FindAndReplaceCharImpl (INOUT MutableArrayView<T> str, const T oldSymb, const T newSymb) __NE___
+	uint  FindAndReplaceCharImpl (INOUT MutableArrayView<T> str, const T oldSymb, const T newSymb) __NE___
 	{
 		uint		count	= 0;
 		auto*		ptr		= str.data();
@@ -600,15 +629,15 @@ namespace _hidden_ {
 		}
 		return count;
 	}
-	
+
 	template <typename T>
-	inline uint  FindAndReplaceCharImpl (INOUT BasicString<T> &str, const T oldSymb, const T newSymb) __NE___
+	uint  FindAndReplaceCharImpl (INOUT BasicString<T> &str, const T oldSymb, const T newSymb) __NE___
 	{
 		return FindAndReplaceCharImpl( MutableArrayView<T>{ str.data(), str.size() }, oldSymb, newSymb );
 	}
-	
+
 	template <typename T>
-	inline uint  FindAndReplaceStringImpl (INOUT BasicString<T> &str, BasicStringView<T> oldStr, BasicStringView<T> newStr) __Th___
+	uint  FindAndReplaceStringImpl (INOUT BasicString<T> &str, BasicStringView<T> oldStr, BasicStringView<T> newStr) __Th___
 	{
 		String::size_type	pos		= 0;
 		uint				count	= 0;
@@ -625,7 +654,7 @@ namespace _hidden_ {
 	inline uint  FindAndReplace (INOUT MutableArrayView<char> str, const char oldSymb, const char newSymb)				__NE___	{ return Base::_hidden_::FindAndReplaceCharImpl( INOUT str, oldSymb, newSymb ); }
 	inline uint  FindAndReplace (INOUT String &str, const char oldSymb, const char newSymb)								__NE___	{ return Base::_hidden_::FindAndReplaceCharImpl( INOUT str, oldSymb, newSymb ); }
 	inline uint  FindAndReplace (INOUT String &str, StringView oldStr, StringView newStr)								__Th___	{ return Base::_hidden_::FindAndReplaceStringImpl( INOUT str, oldStr, newStr ); }
-	
+
 	inline uint  FindAndReplace (INOUT MutableArrayView<CharUtf8> str, const CharUtf8 oldSymb, const CharUtf8 newSymb)	__NE___	{ return Base::_hidden_::FindAndReplaceCharImpl( INOUT str, oldSymb, newSymb ); }
 	inline uint  FindAndReplace (INOUT U8String &str, const CharUtf8 oldSymb, const CharUtf8 newSymb)					__NE___	{ return Base::_hidden_::FindAndReplaceCharImpl( INOUT str, oldSymb, newSymb ); }
 	inline uint  FindAndReplace (INOUT U8String &str, U8StringView oldStr, U8StringView newStr)							__Th___	{ return Base::_hidden_::FindAndReplaceStringImpl( INOUT str, oldStr, newStr ); }
@@ -662,7 +691,7 @@ namespace _hidden_ {
 =================================================
 */
 #ifdef AE_ENABLE_UTF8PROC
-	__CxIn bool  Utf8ToAnsi (OUT CharAnsi* dst, const CharUtf8* src, INOUT usize &len, const CharAnsi defaultChar = CharAnsi('?')) __NE___
+	____In bool  Utf8ToAnsi (OUT CharAnsi* dst, const CharUtf8* src, INOUT usize &len, const CharAnsi defaultChar = CharAnsi('?')) __NE___
 	{
 		NonNull( dst );
 		NonNull( src );
@@ -678,6 +707,33 @@ namespace _hidden_ {
 		dst[i]	= CharAnsi{0};
 		len		= i;
 		return res;
+	}
+#endif
+
+/*
+=================================================
+	Utf32ToUtf8
+=================================================
+*/
+#ifdef AE_ENABLE_UTF8PROC
+	Nd__In bool  Utf32ToUtf8 (OUT BasicString<CharUtf8> &dst, BasicStringView<CharUtf32> src) __NE___
+	{
+		NOTHROW_ERR( dst.resize( src.size() * 4 ));
+
+		bool	ok  = true;
+		usize	pos	= 0;
+
+		for (usize i = 0; i < src.size() and ok; ++i)
+		{
+			ok = Utf8Encode( src[i], dst.size(), dst.data(), INOUT pos );
+		}
+
+		if ( ok )
+			dst.resize( pos );
+		else
+			dst.clear();
+
+		return ok;
 	}
 #endif
 
@@ -815,7 +871,7 @@ namespace _hidden_ {
 		auto	err	= std::from_chars( str.data() + off, str.data() + str.size(), OUT result, off ? 16 : 10 );
 		return	FromCharsResult{ err, str.data() };
 	}
-	
+
 #ifdef AE_COMPILER_MSVC
 	template <typename T>
 	  requires( IsFloatPoint<T> )
@@ -888,7 +944,7 @@ namespace _hidden_ {
 		auto	ok	= FromChars( OUT val, str, base );	ASSERT( ok );	Unused( ok );
 		return val;
 	}
-	
+
 #ifdef AE_COMPILER_MSVC
 	Nd__In float  StringToFloat (StringView str) __NE___
 	{

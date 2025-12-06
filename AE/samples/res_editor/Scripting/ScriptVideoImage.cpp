@@ -277,7 +277,7 @@ namespace
 		{
 			WithResult(
 				_videoInfo,
-				[this] (const VideoStreamInfo &info)
+				[this] (const VideoStreamInfo &info) __Th___
 				{
 					CHECK_THROW( info.IsValid() );
 
@@ -296,7 +296,7 @@ namespace
 		{
 			WithResult(
 				_videoInfo,
-				[this] (const VideoStreamInfo &info)
+				[this] (const VideoStreamInfo &info) __NE___
 				{
 					_dim = info.dimension;
 				});

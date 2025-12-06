@@ -4,12 +4,12 @@
 
 namespace AE::Parsers
 {
-	
+
 	Nd__In bool  operator == (HeaderParser::EResourceType lhs, XrObjectType rhs)
 	{
 		return uint(lhs) == uint(rhs);
 	}
-	
+
 /*
 =================================================
 	constructor
@@ -20,7 +20,7 @@ namespace AE::Parsers
 		_macroPrefix	= "XR_";
 		_structPrefix	= "Xr";
 	}
-	
+
 /*
 =================================================
 	ParseXrHeaders
@@ -72,7 +72,7 @@ namespace AE::Parsers
 		_BuildExtensionInfo();
 		return true;
 	}
-	
+
 /*
 =================================================
 	SetFunctionsScope
@@ -85,7 +85,7 @@ namespace AE::Parsers
 		// TODO
 		return true;
 	}
-	
+
 /*
 =================================================
 	BuildBasicTypeMap
@@ -110,7 +110,7 @@ namespace AE::Parsers
 
 		return true;
 	}
-	
+
 /*
 =================================================
 	_AddResourceType
@@ -120,7 +120,7 @@ namespace AE::Parsers
 	{
 		_resourceTypes.insert({ name, { EResourceType(type), typeName }});
 	}
-	
+
 /*
 =================================================
 	BuildResourceTypeMap
@@ -237,7 +237,7 @@ namespace AE::Parsers
 			//	continue;
 
 			Array<StringView>	tokens = ExtToTokens( ext );
-			
+
 			if ( not EndsWith( st_name, tokens[1] ))
 			{
 				defer_structs.push_back( it );
@@ -247,7 +247,7 @@ namespace AE::Parsers
 			auto&	info = _extInfo[ ext ];
 			info.structs.push_back( it );
 		}
-		
+
 		// find alias with feature and properties for each extension
 		for (auto it = _typedefs.begin(); it != _typedefs.end(); ++it)
 		{
@@ -262,7 +262,7 @@ namespace AE::Parsers
 			//	continue;
 
 			Array<StringView>	tokens = ExtToTokens( ext );
-			
+
 			if ( not EndsWith( st_name, tokens[1] ))
 			{
 				defer_typedefs.push_back( it );
@@ -294,11 +294,11 @@ namespace AE::Parsers
 				AE_LOGW( "unknown extension '"s << new_ext << "'" );
 				continue;
 			}
-			
+
 			auto&	info = _extInfo[ ext_it->first ];	// use 'StringView' instead of 'String'
 			info.structs.push_back( it );
 		}
-		
+
 		for (auto it : defer_typedefs)
 		{
 			auto&		old_ext		= it->second.extension;
@@ -308,17 +308,17 @@ namespace AE::Parsers
 			auto		tokens		= ExtToTokens( old_ext );
 			String		new_ext		= BuildNewExt( tokens, short_ext );
 			auto		ext_it		= _extensions.find( StringView{new_ext} );
-			
+
 			if ( ext_it == _extensions.end() )
 			{
 				AE_LOGW( "unknown extension '"s << new_ext << "'" );
 				continue;
 			}
-			
+
 			auto	st_it = _structs.find( SearchableStruct{new_name} );
 			if ( st_it == _structs.end() )
 				continue;
-			
+
 			auto&	info = _extInfo[ ext_it->first ];	// use 'StringView' instead of 'String'
 			info.structs.push_back( st_it );
 		}

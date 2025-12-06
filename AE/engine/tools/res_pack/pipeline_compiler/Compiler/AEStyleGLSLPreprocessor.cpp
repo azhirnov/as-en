@@ -715,7 +715,7 @@ namespace AE::PipelineCompiler
 		// https://github.com/KhronosGroup/GLSL/blob/main/extensions/ext/GL_EXT_expect_assume.txt
 		_typeMap.emplace( "gl.Assume",				"assumeEXT" );
 		_typeMap.emplace( "gl.Expect",				"expectEXT" );
-		
+
 		// https://github.com/KhronosGroup/GLSL/blob/main/extensions/nv/GLSL_NV_cooperative_vector.txt
 		_typeMap.emplace( "gl::CoopVec",							"coopvecNV" );
 		_typeMap.emplace( "gl.CoopVecMatMulAdd",					"coopVecMatMulAddNV" );

@@ -45,7 +45,7 @@ namespace AE::App
 		}
 	};
 
-	
+
 	template <typename T>
 	XRNextChain (T &) -> XRNextChain<T>;
 

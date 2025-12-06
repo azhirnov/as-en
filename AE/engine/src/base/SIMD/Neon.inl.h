@@ -2427,15 +2427,15 @@ namespace AE::Base
 
 /*
 =================================================
-	Lane
+	Part
 =================================================
 */
 	template <typename IT>
 	template <uint Idx>
-	auto  SimdTInt128<IT>::Lane () C_NE___
+	auto  SimdTInt128<IT>::Part () C_NE___
 	{
-		if constexpr( lanes == 2 ){
-			StaticAssert( Idx < lanes );
+		if constexpr( parts == 2 ){
+			StaticAssert( Idx < parts );
 			if constexpr( Idx == 0 ){
 				if constexpr( isI8 )	return SimdTInt64<IT>{ vget_low_s8(  _value )};
 				if constexpr( isU8 )	return SimdTInt64<IT>{ vget_low_u8(  _value )};
@@ -2452,8 +2452,8 @@ namespace AE::Base
 				if constexpr( isU32 )	return SimdTInt64<IT>{ vget_high_u32( _value )};
 			}
 		}else
-		if constexpr( lanes == 1 ){
-			StaticAssert( Idx < lanes );
+		if constexpr( parts == 1 ){
+			StaticAssert( Idx == 0 );
 			return *this;
 		}
 	}
@@ -3385,13 +3385,13 @@ namespace AE::Base
 
 /*
 =================================================
-	Lane
+	Part
 =================================================
 */
 	template <uint Idx>
-	auto  SimdHalf8::Lane ()  C_NE___
+	auto  SimdHalf8::Part ()  C_NE___
 	{
-		StaticAssert( Idx < lanes );
+		StaticAssert( Idx < parts );
 		if constexpr( Idx == 0 )	return SimdHalf4{ vget_low_f16(  _value )};
 		else						return SimdHalf4{ vget_high_f16( _value )};
 	}

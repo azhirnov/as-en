@@ -48,6 +48,7 @@ namespace AE::App
 		void  SetMouseWheel (float2 delta)											__NE___;
 		void  SetMonitor (const uint2 &surfaceSize, const Monitor &)				__NE___;
 		void  CursorPosChanged (float2 pos)											__NE___	{ _cursorPosPx = pos; }
+		void  AddChar (CharUtf32 c)													__NE___	{ _AddChar( c ); }
 
 		// api for external input
 		void  SetSensor1f (EInputType type, float value)							__NE___	{ _Update1F( type, EGestureType::Move, ControllerID::Sensor, value, EGestureState::Update ); }

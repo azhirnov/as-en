@@ -300,7 +300,7 @@ namespace {
 			{
 				self->_state = EState::Started;
 				self->_listener->OnStart( *self );
-				
+
 				//if ( self->_window )
 				//	self->_window->_SetStateV2( self->_state );
 				break;
@@ -309,7 +309,7 @@ namespace {
 			case APP_CMD_RESUME:
 			{
 				self->_state = EState::InForeground;
-				
+
 				//if ( self->_window )
 				//	self->_window->_SetStateV2( self->_state );
 				break;
@@ -318,7 +318,7 @@ namespace {
 			case APP_CMD_PAUSE:
 			{
 				self->_state = EState::InBackground;
-				
+
 				//if ( self->_window )
 				//	self->_window->_SetStateV2( self->_state );
 				break;
@@ -327,7 +327,7 @@ namespace {
 			case APP_CMD_STOP:
 			{
 				self->_state = EState::Stopped;
-				
+
 				//if ( self->_window )
 				//	self->_window->_SetStateV2( self->_state );
 
@@ -399,6 +399,6 @@ void  android_main (android_app* app)
     JavaEnv::SetVM( null );
 }
 
-# include "android_native_app_glue.c"
+//# include "android_native_app_glue.c"
 
 #endif // AE_PLATFORM_ANDROID

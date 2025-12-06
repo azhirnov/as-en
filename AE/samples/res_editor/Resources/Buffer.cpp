@@ -393,7 +393,7 @@ namespace
 
 		return _uploadStatus.load();
 	}
-	
+
 /*
 =================================================
 	GetBufferDesc

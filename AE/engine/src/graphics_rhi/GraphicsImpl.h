@@ -133,7 +133,7 @@ namespace AE::Graphics
 	//	using VideoDecode	= MIndirectVideoDecodeContext;
 	//	using VideoEncode	= MIndirectVideoEncodeContext;
 	};
-	
+
 	using QueryManager = MQueryManager;
 
 } // AE::Graphics
@@ -171,7 +171,7 @@ namespace AE::Graphics
 	};
 
 	using IndirectCtx	= DirectCtx;
-	
+
 	using QueryManager	= RQueryManager;
 
 } // AE::Graphics

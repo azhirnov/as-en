@@ -368,7 +368,7 @@ namespace AE::CICD
 		FileRStream		file {path};
 		if ( not file.IsOpen() )
 		{
-			AE_LOGI( "skip upload file '"s << dstName << "'" );
+			AE_LOGW( "skip upload file '"s << dstName << "'" );
 			return true;
 		}
 
@@ -415,7 +415,7 @@ namespace AE::CICD
 
 		if ( not FS::IsDirectory( folder ))
 		{
-			AE_LOGI( "skip upload folder '"s << dstName << "', directory is not exists '" << ToString(folder) << "'" );
+			AE_LOGW( "skip upload folder '"s << dstName << "', directory is not exists '" << ToString(folder) << "'" );
 			return true;
 		}
 

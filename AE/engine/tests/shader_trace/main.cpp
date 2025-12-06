@@ -17,6 +17,7 @@ extern bool ShaderTrace_Test12 (TestDevice& vulkan);
 extern bool ShaderTrace_Test13 (TestDevice& vulkan);
 extern bool ShaderTrace_Test14 (TestDevice& vulkan);
 extern bool ShaderTrace_Test15 (TestDevice& vulkan);
+extern bool ShaderTrace_Test16 (TestDevice& vulkan);
 
 extern bool ShaderPerf_Test1 (TestDevice& vulkan);
 
@@ -27,6 +28,7 @@ extern bool ClockMap_Test2 (TestDevice& vulkan);
 int main (const int argc, char* argv[])
 {
 	BEGIN_TEST();
+	log.checkMemLeaks = false; // disable because of false possitive in glslang
 
 	TestDevice	vulkan;
 	CHECK_ERR( vulkan.Create(), 1 );
@@ -36,7 +38,7 @@ int main (const int argc, char* argv[])
 	{
 		passed &= ShaderTrace_Test1( vulkan );		// graphics
 		passed &= ShaderTrace_Test2( vulkan );		// compute
-		//passed &= ShaderTrace_Test3( vulkan );	// graphics
+		passed &= ShaderTrace_Test3( vulkan );		// graphics, matrix
 		passed &= ShaderTrace_Test4( vulkan );		// graphics
 		passed &= ShaderTrace_Test5( vulkan );		// graphics
 		passed &= ShaderTrace_Test6( vulkan );		// geometry
@@ -49,6 +51,7 @@ int main (const int argc, char* argv[])
 		passed &= ShaderTrace_Test13( vulkan );		// graphics
 		passed &= ShaderTrace_Test14( vulkan );		// ray tracing
 		passed &= ShaderTrace_Test15( vulkan );		// ray tracing
+		passed &= ShaderTrace_Test16( vulkan );		// compute
 	}
 
 	if ( vulkan.GetShaderClockFeats().shaderDeviceClock )

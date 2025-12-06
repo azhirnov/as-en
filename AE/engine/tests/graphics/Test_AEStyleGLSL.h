@@ -19,7 +19,7 @@ void  SubpassTest ()
 	int4	a0 = gl.subpass.Load( subpassInputInt );
 	uint4	a1 = gl.subpass.Load( subpassInputUint );
 	float4	a2 = gl.subpass.Load( subpassInputFloat );
-	
+
 	int4	b0 = gl.subpass.Load( subpassInputMSInt, 0 );
 	uint4	b1 = gl.subpass.Load( subpassInputMSUint, 0 );
 	float4	b2 = gl.subpass.Load( subpassInputMSFloat, 0 );
@@ -859,7 +859,7 @@ void  ImageTest ()
 	const uint	compareu	= 4;
 
 	const int	sample		= 0;
-	
+
 #ifdef AE_HAS_ATOMICS
 	// AtomicAdd
 	int		a0 = gl.image.AtomicAdd( image1DInt,  int(1), datai );
@@ -1109,7 +1109,7 @@ void  ImageTest ()
 	int		h18 = gl.image.AtomicCompSwap( image2DMSArrayInt,  int3(1), sample, comparei, datai );
 	uint	h19 = gl.image.AtomicCompSwap( image2DMSArrayUint, int3(1), sample, compareu, datau );
 #endif
-	
+
 #ifdef AE_shader_atomic_float
 	// AtomicAdd (float)
 	float	i0  = gl.image.AtomicAdd( image1DFloat,			int(1),  dataf );

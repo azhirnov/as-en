@@ -158,7 +158,7 @@
 						CHECK_THROW_MSG( field->stType,
 							"Field '"s << tokens[i-1] << "' is not a structure. Error when searching fields '" << fieldName <<
 							"' in buffer '" << buffer->GetName() << "'." );
-						
+
 						offset += field->offset;
 
 						PipelineCompiler::ShaderStructType::Field const*	new_field = null;
@@ -279,7 +279,7 @@
 					},
 					_baseFlags );
 	}
-	
+
 	void  ScriptExe::ScriptCopyImage2::_CompilePipeline2 () C_Th___
 	{
 		RenderTechniquePtr	rtech{ new RenderTechnique{ "rtech" }};
@@ -332,7 +332,7 @@
 			ppln_spec->Enable();
 		}
 	}
-	
+
 /*
 =================================================
 	ToPass
@@ -512,7 +512,7 @@
 					dst_buf = _dstBuffer->ToResource();
 					CHECK_THROW( dst_buf );
 				});
-			
+
 			return MakeRCTh<ResEditor::ConvertCooperativeVectorMatrixPass>(
 						_numRows, _numColumns,
 						_srcType, src_buf, Bytes{_srcOffset}, Bytes{_srcSize}, Bytes{_srcStride}, _srcLayout,
@@ -571,7 +571,7 @@
 	public:
 		ScriptExportBuffer (const ScriptBufferPtr &buffer, const String &prefix, EMode mode) :
 			buffer{buffer}, prefix{prefix}, offset{0_b}, size{UMax}, mode{mode} {}
-		
+
 		ScriptExportBuffer (const ScriptBufferPtr &buffer, const String &prefix, Bytes offset, Bytes size, EMode mode) :
 			buffer{buffer}, prefix{prefix}, offset{offset}, size{size}, mode{mode} {}
 

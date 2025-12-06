@@ -35,7 +35,8 @@ if (NOT ${AE_ENABLE_REMOTE_GRAPHICS})
 	endif()
 	if (ANDROID)
 		target_compile_definitions( "AndroidRemoteControl" PUBLIC "AE_ENABLE_ADRENO_PERFCOUNTER" "AE_ENABLE_ARM_PMU" )
+		target_include_directories( "AndroidRemoteControl" PUBLIC "${ANDROID_NDK}/sources/android/native_app_glue" )
 	endif()
-	
+
 	UseEnginePCH2( "AndroidRemoteControl" )
 endif()

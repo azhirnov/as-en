@@ -22,7 +22,6 @@ namespace AE::App
 	// variables
 	private:
 		GLFWwindow *		_window			= null;
-		float2				_contentScale;
 
 		InputActionsGLFW	_input;
 		bool				_lockAndHideCursor	= false;
@@ -78,8 +77,8 @@ namespace AE::App
 		static void  _GLFW_CursorEnterCallback (GLFWwindow* wnd, int entered)						__NE___;
 		static void  _GLFW_MouseWheelCallback (GLFWwindow* wnd, double dx, double dy)				__NE___;
 		static void  _GLFW_IconifyCallback (GLFWwindow* wnd, int iconified)							__NE___;
-		static void  _GLFW_WindowContentScaleCallback (GLFWwindow* wnd, float, float)				__NE___;
 		static void  _GLFW_WindowFocusCallback (GLFWwindow* wnd, int focused)						__NE___;
+		static void  _GLFW_CharCallback (GLFWwindow* wnd, uint codepoint)							__NE___;
 	};
 
 

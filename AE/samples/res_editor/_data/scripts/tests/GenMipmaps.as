@@ -25,7 +25,7 @@
 		RC<DynamicUInt>	raster		= DynamicUInt();
 		RC<DynamicUInt>	reduction	= DynamicUInt();
 		RC<DynamicUInt>	mode		= raster.Add( reduction.Mul(2) );
-		
+
 		if ( GetFeatureSet().hasSamplerFilterMinmax() )
 			Slider( reduction,	"UseReduction",		0,	1 );
 
@@ -37,7 +37,7 @@
 			pass.Output( "out_Color",	mipmaps );
 			pass.Slider( "iMinValPos",	float2(0.0),	float2(1.0),	float2(0.5) );
 		}
-		
+
 		{
 			RC<ComputeMip>		pass = ComputeMip( "", "GEN_MIPMAP" );
 			pass.Variable( "un_InImage",	"un_OutImage",	mipmaps,	Sampler_NearestClamp );
@@ -91,7 +91,7 @@
 //-----------------------------------------------------------------------------
 #ifdef GEN_MIPMAP
 	#include "InvocationID.glsl"
-	
+
 	void  Main ()
 	{
 		float4	c;

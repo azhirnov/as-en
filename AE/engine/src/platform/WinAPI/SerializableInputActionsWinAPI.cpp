@@ -9,6 +9,8 @@ namespace AE::App
 {
 # ifdef AE_PLATFORM_WINDOWS
 
+	static constexpr auto	c_RawCharType = SerializableInputActions::c_RawCharType;
+
 	#define AE_WINAPI_KEY_CODES_VISITOR( _key_, _code_, _name_, _winapi_code_ ) \
 		StaticAssert( uint(SerializableInputActionsWinAPI::EInputType::_key_) == uint(_winapi_code_) );
 

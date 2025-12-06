@@ -11,7 +11,7 @@ namespace
 {
 	static constexpr uint	c_MaxIter	= 10;
 	static constexpr usize	c_Repeat	= 1'000'000;
-	
+
 	template <typename T>
 	struct SimdVal_Base
 	{
@@ -39,7 +39,7 @@ namespace
 			r5.v = T{_rnd.Uniform(S(0), S(1))};
 			r6.v = T{_rnd.Uniform(S(0), S(1))};
 			r7.v = T{_rnd.Uniform(S(0), S(1))};
-			
+
 			p0.v = T{_rnd.Uniform(S(0), S(1))};
 			p1.v = T{_rnd.Uniform(S(0), S(1))};
 		}
@@ -82,7 +82,7 @@ namespace
 			r1.v = p0.v + r1.v;
 			r2.v = p0.v + r2.v;
 			r3.v = p0.v + r3.v;
-			
+
 			r0.v = p1.v - r0.v;
 			r1.v = p1.v - r1.v;
 			r2.v = p1.v - r2.v;
@@ -105,6 +105,15 @@ namespace
 			r3.v = p0.v + r3.v;
 
 			r1.s[3] += p1.s[0];		// x5 performance lost
+
+			// compiler will:
+			// * extract instruction for scalar part of register
+			// * add scalars
+			// * store result back to SIMD
+
+			// Note:
+			// Any scalar operation that does not share a register or a memory location with the SIMD operands can be overlapped with the SIMD stream.
+			// Many CPUs have separate scalar FP and ALU(integer) unit.
 
 			r0.v = p1.v - r0.v;
 			r1.v = p1.v - r1.v;
@@ -130,7 +139,7 @@ namespace
 			r5.v = p0.v + r5.v;
 			r6.v = p0.v + r6.v;
 			r7.v = p0.v + r7.v;
-			
+
 			r0.v = p1.v - r0.v;
 			r1.v = p1.v - r1.v;
 			r2.v = p1.v - r2.v;
@@ -139,7 +148,7 @@ namespace
 			r5.v = p1.v - r5.v;
 			r6.v = p1.v - r6.v;
 			r7.v = p1.v - r7.v;
-			
+
 			r0.s[3] += p1.s[0];		// x2 performance lost
 
 		//	r0.v = p0.v + r0.v;
@@ -150,7 +159,7 @@ namespace
 			r5.v = p0.v + r5.v;
 			r6.v = p0.v + r6.v;
 			r7.v = p0.v + r7.v;
-			
+
 			r0.v = p1.v - r0.v;
 			r1.v = p1.v - r1.v;
 			r2.v = p1.v - r2.v;
@@ -181,7 +190,7 @@ namespace
 			t5 = p0.v + r5.v;
 			t6 = p0.v + r6.v;
 			t7 = p0.v + r7.v;
-			
+
 			t0 = p1.v - t0;
 			t1 = p1.v - t1;
 			t2 = p1.v - t2;
@@ -202,7 +211,7 @@ namespace
 			t5 = p0.v + t5;
 			t6 = p0.v + t6;
 			t7 = p0.v + t7;
-			
+
 			t0 = p0.v + t0;
 			t1 = p0.v + t1;
 			t2 = p0.v + t2;
@@ -277,8 +286,8 @@ namespace
 				setAffinity();
 
 				IntervalProfiler	profiler{ "SIMD-3 test, single thread, "s << ToString( core.type ) << " core",
-												IntervalProfiler::EFlags::SortByPerf | IntervalProfiler::EFlags::ExcludePerfDiff };
-				
+												IntervalProfiler::EFlags::SortByPerf };
+
 				// Clang converts scalar to SIMD, so test is not correct
 				#if not defined(AE_COMPILER_CLANG) or not defined(AE_COMPILER_CLANG_CL)
 				//	TestVFloat< packed_float4 >( profiler, "Scalar Float4" );
@@ -294,7 +303,7 @@ namespace
 				#endif
 			});
 	}
-	
+
 } // namespace
 
 

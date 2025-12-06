@@ -29,7 +29,7 @@ namespace AE::Base
 	{
 	private:
 		Mutex		_guard;
-		
+
 	public:
 		EResult  Process (const MessageInfo &info) __Th_OV;
 	};

@@ -19,7 +19,7 @@ namespace AE::Base
 	// types
 	public:
 		static constexpr uint	count	= 4;
-		static constexpr uint	lanes	= 1;
+		static constexpr uint	parts	= 1;
 
 		using Scalar_t		= float;
 		using Self			= SimdFloat4;
@@ -277,7 +277,7 @@ namespace AE::Base
 
 	// conversion //
 		template <uint Idx>
-		ND_ Self	Lane ()										C_NE___ { StaticAssert( Idx < lanes );  return *this; }
+		ND_ Self	Part ()										C_NE___ { StaticAssert( Idx < parts );  return *this; }
 
 		template <uint X, uint Y, uint Z, uint W>
 		ND_ Self	Swizzle ()									C_NE___;
@@ -355,7 +355,7 @@ namespace AE::Base
 	// types
 	public:
 		static constexpr uint	count	= 2;
-		static constexpr uint	lanes	= 1;
+		static constexpr uint	parts	= 1;
 
 		using Scalar_t		= double;
 		using Self			= SimdDouble2;
@@ -605,7 +605,7 @@ namespace AE::Base
 
 	// conversion //
 		template <uint Idx>
-		ND_ Self	Lane ()										C_NE___ { StaticAssert( Idx < lanes );  return *this; }
+		ND_ Self	Part ()										C_NE___ { StaticAssert( Idx < parts );  return *this; }
 
 		template <uint X, uint Y>
 		ND_ Self	Swizzle ()									C_NE___;
@@ -758,7 +758,7 @@ namespace AE::Base
 		using Unsigned_t	= SimdTInt128< ToUnsignedInteger< IntType >>;
 		using Shift64_t		= SimdTInt128< slong >;
 
-		static constexpr uint	lanes	= 1;
+		static constexpr uint	parts	= 1;
 		static constexpr uint	count	= sizeof(Native_t) / sizeof(IntType);
 		using Array_t					= StaticArray< Scalar_t, count >;
 		StaticAssert( sizeof(Array_t) == sizeof(Native_t) );
@@ -999,8 +999,8 @@ namespace AE::Base
 
 	// conversion //
 		template <uint Idx>
-		ND_ Self	Lane ()									C_NE___ { StaticAssert( Idx < lanes );  return *this; }
-		
+		ND_ Self	Part ()									C_NE___ { StaticAssert( Idx < parts );  return *this; }
+
 		template <uint V0, uint V1, uint V2, uint V3,
 				  uint V4, uint V5, uint V6, uint V7,
 				  uint V8, uint V9, uint V10, uint V11,
@@ -1106,7 +1106,7 @@ namespace AE::Base
 
 		template <typename T = Scalar_t> requires( IsSame<T,uint> )
 		ND_ SimdDouble4	_UIntToDouble4 ()					C_NE___;	// AVX
-		
+
 	  #if AE_SIMD_AVX >= 31  // AVX512DQ, AVX512VL
 		template <typename T = Scalar_t> requires( IsSame<T,slong> )
 		ND_ SimdDouble2	_LongToDouble2 ()					C_NE___;
@@ -1127,7 +1127,7 @@ namespace AE::Base
 	// types
 	public:
 		static constexpr uint	count	= 8;
-		static constexpr uint	lanes	= 1;
+		static constexpr uint	parts	= 1;
 
 		using Scalar_t		= half;
 		using Self			= SimdHalf8;
@@ -1264,7 +1264,7 @@ namespace AE::Base
 		ND_ Self	Swizzle ()									C_NE___;
 
 		template <uint Idx>
-		ND_ Self	Lane ()										C_NE___	{ StaticAssert( Idx < lanes );  return *this; }
+		ND_ Self	Part ()										C_NE___	{ StaticAssert( Idx < parts );  return *this; }
 
 		template <typename DstScalar>
 		ND_ auto	Convert ()									C_NE___;

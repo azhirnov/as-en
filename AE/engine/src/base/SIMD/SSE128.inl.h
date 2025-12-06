@@ -1499,7 +1499,7 @@ namespace AE::Base
 				return RShift_Logic( shift );
 		}
 	}
-	
+
 /*
 =================================================
 	Swizzle (Byte16)
@@ -1527,7 +1527,7 @@ namespace AE::Base
 		StaticAssert( V13 < count );
 		StaticAssert( V14 < count );
 		StaticAssert( V15 < count );
-		
+
 	  #if AE_SIMD_SSE > 31 // SSSE3
 		const __m128i shuffle_mask = _mm_setr_epi8(
 			sbyte(V0),  sbyte(V1),  sbyte(V2),  sbyte(V3),

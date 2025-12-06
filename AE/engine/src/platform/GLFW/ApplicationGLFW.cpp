@@ -104,7 +104,7 @@ namespace {
 		}
 		return _cachedMonitors;
 	}
-	
+
 	IApplication::MonitorsView_t  ApplicationGLFW::GetCachedMonitors () C_NE___
 	{
 		DRC_EXLOCK( _stCheck );
@@ -183,8 +183,9 @@ namespace {
 		int2	size_mm;
 		glfwGetMonitorPhysicalSize( ptr, OUT &size_mm.x, OUT &size_mm.y );
 
-		//float2	dpi_scale;	// DPI / DefaultDPI - not correct in Windows
-		//glfwGetMonitorContentScale( ptr, OUT &dpi_scale.x, OUT &dpi_scale.y );
+		float2	dpi_scale;
+		glfwGetMonitorContentScale( ptr, OUT &dpi_scale.x, OUT &dpi_scale.y );
+		result.uiScale = dpi_scale.x;
 
 		result.workArea		= PixelsRectI{ RectI{ pos, pos + size }};
 		result.physicalSize	= Meters2f{ float2(size_mm) * 1.0e-3f };
@@ -252,7 +253,7 @@ namespace {
 		return Default;
 	#endif
 	}
-	
+
 /*
 =================================================
 	StartScreenCapture
@@ -284,7 +285,7 @@ namespace {
 		return Default;
 	#endif
 	}
-	
+
 /*
 =================================================
 	CreateInputSender

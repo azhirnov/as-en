@@ -112,7 +112,7 @@ void DeclVRSRenderPass ()
 void DeclMultiViewRenderPass ()
 {
 	RC<CompatibleRenderPass>	compat = CompatibleRenderPass( "MultiViewRP" );
-	
+
 	compat.AddFeatureSet( "part.MultiView" );
 	compat.AddMultiViewCorrelatedViewMask( 1|2 );
 

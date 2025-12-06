@@ -47,7 +47,7 @@ namespace
 		}
 		return filter;
 	}
-	
+
 /*
 =================================================
 	EnumCast (FILE_ACTION_*)
@@ -68,7 +68,7 @@ namespace
 
 } // namespace
 
-	
+
 /*
 =================================================
 	Start
@@ -107,7 +107,7 @@ namespace
 
 		return _Request();
 	}
-	
+
 /*
 =================================================
 	Stop
@@ -148,10 +148,10 @@ namespace
 	{
 		if ( _dir == null )
 			return;
-		
+
 		auto&	ov = _overlapped.Ref<OVERLAPPED>();
 		::CancelIoEx( _dir, &ov );	// winvista
-		
+
 		::CloseHandle( _event );
 		_event = null;
 
@@ -160,7 +160,7 @@ namespace
 
 		Reconstruct( _buffer );
 	}
-	
+
 /*
 =================================================
 	GetEvents
@@ -169,7 +169,8 @@ namespace
 	bool  WindowsFileWatch::GetEvents (OUT EventArray_t &outEvents, milliseconds timeout) __NE___
 	{
 		outEvents.clear();
-		CHECK_ERR( _dir != null );
+		if ( _dir == null or _event == null )
+			return false;
 
 		auto&	ov		= _overlapped.Ref<OVERLAPPED>();
 		DWORD	written = 0;

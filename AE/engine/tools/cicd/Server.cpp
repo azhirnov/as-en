@@ -42,7 +42,11 @@ namespace AE::CICD
 
 			CHECK_ERR( _socket.Listen( addr, cfg ));
 
-			AE_LOGI( "Start server on: "s << addr.ToString() );
+			IpAddress	server_addr;
+			CHECK( SocketService::Instance().GetSelfIPAddress( AE_ROUTER_IPv4, OUT server_addr ));
+
+			server_addr.SetPort( addr.Port() );
+			AE_LOGI( "Start server on: "s << server_addr.ToString() );
 		}
 
 		_looping.store( true );
@@ -782,47 +786,47 @@ namespace AE::CICD
 */
 	void  Server::_ServerClient::_CloseLog (const Path &moveTo, bool findErrors)
 	{
-		if ( _logFile )
+		if ( not _logFile )
+			return;
+
 		{
+			String	log;
+			if ( _insideGroup ) log << "\n</details>";
+			log << "</font></PRE> </p> </body> </html>\n";
+			CHECK( _logFile->Write( log ));
+		}
+		_logFile = null;
+
+		if ( findErrors and not moveTo.empty() )
+		{
+			AE_LOGI( "Move log to '"s << ToString(moveTo) << "'" );
+
+			String	str;
 			{
-				String	log;
-				if ( _insideGroup ) log << "\n</details>";
-				log << "</font></PRE> </p> </body> </html>\n";
-				CHECK( _logFile->Write( log ));
+				FileRStream		file {_logPath};
+				CHECK_ERRV( file.IsOpen() );
+				CHECK_ERRV( file.Read( file.RemainingSize(), OUT str ));
 			}
-			_logFile = null;
-
-			if ( findErrors and not moveTo.empty() )
+			_ParseBuildLog( "build-"+ToString<16>(_sessionId), INOUT str );
 			{
-				AE_LOGI( "Move log to '"s << ToString(moveTo) << "'" );
-
-				String	str;
-				{
-					FileRStream		file {_logPath};
-					CHECK_ERRV( file.IsOpen() );
-					CHECK_ERRV( file.Read( file.RemainingSize(), OUT str ));
-				}
-				_ParseBuildLog( "build-"+ToString<16>(_sessionId), INOUT str );
-				{
-					FileWStream		file {Path{moveTo}.replace_extension(".html")};
-					CHECK_ERRV( file.IsOpen() );
-					CHECK_ERRV( file.Write( str ));
-				}
+				FileWStream		file {Path{moveTo}.replace_extension(".html")};
+				CHECK_ERRV( file.IsOpen() );
+				CHECK_ERRV( file.Write( str ));
+			}
+			// will fail if log is open by another process
+			FS::DeleteFile( _logPath );
+		}
+		else
+		if ( not moveTo.empty() )
+		{
+			AE_LOGI( "Move log to '"s << ToString(moveTo) << "'" );
+			if ( FS::CopyFile( _logPath, Path{moveTo}.replace_extension(".html") ))
+			{
 				// will fail if log is open by another process
 				FS::DeleteFile( _logPath );
 			}
-			else
-			if ( not moveTo.empty() )
-			{
-				AE_LOGI( "Move log to '"s << ToString(moveTo) << "'" );
-				if ( FS::CopyFile( _logPath, Path{moveTo}.replace_extension(".html") ))
-				{
-					// will fail if log is open by another process
-					FS::DeleteFile( _logPath );
-				}
-			}
-			_logPath.clear();
 		}
+		_logPath.clear();
 	}
 
 /*
@@ -914,7 +918,13 @@ namespace AE::CICD
 
 				err_pos	= group.find( ": error", err_pos );
 				if ( err_pos == String::npos )
-					break;
+				{
+					// Android:	'C/C++ <file>:<line>:<col>: fatal error: <message> <error-name>'
+
+					err_pos	= group.find( ": fatal error", err_pos );
+					if ( err_pos == String::npos )
+						break;
+				}
 
 				usize	err_begin = err_pos;
 				Parser::ToBeginOfLine( group, INOUT err_begin );

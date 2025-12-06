@@ -52,13 +52,13 @@ namespace AE::Base
 		__Cx__ FixedArray (Self &&other)					__NE___;
 
 		__Cx__ ~FixedArray ()								__NE___	{ clear(); }
-		
+
 		template <typename I>
 		__Cx__ FixedArray (ArrayView<T,I> view)				__NE___;
-		
+
 		template <typename I>
 		NdCx__ operator ArrayView<T,I> ()					C_NE___	{ return ArrayView<T,I>{ data(), size() }; }
-		
+
 		template <typename I = usize>
 		NdCx__ ArrayView<T,I>	ToArrayView()				C_NE___	{ return *this; }
 

@@ -1,6 +1,6 @@
-//> gl_GlobalInvocationID: uint3 {0, 0, 0}
-//> gl_LocalInvocationID: uint3 {0, 0, 0}
-//> gl_WorkGroupID: uint3 {0, 0, 0}
+//> gl_GlobalInvocationID: uint3 {0, 0, 0} | {0x0, 0x0, 0x0}
+//> gl_LocalInvocationID: uint3 {0, 0, 0} | {0x0, 0x0, 0x0}
+//> gl_WorkGroupID: uint3 {0, 0, 0} | {0x0, 0x0, 0x0}
 no source
 
 //> (out): float4 {-1.000000, -1.000000, 0.000000, 1.000000}
@@ -12,13 +12,13 @@ no source
 //> (out): bool {true}
 35. if ( I == 0 )
 
-//> gl_PrimitiveTriangleIndicesEXT: uint3 {0, 1, 2}
+//> gl_PrimitiveTriangleIndicesEXT: uint3 {0, 1, 2} | {0x0, 0x1, 0x2}
 37. gl_PrimitiveTriangleIndicesEXT[0] = uvec3(0,1,2);
 
-//> gl_PrimitiveTriangleIndicesEXT: uint3 {3, 4, 5}
+//> gl_PrimitiveTriangleIndicesEXT: uint3 {3, 4, 5} | {0x3, 0x4, 0x5}
 38. gl_PrimitiveTriangleIndicesEXT[1] = uvec3(3,4,5);
 
-//> gl_PrimitiveTriangleIndicesEXT: uint3 {6, 7, 8}
+//> gl_PrimitiveTriangleIndicesEXT: uint3 {6, 7, 8} | {0x6, 0x7, 0x8}
 39. gl_PrimitiveTriangleIndicesEXT[2] = uvec3(6,7,8);
 
 //> SetMeshOutputs(): void

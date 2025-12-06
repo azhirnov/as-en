@@ -9,7 +9,7 @@
 	void  CreatePipeline (string name, bool dbgFS)
 	{
 		EShaderOpt	dbg_mode = EShaderOpt::Trace;
-		
+
 		string	ppln_name = name;
 		if ( dbgFS ) ppln_name += ".dbg_fs";
 
@@ -51,7 +51,7 @@
 			spec.SetRenderState( rs );
 		}
 	}
-	
+
 	void ASmain ()
 	{
 		{
@@ -130,7 +130,7 @@
 		// v1 from 'The Forge'
 		BarycentricDeriv	deriv1	= CalcFullBary( p0, p1, p2, GetGlobalCoordSNorm().xy, 2.0 * un_PerPass.invResolution );
 		GradientInterpolationResults uv1_res = Interpolate2DWithDeriv( deriv1, uv0, uv1, uv2 );
-		
+
 		// v2 from 'The Forge'
 		// only for perspective projection
 		BarycentricDeriv	deriv2	= CalcRayBary( LocalToWorldSpace( un_VBuffer.vertices[iShape*3+0] ),
@@ -149,7 +149,7 @@
 			case 0 :	a = ref_uv;		b = uv1_res.interp;		break;
 			case 1 :	a = ref_dx;		b = uv1_res.dx;			break;
 			case 2 :	a = ref_dy;		b = uv1_res.dy;			break;
-				
+
 			case 3 :	a = ref_uv;		b = uv2_res.interp;		break;
 			case 4 :	a = ref_dx;		b = uv2_res.dx;			break;
 			case 5 :	a = ref_dy;		b = uv2_res.dy;			break;

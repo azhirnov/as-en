@@ -5,7 +5,7 @@
 
 namespace AE::LangModel
 {
-	
+
 /*
 =================================================
 	constructor
@@ -35,7 +35,7 @@ namespace AE::LangModel
 		}
 		return true;
 	}
-	
+
 /*
 =================================================
 	Stop
@@ -55,7 +55,7 @@ namespace AE::LangModel
 	{
 		return MakeUnique<Logger>( *this );
 	}
-	
+
 /*
 =================================================
 	Logger::Process
@@ -129,7 +129,7 @@ namespace AE::LangModel
 		// will process other messages
 		return true;
 	}
-	
+
 /*
 =================================================
 	_OpenLLama
@@ -176,7 +176,7 @@ namespace AE::LangModel
 
 		_channel.Close();
 	}
-	
+
 /*
 =================================================
 	_ProcessMessage
@@ -191,7 +191,7 @@ namespace AE::LangModel
 		auto	msg = _channel.Encode();
 		if ( not msg )
 			return;
-				
+
 		auto	it = _callbacks.find( msg->GetTypeId() );
 		if ( it != _callbacks.end() )
 		{
@@ -202,7 +202,7 @@ namespace AE::LangModel
 			AE_LOGW( "Unsupported message type." );
 		}
 	}
-	
+
 /*
 =================================================
 	_ProcessMessageNothrow
@@ -249,7 +249,7 @@ namespace AE::LangModel
 		using namespace AE::Networking;
 
 		IpAddress	server_addr;
-		CHECK( SocketService::Instance().GetSelfIPAddress( IpAddress::FromServiceUDP( "192.168.0.1", "8080" ), OUT server_addr ));
+		CHECK( SocketService::Instance().GetSelfIPAddress( AE_ROUTER_IPv4, OUT server_addr ));
 
 		server_addr.SetPort( port );
 
@@ -269,7 +269,7 @@ namespace AE::LangModel
 		CHECK_ERR( _objFactory.Register<M>( id ));
 		return true;
 	}
-	
+
 /*
 =================================================
 	_RegisterCB
@@ -293,7 +293,7 @@ namespace AE::LangModel
 	bool  LangModelServer::_RegisterMessages ()
 	{
 		using namespace AE::Serializing;
-		
+
 		Msg::RegisterTypes( _objFactory );
 
 		#define REG_CLIENT( _name_ )	_RegisterCB< Msg::_name_ >( SerializedID{#_name_}, &LangModelServer::_Cb_##_name_ )
@@ -306,7 +306,7 @@ namespace AE::LangModel
 
 		return true;
 	}
-	
+
 /*
 =================================================
 	_SendLog
@@ -321,27 +321,27 @@ namespace AE::LangModel
 
 		Unused( _channel.Send( msg ));
 	}
-	
+
 /*
 =================================================
-	
+
 =================================================
 */
 	void  LangModelServer::_Cb_LangModelInit (const Msg::LangModelInit &)
 	{
 		AE_LOGW( "Ignored: LangModelInit" );
 	}
-	
+
 	void  LangModelServer::_Cb_LangModelShutdown (const Msg::LangModelShutdown &)
 	{
 		// TODO ?
 	}
-	
+
 	void  LangModelServer::_Cb_LangModelOpenLLama (const Msg::LangModelOpenLLama &)
 	{
 		AE_LOGW( "Ignored: LangModelOpenLLama" );
 	}
-	
+
 /*
 =================================================
 	_Cb_LangModelClose
@@ -354,7 +354,7 @@ namespace AE::LangModel
 
 		throw AE::Exception{"close model and stop server"};
 	}
-	
+
 /*
 =================================================
 	_Cb_LangModelGetInfo
@@ -370,7 +370,7 @@ namespace AE::LangModel
 		msg.info	= _curModel->GetModelInfo();
 		CHECK_THROW( _channel.Send( msg ));
 	}
-	
+
 /*
 =================================================
 	_Cb_LangModelCreateContextLLama
@@ -408,7 +408,7 @@ namespace AE::LangModel
 		msg.uid = Exec();
 		CHECK_THROW( _channel.Send( msg ));
 	}
-	
+
 /*
 =================================================
 	_Cb_LangModelContextGenerate
@@ -437,7 +437,7 @@ namespace AE::LangModel
 
 		Unused( it->second.ctx->Generate( U8String{inMsg.prompt}, it->second.listener ));
 	}
-	
+
 /*
 =================================================
 	_Cb_LangModelContextGenerate_Cancel
@@ -451,7 +451,7 @@ namespace AE::LangModel
 		CHECK_ERRV( it->second.listener );
 		it->second.listener->Cancel();
 	}
-	
+
 /*
 =================================================
 	_Cb_LangModelContextAppend
@@ -473,7 +473,7 @@ namespace AE::LangModel
 		msg.ok  = Exec();
 		CHECK_THROW( _channel.Send( msg ));
 	}
-	
+
 /*
 =================================================
 	_Cb_LangModelContextClear
@@ -496,7 +496,7 @@ namespace AE::LangModel
 		msg.ok  = Exec();
 		CHECK_THROW( _channel.Send( msg ));
 	}
-	
+
 /*
 =================================================
 	_Cb_LangModelContextClose
@@ -512,13 +512,13 @@ namespace AE::LangModel
 			_ctxPool.erase( it );
 			return true;
 		}};
-		
+
 		Msg::LangModelContext_Resp	msg;
 		msg.uid	= inMsg.uid;
 		msg.ok  = Exec();
 		CHECK_THROW( _channel.Send( msg ));
 	}
-	
+
 /*
 =================================================
 	ResponseListener::Reset
@@ -531,7 +531,7 @@ namespace AE::LangModel
 		_canceled		= false;
 		_responsePart.clear();
 	}
-	
+
 /*
 =================================================
 	ResponseListener::_Append
@@ -574,7 +574,7 @@ namespace AE::LangModel
 
 		return not _canceled;
 	}
-	
+
 /*
 =================================================
 	ResponseListener::OnComplete
@@ -594,7 +594,7 @@ namespace AE::LangModel
 		if ( not _server._channel.Send( msg ))
 			_server._hasError.store( true );
 	}
-	
+
 /*
 =================================================
 	ResponseListener::OnError
@@ -610,7 +610,7 @@ namespace AE::LangModel
 		if ( not _server._channel.Send( msg ))
 			_server._hasError.store( true );
 	}
-	
+
 /*
 =================================================
 	ResponseListener::RequiredPromptTokens

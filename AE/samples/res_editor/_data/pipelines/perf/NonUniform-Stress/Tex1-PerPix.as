@@ -6,5 +6,5 @@
 	{
 		CreatePipeline( "bind-tex-pp" );
 	}
-	
+
 #endif

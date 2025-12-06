@@ -6,5 +6,5 @@
 	{
 		CreatePipeline( "vb2-bindless-tex-pw" );
 	}
-	
+
 #endif

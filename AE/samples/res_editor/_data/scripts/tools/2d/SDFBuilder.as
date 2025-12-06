@@ -12,7 +12,7 @@
 		// initialize
 		RC<Image>			rt			= Image( EPixelFormat::RGBA8_UNorm, SurfaceSize() );
 		RC<DynamicUInt2>	tex_pot		= DynamicUInt2();
-		RC<Image>			tex			= Image( EPixelFormat::R32F, tex_pot.PowOf2().Dimension() );
+		RC<Image>			tex			= Image( EPixelFormat::R32F, tex_pot.Exp2().Dimension() );
 		RC<Buffer>			cbuf		= Buffer();
 		const uint			max_obj		= 4;
 		const uint			max_shape	= 7;

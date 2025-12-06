@@ -149,7 +149,7 @@ namespace
 
 		auto	task1 = ctx.ReadbackImage( t.img, Default );
 		auto	task2 = t.debugger.ReadAll( ctx );
-	
+
 		t.result =
 			[] (auto readOp, auto dbgRes, auto& t) -> InlineCoro<>
 			{
@@ -165,7 +165,7 @@ namespace
 				if ( trace_str.size() == 4 )
 				{
 					const StringView	rm_ref_str =
-R"(//> gl_LaunchIDEXT: uint3 {612, 124, 0}
+R"(//> gl_LaunchIDEXT: uint3 {612, 124, 0} | {0x264, 0x7c, 0x0}
 no source
 
 //> payload: float4 {0.412000, 0.796000, 1.000000, 1.000000}
@@ -173,7 +173,7 @@ no source
 
 )";
 					const StringView	rch_ref_str =
-R"(//> gl_LaunchIDEXT: uint3 {370, 326, 0}
+R"(//> gl_LaunchIDEXT: uint3 {370, 326, 0} | {0x172, 0x146, 0x0}
 //> hitAttribs: float2 {0.220417, 0.411667}
 no source
 
@@ -187,11 +187,11 @@ no source
 
 )";
 					const StringView	rg1_ref_str =
-R"(//> gl_LaunchIDEXT: uint3 {612, 124, 0}
+R"(//> gl_LaunchIDEXT: uint3 {612, 124, 0} | {0x264, 0x7c, 0x0}
 no source
 
 //> uv: float2 {0.765625, 0.207500}
-//  gl_LaunchIDEXT: uint3 {612, 124, 0}
+//  gl_LaunchIDEXT: uint3 {612, 124, 0} | {0x264, 0x7c, 0x0}
 16. uv			= vec2(gl_LaunchIDEXT.xy + 0.5) / vec2(gl_LaunchSizeEXT.xy);
 
 //> origin: float3 {0.765625, 0.792500, -1.000000}
@@ -216,17 +216,17 @@ no source
 30. color = payload;
 
 //> imageStore(): void
-//  gl_LaunchIDEXT: uint3 {612, 124, 0}
+//  gl_LaunchIDEXT: uint3 {612, 124, 0} | {0x264, 0x7c, 0x0}
 //  color: float4 {0.412000, 0.796000, 1.000000, 1.000000}
 31. 		imageStore( un_OutImage, ivec2(gl_LaunchIDEXT), color );
 
 )";
 					const StringView	rg2_ref_str =
-R"(//> gl_LaunchIDEXT: uint3 {370, 326, 0}
+R"(//> gl_LaunchIDEXT: uint3 {370, 326, 0} | {0x172, 0x146, 0x0}
 no source
 
 //> uv: float2 {0.463125, 0.544167}
-//  gl_LaunchIDEXT: uint3 {370, 326, 0}
+//  gl_LaunchIDEXT: uint3 {370, 326, 0} | {0x172, 0x146, 0x0}
 16. uv			= vec2(gl_LaunchIDEXT.xy + 0.5) / vec2(gl_LaunchSizeEXT.xy);
 
 //> origin: float3 {0.463125, 0.455833, -1.000000}
@@ -251,7 +251,7 @@ no source
 30. color = payload;
 
 //> imageStore(): void
-//  gl_LaunchIDEXT: uint3 {370, 326, 0}
+//  gl_LaunchIDEXT: uint3 {370, 326, 0} | {0x172, 0x146, 0x0}
 //  color: float4 {0.367917, 0.220417, 0.411667, 1.000000}
 31. 		imageStore( un_OutImage, ivec2(gl_LaunchIDEXT), color );
 

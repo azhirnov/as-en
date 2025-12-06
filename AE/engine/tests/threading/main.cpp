@@ -32,7 +32,7 @@ int main (const int argc, char* argv[])
 #endif
 {
 	BEGIN_TEST();
-	
+
 	UnitTest_Task();
 	UnitTest_Promise();
 	UnitTest_AsyncDataSource( curr );

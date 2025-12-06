@@ -294,7 +294,7 @@ namespace {
 
 		VulkanInstanceFn::_var_vkGetInstanceProcAddr = &Dummy_vkGetInstanceProcAddr;
 	}
-	
+
 /*
 =================================================
 	IsLoaded

@@ -61,7 +61,7 @@ namespace AE::Networking
 		// serialize to temporary buffer and call 'Send()'
 		template <typename MsgType>
 		ND_ bool  _Send (const MsgType &)								__NE___;
-		
+
 		ND_ bool  _InitServer (ushort port,
 							   Bytes bufferSize,
 							   Ptr<Serializing::ObjectFactory> factory)	__NE___;
@@ -78,7 +78,7 @@ namespace AE::Networking
 						 Ptr<Serializing::ObjectFactory> factory)		__NE___;
 	};
 
-	
+
 /*
 =================================================
 	_Send
@@ -106,7 +106,7 @@ namespace AE::Networking
 
 		return Send( _sentBuffer.Data(), size );
 	}
-	
+
 
 /*
 =================================================

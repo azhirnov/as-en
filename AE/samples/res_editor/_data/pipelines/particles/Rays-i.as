@@ -1,7 +1,7 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 /*
 	Draw particles as rays.
-	Used triangle strip to build oriented quad and instancing to draw multiple quads.
+	Used single triangle to build oriented ray and instancing to draw multiple rays.
 */
 #ifdef __INTELLISENSE__
 #	include <pipeline_compiler.as>

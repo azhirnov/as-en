@@ -118,15 +118,15 @@ namespace AE::Graphics
 
 		struct VRSTexelSize
 		{
-			ushort	minX		: 3;	// power of 2, range: 1..256
-			ushort	minY		: 3;	// power of 2, range: 1..256
-			ushort	maxX		: 3;	// power of 2, range: 1..256
-			ushort	maxY		: 3;	// power of 2, range: 1..256
-			ushort	aspectRatio	: 4;	// power of 2, range: 1..512
+			uint	minX		: 5;	// power of 2, range: 1..1024
+			uint	minY		: 5;	// power of 2, range: 1..1024
+			uint	maxX		: 5;	// power of 2, range: 1..1024
+			uint	maxY		: 5;	// power of 2, range: 1..1024
+			uint	aspectRatio	: 5;	// power of 2, range: 1..1024
 
 			VRSTexelSize ()					__NE___	{ std::memset( this, 0, sizeof(*this) ); }
 
-			ND_ HashVal  CalcHash ()		C_NE___	{ return HashOf( BitCast<ushort>( *this )); }
+			ND_ HashVal  CalcHash ()		C_NE___	{ return HashOf( BitCast<uint>( *this )); }
 			ND_ explicit operator bool ()	C_NE___	{ return (minX + minY + maxX + maxY) != 0; }
 
 			ND_ uint2	Min ()				C_NE___	{ return uint2{ 1u << minX, 1u << minY }; }
@@ -327,7 +327,7 @@ namespace AE::Graphics
 		_visitorF_( EFeature,			fragmentShadingRateWithShaderSampleMask,			: 2 )	/*-|																	*/\
 		_visitorF_( EFeature,			fragmentShadingRateWithFragmentShaderInterlock,		: 2 )	/*-|																	*/\
 		_visitorF_( EFeature,			fragmentShadingRateWithCustomSampleLocations,		: 2 )	/*-|																	*/\
-		_visitor2_( VRSTexelSize,		fragmentShadingRateTexelSize,							)	/*-|																	*/\
+		_visitor4_( VRSTexelSize,		fragmentShadingRateTexelSize,							)	/*-|																	*/\
 		_visitor1_( ShadingRateSet_t,	fragmentShadingRates,									)	/*-/																	*/\
 		/* fragment density map */\
 		_visitorF_( EFeature,			fragmentDensityMap,						: 2 )	/*\																					*/\
@@ -447,7 +447,7 @@ namespace AE::Graphics
 		_visitorF_( EFeature,			textureCompressionASTC_HDR,				: 2 )\
 		_visitorF_( EFeature,			textureCompressionBC,					: 2 )\
 		_visitorF_( EFeature,			textureCompressionETC2,					: 2 )\
-		_visitorF_( EFeature,			imageViewMinLod,						: 2 )	/* VK_EXT_image_view_min_lod, minLod												*/\
+		/*_visitorF_( EFeature,			imageViewMinLod,						: 2 )	/ * VK_EXT_image_view_min_lod, minLod												*/\
 		_visitorF_( EFeature,			multisampleArrayImage,					: 2 )\
 		_visitorF_( EFeature,			imageViewFormatList,					: 2 )	/* VK_KHR_image_format_list															*/\
 		_visitorF_( EFeature,			imageViewExtendedUsage,					: 2 )	/* VK_KHR_maintenance2																*/\
@@ -510,7 +510,7 @@ namespace AE::Graphics
 	/* HW info */\
 		_visitor1_( Queues,				queues,										)\
 		_visitor2_( VendorIDs_t,		vendorIds,									)\
-		_visitor8_( GraphicsDevices_t,	devicesIds,									)\
+		_visitor4_( GraphicsDevices_t,	devicesIds,									)\
 
 
 		// TODO:
@@ -584,9 +584,9 @@ namespace AE::Graphics
 		template <bool Mutable>
 		bool  _Validate ()															__NE___;
 	};
-	StaticAssert( sizeof(FeatureSet) == 608 );
+	StaticAssert( sizeof(FeatureSet) == 616 );
 
-	
+
 	__CxIn uint  FeatureSet::GetFeatureCount () __NE___
 	{
 		enum class FeatureCount

@@ -264,7 +264,7 @@ TODO
 
 * RGBA8_UNorm texture with random access [[9](../GPU_Benchmarks.md#9-Texture-cache)]
 	- Measured cache size: 64B, 8KB, 128K, 512K.
-	- 8 texels per pixel, 1.44MPix, 184MB per frame for linear sampler.
+	- 8 texels per pixel, 4 texels for linear filter, 1.44 MPix, 184MB read per frame.
 
 	| size (B) | dimension (px) | exec time (ms) | diff | approx bandwidth (GB/s) | comments |
 	|---|---|---|---|---|---|
@@ -279,17 +279,17 @@ TODO
 	| 256K     | 512x512   | 12.1 | **1.8**  |  16 | less than RAM bandwidth |
 	| **512K** | 512x1024  | 14.5 | 1.2      |  13 | ? |
 	| 1M       | 1024x1024 | 27.7 | **1.9**  |   7 |
-	
+
 ## Nonuniform
 
 * __depth pre-pass__ [[14.2](../GPU_Benchmarks.md#14-Nonuniform)]<br/>
-	dpp = 0.6ms, 
+	dpp = 0.6ms,
 	Scale=0.6, Dim=2K, ObjCount=4K
 
 	| nonuniform              | per object (ms) | per warp (ms) | per quad (ms) | per pixel (ms) |
 	|-------------------------|-----------------|---------------|---------------|----------------|
 	| texture layer           | 1.90            | 2.3           | 3.5           | 6.5            |
-	| texture index           | 1.90            | 5.0           | 26.1          | 63             | 
+	| texture index           | 1.90            | 5.0           | 26.1          | 63             |
 	| texture & sampler index | 1.96            | 2.3           | 6.5           | 12.6           |
 
 * __visibility buffer__ [[14.3](../GPU_Benchmarks.md#14-Nonuniform)]<br/>

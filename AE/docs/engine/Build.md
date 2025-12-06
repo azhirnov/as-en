@@ -28,7 +28,8 @@ sudo apt install build-essential pkg-config libx11-dev libxcursor-dev \
     libxinerama-dev libgl1-mesa-dev libasound2-dev \
     libxi-dev libxrandr-dev yasm liburing-dev libpng-dev libbz2-dev libwayland-dev \
     libxkbcommon-dev libc++-dev libc++abi-dev \
-    mesa-vulkan-drivers libvulkan1 vulkan-validationlayers
+    mesa-vulkan-drivers libvulkan1 vulkan-validationlayers \
+	libpng-dev libzip-dev libbz2-dev
 ```
 
 Optional: install clang
@@ -186,6 +187,7 @@ Associate file extensions `.as`, `.glsl` with Visual Studio, Notepad++ or other 
 
 Open `TOOLS- > Options...`, select `Text Editor -> File Extension` and add file extensions as a C++ source:<br/>
 `.as` - AngelScript file with AsEn preprocessor.<br/>
+`.ppln` - same as `.as`, used for shader pipelines.<br/>
 `.glsl`, `.msl` - shader language.<br/>
 `.glsl_dbg` - for shader debugger.<br/>
 `.mm` - for ObjC code.

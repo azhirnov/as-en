@@ -10,7 +10,7 @@ namespace
 								Conditional< (IsAnyFloatPoint<T> and sizeof(T) < sizeof(float)), float, void >>>;
 
 	#define AB(x)	A{B(x)}		// half{float( x )}
-	
+
 	template <uint X, uint Y, typename Fn, typename Simd>
 	void  TestAllSwizzles2 (const Fn &checkSwizzle, const Simd &v)
 	{
@@ -30,7 +30,7 @@ namespace
 	void  TestAllSwizzles4 (const Fn &checkSwizzle, const Simd &v)
 	{
 		checkSwizzle( v.template Swizzle<X,Y,Z,W>(), X, Y, Z, W );
-	
+
 		constexpr uint Max = 3;
 
 		if constexpr( W < Max )
@@ -45,7 +45,7 @@ namespace
 		if constexpr( X < Max )
 			TestAllSwizzles4< X + 1, 0, 0, 0 >( checkSwizzle, v );
 	}
-	
+
 	// too complex to compile it
 #if 0
 	template <uint V0, uint V1, uint V2, uint V3, uint V4, uint V5, uint V6, uint V7,
@@ -53,7 +53,7 @@ namespace
 	void  TestAllSwizzles8 (const Fn &checkSwizzle, const Simd &v)
 	{
 		checkSwizzle( v.template Swizzle<V0,V1,V2,V3, V4,V5,V6,V7>(), V0,V1,V2,V3, V4,V5,V6,V7 );
-	
+
 		constexpr uint Max = 7;
 
 		if constexpr( V7 < Max )
@@ -87,7 +87,7 @@ namespace
 	void  TestAllSwizzles16 (const Fn &checkSwizzle, const Simd &v)
 	{
 		checkSwizzle( v.template Swizzle<V0,V1,V2,V3, V4,V5,V6,V7, V8,V9,V10,V11, V12,V13,V14,V15>(), V0,V1,V2,V3, V4,V5,V6,V7, V8,V9,V10,V11, V12,V13,V14,V15 );
-	
+
 		constexpr uint Max = 15;
 
 		if constexpr( V15 < Max )
@@ -217,7 +217,7 @@ namespace
 			}};
 
 			Simd	v {arr.data()};
-			
+
 			TestAllSwizzles2< 0, 0 >( CheckSwizzle, v );
 		}
 
@@ -423,7 +423,7 @@ namespace
 			}};
 
 			Simd	v {arr.data()};
-			
+
 			//TestAllSwizzles8< 0,0,0,0, 0,0,0,0 >( CheckSwizzle, v );  // TODO
 
 			#define CHECK_SWIZZLE( v0,v1,v2,v3,v4,v5,v6,v7 )	CheckSwizzle( v.template Swizzle<v0,v1,v2,v3,v4,v5,v6,v7>(), v0,v1,v2,v3,v4,v5,v6,v7 );
@@ -590,9 +590,9 @@ namespace
 			}};
 
 			Simd	v {arr.data()};
-			
+
 			//TestAllSwizzles16< 0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,0 >( CheckSwizzle, v );  // TODO
-			
+
 			#define CHECK_SWIZZLE( v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15 )\
 				CheckSwizzle( v.template Swizzle< v0,v1,v2,v3, v4,v5,v6,v7, v8,v9,v10,v11, v12,v13,v14,v15 >(), \
 							  v0,v1,v2,v3, v4,v5,v6,v7, v8,v9,v10,v11, v12,v13,v14,v15 );
@@ -1772,27 +1772,27 @@ namespace
 		else
 			TEST( false );
 
-		// lanes
+		// parts
 		{
-			StaticAssert( Simd::lanes > 0 );
-			constexpr auto	l_size	= sizeof(Simd) / Simd::lanes;
+			StaticAssert( Simd::parts > 0 );
+			constexpr auto	l_size	= sizeof(Simd) / Simd::parts;
 
-			auto	l0 = Simd{}.template Lane<0>();
+			auto	l0 = Simd{}.template Part<0>();
 			StaticAssert( sizeof(l0) == l_size );
 
-			if constexpr( Simd::lanes > 1 )
+			if constexpr( Simd::parts > 1 )
 			{
-				auto	l1 = Simd{}.template Lane<1>();
+				auto	l1 = Simd{}.template Part<1>();
 				StaticAssert( sizeof(l1) == l_size );
 			}
-			if constexpr( Simd::lanes > 2 )
+			if constexpr( Simd::parts > 2 )
 			{
-				auto	l2 = Simd{}.template Lane<2>();
+				auto	l2 = Simd{}.template Part<2>();
 				StaticAssert( sizeof(l2) == l_size );
 			}
-			if constexpr( Simd::lanes > 3 )
+			if constexpr( Simd::parts > 3 )
 			{
-				auto	l3 = Simd{}.template Lane<3>();
+				auto	l3 = Simd{}.template Part<3>();
 				StaticAssert( sizeof(l3) == l_size );
 			}
 		}
@@ -2459,7 +2459,7 @@ namespace
 			const auto		c		= b.ToArray();
 			const ushort	ref[]	= { half{}.SetFast(a.get<0>()).AsInteger(), half{}.SetFast(a.get<1>()).AsInteger(),
 										half{}.SetFast(a.get<2>()).AsInteger(), half{}.SetFast(a.get<3>()).AsInteger() };
-			
+
 			CHECK_Eq( c[0], ref[0] );
 			CHECK_Eq( c[1], ref[1] );
 			CHECK_Eq( c[2], ref[2] );
@@ -2475,9 +2475,9 @@ namespace
 		const SimdRuntimeConfig::State	prev_state = SimdRuntimeConfig::GetState();
 
 		SimdRuntimeConfig::DenormalFlushToZero( true );
-		
+
 		TEST( SimdRuntimeConfig::GetState().DenormalFlushToZero() );
-		
+
 		// scalar
 		{
 			float	a {Float32Bits::SmallestNormal().AsFloatPoint()};
@@ -2495,7 +2495,7 @@ namespace
 				TEST( not b.IsSubnormal() );
 			}
 		}
-		
+
 		// vector
 		{
 			SimdFloat4	a {Float32Bits::SmallestNormal().AsFloatPoint()};
@@ -2515,9 +2515,9 @@ namespace
 		}
 
 		SimdRuntimeConfig::DenormalFlushToZero( false );
-		
+
 		TEST( not SimdRuntimeConfig::GetState().DenormalFlushToZero() );
-		
+
 		// scalar
 		{
 			float	a {Float32Bits::SmallestNormal().AsFloatPoint()};
@@ -2532,7 +2532,7 @@ namespace
 					break;
 			}
 		}
-		
+
 		// vector
 		{
 			SimdFloat4	a {Float32Bits::SmallestNormal().AsFloatPoint()};

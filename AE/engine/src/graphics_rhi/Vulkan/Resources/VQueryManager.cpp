@@ -132,7 +132,7 @@ namespace AE::Graphics
 
 			VK_CHECK_ERR( _device.vkCreateQueryPool( _device.GetVkDevice(), &ppln_stat_ci, null, OUT &pool.handle ));
 		}
-		
+
 		// MeshPipelineStatistic
 		if ( props.features.pipelineStatisticsQuery and props.meshShaderFeats.meshShaderQueries )
 		{
@@ -404,7 +404,7 @@ Supported queue types: Graphics / Compute
 				if_unlikely( queueType != EQueueType::Graphics )
 					return Default;
 				break;
-				
+
 			case EQueryType::ComputePipelineStatistic :
 			case EQueryType::AccelStructCompactedSize :
 			case EQueryType::AccelStructSize :
@@ -618,12 +618,12 @@ The second synchronization scope includes all commands which reference the queri
 	{
 		return _GetPipelineStatistic( iq, OUT result, resultSize, EQueryType::GraphicsPipelineStatistic );
 	}
-	
+
 	bool  VQueryManager::GetPipelineStatistic (const IQuery &iq, OUT ComputePipelineStatistic* result, const Bytes resultSize) C_NE___
 	{
 		return _GetPipelineStatistic( iq, OUT result, resultSize, EQueryType::ComputePipelineStatistic );
 	}
-	
+
 	bool  VQueryManager::GetPipelineStatistic (const IQuery &iq, OUT MeshPipelineStatistic* result, const Bytes resultSize) C_NE___
 	{
 		return _GetPipelineStatistic( iq, OUT result, resultSize, EQueryType::MeshPipelineStatistic );

@@ -99,7 +99,7 @@ namespace AE::Base
 	{
 	#ifdef AE_CPU_ARCH_ARM_BASED
 		RETURN_ERR( "use SetCurrentThreadAffinity instead" );
-	
+
 	#else
 		ASSERT_Lt( logicalCoreIdx, std::thread::hardware_concurrency() );
 
@@ -118,7 +118,7 @@ namespace AE::Base
 	{
 	#ifdef AE_CPU_ARCH_ARM_BASED
 		const auto&		cpu_info = Base::CpuArchInfo::Get();
-		
+
 		if ( auto* core = cpu_info.GetCore( logicalCoreIdx ))
 		{
 			EThreadPriority		priority = EThreadPriority::Default;
@@ -206,7 +206,7 @@ namespace AE::Base
 		return 0;
 		//return ::sched_getcpu();
 	}
-	
+
 /*
 =================================================
 	SetSystemSleepState

@@ -80,7 +80,7 @@ namespace AE::Graphics
 			}
 		}
 	}
-	
+
 /*
 =================================================
 	_PrintStats
@@ -90,20 +90,20 @@ namespace AE::Graphics
 	{
 		usize	block_count	= 0;
 		usize	page_count	= 0;
-		
+
 		for (auto [key, page_arr] : _pageMap)
 		{
 			for (auto& lvl : page_arr.lowLevel)
 			{
 				block_count += BitCount( lvl.load() );
 			}
-			
+
 			for (auto& page : page_arr.pages)
 			{
 				page_count += usize(page.memory != Default);
 			}
 		}
-		
+
 		Bytes	capacity	= _blockSize * page_count;
 		Bytes	used		= _blockSize * block_count;	// may be 0 if used in destructor
 

@@ -289,7 +289,7 @@ namespace AE::Graphics
 						 CmdBufExeIndex			exeIndex,
 						 DebugLabel				dbg = Default,
 						 const SourceLoc &		loc = SourceLoc::current())		__NE___;
-		
+
 		template <typename ...Deps>
 		AsyncTask	Run (RenderTaskCoro_t		coro,
 						 const Tuple<Deps...>&	deps,
@@ -334,7 +334,7 @@ namespace AE::Graphics
 
 			bool  AddOutputSemaphore (GpuSyncObj_t syncObj, ulong value)		__NE___;
 			bool  AddOutputSemaphore (const CmdBatchDependency_t &dep)			__NE___;
-			
+
 		#if defined(AE_ENABLE_VULKAN) and defined(AE_PLATFORM_WINDOWS)
 			void   SetKeyedMutexAcquireRelease (void* ptr)						__NE___	{ CHECK( _keyedMutexAcqRel == null );  _keyedMutexAcqRel = ptr; }
 		ND_ void*  ExtractKeyedMutexAcquireRelease ()							__NE___	{ auto tmp = _keyedMutexAcqRel;  _keyedMutexAcqRel = null;  return tmp; }
@@ -522,7 +522,7 @@ namespace AE::Graphics
 		DBG_WARNING( "failed to enqueue render task" );
 		return AsyncCoro{};
 	}
-	
+
 	template <typename ...Deps>
 	AsyncTask  CommandBatch::Run (RenderTaskCoro_t		coro,
 								  const Tuple<Deps...>&	deps,

@@ -394,7 +394,7 @@ namespace {
 
 			if ( not AnyEqual( err, VK_SUCCESS, VK_SUBOPTIMAL_KHR ))
 				continue;
-			
+
 			CHECK_CE( beginCmdBatch->AddInputSemaphore(  swapchain.GetImageAvailableSemaphore(), 0 ));
 			CHECK_CE( endCmdBatch  ->AddOutputSemaphore( swapchain.GetRenderFinishedSemaphore(), 0 ));
 			co_return;
@@ -432,6 +432,7 @@ namespace {
 
 			default :
 				Unused( __vk_CheckErrors( err, "Presentation failed", AE_FUNCTION_NAME, SourceLoc::current() ));
+				CHECK_FATAL( err != VK_ERROR_DEVICE_LOST );
 				CHECK_CE( false, "Presentation failed" );
 		}
 		co_return;

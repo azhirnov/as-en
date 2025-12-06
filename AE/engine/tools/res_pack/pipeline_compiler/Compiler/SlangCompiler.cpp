@@ -137,7 +137,7 @@ namespace
 		switch_end
 		return SLANG_STAGE_NONE;
 	}
-	
+
 /*
 =================================================
 	EnumCast (SlangStage)
@@ -168,7 +168,7 @@ namespace
 		switch_end
 		return Default;
 	}
-	
+
 /*
 =================================================
 	ValidateSPIRV
@@ -232,9 +232,9 @@ namespace
 	constructor
 =================================================
 */
-	SLangCompiler::SLangCompiler (ArrayView<Path> includeDirs) __NE___
+	SLangCompiler::SLangCompiler (ArrayView<Path> includeDirs, Path libPath) __NE___
 	{
-		bool	res = _Initialize( includeDirs );
+		bool	res = _Initialize( includeDirs, RVRef(libPath) );
 		if ( not res )
 			_Deinitialize();
 	}
@@ -248,41 +248,44 @@ namespace
 	{
 		_Deinitialize();
 	}
-	
+
 /*
 =================================================
 	_Initialize
 =================================================
 */
-	bool  SLangCompiler::_Initialize (ArrayView<Path> includeDirs)
+	bool  SLangCompiler::_Initialize (ArrayView<Path> includeDirs, Path libPath)
 	{
 		CHECK_ERR( not _lib );
 		CHECK_ERR( _globalSession == null );
 		CHECK_ERR( _session == null );
 
+		if ( libPath.empty() )
+			libPath = PlatformUtils::GetExeLocation().parent_path();
+
 		// can not link with static library, so use dynamic
 		#ifdef AE_PLATFORM_WINDOWS
 		# ifdef AE_CFG_DEBUG
-			Unused( _lib.Load( "slangd.dll" ));
+			_lib.Load( libPath / "slangd.dll" );
 		# endif
 			if ( not _lib )
-				Unused( _lib.Load( "slang.dll" ));
+				_lib.Load( libPath / "slang.dll" );
 		#endif
 
 		#ifdef AE_PLATFORM_LINUX
 		# ifdef AE_CFG_DEBUG
-			Unused( _lib.Load( "./libslangd.so" ));
+			_lib.Load( libPath / "libslangd.so" );
 		# endif
 			if ( not _lib )
-				Unused( _lib.Load( "./libslang.so" ));
+				_lib.Load( libPath / "libslang.so" );
 		#endif
 
 		#ifdef AE_PLATFORM_APPLE
 		# ifdef AE_CFG_DEBUG
-			Unused( _lib.Load( "slangd.dylib" ));
+			_lib.Load( libPath / "slangd.dylib" );
 		# endif
 			if ( not _lib )
-				Unused( _lib.Load( "slang.dylib" ));
+				_lib.Load( libPath / "slang.dylib" );
 		#endif
 
 		if ( not _lib )
@@ -290,7 +293,7 @@ namespace
 
 		decltype(&slang_createGlobalSession2)	fnCreateGlobalSession = null;
 		CHECK_ERR( _lib.GetProcAddr( "slang_createGlobalSession2", OUT fnCreateGlobalSession ));
-		
+
 		decltype(&slang_shutdown)	fnShutdown = null;
 		CHECK_ERR( _lib.GetProcAddr( "slang_shutdown", OUT fnShutdown ));
 
@@ -309,7 +312,7 @@ namespace
 
 		SlangGlobalSessionDesc	global_desc = {};
 		SLANG_CHECK_ERR( fnCreateGlobalSession( &global_desc, OUT &_globalSession ));
-		
+
 		_includeDirs.resize( includeDirs.size() );
 		for (usize i = 0; i < includeDirs.size(); ++i)
 		{
@@ -317,7 +320,7 @@ namespace
 		}
 		return true;
 	}
-	
+
 /*
 =================================================
 	_Deinitialize
@@ -341,7 +344,7 @@ namespace
 
 		_lib.Unload();
 	}
-	
+
 /*
 =================================================
 	_BeginSession
@@ -410,12 +413,12 @@ namespace
 			}
 			switch_end
 		}
-		
+
 		if ( is_spirv )
 		{
 			// use 'Main' instead of default 'main'
 			AddIntOption( CompilerOptionName::VulkanUseEntryPointName, 1 );
-			
+
 			if ( AllBits( in.options, EShaderOpt::DebugInfo ))
 			{
 				AddIntOption( CompilerOptionName::VulkanEmitReflection, 1 );
@@ -498,7 +501,7 @@ namespace
 		SLANG_CHECK_ERR( _globalSession->createSession( session_desc, OUT &_session ));
 		return true;
 	}
-	
+
 /*
 =================================================
 	_EndSession
@@ -528,7 +531,7 @@ namespace
 			return false;
 		}
 	}
-		
+
 /*
 =================================================
 	_CompileImpl
@@ -554,14 +557,14 @@ namespace
 			if ( not src_module )
 				return false;
 		}
-		
+
 		ComPtr<IEntryPoint>		entry_point;
 		SLANG_CHECK_LOG( src_module->findEntryPointByName( NtStringView{in.entry}.c_str(), OUT &entry_point ));
 
 		Array<IComponentType*>	component_types;
 		component_types.push_back( src_module );
 		component_types.push_back( entry_point );
-		
+
 		ComPtr<IComponentType>	composed_program;
 		{
 			ComPtr<IBlob>	diagnostic_blob;
@@ -653,7 +656,7 @@ namespace {
 		const char*				name			= param->getName();
 		const uint				category_count	= param->getCategoryCount();
 		TypeLayoutReflection*	layout			= param->getTypeLayout();
-		
+
 		CHECK_ERR( category_count == 1 );
 		CHECK_ERR( name != null );
 
@@ -678,7 +681,7 @@ namespace {
 
 		return &uniform;
 	}
-	
+
 /*
 =================================================
 	InitBufferFromStructLayout
@@ -707,7 +710,7 @@ namespace {
 
 			const auto					category		= SlangParameterCategory(field->getCategoryByIndex( 0 ));
 			CHECK_ERR( category == SLANG_PARAMETER_CATEGORY_UNIFORM );
-			
+
 			usize	offset			= field->getOffset( category );
 			usize	size			= field_layout->getSize( category );
 			usize	element_stride	= field_layout->getElementStride( category );
@@ -727,7 +730,7 @@ namespace {
 		}
 		return true;
 	}
-	
+
 /*
 =================================================
 	EnumCast (SlangImageFormat)
@@ -838,7 +841,7 @@ namespace {
 		TypeReflection*		elem_type	= result_type->getElementType();
 		CHECK_ERR( elem_type != null );
 		CHECK_ERR( elem_type->getKind() == slang::TypeReflection::Kind::Scalar );
-		
+
 		SlangScalarType		scalar_type	= SlangScalarType(elem_type->getScalarType());
 		switch_enum( scalar_type )
 		{
@@ -944,7 +947,7 @@ namespace {
 
 		return false;
 	}
-	
+
 /*
 =================================================
 	AddPushConstant
@@ -961,23 +964,23 @@ namespace {
 		auto	category = SlangParameterCategory(param->getCategoryByIndex( 0 ));
 		if ( category != SLANG_PARAMETER_CATEGORY_PUSH_CONSTANT_BUFFER )
 			return false;
-		
+
 		TypeLayoutReflection*	layout = param->getTypeLayout();
 		CHECK_ERR( layout != null );
 
 		VariableLayoutReflection*	struct_var		= layout->getElementVarLayout();
 		CHECK_ERR( struct_var != null );
-		
+
 		TypeLayoutReflection*		struct_layout	= struct_var->getTypeLayout();
 		DescriptorSetLayoutDesc::Buffer	buf;
 		CHECK_ERR( InitBufferFromStructLayout( struct_layout, 0, OUT buf ));
-		
+
 		category_count	= struct_var->getCategoryCount();
 		CHECK_ERR( category_count == 1 );
 
 		category		= SlangParameterCategory(struct_var->getCategoryByIndex( 0 ));
 		CHECK_ERR( category == SLANG_PARAMETER_CATEGORY_UNIFORM );
-		
+
 		const char*		name			= param->getName();
 		CHECK_ERR( name != null );
 
@@ -1011,28 +1014,28 @@ namespace {
 		CHECK_ERR( uniform != null );
 
 		uniform->type = EDescriptorType::UniformBuffer;
-		
+
 		VariableLayoutReflection*	struct_var		= layout->getElementVarLayout();
 		CHECK_ERR( struct_var != null );
-		
+
 		TypeLayoutReflection*		struct_layout	= struct_var->getTypeLayout();
 		CHECK_ERR( InitBufferFromStructLayout( struct_layout, uniform->arraySize, OUT uniform->buffer ));
-		
+
 		const uint		category_count	= struct_var->getCategoryCount();
 		CHECK_ERR( category_count == 1 );
 
 		const auto		category		= SlangParameterCategory(struct_var->getCategoryByIndex( 0 ));
 		CHECK_ERR( category == SLANG_PARAMETER_CATEGORY_UNIFORM );
-			
+
 		usize	offset	= struct_var->getOffset( category );
 		usize	size	= struct_layout->getSize( category );
-		
+
 		CHECK_Eq( AlignUp( uniform->buffer.staticSize, 16_b ), Bytes{offset + size} );
 		CHECK( uniform->buffer.arrayStride == 0 );
 
 		return true;
 	}
-	
+
 /*
 =================================================
 	ReadEntryPointAttribs
@@ -1048,7 +1051,7 @@ namespace {
 
 		EShader			sh_type	= EnumCast( entry->getStage() );
 		EShaderStages	stage	= EShaderStages(0) | sh_type;
-		
+
 		// set stage
 		for (auto& ds : result.layout.descrSets)
 		{
@@ -1138,13 +1141,13 @@ extern "C"
 	SlangReflectionEntryPoint*		spReflection_getEntryPointByIndex (SlangReflection* reflection, SlangUInt index)							{ return SlangFunctions::_var_spReflection_getEntryPointByIndex( reflection, index ); }
 
 	char const*						spReflectionTypeParameter_GetName (SlangReflectionTypeParameter* typeParam)									{ return SlangFunctions::_var_spReflectionTypeParameter_GetName( typeParam ); }
-	
+
 	SlangReflectionTypeLayout*		spReflectionVariableLayout_GetTypeLayout (SlangReflectionVariableLayout* var)								{ return SlangFunctions::_var_spReflectionVariableLayout_GetTypeLayout( var ); }
 	SlangReflectionVariable*		spReflectionVariableLayout_GetVariable (SlangReflectionVariableLayout* var)									{ return SlangFunctions::_var_spReflectionVariableLayout_GetVariable( var ); }
 	size_t							spReflectionVariableLayout_GetOffset (SlangReflectionVariableLayout* var, SlangParameterCategory category)	{ return SlangFunctions::_var_spReflectionVariableLayout_GetOffset( var, category ); }
 	size_t							spReflectionVariableLayout_GetSpace (SlangReflectionVariableLayout* var, SlangParameterCategory category)	{ return SlangFunctions::_var_spReflectionVariableLayout_GetSpace( var, category ); }
 	SlangImageFormat				spReflectionVariableLayout_GetImageFormat (SlangReflectionVariableLayout* var)								{ return SlangFunctions::_var_spReflectionVariableLayout_GetImageFormat( var ); }
-	
+
 	char const*						spReflectionType_GetName (SlangReflectionType* type)														{ return SlangFunctions::_var_spReflectionType_GetName( type ); }
 	SlangResourceShape				spReflectionType_GetResourceShape (SlangReflectionType* type)												{ return SlangFunctions::_var_spReflectionType_GetResourceShape( type ); }
 	SlangTypeKind					spReflectionType_GetKind (SlangReflectionType* type)														{ return SlangFunctions::_var_spReflectionType_GetKind( type ); }
@@ -1166,7 +1169,7 @@ extern "C"
 	SlangParameterCategory			spReflectionTypeLayout_GetCategoryByIndex (SlangReflectionTypeLayout* type, unsigned index)					{ return SlangFunctions::_var_spReflectionTypeLayout_GetCategoryByIndex( type, index ); }
 
 	char const*						spReflectionVariable_GetName (SlangReflectionVariable* var)													{ return SlangFunctions::_var_spReflectionVariable_GetName( var ); }
-	
+
 	SlangStage						spReflectionEntryPoint_getStage (SlangReflectionEntryPoint* entryPoint)										{ return SlangFunctions::_var_spReflectionEntryPoint_getStage( entryPoint ); }
 	void							spReflectionEntryPoint_getComputeThreadGroupSize (SlangReflectionEntryPoint* entryPoint, SlangUInt axisCount, SlangUInt* outSizeAlongAxis)	{ return SlangFunctions::_var_spReflectionEntryPoint_getComputeThreadGroupSize( entryPoint, axisCount, outSizeAlongAxis ); }
 

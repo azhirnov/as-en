@@ -9,6 +9,8 @@ namespace AE::App
 {
 # ifdef AE_ENABLE_GLFW
 
+	static constexpr auto	c_RawCharType = SerializableInputActions::c_RawCharType;
+
 	#define AE_GLFW_KEY_CODES_VISITOR( _key_, _code_, _name_, _glfw_code_ ) \
 		StaticAssert( uint(SerializableInputActionsGLFW::EInputType::_key_) == uint(_glfw_code_) );
 

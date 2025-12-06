@@ -213,7 +213,7 @@ namespace {
 			{
 				auto	res		= Coro_WaitResultOrCancel( loadRTech, loadRes );
 				auto&	rtech	= res.template get<0>();
-				
+
 				CHECK_CE( self._InitGraphics( rtech, dummyImg, ubSize ));
 				co_return;
 			}

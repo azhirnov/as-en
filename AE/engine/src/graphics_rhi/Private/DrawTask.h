@@ -46,7 +46,7 @@ namespace AE::_Coro_
 			ND_ DrawCommandBatch *		DrawBatchPtr ()				C_NE___	{ return _dt->_batch.get(); }
 			ND_ uint					DrawOrderIndex ()			C_NE___	{ return _dt->_drawIndex; }
 			ND_ bool					IsValid ()					C_NE___	{ return _dt->_drawIndex != UMax; }
-			
+
 			DEBUG_ONLY(
 				Nd__IF StringView		DbgName ()					C_NE___	{ return _dt->DbgName(); })
 			ND_ String					DbgFullName ()				C_NE___	{ return _dt->DbgFullName(); }
@@ -54,12 +54,12 @@ namespace AE::_Coro_
 
 			ND_ explicit operator bool ()							C_NE___ { return _dt != null; }
 		};
-		
+
 		class BatchApi
 		{
 			friend class Graphics::DrawCommandBatch;
 			friend class RemoteGraphics::RmGAppListener;
-			
+
 			ND_ static bool  Init (DrawTaskImpl &, RC<DrawCommandBatch> batch, CmdBufExeIndex drawIndex, DebugLabel dbg) __NE___;
 		};
 
@@ -89,7 +89,7 @@ namespace AE::_Coro_
 
 		// AsyncTaskImpl //
 			void				OnCancel ()									__NE_OV	{ SkipCommandBuffer();  AsyncTaskImpl::OnCancel(); }
-			
+
 	  #if AE_DBG_GRAPHICS
 		ND_ String				DbgFullName ()								C_NE___;
 		ND_ RGBA8u				DbgColor ()									C_NE___	{ return _dbgColor; }
@@ -97,17 +97,17 @@ namespace AE::_Coro_
 		ND_ String				DbgFullName ()								C_NE___	{ return Default; }
 		ND_ RGBA8u				DbgColor ()									C_NE___	{ return HtmlColor::Lime; }
 	  #endif
-		
+
 		// Coroutine //
 		ND_ auto				initial_suspend ()							C_NE___	{ return std::suspend_always{}; }
-		
+
 			void				return_void ()								C_NE___	{}
-			
+
 		ND_ auto				get_return_object ()						__NE___	{ return Coroutine_t{ *this }; }
 		ND_ static auto			get_return_object_on_allocation_failure ()	__NE___	{ return Coroutine_t{}; }
-		
+
 		ND_ auto				yield_value (AsyncTaskCoro_Error v)			__NE___	{ return AsyncTaskImpl::yield_value(v); }
-		
+
 		ND_ static void*		operator new (usize size)					__NE___	{ return NothrowAllocatable::operator new( size ); }	// fixed crash on MSVC
 
 	private:

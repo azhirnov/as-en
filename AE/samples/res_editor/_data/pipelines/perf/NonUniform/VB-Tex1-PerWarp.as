@@ -6,5 +6,5 @@
 	{
 		CreatePipeline( "vb2-bind-tex-pw" );
 	}
-	
+
 #endif

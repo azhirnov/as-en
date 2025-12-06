@@ -7,9 +7,9 @@
 namespace
 {
 	using ESourceType	= IDataSource::ESourceType;
-	
+
 	static const EThreadArray	c_ThreadArr	{ EThread::PerFrame, EThread::Background, EThread::FileIO };
-	
+
 	static constexpr ulong	c_RFileSize		= 32ull << 20;	// MiB
 	static constexpr uint	c_RBufSize		= 4u << 10;		// KiB
 	StaticAssert( IsMultipleOf( c_RFileSize, c_RBufSize ));
@@ -55,7 +55,7 @@ namespace
 //-----------------------------------------------------------------------------
 
 
-	
+
 	static auto  CanceledRequest_Test1_Coro () -> InlineCoro<>
 	{
 		auto&	static_req = _Coro_::IAsyncDataSourceRequest::CanceledRequest::s_canceled;
@@ -77,7 +77,7 @@ namespace
 	{
 		LocalTaskScheduler	scheduler	{IOThreadCount(1)};
 		TEST( scheduler->GetFileIOService() );
-		
+
 		scheduler->AddThread( ThreadMngr::CreateThread( ThreadMngr::ThreadConfig{ c_ThreadArr, "worker" }));
 
 		AsyncTask	task = CanceledRequest_Test1_Coro();
@@ -101,7 +101,7 @@ namespace
 				auto	res = co_await req;
 
 				req = null;		// request is not used anymore, but memory in 'res' must be alive
-					
+
 				TEST( res );
 				TEST( res.data != null );
 				TEST( res.status == EAsyncDSRequestStatus::Completed );
@@ -167,7 +167,7 @@ namespace
 		TEST( res.rc == null );
 
 		TEST_Eq( rfile.use_count(), 1 );
-		
+
 		co_return;
 	}
 
@@ -212,17 +212,17 @@ namespace
 			auto	pos1	= pos;
 			auto	req1	= rfile->ReadBlock( Bytes{pos1}, Bytes{c_RBufSize} );
 			TEST( req1 );	// always non-null
-			
+
 			pos += c_RBufSize;
-			
+
 			auto	pos2	= pos;
 			auto	req2	= rfile->ReadBlock( Bytes{pos2}, Bytes{c_RBufSize} );
 			TEST( req2 );	// always non-null
-			
+
 			pos += c_RBufSize;
 
 			auto	res12 = Coro_WaitResult( req1, req2 );
-				
+
 			TEST( res12 );
 			TEST( not req1 );
 			TEST( not req2 );
@@ -251,7 +251,7 @@ namespace
 		TEST( task->Status() == ETaskStatus::Completed );
 	}
 //-----------------------------------------------------------------------------
-	
+
 
 
 	static AsyncCoro  AsyncReadDS_Test4_Coro (RC<AsyncRDataSource> rfile)
@@ -264,11 +264,11 @@ namespace
 			auto	pos1	= pos;
 			auto	req1	= rfile->ReadBlock( Bytes{pos1}, Bytes{c_RBufSize} );
 			TEST( req1 );	// always non-null
-			
+
 			pos += c_RBufSize;
 
 			auto	res12 = Coro_WaitResultOrCancel( req1, canceled_req );
-			
+
 			TEST( false );
 			TEST( not res12 );
 
@@ -299,7 +299,7 @@ namespace
 //-----------------------------------------------------------------------------
 
 
-	
+
 	template <typename RFile, typename WFile>
 	static AsyncCoro  AsyncWriteDS_Test1_Coro ()
 	{

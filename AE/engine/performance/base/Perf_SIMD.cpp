@@ -35,7 +35,7 @@ namespace
 			r5 = T{_rnd.Uniform(S(0), S(1))};
 			r6 = T{_rnd.Uniform(S(0), S(1))};
 			r7 = T{_rnd.Uniform(S(0), S(1))};
-			
+
 			p0 = T{_rnd.Uniform(S(0), S(1))};
 			p1 = T{_rnd.Uniform(S(0), S(1))};
 		}
@@ -82,7 +82,7 @@ namespace
 			r5 = p0 + r5;
 			r6 = p0 + r6;
 			r7 = p0 + r7;
-			
+
 			r0 = p1 - r0;
 			r1 = p1 - r1;
 			r2 = p1 - r2;
@@ -91,7 +91,7 @@ namespace
 			r5 = p1 - r5;
 			r6 = p1 - r6;
 			r7 = p1 - r7;
-			
+
 			r0 = p0 + r0;
 			r1 = p0 + r1;
 			r2 = p0 + r2;
@@ -100,7 +100,7 @@ namespace
 			r5 = p0 + r5;
 			r6 = p0 + r6;
 			r7 = p0 + r7;
-			
+
 			r0 = p1 - r0;
 			r1 = p1 - r1;
 			r2 = p1 - r2;
@@ -111,7 +111,7 @@ namespace
 			r7 = p1 - r7;
 		}
 	};
-	
+
 	template <typename T>
 	struct VFloat_Add_4 : SimdVal_Base<T>
 	{
@@ -125,37 +125,37 @@ namespace
 			r1 = p0 + r1;
 			r2 = p0 + r2;
 			r3 = p0 + r3;
-			
+
 			r0 = p1 - r0;
 			r1 = p1 - r1;
 			r2 = p1 - r2;
 			r3 = p1 - r3;
-			
+
 			r0 = p0 + r0;
 			r1 = p0 + r1;
 			r2 = p0 + r2;
 			r3 = p0 + r3;
-			
+
 			r0 = p1 - r0;
 			r1 = p1 - r1;
 			r2 = p1 - r2;
 			r3 = p1 - r3;
-			
+
 			r0 = p0 + r0;
 			r1 = p0 + r1;
 			r2 = p0 + r2;
 			r3 = p0 + r3;
-			
+
 			r0 = p1 - r0;
 			r1 = p1 - r1;
 			r2 = p1 - r2;
 			r3 = p1 - r3;
-			
+
 			r0 = p0 + r0;
 			r1 = p0 + r1;
 			r2 = p0 + r2;
 			r3 = p0 + r3;
-			
+
 			r0 = p1 - r0;
 			r1 = p1 - r1;
 			r2 = p1 - r2;
@@ -177,43 +177,43 @@ namespace
 			r2 = p0 + r2;
 			r3 = p0 + r3;
 			r4 = p0 + r4;
-			
+
 			r0 = p1 - r0;
 			r1 = p1 - r1;
 			r2 = p1 - r2;
 			r3 = p1 - r3;
 			r4 = p1 - r4;
-			
+
 			r0 = p0 + r0;
 			r1 = p0 + r1;
 			r2 = p0 + r2;
 			r3 = p0 + r3;
 			r4 = p0 + r4;
-			
+
 			r0 = p1 - r0;
 			r1 = p1 - r1;
 			r2 = p1 - r2;
 			r3 = p1 - r3;
 			r4 = p1 - r4;
-			
+
 			r0 = p0 + r0;
 			r1 = p0 + r1;
 			r2 = p0 + r2;
 			r3 = p0 + r3;
 			r4 = p0 + r4;
-			
+
 			r0 = p1 - r0;
 			r1 = p1 - r1;
 			r2 = p1 - r2;
 			r3 = p1 - r3;
 			r4 = p1 - r4;
-			
+
 			r0 = p0 + r0;
 			r1 = p0 + r1;
 			r2 = p0 + r2;
 			r3 = p0 + r3;
 			r4 = p0 + r4;
-			
+
 			r0 = p1 - r0;
 			r1 = p1 - r1;
 			r2 = p1 - r2;
@@ -221,7 +221,7 @@ namespace
 			r4 = p1 - r4;
 		}
 	};
-	
+
 	template <typename T>
 	struct VFloat_Add_6 : SimdVal_Base<T>
 	{
@@ -237,35 +237,35 @@ namespace
 			r3 = p0 + r3;
 			r4 = p0 + r4;
 			r5 = p0 + r5;
-			
+
 			r0 = p1 - r0;
 			r1 = p1 - r1;
 			r2 = p1 - r2;
 			r3 = p1 - r3;
 			r4 = p1 - r4;
 			r5 = p1 - r5;
-			
+
 			r0 = p0 + r0;
 			r1 = p0 + r1;
 			r2 = p0 + r2;
 			r3 = p0 + r3;
 			r4 = p0 + r4;
 			r5 = p0 + r5;
-			
+
 			r0 = p1 - r0;
 			r1 = p1 - r1;
 			r2 = p1 - r2;
 			r3 = p1 - r3;
 			r4 = p1 - r4;
 			r5 = p1 - r5;
-			
+
 			r0 = p0 + r0;
 			r1 = p0 + r1;
 			r2 = p0 + r2;
 			r3 = p0 + r3;
 			r4 = p0 + r4;
 			r5 = p0 + r5;
-			
+
 			r0 = p1 - r0;
 			r1 = p1 - r1;
 			r2 = p1 - r2;
@@ -274,7 +274,7 @@ namespace
 			r5 = p1 - r5;
 		}
 	};
-	
+
 	template <typename T>
 	struct VFloat_Add_7 : SimdVal_Base<T>
 	{
@@ -291,7 +291,7 @@ namespace
 			r4 = p0 + r4;
 			r5 = p0 + r5;
 			r6 = p0 + r6;
-			
+
 			r0 = p1 - r0;
 			r1 = p1 - r1;
 			r2 = p1 - r2;
@@ -299,7 +299,7 @@ namespace
 			r4 = p1 - r4;
 			r5 = p1 - r5;
 			r6 = p1 - r6;
-			
+
 			r0 = p0 + r0;
 			r1 = p0 + r1;
 			r2 = p0 + r2;
@@ -307,7 +307,7 @@ namespace
 			r4 = p0 + r4;
 			r5 = p0 + r5;
 			r6 = p0 + r6;
-			
+
 			r0 = p1 - r0;
 			r1 = p1 - r1;
 			r2 = p1 - r2;
@@ -322,7 +322,7 @@ namespace
 	struct VFloat_Mul : SimdVal_Base<T>
 	{
 		REUSE_MEMBERS;
-		
+
 		static constexpr uint opCount = 32;	// flops
 
 		forceinline void  operator () () __NE___
@@ -335,7 +335,7 @@ namespace
 			r5 = p0 * r5;
 			r6 = p0 * r6;
 			r7 = p0 * r7;
-			
+
 			r0 = p1 * r0;
 			r1 = p1 * r1;
 			r2 = p1 * r2;
@@ -344,7 +344,7 @@ namespace
 			r5 = p1 * r5;
 			r6 = p1 * r6;
 			r7 = p1 * r7;
-			
+
 			r0 = p0 * r0;
 			r1 = p0 * r1;
 			r2 = p0 * r2;
@@ -353,7 +353,7 @@ namespace
 			r5 = p0 * r5;
 			r6 = p0 * r6;
 			r7 = p0 * r7;
-			
+
 			r0 = p1 * r0;
 			r1 = p1 * r1;
 			r2 = p1 * r2;
@@ -369,7 +369,7 @@ namespace
 	struct VFloat_MulAdd : SimdVal_Base<T>
 	{
 		REUSE_MEMBERS;
-		
+
 		static constexpr uint opCount = 32;	// flops
 
 		forceinline void  operator () () __NE___
@@ -382,7 +382,7 @@ namespace
 			r5 = p0 * r5;
 			r6 = p0 * r6;
 			r7 = p0 * r7;
-			
+
 			r0 = p1 + r0;
 			r1 = p1 + r1;
 			r2 = p1 + r2;
@@ -391,7 +391,7 @@ namespace
 			r5 = p1 + r5;
 			r6 = p1 + r6;
 			r7 = p1 + r7;
-			
+
 			r0 = p0 * r0;
 			r1 = p0 * r1;
 			r2 = p0 * r2;
@@ -400,7 +400,7 @@ namespace
 			r5 = p0 * r5;
 			r6 = p0 * r6;
 			r7 = p0 * r7;
-			
+
 			r0 = p1 - r0;
 			r1 = p1 - r1;
 			r2 = p1 - r2;
@@ -416,7 +416,7 @@ namespace
 	struct VFloat_FMA_8 : SimdVal_Base<T>
 	{
 		REUSE_MEMBERS;
-		
+
 		static constexpr uint opCount = 32;	// flops
 
 		forceinline void  operator () () __NE___
@@ -429,7 +429,7 @@ namespace
 			r5 = FusedMulAdd( r5, p0, p1 );
 			r6 = FusedMulAdd( r6, p0, p1 );
 			r7 = FusedMulAdd( r7, p0, p1 );
-			
+
 			r0 = FusedMulAdd( r0, p1, p0 );
 			r1 = FusedMulAdd( r1, p1, p0 );
 			r2 = FusedMulAdd( r2, p1, p0 );
@@ -440,12 +440,12 @@ namespace
 			r7 = FusedMulAdd( r7, p1, p0 );
 		}
 	};
-	
+
 	template <typename T>
 	struct VFloat_FMA_4 : SimdVal_Base<T>
 	{
 		REUSE_MEMBERS;
-		
+
 		static constexpr uint opCount = 32;	// flops
 
 		forceinline void  operator () () __NE___
@@ -454,29 +454,29 @@ namespace
 			r1 = FusedMulAdd( r1, p0, p1 );
 			r2 = FusedMulAdd( r2, p0, p1 );
 			r3 = FusedMulAdd( r3, p0, p1 );
-			
+
 			r0 = FusedMulAdd( r0, p1, p0 );
 			r1 = FusedMulAdd( r1, p1, p0 );
 			r2 = FusedMulAdd( r2, p1, p0 );
 			r3 = FusedMulAdd( r3, p1, p0 );
-			
+
 			r0 = FusedMulAdd( r0, p0, p1 );
 			r1 = FusedMulAdd( r1, p0, p1 );
 			r2 = FusedMulAdd( r2, p0, p1 );
 			r3 = FusedMulAdd( r3, p0, p1 );
-			
+
 			r0 = FusedMulAdd( r0, p1, p0 );
 			r1 = FusedMulAdd( r1, p1, p0 );
 			r2 = FusedMulAdd( r2, p1, p0 );
 			r3 = FusedMulAdd( r3, p1, p0 );
 		}
 	};
-	
+
 	template <typename T>
 	struct VFloat_FMA_5 : SimdVal_Base<T>
 	{
 		REUSE_MEMBERS;
-		
+
 		static constexpr uint opCount = 40;	// flops
 
 		forceinline void  operator () () __NE___
@@ -486,19 +486,19 @@ namespace
 			r2 = FusedMulAdd( r2, p0, p1 );
 			r3 = FusedMulAdd( r3, p0, p1 );
 			r4 = FusedMulAdd( r4, p0, p1 );
-			
+
 			r0 = FusedMulAdd( r0, p1, p0 );
 			r1 = FusedMulAdd( r1, p1, p0 );
 			r2 = FusedMulAdd( r2, p1, p0 );
 			r3 = FusedMulAdd( r3, p1, p0 );
 			r4 = FusedMulAdd( r4, p1, p0 );
-			
+
 			r0 = FusedMulAdd( r0, p0, p1 );
 			r1 = FusedMulAdd( r1, p0, p1 );
 			r2 = FusedMulAdd( r2, p0, p1 );
 			r3 = FusedMulAdd( r3, p0, p1 );
 			r4 = FusedMulAdd( r4, p0, p1 );
-			
+
 			r0 = FusedMulAdd( r0, p1, p0 );
 			r1 = FusedMulAdd( r1, p1, p0 );
 			r2 = FusedMulAdd( r2, p1, p0 );
@@ -506,12 +506,12 @@ namespace
 			r4 = FusedMulAdd( r4, p1, p0 );
 		}
 	};
-	
+
 	template <typename T>
 	struct VFloat_FMA_6 : SimdVal_Base<T>
 	{
 		REUSE_MEMBERS;
-		
+
 		static constexpr uint opCount = 24;	// flops
 
 		forceinline void  operator () () __NE___
@@ -522,7 +522,7 @@ namespace
 			r3 = FusedMulAdd( r3, p0, p1 );
 			r4 = FusedMulAdd( r4, p0, p1 );
 			r5 = FusedMulAdd( r5, p0, p1 );
-			
+
 			r0 = FusedMulAdd( r0, p1, p0 );
 			r1 = FusedMulAdd( r1, p1, p0 );
 			r2 = FusedMulAdd( r2, p1, p0 );
@@ -531,12 +531,12 @@ namespace
 			r5 = FusedMulAdd( r5, p1, p0 );
 		}
 	};
-	
+
 	template <typename T>
 	struct VFloat_FMA_7 : SimdVal_Base<T>
 	{
 		REUSE_MEMBERS;
-		
+
 		static constexpr uint opCount = 28;	// flops
 
 		forceinline void  operator () () __NE___
@@ -548,7 +548,7 @@ namespace
 			r4 = FusedMulAdd( r4, p0, p1 );
 			r5 = FusedMulAdd( r5, p0, p1 );
 			r6 = FusedMulAdd( r6, p0, p1 );
-			
+
 			r0 = FusedMulAdd( r0, p1, p0 );
 			r1 = FusedMulAdd( r1, p1, p0 );
 			r2 = FusedMulAdd( r2, p1, p0 );
@@ -558,12 +558,12 @@ namespace
 			r6 = FusedMulAdd( r6, p1, p0 );
 		}
 	};
-	
+
 	template <typename T>
 	struct VFloat_FMA_16 : SimdVal_Base<T>
 	{
 		REUSE_MEMBERS;
-		
+
 		T		r8, r9, r10, r11, r12, r13, r14, r15;
 
 		VFloat_FMA_16 ()
@@ -577,7 +577,7 @@ namespace
 			r14 = r7 + r0;
 			r15 = r2 + r5;
 		}
-		
+
 		~VFloat_FMA_16 ()
 		{
 			r0 = r0 + r8 + r9;
@@ -606,7 +606,7 @@ namespace
 			r13 = FusedMulAdd( r13, p0, p1 );
 			r14 = FusedMulAdd( r14, p0, p1 );
 			r15 = FusedMulAdd( r15, p0, p1 );
-			
+
 			r0  = FusedMulAdd( r0,  p1, p0 );
 			r1  = FusedMulAdd( r1,  p1, p0 );
 			r2  = FusedMulAdd( r2,  p1, p0 );
@@ -625,12 +625,12 @@ namespace
 			r15 = FusedMulAdd( r15, p1, p0 );
 		}
 	};
-	
+
 	template <typename T>
 	struct VFloat_FMA_Add : SimdVal_Base<T>
 	{
 		REUSE_MEMBERS;
-		
+
 		static constexpr uint opCount = 32;	// flops, actualy +16 flops, but keep only FMA flops to compare with other tests
 
 		forceinline void  operator () () __NE___
@@ -659,7 +659,7 @@ namespace
 	struct VFloat_Div_8 : SimdVal_Base<T>
 	{
 		REUSE_MEMBERS;
-		
+
 		static constexpr uint opCount = 32;	// flops
 
 		forceinline void  operator () () __NE___
@@ -672,7 +672,7 @@ namespace
 			r5 = p0 / r5;
 			r6 = p0 / r6;
 			r7 = p0 / r7;
-			
+
 			r0 = p1 / r0;
 			r1 = p1 / r1;
 			r2 = p1 / r2;
@@ -681,7 +681,7 @@ namespace
 			r5 = p1 / r5;
 			r6 = p1 / r6;
 			r7 = p1 / r7;
-			
+
 			r0 = p0 / r0;
 			r1 = p0 / r1;
 			r2 = p0 / r2;
@@ -690,7 +690,7 @@ namespace
 			r5 = p0 / r5;
 			r6 = p0 / r6;
 			r7 = p0 / r7;
-			
+
 			r0 = p1 / r0;
 			r1 = p1 / r1;
 			r2 = p1 / r2;
@@ -706,7 +706,7 @@ namespace
 	struct VFloat_Div_4 : SimdVal_Base<T>
 	{
 		REUSE_MEMBERS;
-		
+
 		static constexpr uint opCount = 32;	// flops
 
 		forceinline void  operator () () __NE___
@@ -715,17 +715,7 @@ namespace
 			r1 = p0 / r1;
 			r2 = p0 / r2;
 			r3 = p0 / r3;
-			
-			r0 = p1 / r0;
-			r1 = p1 / r1;
-			r2 = p1 / r2;
-			r3 = p1 / r3;
-			
-			r0 = p0 / r0;
-			r1 = p0 / r1;
-			r2 = p0 / r2;
-			r3 = p0 / r3;
-			
+
 			r0 = p1 / r0;
 			r1 = p1 / r1;
 			r2 = p1 / r2;
@@ -735,17 +725,27 @@ namespace
 			r1 = p0 / r1;
 			r2 = p0 / r2;
 			r3 = p0 / r3;
-			
+
 			r0 = p1 / r0;
 			r1 = p1 / r1;
 			r2 = p1 / r2;
 			r3 = p1 / r3;
-			
+
 			r0 = p0 / r0;
 			r1 = p0 / r1;
 			r2 = p0 / r2;
 			r3 = p0 / r3;
-			
+
+			r0 = p1 / r0;
+			r1 = p1 / r1;
+			r2 = p1 / r2;
+			r3 = p1 / r3;
+
+			r0 = p0 / r0;
+			r1 = p0 / r1;
+			r2 = p0 / r2;
+			r3 = p0 / r3;
+
 			r0 = p1 / r0;
 			r1 = p1 / r1;
 			r2 = p1 / r2;
@@ -757,7 +757,7 @@ namespace
 	struct VFloat_FastDiv : SimdVal_Base<T>
 	{
 		REUSE_MEMBERS;
-		
+
 		static constexpr uint opCount = 32;	// flops
 
 		forceinline void  operator () () __NE___
@@ -770,7 +770,7 @@ namespace
 			r5 = p0.FastDiv( r5 );
 			r6 = p0.FastDiv( r6 );
 			r7 = p0.FastDiv( r7 );
-			
+
 			r0 = p1.FastDiv( r0 );
 			r1 = p1.FastDiv( r1 );
 			r2 = p1.FastDiv( r2 );
@@ -779,7 +779,7 @@ namespace
 			r5 = p1.FastDiv( r5 );
 			r6 = p1.FastDiv( r6 );
 			r7 = p1.FastDiv( r7 );
-			
+
 			r0 = p0.FastDiv( r0 );
 			r1 = p0.FastDiv( r1 );
 			r2 = p0.FastDiv( r2 );
@@ -788,7 +788,7 @@ namespace
 			r5 = p0.FastDiv( r5 );
 			r6 = p0.FastDiv( r6 );
 			r7 = p0.FastDiv( r7 );
-			
+
 			r0 = p1.FastDiv( r0 );
 			r1 = p1.FastDiv( r1 );
 			r2 = p1.FastDiv( r2 );
@@ -818,7 +818,7 @@ namespace
 			r0 = r0 + a0;
 			r1 = r1 + a1;
 		}
-		
+
 		static constexpr uint opCount = 32;	// flops, actually +2 flops on Div
 
 		forceinline void  operator () () __NE___
@@ -842,7 +842,7 @@ namespace
 			r5 = FusedMulAdd( r5, p1, p0 );
 			r6 = FusedMulAdd( r6, p1, p0 );
 			r7 = FusedMulAdd( r7, p1, p0 );
-			
+
 			a1 = p0 / a1;
 		}
 	};
@@ -853,7 +853,7 @@ namespace
 		REUSE_MEMBERS;
 
 		T	a0, a1, a2, a3;
-		
+
 		VFloat_FMA_Div2 ()
 		{
 			a0 = r0 + r1;
@@ -885,21 +885,21 @@ namespace
 			r5 = FusedMulAdd( r5, p0, p1 );
 			r6 = FusedMulAdd( r6, p0, p1 );
 			r7 = FusedMulAdd( r7, p0, p1 );
-			
+
 			a1 = p1 / a1;
 
 			r0 = FusedMulAdd( r0, p1, p0 );
 			r1 = FusedMulAdd( r1, p1, p0 );
 			r2 = FusedMulAdd( r2, p1, p0 );
 			r3 = FusedMulAdd( r3, p1, p0 );
-			
+
 			a2 = p0 / a2;
 
 			r4 = FusedMulAdd( r4, p1, p0 );
 			r5 = FusedMulAdd( r5, p1, p0 );
 			r6 = FusedMulAdd( r6, p1, p0 );
 			r7 = FusedMulAdd( r7, p1, p0 );
-			
+
 			a3 = p1 / a3;
 		}
 	};
@@ -908,7 +908,7 @@ namespace
 	struct VFloat_Sqrt : SimdVal_Base<T>
 	{
 		REUSE_MEMBERS;
-		
+
 		static constexpr uint opCount = 32;	// flops
 
 		forceinline void  operator () () __NE___
@@ -921,7 +921,7 @@ namespace
 			r5 = Sqrt( r5 );
 			r6 = Sqrt( r6 );
 			r7 = Sqrt( r7 );
-			
+
 			r0 = Sqrt( r0 );
 			r1 = Sqrt( r1 );
 			r2 = Sqrt( r2 );
@@ -930,7 +930,7 @@ namespace
 			r5 = Sqrt( r5 );
 			r6 = Sqrt( r6 );
 			r7 = Sqrt( r7 );
-			
+
 			r0 = Sqrt( r0 );
 			r1 = Sqrt( r1 );
 			r2 = Sqrt( r2 );
@@ -939,7 +939,7 @@ namespace
 			r5 = Sqrt( r5 );
 			r6 = Sqrt( r6 );
 			r7 = Sqrt( r7 );
-			
+
 			r0 = Sqrt( r0 );
 			r1 = Sqrt( r1 );
 			r2 = Sqrt( r2 );
@@ -955,7 +955,7 @@ namespace
 	struct VFloat_FastSqrt : SimdVal_Base<T>
 	{
 		REUSE_MEMBERS;
-		
+
 		static constexpr uint opCount = 32;	// flops
 
 		forceinline void  operator () () __NE___
@@ -968,7 +968,7 @@ namespace
 			r5 = FastSqrt( r5 );
 			r6 = FastSqrt( r6 );
 			r7 = FastSqrt( r7 );
-			
+
 			r0 = FastSqrt( r0 );
 			r1 = FastSqrt( r1 );
 			r2 = FastSqrt( r2 );
@@ -977,7 +977,7 @@ namespace
 			r5 = FastSqrt( r5 );
 			r6 = FastSqrt( r6 );
 			r7 = FastSqrt( r7 );
-			
+
 			r0 = FastSqrt( r0 );
 			r1 = FastSqrt( r1 );
 			r2 = FastSqrt( r2 );
@@ -986,7 +986,7 @@ namespace
 			r5 = FastSqrt( r5 );
 			r6 = FastSqrt( r6 );
 			r7 = FastSqrt( r7 );
-			
+
 			r0 = FastSqrt( r0 );
 			r1 = FastSqrt( r1 );
 			r2 = FastSqrt( r2 );
@@ -1040,7 +1040,7 @@ namespace
 
 			VFloat_Op< VFloat_Mul<T> >( profiler, count, String{typeName} << " - Mul" );
 			VFloat_Op< VFloat_MulAdd<T> >( profiler, count, String{typeName} << " - MulAdd" );
-			
+
 			if constexpr( HasSimdType<T> ){
 				VFloat_Op< VFloat_Add_4<T> >( profiler, count, String{typeName} << " - Add ilp4" );
 				VFloat_Op< VFloat_Add_5<T> >( profiler, count, String{typeName} << " - Add ilp5" );
@@ -1062,7 +1062,7 @@ namespace
 				VFloat_Op< VFloat_Add_8<T> >( profiler, count, String{typeName} << " - Add" );
 				VFloat_Op< VFloat_FMA_8<T> >( profiler, count, String{typeName} << " - FMA" );
 			}
-			
+
 		  #if 1
 			if constexpr( HasSimdType<T> ){
 				if constexpr( T::Has_PreciseDiv() ){
@@ -1098,7 +1098,7 @@ namespace
 					setAffinity();
 
 					IntervalProfiler	profiler{ "SIMD test, single thread, "s << ToString( core.type ) << " core",
-												  IntervalProfiler::EFlags::SortByPerf | IntervalProfiler::EFlags::ExcludePerfDiff };
+												  IntervalProfiler::EFlags::SortByPerf };
 
 					// Clang converts scalar to SIMD, so test is not correct
 					#if not (defined(AE_COMPILER_CLANG) or defined(AE_COMPILER_CLANG_CL))
@@ -1136,7 +1136,7 @@ namespace
 	#endif
 	//-------------------------------------------------------------------------
 
-		
+
 	#if 1
 		static constexpr uint	max_threads = 4;
 
@@ -1147,7 +1147,7 @@ namespace
 			static constexpr usize	count			= c_Repeat / sizeof(typename Op::type);
 			static constexpr usize	op_count		= VecSize<typename Op::type> * count;
 			const uint				thread_count	= Min( max_threads, uint(coreBits.count()) );
-		
+
 			const auto	flops = [](secondsd dt)
 			{{
 				return ToStringSfx( double(op_count * Op::opCount) / dt.count() ) << "FLOPS";
@@ -1159,7 +1159,7 @@ namespace
 				Barrier		before_test	{thread_count+1};
 				Barrier		after_test	{thread_count+1};
 				ulong		core_bits	= coreBits.to_ullong();
-				
+
 				Array< StdThread >	threads;
 				threads.reserve( thread_count );
 
@@ -1181,7 +1181,7 @@ namespace
 						  #endif
 
 							before_test.Wait();
-							
+
 							Op	op;
 
 							for (usize z = 0; z < count; ++z)
@@ -1207,7 +1207,7 @@ namespace
 			profiler.EndTest();
 		}
 
-		
+
 		template <typename T>
 		static void  TestVFloatMT (IntervalProfiler &profiler, StringView typeName, const CpuArchInfo::CoreBits_t coreBits) __NE___
 		{
@@ -1241,8 +1241,8 @@ namespace
 			const uint			thread_count = Min( max_threads, uint(core_bits.count()) );
 			IntervalProfiler	profiler{ "SIMD test, "s << ToString(thread_count) << "T, " << ToString(thread_count) <<
 										  "C, on " << ToString( core.type ) << " core",
-										  IntervalProfiler::EFlags::SortByPerf | IntervalProfiler::EFlags::ExcludePerfDiff };
-			
+										  IntervalProfiler::EFlags::SortByPerf };
+
 			// Clang converts scalar to SIMD, so test is not correct
 			#if not (defined(AE_COMPILER_CLANG) or defined(AE_COMPILER_CLANG_CL))
 				TestVFloatMT< packed_float4 >( profiler, "Scalar Float4", core_bits );
@@ -1267,8 +1267,8 @@ namespace
 			const uint			thread_count = Min( max_threads, uint(core_bits.count()) );
 			IntervalProfiler	profiler{ "SIMD test, "s << ToString(thread_count) << "T, " << ToString(thread_count/2) <<
 										  "C, on " << ToString( core.type ) << " core",
-										  IntervalProfiler::EFlags::SortByPerf | IntervalProfiler::EFlags::ExcludePerfDiff };
-			
+										  IntervalProfiler::EFlags::SortByPerf };
+
 			// Clang converts scalar to SIMD, so test is not correct
 			#if not (defined(AE_COMPILER_CLANG) or defined(AE_COMPILER_CLANG_CL))
 				TestVFloatMT< packed_float4 >( profiler, "Scalar Float4", core_bits );
@@ -1295,7 +1295,7 @@ extern void PerfTest_SIMD ()
 	#endif
 
 	SIMD_SingleThread();
-	
+
 	ForEachCoreType(
 		[&] (auto& core, Function<void()>)
 		{

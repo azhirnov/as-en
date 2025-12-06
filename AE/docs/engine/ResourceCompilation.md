@@ -225,7 +225,7 @@ namespace RenderTechs
 ## In Engine
 
 For better startup performance it is recommended to divide pipelines in 3 parts:
-1. PipelinePack with feature sets, render passes and samplers. All subsequent PipelinePacks will use this resources. Don't load pipelines in this stage to avoid pipeline compilation on engine initialization. See usage of `IResourceManager::InitializeResources()` in [demo](https://github.com/azhirnov/as-en/blob/dev/AE/samples/demo/Core/SampleCore.cpp#L 280).
+1. PipelinePack with feature sets, render passes and samplers. All subsequent PipelinePacks will use this resources. Don't load pipelines in this stage to avoid pipeline compilation on engine initialization. See usage of `IResourceManager::InitializeResources()` in [demo](https://github.com/azhirnov/as-en/blob/dev/AE/samples/demo/Core/SampleCore.cpp#L280).
 2. PipelinePack with small set of pipelines without optimizations (`EPipelineOpt::DontOptimize`). Pipelines should use uniform branching instead of separate shaders without branching.
 3. PipelinePack with optimized pipelines. Non-optimized pipelines from stage 2 will be replaced after pipeline compilation. This stage can be divided on 2 stages:
 	* UI pipelines for main menu.

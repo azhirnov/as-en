@@ -151,6 +151,8 @@ namespace AE::App
 			_visitor_( MouseBtn6,			5,		"MouseBtn6",	GLFW_MOUSE_BUTTON_6		)\
 			_visitor_( MouseBtn7,			6,		"MouseBtn7",	GLFW_MOUSE_BUTTON_7		)\
 			_visitor_( MouseBtn8,			7,		"MouseBtn8",	GLFW_MOUSE_BUTTON_8		)\
+			/* other */\
+			_visitor_( RawChar,		c_RawCharType,	"RawChar",		c_RawCharType  )\
 
 		enum class ESensorType : int
 		{
@@ -192,6 +194,7 @@ namespace AE::App
 
 		  // --- Android sensors ---
 		  // android device can be used as remote input device
+		#if 1	// TODO add macros
 			Sensors1fBegin		= Cursor2DEnd + 1,
 			AirTemperature		= Sensors1fBegin,	// float  (Celsius)
 			AmbientLight,							// float  (lux)
@@ -218,6 +221,7 @@ namespace AE::App
 			Sensors4x4fEnd		= Pose6DOF,
 
 			GeoLocation,							// GNS
+		#endif
 		  // ---
 
 			_Count,

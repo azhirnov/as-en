@@ -22,9 +22,9 @@ namespace AE::Parsers
 	// methods
 	public:
 		VulkanParser ();
-		
+
 		bool  ParseVkHeaders (const Path &folder);
-		
+
 		bool  SetFunctionsScope ();
 		bool  BuildBasicTypeMap ();
 		bool  BuildResourceTypeMap ();

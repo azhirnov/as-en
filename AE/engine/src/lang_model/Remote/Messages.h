@@ -13,7 +13,7 @@ namespace AE::LangModel::Msg
 	{
 		Unknown	= 0,
 	};
-	
+
 	enum class ContextUID : uint
 	{
 		Unknown	= 0,
@@ -28,10 +28,10 @@ namespace AE::LangModel::Msg
 
 		ND_ virtual TypeId  GetTypeId () const = 0;
 	};
-	
+
 	struct BaseClientMsg : public BaseMsg
 	{};
-	
+
 	struct BaseServerMsg : public BaseMsg
 	{};
 
@@ -112,7 +112,7 @@ namespace AE::LangModel::Msg
 		ContextUID						uid;
 	)
 
-		
+
 	// Response: LangModelContext_Resp
 	// may send LangModelContextGenerate_Append, LangModelContextGenerate_Error, LangModelContextGenerate_Complete
 	DECL_MSG( LangModelContextGenerate,
@@ -120,7 +120,7 @@ namespace AE::LangModel::Msg
 		ContextUID						uid;
 		U8StringView					prompt;
 	)
-		
+
 	// Response: none
 	DECL_MSG( LangModelContextGenerate_Cancel,
 		BaseClientMsg,
@@ -161,7 +161,7 @@ namespace AE::LangModel::Msg
 		bool							ok;
 	)
 
-		
+
 	// Response: LangModelContext_Resp
 	DECL_MSG( LangModelContextAppend,
 		BaseClientMsg,
@@ -170,7 +170,7 @@ namespace AE::LangModel::Msg
 		U8StringView					content;
 	)
 
-		
+
 	// Response: LangModelContext_Resp
 	DECL_MSG( LangModelContextClear,
 		BaseClientMsg,

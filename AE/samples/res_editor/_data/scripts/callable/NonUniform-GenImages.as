@@ -11,7 +11,7 @@
 		array<RC<Image>>	images;
 		RC<Image>			img_arr;
 		const uint2			img_dim		= uint2(1024);
-		
+
 		if ( @collection != null )
 		{
 			collection.ImageArray( "array", OUT images );
@@ -38,7 +38,7 @@
 				if ( tmp.size() >= max_storage_img )
 					break;
 			}
-			
+
 			RC<ComputePass>		pass = ComputePass();
 			pass.ArgInOut( "un_Images",		tmp );
 			pass.Constant( "IMAGE_ARRAY",	1 );
@@ -67,7 +67,7 @@
 	#include "Noise.glsl"
 	#include "Color.glsl"
 	#include "InvocationID.glsl"
-	
+
 	void  Main ()
 	{
 		uint	layer	= GetGroupCoord().z;	// uniform
