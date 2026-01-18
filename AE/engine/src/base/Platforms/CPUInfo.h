@@ -311,8 +311,8 @@ namespace AE::Base
 
 			ND_ bool  HasLogicalCores ()	C_NE___	{ return logicalBits != physicalBits; }
 
-			ND_ uint  FirstLogicalCore ()	C_NE___	{ return BitScanForward( logicalBits.to_ullong() ); }
-			ND_ uint  LastLogicalCore ()	C_NE___	{ return BitScanReverse( logicalBits.to_ullong() ); }
+			ND_ uint  FirstLogicalCore ()	C_NE___	{ return LowBitIndex( logicalBits.to_ullong() ); }
+			ND_ uint  LastLogicalCore ()	C_NE___	{ return HighBitIndex( logicalBits.to_ullong() ); }
 		};
 		using Cores_t	= FixedArray< Core, MaxCoreTypes >;
 

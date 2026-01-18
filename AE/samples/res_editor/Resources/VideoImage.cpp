@@ -16,15 +16,22 @@ namespace AE::ResEditor
 =================================================
 */
 	VideoImage::VideoImage (Renderer &			renderer,
-							const ImageDesc &	inDesc,
-							const VFS::FileName	&filename,
 							RC<DynamicDim>		outDynSize,
 							const Video::IVideoDecoder::VideoStreamInfo &info,
-							StringView			dbgName) __Th___ :
+							StringView			dbgName) __NE___ :
 		IResource{ renderer },
 		_frameDuration{ 0.5 / info.minFrameRate.ToFloat<double>() },
 		_outDynSize{ RVRef(outDynSize) },
 		_dbgName{ dbgName }
+	{}
+
+/*
+=================================================
+	_Init
+=================================================
+*/
+	void  VideoImage::_Init (const ImageDesc &		inDesc,
+							 const VFS::FileName	&filename) __Th___
 	{
 		_states.store( States{} );
 
@@ -84,6 +91,23 @@ namespace AE::ResEditor
 		_DtTrQueue().EnqueueForUpload( GetRC() );
 
 		_StartDecoding();
+	}
+
+/*
+=================================================
+	Create
+=================================================
+*/
+	RC<VideoImage>  VideoImage::Create (Renderer &			renderer,
+										const ImageDesc &	desc,
+										const VFS::FileName	&filename,
+										RC<DynamicDim>		outDynSize,
+										const Video::IVideoDecoder::VideoStreamInfo &info,
+										StringView			dbgName) __Th___
+	{
+		RC<VideoImage>	res {new VideoImage{ renderer, RVRef(outDynSize), info, dbgName }};
+		res->_Init( desc, filename );  // throw
+		return res;
 	}
 
 /*
@@ -249,6 +273,9 @@ namespace AE::ResEditor
 	{
 		using FrameInfo			= Video::IVideoDecoder::FrameInfo;
 		using ImageMemViewArr	= Video::IVideoDecoder::ImageMemViewArr;
+
+		if_unlikely( _Renderer().FreezeTime() )
+			return 0;
 
 		// find empty image
 		States		states	= _states.load();

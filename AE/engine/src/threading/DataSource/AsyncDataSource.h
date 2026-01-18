@@ -60,10 +60,14 @@ namespace AE::_Coro_
 
 		// methods
 			template <typename T>
-			ND_ ArrayView<T>	AsArray ()	C_NE___	{ return ArrayView<T>{ Cast<T>(data), usize(dataSize)/sizeof(T) }; }
-			ND_ FastRStream		AsStream ()	C_NE___	{ NonNull( data );  return FastRStream{ data, data + dataSize }; }
+			ND_ ArrayView<T>		AsArray ()	C_NE___	{ return ArrayView<T>{ Cast<T>(data), usize(dataSize)/sizeof(T) }; }
 
-			ND_ explicit operator bool ()	C_NE___	{ return status == EStatus::Completed; }
+			template <typename T>
+			ND_ BasicStringView<T>	AsString ()	C_NE___	{ return BasicStringView<T>{ Cast<T>(data), usize(dataSize)/sizeof(T) }; }
+
+			ND_ FastRStream			AsStream ()	C_NE___	{ NonNull( data );  return FastRStream{ data, data + dataSize }; }
+
+			ND_ explicit operator bool ()		C_NE___	{ return status == EStatus::Completed; }
 		};
 
 		struct CanceledRequest;

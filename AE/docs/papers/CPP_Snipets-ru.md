@@ -730,7 +730,7 @@ import "NewModule";
 
 export
 {
-    using OldNamespace::Foo;
+    using OldNamespace::Foo;  // public
 }
 
 export namespace NewNamespace
@@ -740,7 +740,7 @@ export namespace NewNamespace
     using namespace OldNamespace;  // private
 }
 
-export namespace NewNamespace2 = OldNamespace;
+export namespace NewNamespace2 = OldNamespace;  // public
 ```
 
 Реализация модуля (.cpp).
@@ -771,13 +771,13 @@ namespace NewNamespace
 А макрос, объявленный рядом, не будет виден за пределами модуля, аналогично и с макросами внутри `#include`.
 Макросы могут быть использованы только чтобы задать поведение препроцессора внутри `#include` и текущего модуля.
 
-Единственный способ экспортировать пространство имен это чере всевдоним:
+Единственный способ экспортировать пространство имен это через пвсевдоним:
 ```
 export namespace NewNamespace = OldNamespace;
 ```
 Вложенные пространства имен также можно экспортировать:
 ```
 export namespace NewNS {
-    export namespace Base = OldNS::Base;
+    export namespace Base = OldNS::Base;  // public
 }
 ```

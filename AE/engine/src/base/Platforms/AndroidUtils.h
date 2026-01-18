@@ -35,6 +35,10 @@ namespace AE::Base
 		ND_ static bool		SetSystemSleepState (ESystemSleepState)							__NE___;
 
 
+		// Process //
+		ND_ static bool		SetProcessAffinity (CpuArchInfo::CoreBits_t)					__NE___;
+
+
 		// OS //
 		ND_ static bool			IsUnderDebugger ()											__NE___;
 		ND_ static Version3		GetOSVersion ()												__NE___;

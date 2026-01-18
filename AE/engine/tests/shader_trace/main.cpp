@@ -28,7 +28,7 @@ extern bool ClockMap_Test2 (TestDevice& vulkan);
 int main (const int argc, char* argv[])
 {
 	BEGIN_TEST();
-	log.checkMemLeaks = false; // disable because of false possitive in glslang
+	log.checkMemLeaks = false; // disable because of false positive in glslang
 
 	TestDevice	vulkan;
 	CHECK_ERR( vulkan.Create(), 1 );

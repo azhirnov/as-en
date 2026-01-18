@@ -158,7 +158,7 @@ namespace
 			int		z = _mm256_movemask_epi8( r );
 
 			cold_if( z ) {
-				auto* r2 = i + BitScanForward( z );
+				auto* r2 = i + LowBitIndex( z );
 				return r2;
 			}
 		}
@@ -175,7 +175,7 @@ namespace
 			int		z = _mm256_movemask_epi8( r );
 
 			cold_if( z ) {
-				auto* r2 = i + BitScanForward( z );
+				auto* r2 = i + LowBitIndex( z );
 				return r2;
 			}
 		}

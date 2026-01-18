@@ -63,7 +63,7 @@ namespace
 		typename CtxTypes::Transfer	copy_ctx{ RenderCoro_Get() };
 
 		ShaderDebugger::Result	dbg;
-		CHECK_CE( t.debugger.AllocForCompute( OUT dbg, copy_ctx, t.ppln, uint3{8,8,0} ));
+		CHECK_CE( t.debugger.AllocForCompute( OUT dbg, copy_ctx, t.ppln.Get(), uint3{8,8,0} ));
 
 		typename CtxTypes::Compute	comp_ctx{ RenderCoro_Get(), copy_ctx.ReleaseCommandBuffer() };
 

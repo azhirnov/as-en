@@ -15,6 +15,7 @@
 #define AE_shader_subgroup_shuffle_relative
 #define AE_shader_subgroup_clustered
 #define AE_shader_subgroup_quad
+#define AE_shader_quad_control
 #define AE_nonuniform_qualifier
 #define AE_NV_shader_sm_builtins
 #define AE_ARM_shader_core_builtins

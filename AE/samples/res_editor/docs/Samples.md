@@ -2,6 +2,30 @@
 
 Content:
 * [Simple shaders for beginers](#Simple-shaders-for-beginers)
+* [2D](#2D)
+* [Video](#Video)
+* [Compute](#Compute)
+* [Geometry Culling](#Geometry-Culling)
+* [3D](#3D)
+* [Relief mapping](#Relief-mapping)
+* [Shadows](#Shadows)
+* [Color Space](#Color-Space)
+* [Planets](#Planets)
+* [Projection on Screen](#Projection-on-Screen)
+* [Particles](#Particles)
+* [Ray marching](#Ray-marching)
+* [Ray Tracing](#Ray-Tracing)
+* [Order-Independent Transparency](#Order-Independent-Transparency)
+* [Neural Shader](#Neural-Shader)
+* [GBuffer](#GBuffer)
+	* [GBuffer Classification](#GBuffer-Classification)
+* [Light](#Light)
+	* [Light Culling](#Light-Culling)
+	* [Light Techniques](#Light-Techniques)
+* [VFX](#VFX)
+* [Games](#Games)
+* [Tools](#Tools)
+
 
 ## Simple shaders for beginers
 
@@ -21,13 +45,17 @@ Content:
 * [Bloom and tonemapping](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/scripts/samples-2d/Bloom.as)<br/>
 ![](img/Bloom.jpg)
 * [SDF and MSDF font with anti-aliasing](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/scripts/samples-2d/SdfFont.as)
-* [Video texture](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/scripts/samples-2d/Video-1.as)
-* [Video texture with multiplanar format](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/scripts/samples-2d/Video-2.as)
-* [VR Video player](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/scripts/samples-2d/VRVideo-1.as)
-* [VR Video player, texture with multiplanar format](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/scripts/samples-2d/VRVideo-2.as)
 * [Anti aliased grid](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/scripts/samples-2d/AA-Grid.as)
 * [Gravity lens simulation](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/scripts/samples-2d/GravityLens.as)<br/>
 ![](img/GravityLens.jpg)
+
+
+## Video
+
+* [Video texture](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/scripts/video/Video-1.as)
+* [Video texture with multiplanar format](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/scripts/video/Video-2.as)
+* [VR Video player](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/scripts/video/VRVideo-1.as)
+* [VR Video player, texture with multiplanar format](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/scripts/video/VRVideo-2.as)
 
 
 ## Compute
@@ -41,14 +69,15 @@ Content:
 ## Geometry Culling
 
 Performance tests:
-* [GeometryCulling, high load on VS and rasterization](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/scripts/geom-cull/GeometryCulling-1.as)
-* [GeometryCulling, hight load on FS ALU and memory](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/scripts/geom-cull/GeometryCulling-2.as)
-* [GenHiZ with alignment to power of 2](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/scripts/geom-cull/perf-GenHiZ-1.as)
-* [GenHiZ without alignment](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/scripts/geom-cull/perf-GenHiZ-2.as)
-* [DepthPyramidCulling](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/scripts/geom-cull/test-DepthPyramidCulling.as)
-* [ProjectSphere test](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/scripts/geom-cull/test-ProjectSphere.as)
+* [Geometry Culling, high load on VS and rasterization](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/scripts/geom-cull/GeometryCulling-1.as)
+* [Geometry Culling, hight load on FS ALU and memory](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/scripts/geom-cull/GeometryCulling-2.as)
+* [Generate HiZ with alignment to power of 2](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/scripts/geom-cull/perf-GenHiZ-1.as)
+* [Generate HiZ without alignment](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/scripts/geom-cull/perf-GenHiZ-2.as)
+* [Depth Pyramid Culling](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/scripts/geom-cull/test-DepthPyramidCulling.as)
+* [Project Sphere test](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/scripts/geom-cull/test-ProjectSphere.as)
 * [HiZ debug visualization](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/scripts/geom-cull/test-HiZ-DebugVis.as)
 * [RasterCull debug visualization](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/scripts/geom-cull/test-RasterCull-DebugVis.as)
+* [glTF scene rendering with deferred texturing](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/scripts/geom-cull/DeferredTexturing.as)
 
 Other:
 * [Frustum culling](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/scripts/geom-cull/FrustumCulling.as)
@@ -59,10 +88,7 @@ Other:
 **Other:**
 * [Reverse depth buffer](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/scripts/samples-3d/ReverseZ.as)
 * [glTF scene rendering](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/scripts/samples-3d/Model.as)
-* [glTF scene rendering with deferred texturing](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/scripts/samples-3d/DeferredTexturing.as)
 * [SDF and MSDF font on 3D plane](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/scripts/samples-3d/SdfFont.as)
-* [Render scene to the cubemap and apply different projections](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/scripts/samples-3d/RenderToCubemap.as)<br/>
-![](img/RenderToCubemap.jpg)
 
 **Extensions:**
 * [Fragment barycentrics](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/scripts/samples-3d/FSBarycentric.as)
@@ -79,13 +105,6 @@ Supported precalculated TBN and screen-space TBN calculation. Debug drawing for 
 * [Cylinder outer side](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/scripts/samples-3d/Parallax-Cylinder.as)
 * [Sphere with 2D texture](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/scripts/samples-3d/Parallax-Sphere.as)
 * [Sphere with cubemap](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/scripts/samples-3d/Parallax-Sphere2.as)
-
-**Ray marching:**
-* [Simple sphere tracing](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/scripts/samples-3d/SimpleSphereTracing.as)<br/>
-![](img/SimpleSphereTracing.jpg)
-* [SDF used for collisions with camera](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/scripts/samples-3d/CameraCollision.as)<br/>
-![](img/CameraCollision.jpg)
-* [Simple volumetric](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/scripts/samples-3d/Volumetric.as)
 
 
 ## Shadows
@@ -105,12 +124,26 @@ Supported precalculated TBN and screen-space TBN calculation. Debug drawing for 
 
 ## Planets
 
-**Spherical cube:**
-* [Skybox](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/scripts/samples-3d/Cubemap-1.as)
-* [Skybox with procedural generation](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/scripts/samples-3d/Cubemap-2.as)
 * [Planet generation](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/scripts/planets/Planet-1.as)
 * [Planet with tessellation](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/scripts/planets/Planet-2.as)<br/>
 ![](img/Planet.jpg)
+
+**Tests**
+* [Spherical Cube: triangle area](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/scripts/planets/SphericalCube-1.as)
+* [Spherical Cube: texture projection](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/scripts/planets/SphericalCube-2.as)
+* [Spherical Cube: circle distortion](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/scripts/planets/SphericalCube-3.as)
+* [Spherical Cube: 3D to texture](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/scripts/planets/SphericalCube-4.as)
+* [Procedural sphere](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/scripts/planets/UVSphere-1.as)
+
+
+## Projection on Screen
+
+* [Render scene to the cubemap and apply different projections](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/scripts/samples-3d/RenderToCubemap.as)<br/>
+![](img/RenderToCubemap.jpg)
+
+Spherical cube to fix cubemap distortion
+* [Skybox](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/scripts/samples-3d/Cubemap-1.as)
+* [Skybox with procedural generation](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/scripts/samples-3d/Cubemap-2.as)
 
 
 ## Particles
@@ -118,6 +151,15 @@ Supported precalculated TBN and screen-space TBN calculation. Debug drawing for 
 * [Particles in gravimagnetic field](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/scripts/particles/Particles-1.as), [fp16 version](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/scripts/particles/Particles-2.as)<br/>
 ![](img/Particles.jpg)
 * [Screen space collisions](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/scripts/particles/ScreenSpace.as)
+
+
+## Ray marching
+
+* [Simple sphere tracing](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/scripts/samples-3d/SimpleSphereTracing.as)<br/>
+![](img/SimpleSphereTracing.jpg)
+* [SDF used for collisions with camera](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/scripts/samples-3d/CameraCollision.as)<br/>
+![](img/CameraCollision.jpg)
+* [Simple volumetric](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/scripts/samples-3d/Volumetric.as)
 
 
 ## Ray Tracing
@@ -185,12 +227,18 @@ Supported precalculated TBN and screen-space TBN calculation. Debug drawing for 
 
 * [Tiled deferred shading, project light to tiles](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/scripts/light-cull/test-LightVolToTile.as)
 * [Cluster bounding sphere visualization](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/scripts/light-cull/test-ClusterBoundingSphere.as)
-* [Clustered deferred shading, project light to clusters](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/scripts/light-cull/test-LightVolToClusters.as)
-* [Clustered deferred shading, simple scene](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/scripts/light-cull/perf-ClusterDeferred.as)
+* [Clustered forward, project light to clusters](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/scripts/light-cull/test-LightVolToClusters.as)
 
 
 ### Light Techniques
 
+
+## VFX
+
+* [Fake glow](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/scripts/vfx/FakeGlow.as)<br/>
+![](img/FakeGlow.jpg)
+* [Light Shafts (radial blur)](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/scripts/vfx/LightShafts.as)<br/>
+![](img/LightShafts.jpg)
 
 ## Games
 
@@ -248,14 +296,9 @@ ResEditor allows to create game prototypes.
 
 **3D**
 * [Indirect draw](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/scripts/tests/IndirectDraw.as)
-* [Spherical Cube: triangle area](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/scripts/planets/SphericalCube-1.as)
-* [Spherical Cube: texture projection](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/scripts/planets/SphericalCube-2.as)
-* [Spherical Cube: circle distortion](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/scripts/planets/SphericalCube-3.as)
-* [Spherical Cube: 3D to texture](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/scripts/planets/SphericalCube-4.as)
-* [Procedural sphere](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/scripts/planets/UVSphere-1.as)
 * [Triangulation-1](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/scripts/tests/Triangulation-1.as)
 * [Triangulation-2](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/scripts/tests/Triangulation-2.as)
-* [Procedural grid](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/scripts/tests/ProceduralGrid.as)
+* [Procedural grid](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/scripts/gen-geom/ProceduralGrid.as)
 
 **Export**
 * [3D Image export](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/scripts/tests/ImageExport-3D.as), [import](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/scripts/tests/ImageImport-3D.as)

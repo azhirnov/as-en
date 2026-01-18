@@ -17,12 +17,16 @@ namespace AE::ResLoader
 */
 	bool  AllImageLoaders::LoadImage (INOUT IntermImage &image, RStream &stream, Bool flipY, RC<IAllocator> allocator, EImageFormat fileFormat) __NE___
 	{
+		const Bytes	pos = stream.Position();
+
 		// multithreaded
 		if ( fileFormat == Default or fileFormat == EImageFormat::DDS )
 		{
 			DDSImageLoader	loader;
 			if ( loader.LoadImage( image, stream, flipY, allocator, fileFormat ))
 				return true;
+
+			CHECK_ERR( stream.SeekSet( pos ));
 		}
 
 		// multithreaded
@@ -31,6 +35,8 @@ namespace AE::ResLoader
 			AEImageLoader	loader;
 			if ( loader.LoadImage( image, stream, flipY, allocator, fileFormat ))
 				return true;
+
+			CHECK_ERR( stream.SeekSet( pos ));
 		}
 
 		// multithreaded
@@ -39,6 +45,8 @@ namespace AE::ResLoader
 			STBImageLoader	loader;
 			if ( loader.LoadImage( image, stream, flipY, allocator, fileFormat ))
 				return true;
+
+			CHECK_ERR( stream.SeekSet( pos ));
 		}
 		#endif
 
@@ -49,6 +57,8 @@ namespace AE::ResLoader
 			KTXImageLoader	loader;
 			if ( loader.LoadImage( image, stream, flipY, allocator, fileFormat ))
 				return true;
+
+			CHECK_ERR( stream.SeekSet( pos ));
 		}
 		#endif
 
@@ -58,6 +68,8 @@ namespace AE::ResLoader
 			DevILLoader		loader;
 			if ( loader.LoadImage( image, stream, flipY, allocator, fileFormat ))
 				return true;
+
+			CHECK_ERR( stream.SeekSet( pos ));
 		}
 		#endif
 

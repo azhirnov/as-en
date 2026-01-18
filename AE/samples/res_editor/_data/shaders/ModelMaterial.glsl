@@ -18,7 +18,7 @@ ND_ float4  UnpackRGBM (uint rgbm)				{ float4 c = unpackUnorm4x8( rgbm );  retu
 
 // helpers
 #define SampleAlbedo( _mtr_, _uv_ )\
-	gl.texture.Sample( gl::Nonuniform(gl::CombinedTex2D<float>( un_AlbedoMaps[  UnpackMapAndSampler( _mtr_.albedoMap ).x ], un_AlbedoMapSampler )), _uv_ )\
+	gl.texture.Sample( gl::Nonuniform(gl::CombinedTex2D<float>( un_AlbedoMaps[ UnpackMapAndSampler( _mtr_.albedoMap ).x ], un_AlbedoMapSampler )), _uv_ )\
 	* UnpackRGBM( _mtr_.albedoRGBM )
 
 #define SampleLodAlbedo( _mtr_, _uv_, _lod_ )\
@@ -35,7 +35,7 @@ ND_ float4  UnpackRGBM (uint rgbm)				{ float4 c = unpackUnorm4x8( rgbm );  retu
 	CalcLighting
 =================================================
 */
-ND_ float4  CalcLighting (const float3 worldPos, const float3 worldNormal)
+ND_ float4  CalcLighting (const float3 worldPos, const float3 worldNormal, const float3 cameraPos)
 {
 	float3	diffuse = float3(0.0);
 
@@ -51,7 +51,7 @@ ND_ float4  CalcLighting (const float3 worldPos, const float3 worldNormal)
 	{
 		const SceneConeLight	light = un_Lights.cone[i];
 
-		float3	pos		= light.position - un_PerPass.camera.pos;
+		float3	pos		= light.position - cameraPos;
 		float	dist	= Distance( worldPos, pos );
 		float	atten	= Attenuation( light.attenuation, dist );
 		// TODO: test cone
@@ -62,7 +62,7 @@ ND_ float4  CalcLighting (const float3 worldPos, const float3 worldNormal)
 	{
 		const SceneOmniLight	light = un_Lights.omni[i];
 
-		float3	pos		= light.position - un_PerPass.camera.pos;
+		float3	pos		= light.position - cameraPos;
 		float	dist	= Distance( worldPos, pos );
 		float3	dir		= (pos - worldPos) / dist;
 		float	atten	= Attenuation( light.attenuation, dist );
@@ -70,6 +70,11 @@ ND_ float4  CalcLighting (const float3 worldPos, const float3 worldNormal)
 	}
 
 	return float4( diffuse, 1.f );
+}
+
+ND_ float4  CalcLighting (const float3 worldPos, const float3 worldNormal)
+{
+	return CalcLighting( worldPos, worldNormal, un_PerPass.camera.pos );
 }
 
 /*

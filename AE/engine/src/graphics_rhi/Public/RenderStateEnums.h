@@ -193,4 +193,15 @@ namespace AE::Graphics
 	};
 
 
+	enum class EConservativeRasterizationMode : ubyte
+	{
+		Disabled		= 0,
+		Overestimate,
+	//	Underestimate,
+
+		_Count,
+		Unknown			= Disabled,
+	};
+
+
 } // AE::Graphics

@@ -241,14 +241,14 @@ namespace AE::Graphics
 		//ASSERT( IsLocked() );
 
 		const auto	used_slots	= _usedSlots.load();
-		const uint	first_idx	= LowBit( used_slots );
+		const int	first_idx	= LowBitIndex( used_slots );
 
 		DEBUG_ONLY(
 			auto	used_slots2 = _usedSlotsUsedInIsFirst.exchange( used_slots );
 			if ( used_slots2 != 0 )
-				ASSERT_Eq( first_idx, LowBit( used_slots2 ));
+				ASSERT_Eq( first_idx, LowBitIndex( used_slots2 ));
 		)
-		return index == first_idx;
+		return index == uint(first_idx);
 	}
 
 /*
@@ -263,14 +263,14 @@ namespace AE::Graphics
 		//ASSERT( IsLocked() );
 
 		const auto	used_slots	= _usedSlots.load();
-		const uint	last_idx	= HighBit( used_slots );
+		const int	last_idx	= HighBitIndex( used_slots );
 
 		DEBUG_ONLY(
 			auto	used_slots2 = _usedSlotsUsedInIsLast.exchange( used_slots );
 			if ( used_slots2 != 0 )
-				ASSERT_Eq( last_idx, HighBit( used_slots2 ));
+				ASSERT_Eq( last_idx, HighBitIndex( used_slots2 ));
 		)
-		return index == last_idx;
+		return index == uint(last_idx);
 	}
 
 /*

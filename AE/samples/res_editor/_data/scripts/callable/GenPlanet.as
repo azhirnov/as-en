@@ -155,9 +155,7 @@
 
 		s_Positions[ GetLocalIndex() ] = pos;
 
-		gl.memoryBarrier.Shared();
 		gl.WorkgroupBarrier();
-		gl.memoryBarrier.Shared();
 
 		// calculate smooth normal
 		if ( is_active )
@@ -199,9 +197,7 @@
 			s_Normals[ GetLocalIndex() ]   = norm;
 		}
 
-		gl.memoryBarrier.Shared();
 		gl.WorkgroupBarrier();
-		gl.memoryBarrier.Shared();
 
 
 		float3	albedo		= float3(1.0);

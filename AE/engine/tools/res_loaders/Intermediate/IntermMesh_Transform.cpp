@@ -100,5 +100,41 @@ namespace AE::ResLoader
 		return true;
 	}
 
+/*
+=================================================
+	Recenter
+=================================================
+*/
+	bool  IntermMesh::Recenter (const float3 offset) __NE___
+	{
+		CHECK_ERR( _attribs and _vertexStride > 0 and _vertices.size() );
+
+		auto	positions = _attribs->GetData< packed_float3 >( VertexAttributeName::Position, _vertices.data(),
+																VertexCount(), _vertexStride );
+		if ( positions.empty() )
+			return false;
+
+		for (auto& pos : positions)
+		{
+			ConstCast( pos ) += offset;
+		}
+
+		if ( _boundingBox.has_value() )
+			CHECK( CalcAABB() );
+
+		if ( _boundingSphere.has_value() )
+			CHECK( CalcSphere() );
+
+		return true;
+	}
+
+	bool  IntermMesh::Recenter () __NE___
+	{
+		if ( not _boundingBox.has_value() )
+			CHECK_ERR( CalcAABB() );
+
+		return Recenter( -_boundingBox->Center() );
+	}
+
 
 } // AE::ResLoader

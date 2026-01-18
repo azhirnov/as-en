@@ -299,14 +299,14 @@ namespace AE::PipelineCompiler
 		_typeMap.emplace( "gl::Image2DMSArray<ulong>",	"u64image2DMSArray" );
 
 		// sync
-		_typeMap.emplace( "gl.PatchBarrier",			"barrier" );
-		_typeMap.emplace( "gl.WorkgroupBarrier",		"barrier" );
-		_typeMap.emplace( "gl.memoryBarrier.Workgroup",	"groupMemoryBarrier" );
-		_typeMap.emplace( "gl.memoryBarrier.All",		"memoryBarrier" );
-		_typeMap.emplace( "gl.memoryBarrier.Buffer",	"memoryBarrierBuffer" );
-		_typeMap.emplace( "gl.memoryBarrier.Image",		"memoryBarrierImage" );
-		_typeMap.emplace( "gl.memoryBarrier.Shared",	"memoryBarrierShared" );
-		_typeMap.emplace( "gl.memoryBarrier.Subgroup",	"subgroupMemoryBarrier" );
+		_typeMap.emplace( "gl.PatchBarrier",				"barrier" );
+		_typeMap.emplace( "gl.WorkgroupBarrier",			"barrier" );
+		_typeMap.emplace( "gl.memoryBarrier.AllInWorkgroup","groupMemoryBarrier" );
+		_typeMap.emplace( "gl.memoryBarrier.All",			"memoryBarrier" );
+		_typeMap.emplace( "gl.memoryBarrier.Buffer",		"memoryBarrierBuffer" );
+		_typeMap.emplace( "gl.memoryBarrier.Image",			"memoryBarrierImage" );
+		_typeMap.emplace( "gl.memoryBarrier.Shared",		"memoryBarrierShared" );
+		_typeMap.emplace( "gl.memoryBarrier.AllInSubgroup",	"subgroupMemoryBarrier" );
 
 		// derivatives
 		_typeMap.emplace( "gl.dFdx",				"dFdx" );
@@ -425,7 +425,7 @@ namespace AE::PipelineCompiler
 		_typeMap.emplace( "gl.subgroup.LeMask",				"gl_SubgroupLeMask" );
 		_typeMap.emplace( "gl.subgroup.LtMask",				"gl_SubgroupLtMask" );
 
-		_typeMap.emplace( "gl.subgroup.ExecutionBarrier",		"subgroupBarrier" );
+		_typeMap.emplace( "gl.subgroup.Barrier",				"subgroupBarrier" );
 		_typeMap.emplace( "gl.subgroup.memoryBarrier.All",		"subgroupMemoryBarrier" );
 		_typeMap.emplace( "gl.subgroup.memoryBarrier.Buffer",	"subgroupMemoryBarrierBuffer" );
 		_typeMap.emplace( "gl.subgroup.memoryBarrier.Shared",	"subgroupMemoryBarrierShared" );
@@ -481,6 +481,33 @@ namespace AE::PipelineCompiler
 		_typeMap.emplace( "gl.quadGroup.SwapHorizontal",		"subgroupQuadSwapHorizontal" );
 		_typeMap.emplace( "gl.quadGroup.SwapVertical",			"subgroupQuadSwapVertical" );
 		_typeMap.emplace( "gl.quadGroup.SwapDiagonal",			"subgroupQuadSwapDiagonal" );
+
+		// https://github.com/KhronosGroup/GLSL/blob/main/extensions/nv/GL_NV_shader_subgroup_partitioned.txt
+		_typeMap.emplace( "gl.subgroup.PartitionedAdd",				"subgroupPartitionedAddNV" );
+		_typeMap.emplace( "gl.subgroup.PartitionedMul",				"subgroupPartitionedMulNV" );
+		_typeMap.emplace( "gl.subgroup.PartitionedMin",				"subgroupPartitionedMinNV" );
+		_typeMap.emplace( "gl.subgroup.PartitionedMax",				"subgroupPartitionedMaxNV" );
+		_typeMap.emplace( "gl.subgroup.PartitionedAnd",				"subgroupPartitionedAndNV" );
+		_typeMap.emplace( "gl.subgroup.PartitionedOr",				"subgroupPartitionedOrNV" );
+		_typeMap.emplace( "gl.subgroup.PartitionedXor",				"subgroupPartitionedXorNV" );
+		_typeMap.emplace( "gl.subgroup.PartitionedInclusiveAdd",	"subgroupPartitionedInclusiveAddNV" );
+		_typeMap.emplace( "gl.subgroup.PartitionedInclusiveMul",	"subgroupPartitionedInclusiveMulNV" );
+		_typeMap.emplace( "gl.subgroup.PartitionedInclusiveMin",	"subgroupPartitionedInclusiveMinNV" );
+		_typeMap.emplace( "gl.subgroup.PartitionedInclusiveMax",	"subgroupPartitionedInclusiveMaxNV" );
+		_typeMap.emplace( "gl.subgroup.PartitionedInclusiveOr",		"subgroupPartitionedInclusiveOrNV" );
+		_typeMap.emplace( "gl.subgroup.PartitionedInclusiveXor",	"subgroupPartitionedInclusiveXorNV" );
+		_typeMap.emplace( "gl.subgroup.PartitionedExclusiveAdd",	"subgroupPartitionedExclusiveAddNV" );
+		_typeMap.emplace( "gl.subgroup.PartitionedExclusiveMul",	"subgroupPartitionedExclusiveMulNV" );
+		_typeMap.emplace( "gl.subgroup.PartitionedExclusiveMin",	"subgroupPartitionedExclusiveMinNV" );
+		_typeMap.emplace( "gl.subgroup.PartitionedExclusiveMax",	"subgroupPartitionedExclusiveMaxNV" );
+		_typeMap.emplace( "gl.subgroup.PartitionedExclusiveAnd",	"subgroupPartitionedExclusiveAndNV" );
+		_typeMap.emplace( "gl.subgroup.PartitionedExclusiveOr",		"subgroupPartitionedExclusiveOrNV" );
+		_typeMap.emplace( "gl.subgroup.PartitionedExclusiveXor",	"subgroupPartitionedExclusiveXorNV" );
+		_typeMap.emplace( "gl.subgroup.Partition",					"subgroupPartitionNV" );
+
+		// https://github.com/KhronosGroup/GLSL/blob/main/extensions/khr/GL_KHR_shader_subgroup_rotate.txt
+		_typeMap.emplace( "gl.subgroup.Rotate",					"subgroupRotate" );
+		_typeMap.emplace( "gl.subgroup.ClusteredRotate",		"subgroupClusteredRotate" );
 
 		// https://github.com/KhronosGroup/GLSL/blob/master/extensions/ext/GL_EXT_subgroupuniform_qualifier.txt
 		_typeMap.emplace( "gl::SubgroupUniform",				"subgroupuniformEXT" );
@@ -708,7 +735,7 @@ namespace AE::PipelineCompiler
 		_typeMap.emplace( "gl.ARM.WarpID",			"gl_WarpIDARM" );
 		_typeMap.emplace( "gl.ARM.WarpMaxID",		"gl_WarpMaxIDARM" );
 
-		// https://github.com/KhronosGroup/GLSL/blob/main/extensions/ext/GLSL_EXT_shader_quad.txt
+		// https://github.com/KhronosGroup/GLSL/blob/main/extensions/ext/GLSL_EXT_shader_quad_control.txt
 		_typeMap.emplace( "gl.quadGroup.All",		"subgroupQuadAll" );
 		_typeMap.emplace( "gl.quadGroup.Any",		"subgroupQuadAny" );
 

@@ -54,6 +54,19 @@ namespace
 		TEST_Eq( off2, 24_b + 2'816_b + 630'784_b );
 		TEST_Lt( off2, size2 );
 	}
+
+
+	static void  ImageUtils_Test3 ()
+	{
+		const uint3	dim			{ 17, 113, 1 };
+		uint		mip_count	= ImageUtils::NumberOfMipmaps( dim );
+
+		uint3	dim0	= ImageUtils::MipmapDimension( dim, mip_count, uint2{1} );
+		uint3	dim1	= ImageUtils::MipmapDimension( dim, mip_count-1, uint2{1} );
+		uint3	dim2	= ImageUtils::MipmapDimension( dim, mip_count-2, uint2{1} );
+		TEST( Any( dim1 != dim2 ));
+		TEST( All( dim1 == dim0 ));
+	}
 }
 
 
@@ -61,6 +74,7 @@ extern void UnitTest_ImageUtils ()
 {
 	ImageUtils_Test1();
 	ImageUtils_Test2();
+	ImageUtils_Test3();
 
 	TEST_PASSED();
 }

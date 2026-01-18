@@ -53,6 +53,16 @@ namespace AE::Base
 			_BITOPS_
 		};
 
+		struct ReqAlign
+		{
+			POTBytes	offsetAlign;	// disk sector size
+			POTBytes	ptrAlign;		// read/write buffer alignment
+
+			ReqAlign ()											__NE___ : offsetAlign{1_b}, ptrAlign{1_b} {}
+			ReqAlign (POTBytes offsetAlign, POTBytes ptrAlign)	__NE___ : offsetAlign{offsetAlign}, ptrAlign{ptrAlign} {}
+			ReqAlign (Bytes offsetAlign, Bytes ptrAlign)		__NE___ : offsetAlign{offsetAlign}, ptrAlign{ptrAlign} {}
+		};
+
 
 	// methods
 	protected:
@@ -65,6 +75,8 @@ namespace AE::Base
 		ND_ virtual ESourceType		GetSourceType ()	C_NE___ = 0;
 
 		ND_ bool					IsThreadSafe ()		C_NE___	{ return AllBits( GetSourceType(), ESourceType::ThreadSafe ); }
+
+		ND_ virtual ReqAlign		OffsetAlign ()		C_NE___	= 0;
 	};
 
 

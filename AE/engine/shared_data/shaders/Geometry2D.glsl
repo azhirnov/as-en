@@ -60,6 +60,11 @@ ND_ float2		RightVector (const float2 v)													{ return float2(  v.y, -v.x
 //-----------------------------------------------------------------------------
 
 
+ND_ float2		Ray_ProjectPoint (const float2 rayDir, const float2 rayOrigin, const float2 point);
+ND_ float		Ray_MinDistance (const float2 rayDir, const float2 rayOrigin, const float2 point);
+//-----------------------------------------------------------------------------
+
+
 // same for 'Line2dI'
 
 ND_ Line2d		Line_Create (const float2 begin, const float2 end);
@@ -71,14 +76,12 @@ ND_ float3		Line_GetEquation (const Line2d line);
 ND_ bool		Line_RayIntersection (const Line2d line0, const Line2d line1, out float2 intersection);
 
 ND_ bool		Line_Perpendicular (const Line2d line, const float2 point, out float2 pointOnLine);
-ND_ bool		Line_PointInside (const Line2d line, const float2 projectedPoint);
-ND_ bool		Line_PointOnLine (const Line2d line, const float2 point);
+ND_ bool		Line_IsPointInside (const Line2d line, const float2 projectedPoint);
+ND_ bool		Line_IsPointOnLine (const Line2d line, const float2 point);
 ND_ float2		Line_ProjectPoint (const Line2d line, const float2 point);
 
-ND_ bool		Line_PointOnLeftSide (const Line2d line, const float2 point);
-ND_ bool		Line_PointOnRightSide (const Line2d line, const float2 point);
-
-ND_ bool		Quadrilateral_PointInside (float2 v0, float2 v1, float2 v2, float2 v3, float2 point);
+ND_ bool		Line_IsPointOnLeftSide (const Line2d line, const float2 point);
+ND_ bool		Line_IsPointOnRightSide (const Line2d line, const float2 point);
 
 ND_ bool		Line_IsVertical (const Line2d line);
 ND_ bool		Line_IsHorizontal (const Line2d line);
@@ -88,6 +91,7 @@ ND_ bool		Line_IsHorizontal (const Line2d line);
 ND_ float		Plane2d_Distance (const float3 planeNormalAndDist, const float2 point);
 ND_ float2		Plane2d_IntersectionPoint (const float3 p0, const float3 p1);
 ND_ float3		Plane2d_FromPoints (const float2 p0, const float2 p1);
+ND_ Line2d		Plane2d_Perpendicular (const float3 planeNormalAndDist, const float2 point);
 //-----------------------------------------------------------------------------
 
 
@@ -99,14 +103,15 @@ ND_ Rect		Rect_FromRange (const float2 x, const float2 y);
 
 ND_ Rect		Rect_FromCenterHalfSize (const float2 center, const float2 hsize);
 ND_ Rect		Rect_FromCenterSize (const float2 center, const float2 size);
+ND_ Rect		Rect_FromMinMax (const float4 minMax);
 
 ND_ float		Rect_Left (const Rect rect);
 ND_ float		Rect_Right (const Rect rect);
 ND_ float		Rect_Top (const Rect rect);
 ND_ float		Rect_Bottom (const Rect rect);
 
-ND_ float2		Rect_LeftTop (const Rect rect);
-ND_ float2		Rect_RightBottom (const Rect rect);
+ND_ float2		Rect_LeftTop (const Rect rect);			// min
+ND_ float2		Rect_RightBottom (const Rect rect);		// max
 
 ND_ bool		Rect_IsEmpty (const Rect rect);
 ND_ bool		Rect_IsInvalid (const Rect rect);
@@ -134,6 +139,10 @@ ND_ bool		Rect_Intersects (const Rect rect, const Line2d line);
 ND_ Rect		Rect_Intersection (const Rect lhs, const Rect rhs);
 ND_ float2		Rect_Intersection (const float2 rayDir);
 ND_ float2		Rect_Intersection (const Rect rect, const float2 rayDir, const float2 rayOrigin);
+
+ND_ float2		Rect_Lerp (const Rect rect, const float2 uv)									{ return Lerp( rect.v.xy, rect.v.zw, uv ); }
+
+ND_ bool		Quadrilateral_PointInside (float2 v0, float2 v1, float2 v2, float2 v3, float2 point);
 //-----------------------------------------------------------------------------
 
 
@@ -161,6 +170,9 @@ ND_ Frustum2d	Frustum2d_FromCornerPoints (const float2 points[4]);
 ND_ Frustum2d	Frustum2d_FromCornerPoints (float2 p0, float2 p1, float2 p2, float2 p3);
 
 ND_ Rect		Frustum2d_ToRect (const Frustum2d fr);
+ND_ Circle		Frustum2d_ToCircle (const Frustum2d fr);
+
+ND_ float2		Frustum2d_Center (const Frustum2d fr);
 
 	void		Frustum2d_ToCornerPoints (const Frustum2d fr, out float2 points[4]);
 
@@ -171,6 +183,40 @@ ND_ bool		Frustum2d_IsVisible (const Frustum2d fr, const Line2d line);
 ND_ bool		Frustum2d_IsVisible (const Frustum2d fr, const Rect rect);
 ND_ bool		Frustum2d_IsVisible (const Frustum2d fr, const Circle circle);
 ND_ bool		Frustum2d_IsVisible (const Frustum2d fr, const Triangle2d tri);
+//-----------------------------------------------------------------------------
+
+
+ND_ float2		Frustum2dCornerPoints_Center (const float2 points[4]);
+ND_ float		Frustum2dCornerPoints_OuterRadius (const float2 points[4], const float2 center);
+ND_ Rect		Frustum2dCornerPoints_ToRect (const float2 points[4]);
+ND_ Circle		Frustum2dCornerPoints_ToCircle (const float2 points[4]);
+//-----------------------------------------------------------------------------
+
+
+
+/*
+=================================================
+	Ray_MinDistance
+=================================================
+*/
+float  Ray_MinDistance (const float2 rayDir, const float2 rayOrigin, const float2 point)
+{
+	float2	pvec = point - rayOrigin;
+	float	proj = Dot( pvec, rayDir );
+	return	Abs( proj );
+}
+
+/*
+=================================================
+	Ray_ProjectPoint
+=================================================
+*/
+float2  Ray_ProjectPoint (const float2 rayDir, const float2 rayOrigin, const float2 point)
+{
+	float2	pvec = point - rayOrigin;
+	float	proj = Dot( pvec, rayDir );
+	return	rayOrigin + rayDir * proj;
+}
 //-----------------------------------------------------------------------------
 
 
@@ -237,7 +283,7 @@ float2  Line_ProjectPoint (const Line2d line, const float2 point)
 
 	float	pdl		= Dot( pvec, lvec );
 	float	len_sq	= LengthSq( lvec );
-	float	proj	= pdl / len_sq;
+	float	proj	= SafeDiv( pdl, len_sq );
 
 	return	line.begin + lvec * proj;
 }
@@ -245,50 +291,35 @@ float2  Line_ProjectPoint (const Line2d line, const float2 point)
 bool  Line_Perpendicular (const Line2d line, const float2 point, out float2 pointOnLine)
 {
 	pointOnLine = Line_ProjectPoint( line, point );
-	return Line_PointInside( line, pointOnLine );
+	return Line_IsPointInside( line, pointOnLine );
 }
 
-bool  Line_PointInside (const Line2d line, const float2 projectedPoint)
+bool  Line_IsPointInside (const Line2d line, const float2 projectedPoint)
 {
 	float2	min = Min( line.begin, line.end );
 	float2	max = Max( line.begin, line.end );
 	return	AllGreater( projectedPoint, min ) and AllLess( projectedPoint, max );
 }
 
-bool  Line_PointOnLine (const Line2d line, const float2 point)
+bool  Line_IsPointOnLine (const Line2d line, const float2 point)
 {
 	float2	proj = Line_ProjectPoint( line, point );
-	return	Line_PointInside( line, proj ) and
+	return	Line_IsPointInside( line, proj ) and
 			DistanceSq( proj, point ) < 1.0e-4;
 }
 
-bool  Line_PointOnLeftSide (const Line2d line, const float2 point)
+bool  Line_IsPointOnLeftSide (const Line2d line, const float2 point)
 {
 	float2	vec  = LeftVector( line.end - line.begin );
 	float	sign = Dot( vec, point - line.begin );
 	return	sign > 0.0;
 }
 
-bool  Line_PointOnRightSide (const Line2d line, const float2 point)
+bool  Line_IsPointOnRightSide (const Line2d line, const float2 point)
 {
 	float2	vec  = RightVector( line.end - line.begin );
 	float	sign = Dot( vec, point - line.begin );
 	return	sign > 0.0;
-}
-
-/*
-=================================================
-	Quadrilateral_PointInside
-----
-	points must be in clockwise order
-=================================================
-*/
-bool Quadrilateral_PointInside (float2 v0, float2 v1, float2 v2, float2 v3, float2 point)
-{
-	return	Line_PointOnRightSide( Line_Create( v0, v1 ), point ) and
-			Line_PointOnRightSide( Line_Create( v1, v2 ), point ) and
-			Line_PointOnRightSide( Line_Create( v2, v3 ), point ) and
-			Line_PointOnRightSide( Line_Create( v3, v0 ), point );
 }
 
 /*
@@ -410,6 +441,13 @@ float3  Plane2d_FromPoints (const float2 p0, const float2 p1)
 	_rect_  Rect_FromCenterSize (const _vec2_ center, const _vec2_ size)				\
 	{																					\
 		return Rect_FromCenterHalfSize( center, size / _scalar_(2) );					\
+	}																					\
+																						\
+	_rect_  Rect_FromMinMax (const _vec4_ minMax)										\
+	{																					\
+		_rect_	res;																	\
+		res.v = minMax;																	\
+		return res;																		\
 	}
 
 Gen_RECTCREATE( Rect,  float2, float4, float )
@@ -646,7 +684,24 @@ float2	Rect_HalfSize (const Rect rect)		{ return (rect.v.zw - rect.v.xy) * 0.5; 
 int2	Rect_Center (const RectI rect)		{ return (rect.v.xy + rect.v.zw) / 2; }
 int2	Rect_Size (const RectI rect)		{ return rect.v.zw - rect.v.xy; }
 int2	Rect_HalfSize (const RectI rect)	{ return (rect.v.zw - rect.v.xy) / 2; }
+//-----------------------------------------------------------------------------
 
+
+
+/*
+=================================================
+	Quadrilateral_PointInside
+----
+	points must be in clockwise order
+=================================================
+*/
+bool Quadrilateral_PointInside (float2 v0, float2 v1, float2 v2, float2 v3, float2 point)
+{
+	return	Line_IsPointOnRightSide( Line_Create( v0, v1 ), point ) and
+			Line_IsPointOnRightSide( Line_Create( v1, v2 ), point ) and
+			Line_IsPointOnRightSide( Line_Create( v2, v3 ), point ) and
+			Line_IsPointOnRightSide( Line_Create( v3, v0 ), point );
+}
 //-----------------------------------------------------------------------------
 
 
@@ -754,9 +809,9 @@ Frustum2d  Frustum2d_FromCornerPoints (float2 p0, float2 p1, float2 p2, float2 p
 */
 void  Frustum2d_ToCornerPoints (const Frustum2d fr, out float2 outPoints[4])
 {
-	// 2 -- 3
-	// |    |
-	// 0 -- 1
+	//  2 - 3    .----> X
+	//  | / |    |
+	//  0 - 1   \|/ Y
 
 	outPoints[0] = Plane2d_IntersectionPoint( fr.planes[0], fr.planes[3] );
 	outPoints[1] = Plane2d_IntersectionPoint( fr.planes[1], fr.planes[3] );
@@ -773,11 +828,31 @@ Rect  Frustum2d_ToRect (const Frustum2d fr)
 {
 	float2	points[4];
 	Frustum2d_ToCornerPoints( fr, OUT points );
+	return Frustum2dCornerPoints_ToRect( points );
+}
 
-	Rect	res;
-	res.v.xy = Min( Min( points[0], points[1] ), Min( points[2], points[3] ));
-	res.v.zw = Max( Max( points[0], points[1] ), Max( points[2], points[3] ));
-	return res;
+/*
+=================================================
+	Frustum2d_ToCircle
+=================================================
+*/
+Circle  Frustum2d_ToCircle (const Frustum2d fr)
+{
+	float2	points[4];
+	Frustum2d_ToCornerPoints( fr, OUT points );
+	return Frustum2dCornerPoints_ToCircle( points );
+}
+
+/*
+=================================================
+	Frustum2d_Center
+=================================================
+*/
+float2  Frustum2d_Center (const Frustum2d fr)
+{
+	float2	points[4];
+	Frustum2d_ToCornerPoints( fr, OUT points );
+	return Frustum2dCornerPoints_Center( points );
 }
 
 /*
@@ -865,3 +940,68 @@ bool  Frustum2d_IsVisible (const Frustum2d fr, const Triangle2d tri)
 	}
 	return invisible < 0.f;
 }
+//-----------------------------------------------------------------------------
+
+
+
+/*
+=================================================
+	Frustum2dCornerPoints_Center
+=================================================
+*/
+float2  Frustum2dCornerPoints_Center (const float2 points[4])
+{
+	float2	cx0 = Average( points[0], points[1] );
+	float2	cx1 = Average( points[2], points[3] );
+	float2	cy0 = Average( points[0], points[2] );
+	float2	cy1 = Average( points[1], points[3] );
+
+	float2	cx = Average( cx0, cx1 );
+	float2	cy = Average( cy0, cy1 );
+
+	return Average( cx, cy );
+}
+
+/*
+=================================================
+	Frustum2dCornerPoints_OuterRadius
+=================================================
+*/
+float  Frustum2dCornerPoints_OuterRadius (const float2 points[4], const float2 center)
+{
+	float	r0 = DistanceSq( center, points[0] );
+	float	r1 = DistanceSq( center, points[1] );
+	float	r2 = DistanceSq( center, points[2] );
+	float	r3 = DistanceSq( center, points[3] );
+
+	float	r01	= Max( r0, r1 );
+	float	r23	= Max( r2, r3 );
+	return	Sqrt( Max( r01, r23 ));
+}
+
+/*
+=================================================
+	Frustum2dCornerPoints_ToRect
+=================================================
+*/
+Rect  Frustum2dCornerPoints_ToRect (const float2 points[4])
+{
+	Rect	res;
+	res.v.xy = Min( Min( points[0], points[1] ), Min( points[2], points[3] ));
+	res.v.zw = Max( Max( points[0], points[1] ), Max( points[2], points[3] ));
+	return res;
+}
+
+/*
+=================================================
+	Frustum2dCornerPoints_ToCircle
+=================================================
+*/
+Circle  Frustum2dCornerPoints_ToCircle (const float2 points[4])
+{
+	float2	center = Frustum2dCornerPoints_Center( points );
+	float	radius = Frustum2dCornerPoints_OuterRadius( points, center );
+
+	return Circle_Create( center, radius );
+}
+//-----------------------------------------------------------------------------

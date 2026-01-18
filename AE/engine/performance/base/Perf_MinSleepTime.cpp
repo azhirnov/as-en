@@ -312,13 +312,13 @@ extern void PerfTest_MinSleepTime ()
 		AE_LOGI( info.Print() );
 
 		if ( hp_core != null )
-			core_id = BitScanForward( hp_core->physicalBits.to_ullong() );
+			core_id = LowBitIndex( hp_core->physicalBits.to_ullong() );
 		else
 		if ( p_core != null )
-			core_id = BitScanForward( p_core->physicalBits.to_ullong() );
+			core_id = LowBitIndex( p_core->physicalBits.to_ullong() );
 		else
 		if ( ee_core != null )
-			core_id = BitScanForward( ee_core->physicalBits.to_ullong() );
+			core_id = LowBitIndex( ee_core->physicalBits.to_ullong() );
 
 		if ( core_id >= 0 )
 		{

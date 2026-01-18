@@ -6,6 +6,7 @@
 //	void  AddNoise (float params [14]);
 //	void  AddTurbulence (float params [12]);
 //	void  AddSpline (float params [8]);
+//	void  AddYAxisSpline (float params [8]);
 
 #ifdef __INTELLISENSE__
 # 	include <res_editor.as>
@@ -83,9 +84,9 @@ void  AddSpline (const array<float> &params)
 	RC<Buffer>	spline_params = Buffer();
 	spline_params.UseLayout(
 		"SplineParams",
-		"float4	A;" +
-		"float3	B;" +
-		"int	Mode;"
+		"	float4	A;"
+		"	float3	B;"
+		"	int		Mode;"
 	);
 	{
 		RC<ComputePass>		pass = ComputePass( "tools/VolumeNoise.glsl", "P="+pass_id+";APPLY_SPLINE;vTILE="+tile_size );
@@ -112,6 +113,45 @@ void  AddSpline (const array<float> &params)
 	}
 	++pass_id;
 }
+
+
+void  AddYAxisSpline (const array<float> &params)
+{
+	Assert( not has_dist_tex );
+
+	RC<Buffer>	spline_params = Buffer();
+	spline_params.UseLayout(
+		"SplineParams",
+		"	float4	A;"
+		"	float3	B;"
+		"	int		Mode;"
+	);
+	{
+		RC<ComputePass>		pass = ComputePass( "tools/VolumeNoise.glsl", "P="+pass_id+";APPLY_Y_SPLINE;vTILE="+tile_size );
+		pass.ArgInOut(	"un_Noise",		noise_tex );
+		pass.ArgOut(	"un_Params",	spline_params );
+
+		const float		min	= -2.f;
+		const float		max	= 2.f;
+		pass.Slider( "iMode",	0,				2,				int(params[0]) );
+		pass.Slider( "iA",		float4(min),	float4(max),	float4( params[1], params[2], params[3], params[4] ));
+		pass.Slider( "iB",		float3(min),	float3(max),	float3( params[5], params[6], params[7] ));
+		pass.Slider( "iScale",	1.0f,			10.f,			params[8] );
+		pass.Slider( "iBias",	-2.f,			2.f,			params[9] );
+
+		pass.LocalSize( 8, 8 );
+		pass.DispatchThreads( uint3(noise_dim) / tile_size );
+
+		pass.EnableIfGreater( dyn_pass_id, pass_id-1 );
+	}{
+		RC<Postprocess>		pass = Postprocess( "tools/TerrainNoise.glsl", "VIEW_SPLINE;P="+pass_id );
+		pass.Output( "out_Color",	rt );
+		pass.ArgIn(  "un_Params",	spline_params );
+		pass.EnableIfEqual( dyn_pass_id, pass_id );
+	}
+	++pass_id;
+}
+
 
 
 funcdef void  SetupPasses_t ();
@@ -163,6 +203,7 @@ void  SetupVolumeNoise (SetupPasses_t @setupPasses)
 		pass.Output( "out_Color",		rt );
 		pass.ArgIn(  "un_Volume",		noise_tex,	Sampler_LinearClamp );
 		pass.Slider( "iMinValue",		0.f,		0.9f,	0.5f );
+		pass.Slider( "iMaxSteps",		16,			2048,	256 );
 		pass.EnableIfEqual( view_mode,	1 );
 	}{
 		RC<Postprocess>		pass = Postprocess( "tools/VolumeNoise.glsl", "TRACE_CLOUD" );

@@ -3,8 +3,8 @@
 
 Always tested on multiple devices:
 * Android 9/10/13 with Adreno/Mali/PowerVR GPUs
-* Windows10 with AMD/NVidia/Intel GPUs
-* Ubuntu23 with NVidia/Intel GPUs
+* Windows10/11 with AMD/NVidia/Intel GPUs
+* Ubuntu24 with NVidia/Intel GPUs
 * MacOS14 on MacMiniM1
 
 
@@ -35,7 +35,7 @@ Always tested on multiple devices:
 
 - [x] Float8, Float16, Bool32 types.
 - [x] Vector 2/3/4, Quaternion, Matrix 2/3/4 on top of GLM.
-- [ ] Low level SIMD types (SSE, AVX, Neon, SVE).
+- [x] Low level SIMD types (SSE, AVX, Neon, SVE).
 - [x] Wrappers: Bytes, Radians.
 - [x] Physical dimensions.
 - [x] Color types.
@@ -55,9 +55,10 @@ Always tested on multiple devices:
 
 ## Graphics
 
-Low-level Graphics features:
+Low-level Graphics RHI features:
 - [Vulkan](VulkanRHI.md)
 - [Metal](MetalRHI.md)
+- [Remote](RemoteRHI.md)
 
 All graphics API wrappers supports:
 * Multithreaded command buffer recording
@@ -93,7 +94,6 @@ Designed to compile pipelines and render techniques.
 	- [x] Lock-free task queue
 	- [x] C++20 coroutine
 	- [x] Async mutex
-	- [x] Promise (if C++20 coroutines are not supported)
 	- [x] Thread specialization: PerFrame, Renderer, Background, FileIO
 - Async Files:
 	- [x] WinAPI with IO Completion port
@@ -124,7 +124,7 @@ Designed to compile pipelines and render techniques.
 	- [ ] Hardware camera
 - Output Surface abstraction for:
 	- [x] Window
-	- [ ] VR display
+	- [x] VR display
 - Input abstraction for:
 	- [x] keyboard
 	- [x] mouse

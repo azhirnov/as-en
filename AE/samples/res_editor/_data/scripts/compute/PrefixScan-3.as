@@ -83,9 +83,7 @@
 		{
 			s_Pos = 0;
 
-			gl.memoryBarrier.Shared();	// release
 			gl.WorkgroupBarrier();
-			gl.memoryBarrier.Shared();	// acquire
 		}
 
 		const uint	src_idx	= GetGlobalIndex() * 4;

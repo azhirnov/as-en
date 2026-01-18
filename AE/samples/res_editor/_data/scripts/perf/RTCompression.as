@@ -146,7 +146,13 @@
 
 		Label( dim.XY(),	"Dimension" );
 
-		//Present( rt );
+		Label( "block size:  16x16",	EnableIfEqual( gen_color, 3 ));
+		Label( "block size:  8x8",		EnableIfEqual( gen_color, 4 ));
+		Label( "block size:  4x4",		EnableIfEqual( gen_color, 5 ));
+		Label( "block size:  2x2",		EnableIfEqual( gen_color, 6 ));
+		Label( "block size:  1x1",		EnableIfEqual( gen_color, 7 ));
+
+		Present( rt );
 	}
 
 #endif

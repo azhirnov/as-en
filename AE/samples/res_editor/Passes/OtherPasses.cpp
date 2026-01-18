@@ -136,7 +136,7 @@ namespace AE::ResEditor
 			readback.imageOffset	= Min( readback.imageOffset, ImageDim_t{uint3{ src_dim - 1u, 0u }} );
 
 			ctx.ReadbackImage( src->GetImageId(), readback )
-				.Then(	ctx.GetFrameId(),
+				.IfFullyRead( ctx.GetFrameId(),
 						[] (Promise<ImageMemView> readOp, FrameUID fid) -> InlineCoro<ETaskQueue::PerFrame>
 						{
 							ImageMemView	in_view	= co_await readOp;
@@ -182,8 +182,10 @@ namespace AE::ResEditor
 				readback.heapType	= EStagingHeapType::Dynamic;
 				readback.imageDim	= ImageDim_t{uint3{ src_dim, 1u }};
 
-				ctx.ReadbackImage( src->GetImageId(), readback )
-					.Then(	self, capture, self->_videoEncoder.load(),
+				auto readRes = ctx.ReadbackImage( src->GetImageId(), readback );
+				if_likely( readRes.IsFullyRead() )
+				{
+					readRes.Then( self, capture, self->_videoEncoder.load(),
 							[] (Promise<ImageMemView> readOp, RC<Present> self,
 								UIInteraction::Capture capture, RC<IVideoEncoder> encoder)
 									-> InlineCoro<ETaskQueue::PerFrame>
@@ -206,6 +208,13 @@ namespace AE::ResEditor
 								if ( capture.video and encoder )
 									Unused( encoder->AddFrame( in_view, True{"end encoding on error"} ));
 							});
+				}
+				else
+				{
+					AE_LOGW( "Failed to take screenshot: can not allocate readback memory for full image. "
+							 "Try to decrease screen dimension in 'Graphics' tab or increase limits in 'graphics.staging.maxReadDynamicSize'." );
+				}
+
 			}
 		}
 
@@ -523,8 +532,8 @@ namespace AE::ResEditor
 
 			renderer->GetDataTransferQueue().EnqueueImageTransition( image_id );
 
-			_copy = MakeRCTh<Image>( RVRef(image_id), RVRef(view_id), Default, *renderer, false,
-									 img_desc, ImageViewDesc{img_desc}, null, null, Default, dbg_name );
+			_copy = Image::Create( RVRef(image_id), RVRef(view_id), Default, *renderer, false,
+									img_desc, ImageViewDesc{img_desc}, null, null, Default, dbg_name );  // throw
 		}else{
 			_copy = _src;
 		}
@@ -1294,7 +1303,7 @@ namespace AE::ResEditor
 		readback.heapType	= EStagingHeapType::Static;
 
 		ctx.ReadbackBuffer( id, readback )
-			.Then(	_dstValue,
+			.IfFullyRead(	_dstValue,
 					[] (Promise<BufferMemView> readOp, AnyDynVecOrScalar_t dst)
 						-> InlineCoro< ETaskQueue::Background >
 					{
@@ -1388,5 +1397,54 @@ namespace AE::ResEditor
 		pd.cmdbuf = ctx.ReleaseCommandBuffer();
 		return true;
 	}
+//-----------------------------------------------------------------------------
+
+
+
+/*
+=================================================
+	constructor
+=================================================
+*/
+	ResetUnusedTimersPass::ResetUnusedTimersPass (ArrayView< RC<DynamicFloat> > arr) __Th___
+	{
+		_arr.reserve( arr.size() );
+
+		for (auto& src : arr)
+		{
+			auto&	dst = _arr.emplace_back();
+			dst.timer	= src;
+			dst.value	= src->Get();
+		}
+	}
+
+/*
+=================================================
+	Execute
+=================================================
+*/
+	bool  ResetUnusedTimersPass::Execute (SyncPassData &) __Th___
+	{
+		if_unlikely( not _IsEnabled() )
+			return true;
+
+		for (auto& item : _arr)
+		{
+			float	new_val	= item.timer->Get();
+
+			if ( new_val == item.value )
+			{
+				if ( ++item.frameCount > 10 )
+					item.timer->Set( 0.f );
+			}
+			else
+			{
+				item.frameCount	= 0;
+				item.value		= new_val;
+			}
+		}
+		return true;
+	}
+
 
 } // AE::ResEditor

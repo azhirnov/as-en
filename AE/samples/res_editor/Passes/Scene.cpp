@@ -30,9 +30,9 @@ namespace AE::ResEditor
 			if_unlikely( pd.dbg.IsEnabled( subpass.get() ))
 			{
 				DirectCtx::Transfer		tctx	{ pd.rtask, RVRef(pd.cmdbuf) };
-				const uint2				coord	= pd.dbg.exactCoord.has_value() ?
-													uint2{*pd.dbg.exactCoord} :
-													uint2{pd.dbg.coord * float2(dim-1u)};
+				const uint3				coord	= pd.dbg.exactCoord.has_value() ?
+													*pd.dbg.exactCoord :
+													uint3{float3{ pd.dbg.coord * float2(dim-1u), 0.f }};
 
 				dbg_result.resize( instances.size() );
 

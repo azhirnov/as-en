@@ -7,10 +7,10 @@ export CC=/usr/bin/clang-20
 export CXX=/usr/bin/clang++-20
 export CPP=/usr/bin/clang-cpp-20
 export LD=/usr/bin/ld.lld-20
-git clone "../../../../../3party/AngelScript" "temp"
+git clone --branch "v2.38.0" "https://github.com/anjo76/angelscript.git" "temp"
 cp "patch/angelscript_CMakeLists.txt" "temp/CMakeLists.txt"
-rm -rf "temp/add_on/scriptstdstring"
-cp -TR "patch/scriptstdstring" "temp/add_on/scriptstdstring"
+rm -rf "temp/sdk/add_on/scriptstdstring"
+cp -TR "patch/scriptstdstring" "temp/sdk/add_on/scriptstdstring"
 cmake -S temp -B build -G "Unix Makefiles" -DAE_ENABLE_COMPILER_WARNINGS=OFF -DCMAKE_BUILD_TYPE=Debug -DAE_SIMD_SSE=20 -DAE_SIMD_AES=0 -DCMAKE_INSTALL_PREFIX="../../../../../AE-Bin/external/linux-x64-clang20/AngelScript" 
 cmake --build build --config Debug --target install -j 8
 cmake -S temp -B build -G "Unix Makefiles" -DAE_ENABLE_COMPILER_WARNINGS=OFF -DCMAKE_BUILD_TYPE=Release -DAE_SIMD_SSE=20 -DAE_SIMD_AES=0 -DCMAKE_INSTALL_PREFIX="../../../../../AE-Bin/external/linux-x64-clang20/AngelScript" 

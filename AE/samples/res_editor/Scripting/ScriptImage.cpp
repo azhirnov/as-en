@@ -580,6 +580,7 @@ namespace
 			AS_METHOD( binder, ScriptImage::Dimension3,			"Dimension3",			{} );
 			AS_METHOD( binder, ScriptImage::ArrayLayers,		"ArrayLayers",			{} );
 			AS_METHOD( binder, ScriptImage::MipmapCount,		"MipmapCount",			{} );
+			AS_METHOD( binder, ScriptImage::PixelFormat,		"PixelFormat",			{} );
 
 			binder.Comment( "Returns dynamic dimension of the image" );
 			AS_METHOD( binder, ScriptImage::Dimension,			"Dimension",			{} );
@@ -740,6 +741,8 @@ namespace
 		Renderer&	renderer	= ScriptExe::ScriptResourceApi::GetRenderer();  // throw
 
 		StrongImageAndViewID	id;
+		ON_DESTROY( [&id, &res_mngr](){ res_mngr.ReleaseResources( id.image, id.view ); });
+
 		const bool				is_mutable	= AnyBits( _desc.usage, EImageUsage_MutableResource );
 		const bool				is_dummy	= not (_descDefined and is_mutable);
 		GfxMemAllocatorPtr		gfx_alloc	= renderer.ChooseAllocator( Bool{_inDynSize}, _desc );
@@ -762,21 +765,25 @@ namespace
 			}
 		}
 
-		// validate view desc
-		{
-			ImageDesc	desc = _desc;
-			desc.options &= ~EImageOpt::CubeCompatible;
-
-			_viewDesc.Validate( desc );
-		}
-
 		if ( is_dummy )
 		{
+			CHECK_THROW_MSG( not _inDynSize,
+				"Image '"s << _dbgName << "' dimension is not specified. "
+				"It may happens when uninitialized image used as input." );
+
 			id = renderer.GetDummyImage( _desc );
 			CHECK_THROW_MSG( id.view, "Can't get dummy image" );
 		}
 		else
 		{
+			// validate view desc
+			{
+				ImageDesc	desc = _desc;
+				desc.options &= ~EImageOpt::CubeCompatible;
+
+				_viewDesc.Validate( desc );
+			}
+
 			CHECK_THROW_MSG( res_mngr.IsSupported( _desc ),
 				"Image '"s << _dbgName << "' description is not supported by GPU device" );
 
@@ -792,9 +799,9 @@ namespace
 			renderer.GetDataTransferQueue().EnqueueImageTransition( id.image );
 		}
 
-		_resource = MakeRCTh<Image>( RVRef(id.image), RVRef(id.view), RVRef(_loadOps), renderer, is_dummy, _desc, _viewDesc,
-									 (_inDynSize ? _inDynSize->Get() : null), (_outDynSize ? _outDynSize->Get() : null),
-									 _flags, _dbgName );	// throw
+		_resource = Image::Create( RVRef(id.image), RVRef(id.view), RVRef(_loadOps), renderer, is_dummy, _desc, _viewDesc,
+									(_inDynSize ? _inDynSize->Get() : null), (_outDynSize ? _outDynSize->Get() : null),
+									_flags, _dbgName );  // throw
 		return _resource;
 	}
 

@@ -211,7 +211,7 @@ namespace
 											stride_b								// matrixStride
 										);
 
-						gl.subgroup.ExecutionBarrier();
+						gl.subgroup.Barrier();
 
 						if ( gl.subgroup.Index == 0 )
 							gl.CoopVecStore( res, OUT un_Output.data, first_c );
@@ -299,7 +299,7 @@ namespace
 												stride_b								// matrixStride
 											);
 
-						gl.subgroup.ExecutionBarrier();
+						gl.subgroup.Barrier();
 
 						if ( gl.subgroup.Index == 0 )
 							gl.CoopVecStore( res, OUT un_Output.data, first_c );
@@ -485,7 +485,7 @@ namespace
 												0										// matrixStride, ignored for optimal layout
 											);
 
-						gl.subgroup.ExecutionBarrier();
+						gl.subgroup.Barrier();
 
 						if ( gl.subgroup.Index == 0 )
 							gl.CoopVecStore( res, OUT un_Output.data, first_c );

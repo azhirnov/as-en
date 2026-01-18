@@ -297,6 +297,8 @@ namespace AE::Threading
 		AsyncDSRequest	ReadBlock (Bytes pos, OUT void* data, Bytes dataSize, RC<> mem)		__NE_OV;
 
 		bool			CancelAllRequests ()												__NE_OV;
+		
+		ReqAlign		OffsetAlign ()														C_NE_OV	{ return Default; }		// TODO
 
 		using AsyncRDataSource::ReadBlock;
 	};
@@ -347,6 +349,8 @@ namespace AE::Threading
 		AsyncDSRequest	WriteBlock (Bytes pos, const void* data, Bytes dataSize, RC<> mem)	__NE_OV;
 		bool			CancelAllRequests ()												__NE_OV;
 		RC<SharedMem>	Alloc (SizeAndAlign)												__NE_OV;
+		
+		ReqAlign		OffsetAlign ()														C_NE_OV	{ return Default; }		// TODO
 
 		using AsyncWDataSource::WriteBlock;
 	};

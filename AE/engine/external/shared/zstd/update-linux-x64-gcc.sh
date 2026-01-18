@@ -5,7 +5,7 @@ rm -rf "temp"
 mkdir "build"
 export CC=/usr/bin/gcc-14
 export CXX=/usr/bin/g++-14
-git clone --branch "v1.5.7" "../../../../../3party/zstd" "temp"
+git clone --branch "v1.5.7" "https://github.com/facebook/zstd.git" "temp"
 cp "zstd_CMakeLists.txt" "temp/CMakeLists.txt"
 cmake -S temp -B build -G "Unix Makefiles" -DAE_ENABLE_COMPILER_WARNINGS=OFF -DCMAKE_BUILD_TYPE=Release -DAE_SIMD_SSE=20 -DAE_SIMD_AES=0 -DCMAKE_INSTALL_PREFIX="../../../../../AE-Bin/external/linux-x64-gcc14/zstd" 
 cmake --build build --config Release --target install -j 8

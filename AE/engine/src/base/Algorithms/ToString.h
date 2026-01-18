@@ -397,6 +397,7 @@ namespace _hidden_
 	ToString (WString)
 =================================================
 */
+#ifdef AE_PLATFORM_WINDOWS
 	Nd__In String  ToString (const WString &str) __Th___
 	{
 		return ToAnsiString<char>( str );
@@ -411,6 +412,7 @@ namespace _hidden_
 	{
 		return ToAnsiString<char>( WStringView{str} );
 	}
+#endif
 
 /*
 =================================================

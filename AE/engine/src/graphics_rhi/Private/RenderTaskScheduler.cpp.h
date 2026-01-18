@@ -616,8 +616,8 @@
 			const auto	GetRange = [&q] () -> Pair<int, int>
 			{{
 				const auto	ps_bits			= BitCast<QueueData::Bitfield>( q.bits.load() );
-				const int	last_submitted	= BitScanReverse( ps_bits.packed.submitted ) + 1;
-				const int	last_pending	= BitScanForward( ~ps_bits.packed.pending );
+				const int	last_submitted	= HighBitIndex( ps_bits.packed.submitted ) + 1;
+				const int	last_pending	= LowBitIndex( ~ps_bits.packed.pending );
 				return {last_submitted, last_pending};
 			}};
 

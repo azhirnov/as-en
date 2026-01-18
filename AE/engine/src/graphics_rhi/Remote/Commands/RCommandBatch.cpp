@@ -79,7 +79,10 @@ namespace AE::Graphics
 		msg.flags		= desc.flags;
 		msg.frameId		= frameId;
 		msg.submitIdx	= desc.submitIdx;
-		msg.dbgLabel	= DebugLabel{ _dbgName, _dbgColor };
+		
+		GFX_DBG_ONLY(
+			msg.dbgLabel = DebugLabel{ _dbgName, _dbgColor };
+		)
 
 		CHECK_ERR( GraphicsScheduler().GetDevice().SendAndWait( msg, OUT res ));
 

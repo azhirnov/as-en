@@ -196,7 +196,7 @@ namespace
 		}{
 			usize	pos = str.find( block_end );
 			if ( pos < str.size() )
-				str.insert( pos, u8"\n\n</details>\n" );
+				str.insert( pos + block_end.size(), u8"\n\n</details>\n\n" );
 		}
 	}
 
@@ -254,6 +254,8 @@ namespace
 	static void  CmdExit (CommandCtx &cmd)
 	{
 		cmd.success = false;
+
+		std::cout << "\n> closing....\n";
 	}
 
 
@@ -307,7 +309,7 @@ namespace
 	}
 
 
-	static void  CmdRefactorShader (CommandCtx &cmd)
+	static void  CmdRefactorImpl (CommandCtx &cmd, U8String systemMsg)
 	{
 		LLama::ContextParams	params;
 		params.contextSize		= cmd.ctxSize;
@@ -330,12 +332,53 @@ namespace
 			U8String	str = u8"Reasoning: low";
 			CHECK_ERRV( cmd.ctx->Append( ERole::System, RVRef(str) ));
 		}{
-			U8String	str = u8R"(
+			CHECK_ERRV( cmd.ctx->Append( ERole::System, RVRef(systemMsg) ));
+		}
+
+		for (bool first = true;; first = false)
+		{
+			RC<ResponseListener>	listener = MakeRC<ResponseListener>(cmd.ctxSize);
+			U8String				str;
+
+			if_unlikely( first )
+			{
+				CHECK( PlatformUtils::ClipboardExtract( OUT str ));
+				CHECK( not str.empty() );
+
+				std::cout << "> used code from clipboard " << ToString( Bytes{str.size()} ) << " size\n";
+
+				str << u8"\n```";
+				u8"Now refactor this shader:\n```\n" >> str;
+			}
+			else
+			{
+				str = u8"CONTINUE";
+
+				std::cout << "> paste CONTINUE\n";
+			}
+
+			CHECK_ERRV( cmd.ctx->Generate( RVRef(str), listener ));
+
+			if ( listener->HasErrors() )
+				break;
+
+			bool	has_next_part = listener->GetResponse().contains( u8"CONTINUE" );
+			has_next_part |= listener->GetResponse().contains( u8"next part" );
+
+			if ( not has_next_part )
+				break;
+		}
+	}
+
+
+	static void  CmdRefactorGLSL (CommandCtx &cmd)
+	{
+		U8String	str = u8R"(
 You are a GLSL refactoring assistant. Improve readability of a disassembled shader while preserving exact behavior.
 
 Strict rules:
 * Do not omit or collapse any code. No ellipses. Return the entire rewritten shader.
-* If the full output won’t fit in one response, split it into numbered parts and stop mid-token only at safe boundaries. Begin with: PART 1/N — tell me to reply “CONTINUE” for the next part.
+* If the full output won't fit in one response, split it into numbered parts and stop mid-token only at safe boundaries. Begin with: PART 1/N — tell me to reply “CONTINUE” for the next part.
 * Put comments inline, not as separate paragraphs.
 * If you think a block is dead or redundant, keep it and mark it with a comment rather than deleting it.
 * Rename sampler, UBO, SSBO declarations. Do not change binding indices.
@@ -344,221 +387,264 @@ Strict rules:
 Refactoring goals:
 * Replace anonymous temps with descriptive names.
 * Group related code into small helper functions without changing behavior.
-* Add short, high-signal comments explaining each block’s purpose.
+* Add short, high-signal comments explaining each block's purpose.
 * Keep control flow structure; only clarify it (e.g., if/else formatting).
 )";
-			/*
+		/*
 * Keep vector/matrix math ordering as in original to avoid precision drift.
-			*/
+		*/
 
-			CHECK_ERRV( cmd.ctx->Append( ERole::System, RVRef(str) ));
-		}
+		CmdRefactorImpl( cmd, RVRef(str) );
+	}
 
-		for (bool first = true;; first = false)
-		{
-			RC<ResponseListener>	listener = MakeRC<ResponseListener>(cmd.ctxSize);
-			U8String				str;
 
-			if_unlikely( first )
-			{
-				String	ansi_str;
-				CHECK( PlatformUtils::ClipboardExtract( OUT ansi_str ));
-				CHECK( not ansi_str.empty() );
+	static void  CmdRefactorHLSL (CommandCtx &cmd)
+	{
+		U8String	str = u8R"(
+You are a HLSL refactoring assistant. Improve readability of a disassembled shader while preserving exact behavior.
 
-				ansi_str << "\n```";
-				"Now refactor this shader:\n```\n" >> ansi_str;
+Strict rules:
+* Do not omit or collapse any code. No ellipses. Return the entire rewritten shader.
+* If the full output won't fit in one response, split it into numbered parts and stop mid-token only at safe boundaries. Begin with: PART 1/N — tell me to reply “CONTINUE” for the next part.
+* Put comments inline, not as separate paragraphs.
+* If you think a block is dead or redundant, keep it and mark it with a comment rather than deleting it.
+* Rename sampler, texture, all buffer types, UAV declarations. Do not change binding indices.
 
-				str = U8String{ Cast<CharUtf8>(ansi_str.data()), ansi_str.size() };
-			}
-			else
-			{
-				str = u8"CONTINUE";
-			}
-
-			CHECK_ERRV( cmd.ctx->Generate( RVRef(str), listener ));
-
-			if ( listener->HasErrors() )
-				break;
-
-			bool	has_next_part = listener->GetResponse().contains( u8"CONTINUE" );
-			has_next_part |= listener->GetResponse().contains( u8"next part" );
-
-			if ( not has_next_part )
-				break;
-		}
+Refactoring goals:
+* Replace anonymous temps with descriptive names.
+* Group related code into small helper functions without changing behavior.
+* Add short, high-signal comments explaining each block's purpose.
+* Keep control flow structure; only clarify it (e.g., if/else formatting).
+)";
+		CmdRefactorImpl( cmd, RVRef(str) );
 	}
 
 
 	static void  CmdRefactorDXIL (CommandCtx &cmd)
 	{
-		LLama::ContextParams	params;
-		params.contextSize		= cmd.ctxSize;
-		params.threadCount		= UMax;
-		params.offloadKQV		= true;
-		params.opOffload		= true;
-
-		params.sampler.temperature	= 0.2f;
-		params.sampler.minP			= LLama::Sampler_MinP{ 0.05f, 1 };
-		params.sampler.topP			= LLama::Sampler_TopP{ 0.3f, 1 };
-		params.sampler.penalties	= LLama::Sampler_Penalties{ 64, 1.1f, 0.f, 0.f };
-
-		cmd.ctx = null;
-		cmd.ctx = cmd.model.CreateContext( params );
-		cmd.success = bool{cmd.ctx};
-		if ( not cmd.success )
-			return;
-
-		{
-			U8String	str = u8"Reasoning: low";
-			CHECK_ERRV( cmd.ctx->Append( ERole::System, RVRef(str) ));
-		}{
-			U8String	str = u8R"(
+		U8String	str = u8R"(
 You are a decompiler specialized in converting DirectX DXIL disassembly into equivalent, readable HLSL with strict fidelity.
 Your primary objectives are:
 * Do not omit or elide any behavior. No “...” or “skipping for brevity”.
 * Preserve semantics, constants, resource bindings, and control flow.
 * Make code readable HLSL while annotating anything uncertain.
-* If the full output won’t fit in one response, split it into numbered parts and stop mid-token only at safe boundaries. Begin with: PART 1/N — tell me to reply “CONTINUE” for the next part.
+* If the full output won't fit in one response, split it into numbered parts and stop mid-token only at safe boundaries. Begin with: PART 1/N — tell me to reply “CONTINUE” for the next part.
 * If you cannot confidently reconstruct a piece, include a TODO comment and embed the original DXIL snippet as a comment right above the HLSL you derived from it.
 * Keep resource bindings (t#, s#, u#, b#, space#) as in DXIL.
+* Replace anonymous temps with descriptive names.
+* Reason in at most 10 steps.
+* If you cannot make further progress, just say: "I'm done." and stop.
+* Never restate the same reasoning more than once.
 )";
-
-			CHECK_ERRV( cmd.ctx->Append( ERole::System, RVRef(str) ));
-		}
-
-		for (bool first = true;; first = false)
-		{
-			RC<ResponseListener>	listener = MakeRC<ResponseListener>(cmd.ctxSize);
-			U8String				str;
-
-			if_unlikely( first )
-			{
-				String	ansi_str;
-				CHECK( PlatformUtils::ClipboardExtract( OUT ansi_str ));
-				CHECK( not ansi_str.empty() );
-
-				ansi_str << "\n```";
-				"Now refactor this shader:\n```\n" >> ansi_str;
-
-				str = U8String{ Cast<CharUtf8>(ansi_str.data()), ansi_str.size() };
-			}
-			else
-			{
-				str = u8"CONTINUE";
-			}
-
-			CHECK_ERRV( cmd.ctx->Generate( RVRef(str), listener ));
-
-			if ( listener->HasErrors() )
-				break;
-
-			bool	has_next_part = listener->GetResponse().contains( u8"CONTINUE" );
-			has_next_part |= listener->GetResponse().contains( u8"next part" );
-
-			if ( not has_next_part )
-				break;
-		}
+		CmdRefactorImpl( cmd, RVRef(str) );
 	}
 
 
 	static void  CmdRefactorDXBC (CommandCtx &cmd)
 	{
-		LLama::ContextParams	params;
-		params.contextSize		= cmd.ctxSize;
-		params.threadCount		= UMax;
-		params.offloadKQV		= true;
-		params.opOffload		= true;
-
-		params.sampler.temperature	= 0.2f;
-		params.sampler.minP			= LLama::Sampler_MinP{ 0.05f, 1 };
-		params.sampler.topP			= LLama::Sampler_TopP{ 0.3f, 1 };
-		params.sampler.penalties	= LLama::Sampler_Penalties{ 64, 1.1f, 0.f, 0.f };
-
-		cmd.ctx = null;
-		cmd.ctx = cmd.model.CreateContext( params );
-		cmd.success = bool{cmd.ctx};
-		if ( not cmd.success )
-			return;
-
-		{
-			U8String	str = u8"Reasoning: low";
-			CHECK_ERRV( cmd.ctx->Append( ERole::System, RVRef(str) ));
-		}{
 			U8String	str = u8R"(
 You are a decompiler specialized in converting DirectX DXBC disassembly into equivalent, readable HLSL with strict fidelity.
 Your primary objectives are:
 * Do not omit or elide any behavior. No “...” or “skipping for brevity”.
 * Preserve semantics, constants, resource bindings, and control flow.
 * Make code readable HLSL while annotating anything uncertain.
-* If the full output won’t fit in one response, split it into numbered parts and stop mid-token only at safe boundaries. Begin with: PART 1/N — tell me to reply “CONTINUE” for the next part.
+* If the full output won't fit in one response, split it into numbered parts and stop mid-token only at safe boundaries. Begin with: PART 1/N — tell me to reply “CONTINUE” for the next part.
 * If you cannot confidently reconstruct a piece, include a TODO comment and embed the original DXBC snippet as a comment right above the HLSL you derived from it.
 * Keep resource bindings (t#, s#, u#, b#) as in DXBC.
+* Reason in at most 10 steps.
+* If you cannot make further progress, just say: "I'm done." and stop.
+* Never restate the same reasoning more than once.
+)";
+		CmdRefactorImpl( cmd, RVRef(str) );
+	}
+
+
+	static void  CmdRefactorLargeDXIL_part1 (CommandCtx &cmd)
+	{
+		/*
+		Step A: Extract high-level interface
+		“From this DXIL disasm, extract the HLSL interface: constant buffers, textures, samplers, and input/output structs. Don’t decompile the code yet; just write HLSL declarations that match the binding slots and semantics.”
+
+		pre B:
+		divide dxil on logical blocks for further decompilation.
+		output same assemble with added comments `//` with begin and end of logical block.
+		don't copy full block just some lines after BEGIN and before END of logical block.
+
+
+		Step B: Reconstruct small code sections
+		For each chunk of code (function or part of main), send only that part plus the interface and ask:
+		“Here’s part of a DXIL disassembly and the HLSL interface we established. Please explain in English what this block does, and then propose equivalent HLSL for just this block. Use the resource/struct names from the interface.”
+
+
+		Step C
+		“Here is the reassembled HLSL from several decompiled pieces. Please:
+		* Check for obvious logical errors/inconsistencies.
+		* Suggest simplifications/cleanups without changing behavior.”
+		*/
+
+		// just text processing DXIL -> HLSL without refactoring
+		// when complete, try to use '-refactor-hlsl'
+
+		U8String	str = u8R"(
+You will be given DXIL disassembly.
+
+Goal:
+- Convert the DXIL disassembly to valid HLSL that compiles to an equivalent shader.
+- Do NOT refactor or “clean up” the logic. Preserve the structure and behavior as closely as possible.
+
+Hard constraints:
+
+1. Do NOT change control flow:
+   - Preserve all branching, loops, early returns, and discards exactly.
+   - Keep the same order of operations and computations.
+
+2. Do NOT introduce new abstractions:
+   - No new helper functions.
+   - No restructuring of code into different functions, classes, or files.
+
+3. Naming rules (important):
+   - Any DXIL identifier that begins with `%` MUST be converted to an HLSL identifier that begins with `_`.
+	 - Examples: `%0` → `_0`, `%tmp12` → `_tmp12`, `%myVar` → `_myVar`.
+   - The rest of the identifier (after the `%`) must remain identical.
+   - Do NOT invent “nicer” names; use only the mechanical `%` → `_` substitution.
+   - If the DXIL name does not start with `%`, keep it as-is unless it is illegal in HLSL; only then fix it minimally.
+
+4. Do NOT optimize:
+   - Do not merge instructions.
+   - Do not remove “redundant” operations, dead code, or constants.
+   - Do not simplify algebraic expressions or constant-fold.
+
+5. Do NOT change resource layout:
+   - Keep the same binding slots, register spaces, and resource types (cbuffer, Texture2D, RWTexture2D, SamplerState, etc.).
+   - If a specific name is not present, invent only minimal descriptive names like `cbuffer0`, `tex0`, `uav0`.
+
+6. Preserve precision and types:
+   - Respect `min16float`, `float`, `int`, `uint`, `bool` as implied by the DXIL.
+   - Keep vector/scalar widths (float4, float3, etc.) as indicated by the operations.
+
+7. Preserve semantics:
+   - Preserve semantics such as SV_Position, SV_Target, SV_DispatchThreadID, etc., based on the DXIL signatures.
+   - Maintain input/output parameter counts and semantics.
+
+8. Logical block comments (important):
+   - Divide the resulting HLSL into logical blocks using **only comments**.
+   - Comments must NOT alter control flow or grouping of statements; they only annotate existing structure.
+   - Use short, neutral labels such as:
+	 - `// --- Input loads ---`
+	 - `// --- Constants / cbuffers ---`
+	 - `// --- Main computation block ---`
+	 - `// --- Output writes ---`
+	 - `// --- Loop body ---`
+   - Place these comments at natural boundaries (e.g., before a group of loads, before a loop, before output stores).
+   - Do NOT move, merge, or split HLSL statements just to fit comments; insert comments around the existing statement order only.
+
+9. Other comments:
+   - You may add brief comments showing which DXIL instructions each HLSL line came from **if helpful**, but keep them short.
+   - Do not add high-level explanations, “cleanup” notes, or suggestions.
+
+Output format:
+- Output **only** the final HLSL shader code in a single code block.
+- If there are multiple entry points, output each as a separate HLSL function in the same file.
+- Do not include explanations or prose outside the code block unless I explicitly ask.
+
+If any aspect of the DXIL is ambiguous:
+- Make the minimal, most literal choice.
+- Do NOT add behavior that is not clearly implied by the DXIL.
+- If something is impossible to infer (e.g., exact original struct name), choose a generic placeholder and proceed.
+
+If you are unsure whether to simplify or refactor something, choose the option that is **more literal** and **closer to the DXIL**.
+Do not try to make the code “nicer” or “more idiomatic” HLSL.
+)";
+		CmdRefactorImpl( cmd, RVRef(str) );
+	}
+
+
+	static void  CmdRefactorLargeDXIL_part2 (CommandCtx &cmd)
+	{
+			U8String	str = u8R"(
+You are a decompiler specialized in converting DirectX DXIL disassembly into equivalent, readable HLSL with strict fidelity.
+Your primary objectives are:
+* Do not omit or elide any behavior. No “...” or “skipping for brevity”.
+* Preserve semantics, constants, resource bindings, and control flow.
+* Make code readable HLSL while annotating anything uncertain.
+* If the full output won't fit in one response, split it into numbered parts and stop mid-token only at safe boundaries. Begin with: PART 1/N — tell me to reply “CONTINUE” for the next part.
+* If you cannot confidently reconstruct a piece, include a TODO comment and embed the original DXIL snippet as a comment right above the HLSL you derived from it.
+* Keep resource bindings (t#, s#, u#, b#, space#) as in DXIL.
+* When renaming add comment with origin name like: `// _500`
 )";
 
-			CHECK_ERRV( cmd.ctx->Append( ERole::System, RVRef(str) ));
-		}
+			// avoid reasoning loops
+			str << u8R"(
+* Reason in at most 10 steps.
+* If you cannot make further progress, just say: "I'm done." and stop.
+* Never restate the same reasoning more than once.
+)";
+			// add rename table
+			str << u8R"(
+Additionally output a full, machine-readable rename map in this format:
+```
+RENAMES:
+<kind>: <old_name> -> <new_name>
+<kind>: <old_name> -> <new_name>
+...
+END RENAMES
+```
+)";
+			// use rename table
+			str << u8R"(
+When you are given a rename table in this format:
+```
+RENAMES:
+<kind>: <old_name> -> <new_name>
+...
+END RENAMES
+```
+you must:
+1. Apply all renames consistently:
+	* For every `<old_name>` in the table, replace it with `<new_name>`
+	* In all code you are asked to modify.
+	* In related references, imports, calls, and type annotations.
 
-		for (bool first = true;; first = false)
-		{
-			RC<ResponseListener>	listener = MakeRC<ResponseListener>(cmd.ctxSize);
-			U8String				str;
+2. Do not invent or change the mapping
+	* Do not introduce extra renames that are not in the table, unless the user explicitly asks for additional refactors.
 
-			if_unlikely( first )
-			{
-				String	ansi_str;
-				CHECK( PlatformUtils::ClipboardExtract( OUT ansi_str ));
-				CHECK( not ansi_str.empty() );
+3. Output requirements
+	* Show the updated/refactored code as requested by the user.
+	* If you also perform new renames beyond the table (only if explicitly asked), you must output an updated `RENAMES` block including both:
+		* The original entries (unchanged).
+		* Any additional renames you introduced.
+	* If you only applied the existing table and added no new renames, you may omit a new `RENAMES` block unless the user asks for it.
+)";
+		str << u8R"(
+Here is rename table from previous parts:
+)";
 
-				ansi_str << "\n```";
-				"Now refactor this shader:\n```\n" >> ansi_str;
-
-				str = U8String{ Cast<CharUtf8>(ansi_str.data()), ansi_str.size() };
-			}
-			else
-			{
-				str = u8"CONTINUE";
-			}
-
-			CHECK_ERRV( cmd.ctx->Generate( RVRef(str), listener ));
-
-			if ( listener->HasErrors() )
-				break;
-
-			bool	has_next_part = listener->GetResponse().contains( u8"CONTINUE" );
-			has_next_part |= listener->GetResponse().contains( u8"next part" );
-
-			if ( not has_next_part )
-				break;
-		}
+		CmdRefactorImpl( cmd, RVRef(str) );
 	}
 
 
 	static void  CmdPasteFromClipboard (CommandCtx &cmd)
 	{
-		String	str;
+		U8String	str;
 		CHECK( PlatformUtils::ClipboardExtract( OUT str ));
 		CHECK( not str.empty() );
 
-		U8String ustr{ Cast<CharUtf8>(str.data()), str.size() };
-
-		U8StringView{ Cast<CharUtf8>(cmd.prompt.data()), cmd.prompt.size() } >> ustr;
-		CHECK( cmd.ctx->Append( ERole::User, RVRef(ustr) ));
+		U8StringView{ Cast<CharUtf8>(cmd.prompt.data()), cmd.prompt.size() } >> str;
+		CHECK( cmd.ctx->Append( ERole::User, RVRef(str) ));
 	}
 
 
 	static void  CmdPasteCodeFromClipboard (CommandCtx &cmd)
 	{
-		String	str;
+		U8String	str;
 		CHECK( PlatformUtils::ClipboardExtract( OUT str ));
 		CHECK( not str.empty() );
 
-		str << "\n```";
-		"```\n" >> str;
+		str << u8"\n```";
+		u8"```\n" >> str;
 
-		U8String ustr{ Cast<CharUtf8>(str.data()), str.size() };
-
-		U8StringView{ Cast<CharUtf8>(cmd.prompt.data()), cmd.prompt.size() } >> ustr;
-		CHECK( cmd.ctx->Append( ERole::User, RVRef(ustr) ));
+		U8StringView{ Cast<CharUtf8>(cmd.prompt.data()), cmd.prompt.size() } >> str;
+		CHECK( cmd.ctx->Append( ERole::User, RVRef(str) ));
 	}
 
 
@@ -576,8 +662,7 @@ Your primary objectives are:
 		FixUnicode( INOUT msgs.back().second );
 		WrapThinkingBlock( INOUT msgs.back().second );
 
-		CHECK_ERRV( PlatformUtils::ClipboardPut( NtStringView{ Cast<char>(msgs.back().second.c_str()),
-																msgs.back().second.size() }));
+		CHECK_ERRV( PlatformUtils::ClipboardPut( msgs.back().second ));
 		std::cout << "> copied to clipboard\n";
 	}
 
@@ -608,27 +693,120 @@ Your primary objectives are:
 			str << role_str << content;
 		}
 
-		CHECK_ERRV( PlatformUtils::ClipboardPut( NtStringView{ Cast<char>(str.c_str()), str.size() }));
+		CHECK_ERRV( PlatformUtils::ClipboardPut( str ));
 		std::cout << "> copied to clipboard\n";
 	}
 
 
+	static void  CmdTranslateRuEn (CommandCtx &cmd)
+	{
+		// prefer to use DeepSeek-R1 / v3 or Qwen 2.5 7B / 14B / 32B or LLaMA 3.1
+
+		// new context
+		LLama::ContextParams	params;
+		params.contextSize		= cmd.ctxSize;
+		params.threadCount		= UMax;
+		params.offloadKQV		= true;
+		params.opOffload		= true;
+
+		params.sampler.temperature	= 0.3f;
+		params.sampler.minP			= LLama::Sampler_MinP{ 0.05f, 1 };
+		params.sampler.topP			= LLama::Sampler_TopP{ 0.8f, 1 };
+
+		cmd.ctx = null;
+		cmd.ctx = cmd.model.CreateContext( params );
+		cmd.success = bool{cmd.ctx};
+		if ( not cmd.success )
+			return;
+
+		{
+			U8String	str = u8R"(
+Translate the following Russian text to clear, idiomatic English.
+
+Requirements:
+- Translate everything line by line.
+- Do not add or remove sentences.
+- If a word is unknown, copy it as-is in Latin letters.
+- Preserve all C++ code, identifiers, function/class names, urls, and graphics API names (OpenGL, DirectX, Vulkan, shaders, etc.) exactly as in the original.
+- Do NOT translate comments in code sections.
+- Do NOT add explanations, comments, or extra text. Only output the translation.
+)";
+			CHECK_ERRV( cmd.ctx->Append( ERole::System, RVRef(str) ));
+		}
+
+		U8String	str;
+		{
+			CHECK( PlatformUtils::ClipboardExtract( OUT str ));
+			CHECK( not str.empty() );
+			u8"Russian:\n" >> str;
+		}
+
+		RC<ResponseListener>	listener = MakeRC<ResponseListener>(cmd.ctxSize);
+		CHECK_ERRV( cmd.ctx->Generate( RVRef(str), listener ));
+	}
+
+
+	static void  CmdTranslateEnRu (CommandCtx &cmd)
+	{
+		// new context
+		cmd.ctx = null;
+		cmd.ctx = CreateContext( cmd.model, cmd.ctxSize );
+		cmd.success = bool{cmd.ctx};
+		CHECK_ERRV( cmd.success );
+
+		{
+			U8String	str = u8R"(
+Task: Translate English technical text to Russian.
+
+Requirements:
+- Translate everything line by line.
+- Do not add or remove sentences.
+- Preserve all C++ code, identifiers, function/class names, and graphics API names (OpenGL, DirectX, Vulkan, shaders, etc.) exactly as in the original.
+- Translate text into natural, professional Russian used in technical documentation.
+- Keep technical nuance and terminology accurate (e.g., "framebuffer", "render pass", "shader compilation").
+- Do NOT translate comments in code sections.
+- Do NOT add explanations, comments, or extra text. Only output the translation.
+)";
+			CHECK_ERRV( cmd.ctx->Append( ERole::System, RVRef(str) ));
+		}
+
+		U8String	str;
+		{
+			CHECK( PlatformUtils::ClipboardExtract( OUT str ));
+			CHECK( not str.empty() );
+
+			u8"English:\n" >> str;
+		}
+
+		RC<ResponseListener>	listener = MakeRC<ResponseListener>(cmd.ctxSize);
+		CHECK_ERRV( cmd.ctx->Generate( RVRef(str), listener ));
+	}
+
+
 	static FlatHashMap< StringView, void (*) (CommandCtx &) >		g_Commands = {
-		{ "-exit",				&CmdExit },
-		{ "-help",				&CmdHelp },
-		{ "-system",			&CmdAddSystemMsg },
-		{ "-new",				&CmdStartNewContext },
-		{ "-save",				&CmdSaveContext },
-		{ "-save-open",			&CmdSaveContextAndOpen },
-		{ "-load",				&CmdLoadContext },
-		{ "-refactor-shader",	&CmdRefactorShader },
-		{ "-refactor-dxil",		&CmdRefactorDXIL },
-		{ "-refactor-dxbc",		&CmdRefactorDXBC },
-		{ "-paste",				&CmdPasteFromClipboard },
-		{ "-code",				&CmdPasteCodeFromClipboard },
-		{ "-copy",				&CmdCopyLastResponseToClipboard },
-		{ "-copy-all",			&CmdCopyAllMessagesToClipboard },
-		// TODO: save context/summary and continue with new
+		{ "-exit",					&CmdExit },
+		{ "-help",					&CmdHelp },
+		{ "-system",				&CmdAddSystemMsg },
+		{ "-new",					&CmdStartNewContext },
+		{ "-save",					&CmdSaveContext },
+		{ "-save-open",				&CmdSaveContextAndOpen },
+		{ "-load",					&CmdLoadContext },
+		{ "-refactor-glsl",			&CmdRefactorGLSL },
+		{ "-refactor-hlsl",			&CmdRefactorHLSL },
+		{ "-refactor-dxil",			&CmdRefactorDXIL },
+		{ "-refactor-large-dxil-1",	&CmdRefactorLargeDXIL_part1 },
+		{ "-refactor-large-dxil-2",	&CmdRefactorLargeDXIL_part2 },
+		{ "-refactor-dxbc",			&CmdRefactorDXBC },
+		{ "-paste",					&CmdPasteFromClipboard },
+		{ "-code",					&CmdPasteCodeFromClipboard },
+		{ "-copy",					&CmdCopyLastResponseToClipboard },
+		{ "-copy-all",				&CmdCopyAllMessagesToClipboard },
+		{ "-translate-ru-en",		&CmdTranslateRuEn },
+		{ "-translate-en-ru",		&CmdTranslateEnRu },
+		// TODO:
+		//	save context/summary and continue with new
+		//	-refactor-names
+		//	planing mode
 	};
 
 
@@ -636,10 +814,19 @@ Your primary objectives are:
 	{
 		String	msg = "> list of available commands:";
 
+		Array<StringView>	sorted;
 		for (auto& cmd : g_Commands) {
-			msg << "\n    " << cmd.first;
+			sorted.push_back( cmd.first );
 		}
-		std::cout << msg << '\n';
+
+		std::sort( sorted.begin(), sorted.end() );
+
+		for (auto& cmd : sorted) {
+			msg << "\n    " << cmd;
+		}
+		msg << "\n> also press tilde ~ to stop generation";
+
+		std::cout << msg << std::endl;
 	}
 //-----------------------------------------------------------------------------
 
@@ -717,6 +904,8 @@ int main (const int argc, char* argv[])
 		::signal( SIGINT, OnUserInterrupt );
 	#endif
 
+	CHECK_ERR( Networking::SocketService::Instance().Initialize(), -1 );
+
 	RC<ILanguageModel>	model;
 	{
 		LLama::OpenParams	params;
@@ -726,7 +915,6 @@ int main (const int argc, char* argv[])
 
 		SelectModelParams( PlatformUtils::GetComputerName(), PlatformUtils::GetUserName(), INOUT params );
 
-
 		#if 1
 			params.listener = MakeRC<LoadingListener>();
 
@@ -735,7 +923,7 @@ int main (const int argc, char* argv[])
 		#else
 			// remote
 			Remote::OpenParams	r_params;
-			r_params.addr		= AE_LLM_IPv4;
+			r_params.addr		= AE_LLM_SERVER_IPv4;
 			r_params.listener	= MakeRC<LoadingListener>();
 			r_params.llama		= MakeUnique<LLama::OpenParams>( params );
 
@@ -751,5 +939,6 @@ int main (const int argc, char* argv[])
 
 	UserInteraction( *model );
 
+	Networking::SocketService::Instance().Deinitialize();
 	return 0;
 }

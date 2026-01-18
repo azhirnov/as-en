@@ -4,7 +4,7 @@ rmdir /Q /S "..\..\..\..\..\AE-Bin\external\win-x64-msvc19.44\OpenXR"
 rmdir /Q /S "temp"
 mkdir "build"
 mkdir "temp"
-git clone --branch "release-1.1.50" "..\..\..\..\..\3party\OpenXR-SDK-Source" "temp/OpenXR-SDK-Source"
+git clone --branch "release-1.1.50" "https://github.com/KhronosGroup/OpenXR-SDK-Source.git" "temp/OpenXR-SDK-Source"
 copy /Y "openxr_CMakeLists.txt" "temp\CMakeLists.txt"
 cmake -S temp -B build -G "Visual Studio 17 2022" -A x64 -DAE_ENABLE_COMPILER_WARNINGS=OFF -DCMAKE_BUILD_TYPE=Release -DAE_SIMD_SSE=20 -DAE_SIMD_AES=0 -DCMAKE_INSTALL_PREFIX="../../../../../AE-Bin/external/win-x64-msvc19.44/OpenXR" 
 cmake --build build --config Release --target install -j 12

@@ -56,15 +56,20 @@
 		RC<DynamicUInt>		mode		= raster.Add( reduction.Mul(2) );
 		const bool			gfx_only	= false;	// some devices disable compression if have 'Storage' usage
 
+		RC<DynamicFloat>	time1		= DynamicFloat();
+		RC<DynamicFloat>	time2		= DynamicFloat();
+		RC<DynamicFloat>	time_ms		= time1.Add( time2 ).Mul( 1000.0f );
+
+
 		Label( tex_dim2,	"MipDim" );
+		Label( time_ms,		"GenMips (ms)" );
+
 		Slider( repeat,		"Repeat",		1,	30 );
 		Slider( first_mip,	"FirstMip",		0,	10 );
 
 		if ( not gfx_only )
 			Slider( raster,		"Gfx",				0,	1 );
 
-		if ( GetFeatureSet().hasSamplerFilterMinmax() )
-			Slider( reduction,	"UseReduction",		0,	1 );
 
 		// render loop //
 
@@ -83,12 +88,14 @@
 			pass.LocalSize( 8, 8 );
 			pass.DispatchThreads( dim2 );
 			pass.Repeat( repeat );
+			pass.MeasureTime( time1 );
 			pass.EnableIfEqual( raster, 0 );
 		}{
 			RC<Postprocess>		pass = Postprocess( "", "MIPMAP_0" );
 			pass.Output( "out_Color",		mipmaps );
 			pass.ArgIn(  "un_HighMip",		high_mip,	Sampler_NearestClamp );
 			pass.Repeat( repeat );
+			pass.MeasureTime( time1 );
 			pass.EnableIfEqual( raster, 1 );
 		}
 
@@ -98,27 +105,33 @@
 			RC<ComputeMip>		pass = ComputeMip( "", "GEN_MIPMAP" );
 			pass.Variable( "un_InImage",	"un_OutImage",	mipmaps,	Sampler_NearestClamp );
 			pass.Repeat( repeat );
+			pass.MeasureTime( time2 );
 			pass.EnableIfEqual( mode, 0 );
 		}{
 			RC<RasterMip>		pass = RasterMip( "", "GEN_MIPMAP" );
 			pass.Variable( "un_InImage",	"out_Color",	mipmaps,	Sampler_NearestClamp );
 			pass.Repeat( repeat );
+			pass.MeasureTime( time2 );
 			pass.EnableIfEqual( mode, 1 );
 		}
 
 		// mipmap chain
 		if ( GetFeatureSet().hasSamplerFilterMinmax() )
 		{
+			Slider( reduction,	"UseReduction",		0,	1 );
+
 			if ( not gfx_only )
 			{
 				RC<ComputeMip>		pass = ComputeMip( "", "GEN_MIPMAP; USE_REDUCTION" );
 				pass.Variable( "un_InImage",	"un_OutImage",	mipmaps,	Sampler_MinLinearClamp );
 				pass.Repeat( repeat );
+				pass.MeasureTime( time2 );
 				pass.EnableIfEqual( mode, 2 );
 			}{
 				RC<RasterMip>		pass = RasterMip( "", "GEN_MIPMAP; USE_REDUCTION" );
 				pass.Variable( "un_InImage",	"out_Color",	mipmaps,	Sampler_MinLinearClamp );
 				pass.Repeat( repeat );
+				pass.MeasureTime( time2 );
 				pass.EnableIfEqual( mode, 3 );
 			}
 		}

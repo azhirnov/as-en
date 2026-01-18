@@ -225,7 +225,7 @@ namespace AE::_Coro_
 	template <typename CmdBufType>
 	bool  RenderTaskImpl::Execute (CmdBufType &cmdbuf) __NE___
 	{
-		ASSERT( AsyncTaskImpl::DbgIsRunning() );	// must be inside 'Run()'
+		//ASSERT( AsyncTaskImpl::DbgIsRunning() );	// must be inside 'Run()'
 		CHECK_ERR( IsValid() );
 
 		#if defined(AE_ENABLE_VULKAN)

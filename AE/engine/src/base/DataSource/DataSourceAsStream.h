@@ -56,6 +56,8 @@ namespace AE::Base
 		bool		SeekFwd (Bytes offset)					__NE_OV;
 
 		Bytes		ReadSeq (OUT void* buffer, Bytes size)	__NE_OV;
+
+		ReqAlign	OffsetAlign ()							C_NE_OV	{ return _dataSource->OffsetAlign(); }
 	};
 //-----------------------------------------------------------------------------
 

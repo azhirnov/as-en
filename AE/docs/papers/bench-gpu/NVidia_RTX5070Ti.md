@@ -40,7 +40,41 @@
 * FP16 TOPS (stable/boost): 164 / 204
 * FP8 TOPS with fp16 accum (stable/boost): 327 / 408
 
-## Ray tracing
+## Shader
+
+### Quads
+
+### Subgroups
+
+### Subgroup threads order
+
+Result of `Rainbow( gl_SubgroupInvocationID / gl_SubgroupSize )` in fragment shader, gl_SubgroupSize: 32. [[6](../GPU_Benchmarks.md#6-Subgroups)]
+
+![](img/graphics-subgroups/nv-turing.png)
+
+Result of `Rainbow( gl_SubgroupInvocationID / gl_SubgroupSize )` in compute shader, gl_SubgroupSize: 32, workgroup size: 8x8. [[6](../GPU_Benchmarks.md#6-Subgroups)]
+
+![](img/compute-subgroups/nv-turing.png)
+
+### Register count
+
+* SM supports limited number of registers, but must run multiple warps to hide memory latency.
+* Left image - on low register count only one SM used per tile, it increase concurrency - 70 SM will fill 16x16 pixels (17.9K pixels).
+* Middle image - on high register count 4 SMs used per tile, so it 4 times decrease concurrency.
+* Right image - warp occupancy is same for any register count, so tile size is not changed.
+
+test source: [[17](../GPU_Benchmarks.md#17-tile-size)]
+![](img/hw-tile-size/nv-blackwell.png)
+
+### Merged instances
+
+Instances are merged in VS and FS. [[17](../GPU_Benchmarks.md#17-tile-size)]<br/>
+Dark blue - single instance; light blue - single instance in FS, multiple in VS; red - multiple instances in FS; orange - multiple instances in FS and VS.
+
+![](img/merge-inst/nv-blackwell.png)
+
+
+### Ray tracing
 
 * Ray query performance: [[15](../GPU_Benchmarks.md#15-ray-tracing-performance)]
 	- 160 GigaRays/s

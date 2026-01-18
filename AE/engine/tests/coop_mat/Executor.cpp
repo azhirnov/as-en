@@ -162,7 +162,7 @@ bool  Executor::_RunPipe (ByteBuffer inputA, ByteBuffer inputB, ByteBuffer input
 						}{
 							DirectCtx::Transfer  ctx { RenderCoro_Get(), RVRef(cmdbuf) };
 
-							read_op = ctx.ReadbackBuffer( buf_out, Default ).Then(
+							read_op = ctx.ReadbackBuffer( buf_out, Default ).IfFullyRead(
 										output,
 										[] (Promise<BufferMemView> readRes, CoSafe<ByteBuffer&> output) -> InlineCoro<>
 										{

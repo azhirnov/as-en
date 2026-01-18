@@ -242,7 +242,7 @@
 		const float			znear			= un_PerPass.camera.clipPlanes.x;
 
 		// frustum culling
-		if ( ! Frustum_IsVisible( un_PerPass.camera.frustum, obj.position - un_PerPass.camera.pos, sphere_radius ))
+		if ( ! Frustum_IsSphereVisible( un_PerPass.camera.frustum, obj.position - un_PerPass.camera.pos, sphere_radius ))
 			return false;
 
 		// see [ProjectSphere test](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/scripts/geom-cull/test-ProjectSphere.as)
@@ -294,7 +294,7 @@
 		{
 			dst_idx = gl.AtomicAdd( INOUT un_IndirectCmd.instanceCount, visible_count );
 		}
-		gl.subgroup.ExecutionBarrier();
+		gl.subgroup.Barrier();
 
 		dst_idx = gl.subgroup.Broadcast( dst_idx, 0 );
 		dst_idx += gl.subgroup.BallotExclusiveBitCount( visible_mask );

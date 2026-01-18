@@ -8,6 +8,7 @@
 
 namespace AE::Base
 {
+
 /*
 =================================================
 	CPU_GetFrequency

@@ -21,6 +21,7 @@
 
 # include <Windows.h>
 
+# include <winioctl.h>
 # include <winternl.h>
 # include <bcrypt.h>
 # define _NTDEF_

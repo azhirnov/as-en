@@ -8,12 +8,16 @@ namespace
 {
 	ND_ forceinline CharUtf32  Utf8Decode1 (const CharUtf8 *str, const usize length, INOUT usize &pos) __NE___
 	{
-		return Base::_hidden_::Utf8Decode_v1( str, length, INOUT pos );
+		auto [c, w] = Base::_hidden_::Utf8Decode_v1( str + pos, length - pos );
+		pos += w;
+		return c;
 	}
 
 	ND_ forceinline CharUtf32  Utf8Decode2 (const CharUtf8 *str, const usize length, INOUT usize &pos) __NE___
 	{
-		return Base::_hidden_::Utf8Decode_v2( str, length, INOUT pos );
+		auto [c, w] = Base::_hidden_::Utf8Decode_v2( str + pos, length - pos );
+		pos += w;
+		return c;
 	}
 
 

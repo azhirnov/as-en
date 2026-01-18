@@ -15,7 +15,7 @@ namespace AE::Base
 	template <typename T>
 	struct TByte
 	{
-		StaticAssert( IsInteger<T> and IsScalar<T>, "must be integer scalar" );
+		StaticAssertMsg( IsInteger<T> and IsScalar<T>, "must be integer scalar" );
 
 	// types
 	public:

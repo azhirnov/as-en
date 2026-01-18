@@ -177,6 +177,7 @@ namespace AE::Graphics
 		_visitorF_( EFeature,			triangleFans,							: 2 )\
 		_visitorF_( EFeature,			largePoints,							: 2 )\
 		_visitorF_( EFeature,			wideLines,								: 2 )\
+		_visitorF_( EFeature,			conservativeRasterization,				: 2 )	/* VK_EXT_conservative_rasterization												*/\
 		\
 		\
 	/*---- shader variable types and functions ----*/\
@@ -255,7 +256,7 @@ namespace AE::Graphics
 		/* cooperative matrix/vector */\
 		_visitorF_( EFeature,			cooperativeMatrix,						: 2 )	/*\ 																				*/\
 		_visitor2_( EShaderStages,		cooperativeMatrixStages,					)	/*-|-- GL_KHR_cooperative_matrix													*/\
-		_visitor1_( CoopMatrixSet_t,	cooperativeMatrixConfig,					)	/*/		- can be empty if default config is not supported							*/\
+		_visitor2_( CoopMatrixSet_t,	cooperativeMatrixConfig,					)	/*/		- can be empty if default config is not supported							*/\
 		_visitorF_( EFeature,			cooperativeVector,						: 2 )	/*\																					*/\
 		_visitorF_( EFeature,			cooperativeVectorTraining,				: 2 )	/*-|-- GLSL_NV_cooperative_vector													*/\
 		_visitor1_( CoopVecSet_t,		cooperativeVectorConfig,					)	/*/		- can be empty if default config is not supported							*/\

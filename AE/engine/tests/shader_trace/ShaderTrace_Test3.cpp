@@ -32,7 +32,7 @@ layout(location = 0) out vec4  out_Color;
 void main ()
 {
 	mat4x4	m1;
-	m1[0] = vec4(1.0f);		m1[1] = vec4(2.0f);		m1[2] = vec4(3.0f);		m1[3] = vec4(4.0f);
+	m1[0] = vec4(1.0f);		m1[1] = vec4(2.0f);		m1[2] = vec4(3.0f);		m1[3] = vec4( cross( m1[1].xyz, m1[0].xyz ), 1.0 );
 
 	mat2x3	m2;
 	m2[0] = vec3(11.1f);	m2[1] = vec3(12.2f);

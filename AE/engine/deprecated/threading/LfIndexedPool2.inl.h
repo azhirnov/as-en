@@ -100,7 +100,7 @@ namespace AE::Threading
 		for (uint j = 0; j < TopWaitCount; ++j)
 		{
 			TopLevelBits_t	available	= ~_topLevel.load();			// 1 - unassigned
-			int				idx			= BitScanForward( available );	// first 1 bit
+			int				idx			= LowBitIndex( available );		// first 1 bit
 
 			for (uint i = 0; idx >= 0 and i < TopWaitCount; ++i)
 			{
@@ -110,7 +110,7 @@ namespace AE::Threading
 					return true;
 
 				available	&= ~(TopLevelBits_t{1} << idx);		// 1 -> 0
-				idx			= BitScanForward( available );		// first 1 bit
+				idx			= LowBitIndex( available );			// first 1 bit
 			}
 
 			ThreadUtils::Pause();
@@ -158,7 +158,7 @@ namespace AE::Threading
 		for (uint j = 0; j < HighWaitCount; ++j)
 		{
 			HiLevelBits_t	available	= ~info.hiLevel.load();			// 1 - unassigned
-			int				idx			= BitScanForward( available );	// first 1 bit
+			int				idx			= LowBitIndex( available );		// first 1 bit
 
 			for (; idx >= 0;)
 			{
@@ -168,7 +168,7 @@ namespace AE::Threading
 					return true;
 
 				available	&= ~(HiLevelBits_t{1} << idx);	// 1 -> 0
-				idx			= BitScanForward( available );	// first 1 bit
+				idx			= LowBitIndex( available );		// first 1 bit
 			}
 
 			ThreadUtils::Pause();
@@ -189,7 +189,7 @@ namespace AE::Threading
 		auto&			level		= info.lowLevel[ hiLevelIndex ];
 		auto&			created		= info.created[ hiLevelIndex ];
 		LowLevelBits_t	available	= level.load();						// 0 - unassigned
-		int				idx			= BitScanForward( ~available );		// first 0 bit
+		int				idx			= LowBitIndex( ~available );		// first 0 bit
 
 		for (; idx >= 0;)
 		{
@@ -213,7 +213,7 @@ namespace AE::Threading
 				return true;
 			}
 
-			idx = BitScanForward( ~available );		// first 0 bit
+			idx = LowBitIndex( ~available );		// first 0 bit
 			ThreadUtils::Pause();
 		}
 		return false;

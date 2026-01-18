@@ -52,14 +52,6 @@
 	#include "Ray.glsl"
 	#include "Intersectors.glsl"
 
-	// Result must be >= 1, AA will work if >= 2
-	float  ScreenPxRange (gl::CombinedTex2D<float> msdfTex, float2 uv, float pxRange)
-	{
-		float2	unit_range		= float2(pxRange) / float2(gl.texture.GetSize( msdfTex, 0 ));
-		float2	src_tex_size	= float2(1.0) / gl.fwidth( uv );
-		return Max( 0.5 * Dot( unit_range, src_tex_size ), 1.0 );
-	}
-
 
 	float  ApplyStyle (float2 uv, float sd, float2 size)
 	{

@@ -8,6 +8,7 @@
 		mesh:			<csv file name>					- required
 		invertTriOrder: true
 		cullBack:		true
+		recenter:		true
 		alphaCutoff:	0.5								- enable alpha test
 		texture:		PBR_BaseColor, <texture file>
 */
@@ -212,6 +213,14 @@ namespace
 				CHECK_ERR( new_material );
 
 				new_material->EditSettings().cullMode = ParseBool( value ) ? ECullMode::Back : ECullMode::None;
+				continue;
+			}
+
+			if ( key == "recenter" )
+			{
+				CHECK_ERR( new_mesh );
+
+				CHECK( new_mesh->Recenter() );
 				continue;
 			}
 

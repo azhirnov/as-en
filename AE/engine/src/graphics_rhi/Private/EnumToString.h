@@ -927,6 +927,9 @@ namespace AE::Base
 			CASE( QuadSwapHorizontal );
 			CASE( QuadSwapVertical );
 			CASE( QuadSwapDiagonal );
+			CASE( PartitionedNV );
+			CASE( Rotate );
+			CASE( RotateClustered );
 			#undef CASE
 			case ESubgroupOperation::_Count :	break;
 		}

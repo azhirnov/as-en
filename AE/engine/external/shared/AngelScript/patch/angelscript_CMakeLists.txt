@@ -6,7 +6,7 @@ set_property( GLOBAL PROPERTY USE_FOLDERS ON )
 #----------------------------------------------------------------------------------
 # settings
 
-set( SOURCE_PATH "${CMAKE_CURRENT_SOURCE_DIR}" )
+set( SOURCE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/sdk" )
 set( AS_NO_EXCEPTIONS OFF CACHE INTERNAL "" FORCE )
 
 set( AE_EXTERNAL_PATH "${CMAKE_CURRENT_SOURCE_DIR}/../../.." )

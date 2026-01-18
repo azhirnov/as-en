@@ -13,7 +13,7 @@ namespace
 */
 	Nd__In ubyte  GetFirstTouch (uint activeTouches)
 	{
-		int		idx	= BitScanForward( activeTouches );
+		int		idx	= LowBitIndex( activeTouches );
 		return idx >= 0 ? ubyte(idx) : UMax;
 	}
 }
@@ -89,7 +89,7 @@ namespace
 
 		if_likely( state == EGestureState::Begin )
 		{
-			const int	i = BitScanForward( ~_activeTouches );
+			const int	i = LowBitIndex( ~_activeTouches );
 			if_likely( i >= 0 )
 			{
 				auto&	touch	= _touchData[i];
@@ -268,8 +268,8 @@ namespace
 */
 	void  GestureRecognizer::_Recognize2Touch (const uint activeCount, const Duration_t, InputActionsBase &ia) __NE___
 	{
-		const int		idx0		= BitScanForward( _activeTouches );
-		const int		idx1		= BitScanForward( _activeTouches & ~SafeLeftBitShift( 1u, idx0 ));
+		const int		idx0		= LowBitIndex( _activeTouches );
+		const int		idx1		= LowBitIndex( _activeTouches & ~SafeLeftBitShift( 1u, idx0 ));
 		const float		px_to_mm	= ia._pixToMm;
 		EGestureState	g_state		= EGestureState::Update;
 

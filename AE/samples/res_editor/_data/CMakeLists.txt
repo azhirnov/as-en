@@ -6,7 +6,7 @@ if (NOT DEFINED AE_ENGINE_SHARED_DATA)
 	set( AE_ENGINE_SHARED_DATA "${CMAKE_CURRENT_SOURCE_DIR}/../shared_data" )
 endif()
 
-file( GLOB_RECURSE SHADERS_SHARED "${AE_ENGINE_SHARED_DATA}/shaders/*.glsl" "${AE_ENGINE_SHARED_DATA}/experimental/*.glsl" )
+file( GLOB_RECURSE SHADERS_SHARED "${AE_ENGINE_SHARED_DATA}/shaders/*.glsl" "${AE_ENGINE_SHARED_DATA}/shaders/*.h" "${AE_ENGINE_SHARED_DATA}/experimental/*.glsl" )
 file( GLOB_RECURSE SHADERS_3PARTY "${AE_ENGINE_SHARED_DATA}/3party_shaders/*.glsl" )
 
 if (DEFINED MAIN_BINARY_DIR)
@@ -63,6 +63,7 @@ if (TRUE)
 	target_compile_features( "ResourceEditor.Data" PUBLIC cxx_std_20 )
 
 	target_compile_definitions( "ResourceEditor.Data" PUBLIC
+		"SCRIPT"
 		"AE_LICENSE_MIT"
 		"AE_LICENSE_BSD2"
 		"AE_LICENSE_BSD3"

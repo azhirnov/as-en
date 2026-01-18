@@ -122,7 +122,7 @@
 			RC<ComputePass>		pass = ComputePass( "", "CREATE_CLUSTERS" );
 			pass.Set( camera );
 			pass.ArgOut(	"un_Clusters",		clusters );
-			pass.Slider(	"iProjMode",		0,		2,			1 );			// linear view-space,  log view-space,  linear in depth buffer
+			pass.Slider(	"iProjMode",		0,		3,			1 );			// linear view-space,  log view-space,  linear in depth buffer
 			pass.Slider(	"iNearPlane",		0.01,	1.0,		1.0 );
 			pass.Slider(	"iFarPlane",		100.0,	1000.0,		100.0 );
 			pass.Slider(	"iUseFrustum",		0,		1 );
@@ -197,8 +197,19 @@
 				float4x4	proj		= f4x4_Perspective( un_PerPass.camera.fov.y, float2(iResolution), float2(z_near, z_far) );
 				float		cl_near_z	= float(clusterZ)     / float(clusterCount);
 				float		cl_far_z	= float(clusterZ + 1) / float(clusterCount);
-							cl_near_z	= FastUnProjectZ( proj, cl_near_z );
-							cl_far_z	= FastUnProjectZ( proj, cl_far_z );
+							cl_near_z	= Log2( FastUnProjectZ( proj, cl_near_z )) * 10.0;
+							cl_far_z	= Log2( FastUnProjectZ( proj, cl_far_z )) * 10.0;
+				return	float2( cl_near_z, cl_far_z );
+			}
+			case 3 :	// log in depth buffer
+			{
+				float4x4	proj		= f4x4_Perspective( un_PerPass.camera.fov.y, float2(iResolution), float2(z_near, z_far) );
+				float		cl_near_z	= float(clusterZ)     / float(clusterCount);
+				float		cl_far_z	= float(clusterZ + 1) / float(clusterCount);
+				float		scale		= Log2( z_far );
+				float		bias		= 1.0;
+							cl_near_z	= Log2( FastUnProjectZ( proj, cl_near_z )) * scale + bias;
+							cl_far_z	= Log2( FastUnProjectZ( proj, cl_far_z  )) * scale + bias;
 				return	float2( cl_near_z, cl_far_z );
 			}
 		}
@@ -235,30 +246,31 @@
 	// use linear interpolation from frustum corner points
 	void  GetClusterCorners_v2 (const int3 clusterIdx, const int3 clusterCount, out float3 outPoints[8])
 	{
+	#if 1
 		float2		z_near_far	= ZProjection( clusterIdx.z, clusterCount.z );
+		float2		z_factor	= (z_near_far - iNearPlane) / (iFarPlane - iNearPlane);
 
+		Frustum		main_fr		= Frustum_FromMatrix( un_PerPass.camera.proj, float2(iNearPlane, iFarPlane) );	// view space
+		Frustum		cluster_fr	= Frustum_ToCluster( main_fr, clusterIdx.xy, clusterCount.xy, z_factor );
+
+		Frustum_ToCornerPoints( cluster_fr, OUT outPoints );
+
+	#else
+		float2		z_near_far	= ZProjection( clusterIdx.z, clusterCount.z );
 		float2		uv0			= float2(clusterIdx.xy) / float2(clusterCount.xy);
 		float2		uv1			= float2(clusterIdx.xy + 1) / float2(clusterCount.xy);
 		float2		z_factor	= (z_near_far - iNearPlane) / (iFarPlane - iNearPlane);
+
+		uv0.y = 1.0 - uv0.y;
+		uv1.y = 1.0 - uv1.y;
 
 		Frustum		main_fr		= Frustum_FromMatrix( un_PerPass.camera.proj, float2(iNearPlane, iFarPlane) );
 
 		float3		corners [8];
 		Frustum_ToCornerPoints( main_fr, OUT corners );
 
-		#define CUBELERP( _uv_, _zfactor_ )\
-			(Lerp(	BiLerp( corners[2], corners[3], corners[0], corners[1], (_uv_) ), \
-					BiLerp( corners[6], corners[7], corners[4], corners[5], (_uv_) ), (_zfactor_) ))
-
-		outPoints[0] = CUBELERP( float2(uv0.x, uv0.y), z_factor.x );
-		outPoints[1] = CUBELERP( float2(uv1.x, uv0.y), z_factor.x );
-		outPoints[2] = CUBELERP( float2(uv0.x, uv1.y), z_factor.x );
-		outPoints[3] = CUBELERP( float2(uv1.x, uv1.y), z_factor.x );
-
-		outPoints[4] = CUBELERP( float2(uv0.x, uv0.y), z_factor.y );
-		outPoints[5] = CUBELERP( float2(uv1.x, uv0.y), z_factor.y );
-		outPoints[6] = CUBELERP( float2(uv0.x, uv1.y), z_factor.y );
-		outPoints[7] = CUBELERP( float2(uv1.x, uv1.y), z_factor.y );
+		FrustumCornerPoints_Lerp( OUT outPoints, corners, uv0, uv1, z_factor );
+	#endif
 	}
 
 
@@ -278,11 +290,7 @@
 		else
 			GetClusterCorners_v2( cluster_idx, cluster_count, OUT corners );
 
-		Sphere		sp;
-		sp.center	= (corners[0] + corners[7]) * 0.5;
-		float	r0	= Distance( sp.center, corners[1] );
-		float	r1	= Distance( sp.center, corners[6] );
-		sp.radius	= Max( r0, r1 );
+		Sphere	sp = FrustumCornerPoints_ToSphere( corners );
 
 		un_Clusters.elements[ idx ].sp		= float4( sp.center, sp.radius );
 		un_Clusters.elements[ idx ].points	= corners;

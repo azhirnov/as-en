@@ -14,6 +14,7 @@
 #include "res_pack/asset_packer/Packer/ImagePacker.h"
 
 #include "threading/DataSource/FileAsyncDataSource.h"
+#include "graphics_rhi/Private/EnumToString.h"
 
 namespace AE::ResEditor
 {
@@ -31,7 +32,7 @@ namespace {
 	Image::Image (const ImageDesc &		desc,
 			      const ImageViewDesc&	viewDesc,
 				  Renderer&				renderer,
-				  StringView			dbgName) :
+				  StringView			dbgName) __NE___ :
 		IResource{ renderer },
 		_requiredImageDesc{ desc },
 		_requiredViewDesc{ viewDesc },
@@ -48,7 +49,7 @@ namespace {
 				  RC<DynamicDim>		inDynSize,
 				  RC<DynamicDim>		outDynSize,
 				  EImageFlags			flags,
-				  StringView			dbgName) :
+				  StringView			dbgName) __NE___ :
 		IResource{ renderer },
 		_id{ RVRef(id) },
 		_view{ RVRef(view) },
@@ -60,12 +61,17 @@ namespace {
 		_requiredImageDesc{ desc },
 		_requiredViewDesc{ viewDesc },
 		_dbgName{ dbgName }
-	{
-		// TODO: destructor is not called when throw exception
+	{}
 
-		if ( isDummy )
+/*
+=================================================
+	_Init
+=================================================
+*/
+	void  Image::_Init () __Th___
+	{
+		if ( _isDummy.load() )
 		{
-			// TODO: may happens when uninitialized image used as input
 			CHECK_THROW( not _inDynSize );
 
 			_uploadStatus.store( EUploadStatus::InProgress );
@@ -89,17 +95,48 @@ namespace {
 				CHECK_THROW( req );
 
 				op.loaded = CreateInlineRev(
-					req, op.imgFormat,
-					[] (AsyncDSRequest req, EImageFormat fmt)
+					req, _dbgName, op.imgFormat,
+					[] (AsyncDSRequest req, String dbgName, EImageFormat fmt)
 						-> InlinePromise< IntermImageRC, ETaskQueue::Background >
 					{
 						auto  in = co_await req;
-						co_return _Load( in, fmt );
+						co_return _Load( in, RVRef(dbgName), fmt );
 					});
 			}
 
 			_DtTrQueue().EnqueueForUpload( GetRC() );
 		}
+	}
+
+/*
+=================================================
+	Create
+=================================================
+*/
+	RC<Image>  Image::Create (const ImageDesc &		desc,
+							  const ImageViewDesc&	viewDesc,
+							  Renderer&				renderer,
+							  StringView			dbgName) __NE___
+	{
+		return RC<Image>{ new Image{ desc, viewDesc, renderer, dbgName }};
+	}
+
+	RC<Image>  Image::Create (Strong<ImageID>		id,
+							  Strong<ImageViewID>	view,
+							  ArrayView<LoadOp>		loadOps,
+							  Renderer &			renderer,
+							  bool					isDummy,
+							  const ImageDesc &		desc,
+							  const ImageViewDesc&	viewDesc,
+							  RC<DynamicDim>		inDynSize,
+							  RC<DynamicDim>		outDynSize,
+							  EImageFlags			flags,
+							  StringView			dbgName) __NE___
+	{
+		RC<Image>	res{ new Image{ RVRef(id), RVRef(view), RVRef(loadOps), renderer, isDummy, desc, viewDesc,
+									RVRef(inDynSize), RVRef(outDynSize), flags, dbgName }};
+		res->_Init();  // throw
+		return res;
 	}
 
 /*
@@ -202,11 +239,12 @@ namespace {
 			CHECK_THROW( req );
 
 			load_op.loaded	= CreateInlineRev(
-				req, load_op.imgFormat,
-				[] (AsyncDSRequest req, EImageFormat fmt) -> InlinePromise< IntermImageRC, ETaskQueue::Background >
+				req, result->_dbgName, load_op.imgFormat,
+				[] (AsyncDSRequest req, String dbgName, EImageFormat fmt)
+					-> InlinePromise< IntermImageRC, ETaskQueue::Background >
 				{
 					auto res = co_await req;
-					co_return _Load( res, fmt );
+					co_return _Load( res, RVRef(dbgName), fmt );
 				});
 
 			result->_DtTrQueue().EnqueueForUpload( result );
@@ -863,7 +901,7 @@ namespace {
 	_Load
 =================================================
 */
-	Image::IntermImageRC  Image::_Load (const AsyncDSRequestResult &in, EImageFormat fileFormat)
+	Image::IntermImageRC  Image::_Load (const AsyncDSRequestResult &in, String dbgName, EImageFormat fileFormat)
 	{
 		using namespace ResLoader;
 
@@ -874,10 +912,48 @@ namespace {
 		MemRefRStream	stream	{ in.data, in.dataSize };
 		AllImageLoaders	loader;
 
-		if ( loader.LoadImage( INOUT *result, stream, False{"no flipY"}, null, fileFormat ))
-			return result;
+		if ( not loader.LoadImage( INOUT *result, stream, False{"no flipY"}, null, fileFormat ))
+		{
+			AE_LOGW( "Failed to load image '"s << dbgName << "': invalid data." );
+			return null;
+		}
 
-		return null;
+		// check format
+		auto&	fs = GraphicsScheduler().GetResourceManager().GetFeatureSet();
+
+		if ( not fs.linearSampledFormats.contains( result->PixelFormat() ))
+		{
+			IntermImageRC	result2 = MakeRC<IntermImage>();
+
+			// try to change format
+			auto&	fmt_info = EPixelFormat_GetInfo( result->PixelFormat() );
+
+			if ( fmt_info.channels == 3 and not fmt_info.IsCompressed() )
+			{
+				// use RGBA instead of RGB
+				for (auto fmt = EPixelFormat(0); fmt < EPixelFormat::_Count; fmt = EPixelFormat(uint(fmt) + 1))
+				{
+					auto&	other = EPixelFormat_GetInfo( fmt );
+					if ( other.valueType	== fmt_info.valueType			 and
+						 other.aspectMask	== fmt_info.aspectMask			 and
+						 other.channels		== 4							 and
+						 other.BitsPerChannel() == fmt_info.BitsPerChannel() and
+						 not other.IsCompressed() )
+					{
+						if ( fs.linearSampledFormats.contains( other.format ))
+						{
+							CHECK_ERR( result->Convert( fmt, OUT *result2 ));
+
+							AE_LOGW( "Image '"s << dbgName << "' format changed from " << ToString( result->PixelFormat() ) << " to " << ToString( fmt ));
+							result = RVRef(result2);
+						}
+						break;
+					}
+				}
+			}
+		}
+
+		return result;
 	}
 
 

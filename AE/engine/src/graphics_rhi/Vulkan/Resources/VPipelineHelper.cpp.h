@@ -215,11 +215,11 @@ namespace
 
 /*
 =================================================
-	SetMultisampleState
+	SetMultisamplingState
 =================================================
 */
-	void  SetMultisampleState (OUT VkPipelineMultisampleStateCreateInfo	&outState,
-							   const RenderState::MultisampleState		&inState) __NE___
+	void  SetMultisamplingState (OUT VkPipelineMultisampleStateCreateInfo	&outState,
+								 const RenderState::MultisamplingState		&inState) __NE___
 	{
 		outState.sType					= VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO;
 		outState.pNext					= null;
@@ -254,9 +254,9 @@ namespace
 	void  SetStencilOpState (OUT VkStencilOpState					&outState,
 							 const RenderState::StencilFaceState	&inState) __NE___
 	{
-		outState.failOp			= VEnumCast( inState.failOp );
-		outState.passOp			= VEnumCast( inState.passOp );
+		outState.failOp			= VEnumCast( inState.stencilFailOp );
 		outState.depthFailOp	= VEnumCast( inState.depthFailOp );
+		outState.passOp			= VEnumCast( inState.passOp );
 		outState.compareOp		= VEnumCast( inState.compareOp );
 		outState.compareMask	= inState.compareMask;
 		outState.writeMask		= inState.writeMask;
@@ -300,8 +300,9 @@ namespace
 	SetRasterizationState
 =================================================
 */
-	void  SetRasterizationState (OUT VkPipelineRasterizationStateCreateInfo	&outState,
-								 const RenderState::RasterizationState		&inState) __NE___
+	ND_ bool  SetRasterizationState (OUT VkPipelineRasterizationStateCreateInfo	&outState,
+									 const RenderState::RasterizationState		&inState,
+								     VTempLinearAllocator						&allocator) __NE___
 	{
 		outState.sType						= VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO;
 		outState.pNext						= null;
@@ -316,6 +317,20 @@ namespace
 		outState.rasterizerDiscardEnable	= inState.rasterizerDiscard;
 		outState.frontFace					= inState.frontFaceCCW ? VK_FRONT_FACE_COUNTER_CLOCKWISE : VK_FRONT_FACE_CLOCKWISE;
 		outState.cullMode					= VEnumCast( inState.cullMode );
+
+		if ( inState.conservativeRasterMode != Default )
+		{
+			auto*	cons_raster_state = allocator.Allocate< VkPipelineRasterizationConservativeStateCreateInfoEXT >();
+			CHECK_ERR( cons_raster_state != null );
+
+			cons_raster_state->sType							= VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_CONSERVATIVE_STATE_CREATE_INFO_EXT;
+			cons_raster_state->pNext							= null;
+			cons_raster_state->conservativeRasterizationMode	= VEnumCast( inState.conservativeRasterMode );
+			cons_raster_state->extraPrimitiveOverestimationSize	= 0.f;
+
+			outState.pNext = cons_raster_state;
+		}
+		return true;
 	}
 
 /*

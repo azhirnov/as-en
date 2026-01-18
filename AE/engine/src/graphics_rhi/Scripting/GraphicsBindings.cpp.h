@@ -551,6 +551,10 @@ namespace
 			BIND( QuadSwapHorizontal )
 			BIND( QuadSwapVertical )
 			BIND( QuadSwapDiagonal )
+			// Other
+			BIND( PartitionedNV )
+			BIND( Rotate )
+			BIND( RotateClustered )
 			#undef BIND
 			// ranges
 			default :
@@ -1455,6 +1459,8 @@ namespace
 			BIND( Afp16_Bfp16_Cfp32_Rfp32_M8_N8_K16 )
 			BIND( Au8_Bu8_Cu32_Ru32_M16_N16_K32 )
 			BIND( As8_Bs8_Cs32_Rs32_M16_N16_K32 )
+			BIND( Au8_Bu8_Cu32_Ru32_M16_N16_K16 )
+			BIND( As8_Bs8_Cs32_Rs32_M16_N16_K16 )
 			BIND( Au8_Bu8_Cu32_Ru32_M8_N8_K32 )
 			BIND( As8_Bs8_Cs32_Rs32_M8_N8_K32 )
 			#undef BIND
@@ -1480,6 +1486,28 @@ namespace
 			BIND( Tfp16_Ifp8e4m3_Mfp8e4m3_Bfp16_Rfp16 )
 			BIND( Tfp16_Ifp8e5m2_Mfp8e5m2_Bfp16_Rfp16 )
 			BIND( Ts8_Is8_Ms8_Bs32_Rs32 )
+			#undef BIND
+		}
+		switch_end
+	}
+
+/*
+=================================================
+	Bind_EConservativeRasterizationMode
+=================================================
+*/
+	static void  Bind_EConservativeRasterizationMode (const ScriptEnginePtr &se) __Th___
+	{
+		EnumBinder<EConservativeRasterizationMode>	binder{ se };
+		binder.Create();
+
+		switch_enum( EConservativeRasterizationMode::_Count )
+		{
+			case EConservativeRasterizationMode::_Count :
+			#define BIND( _name_ )		case EConservativeRasterizationMode::_name_ :	binder.AddValue( AE_TOSTRING(_name_), EConservativeRasterizationMode::_name_ );
+			BIND( Disabled )
+			BIND( Overestimate )
+			//BIND( Underestimate )
 			#undef BIND
 		}
 		switch_end
@@ -1747,7 +1775,7 @@ namespace
 	{
 		ClassBinder<RenderState::StencilFaceState>	binder{ se };
 		binder.CreateClassValue();
-		binder.AddProperty( &RenderState::StencilFaceState::failOp,			"failOp" );
+		binder.AddProperty( &RenderState::StencilFaceState::stencilFailOp,	"stencilFailOp" );
 		binder.AddProperty( &RenderState::StencilFaceState::depthFailOp,	"depthFailOp" );
 		binder.AddProperty( &RenderState::StencilFaceState::passOp,			"passOp" );
 		binder.AddProperty( &RenderState::StencilFaceState::compareOp,		"compareOp" );
@@ -1761,11 +1789,11 @@ namespace
 	Bind_RenderState_StencilBufferState
 =================================================
 */
-	static void  RenderState_StencilBufferState_FailOp (RenderState::StencilBufferState &self, EStencilOp op)
+	static void  RenderState_StencilBufferState_StencilFailOp (RenderState::StencilBufferState &self, EStencilOp op)
 	{
-		self.enabled		= true;
-		self.front.failOp	= op;
-		self.back.failOp	= op;
+		self.enabled				= true;
+		self.front.stencilFailOp	= op;
+		self.back.stencilFailOp		= op;
 	}
 
 	static void  RenderState_StencilBufferState_DepthFailOp (RenderState::StencilBufferState &self, EStencilOp op)
@@ -1830,27 +1858,27 @@ namespace
 
 		binder.Comment( "Stencil test compare operator.\n"
 						"if '(stencilAttachment & CompareMask) [CompareOp] (Reference & CompareMask)' then sample passed stencil test." );
-		AS_METHOD( binder, RenderState_StencilBufferState_CompareOp,		"CompareOp",	{} );
-		AS_METHOD( binder, RenderState_StencilBufferState_Reference,		"Reference",	{} );
-		AS_METHOD( binder, RenderState_StencilBufferState_CompareMask,		"CompareMask",	{} );
+		AS_METHOD( binder, RenderState_StencilBufferState_CompareOp,		"CompareOp",		{} );
+		AS_METHOD( binder, RenderState_StencilBufferState_Reference,		"Reference",		{} );
+		AS_METHOD( binder, RenderState_StencilBufferState_CompareMask,		"CompareMask",		{} );
 
 		binder.Comment( "Action performed on samples that fail the stencil test.\n"
-						"'stencilValue = FailOp( stencilAttachment )'\n"
+						"'stencilValue = StencilFailOp( stencilAttachment )'\n"
 						"See 'CompareOp', 'Reference' and 'CompareMask' to know how stencil test is performed." );
-		AS_METHOD( binder, RenderState_StencilBufferState_FailOp,			"FailOp",		{} );
+		AS_METHOD( binder, RenderState_StencilBufferState_StencilFailOp,	"StencilFailOp",	{} );
 
 		binder.Comment( "Action performed on samples that pass the stencil test and fail the depth test.\n"
 						"'stencilValue = DepthFailOp( stencilAttachment )'\n"
 						"Depth test happens after stencil test and before stencil update." );
-		AS_METHOD( binder, RenderState_StencilBufferState_DepthFailOp,		"DepthFailOp",	{} );
+		AS_METHOD( binder, RenderState_StencilBufferState_DepthFailOp,		"DepthFailOp",		{} );
 
 		binder.Comment( "Action performed on samples that pass both the depth and stencil tests.\n"
 						"'stencilValue = PassOp( stencilAttachment )'" );
-		AS_METHOD( binder, RenderState_StencilBufferState_PassOp,			"PassOp",		{} );
+		AS_METHOD( binder, RenderState_StencilBufferState_PassOp,			"PassOp",			{} );
 
 		binder.Comment( "Bitmask which is ANDed with new stencil value and stencil attachment value before updating stencil attachment.\n"
 						"'stencilAttachment = (stencilAttachment & WriteMask) | (stencilValue & WriteMask)'" );
-		AS_METHOD( binder, RenderState_StencilBufferState_WriteMask,		"WriteMask",	{} );
+		AS_METHOD( binder, RenderState_StencilBufferState_WriteMask,		"WriteMask",		{} );
 	}
 
 /*
@@ -1892,16 +1920,17 @@ namespace
 	{
 		ClassBinder<RenderState::RasterizationState>	binder{ se };
 		binder.CreateClassValue();
-		binder.AddProperty( &RenderState::RasterizationState::depthBiasConstFactor,	"depthBiasConstFactor" );
-		binder.AddProperty( &RenderState::RasterizationState::depthBiasClamp,		"depthBiasClamp" );
-		binder.AddProperty( &RenderState::RasterizationState::depthBiasSlopeFactor,	"depthBiasSlopeFactor" );
-		binder.AddProperty( &RenderState::RasterizationState::depthBias,			"depthBias" );
-		binder.AddProperty( &RenderState::RasterizationState::polygonMode,			"polygonMode" );
-		binder.AddProperty( &RenderState::RasterizationState::depthClamp,			"depthClamp" );
-		binder.AddProperty( &RenderState::RasterizationState::rasterizerDiscard,	"rasterizerDiscard" );
-		binder.AddProperty( &RenderState::RasterizationState::frontFaceCCW,			"frontFaceCCW" );
-		binder.AddProperty( &RenderState::RasterizationState::cullMode,				"cullMode" );
-		binder.AddProperty( &RenderState::RasterizationState::lineWidth,			"lineWidth" );
+		binder.AddProperty( &RenderState::RasterizationState::depthBiasConstFactor,		"depthBiasConstFactor" );
+		binder.AddProperty( &RenderState::RasterizationState::depthBiasClamp,			"depthBiasClamp" );
+		binder.AddProperty( &RenderState::RasterizationState::depthBiasSlopeFactor,		"depthBiasSlopeFactor" );
+		binder.AddProperty( &RenderState::RasterizationState::depthBias,				"depthBias" );
+		binder.AddProperty( &RenderState::RasterizationState::polygonMode,				"polygonMode" );
+		binder.AddProperty( &RenderState::RasterizationState::depthClamp,				"depthClamp" );
+		binder.AddProperty( &RenderState::RasterizationState::rasterizerDiscard,		"rasterizerDiscard" );
+		binder.AddProperty( &RenderState::RasterizationState::frontFaceCCW,				"frontFaceCCW" );
+		binder.AddProperty( &RenderState::RasterizationState::cullMode,					"cullMode" );
+		binder.AddProperty( &RenderState::RasterizationState::lineWidth,				"lineWidth" );
+		binder.AddProperty( &RenderState::RasterizationState::conservativeRasterMode,	"conservativeRasterMode" );
 	}
 
 /*
@@ -1911,14 +1940,14 @@ namespace
 */
 	static void  Bind_RenderState_MultisampleState (const ScriptEnginePtr &se) __Th___
 	{
-		ClassBinder<RenderState::MultisampleState>	binder{ se };
+		ClassBinder<RenderState::MultisamplingState>	binder{ se };
 		binder.CreateClassValue();
-		binder.AddProperty( &RenderState::MultisampleState::sampleMask,			"sampleMask" );
-		binder.AddProperty( &RenderState::MultisampleState::minSampleShading,	"minSampleShading" );
-		binder.AddProperty( &RenderState::MultisampleState::samples,			"samples" );
-		binder.AddProperty( &RenderState::MultisampleState::sampleShading,		"sampleShading" );
-		binder.AddProperty( &RenderState::MultisampleState::alphaToCoverage,	"alphaToCoverage" );
-		binder.AddProperty( &RenderState::MultisampleState::alphaToOne,			"alphaToOne" );
+		binder.AddProperty( &RenderState::MultisamplingState::sampleMask,		"sampleMask" );
+		binder.AddProperty( &RenderState::MultisamplingState::minSampleShading,	"minSampleShading" );
+		binder.AddProperty( &RenderState::MultisamplingState::samples,			"samples" );
+		binder.AddProperty( &RenderState::MultisamplingState::sampleShading,	"sampleShading" );
+		binder.AddProperty( &RenderState::MultisamplingState::alphaToCoverage,	"alphaToCoverage" );
+		binder.AddProperty( &RenderState::MultisamplingState::alphaToOne,		"alphaToOne" );
 	}
 
 /*
@@ -2018,6 +2047,7 @@ namespace
 		Bind_ECoopVecMatrixLayout( se );
 		Bind_ECoopMatrixCfg( se );
 		Bind_ECoopVecCfg( se );
+		Bind_EConservativeRasterizationMode( se );
 	}
 
 /*

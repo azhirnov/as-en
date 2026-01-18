@@ -46,7 +46,6 @@ AE_DECL_SCRIPT_TYPE( AE::Graphics::EStencilOp,					"EStencilOp"			);
 AE_DECL_SCRIPT_TYPE( AE::Graphics::EPolygonMode,				"EPolygonMode"			);
 AE_DECL_SCRIPT_TYPE( AE::Graphics::EPrimitive,					"EPrimitive"			);
 AE_DECL_SCRIPT_TYPE( AE::Graphics::ECullMode,					"ECullMode"				);
-AE_DECL_SCRIPT_TYPE( AE::Graphics::EPipelineDynamicState,		"EPipelineDynamicState"	);
 AE_DECL_SCRIPT_TYPE( AE::Graphics::EResourceState,				"EResourceState"		);
 AE_DECL_SCRIPT_TYPE( AE::Graphics::EImageAspect,				"EImageAspect"			);
 AE_DECL_SCRIPT_TYPE( AE::Graphics::EShaderIO,					"EShaderIO"				);
@@ -68,8 +67,6 @@ AE_DECL_SCRIPT_TYPE( AE::Graphics::EVertexInputRate,			"EVertexInputRate"		);
 AE_DECL_SCRIPT_TYPE( AE::Graphics::EDescSetUsage,				"EDescSetUsage"			);
 AE_DECL_SCRIPT_TYPE( AE::Graphics::EPipelineOpt,				"EPipelineOpt"			);
 AE_DECL_SCRIPT_TYPE( AE::Graphics::EQueueMask,					"EQueueMask"			);
-AE_DECL_SCRIPT_TYPE( AE::Graphics::ESamplerChromaLocation,		"ESamplerChromaLocation"		);
-AE_DECL_SCRIPT_TYPE( AE::Graphics::ESamplerYcbcrModelConversion,"ESamplerYcbcrModelConversion"	);
 AE_DECL_SCRIPT_TYPE( AE::Graphics::ESamplerYcbcrRange,			"ESamplerYcbcrRange"	);
 AE_DECL_SCRIPT_TYPE( AE::Graphics::ESurfaceFormat,				"ESurfaceFormat"		);
 AE_DECL_SCRIPT_TYPE( AE::Graphics::ERTInstanceOpt,				"ERTInstanceOpt"		);
@@ -84,6 +81,11 @@ AE_DECL_SCRIPT_TYPE( AE::Graphics::ECoopMatrixComponentType,	"ECoopMatrixCompone
 AE_DECL_SCRIPT_TYPE( AE::Graphics::ECoopVecMatrixLayout,		"ECoopVecMatrixLayout"	);
 AE_DECL_SCRIPT_TYPE( AE::Graphics::ECoopMatrixCfg,				"ECoopMatrixCfg"		);
 AE_DECL_SCRIPT_TYPE( AE::Graphics::ECoopVecCfg,					"ECoopVecCfg"			);
+
+AE_DECL_SCRIPT_TYPE( AE::Graphics::EPipelineDynamicState,			"EPipelineDynamicState"			);
+AE_DECL_SCRIPT_TYPE( AE::Graphics::ESamplerChromaLocation,			"ESamplerChromaLocation"		);
+AE_DECL_SCRIPT_TYPE( AE::Graphics::ESamplerYcbcrModelConversion,	"ESamplerYcbcrModelConversion"	);
+AE_DECL_SCRIPT_TYPE( AE::Graphics::EConservativeRasterizationMode,	"EConservativeRasterizationMode" );
 
 // BindTypes
 AE_DECL_SCRIPT_OBJ(	 AE::Graphics::MultiSamples,				"MultiSamples"			);
@@ -101,7 +103,7 @@ AE_DECL_SCRIPT_OBJ(	 AE::Graphics::RenderState::StencilBufferState,			"RenderSta
 AE_DECL_SCRIPT_OBJ(	 AE::Graphics::RenderState::DepthBufferState,			"RenderState_DepthBufferState"			);
 AE_DECL_SCRIPT_OBJ(	 AE::Graphics::RenderState::InputAssemblyState,			"RenderState_InputAssemblyState"		);
 AE_DECL_SCRIPT_OBJ(	 AE::Graphics::RenderState::RasterizationState,			"RenderState_RasterizationState"		);
-AE_DECL_SCRIPT_OBJ(	 AE::Graphics::RenderState::MultisampleState,			"RenderState_MultisampleState"			);
+AE_DECL_SCRIPT_OBJ(	 AE::Graphics::RenderState::MultisamplingState,			"RenderState_MultisampleState"			);
 AE_DECL_SCRIPT_OBJ(	 AE::Graphics::RenderState::RasterizationOrderAccess,	"RenderState_RasterizationOrderAccess"	);
 AE_DECL_SCRIPT_OBJ(	 AE::Graphics::RenderState,								"RenderState"							);
 

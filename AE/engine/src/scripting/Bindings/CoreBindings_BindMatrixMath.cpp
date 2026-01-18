@@ -184,6 +184,8 @@ namespace
 		static Mat_t	RotateY (const Mat_t&, Scalar_t angle)						{ return Mat_t::RotateY( Rad{angle} ); }
 		static Mat_t	RotateZ (const Mat_t&, Scalar_t angle)						{ return Mat_t::RotateZ( Rad{angle} ); }
 
+		static Mat_t	Inversed (const Mat_t& m)									{ return m.Inversed(); }
+
 		static Mat_t	Ortho (const Mat_t&, const Rect_t &viewport, const Vec2_t &range)						{ return Mat_t::Ortho( viewport, range ); }
 		static Mat_t	InfinitePerspective (const Mat_t&, Scalar_t fovY, Scalar_t aspectRatio, Scalar_t zNear)	{ return Mat_t::InfinitePerspective( Rad{fovY}, aspectRatio, zNear ); }
 		static Mat_t	Perspective1 (const Mat_t&, Scalar_t fovY, Scalar_t aspectRatio, const Vec2_t &range)	{ return Mat_t::Perspective( Rad{fovY}, aspectRatio, range ); }
@@ -245,6 +247,12 @@ namespace
 			AS_METHOD_T( binder, F::RotateX,			"RotateX",			{"angle"} );
 			AS_METHOD_T( binder, F::RotateY,			"RotateY",			{"angle"} );
 			AS_METHOD_T( binder, F::RotateZ,			"RotateZ",			{"angle"} );
+		}
+
+		if constexpr( IsSame< T, packed_float3x3 > or
+					  IsSame< T, packed_float4x4 >)
+		{
+			AS_METHOD_T( binder, F::Inversed,			"Inversed" );
 		}
 
 		if constexpr( IsSame< T, packed_float4x4 >)

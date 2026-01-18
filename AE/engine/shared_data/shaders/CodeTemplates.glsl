@@ -3,6 +3,7 @@
 	Code templates, snippets, default shaders, ...
 */
 #include "Math.glsl"
+#include "SDF.glsl"
 
 
 //-----------------------------------------------------------------------------
@@ -29,7 +30,15 @@ ND_ float2  ProceduralQuadUV ()			{ return float2( (gl.VertexIndex>>1)&1, gl.Ver
 
 #if SH_VERT
 
-ND_ int2  GenGridWithInstancingTriStrip ()		{ return int2( (gl.VertexIndex >> 1), (gl.VertexIndex & 1) + gl.InstanceIndex ); }
+ND_ int2  GenGridWithInstancingTriStrip (int vtx, int inst)
+{
+	return int2( (vtx >> 1), (vtx & 1) + inst );
+}
+
+ND_ int2  GenGridWithInstancingTriStrip ()
+{
+	return GenGridWithInstancingTriStrip( gl.VertexIndex, gl.InstanceIndex );
+}
 
 // if x > gridSize then set NaN to disable triangle
 ND_ int2  GenGridTriStrip (const int gridSize)
@@ -60,11 +69,46 @@ ND_ int2  GenGridTriStrip (const int gridSize)
 	return pos;
 }*/
 
-#endif
+#endif // SH_VERT
+
+//-----------------------------------------------------------------------------
+// Cube
+
+#if SH_VERT
+
+uint  GenCube_Mod3 (uint i)  { return i >= 3 ? i - 3 : i; }
+
+ND_ float3  GenCube (const uint vertexId, const uint face)
+{
+	// vertexId: [0..5]
+	// face:	 [0..5]
+
+	uint	nf		= face / 2;										// 0-X, 1-Y, 2-Z
+	uint	vid		= vertexId <= 2 ? vertexId : (6 - vertexId);	// [0..2] | [1..3]
+
+	float3	pos		= float3( Equal( uint3(face), uint3(0,2,4) ));
+	float3	neg		= float3( Equal( uint3(face), uint3(1,3,5) ));
+	float3	fpos	= pos - neg;									// [-1..+1]
+
+	float3	vpos	= float3( vid & 1, (vid >> 1) & 1, 0.5 );
+			vpos	= ToSNorm( float3( vpos[ GenCube_Mod3(nf+2) ], vpos[ GenCube_Mod3(nf+1) ], vpos[ GenCube_Mod3(nf+0) ] ));	// [-1..+1]
+
+	return (fpos + vpos);
+}
+
+ND_ float3  GenCube (const uint vertexId)
+{
+	const uint	face	= vertexId / 6;			// [0..5]
+	const uint	vid		= vertexId - face * 6;	// [0..5]
+	return GenCube( vid, face );
+}
+
+#endif // SH_VERT
 //-----------------------------------------------------------------------------
 
 
-#ifdef AE_fragment_shader_barycentric
+#ifdef SH_FRAG
+# ifdef AE_fragment_shader_barycentric
 /*
 =================================================
 	FSBarycentricWireframe
@@ -105,7 +149,24 @@ ND_ float2  FSBarycentricQuadWireframe (float thicknessPx, float falloffPx)
 {
 	return FSBarycentricWireframe( gl.BaryCoord + float3(1.0, 0.0, 0.0), thicknessPx, falloffPx );
 }
-#endif
+
+# endif // AE_fragment_shader_barycentric
+
+/*
+=================================================
+	FSBarycentricWireframe
+=================================================
+*/
+ND_ float2  FSBarycentricWireframeCompat (const float2 uv, const float thicknessPx, const float falloffPx)
+{
+  #ifdef AE_fragment_shader_barycentric
+	return FSBarycentricWireframe( thicknessPx, falloffPx );
+  #else
+	return AA_QuadGrid_dxdy( uv, float2(thicknessPx, falloffPx) );
+  #endif
+}
+
+#endif // SH_FRAG
 //-----------------------------------------------------------------------------
 
 
@@ -116,7 +177,8 @@ ND_ float2  FSBarycentricQuadWireframe (float thicknessPx, float falloffPx)
 	warning: some GPU may not execute helper invocations.
 =================================================
 */
-#if defined(SH_FRAG) and defined(AE_shader_subgroup_quad)
+#ifdef SH_FRAG
+# ifdef AE_shader_subgroup_quad
 ND_ uint  HelperInvocationCountPerQuad ()
 {
 	uint	helper = 0;
@@ -125,14 +187,15 @@ ND_ uint  HelperInvocationCountPerQuad ()
 	#else
 		helper = gl.HelperInvocation ? 1 : 0;
 	#endif
+	// TODO: use Broadcast
 	return	gl.quadGroup.Broadcast( helper, 0 ) +
 			gl.quadGroup.Broadcast( helper, 1 ) +
 			gl.quadGroup.Broadcast( helper, 2 ) +
 			gl.quadGroup.Broadcast( helper, 3 );
 }
-#endif
+# endif
 
-#if defined(SH_FRAG) and defined(AE_shader_subgroup_arithmetic)
+# ifdef AE_shader_subgroup_arithmetic
 ND_ uint  HelperInvocationCountPerSubgroup ()
 {
 	uint	helper = 0;
@@ -143,7 +206,8 @@ ND_ uint  HelperInvocationCountPerSubgroup ()
 	#endif
 	return gl.subgroup.Add( helper );
 }
-#endif
+# endif
+#endif // SH_FRAG
 /*
 =================================================
 	IsFullQuad
@@ -177,6 +241,14 @@ ND_ bool  IsFullSubgroup ()
 	int	val = 1;
 	int	sum = gl.subgroup.Add( val );
 	return sum == gl.subgroup.Size;
+}
+
+#elif defined(AE_shader_subgroup_ballot)
+ND_ bool  IsFullSubgroup ()
+{
+	uint4	thread_mask	= gl.subgroup.Ballot( true );
+	uint	count		= gl.subgroup.BallotBitCount( thread_mask );
+	return count == gl.subgroup.Size;
 }
 #endif
 

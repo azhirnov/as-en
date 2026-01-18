@@ -44,6 +44,14 @@ namespace AE::Base
 			ND_ Vec3_t const&	operator [] (usize idx)		C_NE___	{ ASSERT( idx < 4 );  return (&leftTop)[idx]; }
 		};
 
+		struct Cone
+		{
+			Vec3_t		origin;
+			TRadian<T>	halfAngle;
+			Vec3_t		dir;
+			Value_t		height;
+		};
+
 	private:
 		enum class ESide
 		{
@@ -75,44 +83,46 @@ namespace AE::Base
 
 	// methods
 	public:
-		TFrustum ()															__NE___ {}
+		TFrustum ()																__NE___ {}
 
-			void  Setup (const Matrix<T,4,4> &vp, const Vec2_t &clipPlanes)	__NE___;
-			void  Setup (const TCamera<T> &camera, const Vec2_t &clipPlanes)__NE___;
+			void  Setup (const Matrix<T,4,4> &vp, const Vec2_t &clipPlanes)		__NE___;
+			void  Setup (const TCamera<T> &camera, const Vec2_t &clipPlanes)	__NE___;
 
-			bool  FromCornerPoints (ArrayView<Vec3_t> points)				__NE___;
-			void  FromRays (const Rays &rays, const Vec2_t &clipPlanes)		__NE___;
+			bool  FromCornerPoints (ArrayView<Vec3_t> points)					__NE___;
+			void  FromRays (const Rays &rays, const Vec2_t &clipPlanes)			__NE___;
 
-		ND_ bool  IsVisible (const BoundingSphere<T> &)						C_NE___;
-		ND_ bool  IsVisible (const AxisAlignedBoundingBox<T> &)				C_NE___;
-		ND_ bool  IsVisible (const Vec3_t &point)							C_NE___;
-		ND_ bool  IsVisible (const TFrustum<T> &)							C_NE___;
+		ND_ bool  IsVisible (const BoundingSphere<T> &)							C_NE___;
+		ND_ bool  IsVisible (const AxisAlignedBoundingBox<T> &)					C_NE___;
+		ND_ bool  IsVisible (const Vec3_t &point)								C_NE___;
+		ND_ bool  IsVisible (const Vec3_t &lineBegin, const Vec3_t &lineEnd)	C_NE___;
+		ND_ bool  IsVisible (const TFrustum<T> &)								C_NE___;
+		ND_ bool  IsVisible (const Cone &)										C_NE___;
 
-		ND_ bool  GetRays (OUT Rays &rays)									C_NE___;
+		ND_ bool  GetRays (OUT Rays &rays)										C_NE___;
 
-		ND_ Plane const&	GetPlane (EPlane type)							C_NE___	{ return _planes[ uint(type) ]; }
-		ND_ Plane const&	GetPlane (uint idx)								C_NE___	{ return _planes[ idx ]; }
+		ND_ Plane const&	GetPlane (EPlane type)								C_NE___	{ return _planes[ uint(type) ]; }
+		ND_ Plane const&	GetPlane (uint idx)									C_NE___	{ return _planes[ idx ]; }
 
-		ND_ auto			ToAABB ()										C_NE___ -> AxisAlignedBoundingBox<T>;
+		ND_ auto			ToAABB ()											C_NE___ -> AxisAlignedBoundingBox<T>;
 
-		ND_ Vec3_t			GetRay (const Vec2_t &unormCoord)				C_NE___;
+		ND_ Vec3_t			GetRay (const Vec2_t &unormCoord)					C_NE___;
 
 		// experimental
 			void  Test (const AxisAlignedBoundingBox<T> &,
-						OUT bool &isVisible, OUT float &detailLevel)		C_NE___;
+						OUT bool &isVisible, OUT float &detailLevel)			C_NE___;
 
 
 	private:
-		ND_ Plane &			_GetPlane (EPlane type)							__NE___	{ return _planes[ uint(type) ]; }
+		ND_ Plane &			_GetPlane (EPlane type)								__NE___	{ return _planes[ uint(type) ]; }
 
 
-		void  _SetPlane (EPlane type, T a, T b, T c, T d)					__NE___;
-		bool  _GetIntersection (EPlane lhs, EPlane rhs, OUT Vec3_t &result)	C_NE___;
-		void  _GetCorners (OUT StaticArray<Vec3_t, 8> &)					C_NE___;
+		void  _SetPlane (EPlane type, T a, T b, T c, T d)						__NE___;
+		bool  _GetIntersection (EPlane lhs, EPlane rhs, OUT Vec3_t &result)		C_NE___;
+		void  _GetCorners (OUT StaticArray<Vec3_t, 8> &)						C_NE___;
 
-		ND_ Plane  _PlaneFromPoints (Vec3_t p0, Vec3_t p1, Vec3_t p2)		C_NE___;
+		ND_ Plane  _PlaneFromPoints (Vec3_t p0, Vec3_t p1, Vec3_t p2)			C_NE___;
 
-		ND_ Vec3_t  _IntersectPlanes (EPlane p0, EPlane p1, EPlane p2)		C_NE___;
+		ND_ Vec3_t  _IntersectPlanes (EPlane p0, EPlane p1, EPlane p2)			C_NE___;
 	};
 
 
@@ -290,6 +300,50 @@ namespace AE::Base
 
 /*
 =================================================
+	IsVisible (Line)
+=================================================
+*/
+	template <typename T>
+	bool  TFrustum<T>::IsVisible (const Vec3_t &lineBegin, const Vec3_t &lineEnd) C_NE___
+	{
+		ASSERT( _initialized );
+
+		T	invisible = T(0);
+
+		for (auto& plane : _planes)
+		{
+			invisible += T( (Dot( plane.norm, lineBegin ) + plane.dist) < -_err ) *
+						 T( (Dot( plane.norm, lineEnd   ) + plane.dist) < -_err );
+		}
+		return invisible <= T(0);
+	}
+
+/*
+=================================================
+	IsVisible (Cone)
+=================================================
+*/
+	template <typename T>
+	bool  TFrustum<T>::IsVisible (const Cone &cone) C_NE___
+	{
+		ASSERT( _initialized );
+
+		const Vec3_t	base_center	= cone.origin + cone.dir * cone.height;
+		const T			radius		= cone.height * Tan( cone.halfAngle );
+
+		for (auto& plane : _planes)
+		{
+			T	dist_apex	= Dot( plane.norm, cone.origin ) + plane.dist;
+			T	dist_base	= Dot( plane.norm, base_center ) + plane.dist + radius;
+
+			if ( dist_apex < -_err and dist_base < -_err )
+				return false;
+		}
+		return true;
+	}
+
+/*
+=================================================
 	ToAABB
 =================================================
 */
@@ -443,6 +497,22 @@ namespace AE::Base
 		_planes[uint( EPlane::Right	 )] = _PlaneFromPoints( points[1], points[3], points[5] );
 		_planes[uint( EPlane::Top	 )] = _PlaneFromPoints( points[0], points[5], points[4] );
 		_planes[uint( EPlane::Bottom )] = _PlaneFromPoints( points[2], points[6], points[3] );
+
+		#ifdef AE_DEBUG
+		{
+			Vec3_t	min {MaxValue<T>()};
+			Vec3_t	max {MinValue<T>()};
+
+			for (auto& pt : points)
+			{
+				min = Min( min, pt );
+				max = Max( max, pt );
+			}
+
+			Vec3_t	center = Average( min, max );
+			CHECK( IsVisible( center ));
+		}
+		#endif
 		return true;
 	}
 

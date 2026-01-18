@@ -30,9 +30,9 @@ namespace
 			.BufferBarrier( t.buf_2, EResourceState::CopyDst, EResourceState::CopySrc );
 
 		auto	read_res = ctx.ReadbackBuffer( t.buf_2, ReadbackBufferDesc{}.DataSize( t.buf_size ));
-		CHECK_CE( read_res.IsCompleted() );
+		CHECK_CE( read_res.IsFullyRead() );
 
-		t.result = read_res.Then( t,
+		t.result = read_res.IfFullyRead( t,
 						[] (Promise<BufferMemView> readRes, CoSafe<CB1_TestData&> t) -> InlineCoro<>
 						{
 							BufferMemView view = co_await readRes;

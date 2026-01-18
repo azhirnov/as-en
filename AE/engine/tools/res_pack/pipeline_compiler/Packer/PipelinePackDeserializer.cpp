@@ -1107,13 +1107,13 @@ namespace {
 			const auto	FaceToStr = [] (StringView prefix, const RenderState::StencilFaceState &sf)
 			{{
 				String	res;
-				res << prefix << "failOp      = " << Base::ToString( sf.failOp )
-					<< prefix << "depthFailOp = " << Base::ToString( sf.depthFailOp )
-					<< prefix << "passOp      = " << Base::ToString( sf.passOp )
-					<< prefix << "compareOp   = " << Base::ToString( sf.compareOp )
-					<< prefix << "reference   = " << Base::ToString( uint(sf.reference) )
-					<< prefix << "writeMask   = " << Base::ToString( uint(sf.writeMask) )
-					<< prefix << "compareMask = " << Base::ToString( uint(sf.compareMask) );
+				res << prefix << "stencilFailOp = " << Base::ToString( sf.stencilFailOp )
+					<< prefix << "depthFailOp   = " << Base::ToString( sf.depthFailOp )
+					<< prefix << "passOp        = " << Base::ToString( sf.passOp )
+					<< prefix << "compareOp     = " << Base::ToString( sf.compareOp )
+					<< prefix << "reference     = " << Base::ToString( uint(sf.reference) )
+					<< prefix << "writeMask     = " << Base::ToString( uint(sf.writeMask) )
+					<< prefix << "compareMask   = " << Base::ToString( uint(sf.compareMask) );
 				return res;
 			}};
 
@@ -1231,7 +1231,7 @@ namespace {
 				<< "\n      }";
 		}
 
-		if ( rs.multisample != RenderState::MultisampleState{} )
+		if ( rs.multisample != RenderState::MultisamplingState{} )
 		{
 			const auto&	ms = rs.multisample;
 			str << "\n      multisample = {"

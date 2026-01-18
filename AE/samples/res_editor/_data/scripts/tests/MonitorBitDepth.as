@@ -3,6 +3,8 @@
 	Visualize gradient and match grid with gradient lanes.
 
 	bit depth = 1 / (iRange / iGridSize)
+
+	[Dithering](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/scripts/samples-2d/Dithering.as) sample shows how to hide this effect.
 */
 #ifdef __INTELLISENSE__
 # 	include <res_editor.as>
@@ -18,7 +20,7 @@
 		RC<DynamicUInt>		grid_size	= DynamicUInt();
 
 		Slider( range,		"Range",		0.0,	0.1,	0.059 );
-		Slider( grid_size,	"GridSize",		8,		16,		15 );
+		Slider( grid_size,	"GridSize",		8,		64,		15 );
 
 		// render loop
 		{
@@ -33,8 +35,10 @@
 		}
 		Present( rt );
 
-		RC<DynamicFloat>	bit_depth = grid_size.ToFloat().Div( range );
-		Label( bit_depth, "bit depth" );
+		RC<DynamicFloat>	col_range = grid_size.ToFloat().Div( range );
+		RC<DynamicFloat>	bit_depth = col_range.Log2();
+		Label( col_range, 	"color range" );
+		Label( bit_depth,	"bit depth" );
 	}
 
 #endif

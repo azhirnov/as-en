@@ -25,7 +25,7 @@ namespace AE
 
 	#ifdef AE_PLATFORM_WINDOWS
 	# if UNICODE
-		using CharType			= wchar_t;	// L''
+		using CharType			= wchar_t;	// L'' same as utf16
 	#	define TXT( _text_ )	(L"" _text_)
 	# else
 		using CharType			= CharAnsi;
@@ -60,7 +60,6 @@ namespace AE::Base
 	#endif
 
 	using String			= BasicString< CharAnsi >;
-	using WString			= BasicString< wchar_t >;
 	using U8String			= BasicString< CharUtf8 >;
 	using U16String			= BasicString< CharUtf16 >;
 	using U32String			= BasicString< CharUtf32 >;
@@ -69,11 +68,14 @@ namespace AE::Base
 	template <typename T>
 	using BasicStringView	= std::basic_string_view<T>;
 	using StringView		= BasicStringView< CharAnsi >;
-	using WStringView		= BasicStringView< wchar_t >;
 	using U8StringView		= BasicStringView< CharUtf8 >;
 	using U16StringView		= BasicStringView< CharUtf16 >;
 	using U32StringView		= BasicStringView< CharUtf32 >;
 
+	#ifdef AE_PLATFORM_WINDOWS
+		using WString		= BasicString< wchar_t >;
+		using WStringView	= BasicStringView< wchar_t >;
+	#endif
 
 	using Path				= std::filesystem::path;
 

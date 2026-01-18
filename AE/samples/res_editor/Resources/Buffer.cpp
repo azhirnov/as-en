@@ -29,7 +29,7 @@ namespace
 	constructor
 =================================================
 */
-	Buffer::Buffer (Renderer& renderer, StringView dbgName) :
+	Buffer::Buffer (Renderer& renderer, StringView dbgName) __NE___ :
 		IResource{ renderer },
 		_flags{ Default },
 		_dbgName{ dbgName }
@@ -46,7 +46,7 @@ namespace
 					RC<DynamicUInt>		outDynCount,
 					StringView			dbgName,
 					EBufferFlags		flags,
-					Array<RC<Buffer>>	refBuffers) __Th___ :
+					Array<RC<Buffer>>	refBuffers) __NE___ :
 		IResource{ renderer },
 		_typeName{ typeName },
 		_staticSize{ staticSize },
@@ -59,15 +59,23 @@ namespace
 		_dbgName{ dbgName },
 		_refBuffers{ RVRef(refBuffers) }
 	{
+		for (usize i = 0; i < ids.size(); ++i) {
+			Unused( _ids[i].Attach( RVRef(ids[i]) ));
+		}
+	}
+
+/*
+=================================================
+	_Init
+=================================================
+*/
+	void  Buffer::_Init () __Th___
+	{
 		if ( _inDynCount )
 			CHECK_THROW( _elemSize > 0_b );
 
 		if ( HasHistory() )
 			CHECK_THROW( not _inDynCount );
-
-		for (usize i = 0; i < ids.size(); ++i) {
-			Unused( _ids[i].Attach( RVRef(ids[i]) ));
-		}
 
 		if ( not _loadOp.IsDefined() )
 		{
@@ -85,7 +93,7 @@ namespace
 
 			if ( _loadOp.file )
 			{
-				_loadOp.request = _loadOp.file->ReadRemaining( 0_b );	// TODO: optimize?
+				_loadOp.request = _loadOp.file->ReadRemaining( 0_b );	// TODO: read by blocks?
 				CHECK_THROW( _loadOp.request );
 
 				if ( _outDynCount )
@@ -95,13 +103,43 @@ namespace
 			_DtTrQueue().EnqueueForUpload( GetRC() );
 		}
 
-		if ( AnyBits( desc.usage, c_DevAddrUsage ))
+		if ( AnyBits( _requiredBufDesc.usage, c_DevAddrUsage ))
 		{
 			auto&	res_mngr = GraphicsScheduler().GetResourceManager();
 			for (usize i = 0; i < _ids.size(); ++i) {
 				_address[i] = BitCast<ulong>(res_mngr.GetResourcesOrThrow( _ids[i].Get() ).GetDeviceAddress());
 			}
 		}
+	}
+
+/*
+=================================================
+	Create
+=================================================
+*/
+	RC<Buffer>  Buffer::Create (Renderer&	renderer,
+								StringView	dbgName) __Th___
+	{
+		return RC<Buffer>{ new Buffer{ renderer, dbgName }};
+	}
+
+	RC<Buffer>  Buffer::Create (IDs_t				ids,
+								const BufferDesc &	desc,
+								Bytes				staticSize,
+								Bytes				elemSize,
+								LoadOp				loadOp,
+								ShaderStructName	typeName,
+								Renderer &			renderer,
+								RC<DynamicUInt>		inDynCount,
+								RC<DynamicUInt>		outDynCount,
+								StringView			dbgName,
+								EBufferFlags		flags,
+								Array<RC<Buffer>>	refBuffers)	__Th___
+	{
+		RC<Buffer>	res{ new Buffer{ RVRef(ids), desc, staticSize, elemSize, RVRef(loadOp), typeName, renderer,
+									 RVRef(inDynCount), RVRef(outDynCount), dbgName, flags, RVRef(refBuffers) }};
+		res->_Init();
+		return res;
 	}
 
 /*
@@ -214,6 +252,21 @@ namespace
 
 /*
 =================================================
+	_SetUploadStatus
+=================================================
+*/
+	void  Buffer::_SetUploadStatus (EUploadStatus newStatus) __NE___
+	{
+		_loadOp = Default;
+
+		IResource::_SetUploadStatus( newStatus );
+
+		if ( newStatus == EUploadStatus::Completed and _outDynCount )
+			_outDynCount->Set( CheckCast{ ArraySize() });
+	}
+
+/*
+=================================================
 	Upload
 =================================================
 */
@@ -265,7 +318,6 @@ namespace
 			CHECK_ERR( ctx.UploadBuffer( _ids[0].Get(), 0_b, _loadOp.data, EStagingHeapType::Dynamic ), EUploadStatus::InProgress );
 			CopyHistory( ArraySizeOf(_loadOp.data) );
 
-			_loadOp.data = {};
 			_SetUploadStatus( EUploadStatus::Completed );
 			return _uploadStatus.load();
 		}
@@ -278,6 +330,7 @@ namespace
 
 		if ( not _loadOp.request->IsCompleted() )
 			return EUploadStatus::InProgress;
+
 
 		// extract data
 		ArrayView<ubyte>	loaded_data = _loadOp.request->GetResult().AsArray<ubyte>();
@@ -314,11 +367,7 @@ namespace
 		// streaming complete
 		if ( _loadOp.stream.IsCompleted() )
 		{
-			_loadOp = Default;
 			_SetUploadStatus( EUploadStatus::Completed );
-
-			if ( _outDynCount )
-				_outDynCount->Set( CheckCast{ ArraySize() });
 		}
 
 		return _uploadStatus.load();

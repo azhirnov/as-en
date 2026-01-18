@@ -34,6 +34,9 @@
 #define length			__reserved__
 #define input			__reserved__
 
+#define uniform			// used scalar register and uniform control flow
+#define nonuniform		// used vector register
+
 // used for vec/mat type building (templates)
 // AEStyleGLSLPreprocessor will replace it by GLSL vec/mat type without dimension suffix
 #define float_vec_t		float
@@ -431,8 +434,8 @@ public:
 
 	// GL_EXT_nonuniform_qualifier
   #ifdef AE_nonuniform_qualifier
-	ND_ int   Nonuniform (int);
-	ND_ uint  Nonuniform (uint);
+	ND_ nonuniform int   Nonuniform (int);
+	ND_ nonuniform uint  Nonuniform (uint);
   #endif
 
 	// GL_EXT_subgroupuniform_qualifier
@@ -443,7 +446,7 @@ public:
 	//  * local variable declarations with no storage qualifier
 	//  * function parameter declarations and function return types.
 	template <typename T>
-	ND_ T	SubgroupUniform (const T &);
+	ND_ uniform T	SubgroupUniform (const T &);
   #endif
 
 
@@ -911,7 +914,7 @@ public:
 		  #endif
 		} memoryBarrier {};
 
-			void	ExecutionBarrier () const;
+			void	Barrier () const;										// execution barrier and full memory barrier - equal to 'memoryBarrier.All()'
 		ND_ bool	Elect () const;											// exactly one invocation will return true
 
 		// in
@@ -924,25 +927,28 @@ public:
 	  #endif
 
 	  #ifdef AE_shader_subgroup_vote
-		ND_ bool	All (bool) const;										// returns true if all active invocation has 'value == true'
-		ND_ bool	Any (bool) const;										// returns true if any active invocation have 'value == true'
+		ND_ uniform	bool	All (bool) const;								// returns true if all active invocation has 'value == true'
+		ND_ uniform	bool	Any (bool) const;								// returns true if any active invocation have 'value == true'
 
-		template <typename T>	ND_ bool	AllEqual (const T) const;		// returns true if all active invocation have a 'value' that is equal
+		template <typename T>	ND_ uniform	bool	AllEqual (T) const;		// returns true if all active invocation have a 'value' that is equal
 	  #endif
 
 	  #ifdef AE_shader_subgroup_ballot
-		template <typename T>	ND_ T		Broadcast (const T value, uint id) const;	// returns the 'value' from the invocation whose ID is equal to 'id',
-																						// 'AE_subgroupBroadcastDynamicId' allows dynamically uniform 'id', but it is slow
-		template <typename T>	ND_ T		BroadcastFirst (const T) const;	// returns the 'value' from the active invocation with the lowest ID
+		template <typename T>	ND_ uniform	T		Broadcast (T value, uniform uint id) const;		// returns the 'value' from the invocation whose ID is equal to 'id'.
+																									// 'id' must be compile-time constant.
+																									// 'AE_subgroupBroadcastDynamicId' allows dynamically uniform 'id', but it is slow.
+		template <typename T>	ND_	uniform	T		BroadcastFirst (T) const;						// returns the 'value' from the active invocation with the lowest ID
 
-		ND_ uint4	Ballot (bool) const;									// returns a set of bitfields containing the result of evaluating the expression 'value' in all active invocations in the subgroup
-		ND_ bool	InverseBallot (const uint4) const;
-		ND_ bool	BallotBitExtract (const uint4 value, uint index) const;
-		ND_ uint	BallotBitCount (const uint4) const;
-		ND_ uint	BallotInclusiveBitCount (const uint4) const;			// see Inclusive<op>
-		ND_ uint	BallotExclusiveBitCount (const uint4) const;			// see Exclusive<op>
-		ND_ uint	BallotFindLSB (const uint4) const;
-		ND_ uint	BallotFindMSB (const uint4) const;
+		ND_ uniform	uint4	Ballot (bool) const;					// returns a set of bitfields containing the result of evaluating the expression 'value' in all active invocations in the subgroup
+
+		// helpers, doesnt use cross-lane operations
+		ND_ bool	InverseBallot (uint4) const;
+		ND_ bool	BallotBitExtract (uint4 value, uint index) const;
+		ND_ uint	BallotBitCount (uint4) const;
+		ND_ uint	BallotInclusiveBitCount (uint4) const;			// see Inclusive<op>
+		ND_ uint	BallotExclusiveBitCount (uint4) const;			// see Exclusive<op>
+		ND_ uint	BallotFindLSB (uint4) const;
+		ND_ uint	BallotFindMSB (uint4) const;
 
 		// in
 		const	uint4	EqMask;
@@ -953,48 +959,90 @@ public:
 	  #endif
 
 	  #ifdef AE_shader_subgroup_shuffle
-		template <typename T>	ND_ T		Shuffle (const T value, uint id) const;
-		template <typename T>	ND_ T		ShuffleXor (const T value, uint mask) const;
+																								// 'id' and 'mask' can be runtime non-uniform value.
+																								// It is faster than using workgroup shared memory.
+		template <typename T>	ND_ nonuniform T	Shuffle (T value, uint id) const;			// same as:  input[ subgroup.Index ] = value;  return input[ id ];
+		template <typename T>	ND_ nonuniform T	ShuffleXor (T value, uint mask) const;		// same as:  input[ subgroup.Index ] = value;  return input[ subgroup.Index ^ mask ];
 	  #endif
 	  #ifdef AE_shader_subgroup_shuffle_relative
-		template <typename T>	ND_ T		ShuffleUp (const T value, uint delta) const;
-		template <typename T>	ND_ T		ShuffleDown (const T value, uint delta) const;
+																								// 'delta' can be runtime non-uniform value.
+		template <typename T>	ND_ nonuniform T	ShuffleUp (T value, uint delta) const;		// same as:  input[ subgroup.Index ] = value;  return input[ subgroup.Index - delta ];
+		template <typename T>	ND_ nonuniform T	ShuffleDown (T value, uint delta) const;	// same as:  input[ subgroup.Index ] = value;  return input[ subgroup.Index + delta ];
 	  #endif
 
 	  #ifdef AE_shader_subgroup_arithmetic
-		template <typename T>	ND_ T		Add (const T) const;				//	same as:
-		template <typename T>	ND_ T		Mul (const T) const;				//		input[ subgroup.Index ] = x
-		template <typename T>	ND_ T		Min (const T) const;				//		for (accum = 0, i = 0; i < subgroup.Size; ++i)
-		template <typename T>	ND_ T		Max (const T) const;				//			accum <op>= input[i]
-		template <typename T>	ND_ T		And (const T) const;				//		return accum
-		template <typename T>	ND_ T		Or  (const T) const;
-		template <typename T>	ND_ T		Xor (const T) const;
+		template <typename T>	ND_ uniform T		Add (T) const;				//	same as:
+		template <typename T>	ND_ uniform T		Mul (T) const;				//		input[ subgroup.Index ] = x
+		template <typename T>	ND_ uniform T		Min (T) const;				//		for (accum = 0, i = 0; i < subgroup.Size; ++i)
+		template <typename T>	ND_ uniform T		Max (T) const;				//			accum <op>= input[i]
+		template <typename T>	ND_ uniform T		And (T) const;				//		return accum
+		template <typename T>	ND_ uniform T		Or  (T) const;				//
+		template <typename T>	ND_ uniform T		Xor (T) const;				//
 
-		template <typename T>	ND_ T		InclusiveAdd (const T) const;		//	same as:
-		template <typename T>	ND_ T		InclusiveMul (const T) const;		//		input[ subgroup.Index ] = x
-		template <typename T>	ND_ T		InclusiveMin (const T) const;		//		for (accum = 0, i = 0; i < subgroup.Size; ++i)
-		template <typename T>	ND_ T		InclusiveAnd (const T) const;		//			accum <op>= input[i]
-		template <typename T>	ND_ T		InclusiveMax (const T) const;		//			result[i] = accum
-		template <typename T>	ND_ T		InclusiveOr  (const T) const;		//		return result[ subgroup.Index ]
-		template <typename T>	ND_ T		InclusiveXor (const T) const;
+		template <typename T>	ND_ nonuniform T	InclusiveAdd (T) const;		//	same as:
+		template <typename T>	ND_ nonuniform T	InclusiveMul (T) const;		//		input[ subgroup.Index ] = x
+		template <typename T>	ND_ nonuniform T	InclusiveMin (T) const;		//		for (accum = 0, i = 0; i < subgroup.Size; ++i)
+		template <typename T>	ND_ nonuniform T	InclusiveAnd (T) const;		//			accum <op>= input[i]
+		template <typename T>	ND_ nonuniform T	InclusiveMax (T) const;		//			result[i] = accum
+		template <typename T>	ND_ nonuniform T	InclusiveOr  (T) const;		//		return result[ subgroup.Index ]
+		template <typename T>	ND_ nonuniform T	InclusiveXor (T) const;		//
 
-		template <typename T>	ND_ T		ExclusiveAdd (const T) const;		//	same as:
-		template <typename T>	ND_ T		ExclusiveMul (const T) const;		//		input[ subgroup.Index ] = x
-		template <typename T>	ND_ T		ExclusiveMin (const T) const;		//		for (accum = 0, i = 0; i < subgroup.Size; ++i)
-		template <typename T>	ND_ T		ExclusiveMax (const T) const;		//			result[i] = accum
-		template <typename T>	ND_ T		ExclusiveAnd (const T) const;		//			accum <op>= input[i]
-		template <typename T>	ND_ T		ExclusiveOr  (const T) const;		//		return result[ subgroup.Index ]
-		template <typename T>	ND_ T		ExclusiveXor (const T) const;
+		template <typename T>	ND_ nonuniform T	ExclusiveAdd (T) const;		//	same as:
+		template <typename T>	ND_ nonuniform T	ExclusiveMul (T) const;		//		input[ subgroup.Index ] = x
+		template <typename T>	ND_ nonuniform T	ExclusiveMin (T) const;		//		for (accum = 0, i = 0; i < subgroup.Size; ++i)
+		template <typename T>	ND_ nonuniform T	ExclusiveMax (T) const;		//			result[i] = accum
+		template <typename T>	ND_ nonuniform T	ExclusiveAnd (T) const;		//			accum <op>= input[i]
+		template <typename T>	ND_ nonuniform T	ExclusiveOr  (T) const;		//		return result[ subgroup.Index ]
+		template <typename T>	ND_ nonuniform T	ExclusiveXor (T) const;		//
 	  #endif
 
 	  #ifdef AE_shader_subgroup_clustered
-		template <typename T>	ND_ T		ClusteredAdd (const T value, uint clasterSize) const;
-		template <typename T>	ND_ T		ClusteredMul (const T value, uint clasterSize) const;
-		template <typename T>	ND_ T		ClusteredMin (const T value, uint clasterSize) const;
-		template <typename T>	ND_ T		ClusteredMax (const T value, uint clasterSize) const;
-		template <typename T>	ND_ T		ClusteredAnd (const T value, uint clasterSize) const;
-		template <typename T>	ND_ T		ClusteredOr  (const T value, uint clasterSize) const;
-		template <typename T>	ND_ T		ClusteredXor (const T value, uint clasterSize) const;
+																									// 'clasterSize' must be power of 2 compile-time constant.
+		template <typename T>	ND_ nonuniform T	ClusteredAdd (T value, uint clasterSize) const;	//
+		template <typename T>	ND_ nonuniform T	ClusteredMul (T value, uint clasterSize) const;	// same as:
+		template <typename T>	ND_ nonuniform T	ClusteredMin (T value, uint clasterSize) const;	//		base = subgroup.Index & ~(clasterSize-1)
+		template <typename T>	ND_ nonuniform T	ClusteredMax (T value, uint clasterSize) const;	//		for (uint i = 0; i < clasterSize; ++i)
+		template <typename T>	ND_ nonuniform T	ClusteredAnd (T value, uint clasterSize) const;	//			result <op>= input[ base + i ]
+		template <typename T>	ND_ nonuniform T	ClusteredOr  (T value, uint clasterSize) const;	//		return result
+		template <typename T>	ND_ nonuniform T	ClusteredXor (T value, uint clasterSize) const;	//
+	  #endif
+
+		// GL_NV_shader_subgroup_partitioned
+	  #ifdef AE_shader_subgroup_partitioned
+		template <typename T>	ND_ nonuniform T	PartitionedAdd (T, uint4 ballot) const;
+		template <typename T>	ND_ nonuniform T	PartitionedMul (T, uint4 ballot) const;
+		template <typename T>	ND_ nonuniform T	PartitionedMin (T, uint4 ballot) const;
+		template <typename T>	ND_ nonuniform T	PartitionedMax (T, uint4 ballot) const;
+		template <typename T>	ND_ nonuniform T	PartitionedAnd (T, uint4 ballot) const;
+		template <typename T>	ND_ nonuniform T	PartitionedOr  (T, uint4 ballot) const;
+		template <typename T>	ND_ nonuniform T	PartitionedXor (T, uint4 ballot) const;
+
+		template <typename T>	ND_ nonuniform T	PartitionedInclusiveAdd (T, uint4 ballot) const;
+		template <typename T>	ND_ nonuniform T	PartitionedInclusiveMul (T, uint4 ballot) const;
+		template <typename T>	ND_ nonuniform T	PartitionedInclusiveMin (T, uint4 ballot) const;
+		template <typename T>	ND_ nonuniform T	PartitionedInclusiveMax (T, uint4 ballot) const;
+		template <typename T>	ND_ nonuniform T	PartitionedInclusiveOr  (T, uint4 ballot) const;
+		template <typename T>	ND_ nonuniform T	PartitionedInclusiveXor (T, uint4 ballot) const;
+
+		template <typename T>	ND_ nonuniform T	PartitionedExclusiveAdd (T, uint4 ballot) const;
+		template <typename T>	ND_ nonuniform T	PartitionedExclusiveMul (T, uint4 ballot) const;
+		template <typename T>	ND_ nonuniform T	PartitionedExclusiveMin (T, uint4 ballot) const;
+		template <typename T>	ND_ nonuniform T	PartitionedExclusiveMax (T, uint4 ballot) const;
+		template <typename T>	ND_ nonuniform T	PartitionedExclusiveAnd (T, uint4 ballot) const;
+		template <typename T>	ND_ nonuniform T	PartitionedExclusiveOr  (T, uint4 ballot) const;
+		template <typename T>	ND_ nonuniform T	PartitionedExclusiveXor (T, uint4 ballot) const;
+
+		// returns a ballot that is a valid partition of the active invocations such that all invocations in each
+		// subset of the partition have the same value of 'value'.
+		template <typename T>	ND_ nonuniform uint4	Partition (T) const;
+
+	  #endif
+
+	  #ifdef AE_shader_subgroup_rotate
+		template <typename T>	ND_ nonuniform T	Rotate (T, uint delta) const;
+	  #endif
+	  #ifdef AE_shader_subgroup_rotate_clustered
+		template <typename T>	ND_ nonuniform T	ClusteredRotate (T, uint delta, uint clusterSize) const;
 	  #endif
 
 	} subgroup {};
@@ -1005,16 +1053,18 @@ public:
 		// quad ids:	bits:
 		//   0  1		00  01
 		//   2  3		10  11
-		template <typename T>	ND_ T		Broadcast (const T value, uint id) const;	// 'AE_subgroupBroadcastDynamicId' allows dynamically uniform 'id'
-																						// otherwise it must be constant
-		template <typename T>	ND_ T		SwapHorizontal (const T) const;
-		template <typename T>	ND_ T		SwapVertical (const T) const;
-		template <typename T>	ND_ T		SwapDiagonal (const T) const;
+		template <typename T>	ND_ uniform	T		Broadcast (T value, uint id) const;	// 'AE_subgroupBroadcastDynamicId' allows dynamically uniform 'id',
+																						// otherwise it must be constant.
+																						// result is quad-uniform
+
+		template <typename T>	ND_ nonuniform T	SwapHorizontal (T) const;			// swap: 0 <-> 1,  2 <-> 3
+		template <typename T>	ND_ nonuniform T	SwapVertical (T) const;				// swap: 0 <-> 2,  1 <-> 3
+		template <typename T>	ND_ nonuniform T	SwapDiagonal (T) const;				// swap: 0 <-> 3,  1 <-> 2
 	  #endif
 
-	  #ifdef AE_shader_quad
-		ND_ bool  All (bool) const;
-		ND_ bool  Any (bool) const;
+	  #ifdef AE_shader_quad_control
+		ND_ uniform bool  All (bool) const;		// result is quad-uniform
+		ND_ uniform bool  Any (bool) const;		// result is quad-uniform
 	  #endif
 
 	} quadGroup {};
@@ -1026,9 +1076,9 @@ public:
 	const	int		VertexIndex			= {};	// BaseVertex + VertexID
 
 	#ifdef AE_shader_draw_parameters
-	const	int		BaseInstance		= {};
-	const	int		BaseVertex			= {};
-	const	int		DrawIndex			= {};
+	const	int			BaseInstance	= {};
+	const	int			BaseVertex		= {};
+	const uniform int	DrawIndex		= {};
 	#endif
 
 	// out
@@ -1143,7 +1193,7 @@ public:
 	// GL_ARB_shader_draw_parameters
   #if defined(AE_shader_draw_parameters) and (defined(SH_MESH_TASK) or defined(SH_MESH) or defined(SH_VERT))
 	// in
-	const	int		DrawID		= {};	// dynamically uniform
+	const uniform int	DrawID = {};	// dynamically uniform
   #endif
 
 
@@ -1263,7 +1313,7 @@ public:
   #if defined(SH_COMPUTE) or defined(SH_MESH_TASK) or defined(SH_MESH)
 	//template <typename T> using WGShared = T;	// TODO
 
-	// sync
+	// execution barrier and shared memory barrier
 	void  WorkgroupBarrier ();
 
 	#ifdef AE_memory_scope_semantics
@@ -1274,24 +1324,24 @@ public:
 	#endif
 
 	const struct {
-		void  All ()		const;	// all memory accesses, scope: shader invocation
-		void  Buffer ()		const;
-		void  Image ()		const;
-		void  Shared ()		const;	// for 'WGShared' variables
-		void  Workgroup ()	const;	// all memory accesses, scope: workgroup
+		void  All ()			const;	// all memory accesses, scope: shader invocation
+		void  Buffer ()			const;
+		void  Image ()			const;
+		void  Shared ()			const;	// for 'WGShared' variables
+		void  AllInWorkgroup ()	const;	// all memory accesses, scope: workgroup
 
 		#ifdef AE_shader_subgroup_basic
-		void  Subgroup ()	const;	// all memory accesses, scope: subgroup
+		void  AllInSubgroup ()	const;	// all memory accesses, scope: subgroup
 		#endif
 	} memoryBarrier;
 
 	// in
-	const 	uint3	GlobalInvocationID		= {};
-	const	uint3	LocalInvocationID		= {};
-	const	uint	LocalInvocationIndex	= {};
-	const	uint3	NumWorkGroups			= {};
-	const	uint3	WorkGroupID				= {};
-	constexpr uint3	WorkGroupSize			= {};
+	const 	uint3		GlobalInvocationID		= {};
+	const	uint3		LocalInvocationID		= {};
+	const	uint		LocalInvocationIndex	= {};
+	const	uint3		NumWorkGroups			= {};
+	const uniform uint3	WorkGroupID				= {};
+	constexpr uint3		WorkGroupSize			= {};
 
   #else
 

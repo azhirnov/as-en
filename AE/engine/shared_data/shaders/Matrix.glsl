@@ -7,7 +7,7 @@
 # pragma once
 #endif
 
-#include "Math.glsl"
+#include "Geometry2D.glsl"
 
 ND_ float2x2	f2x2_Identity ();
 ND_ float3x3	f3x3_Identity ();
@@ -48,35 +48,40 @@ ND_ float3x3	f3x3_LookAt (const float3 dir, const float3 up);
 
 
 // Projection //
-ND_ float4x4	f4x4_Ortho (const float4 viewport, const float2 clipPlanes);
+ND_ float4x4	f4x4_Ortho (const Rect viewport, const float2 zRange);
 ND_ float4x4	f4x4_InfinitePerspective (const float fovY, const float aspectRatio, const float zNear);
-ND_ float4x4	f4x4_Perspective (const float fovY, const float aspectRatio, const float2 clipPlanes);
-ND_ float4x4	f4x4_Perspective (const float fovY, const float2 viewportSize, const float2 clipPlanes);
+ND_ float4x4	f4x4_Perspective (const float fovY, const float aspectRatio, const float2 zRange);
+ND_ float4x4	f4x4_Perspective (const float fovY, const float2 viewportSize, const float2 zRange);
 	void		f4x4_ReverseZ (inout float4x4 m);
 
 ND_ float4		ProjectToNormClipSpace (const float4x4 mvp, const float4 pos);
-ND_ float4		ProjectToScreenSpace (const float4x4 mvp, const float4 pos, const float4 viewport);
+ND_ float4		ProjectToScreenSpace (const float4x4 mvp, const float4 pos, const Rect viewport);
 ND_ float4		ProjectNDC (const float4x4 mvp, const float3 pos)									{ return ProjectToNormClipSpace( mvp, float4(pos, 1.0) ); }
-ND_ float4		Project (const float4x4 mvp, const float3 pos, const float4 viewport)				{ return ProjectToScreenSpace( mvp, float4(pos, 1.0), viewport ); }
+ND_ float4		Project (const float4x4 mvp, const float3 pos, const Rect viewport)					{ return ProjectToScreenSpace( mvp, float4(pos, 1.0), viewport ); }
+
+ND_ float4		ProjectShadow (const float4x4 worldToShadowUV, float3 worldPos);
 
 ND_ bool		ClipSpacePointIsVisible (const float4 point);
 ND_ bool		NormClipSpacePointIsVisible (const float3 point);
 
 				// return world space if invViewProj provided
 				// return object space if invMVP provided
-ND_ float3		UnProject (const float4x4 invMat, float3 screenCoordAndZ, const float4 viewport);
+ND_ float3		UnProject (const float4x4 invMat, float3 screenCoordAndZ, const Rect viewport);
 ND_ float3		UnProject (const float4x4 invMat, float3 screenCoordAndZ, const float2 invViewportSize);
 ND_ float3		UnProjectNDC (const float4x4 invMat, const float3 ndc);
 
 				// return /w space non-linear depth from view space Z
+ND_ float2		FastProjectZW (const float4x4 proj, float z);
 ND_ float		FastProjectZ (const float4x4 proj, float z);		// perspective projection
 ND_ float		FastProjectZInf (const float zNear, float z);		// infinite perspective
 ND_ float		FastProjectRevZInf (const float zNear, float z);	// infinite perspective with reverse Z
 
 				// return view space Z from z/w
 ND_ float		FastUnProjectZ (const float4x4 proj, float zw);		// perspective projection
-ND_ float		FastUnProjectZInf (const float zNear, float zw);		// infinite perspective
+ND_ float		FastUnProjectZInf (const float zNear, float zw);	// infinite perspective
 ND_ float		FastUnProjectRevZInf (const float zNear, float zw);	// infinite perspective with reverse Z
+
+ND_ float2		ExtractClipPlanes (const float4x4 proj);
 
 
 // Scale
@@ -94,13 +99,13 @@ ND_ float4x4	f4x4_Scale (const float3 value);
 ND_ float2		GetDirection2D (const float angle);
 ND_ float2		GetDirection2D (const float3x3 m);
 
-ND_ float3		GetAxisX (const float3x3 m);
+ND_ float3		GetAxisX (const float3x3 m);	// right
 ND_ float3		GetAxisX (const float4x4 m);
 
-ND_ float3		GetAxisY (const float3x3 m);
+ND_ float3		GetAxisY (const float3x3 m);	// up
 ND_ float3		GetAxisY (const float4x4 m);
 
-ND_ float3		GetAxisZ (const float3x3 m);
+ND_ float3		GetAxisZ (const float3x3 m);	// forward
 ND_ float3		GetAxisZ (const float4x4 m);
 
 ND_ float2		Transform2D (const float4x4 mat, const float2 point);
@@ -261,10 +266,10 @@ float3x3  f3x3_Rotate (const float angle, const float3 inAxis)
 	return result;
 }
 
-float4x4  f4x4_RotateX (const float angle)						{ float4x4 m = float4x4(f3x3_RotateX( angle ));  m[3][3] = 1.f;  return m; }
-float4x4  f4x4_RotateY (const float angle)						{ float4x4 m = float4x4(f3x3_RotateY( angle ));  m[3][3] = 1.f;  return m; }
-float4x4  f4x4_RotateZ (const float angle)						{ float4x4 m = float4x4(f3x3_RotateZ( angle ));  m[3][3] = 1.f;  return m; }
-float4x4  f4x4_Rotate  (const float angle, const float3 axis)	{ float4x4 m = float4x4(f3x3_Rotate( angle, axis ));  m[3][3] = 1.f;  return m; }
+float4x4  f4x4_RotateX (const float angle)						{ return float4x4(f3x3_RotateX( angle )); }
+float4x4  f4x4_RotateY (const float angle)						{ return float4x4(f3x3_RotateY( angle )); }
+float4x4  f4x4_RotateZ (const float angle)						{ return float4x4(f3x3_RotateZ( angle )); }
+float4x4  f4x4_Rotate  (const float angle, const float3 axis)	{ return float4x4(f3x3_Rotate( angle, axis )); }
 //-----------------------------------------------------------------------------
 
 
@@ -284,18 +289,15 @@ float3x3  f3x3_Scale (const float3 value)
 float2x2  f2x2_Scale (const float  value)	{ return f2x2_Scale( float2(value) ); }
 float3x3  f3x3_Scale (const float  value)	{ return f3x3_Scale( float3(value) ); }
 
-float4x4  f4x4_Scale (const float3 value)	{ float4x4 m = float4x4(f3x3_Scale( value ));  m[3][3] = 1.f;  return m; }
+float4x4  f4x4_Scale (const float3 value)	{ return float4x4(f3x3_Scale( value )); }
 float4x4  f4x4_Scale (const float  value)	{ return f4x4_Scale( float3(value) ); }
 //-----------------------------------------------------------------------------
 
 
 float3x3  f3x3_LookAt (const float3 dir, const float3 up)
 {
-	float3x3 m;
-	m[2] = dir;
-	m[0] = Normalize( Cross( up, m[2] ));
-	m[1] = Cross( m[2], m[0] );
-	return m;
+	float3 right = Normalize( Cross( up, dir ));
+	return float3x3( right, Cross( dir, right ), dir );
 }
 
 
@@ -314,13 +316,21 @@ float4  ProjectToNormClipSpace (const float4x4 mvp, const float4 pos)
 	return	temp;
 }
 
-float4  ProjectToScreenSpace (const float4x4 mvp, const float4 pos, const float4 viewport)
+float4  ProjectToScreenSpace (const float4x4 mvp, const float4 pos, const Rect viewport)
 {
 	float4	temp	 = mvp * pos;
-	float2	size	 = viewport.zw - viewport.xy;
+	float2	size	 = Rect_Size( viewport );
 			temp.w	 = Rcp( temp.w );
 			temp.xyz *= temp.w;
-			temp.xy	 = ToUNorm( temp.xy ) * size + viewport.xy;
+			temp.xy	 = ToUNorm( temp.xy ) * size + Rect_LeftTop( viewport );
+	return	temp;
+}
+
+float4  ProjectShadow (const float4x4 worldToShadowUV, float3 worldPos)
+{
+	float4	temp	= worldToShadowUV * float4( worldPos, 1.0 );
+			temp.xyz *= Rcp( temp.w );
+			temp.xy	 = ToUNorm( temp.xy );
 	return	temp;
 }
 
@@ -344,12 +354,13 @@ float  FastProjectZ (const float4x4 proj, float z)
 
 float  FastProjectZInf (const float zNear, float z)
 {
-//	return	(z - zNear) / z;
-	return	1.0 - (zNear / z);	// better accuracy
+	// zNear = -proj[3][2]
+	return	1.0 - (zNear / z);
 }
 
 float  FastProjectRevZInf (const float zNear, float z)
 {
+	// zNear = -proj[3][2]
 	return	zNear / z;
 }
 //-----------------------------------------------------------------------------
@@ -370,9 +381,9 @@ bool  NormClipSpacePointIsVisible (const float3 point)
 //-----------------------------------------------------------------------------
 
 
-float3  UnProject (const float4x4 invMat, float3 screenCoordAndZ, const float4 viewport)
+float3  UnProject (const float4x4 invMat, float3 screenCoordAndZ, const Rect viewport)
 {
-	screenCoordAndZ.xy = ToSNorm( (screenCoordAndZ.xy - viewport.xy) * Rcp(viewport.zw - viewport.xy) );
+	screenCoordAndZ.xy = ToSNorm( (screenCoordAndZ.xy - Rect_LeftTop(viewport)) * Rcp( Rect_Size( viewport )) );
 	return UnProjectNDC( invMat, screenCoordAndZ );
 }
 
@@ -384,10 +395,11 @@ float3  UnProject (const float4x4 invMat, float3 screenCoordAndZ, const float2 i
 
 float3  UnProjectNDC (const float4x4 invMat, const float3 ndc)
 {
+	// ndc:  xy - snorm, z - unorm (non-linear)
 	float4	temp = float4( ndc, 1.0 );
 			temp = invMat * temp;
 			temp *= Rcp( temp.w );
-	return	temp.xyz;	// xy - snorm, z - unorm
+	return	temp.xyz;
 }
 
 float  FastUnProjectZ (const float4x4 proj, float zw)
@@ -400,12 +412,23 @@ float  FastUnProjectZ (const float4x4 proj, float zw)
 
 float  FastUnProjectZInf (const float zNear, float zw)
 {
+	// zNear = -proj[3][2]
 	return	-zNear / (zw - 1.0);
 }
 
 float  FastUnProjectRevZInf (const float zNear, float zw)
 {
+	// zNear = -proj[3][2]
 	return	zNear / zw;
+}
+
+float2  ExtractClipPlanes (const float4x4 proj)
+{
+	float	p22  = proj[2][2];	// zFar / (zFar - zNear)
+	float	p32	 = proj[3][2];	// -(zFar * zNear) / (zFar - zNear)
+	float	near = -p32 / p22;
+	float	far  = -p32 / (p22 - 1.0);	// NaN when used infinite perspective
+	return	float2( near, far );
 }
 //-----------------------------------------------------------------------------
 
@@ -415,8 +438,7 @@ float  FastViewSpaceZ (const float4x4 view, float3 worldPos)
 	return Dot( float3(view[0][2], view[1][2], view[2][2]), worldPos );
 }
 
-// returns world space normal if used invViewProj matrix
-// returns view space normal if used invProj matrix
+// returns view space direction
 float3  ViewDir (const float4x4 invViewProj, const float2 unormPos)
 {
 	const float4	world_pos = invViewProj * float4(ToSNorm(unormPos), 1.0f, 1.0f);
@@ -483,32 +505,32 @@ void  f4x4_ReverseZ (inout float4x4 m)
 		return result;
 	}
 
-	float4x4  f4x4_Ortho (const float4 viewport, const float2 clipPlanes)
+	float4x4  f4x4_Ortho (const Rect viewport, const float2 zRange)
 	{
 		// viewport - {left, top, right, bottom}
 		float4x4	result = float4x4( 1.f );
-		result[0][0] = 2.f / (viewport.z - viewport.x);
-		result[1][1] = 2.f / (viewport.y - viewport.w);
-		result[2][2] = 1.f / (clipPlanes.y - clipPlanes.x);
-		result[3][0] = - (viewport.z + viewport.x) / (viewport.z - viewport.x);
-		result[3][1] = - (viewport.y + viewport.w) / (viewport.y - viewport.w);
-		result[3][2] = - clipPlanes.x / (clipPlanes.y - clipPlanes.x);
+		result[0][0] = 2.f / (viewport.v.z - viewport.v.x);
+		result[1][1] = 2.f / (viewport.v.y - viewport.v.w);
+		result[2][2] = 1.f / (zRange.y - zRange.x);
+		result[3][0] = - (viewport.v.z + viewport.v.x) / (viewport.v.z - viewport.v.x);
+		result[3][1] = - (viewport.v.y + viewport.v.w) / (viewport.v.y - viewport.v.w);
+		result[3][2] = - zRange.x / (zRange.y - zRange.x);
 		return result;
 	}
 
-	float4x4  f4x4_Perspective (const float fovY, const float aspectRatio, const float2 clipPlanes)
+	float4x4  f4x4_Perspective (const float fovY, const float aspectRatio, const float2 zRange)
 	{
 		const float	tan_y  = Tan( fovY * 0.5f );
 		float4x4	result = float4x4( 0.f );
 		result[0][0] = 1.f / (aspectRatio * tan_y);
 		result[1][1] = 1.f / tan_y;
-		result[2][2] = clipPlanes.y / (clipPlanes.y - clipPlanes.x);
+		result[2][2] = zRange.y / (zRange.y - zRange.x);
 		result[2][3] = 1.f;
-		result[3][2] = -(clipPlanes.y * clipPlanes.x) / (clipPlanes.y - clipPlanes.x);
+		result[3][2] = -(zRange.y * zRange.x) / (zRange.y - zRange.x);
 		return result;
 	}
 
-	float4x4  f4x4_Perspective (const float fovY, const float2 viewportSize, const float2 clipPlanes)
+	float4x4  f4x4_Perspective (const float fovY, const float2 viewportSize, const float2 zRange)
 	{
 		const float	h = Cos( 0.5f * fovY ) / Sin( 0.5f * fovY );
 		const float	w = h * viewportSize.y / viewportSize.x;
@@ -516,9 +538,9 @@ void  f4x4_ReverseZ (inout float4x4 m)
 		float4x4	result = float4x4( 0.f );
 		result[0][0] = w;
 		result[1][1] = h;
-		result[2][2] = clipPlanes.y / (clipPlanes.y - clipPlanes.x);
+		result[2][2] = zRange.y / (zRange.y - zRange.x);
 		result[2][3] = 1.f;
-		result[3][2] = -(clipPlanes.y * clipPlanes.x) / (clipPlanes.y - clipPlanes.x);
+		result[3][2] = -(zRange.y * zRange.x) / (zRange.y - zRange.x);
 		return result;
 	}
 

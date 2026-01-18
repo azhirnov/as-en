@@ -29,7 +29,7 @@ namespace AE::Networking
 			uint	p1 : 8;		// .xxx..
 			uint	p0 : 8;		// xxx...
 		};
-		StaticAssert( sizeof(IPv4Bits) == 4, "IPv4Bits must have 32 bits" );
+		StaticAssertMsg( sizeof(IPv4Bits) == 4, "IPv4Bits must have 32 bits" );
 
 
 	// variables

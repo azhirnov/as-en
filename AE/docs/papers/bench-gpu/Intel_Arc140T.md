@@ -52,15 +52,25 @@ Xe-LPG+ architecture
 * Test `subgroupQuadBroadcast( gl_HelperInvocation )` with/without texturing - helper invocations are executed. [[6](../GPU_Benchmarks.md#6-Subgroups)]
 * Test `subgroupQuadBroadcast( constant )` with/without texturing - helper invocations are executed. [[6](../GPU_Benchmarks.md#6-Subgroups)]
 
-### Subgroups
+### Tile size
 
-* Result of `Rainbow( Hash( subgroupAdd( gl_FragCoord.xy )))` for 4 quads without instancing. [[6](../GPU_Benchmarks.md#6-Subgroups)]<br/>
-Xe core can fill multiple triangles with single subgroup inside tile (16x16 pix)<br/>
-![](img/unique-subgroups/arc140t-tris.png)
+* Subgroup scheduler prefer to put subgroup in tile 4x4 pix (in simd16 and simd8 mode).
+  If subgroup is not full then it merged with other non-full subgroups.
+  [[17](../GPU_Benchmarks.md#17-tile-size)]<br/>
+  ![](img/hw-tile-size/intel-arc140t.png)
+* Max measured distance between pixels in same subgroup is 48 pix.
+* On high register count used simd8 mode, otherwise used simd16 mode.<br/>
+  ![](img/hw-tile-size/intel-arc-simd16-vs-simd8.png)
 
-* Result of `Rainbow( Hash( subgroupAdd( gl_FragCoord.xy )))` for 4 quads with instancing. [[6](../GPU_Benchmarks.md#6-Subgroups)]<br/>
-Triangles are not merged to single subgroup.<br/>
-![](img/unique-subgroups/arc140t-inst.png)
+
+### Merged instances
+
+* Instances in VS are merged (in rare cases). [[17](../GPU_Benchmarks.md#17-tile-size)]
+* Instances in FS are merged (in rare cases).
+* Triangles with same instance are merged in FS.
+
+Dark blue - single instance; light blue - single instance in FS, multiple in VS; red - multiple instances in FS.
+![](img/merge-inst/intel-arc140t.png)
 
 ### Ray tracing
 

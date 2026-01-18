@@ -81,12 +81,12 @@ namespace AE::Graphics
 */
 	bool  RenderState::StencilFaceState::operator == (const StencilFaceState &rhs) C_NE___
 	{
-		return	(failOp			== rhs.failOp)		and
-				(depthFailOp	== rhs.depthFailOp)	and
-				(passOp			== rhs.passOp)		and
-				(compareOp		== rhs.compareOp)	and
-				(reference		== rhs.reference)	and
-				(writeMask		== rhs.writeMask)	and
+		return	(stencilFailOp	== rhs.stencilFailOp)	and
+				(depthFailOp	== rhs.depthFailOp)		and
+				(passOp			== rhs.passOp)			and
+				(compareOp		== rhs.compareOp)		and
+				(reference		== rhs.reference)		and
+				(writeMask		== rhs.writeMask)		and
 				(compareMask	== rhs.compareMask);
 	}
 
@@ -98,7 +98,7 @@ namespace AE::Graphics
 	HashVal  RenderState::StencilFaceState::CalcHash () C_NE___
 	{
 		HashVal	result;
-		result << HashOf( failOp );
+		result << HashOf( stencilFailOp );
 		result << HashOf( depthFailOp );
 		result << HashOf( passOp );
 		result << HashOf( compareOp );
@@ -249,7 +249,7 @@ namespace AE::Graphics
 	MultisampleState::operator ==
 =================================================
 */
-	bool  RenderState::MultisampleState::operator == (const MultisampleState &rhs) C_NE___
+	bool  RenderState::MultisamplingState::operator == (const MultisamplingState &rhs) C_NE___
 	{
 		return	(sampleMask				==	rhs.sampleMask)			and
 				(samples				==	rhs.samples)			and
@@ -264,7 +264,7 @@ namespace AE::Graphics
 	MultisampleState::CalcHash
 =================================================
 */
-	HashVal  RenderState::MultisampleState::CalcHash () C_NE___
+	HashVal  RenderState::MultisamplingState::CalcHash () C_NE___
 	{
 		HashVal	result;
 		result << HashOf( sampleMask );

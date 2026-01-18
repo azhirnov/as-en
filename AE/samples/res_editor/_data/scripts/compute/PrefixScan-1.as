@@ -20,8 +20,8 @@
 		RC<Image>		rt					= Image( EPixelFormat::RGBA8_UNorm, SurfaceSize() );
 		RC<Buffer>		id_buf				= Buffer();
 		RC<DynamicUInt>	row_count			= DynamicUInt();
-		const bool		has_subgroup_size	= GetFeatureSet().hasSubgroupSizeControl();
-		const uint		local_size			= has_subgroup_size ? GetFeatureSet().getMaxSubgroupSize() : GetSubgroupSize();
+		const bool		has_sg_size_ctrl	= GetFeatureSet().hasSubgroupSizeControl();
+		const uint		local_size			= has_sg_size_ctrl ? GetFeatureSet().getMaxSubgroupSize() : GetSubgroupSize();
 		const uint		col_count			= local_size;
 		RC<DynamicUInt>	id_count			= row_count.Mul( col_count );
 
@@ -44,7 +44,7 @@
 			pass.ArgInOut( "un_IdBuf",		id_buf );
 			pass.LocalSize( col_count );
 			pass.DispatchGroups( row_count );
-			if ( has_subgroup_size ) pass.SubgroupSize( local_size );
+			if ( has_sg_size_ctrl ) pass.SubgroupSize( local_size );
 		}{
 			RC<Postprocess>		pass = Postprocess();
 			pass.ArgIn(  "un_IdBuf",		id_buf );

@@ -41,6 +41,8 @@ namespace AE::App
 		bool		SeekFwd (Bytes offset)					__NE_OV;
 
 		Bytes		ReadSeq (OUT void* buffer, Bytes size)	__NE_OV;
+
+		ReqAlign	OffsetAlign ()							C_NE_OV	{ return Default; }
 	};
 
 
@@ -71,6 +73,8 @@ namespace AE::App
 		ESourceType	GetSourceType ()						C_NE_OV;
 
 		Bytes		ReadBlock (Bytes, OUT void *, Bytes)	__NE_OV;
+
+		ReqAlign	OffsetAlign ()							C_NE_OV	{ return Default; }
 	};
 
 

@@ -97,19 +97,19 @@ namespace
 
 		Ctx		ctx{ RenderCoro_Get() };
 
-		t.result0 = ctx.ReadbackImage( t.img0, Default ).Then( t,
+		t.result0 = ctx.ReadbackImage( t.img0, Default ).IfFullyRead( t,
 							[] (Promise<ImageMemView> readRes, CoSafe<C2_TestData &> t) -> InlineCoro<>
 							{
 								auto view = co_await readRes;
 								t->isOK_0 = C2_CheckImageData( view, 8 );
 							});
-		t.result1 = ctx.ReadbackImage( t.img1, Default ).Then( t,
+		t.result1 = ctx.ReadbackImage( t.img1, Default ).IfFullyRead( t,
 							[] (Promise<ImageMemView> readRes, CoSafe<C2_TestData &> t) -> InlineCoro<>
 							{
 								auto view = co_await readRes;
 								t->isOK_1 = C2_CheckImageData( view, 4 );
 							});
-		t.result2 = ctx.ReadbackImage( t.img2, Default ).Then( t,
+		t.result2 = ctx.ReadbackImage( t.img2, Default ).IfFullyRead( t,
 							[] (Promise<ImageMemView> readRes, CoSafe<C2_TestData &> t) -> InlineCoro<>
 							{
 								auto view = co_await readRes;

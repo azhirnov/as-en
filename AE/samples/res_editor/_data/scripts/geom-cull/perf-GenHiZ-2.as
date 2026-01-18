@@ -44,6 +44,11 @@
 		RC<DynamicUInt>		raster		= DynamicUInt( 1 );
 		const bool			gfx_only	= false;	// some devices disable compression if have 'Storage' usage
 
+		RC<DynamicFloat>	time		= DynamicFloat();
+		RC<DynamicFloat>	time_ms		= time.Mul( 1000.0f );
+
+		Label( time_ms,		"GenMips (ms)" );
+
 		Slider( repeat,		"Repeat",	1,	30 );
 
 		if ( not gfx_only )
@@ -63,11 +68,13 @@
 			RC<ComputeMip>		pass = ComputeMip( "", "GEN_MIPMAP" );
 			pass.Variable( "un_InImage",	"un_OutImage",	mipmaps,	Sampler_NearestClamp );
 			pass.Repeat( repeat );
+			pass.MeasureTime( time );
 			pass.EnableIfEqual( raster, 0 );
 		}{
 			RC<RasterMip>		pass = RasterMip( "", "GEN_MIPMAP" );
 			pass.Variable( "un_InImage",	"out_Color",	mipmaps,	Sampler_NearestClamp );
 			pass.Repeat( repeat );
+			pass.MeasureTime( time );
 			pass.EnableIfEqual( raster, 1 );
 		}
 

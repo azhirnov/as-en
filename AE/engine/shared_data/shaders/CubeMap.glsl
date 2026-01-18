@@ -39,6 +39,9 @@ ND_ float3  CM_InverseRotation (const ECubeFace face, const float3 dir);	// retu
 
 ND_ float3  CM_Tangent (const float3 c, const ECubeFace face);
 ND_ float3  CM_Bitangent (const float3 c, const ECubeFace face);
+
+ND_ int3	CM_FaceOffsetI (const ECubeFace face);
+ND_ float3	CM_FaceOffset (const ECubeFace face);
 //-----------------------------------------------------------------------------
 
 
@@ -105,6 +108,8 @@ ECubeFace  CM_DirToFace (const float3 dir)
 /*
 =================================================
 	CM_GetNormal, CM_GetTangent, CM_GetBitangent
+----
+	TBN can not be used for parallax mapping because of discontinuities between cube faces
 =================================================
 */
 float3  CM_GetNormal (ECubeFace face)
@@ -161,20 +166,22 @@ float4  CM_InverseRotation (float3 c)
 {
 	c.y = -c.y;
 
+	const float3  a = Abs(c);
+
 	// front (xy space)
-	if ( All3( Abs(c.x) <= c.z,  c.z > 0.f,  Abs(c.y) <= c.z ))
+	if ( All3( a.x <= c.z,  c.z > 0.f,  a.y <= c.z ))
 		return float4( c.x, c.y, c.z, ECubeFace_ZPos );
 
 	// right (zy space)
-	if ( All3( Abs(c.z) <= c.x,  c.x > 0.f,  Abs(c.y) <= c.x ))
+	if ( All3( a.z <= c.x,  c.x > 0.f,  a.y <= c.x ))
 		return float4( -c.z, c.y, c.x, ECubeFace_XPos );
 
 	// back (xy space)
-	if ( All3( Abs(c.x) <= -c.z,  c.z < 0.f,  Abs(c.y) <= -c.z ))
+	if ( All3( a.x <= -c.z,  c.z < 0.f,  a.y <= -c.z ))
 		return float4( -c.x, c.y, -c.z, ECubeFace_ZNeg );
 
 	// left (zy space)
-	if ( All3( Abs(c.z) <= -c.x,  c.x < 0.f,  Abs(c.y) <= -c.x ))
+	if ( All3( a.z <= -c.x,  c.x < 0.f,  a.y <= -c.x ))
 		return float4( c.z, c.y, -c.x, ECubeFace_XNeg );
 
 	// up (xz space)
@@ -225,21 +232,23 @@ float3  CM_InverseRotation (const ECubeFace face, const float3 c)
 	half4  CM_InverseRotation (half3 c)
 	{
 		c.y = -c.y;
+		
+		const half3  a = Abs(c);
 
 		// front (xy space)
-		if ( All3( Abs(c.x) <= c.z,  c.z > 0.hf,  Abs(c.y) <= c.z ))
+		if ( All3( a.x <= c.z,  c.z > 0.hf,  a.y <= c.z ))
 			return half4( c.x, c.y, c.z, ECubeFace_ZPos );
 
 		// right (zy space)
-		if ( All3( Abs(c.z) <= c.x,  c.x > 0.hf,  Abs(c.y) <= c.x ))
+		if ( All3( a.z <= c.x,  c.x > 0.hf,  a.y <= c.x ))
 			return half4( -c.z, c.y, c.x, ECubeFace_XPos );
 
 		// back (xy space)
-		if ( All3( Abs(c.x) <= -c.z,  c.z < 0.hf,  Abs(c.y) <= -c.z ))
+		if ( All3( a.x <= -c.z,  c.z < 0.hf,  a.y <= -c.z ))
 			return half4( -c.x, c.y, -c.z, ECubeFace_ZNeg );
 
 		// left (zy space)
-		if ( All3( Abs(c.z) <= -c.x,  c.x < 0.hf,  Abs(c.y) <= -c.x ))
+		if ( All3( a.z <= -c.x,  c.x < 0.hf,  a.y <= -c.x ))
 			return half4( c.z, c.y, -c.x, ECubeFace_XNeg );
 
 		// up (xz space)
@@ -275,6 +284,25 @@ float3  CM_Tangent (const float3 dir, const ECubeFace face)
 float3  CM_Bitangent (const float3 dir, const ECubeFace face)
 {
 	return Normalize( Cross( dir, -CM_GetTangent( face )));
+}
+
+/*
+=================================================
+	CM_FaceOffset
+=================================================
+*/
+int3  CM_FaceOffsetI (const ECubeFace face)
+{
+	int3	pos = int3( Equal( int3(face), int3(ECubeFace_XPos, ECubeFace_YPos, ECubeFace_ZPos) ));
+	int3	neg = int3( Equal( int3(face), int3(ECubeFace_XNeg, ECubeFace_YNeg, ECubeFace_ZNeg) ));
+	return	pos - neg;
+}
+
+float3  CM_FaceOffset (const ECubeFace face)
+{
+	float3	pos = float3( Equal( int3(face), int3(ECubeFace_XPos, ECubeFace_YPos, ECubeFace_ZPos) ));
+	float3	neg = float3( Equal( int3(face), int3(ECubeFace_XNeg, ECubeFace_YNeg, ECubeFace_ZNeg) ));
+	return	pos - neg;
 }
 
 /*

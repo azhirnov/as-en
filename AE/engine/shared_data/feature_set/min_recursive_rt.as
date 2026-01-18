@@ -139,7 +139,6 @@ void ASmain ()
 	fset.multiViewport (True);
 	fset.maxViewports (16);
 	fset.sampleLocations (True);
-	fset.variableSampleLocations (True);
 	fset.tessellationIsolines (True);
 	fset.tessellationPointMode (True);
 	fset.maxTexelBufferElements (128 << 20);

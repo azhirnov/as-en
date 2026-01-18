@@ -80,17 +80,17 @@ namespace AE::ResEditor
 
 		Visit( it->second,
 			[&] (GraphicsPipelineID ppln) {
-				if ( AllBits( dd.dbg.stage, EShaderStages::Fragment )) {
-					CHECK( dd.dbg.debugger->AllocForGraphics( OUT *dd.outDbgStorage, dd.ctx, ppln, dd.dbgCoord ));
+				if ( AnyBits( dd.dbg.stage, EShaderStages::Fragment | EShaderStages::Vertex )) {
+					CHECK( dd.dbg.debugger->AllocForGraphics( OUT *dd.outDbgStorage, dd.ctx, ppln, uint2{dd.dbgCoord} ));
 				}else{
 					CHECK( dd.dbg.debugger->AllocForGraphics( OUT *dd.outDbgStorage, dd.ctx, ppln ));
 				}
 			},
 			[&] (MeshPipelineID ppln) {
 				if ( AllBits( dd.dbg.stage, EShaderStages::Fragment )) {
-					CHECK( dd.dbg.debugger->AllocForGraphics( OUT *dd.outDbgStorage, dd.ctx, ppln, dd.dbgCoord ));
+					CHECK( dd.dbg.debugger->AllocForGraphics( OUT *dd.outDbgStorage, dd.ctx, ppln, uint2{dd.dbgCoord} ));
 				}else{
-					CHECK( dd.dbg.debugger->AllocForGraphics( OUT *dd.outDbgStorage, dd.ctx, ppln ));
+					CHECK( dd.dbg.debugger->AllocForCompute( OUT *dd.outDbgStorage, dd.ctx, ppln, dd.dbgCoord ));
 				}
 			},
 			[] (NullUnion) {

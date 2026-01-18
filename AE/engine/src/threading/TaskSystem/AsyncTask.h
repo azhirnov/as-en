@@ -2027,43 +2027,43 @@ namespace AE::_Coro_
 		if constexpr( err == ESafeCoroError::OK )
 			return;
 
-		StaticAssert( err != ESafeCoroError::LambdaWithCapture, "\n"
+		StaticAssertMsg( err != ESafeCoroError::LambdaWithCapture, "\n"
 			"used lambda with capture or non-empty class, this is unsafe:\n"
 			" - lambda capture lifetime does not match with coroutine lifetime\n"
 			" - 'this' lifetime is not guarantied to match with coroutine lifetime, use smart pointer instead" );
 
-		StaticAssert( err != ESafeCoroError::InvalidResultType, "\n"
+		StaticAssertMsg( err != ESafeCoroError::InvalidResultType, "\n"
 			"function must return coroutine type, this validation may have false-positive for non-coroutines" );
 
-		StaticAssert( err != ESafeCoroError::NotAGlobalFunction, "\n"
+		StaticAssertMsg( err != ESafeCoroError::NotAGlobalFunction, "\n"
 			"allowed: lambdas, methods with empty classes and static functions" );
 
-		StaticAssert( err != ESafeCoroError::LambdaWithAutoRef, "\n"
+		StaticAssertMsg( err != ESafeCoroError::LambdaWithAutoRef, "\n"
 			"Used 'auto' or template arguments with reference.\n"
 			"Not allowed: 'auto&', 'auto&&', 'const auto&', same for template types." );
 
 		#if 0 //__cpp_static_assert >= 202306L
-			StaticAssert( err != ESafeCoroError::ArgIsReference,
+			StaticAssertMsg( err != ESafeCoroError::ArgIsReference,
 				 std::format("\nargument {} with reference to the object is unsafe - lifetime of object may not match with coroutine lifetime", idx ));
 
-			StaticAssert( err != ESafeCoroError::ArgIsPointer,
+			StaticAssertMsg( err != ESafeCoroError::ArgIsPointer,
 				std::format("\nargument {} with pointer to the object is unsafe - lifetime of object may not match with coroutine lifetime\n"
 					"use smart pointers instead", idx ));
 
-			StaticAssert( err != ESafeCoroError::ArgIsView,
+			StaticAssertMsg( err != ESafeCoroError::ArgIsView,
 				std::format("\nargument {} with view type is unsafe - lifetime of referenced memory may not match with coroutine lifetime", idx ));
 
 		#else
 			StaticAssert( idx == -1 );
 
-			StaticAssert( err != ESafeCoroError::ArgIsReference, "\n"
+			StaticAssertMsg( err != ESafeCoroError::ArgIsReference, "\n"
 				"argument with reference to the object is unsafe - lifetime of object may not match with coroutine lifetime" );
 
-			StaticAssert( err != ESafeCoroError::ArgIsPointer, "\n"
+			StaticAssertMsg( err != ESafeCoroError::ArgIsPointer, "\n"
 				"argument with pointer to the object is unsafe - lifetime of object may not match with coroutine lifetime\n"
 				"use smart pointers instead" );
 
-			StaticAssert( err != ESafeCoroError::ArgIsView, "\n"
+			StaticAssertMsg( err != ESafeCoroError::ArgIsView, "\n"
 				"argument with view type is unsafe - lifetime of referenced memory may not match with coroutine lifetime" );
 		#endif
 	}

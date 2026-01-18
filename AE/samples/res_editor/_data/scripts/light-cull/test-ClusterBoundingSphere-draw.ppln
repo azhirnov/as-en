@@ -74,7 +74,7 @@
 		float4			sp		= un_Clusters.elements[ gl.InstanceIndex ].sp;
 						pos		= sp.xyz + pos * sp.w;
 	#endif
-						
+
 		float4	wpos	= LocalPosToWorldSpace( pos );
 
 		gl.Position		= WorldPosToClipSpace( wpos );
@@ -95,15 +95,10 @@
 
 	void  Main ()
 	{
-	//	const float3	light_dir	= Normalize(float3( 0.f, -1.f, 0.2f ));
-	//	float3			norm		= ComputeNormalInWS_dxdy( In.worldPos );
-	//	float			n_dot_l		= Max( Dot( light_dir, norm ), 0.1f );
-		float3			color		= DHash31( float(In.cluster) * 0.1 );
+		float3	color = DHash31( float(In.cluster) * 0.1 );
 
 		if ( Dot( color, color ) < 0.2 )
 			color = 1.0 - color;
-
-	//	color *= n_dot_l;
 
 		out_Color = float4( color, 1.0 );
 	}

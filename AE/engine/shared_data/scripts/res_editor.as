@@ -1,4 +1,4 @@
-//6afd84b2
+//0ba88aaf
 #pragma once
 #include <vector>
 #include <string>
@@ -24,123 +24,123 @@ using array = std::vector<T>;
 
 using namespace std::string_literals;
 
+struct UnifiedGeometry;
+struct UnifiedGeometry_DrawMeshTasksIndirect;
+struct ComputePass;
+struct FeatureSet;
+struct RasterMip;
+struct SceneRayTracingPass;
+struct Postprocess;
+struct EnableLabel;
 struct CallableIndex;
-struct Random_Normal3;
-struct Random_Normal2;
-struct Random_Normal1;
-struct UnifiedGeometry_Draw;
-struct ComputeMip;
-struct Random_Normal4;
-struct ubyte3;
-struct ubyte2;
-struct VideoImage;
-struct FPVCamera;
-struct RemoteCamera;
-struct ubyte4;
-struct RTInstanceCustomIndex;
-struct RTInstanceSBTOffset;
-struct RTScene;
-struct Collection;
-struct RayIndex;
-struct bool4;
-struct RGBA32i;
-struct SceneGraphicsPass;
-struct bool2;
-struct bool3;
-struct DynamicULong;
-struct RGBA32f;
-struct HSVColor;
-struct ushort4;
-struct short2;
-struct Quat;
-struct short3;
-struct Random;
-struct sbyte4;
-struct UnifiedGeometry_DrawIndexed;
-struct sbyte3;
-struct Image;
-struct UnifiedGeometry_DrawIndexedIndirectCount;
-struct GeomSource;
-struct UnifiedGeometry_DrawIndirect;
-struct DynamicInt2;
-struct DynamicInt3;
-struct DynamicInt4;
-struct DynamicUInt3;
-struct DynamicUInt2;
-struct RTShader;
-struct DynamicUInt4;
-struct DynamicFloat4;
-struct RTGeometry;
-struct DynamicFloat3;
-struct float4;
-struct DynamicFloat2;
-struct float2;
-struct float3;
-struct DynamicInt;
-struct InstanceIndex;
-struct RTInstanceTransform;
-struct float2x2;
-struct float2x3;
-struct float2x4;
-struct UnifiedGeometry_DrawIndexedIndirect;
-struct Random_Binomial1;
-struct Random_Binomial3;
-struct Random_Binomial2;
-struct MultiSamples;
-struct IPass;
-struct Random_Binomial4;
-struct DepthStencil;
-struct TopDownCamera;
-struct ScaleBiasCamera;
-struct BaseController;
-struct MipmapLevel;
-struct FlightCamera;
-struct float3x4;
-struct Model;
-struct float3x3;
-struct float3x2;
-struct float4x3;
-struct VertexStride;
-struct DynamicUInt;
-struct float4x4;
-struct float4x2;
-struct int3;
-struct int2;
-struct ImageLayer;
-struct int4;
-struct Scene;
-struct ushort3;
-struct sbyte2;
-struct ushort2;
-struct short4;
-struct RGBA8u;
-struct OrbitalCamera;
-struct VertexAttribDivisor;
-struct UnifiedGeometry_DrawMeshTasksIndirectCount;
+struct Buffer;
+struct UnifiedGeometry_DrawIndirectCount;
 struct RGBA32u;
 struct UnifiedGeometry_DrawMeshTasks;
 struct RectF;
+struct SphericalCube;
+struct RGBA8u;
+struct VertexAttribDivisor;
+struct OrbitalCamera;
+struct UnifiedGeometry_DrawMeshTasksIndirectCount;
+struct uint4;
+struct RayTracingPass;
+struct RectU;
+struct FPSCamera;
+struct DynamicDim;
 struct DynamicFloat;
 struct RTInstanceMask;
-struct SphericalCube;
-struct RectI;
 struct uint3;
 struct uint2;
-struct RectU;
-struct RayTracingPass;
-struct uint4;
-struct DynamicDim;
-struct FPSCamera;
-struct FeatureSet;
-struct UnifiedGeometry_DrawMeshTasksIndirect;
-struct ComputePass;
-struct Postprocess;
-struct SceneRayTracingPass;
-struct EnableLabel;
-struct RasterMip;
-struct UnifiedGeometry;
-struct UnifiedGeometry_DrawIndirectCount;
-struct Buffer;
+struct RectI;
+struct float4x3;
+struct float4x2;
+struct VertexStride;
+struct float4x4;
+struct DynamicUInt;
+struct Model;
+struct float3x4;
+struct float3x2;
+struct float3x3;
+struct Scene;
+struct short4;
+struct ushort2;
+struct ushort3;
+struct sbyte2;
+struct int4;
+struct int2;
+struct int3;
+struct ImageLayer;
+struct DepthStencil;
+struct MipmapLevel;
+struct BaseController;
+struct TopDownCamera;
+struct FlightCamera;
+struct ScaleBiasCamera;
+struct InstanceIndex;
+struct float3;
+struct float2;
+struct DynamicInt;
+struct RTInstanceTransform;
+struct IPass;
+struct Random_Binomial2;
+struct MultiSamples;
+struct Random_Binomial3;
+struct Random_Binomial1;
+struct Random_Binomial4;
+struct float2x4;
+struct float2x2;
+struct float2x3;
+struct UnifiedGeometry_DrawIndexedIndirect;
+struct Image;
+struct UnifiedGeometry_DrawIndexedIndirectCount;
+struct sbyte3;
+struct sbyte4;
+struct short3;
+struct Random;
+struct short2;
+struct Quat;
+struct UnifiedGeometry_DrawIndexed;
+struct ushort4;
+struct DynamicFloat4;
+struct DynamicUInt2;
+struct RTShader;
+struct DynamicUInt3;
+struct DynamicFloat2;
+struct DynamicFloat3;
+struct float4;
+struct RTGeometry;
+struct DynamicUInt4;
+struct UnifiedGeometry_DrawIndirect;
+struct GeomSource;
+struct DynamicInt4;
+struct DynamicInt3;
+struct DynamicInt2;
+struct RayIndex;
+struct RTScene;
+struct Collection;
+struct HSVColor;
+struct RGBA32f;
+struct RGBA32i;
+struct bool4;
+struct SceneGraphicsPass;
+struct DynamicULong;
+struct bool3;
+struct bool2;
+struct Random_Normal4;
+struct FPVCamera;
+struct VideoImage;
+struct ubyte2;
+struct ubyte3;
+struct ComputeMip;
+struct Random_Normal1;
+struct Random_Normal2;
+struct Random_Normal3;
+struct UnifiedGeometry_Draw;
+struct RTInstanceSBTOffset;
+struct RemoteCamera;
+struct ubyte4;
+struct RTInstanceCustomIndex;
 
 enum class EImageType : uint16
 {
@@ -531,7 +531,7 @@ enum class EBlendFactor : uint8
 	// S1 - from shader (dual src blend)
 	// cc - constant color
 	// result = srcColor * srcBlend [blendOp] dstColor * dstBlend
-	//
+	// 
 
 	// 0
 	Zero,
@@ -600,7 +600,7 @@ enum class EBlendOp : uint8
 	// S, srcColor - from shader
 	// D, dstColor - from render target
 	// result = srcColor * srcBlend [blendOp] dstColor * dstBlend
-	//
+	// 
 
 	// S + D
 	Add,
@@ -627,7 +627,7 @@ enum class ELogicOp : uint8
 	// S - from shader
 	// D - from render target
 	// result = S [logicOp] D
-	//
+	// 
 
 	// disabled
 	None,
@@ -936,6 +936,9 @@ enum class ESubgroupOperation : uint32
 	QuadSwapHorizontal,
 	QuadSwapVertical,
 	QuadSwapDiagonal,
+	PartitionedNV,
+	Rotate,
+	RotateClustered,
 	_Basic_Begin,
 	_Basic_End,
 	_Vote_Begin,
@@ -1600,6 +1603,8 @@ enum class ECoopMatrixCfg : uint8
 	Afp16_Bfp16_Cfp32_Rfp32_M8_N8_K16,
 	Au8_Bu8_Cu32_Ru32_M16_N16_K32,
 	As8_Bs8_Cs32_Rs32_M16_N16_K32,
+	Au8_Bu8_Cu32_Ru32_M16_N16_K16,
+	As8_Bs8_Cs32_Rs32_M16_N16_K16,
 	Au8_Bu8_Cu32_Ru32_M8_N8_K32,
 	As8_Bs8_Cs32_Rs32_M8_N8_K32,
 };
@@ -1617,6 +1622,15 @@ enum class ECoopVecCfg : uint8
 uint8  operator | (ECoopVecCfg lhs, ECoopVecCfg rhs);
 uint8  operator | (uint8 lhs, ECoopVecCfg rhs);
 uint8  operator | (ECoopVecCfg lhs, uint8 rhs);
+
+enum class EConservativeRasterizationMode : uint8
+{
+	Disabled,
+	Overestimate,
+};
+uint8  operator | (EConservativeRasterizationMode lhs, EConservativeRasterizationMode rhs);
+uint8  operator | (uint8 lhs, EConservativeRasterizationMode rhs);
+uint8  operator | (EConservativeRasterizationMode lhs, uint8 rhs);
 
 enum class EColorSpace : uint8
 {
@@ -1774,8 +1788,8 @@ int  Wrap (int x, int min, int max);
 int  Average (int x, int y);
 int  IntLog2 (int x);
 int  CeilIntLog2 (int x);
-int  BitScanReverse (int x);
-int  BitScanForward (int x);
+int  HighBitIndex (int x);
+int  LowBitIndex (int x);
 uint  BitCount (int x);
 bool  IsPowerOfTwo (int x);
 bool  IsSingleBitSet (int x);
@@ -1800,8 +1814,8 @@ uint  Wrap (uint x, uint min, uint max);
 uint  Average (uint x, uint y);
 int  IntLog2 (uint x);
 int  CeilIntLog2 (uint x);
-int  BitScanReverse (uint x);
-int  BitScanForward (uint x);
+int  HighBitIndex (uint x);
+int  LowBitIndex (uint x);
 uint  BitCount (uint x);
 bool  IsPowerOfTwo (uint x);
 bool  IsSingleBitSet (uint x);
@@ -2885,6 +2899,7 @@ struct float3x3
 	float3x3  RotateX (float angle) const;
 	float3x3  RotateY (float angle) const;
 	float3x3  RotateZ (float angle) const;
+	float3x3  Inversed () const;
 };
 
 struct float3x4
@@ -2945,6 +2960,7 @@ struct float4x4
 	float4x4  RotateX (float angle) const;
 	float4x4  RotateY (float angle) const;
 	float4x4  RotateZ (float angle) const;
+	float4x4  Inversed () const;
 	float4x4  Rotate (float angle, const float3 & axis) const;
 	float4x4  Ortho (const RectF & viewport, const float2 & range) const;
 	float4x4  InfinitePerspective (float fovY, float aspectRatio, float zNear) const;
@@ -3298,6 +3314,8 @@ struct DynamicUInt2
 	RC<DynamicUInt2>  FloorPOT ();
 	RC<DynamicUInt2>  CeilPOT ();
 	RC<DynamicUInt2>  NearPOT ();
+	RC<DynamicUInt2>  AlignUp (const uint2 &);
+	RC<DynamicUInt2>  AlignDown (const uint2 &);
 	RC<DynamicUInt2>  Mul (const RC<DynamicUInt2> &);
 	RC<DynamicUInt2>  Div (const RC<DynamicUInt2> &);
 	RC<DynamicUInt2>  Add (const RC<DynamicUInt2> &);
@@ -3398,6 +3416,7 @@ struct DynamicFloat
 	RC<DynamicFloat>  Pow (float);
 	RC<DynamicFloat>  Exp2 ();
 	RC<DynamicFloat>  Exp2 (float scale);
+	RC<DynamicFloat>  Log2 ();
 	RC<DynamicFloat>  Min (float);
 	RC<DynamicFloat>  Max (float);
 	RC<DynamicFloat>  Mul (const RC<DynamicFloat> &);
@@ -3446,7 +3465,7 @@ struct DynamicULong
 
 struct DynamicDim
 {
-	DynamicDim (uint3);
+	DynamicDim (const uint3 &);
 	RC<DynamicDim>  opMul (int) const;
 	RC<DynamicDim>  opDiv (int) const;
 	RC<DynamicDim>  Mul (int) const;
@@ -3515,6 +3534,7 @@ struct Image
 	uint3  Dimension3 () const;
 	uint  ArrayLayers () const;
 	uint  MipmapCount () const;
+	EPixelFormat  PixelFormat () const;
 
 	// Returns dynamic dimension of the image
 	RC<DynamicDim>  Dimension () const;
@@ -3653,6 +3673,9 @@ struct Buffer
 
 	// Constant array size, can be used for draw call.
 	uint  ConstArraySize () const;
+
+	// Load CSV and put it to buffer with same column names.
+	void  LoadCSV (const string & filename, const string & elemTypeName);
 
 	// Build buffer data layout with initial content.
 	// Returns offset in bytes where data is begin.
@@ -4104,13 +4127,13 @@ struct SphericalCube
 	void  ArgIn (const string & uniformName, const RC<Image> & resource);
 	void  ArgOut (const string & uniformName, const RC<Image> & resource);
 	void  ArgInOut (const string & uniformName, const RC<Image> & resource);
-	void  ArgIn (const string & uniformName, const array<Image@> & resources);
-	void  ArgOut (const string & uniformName, const array<Image@> & resources);
-	void  ArgInOut (const string & uniformName, const array<Image@> & resources);
+	void  ArgIn (const string & uniformName, const array<RC<Image>> & resources);
+	void  ArgOut (const string & uniformName, const array<RC<Image>> & resources);
+	void  ArgInOut (const string & uniformName, const array<RC<Image>> & resources);
 	void  ArgTex (const string & uniformName, const RC<Image> & resource);
 	void  ArgIn (const string & uniformName, const RC<Image> & resource, const string & samplerName);
-	void  ArgTex (const string & uniformName, const array<Image@> & resources);
-	void  ArgIn (const string & uniformName, const array<Image@> & resources, const string & samplerName);
+	void  ArgTex (const string & uniformName, const array<RC<Image>> & resources);
+	void  ArgIn (const string & uniformName, const array<RC<Image>> & resources, const string & samplerName);
 	void  ArgIn (const string & uniformName, const RC<VideoImage> & resource, const string & samplerName);
 
 	// Set detail level of the sphere.
@@ -4352,13 +4375,13 @@ struct UnifiedGeometry
 	void  ArgIn (const string & uniformName, const RC<Image> & resource);
 	void  ArgOut (const string & uniformName, const RC<Image> & resource);
 	void  ArgInOut (const string & uniformName, const RC<Image> & resource);
-	void  ArgIn (const string & uniformName, const array<Image@> & resources);
-	void  ArgOut (const string & uniformName, const array<Image@> & resources);
-	void  ArgInOut (const string & uniformName, const array<Image@> & resources);
+	void  ArgIn (const string & uniformName, const array<RC<Image>> & resources);
+	void  ArgOut (const string & uniformName, const array<RC<Image>> & resources);
+	void  ArgInOut (const string & uniformName, const array<RC<Image>> & resources);
 	void  ArgTex (const string & uniformName, const RC<Image> & resource);
 	void  ArgIn (const string & uniformName, const RC<Image> & resource, const string & samplerName);
-	void  ArgTex (const string & uniformName, const array<Image@> & resources);
-	void  ArgIn (const string & uniformName, const array<Image@> & resources, const string & samplerName);
+	void  ArgTex (const string & uniformName, const array<RC<Image>> & resources);
+	void  ArgIn (const string & uniformName, const array<RC<Image>> & resources, const string & samplerName);
 	void  ArgIn (const string & uniformName, const RC<VideoImage> & resource, const string & samplerName);
 	void  Draw (const UnifiedGeometry_Draw &);
 	void  Draw (const UnifiedGeometry_DrawIndexed &);
@@ -4416,8 +4439,8 @@ struct Collection
 	void  Add (const string & key, const RC<BaseController> & value);
 	void  Add (const string & key, const RC<RTGeometry> & value);
 	void  Add (const string & key, const RC<RTScene> & value);
-	void  Add (const string & key, const array<Image@> & value);
-	void  Add (const string & key, const array<Buffer@> & value);
+	void  Add (const string & key, const array<RC<Image>> & value);
+	void  Add (const string & key, const array<RC<Buffer>> & value);
 
 	// Returns dynamic values.
 	RC<DynamicDim>  DynDim (const string & key) const;
@@ -4432,8 +4455,8 @@ struct Collection
 	RC<BaseController>  Controller (const string & key) const;
 	RC<RTGeometry>  RTGeometry (const string & key) const;
 	RC<RTScene>  RTScene (const string & key) const;
-	void  ImageArray (const string & key, array<Image@> & result) const;
-	void  BufferArray (const string & key, array<Buffer@> & result) const;
+	void  ImageArray (const string & key, array<RC<Image>> & result) const;
+	void  BufferArray (const string & key, array<RC<Buffer>> & result) const;
 };
 
 struct Postprocess
@@ -4523,13 +4546,13 @@ struct Postprocess
 	void  ArgInOut (const string & uniformName, const RC<Image> & resource);
 	void  ArgTex (const string & uniformName, const RC<Image> & resource);
 	void  ArgIn (const string & uniformName, const RC<Image> & resource, const string & samplerName);
-	void  ArgTex (const string & uniformName, const array<Image@> & resources);
-	void  ArgIn (const string & uniformName, const array<Image@> & resources, const string & samplerName);
+	void  ArgTex (const string & uniformName, const array<RC<Image>> & resources);
+	void  ArgIn (const string & uniformName, const array<RC<Image>> & resources, const string & samplerName);
 	void  ArgIn (const string & uniformName, const RC<VideoImage> & resource, const string & samplerName);
 	void  Set (const RC<BaseController> & camera);
-	void  ArgIn (const string & uniformName, const array<Image@> & resources);
-	void  ArgOut (const string & uniformName, const array<Image@> & resources);
-	void  ArgInOut (const string & uniformName, const array<Image@> & resources);
+	void  ArgIn (const string & uniformName, const array<RC<Image>> & resources);
+	void  ArgOut (const string & uniformName, const array<RC<Image>> & resources);
+	void  ArgInOut (const string & uniformName, const array<RC<Image>> & resources);
 
 	// Add color/depth render target.
 	// Implicitly name will be 'out_Color' + index.
@@ -4751,13 +4774,13 @@ struct ComputePass
 	void  ArgInOut (const string & uniformName, const RC<Image> & resource);
 	void  ArgTex (const string & uniformName, const RC<Image> & resource);
 	void  ArgIn (const string & uniformName, const RC<Image> & resource, const string & samplerName);
-	void  ArgTex (const string & uniformName, const array<Image@> & resources);
-	void  ArgIn (const string & uniformName, const array<Image@> & resources, const string & samplerName);
+	void  ArgTex (const string & uniformName, const array<RC<Image>> & resources);
+	void  ArgIn (const string & uniformName, const array<RC<Image>> & resources, const string & samplerName);
 	void  ArgIn (const string & uniformName, const RC<VideoImage> & resource, const string & samplerName);
 	void  Set (const RC<BaseController> & camera);
-	void  ArgIn (const string & uniformName, const array<Image@> & resources);
-	void  ArgOut (const string & uniformName, const array<Image@> & resources);
-	void  ArgInOut (const string & uniformName, const array<Image@> & resources);
+	void  ArgIn (const string & uniformName, const array<RC<Image>> & resources);
+	void  ArgOut (const string & uniformName, const array<RC<Image>> & resources);
+	void  ArgInOut (const string & uniformName, const array<RC<Image>> & resources);
 	ComputePass  ();
 	ComputePass (const string & shaderPath);
 	ComputePass (const string & shaderPath, const string & defines);
@@ -4889,13 +4912,13 @@ struct ComputeMip
 	void  ArgInOut (const string & uniformName, const RC<Image> & resource);
 	void  ArgTex (const string & uniformName, const RC<Image> & resource);
 	void  ArgIn (const string & uniformName, const RC<Image> & resource, const string & samplerName);
-	void  ArgTex (const string & uniformName, const array<Image@> & resources);
-	void  ArgIn (const string & uniformName, const array<Image@> & resources, const string & samplerName);
+	void  ArgTex (const string & uniformName, const array<RC<Image>> & resources);
+	void  ArgIn (const string & uniformName, const array<RC<Image>> & resources, const string & samplerName);
 	void  ArgIn (const string & uniformName, const RC<VideoImage> & resource, const string & samplerName);
 	void  Set (const RC<BaseController> & camera);
-	void  ArgIn (const string & uniformName, const array<Image@> & resources);
-	void  ArgOut (const string & uniformName, const array<Image@> & resources);
-	void  ArgInOut (const string & uniformName, const array<Image@> & resources);
+	void  ArgIn (const string & uniformName, const array<RC<Image>> & resources);
+	void  ArgOut (const string & uniformName, const array<RC<Image>> & resources);
+	void  ArgInOut (const string & uniformName, const array<RC<Image>> & resources);
 	ComputeMip  ();
 	ComputeMip (const string & shaderPath);
 	ComputeMip (const string & shaderPath, const string & defines);
@@ -4992,13 +5015,13 @@ struct RasterMip
 	void  ArgInOut (const string & uniformName, const RC<Image> & resource);
 	void  ArgTex (const string & uniformName, const RC<Image> & resource);
 	void  ArgIn (const string & uniformName, const RC<Image> & resource, const string & samplerName);
-	void  ArgTex (const string & uniformName, const array<Image@> & resources);
-	void  ArgIn (const string & uniformName, const array<Image@> & resources, const string & samplerName);
+	void  ArgTex (const string & uniformName, const array<RC<Image>> & resources);
+	void  ArgIn (const string & uniformName, const array<RC<Image>> & resources, const string & samplerName);
 	void  ArgIn (const string & uniformName, const RC<VideoImage> & resource, const string & samplerName);
 	void  Set (const RC<BaseController> & camera);
-	void  ArgIn (const string & uniformName, const array<Image@> & resources);
-	void  ArgOut (const string & uniformName, const array<Image@> & resources);
-	void  ArgInOut (const string & uniformName, const array<Image@> & resources);
+	void  ArgIn (const string & uniformName, const array<RC<Image>> & resources);
+	void  ArgOut (const string & uniformName, const array<RC<Image>> & resources);
+	void  ArgInOut (const string & uniformName, const array<RC<Image>> & resources);
 	RasterMip  ();
 	RasterMip (const string & shaderPath);
 	RasterMip (const string & shaderPath, const string & defines);
@@ -5126,13 +5149,13 @@ struct RayTracingPass
 	void  ArgInOut (const string & uniformName, const RC<Image> & resource);
 	void  ArgTex (const string & uniformName, const RC<Image> & resource);
 	void  ArgIn (const string & uniformName, const RC<Image> & resource, const string & samplerName);
-	void  ArgTex (const string & uniformName, const array<Image@> & resources);
-	void  ArgIn (const string & uniformName, const array<Image@> & resources, const string & samplerName);
+	void  ArgTex (const string & uniformName, const array<RC<Image>> & resources);
+	void  ArgIn (const string & uniformName, const array<RC<Image>> & resources, const string & samplerName);
 	void  ArgIn (const string & uniformName, const RC<VideoImage> & resource, const string & samplerName);
 	void  Set (const RC<BaseController> & camera);
-	void  ArgIn (const string & uniformName, const array<Image@> & resources);
-	void  ArgOut (const string & uniformName, const array<Image@> & resources);
-	void  ArgInOut (const string & uniformName, const array<Image@> & resources);
+	void  ArgIn (const string & uniformName, const array<RC<Image>> & resources);
+	void  ArgOut (const string & uniformName, const array<RC<Image>> & resources);
+	void  ArgInOut (const string & uniformName, const array<RC<Image>> & resources);
 	RayTracingPass  ();
 	RayTracingPass (const string & defines);
 
@@ -5250,13 +5273,13 @@ struct SceneGraphicsPass
 	void  ArgInOut (const string & uniformName, const RC<Image> & resource);
 	void  ArgTex (const string & uniformName, const RC<Image> & resource);
 	void  ArgIn (const string & uniformName, const RC<Image> & resource, const string & samplerName);
-	void  ArgTex (const string & uniformName, const array<Image@> & resources);
-	void  ArgIn (const string & uniformName, const array<Image@> & resources, const string & samplerName);
+	void  ArgTex (const string & uniformName, const array<RC<Image>> & resources);
+	void  ArgIn (const string & uniformName, const array<RC<Image>> & resources, const string & samplerName);
 	void  ArgIn (const string & uniformName, const RC<VideoImage> & resource, const string & samplerName);
 	void  Set (const RC<BaseController> & camera);
-	void  ArgIn (const string & uniformName, const array<Image@> & resources);
-	void  ArgOut (const string & uniformName, const array<Image@> & resources);
-	void  ArgInOut (const string & uniformName, const array<Image@> & resources);
+	void  ArgIn (const string & uniformName, const array<RC<Image>> & resources);
+	void  ArgOut (const string & uniformName, const array<RC<Image>> & resources);
+	void  ArgInOut (const string & uniformName, const array<RC<Image>> & resources);
 
 	// Add color/depth render target.
 	// Implicitly name will be 'out_Color' + index.
@@ -5451,13 +5474,13 @@ struct SceneRayTracingPass
 	void  ArgInOut (const string & uniformName, const RC<Image> & resource);
 	void  ArgTex (const string & uniformName, const RC<Image> & resource);
 	void  ArgIn (const string & uniformName, const RC<Image> & resource, const string & samplerName);
-	void  ArgTex (const string & uniformName, const array<Image@> & resources);
-	void  ArgIn (const string & uniformName, const array<Image@> & resources, const string & samplerName);
+	void  ArgTex (const string & uniformName, const array<RC<Image>> & resources);
+	void  ArgIn (const string & uniformName, const array<RC<Image>> & resources, const string & samplerName);
 	void  ArgIn (const string & uniformName, const RC<VideoImage> & resource, const string & samplerName);
 	void  Set (const RC<BaseController> & camera);
-	void  ArgIn (const string & uniformName, const array<Image@> & resources);
-	void  ArgOut (const string & uniformName, const array<Image@> & resources);
-	void  ArgInOut (const string & uniformName, const array<Image@> & resources);
+	void  ArgIn (const string & uniformName, const array<RC<Image>> & resources);
+	void  ArgOut (const string & uniformName, const array<RC<Image>> & resources);
+	void  ArgInOut (const string & uniformName, const array<RC<Image>> & resources);
 
 	// Set path to single pipeline.
 	// Scene geometry will be linked with compatible pipeline or error will be generated.
@@ -5571,6 +5594,8 @@ struct FeatureSet
 	bool  hasLargePoints ();
 	void  wideLines (EFeature);
 	bool  hasWideLines ();
+	void  conservativeRasterization (EFeature);
+	bool  hasConservativeRasterization ();
 	void  subgroupTypes (uint);
 	ESubgroupTypes  getSubgroupTypes ();
 	void  subgroupStages (uint);
@@ -6113,6 +6138,7 @@ void  ClearImage (const RC<Image> &, const RGBA32i &);
 void  ClearBuffer (const RC<Buffer> &, uint);
 void  ClearBuffer (const RC<Buffer> & buffer, uint64 offset, uint64 size, uint value);
 void  ConvertCooperativeVectorMatrix (uint numRows, uint numColumns, ECoopMatrixComponentType srcType, const RC<Buffer> & srcBuffer, uint srcOffset, uint srcSize, uint srcStride, ECoopVecMatrixLayout srcLayout, ECoopMatrixComponentType dstType, const RC<Buffer> & dstBuffer, uint dstOffset, uint dstSize, uint dstStride, ECoopVecMatrixLayout dstLayout);
+void  ResetUnusedTimers (const array<RC<DynamicFloat>> &);
 
 // Readback the image and save it to a file in DDS format. Rendering will be paused until the readback is completed.
 void  Export (const RC<Image> & image, const string & prefix);
@@ -6174,6 +6200,7 @@ void  GetCone (uint segmentCount, float radius, float height, array<float3> & po
 
 // Returns cone, apex in +Z
 void  GetCone (uint segmentCount, float radius, float height, array<float3> & positions, array<float3> & normals, array<float3> & tangents, array<float3> & bitangents, array<float2> & texcoords, array<uint> & indices);
+void  GetFrustumIndices (array<uint> &);
 
 // Returns spherical cube without projection and face rotation.
 // In 'positions': xy - pos on face, z - face index.
@@ -6256,6 +6283,7 @@ void  Label (const RC<DynamicFloat> & dyn, const string & name, const EnableLabe
 void  Label (const RC<DynamicFloat2> & dyn, const string & name, const EnableLabel & enableIf);
 void  Label (const RC<DynamicFloat3> & dyn, const string & name, const EnableLabel & enableIf);
 void  Label (const RC<DynamicFloat4> & dyn, const string & name, const EnableLabel & enableIf);
+void  Label (const string & name, const EnableLabel & enableIf);
 EnableLabel  EnableIfEqual (const RC<DynamicUInt> & dyn, uint ref);
 EnableLabel  EnableIfGreater (const RC<DynamicUInt> & dyn, uint ref);
 EnableLabel  EnableIfLess (const RC<DynamicUInt> & dyn, uint ref);
@@ -6298,7 +6326,8 @@ float3  CM_IdentitySC_Forward (const float3 & snormCoord_cubeFace);
 
 // Convert 2D regular grid on cube face to 3D position on sphere using tangential projection.
 float3  CM_TangentialSC_Forward (const float3 & snormCoord_cubeFace);
-void  GetMarchingCubeTable (array<uint> & edgeTable, array<int> & triangleTable, array<float3> & uvw);
+void  GetMarchingCubeTable (array<uint> & edgeTable, array<int> & triangleTable, array<int3> & uvw);
+void  GetTransvoxelTable (array<uint> & regularCellClass, array<uint> & regularCellData, array<uint> & regularVertexData, array<uint> & transitionCellClass, array<uint> & transitionCellData, array<uint> & transitionCornerData, array<uint> & transitionVertexData);
 EGPUVendor  GPUVendor ();
 bool  IsDiscreteGPU ();
 bool  IsRemoteGPU ();
@@ -6318,27 +6347,207 @@ RC<FeatureSet>  GetFeatureSet ();
 #define SCRIPT
 
 template <>
-struct RC<ComputeMip> : ComputeMip
+struct RC<UnifiedGeometry> : UnifiedGeometry
 {
-	RC (const ComputeMip &);
+	RC (const UnifiedGeometry &);
 };
 
 template <>
-struct RC<VideoImage> : VideoImage
+struct RC<ComputePass> : ComputePass
 {
-	RC (const VideoImage &);
+	RC (const ComputePass &);
 };
 
 template <>
-struct RC<FPVCamera> : FPVCamera
+struct RC<FeatureSet> : FeatureSet
 {
-	RC (const FPVCamera &);
+	RC (const FeatureSet &);
 };
 
 template <>
-struct RC<RemoteCamera> : RemoteCamera
+struct RC<RasterMip> : RasterMip
 {
-	RC (const RemoteCamera &);
+	RC (const RasterMip &);
+};
+
+template <>
+struct RC<SceneRayTracingPass> : SceneRayTracingPass
+{
+	RC (const SceneRayTracingPass &);
+};
+
+template <>
+struct RC<Postprocess> : Postprocess
+{
+	RC (const Postprocess &);
+};
+
+template <>
+struct RC<Buffer> : Buffer
+{
+	RC (const Buffer &);
+};
+
+template <>
+struct RC<SphericalCube> : SphericalCube
+{
+	RC (const SphericalCube &);
+};
+
+template <>
+struct RC<OrbitalCamera> : OrbitalCamera
+{
+	RC (const OrbitalCamera &);
+};
+
+template <>
+struct RC<RayTracingPass> : RayTracingPass
+{
+	RC (const RayTracingPass &);
+};
+
+template <>
+struct RC<FPSCamera> : FPSCamera
+{
+	RC (const FPSCamera &);
+};
+
+template <>
+struct RC<DynamicDim> : DynamicDim
+{
+	RC (const DynamicDim &);
+};
+
+template <>
+struct RC<DynamicFloat> : DynamicFloat
+{
+	RC (const DynamicFloat &);
+};
+
+template <>
+struct RC<DynamicUInt> : DynamicUInt
+{
+	RC (const DynamicUInt &);
+};
+
+template <>
+struct RC<Model> : Model
+{
+	RC (const Model &);
+};
+
+template <>
+struct RC<Scene> : Scene
+{
+	RC (const Scene &);
+};
+
+template <>
+struct RC<BaseController> : BaseController
+{
+	RC (const BaseController &);
+};
+
+template <>
+struct RC<TopDownCamera> : TopDownCamera
+{
+	RC (const TopDownCamera &);
+};
+
+template <>
+struct RC<FlightCamera> : FlightCamera
+{
+	RC (const FlightCamera &);
+};
+
+template <>
+struct RC<ScaleBiasCamera> : ScaleBiasCamera
+{
+	RC (const ScaleBiasCamera &);
+};
+
+template <>
+struct RC<DynamicInt> : DynamicInt
+{
+	RC (const DynamicInt &);
+};
+
+template <>
+struct RC<IPass> : IPass
+{
+	RC (const IPass &);
+};
+
+template <>
+struct RC<Image> : Image
+{
+	RC (const Image &);
+};
+
+template <>
+struct RC<DynamicFloat4> : DynamicFloat4
+{
+	RC (const DynamicFloat4 &);
+};
+
+template <>
+struct RC<DynamicUInt2> : DynamicUInt2
+{
+	RC (const DynamicUInt2 &);
+};
+
+template <>
+struct RC<DynamicUInt3> : DynamicUInt3
+{
+	RC (const DynamicUInt3 &);
+};
+
+template <>
+struct RC<DynamicFloat2> : DynamicFloat2
+{
+	RC (const DynamicFloat2 &);
+};
+
+template <>
+struct RC<DynamicFloat3> : DynamicFloat3
+{
+	RC (const DynamicFloat3 &);
+};
+
+template <>
+struct RC<RTGeometry> : RTGeometry
+{
+	RC (const RTGeometry &);
+};
+
+template <>
+struct RC<DynamicUInt4> : DynamicUInt4
+{
+	RC (const DynamicUInt4 &);
+};
+
+template <>
+struct RC<GeomSource> : GeomSource
+{
+	RC (const GeomSource &);
+};
+
+template <>
+struct RC<DynamicInt4> : DynamicInt4
+{
+	RC (const DynamicInt4 &);
+};
+
+template <>
+struct RC<DynamicInt3> : DynamicInt3
+{
+	RC (const DynamicInt3 &);
+};
+
+template <>
+struct RC<DynamicInt2> : DynamicInt2
+{
+	RC (const DynamicInt2 &);
 };
 
 template <>
@@ -6366,206 +6575,26 @@ struct RC<DynamicULong> : DynamicULong
 };
 
 template <>
-struct RC<Image> : Image
+struct RC<FPVCamera> : FPVCamera
 {
-	RC (const Image &);
+	RC (const FPVCamera &);
 };
 
 template <>
-struct RC<GeomSource> : GeomSource
+struct RC<VideoImage> : VideoImage
 {
-	RC (const GeomSource &);
+	RC (const VideoImage &);
 };
 
 template <>
-struct RC<DynamicInt2> : DynamicInt2
+struct RC<ComputeMip> : ComputeMip
 {
-	RC (const DynamicInt2 &);
+	RC (const ComputeMip &);
 };
 
 template <>
-struct RC<DynamicInt3> : DynamicInt3
+struct RC<RemoteCamera> : RemoteCamera
 {
-	RC (const DynamicInt3 &);
-};
-
-template <>
-struct RC<DynamicInt4> : DynamicInt4
-{
-	RC (const DynamicInt4 &);
-};
-
-template <>
-struct RC<DynamicUInt3> : DynamicUInt3
-{
-	RC (const DynamicUInt3 &);
-};
-
-template <>
-struct RC<DynamicUInt2> : DynamicUInt2
-{
-	RC (const DynamicUInt2 &);
-};
-
-template <>
-struct RC<DynamicUInt4> : DynamicUInt4
-{
-	RC (const DynamicUInt4 &);
-};
-
-template <>
-struct RC<DynamicFloat4> : DynamicFloat4
-{
-	RC (const DynamicFloat4 &);
-};
-
-template <>
-struct RC<RTGeometry> : RTGeometry
-{
-	RC (const RTGeometry &);
-};
-
-template <>
-struct RC<DynamicFloat3> : DynamicFloat3
-{
-	RC (const DynamicFloat3 &);
-};
-
-template <>
-struct RC<DynamicFloat2> : DynamicFloat2
-{
-	RC (const DynamicFloat2 &);
-};
-
-template <>
-struct RC<DynamicInt> : DynamicInt
-{
-	RC (const DynamicInt &);
-};
-
-template <>
-struct RC<IPass> : IPass
-{
-	RC (const IPass &);
-};
-
-template <>
-struct RC<TopDownCamera> : TopDownCamera
-{
-	RC (const TopDownCamera &);
-};
-
-template <>
-struct RC<ScaleBiasCamera> : ScaleBiasCamera
-{
-	RC (const ScaleBiasCamera &);
-};
-
-template <>
-struct RC<BaseController> : BaseController
-{
-	RC (const BaseController &);
-};
-
-template <>
-struct RC<FlightCamera> : FlightCamera
-{
-	RC (const FlightCamera &);
-};
-
-template <>
-struct RC<Model> : Model
-{
-	RC (const Model &);
-};
-
-template <>
-struct RC<DynamicUInt> : DynamicUInt
-{
-	RC (const DynamicUInt &);
-};
-
-template <>
-struct RC<Scene> : Scene
-{
-	RC (const Scene &);
-};
-
-template <>
-struct RC<OrbitalCamera> : OrbitalCamera
-{
-	RC (const OrbitalCamera &);
-};
-
-template <>
-struct RC<DynamicFloat> : DynamicFloat
-{
-	RC (const DynamicFloat &);
-};
-
-template <>
-struct RC<SphericalCube> : SphericalCube
-{
-	RC (const SphericalCube &);
-};
-
-template <>
-struct RC<RayTracingPass> : RayTracingPass
-{
-	RC (const RayTracingPass &);
-};
-
-template <>
-struct RC<DynamicDim> : DynamicDim
-{
-	RC (const DynamicDim &);
-};
-
-template <>
-struct RC<FPSCamera> : FPSCamera
-{
-	RC (const FPSCamera &);
-};
-
-template <>
-struct RC<FeatureSet> : FeatureSet
-{
-	RC (const FeatureSet &);
-};
-
-template <>
-struct RC<ComputePass> : ComputePass
-{
-	RC (const ComputePass &);
-};
-
-template <>
-struct RC<Postprocess> : Postprocess
-{
-	RC (const Postprocess &);
-};
-
-template <>
-struct RC<SceneRayTracingPass> : SceneRayTracingPass
-{
-	RC (const SceneRayTracingPass &);
-};
-
-template <>
-struct RC<RasterMip> : RasterMip
-{
-	RC (const RasterMip &);
-};
-
-template <>
-struct RC<UnifiedGeometry> : UnifiedGeometry
-{
-	RC (const UnifiedGeometry &);
-};
-
-template <>
-struct RC<Buffer> : Buffer
-{
-	RC (const Buffer &);
+	RC (const RemoteCamera &);
 };
 

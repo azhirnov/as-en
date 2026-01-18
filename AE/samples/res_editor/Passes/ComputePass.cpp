@@ -128,6 +128,13 @@ namespace AE::ResEditor
 			uint	dispatch_id = 0;
 			for (const auto& it : _iterations)
 			{
+				// memory barrier between dispatches
+				if ( dispatch_id > 0 )
+				{
+					ctx.ExecutionBarrier( EPipelineScope::Compute, EPipelineScope::Compute );
+					ctx.CommitBarriers();
+				}
+
 				const uint3	group_count = it.GroupCount( _localSize );	// TODO: indirect dispatch ?
 
 				ShaderTypes::ComputePassPC	pc;
@@ -140,12 +147,6 @@ namespace AE::ResEditor
 					ctx.DispatchIndirect( it.indirect->GetBufferId( ctx.GetFrameId() ), it.indirectOffset );
 				}else{
 					ctx.Dispatch( group_count );
-				}
-
-				if ( not IsLastElement( it, _iterations ))
-				{
-					ctx.ExecutionBarrier( EPipelineScope::Compute, EPipelineScope::Compute );
-					ctx.CommitBarriers();
 				}
 			}
 

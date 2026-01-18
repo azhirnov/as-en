@@ -177,9 +177,10 @@ namespace AE::Threading
 	private:
 		File_t			_file;
 		const Bytes		_fileSize;
+		const ReqAlign	_align;
 		const EMode		_mode;
 
-		DEBUG_ONLY( const Path  _filename;)
+		DEBUG_ONLY( const Path  _dbgFilename;)
 
 
 	// methods
@@ -213,6 +214,8 @@ namespace AE::Threading
 
 		bool			CancelAllRequests ()												__NE_OV;
 
+		ReqAlign		OffsetAlign ()														C_NE_OV	{ return _align; }
+
 		using AsyncRDataSource::ReadBlock;
 	};
 //-----------------------------------------------------------------------------
@@ -236,8 +239,12 @@ namespace AE::Threading
 	// variables
 	private:
 		File_t			_file;
+		const ReqAlign	_align;
 
-		DEBUG_ONLY( const Path  _filename;)
+		DEBUG_ONLY(
+			const Path  _dbgFilename;
+			const EMode	_dbgMode;
+		)
 
 
 	// methods
@@ -267,6 +274,8 @@ namespace AE::Threading
 		AsyncDSRequest	WriteBlock (Bytes pos, const void* data, Bytes dataSize, RC<> mem)	__NE_OV;
 		bool			CancelAllRequests ()												__NE_OV;
 		RC<SharedMem>	Alloc (SizeAndAlign)												__NE_OV;
+
+		ReqAlign		OffsetAlign ()														C_NE_OV	{ return _align; }
 
 		using AsyncWDataSource::WriteBlock;
 	};

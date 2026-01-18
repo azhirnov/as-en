@@ -91,6 +91,9 @@ namespace AE::ResEditor
 										 RC<DynamicUInt>, RC<DynamicUInt2>, RC<DynamicUInt3>, RC<DynamicUInt4>,
 										 RC<DynamicFloat>, RC<DynamicFloat2>, RC<DynamicFloat3>, RC<DynamicFloat4> >;
 
+	using AnyDynVecOrScalarOrNull_t	= Union< NullUnion, RC<DynamicInt>, RC<DynamicInt2>, RC<DynamicInt3>, RC<DynamicInt4>,
+											 RC<DynamicUInt>, RC<DynamicUInt2>, RC<DynamicUInt3>, RC<DynamicUInt4>,
+											 RC<DynamicFloat>, RC<DynamicFloat2>, RC<DynamicFloat3>, RC<DynamicFloat4> >;
 
 /*
 =================================================
@@ -168,7 +171,9 @@ namespace AE::ResEditor
 				break;
 
 			case EOperator::NearPOT :
-				if constexpr( IsInteger<T> )
+				if constexpr( IsFloatPoint<T> )
+					result = Log2( Max( result, Value_t{T(0)} ));
+				else
 					result = NearPOT( result );
 				break;
 
@@ -182,6 +187,16 @@ namespace AE::ResEditor
 			case EOperator::Pow :
 				if constexpr( IsFloatPoint<T> )
 					result = Pow( result, r_value );
+				break;
+
+			case EOperator::AlignUp :
+				if constexpr( IsInteger<T> )
+					result = AlignUp( result, r_value );
+				break;
+
+			case EOperator::AlignDown :
+				if constexpr( IsInteger<T> )
+					result = AlignDown( result, r_value );
 				break;
 		}
 		switch_end

@@ -1,0 +1,152 @@
+// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+#ifdef __INTELLISENSE__
+#	include <pipeline_compiler.as>
+#	include <glsl.h>
+#endif
+//-----------------------------------------------------------------------------
+#ifdef SCRIPT
+
+	void ASmain ()
+	{
+		const string prefix = "opaque.";
+
+		{
+			RC<ShaderStructType>	st = ShaderStructType( prefix+"io.vs-fs" );
+			st.Set( EStructLayout::InternalIO,
+					"float3		worldNormal;" +
+					"float2		texcoord;" +
+					"uint		materialIdx;" );
+		}
+
+		RC<GraphicsPipeline>	ppln = GraphicsPipeline( prefix+"t" );
+		ppln.SetLayout( "model.pl" );	// [InitPipelineLayout()](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/pipeline_inc/ModelTypes.as)
+		ppln.SetVertexInput( "VB{Posf3, Normf3, UVf2}" );
+		ppln.SetFragmentOutputFromRenderTech( "rtech", "main" );
+		ppln.SetShaderIO( EShader::Vertex, EShader::Fragment, prefix+"io.vs-fs" );
+
+		{
+			RC<Shader>	vs = Shader();
+			vs.LoadSelf();
+			ppln.SetVertexShader( vs );
+		}{
+			RC<Shader>	fs = Shader();
+			fs.LoadSelf();
+			ppln.SetFragmentShader( fs );
+		}
+
+		// base render state
+		RenderState	rs;
+		{
+			rs.depth.test					= true;
+			rs.depth.write					= true;
+
+			rs.inputAssembly.topology		= EPrimitive::TriangleList;
+
+			rs.rasterization.frontFaceCCW	= true;
+		}
+
+		// specialization
+		{
+			RC<GraphicsPipelineSpec>	spec = ppln.AddSpecialization( prefix+"twosided" );
+			spec.AddToRenderTech( "rtech", "main" );  // in ScriptSceneGraphicsPass
+
+			rs.rasterization.cullMode	= ECullMode::None;
+			spec.SetRenderState( rs );
+		}
+		{
+			RC<GraphicsPipelineSpec>	spec = ppln.AddSpecialization( prefix+"cullback" );
+			spec.AddToRenderTech( "rtech", "main" );  // in ScriptSceneGraphicsPass
+
+			rs.rasterization.cullMode	= ECullMode::Back;
+			spec.SetRenderState( rs );
+		}
+	}
+
+#endif
+//-----------------------------------------------------------------------------
+#ifdef SH_VERT
+	#include "Transform.glsl"
+
+	void Main ()
+	{
+		ModelNode	node	= un_Nodes.elements[ gl.InstanceIndex ];	// only 'firstInstance'
+
+		gl.Position		= LocalPosToClipSpace( node.transform * float4( in_Position, 1.0f ));
+		Out.texcoord	= in_Texcoord;
+		Out.worldNormal	= float3x3(node.transform) * in_Normal;
+		Out.materialIdx	= node.materialIdx;	// uniform per draw call
+	}
+
+#endif
+//-----------------------------------------------------------------------------
+#ifdef SH_FRAG
+	#include "Math.glsl"
+	#include "TexSampling.glsl"
+	#include "ModelMaterial.glsl"
+
+	uint  PackUShort (uint2 v)
+	{
+		v &= 0xFFFF;
+		return v.x | (v.y << 16);
+	}
+
+
+	void Main ()
+	{
+		const float3	normal	= Normalize( In.worldNormal );
+		ModelMaterial	mtr		= un_Materials.elements[ In.materialIdx ];	// uniform per draw call
+
+		out_Normals.rgb	= ToUNorm( normal );
+		out_UV.rg		= In.texcoord;
+		out_RefDUV.rg	= gl.dFdxCoarse( In.texcoord );
+		out_RefDUV.ba	= gl.dFdyCoarse( In.texcoord );
+
+		out_Packed.x	= In.materialIdx;
+
+		// Texture LOD
+		{
+			float	mips	= float(gl.texture.QueryLevels( un_AlbedoMaps[ UnpackMapAndSampler( mtr.albedoMap ).x ] ));
+			float	lod		= gl.texture.QueryLod( gl::Nonuniform(gl::CombinedTex2D<float>( un_AlbedoMaps[ UnpackMapAndSampler( mtr.albedoMap ).x ], un_AlbedoMapSampler )), In.texcoord ).y;
+
+			switch ( iLodPack )
+			{
+				case 0 :	// 8bit
+					out_Packed.y = uint(Saturate(lod / mips) * 0xFF) & 0xFF;  break;	// ~3bit subpixel precision
+
+				case 1 :	// 12bit
+					out_Packed.y = uint(Saturate(lod / mips) * 0xFFF) & 0xFFF;  break;
+
+				case 2 :	// 16bit
+					out_Packed.y = packHalf2x16( float2(lod) );  break;
+
+				case 3 :	// 32bit
+					out_Packed.y = floatBitsToUint( lod );  break;
+			}
+		}
+
+		// UV dxdy
+		{
+			const float		max_duv	= 1.0;
+
+			switch ( iDUVPack )
+			{
+				case 0 :	// 8bit
+					out_Packed.z = PackUShort( uint2( Saturate( out_RefDUV.rg / max_duv ) * 0xFF ));
+					out_Packed.w = PackUShort( uint2( Saturate( out_RefDUV.ba / max_duv ) * 0xFF ));
+					break;
+
+				case 1 :	// 12bit
+					out_Packed.z = PackUShort( uint2( Saturate( out_RefDUV.rg / max_duv ) * 0xFFF ));
+					out_Packed.w = PackUShort( uint2( Saturate( out_RefDUV.ba / max_duv ) * 0xFFF ));
+					break;
+
+				case 2 :	// 16bit
+					out_Packed.z = packHalf2x16( out_RefDUV.rg );
+					out_Packed.w = packHalf2x16( out_RefDUV.ba );
+					break;
+			}
+		}
+	}
+
+#endif
+//-----------------------------------------------------------------------------

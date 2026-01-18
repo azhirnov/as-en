@@ -116,7 +116,7 @@
 	WGShared uint  s_TaskCount;
 
 	ND_ bool  IsVisible (float3 center, float radius) {
-		return Frustum_IsVisible( Frustum_Create( un_PerPass.camera.frustum ), Sphere_Create( center, radius ));
+		return Frustum_IsSphereVisible( un_PerPass.camera.frustum, center, radius );
 	}
 
 	void Main ()
@@ -129,7 +129,6 @@
 			if ( I == 0 )
 				s_TaskCount = 0;
 
-			gl.memoryBarrier.Shared();
 			gl.WorkgroupBarrier();
 		}
 
@@ -154,7 +153,6 @@
 		}
 
 		gl.WorkgroupBarrier();
-		gl.memoryBarrier.Shared();
 
 		if ( I == 0 )
 			gl.EmitMeshTasks( s_TaskCount, 1, 1 );

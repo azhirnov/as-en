@@ -13,7 +13,7 @@ namespace AE::Scripting
 	template <typename T>
 	class EnumBinder final
 	{
-		StaticAssert( sizeof(T) > 0, "type is not implemented" );
+		StaticAssertMsg( sizeof(T) > 0, "type is not implemented" );
 
 	// types
 	public:

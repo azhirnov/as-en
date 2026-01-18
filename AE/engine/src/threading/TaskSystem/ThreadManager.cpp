@@ -306,10 +306,10 @@ namespace
 			if ( p_core != null )
 			{
 				// bind main thread to the high performance core
-				int	id = BitScanForward( (hp_core != null ? hp_core : p_core)->physicalBits.to_ullong() );
+				int	id = LowBitIndex( (hp_core != null ? hp_core : p_core)->physicalBits.to_ullong() );
 				cfg.mainThreadCoreId = ECpuCoreId(id);
 
-				id = BitScanForward( (p_core->physicalBits & ~CpuArchInfo::CoreBits_t{}.set(id)).to_ullong() );
+				id = LowBitIndex( (p_core->physicalBits & ~CpuArchInfo::CoreBits_t{}.set(id)).to_ullong() );
 				second_thread_id = ECpuCoreId(id);
 			}
 		}

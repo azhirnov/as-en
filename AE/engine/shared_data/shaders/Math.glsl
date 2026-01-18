@@ -31,8 +31,12 @@
 # define AE_ENABLE_DOUBLE_TYPE	0	// suffix 'LF'
 #endif
 
+#define uniform					// mark as uniform value across subgroup, so it uses scalar register (SGPR on AMD)
+#define if_uniform		if		// mark as uniform control flow
+
 // helper
-#define UNITE( x, y )	x##y
+#define UNITE( x, y )		x##y
+#define UNITE3( a, b, c )	a##b##c
 //-----------------------------------------------------------------------------
 
 
@@ -45,8 +49,8 @@
 #define ACosH					acosh			// (half, float)
 #define ATan					atan			// (half, float)	for 2 arg overload: result in range [-Pi...+Pi]
 												//					for 1 arg overload: result in range [-Pi/2 ... Pi/2], result is undefined if x=0
-#define BitScanReverse			findMSB			// (any int)
-#define BitScanForward			findLSB			// (any int)
+#define HighBitIndex			findMSB			// (any int)		on some GPUs MSB is 2x faster, on other 2x slower
+#define LowBitIndex				findLSB			// (any int)
 #define ATanH					atanh			// (half, float)
 #define Clamp					clamp			// (any except bool)
 #define Ceil					ceil			// (any fp)
@@ -63,7 +67,7 @@
 #define IsNaN					isnan			// (any fp)
 #define IsInfinity				isinf			// (any fp)
 #define InvSqrt					inversesqrt		// (any fp)							result is undefined if x <= 0
-#define IntLog2					BitScanReverse	// (any int)
+#define IntLog2					HighBitIndex	// (any int)
 #define Length					length			// (any fp)
 #define Lerp					mix				// (any fp)
 #define Ln						log				// (half, float)					result is undefined if x <= 0
@@ -89,6 +93,7 @@
 #define BitCount				bitCount		// (any int)
 #define ToDeg					degrees			// (half, float)
 #define ToRad					radians			// (half, float)
+#define BitReverse				bitfieldReverse
 
 #define MulAdd(_a_,_b_,_c_)		((_a_)*(_b_)+(_c_))
 
@@ -355,6 +360,7 @@ Gen_SATURATE( float, float_vec_t )
 
 #define Gen_FPBOOL( _stype_, _vtype_ )\
 	ND_ _stype_  LessF (const _stype_ lhs, const _stype_ rhs)	{ return step( lhs, rhs ); }\
+	ND_ _stype_  NotF  (const _stype_ rhs)						{ return _stype_(1.0) - rhs; }\
 	Gen_FPBOOL1( _stype_,	UNITE( _vtype_, 2 ))\
 	Gen_FPBOOL1( _stype_,	UNITE( _vtype_, 3 ))\
 	Gen_FPBOOL1( _stype_,	UNITE( _vtype_, 4 ))
@@ -1294,9 +1300,25 @@ ND_ bool  HasBit (const uint value, const uint index)
 	return (value & (1u << index)) != 0;
 }
 
+#define ToBitMask	ExclusiveBitMask
+
+ND_ uint  ExclusiveBitMask (const uint bitCount)
+{
+	return bitCount >= 32 ?
+			~0u :
+			(1u << bitCount) - 1;
+}
+
+ND_ uint  InclusiveBitMask (const uint bitCount)
+{
+	return bitCount >= 31 ?
+			~0u :
+			(1u << (bitCount+1)) - 1;
+}
+
 //	extract lowest non-zero bit.
 //	returns zero if 'bits' is zero.
-ND_ uint  ExtractBit (inout uint bits)
+ND_ uint  ExtractLowBit (inout uint bits)	// ~5cy
 {
 	uint	result = bits & ~(bits - 1u);
 	bits = bits & ~result;
@@ -1305,7 +1327,7 @@ ND_ uint  ExtractBit (inout uint bits)
 
 //	extract highest non-zero bit.
 //	returns zero if 'value' is zero.
-ND_ uint  ExtractHighBit (inout uint bits)
+ND_ uint  ExtractHighBit (inout uint bits)	// ~5cy
 {
 	uint	result = bits & ~(bits >> 1);
 	bits = bits & ~result;
@@ -1313,9 +1335,14 @@ ND_ uint  ExtractHighBit (inout uint bits)
 }
 
 //  return '~0u' if 'bits' is zero.
-ND_ uint  ExtractBitIndex (inout uint bits)
+ND_ uint  ExtractLowBitIndex (inout uint bits)		// ~5+4cy
 {
-	return uint(IntLog2( ExtractBit( INOUT bits )));
+	return uint(HighBitIndex( ExtractLowBit( INOUT bits )));
+}
+
+ND_ uint  ExtractHightBitIndex (inout uint bits)	// ~5+4cy
+{
+	return uint(HighBitIndex( ExtractHighBit( INOUT bits )));
 }
 
 /*
@@ -1619,7 +1646,8 @@ ND_ bool4  IsNotZero (const float4 v)	{ return Greater( Abs(v), float4(float_eps
 #define AnyNotZero( v )					Any( IsNotZero( v ))
 
 #define IsFinite( v )					Not( BoolOr( IsNaN( v ), IsInfinity( v )))
-#define AllFinite( v )					(All(IsNaN( v )) and All(IsInfinity( v )))
+#define NotAllFinite( v )				(All(IsNaN( v )) and All(IsInfinity( v )))
+#define AllFinite( v )					Not( NotAllFinite( v ))
 
 ND_ bool  IsNormalized (const float2 v, const float err)	{ float d = Dot( v, v ) - 1.f;  return Abs(d) < err; }
 ND_ bool  IsNormalized (const float3 v, const float err)	{ float d = Dot( v, v ) - 1.f;  return Abs(d) < err; }
@@ -1708,10 +1736,10 @@ Gen_FPEQUAL( float,	float_vec_t )
 	void  Swap (inout _type_ lhs, inout _type_ rhs)	{ _type_ tmp = lhs;  lhs = rhs;  rhs = tmp; }
 
 #define Gen_SWAP( _stype_, _vtype_ )\
-	Gen_SWAP1( _stype_ )\
-	Gen_SWAP1( UNITE(_vtype_,2) )\
-	Gen_SWAP1( UNITE(_vtype_,3) )\
-	Gen_SWAP1( UNITE(_vtype_,4) )
+	Gen_SWAP1( _stype_ )			\
+	Gen_SWAP1( UNITE( _vtype_, 2 ))	\
+	Gen_SWAP1( UNITE( _vtype_, 3 ))	\
+	Gen_SWAP1( UNITE( _vtype_, 4 ))
 
 Gen_SWAP( float,	float_vec_t )
 Gen_SWAP( int,		int_vec_t )
@@ -1752,9 +1780,9 @@ Gen_SWAP( uint,		uint_vec_t )
 
 #define Gen_DIVCEIL( _stype_, _vtype_ )																			\
 	ND_ _stype_  DivCeil (const _stype_ lhs, const _stype_ rhs)		{ return (lhs + rhs - _stype_(1)) / rhs; }	\
-	Gen_DIVCEIL1( _stype_, UNITE( _vtype_, 2))																	\
-	Gen_DIVCEIL1( _stype_, UNITE( _vtype_, 3))																	\
-	Gen_DIVCEIL1( _stype_, UNITE( _vtype_, 4))
+	Gen_DIVCEIL1( _stype_, UNITE( _vtype_, 2 ))																	\
+	Gen_DIVCEIL1( _stype_, UNITE( _vtype_, 3 ))																	\
+	Gen_DIVCEIL1( _stype_, UNITE( _vtype_, 4 ))
 
 Gen_DIVCEIL( int,	int_vec_t )
 Gen_DIVCEIL( uint,	uint_vec_t )
@@ -1784,6 +1812,51 @@ Gen_CROSS2( float, float2 )
 	Gen_CROSS2( double, double2 )
 #endif
 #undef Gen_CROSS2
+
+/*
+=================================================
+	Average
+----
+	calculate average value with high accuracy
+=================================================
+*/
+#define Gen_AVERAGE1F( _stype_, _vtype_ )\
+	ND_ _vtype_  Average (const _vtype_ lhs, const _vtype_ rhs)		{ return (lhs * _stype_(0.5)) + (rhs * _stype_(0.5)); }
+
+#define Gen_AVERAGE1I( _stype_, _vtype_ )\
+	ND_ _vtype_  Average (const _vtype_ lhs, const _vtype_ rhs)		{ return (lhs / _stype_(2)) + (rhs / _stype_(2)) + (((lhs & _stype_(1)) + (rhs & _stype_(1))) / _stype_(2)); }
+
+#define Gen_AVERAGEF( _stype_, _vtype_ )			\
+	Gen_AVERAGE1F( _stype_,		_stype_ )			\
+	Gen_AVERAGE1F( _stype_,		UNITE( _vtype_, 2 ))\
+	Gen_AVERAGE1F( _stype_,		UNITE( _vtype_, 3 ))\
+	Gen_AVERAGE1F( _stype_,		UNITE( _vtype_, 4 ))
+
+#define Gen_AVERAGEI( _stype_, _vtype_ )\
+	Gen_AVERAGE1I( _stype_,		_stype_ )			\
+	Gen_AVERAGE1I( _stype_,		UNITE( _vtype_, 2 ))\
+	Gen_AVERAGE1I( _stype_,		UNITE( _vtype_, 3 ))\
+	Gen_AVERAGE1I( _stype_,		UNITE( _vtype_, 4 ))
+
+Gen_AVERAGEF( float,	float_vec_t )
+Gen_AVERAGEI( int,		int_vec_t )
+Gen_AVERAGEI( uint,		uint_vec_t )
+
+#if AE_ENABLE_HALF_TYPE
+	Gen_AVERAGEF( half,		half_vec_t )
+#endif
+#if AE_ENABLE_DOUBLE_TYPE
+	Gen_AVERAGEF( double,	double_vec_t )
+#endif
+#if AE_ENABLE_LONG_TYPE
+	Gen_AVERAGEI( slong,	slong_vec_t )
+	Gen_AVERAGEI( ulong,	ulong_vec_t )
+#endif
+
+#undef Gen_AVERAGE1F
+#undef Gen_AVERAGEF
+#undef Gen_AVERAGE1I
+#undef Gen_AVERAGEI
 
 /*
 =================================================
@@ -1833,6 +1906,56 @@ ND_ uint	MaxIndexOf (const float4 v)
 	return idx;
 #endif
 }
+
+/*
+=================================================
+	InvLerp
+=================================================
+*/
+#define Gen_INVLERP1( _vtype_ )\
+	ND_ _vtype_  InvLerp (const _vtype_ a, const _vtype_ b, const _vtype_ lerpResult)	{ return (lerpResult - a) / (b - a); }
+
+#define Gen_INVLERP( _stype_, _vtype_ )	\
+	Gen_INVLERP1( _stype_ )				\
+	Gen_INVLERP1( UNITE( _vtype_, 2 ))	\
+	Gen_INVLERP1( UNITE( _vtype_, 3 ))	\
+	Gen_INVLERP1( UNITE( _vtype_, 4 ))
+
+Gen_INVLERP( float, float_vec_t )
+
+#if AE_ENABLE_HALF_TYPE
+	Gen_INVLERP( half, half_vec_t )
+#endif
+#if AE_ENABLE_DOUBLE_TYPE
+	Gen_INVLERP( double, double_vec_t )
+#endif
+
+#undef Gen_INVLERP1
+#undef Gen_INVLERP
+
+/*
+=================================================
+	AlignUp / AlignDown
+	AlignUpPOT / AlignDownPOT
+=================================================
+*/
+#define Gen_ALIGNUP1( _stype_, _vtype_ )\
+	ND_ _vtype_  AlignUp   (const _vtype_ val, const _stype_ align)			{ return ((val + align - _stype_(1)) / align) * align; }		\
+	ND_ _vtype_  AlignDown (const _vtype_ val, const _stype_ align)			{ return (val / align) * align; }								\
+																																			\
+	ND_ _vtype_  AlignUpPOT   (const _vtype_ val, const _stype_ alignPOT)	{ _stype_ m = alignPOT - _stype_(1);  return (val + m) & ~m; }	\
+	ND_ _vtype_  AlignDownPOT (const _vtype_ val, const _stype_ alignPOT)	{ _stype_ m = alignPOT - _stype_(1);  return val & ~m; }
+
+#define Gen_ALIGNUP( _stype_, _vtype_ )\
+	Gen_ALIGNUP1( _stype_,	_stype_ )			\
+	Gen_ALIGNUP1( _stype_,	UNITE( _vtype_, 2 ))\
+	Gen_ALIGNUP1( _stype_,	UNITE( _vtype_, 3 ))\
+	Gen_ALIGNUP1( _stype_,	UNITE( _vtype_, 4 ))
+
+Gen_ALIGNUP( uint,	uint_vec_t )
+
+#undef Gen_ALIGNUP1
+#undef Gen_ALIGNUP
 
 /*
 =================================================

@@ -276,7 +276,7 @@ namespace
 */
 	void  MFeatureSet::InitFeatureSet (const MGPUFamilies &f, INOUT FeatureSet &outFeatureSet) C_NE___
 	{
-		StaticAssert( FeatureSet::GetFeatureCount() == 271 );
+		StaticAssert( FeatureSet::GetFeatureCount() == 272 );
 
 		using SubgroupOperationBits = FeatureSet::SubgroupOperationBits;
 		using KiBytes				= FeatureSet::KiBytes;
@@ -339,6 +339,7 @@ namespace
 			outFeatureSet.triangleFans						= False;
 			outFeatureSet.largePoints						= True;
 			outFeatureSet.wideLines							= False;
+			outFeatureSet.conservativeRasterization			= False;
 		}
 		// subgroup
 		if ( mac20_ios22 )

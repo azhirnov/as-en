@@ -414,8 +414,9 @@ namespace
 	WinAsyncRDataSource::WinAsyncRDataSource (const File_t &file, EMode mode DEBUG_ONLY(, Path filename)) __NE___ :
 		_file{ file.Ref<HANDLE>() },
 		_fileSize{ GetFileSize( _file.Ref<HANDLE>() )},
+		_align{ AllBits( mode, EMode::Win_NoBuffering ) ? GetLogicalBytesPerSector( _file.Ref<HANDLE>() ) : ReqAlign{} },
 		_mode{ mode }
-		DEBUG_ONLY(, _filename{ FileSystem::ToAbsolute( filename )})
+		DEBUG_ONLY(, _dbgFilename{ FileSystem::ToAbsolute( filename )})
 	{
 		if ( not IsOpen()	or
 			 not InitIOCompletionPort( _file.Ref<HANDLE>() ))
@@ -486,6 +487,10 @@ namespace
 */
 	AsyncDSRequest  WinAsyncRDataSource::ReadBlock (Bytes pos, OUT void* data, Bytes dataSize, RC<> mem) __NE___
 	{
+		ASSERT( IsMultipleOf( pos, _align.offsetAlign ));
+		ASSERT( IsMultipleOf( data, _align.ptrAlign ));
+		ASSERT( IsMultipleOf( dataSize, _align.offsetAlign ));
+
 		AsyncDSRequest	req;
 		if_likely( WindowsIOService::AsyncRDataSourceApi::CreateResult( OUT req, GetRC<WinAsyncRDataSource>(), pos, data, dataSize, RVRef(mem) ));
 		else
@@ -530,9 +535,13 @@ namespace
 	constructor
 =================================================
 */
-	WinAsyncWDataSource::WinAsyncWDataSource (const File_t &file, EMode DEBUG_ONLY(, Path filename))	__NE___ :
-		_file{ file.Ref<HANDLE>() }
-		DEBUG_ONLY(, _filename{ FileSystem::ToAbsolute( filename )})
+	WinAsyncWDataSource::WinAsyncWDataSource (const File_t &file, EMode mode DEBUG_ONLY(, Path filename)) __NE___ :
+		_file{ file.Ref<HANDLE>() },
+		_align{ AllBits( mode, EMode::Win_NoBuffering ) ? GetLogicalBytesPerSector( _file.Ref<HANDLE>() ) : ReqAlign{} }
+		DEBUG_ONLY(
+			, _dbgFilename{ FileSystem::ToAbsolute( filename )}
+			, _dbgMode{ mode }
+		)
 	{
 		if ( not IsOpen()	or
 			 not InitIOCompletionPort( _file.Ref<HANDLE>() ))
@@ -600,6 +609,10 @@ namespace
 */
 	AsyncDSRequest  WinAsyncWDataSource::WriteBlock (Bytes pos, const void* data, Bytes dataSize, RC<> mem) __NE___
 	{
+		ASSERT( IsMultipleOf( pos, _align.offsetAlign ));
+		ASSERT( IsMultipleOf( data, _align.ptrAlign ));
+		ASSERT( IsMultipleOf( dataSize, _align.offsetAlign ));
+
 		AsyncDSRequest	req;
 		if_likely( WindowsIOService::AsyncWDataSourceApi::CreateResult( OUT req, GetRC<WinAsyncWDataSource>(), pos, data, dataSize, RVRef(mem) ));
 		else

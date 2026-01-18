@@ -9,22 +9,22 @@
 namespace
 {
   #ifdef AE_PLATFORM_ANDROID
-	const auto	rflags	= FileRDataSource::EMode::Direct | FileRDataSource::EMode::RandomAccess;
-	const auto	wflags	= FileWDataSource::EMode::Unknown;	// WriteSeq/WriteBlock returns 0, WriteBlock crashes
+	const auto	seq_rflags	= FileRDataSource::EMode::Direct | FileRDataSource::EMode::SequentialScan;
+	const auto	rnd_rflags	= FileRDataSource::EMode::Direct | FileRDataSource::EMode::RandomAccess;
+	const auto	wflags		= FileWDataSource::EMode::Unknown;	// WriteSeq/WriteBlock returns 0, WriteBlock crashes
 
   #else
-	const auto	rflags	= FileRDataSource::EMode::Direct | FileRDataSource::EMode::RandomAccess;
-	const auto	wflags	= FileWDataSource::EMode::Direct;
+	const auto	seq_rflags	= FileRDataSource::EMode::Direct | FileRDataSource::EMode::SequentialScan;
+	const auto	rnd_rflags	= FileRDataSource::EMode::Direct | FileRDataSource::EMode::RandomAccess;
+	const auto	wflags		= FileWDataSource::EMode::Direct;
   #endif
 
 	auto			c_CoreId		= ECpuCoreId(0);
 
-	const ulong		c_FileSize		= 128ull << 20;	// MiB
-	const uint		c_BufferSize	= 4u << 10;		// KiB
+	ulong			c_FileSize		= 0;
+	uint			c_BufferSize	= 0;
 
 	const uint		c_WaitIOFreq	= 0xF;	// 1 or 'c_WaitIOFreq' requests will trigger IO event handling
-
-	StaticAssert( IsMultipleOf( c_FileSize, c_BufferSize ));
 
 
 	static void  ClearFileCache ()
@@ -35,12 +35,18 @@ namespace
 	}
 
 
+	static String  IOBandwidth (nanoseconds dt)
+	{
+		return ToStringSfx( double(c_FileSize) * 1.0e+9 / double(dt.count()) ) << "B/s";
+	}
+
+
 	template <typename RFile, typename WFile>
 	static void  SyncSeqReadDS (IntervalProfiler &profiler)
 	{
 		Unused( ThreadUtils::SetAffinity( uint(c_CoreId) ));
 
-		profiler.BeginTest( "Sync Sequential Read" );
+		profiler.BeginTest( "Sync Sequential Read", IOBandwidth );
 
 		const Path		fname {"perf1_data.bin"};
 		{
@@ -63,7 +69,7 @@ namespace
 		}
 		AE_LOGI( "begin sync read test" );
 		{
-			auto	rfile = MakeRC<RFile>( fname, rflags );
+			auto	rfile = MakeRC<RFile>( fname, seq_rflags );
 			TEST( rfile->IsOpen() );
 			TEST_Eq( rfile->Size(), c_FileSize );
 
@@ -99,7 +105,7 @@ namespace
 		LocalTaskScheduler	scheduler	{IOThreadCount(1), c_CoreId};
 		TEST( scheduler->GetFileIOService() );
 
-		profiler.BeginTest( "Async Sequential Read" );
+		profiler.BeginTest( "Async Sequential Read", IOBandwidth );
 
 		const Path		fname {"perf1_data.bin"};
 		{
@@ -122,7 +128,7 @@ namespace
 		}
 		AE_LOGI( "begin async read test" );
 		{
-			auto	rfile = MakeRC<RFile>( fname, rflags );
+			auto	rfile = MakeRC<RFile>( fname, seq_rflags );
 			TEST( rfile->IsOpen() );
 			TEST_Eq( rfile->Size(), c_FileSize );
 
@@ -191,7 +197,7 @@ namespace
 	{
 		Unused( ThreadUtils::SetAffinity( uint(c_CoreId) ));
 
-		profiler.BeginTest( "Sync Random Read" );
+		profiler.BeginTest( "Sync Random Read", IOBandwidth );
 
 		Array<ulong>	pos_arr;
 		pos_arr.reserve( c_FileSize / c_BufferSize );
@@ -220,7 +226,7 @@ namespace
 		{
 			ShuffleArray( INOUT pos_arr );
 
-			auto	rfile = MakeRC<RFile>( fname, rflags );
+			auto	rfile = MakeRC<RFile>( fname, rnd_rflags );
 			TEST( rfile->IsOpen() );
 			TEST_Eq( rfile->Size(), c_FileSize );
 
@@ -255,7 +261,7 @@ namespace
 		LocalTaskScheduler	scheduler	{IOThreadCount(1), c_CoreId};
 		TEST( scheduler->GetFileIOService() );
 
-		profiler.BeginTest( "Async Random Read" );
+		profiler.BeginTest( "Async Random Read", IOBandwidth );
 
 		Array<ulong>	pos_arr;
 		pos_arr.reserve( c_FileSize / c_BufferSize );
@@ -284,7 +290,7 @@ namespace
 		{
 			ShuffleArray( INOUT pos_arr );
 
-			auto	rfile = MakeRC<RFile>( fname, rflags );
+			auto	rfile = MakeRC<RFile>( fname, rnd_rflags );
 			TEST( rfile->IsOpen() );
 			TEST_Eq( rfile->Size(), c_FileSize );
 
@@ -362,13 +368,41 @@ extern void  PerfTest_AsyncFile (const Path &testFolder)
 			c_CoreId = ECpuCoreId(core->FirstLogicalCore());
 	}
 
-	IntervalProfiler	profiler{ "AsyncFile test" };
+	AE_LOGI( "CPU core: "s << ToString( uint(c_CoreId) ));
 
-	SyncSeqReadDS< FileRStream,				FileWStream >( profiler );
-	AsyncSeqReadDS< FileAsyncRDataSource,	FileWStream >( profiler );
+	const Pair<ulong, uint>  fileSize_blockSize [] = {
+	  #ifdef AE_PLATFORM_ANDROID
+		{ 256ull << 20, 32u << 10 },	// 256 MiB, 32 KiB
+		{ 256ull << 20, 16u << 10 },	// 256 MiB, 16 KiB
+		{ 256ull << 20,  8u << 10 },	// 256 MiB, 8 KiB
+		{ 256ull << 20,  4u << 10 }		// 256 MiB, 4 KiB
+	  #else
+		{ 1ull << 30,   1u << 20 },		// 1 GiB, 1 MiB
+		{ 1ull << 30, 256u << 10 },		// 1 GiB, 256 KiB
+		{ 1ull << 30,  64u << 10 },		// 1 GiB, 64 KiB
+		{ 1ull << 30,  16u << 10 },		// 1 GiB, 16 KiB
+		{ 1ull << 30,   8u << 10 },		// 1 GiB, 8 KiB
+		{ 256ull << 20, 4u << 10 }		// 256 MiB, 4 KiB
+	  #endif
+	};
 
-	SyncRndReadDS< FileRDataSource,			FileWStream >( profiler );
-	AsyncRndReadDS< FileAsyncRDataSource,	FileWStream >( profiler );
+	for (auto [fs, bs] : fileSize_blockSize)
+	{
+		c_FileSize		= fs;
+		c_BufferSize	= bs;
+
+		AE_LOGI( "File size / block size: "s << ToString( Bytes{c_FileSize} ) << " / " << ToString( Bytes{c_BufferSize} ));
+
+		CHECK( IsMultipleOf( c_FileSize, c_BufferSize ));
+
+		IntervalProfiler	profiler{ "AsyncFile test "s << ToString( Bytes{c_FileSize} ) << " / " << ToString( Bytes{c_BufferSize} )};
+
+		SyncSeqReadDS< FileRStream,				FileWStream >( profiler );
+		AsyncSeqReadDS< FileAsyncRDataSource,	FileWStream >( profiler );
+
+		SyncRndReadDS< FileRDataSource,			FileWStream >( profiler );
+		AsyncRndReadDS< FileAsyncRDataSource,	FileWStream >( profiler );
+	}
 
 	FileSystem::SetCurrentPath( testFolder );
 	FileSystem::DeleteDirectory( folder );

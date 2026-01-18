@@ -218,6 +218,16 @@ namespace AE::Base
 		return false;
 	}
 
+/*
+=================================================
+	SetProcessAffinity
+=================================================
+*/
+	bool  AppleUtils::SetProcessAffinity (CpuArchInfo::CoreBits_t) __NE___
+	{
+		// TODO
+		return false;
+	}
 
 } // AE::Base
 

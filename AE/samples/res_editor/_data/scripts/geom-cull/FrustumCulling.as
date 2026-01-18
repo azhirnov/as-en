@@ -1,6 +1,6 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 /*
-	Frustum culling visualisation.
+	Frustum culling visualization.
 	Supported shapes: AABB, sphere, cone, line.
 */
 #ifdef __INTELLISENSE__
@@ -74,6 +74,7 @@
 			cmd.indexCount		= indices.size();
 			cmd.instanceCount	= instance_count;
 			cmd.IndexBuffer( sphere, "indices" );
+			cmd.PipelineHint( "LEqual" );
 
 			geometry.Draw( cmd );
 			geometry.ArgIn( "un_Geometry",	sphere );
@@ -118,6 +119,7 @@
 			cmd.indexCount		= indices.size();
 			cmd.instanceCount	= instance_count;
 			cmd.IndexBuffer( box, "indices" );
+			cmd.PipelineHint( "LEqual" );
 
 			geometry.Draw( cmd );
 			geometry.ArgIn( "un_Geometry",	box );
@@ -160,6 +162,7 @@
 			cmd.indexCount		= indices.size();
 			cmd.instanceCount	= instance_count;
 			cmd.IndexBuffer( line, "indices" );
+			cmd.PipelineHint( "LEqual" );
 
 			geometry.Draw( cmd );
 			geometry.ArgIn( "un_Geometry",	line );
@@ -203,6 +206,7 @@
 			cmd.indexCount		= indices.size();
 			cmd.instanceCount	= instance_count;
 			cmd.IndexBuffer( cone, "indices" );
+			cmd.PipelineHint( "LEqual" );
 
 			geometry.Draw( cmd );
 			geometry.ArgIn( "un_Geometry",	cone );
@@ -233,14 +237,8 @@
 		{
 			RC<Buffer>				cone		= Buffer();
 			RC<UnifiedGeometry>		geometry	= UnifiedGeometry();
-			const array<uint>		indices		= {
-				0, 1, 3,	0, 3, 2,	// front
-				5, 4, 6,	5, 6, 7,	// back
-				1, 5, 7,	1, 7, 3,	// right
-				4, 0, 2,	4, 2, 6,	// left
-				3, 7, 6,	3, 6, 2,	// top
-				0, 4, 5,	0, 5, 1		// bottom
-			};
+			array<uint>				indices;
+			GetFrustumIndices( OUT indices );
 
 			cone.UIntArray(  "indices",		indices );
 			cone.LayoutName( "GeometrySBlock" );
@@ -248,6 +246,7 @@
 			UnifiedGeometry_DrawIndexed	cmd;
 			cmd.indexCount		= indices.size();
 			cmd.IndexBuffer( cone, "indices" );
+			cmd.PipelineHint( "LEqual" );
 
 			geometry.Draw( cmd );
 			geometry.ArgIn( "un_Geometry",	cone );
@@ -282,8 +281,8 @@
 
 		frustum_buf.UseLayout(
 			"FrustumParams",
-			"	float4	frustum[6];"s +		// world space
-			"	float3	cameraPos;" +
+			"	float4	frustum[6];"		// world space
+			"	float3	cameraPos;"
 			"	float3	cornerPoints[8];"
 		);
 
@@ -326,9 +325,8 @@
 			RC<ComputePass>		pass = ComputePass( "", "INIT_PARAMS" );
 			pass.Set( camera );
 			pass.ArgInOut(	"un_Params",	frustum_buf );
+			pass.Slider(	"iClipPlanes",	float2(0.01, 1.0),	float2(1.0, 10.0),	float2(0.01, 2.0) );
 			pass.Constant(	"iLockFrustum",	dyn_dbg_frustum );
-			pass.Slider(	"iTile",		int2(0),	int2(20),	int2(10) );
-			pass.Constant(	"iTileCount",	int2(20) );
 			pass.LocalSize( 1 );
 			pass.DispatchGroups( 1 );
 		}{
@@ -336,7 +334,7 @@
 			pass.ArgInOut(	"un_DrawTasks",	draw_task_buf );
 			pass.ArgIn(		"un_Params",	frustum_buf );
 			pass.Slider( 	"iCullError",	-1.f,	1.f,	0.f );
-			pass.Slider(	"iTestMode",	0,		2 );		// visibility test mode: bounding sphere, exact
+			pass.Slider(	"iTestMode",	0,		1 );		// visibility test mode: bounding sphere, exact
 			pass.Constant(	"iShape",		dyn_shape );
 			pass.Constant(	"iScale",		dyn_scale );
 			pass.LocalSize( 64 );
@@ -362,16 +360,12 @@
 		if ( iLockFrustum != 0 )
 			return;
 
-		un_Params.frustum	= un_PerPass.camera.frustum;
+		Frustum	fr = Frustum_FromMatrix( un_PerPass.camera.viewProj, iClipPlanes );
+
+		un_Params.frustum	= fr.planes;
 		un_Params.cameraPos	= un_PerPass.camera.pos;
 
-		Frustum_ToCornerPoints( Frustum_Create(un_Params.frustum), OUT un_Params.cornerPoints );
-
-		// scale far plane
-		for (uint i = 0; i < 4; ++i)
-		{
-			un_Params.cornerPoints[i+4] = Lerp( un_Params.cornerPoints[i], un_Params.cornerPoints[i+4], 0.5 );
-		}
+		Frustum_ToCornerPoints( fr, OUT un_Params.cornerPoints );
 	}
 
 #endif
@@ -419,7 +413,7 @@
 		const float3	line_begin	= line_pos - un_Params.cameraPos - dir * scale;
 		const float3	line_end	= line_pos - un_Params.cameraPos + dir * scale;
 		const Frustum	frustum		= Frustum_Create( un_Params.frustum );
-		bool			is_visible	= Frustum_IsVisible(	frustum, line_begin, line_end );
+		bool			is_visible	= Frustum_IsVisible( frustum, line_begin, line_end );
 
 		un_DrawTasks.params[ idx ]		= float4( dir, 0.0 );
 		un_DrawTasks.isVisible[ idx ]	= is_visible ? 1 : 0;
@@ -439,9 +433,9 @@
 
 		switch ( iTestMode )
 		{
-			case 0 :	is_visible	= Frustum_TestCone_v1( frustum, cone );	break;
-			case 1 :	is_visible	= Frustum_TestCone_v2( frustum, cone );	break;
-			case 2 :	is_visible	= Frustum_TestCone_v3( frustum, cone );	break;
+			case 0 :	is_visible	= Frustum_IsConeVisible_v1( frustum, cone );	break;
+			case 1 :	is_visible	= Frustum_IsConeVisible_v2( frustum, cone );	break;
+		//	case 2 :	is_visible	= Frustum_IsConeVisible_v3( frustum, cone );	break;	// TODO: incorrect
 		}
 
 		un_DrawTasks.params[ idx ]		= float4( dir, angle );

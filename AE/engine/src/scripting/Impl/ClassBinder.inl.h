@@ -229,7 +229,7 @@ namespace AE::Scripting
 		if ( create != null )
 		{
 			AS_CHECK_THROW( GetASEngine()->RegisterObjectBehaviour( _name.c_str(), asBEHAVE_FACTORY,
-														(_name + "@ new_" + _name + "()").c_str(),
+														(_name + "@ new_" + _name + "() explicit").c_str(),
 														asFUNCTION( create ), asCALL_CDECL ));
 
 			if_unlikely( _genHeader )
@@ -255,7 +255,7 @@ namespace AE::Scripting
 		{
 			if ( AllBits( flags, asOBJ_APP_CLASS_CONSTRUCTOR ))
 			{
-				AS_CHECK_THROW( GetASEngine()->RegisterObjectBehaviour( _name.c_str(), asBEHAVE_CONSTRUCT, "void f()",
+				AS_CHECK_THROW( GetASEngine()->RegisterObjectBehaviour( _name.c_str(), asBEHAVE_CONSTRUCT, "void f() explicit",
 												asFUNCTION( &AngelScriptHelper::Constructor<T> ), asCALL_GENERIC ));
 
 				if_unlikely( _genHeader )
@@ -294,7 +294,7 @@ namespace AE::Scripting
 			if ( AllBits( flags, asOBJ_APP_CLASS_ASSIGNMENT ))
 			{
 				AS_CHECK_THROW( GetASEngine()->RegisterObjectMethod( _name.c_str(),
-												(_name + " & opAssign(const " + _name + " &in)").c_str(),
+												(_name + " & opAssign(const " + _name + " &in) explicit").c_str(),
 												asFUNCTION( &AngelScriptHelper::CopyAssign<T> ), asCALL_GENERIC ));
 
 				if_unlikely( _genHeader )
@@ -372,6 +372,8 @@ namespace AE::Scripting
 
 		String	signature(_name + "@ new_" + _name);
 		GlobalFunction<Fn>::GetArgs( INOUT signature );
+
+		signature << " explicit";
 
 		AS_CHECK_THROW( GetASEngine()->RegisterObjectBehaviour( _name.c_str(), asBEHAVE_FACTORY,
 										signature.c_str(), asFUNCTION( *ctorPtr ), asCALL_CDECL ));
@@ -574,8 +576,8 @@ namespace AE::Scripting
 		using namespace AngelScript;
 
 		using C = typename FunctionInfo<Fn>::clazz;
-		StaticAssert( not IsVoid<C>, "'Fn' must be class method" );
-		StaticAssert( IsBaseOf< C, T >, "'Fn' must be from this class or from base class");
+		StaticAssertMsg( not IsVoid<C>, "'Fn' must be class method" );
+		StaticAssertMsg( (IsBaseOf< C, T >), "'Fn' must be from this class or from base class");
 
 		String	signature;
 		MemberFunction<Fn>::GetDescriptor( INOUT signature, name );
@@ -630,7 +632,7 @@ namespace AE::Scripting
 		using FuncInfo	= FunctionInfo<Fn>;
 		using FrontArg	= typename FuncInfo::args::Front::type;
 
-		StaticAssert( IsVoid< typename FuncInfo::clazz >, "'Fn' must be a function" );
+		StaticAssertMsg( IsVoid< typename FuncInfo::clazz >, "'Fn' must be a function" );
 		StaticAssert( _IsSame< FrontArg >::value );
 
 		String	signature;
@@ -663,7 +665,7 @@ namespace AE::Scripting
 		using FuncInfo	= FunctionInfo<Fn>;
 		using BackArg	= typename FuncInfo::args::template Get< FuncInfo::args::Count-1 >;
 
-		StaticAssert( IsVoid< typename FuncInfo::clazz >, "'Fn' must be a function" );
+		StaticAssertMsg( IsVoid< typename FuncInfo::clazz >, "'Fn' must be a function" );
 		StaticAssert( _IsSame< BackArg >::value );
 
 		String	signature;

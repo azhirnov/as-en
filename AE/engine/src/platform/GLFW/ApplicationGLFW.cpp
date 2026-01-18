@@ -24,7 +24,7 @@ namespace AE::App
 namespace {
 	static void  GLFW_ErrorCallback (int code, const char* msg) __NE___
 	{
-		AE_LOGE( "GLFW error: " + ToString( code ) + ", msg: \"" + msg + "\"" );
+		AE_LOGW( "GLFW error: " + ToString( code ) + ", msg: \"" + msg + "\"" );
 	}
 }
 
@@ -343,8 +343,8 @@ namespace {
 		{
 			// Choose X11 or Wayland
 			#ifdef AE_PLATFORM_LINUX
-			//	glfwInitHint( GLFW_PLATFORM, GLFW_PLATFORM_X11 );
-				glfwInitHint( GLFW_PLATFORM, GLFW_PLATFORM_WAYLAND );
+				glfwInitHint( GLFW_PLATFORM, GLFW_PLATFORM_X11 );
+			//	glfwInitHint( GLFW_PLATFORM, GLFW_PLATFORM_WAYLAND );
 			#endif
 
 			CHECK_ERR( glfwInit() == GLFW_TRUE, -1 );

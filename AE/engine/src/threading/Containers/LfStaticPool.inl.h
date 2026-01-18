@@ -52,7 +52,7 @@ namespace AE::Threading
 			if ( available == 0 )
 				continue;
 
-			int		idx = BitScanForward( available );	// first 1 bit
+			int		idx = LowBitIndex( available );	// first 1 bit
 
 			for (; idx >= 0;)
 			{
@@ -62,7 +62,7 @@ namespace AE::Threading
 				fn( INOUT chunk.values[idx] );
 
 				available	&= ~mask;						// 1 -> 0
-				idx			= BitScanForward( available );	// first 1 bit
+				idx			= LowBitIndex( available );		// first 1 bit
 			}
 		}
 
@@ -94,7 +94,7 @@ namespace AE::Threading
 				usize		chunk_idx	= (initial_idx + i * ChunkIdxStep) % ChunksCount;
 				auto&		chunk		= (*_arr)[ chunk_idx ];
 				Bitfield_t	assigned	= chunk.assigned.load();		// 0 - unassigned
-				int			idx			= BitScanForward( ~assigned );	// first 0 bit
+				int			idx			= LowBitIndex( ~assigned );		// first 0 bit
 
 				for (; idx >= 0;)
 				{
@@ -117,7 +117,7 @@ namespace AE::Threading
 						return true;
 					}
 
-					idx = BitScanForward( ~assigned );	// first 0 bit
+					idx = LowBitIndex( ~assigned );	// first 0 bit
 					ThreadUtils::Pause();
 				}
 			}
@@ -148,7 +148,7 @@ namespace AE::Threading
 				usize		chunk_idx	= (initial_idx + i * ChunkIdxStep) % ChunksCount;
 				auto&		chunk		= (*_arr)[ chunk_idx ];
 				Bitfield_t	available	= chunk.available.load();		// 1 - assigned
-				int			idx			= BitScanForward( available );	// first 1 bit
+				int			idx			= LowBitIndex( available );		// first 1 bit
 
 				for (; idx >= 0;)
 				{
@@ -173,7 +173,7 @@ namespace AE::Threading
 						return true;
 					}
 
-					idx = BitScanForward( available );	// first 1 bit
+					idx = LowBitIndex( available );	// first 1 bit
 					ThreadUtils::Pause();
 				}
 			}

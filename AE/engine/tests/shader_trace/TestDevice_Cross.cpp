@@ -1,8 +1,18 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
 #ifdef AE_ENABLE_SPIRV_CROSS
+
+# if defined(AE_COMPILER_CLANG) or defined(AE_COMPILER_CLANG_CL)
+#	pragma clang diagnostic push
+#	pragma clang diagnostic ignored "-Wdouble-promotion"
+# endif
+
 # include "spirv_cross/spirv_cross.hpp"
 # include "spirv_cross/spirv_glsl.hpp"
+
+# if defined(AE_COMPILER_CLANG) or defined(AE_COMPILER_CLANG_CL)
+#	pragma clang diagnostic pop
+# endif
 
 # include "TestDevice.h"
 

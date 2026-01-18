@@ -255,11 +255,11 @@ namespace
 		if ( HasYcbcrSampler() )
 		{
 			CHECK_THROW_MSG( not _ycbcrSampName.empty() );
-			_resource = MakeRCTh<VideoImage2>( renderer, desc, _videoFile, _outDynSize->Get(),
-											   SamplerName{_ycbcrSampName}, video_stream_info, packId, _dbgName );
+			_resource = VideoImage2::Create( renderer, desc, _videoFile, _outDynSize->Get(),
+											 SamplerName{_ycbcrSampName}, video_stream_info, packId, _dbgName );
 		}
 		else{
-			_resource = MakeRCTh<VideoImage>( renderer, desc, _videoFile, _outDynSize->Get(), video_stream_info, _dbgName );
+			_resource = VideoImage::Create( renderer, desc, _videoFile, _outDynSize->Get(), video_stream_info, _dbgName );
 		}
 		return _resource;
 	}

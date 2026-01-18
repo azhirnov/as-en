@@ -1715,15 +1715,15 @@ namespace _hidden_
 
 /*
 =================================================
-	BitScanForward
+	LowBitIndex
 =================================================
 */
 	template <typename T, int I, glm::qualifier Q> requires(IsInteger<T>)
-	ND_ TVec<int,I,Q>  BitScanForward (const TVec<T,I,Q> &v) __NE___
+	ND_ TVec<int,I,Q>  LowBitIndex (const TVec<T,I,Q> &v) __NE___
 	{
 		TVec<int,I,Q>		result;
 		for (int i = 0; i < I; ++i) {
-			result[i] = BitScanForward( v[i] );
+			result[i] = LowBitIndex( v[i] );
 		}
 		return result;
 	}

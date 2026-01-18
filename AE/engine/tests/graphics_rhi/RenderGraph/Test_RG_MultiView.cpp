@@ -89,14 +89,14 @@ namespace
 
 		Ctx		ctx{ RenderCoro_Get() };
 
-		auto	task = ctx.ReadbackImage( t.img, ReadbackImageDesc{}.ArrayLayer( 0 )).Then( t,
+		auto	task = ctx.ReadbackImage( t.img, ReadbackImageDesc{}.ArrayLayer( 0 )).IfFullyRead( t,
 							[] (Promise<ImageMemView> readRes, CoSafe<MV1_TestData &> t) -> InlineCoro<>
 							{
 								auto view = co_await readRes;
 								t->isOK = t->imgCmp0->Compare( view );
 							});
 
-		t.result = ctx.ReadbackImage( t.img, ReadbackImageDesc{}.ArrayLayer( 1 )).Then( t,
+		t.result = ctx.ReadbackImage( t.img, ReadbackImageDesc{}.ArrayLayer( 1 )).IfFullyRead( t,
 							[] (Promise<ImageMemView> readRes, CoSafe<MV1_TestData &> t) -> InlineCoro<>
 							{
 								auto view = co_await readRes;

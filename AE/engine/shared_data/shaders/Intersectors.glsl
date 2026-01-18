@@ -1,7 +1,7 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 /*
 	Intersection functions.
-	Ray with shape or share with shape.
+	Ray with shape or shape with shape.
 */
 
 #ifdef __cplusplus

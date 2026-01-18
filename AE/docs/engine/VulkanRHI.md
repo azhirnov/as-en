@@ -70,6 +70,7 @@ Source folder: [Vulkan backend](https://github.com/azhirnov/as-en/blob/dev/AE/en
 - [x] VK_EXT_fragment_density_map, VK_EXT_fragment_density_map2
 - [x] VK_EXT_shader_replicated_composites - required for coopvec, coopmat
 - [x] VK_EXT_rasterization_order_attachment_access, VK_ARM_rasterization_order_attachment_access
+- [x] VK_EXT_conservative_rasterization
 
 **Supported shader extensions:**
 - [x] VK_KHR_shader_clock, GL_EXT_shader_realtime_clock, GL_ARB_shader_clock
@@ -105,7 +106,7 @@ Source folder: [Vulkan backend](https://github.com/azhirnov/as-en/blob/dev/AE/en
 - [x] VK_KHR_cooperative_matrix, GL_KHR_cooperative_matrix (deprecated: VK_NV_cooperative_matrix, GL_NV_cooperative_matrix, GL_NV_integer_cooperative_matrix)
 - [x] VK_KHR_shader_subgroup_uniform_control_flow, GL_EXT_subgroup_uniform_control_flow
 - [x] GL_EXT_control_flow_attributes2
-- [x] VK_KHR_shader_quad_control, GL_EXT_shader_quad
+- [x] VK_KHR_shader_quad_control, GL_EXT_shader_quad_control
 - [x] VK_KHR_shader_maximal_reconvergence, GL_EXT_maximal_reconvergence
 - [x] VK_KHR_shader_expect_assume, GL_EXT_expect_assume
 - [x] GL_NV_cluster_acceleration_structure
@@ -117,6 +118,8 @@ Source folder: [Vulkan backend](https://github.com/azhirnov/as-en/blob/dev/AE/en
 - [x] GL_EXT_integer_dot_product, VK_KHR_shader_integer_dot_product
 - [x] VK_EXT_shader_image_atomic_int64, GL_EXT_shader_image_int64
 - [x] VK_NV_shader_atomic_float16_vector, GL_NV_shader_atomic_fp16_vector
+- [x] VK_NV_shader_subgroup_partitioned, GL_NV_shader_subgroup_partitioned
+- [x] VK_KHR_shader_subgroup_rotate, GL_KHR_shader_subgroup_rotate
 
 
 # Not implemented
@@ -180,7 +183,6 @@ Source folder: [Vulkan backend](https://github.com/azhirnov/as-en/blob/dev/AE/en
 - VK_NV_dedicated_allocation_image_aliasing
 - VK_NV_extended_sparse_address_space
 - VK_ARM_shader_core_properties
-- VK_KHR_shader_subgroup_rotate
 - VK_EXT_shader_tile_image
 - VK_EXT_primitive_topology_list_restart
 - VK_NV_viewport_array2, GL_NV_viewport_array2 - add gl_ViewportMask
@@ -231,6 +233,7 @@ Source folder: [Vulkan backend](https://github.com/azhirnov/as-en/blob/dev/AE/en
 - VK_VALVE_fragment_density_map_layered
 - VK_VALVE_video_encode_rgb_conversion
 - VK_NV_low_latency2
+- VK_EXT_ray_tracing_invocation_reorder, GL_EXT_shader_invocation_reorder
 
 **Pending for debugging:**
 - VK_EXT_device_fault
@@ -301,7 +304,6 @@ Source folder: [Vulkan backend](https://github.com/azhirnov/as-en/blob/dev/AE/en
 - GL_EXT_terminate_invocation
 - GL_NV_ray_tracing_motion_blur
 - GL_NV_shader_texture_footprint
-- GL_NV_shader_subgroup_partitioned
 - VK_KHR_shader_relaxed_extended_instruction
 - GL_EXT_nontemporal_keyword
 - GL_NV_linear_swept_spheres, VK_NV_ray_tracing_linear_swept_spheres - sphere and hair ray tracing
@@ -310,6 +312,8 @@ Source folder: [Vulkan backend](https://github.com/azhirnov/as-en/blob/dev/AE/en
 - VK_KHR_variable_pointers - ???
 - VK_KHR_shader_untyped_pointers - ???
 - GL_EXT_shared_memory_block - ???
+- GL_EXT_long_vector
+- GL_EXT_uniform_buffer_unsized_array, VK_EXT_shader_uniform_buffer_unsized_array
 
 **Will not be supported**
 - GL_EXT_vulkan_glsl_relaxed

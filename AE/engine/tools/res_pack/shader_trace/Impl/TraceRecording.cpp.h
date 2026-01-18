@@ -559,10 +559,17 @@ ND_ static ShaderTrace::Swizzle  GetVectorSwizzleMask (TIntermBinary* binary)
 	CHECK_ERR( binary and AnyEqual( binary->getOp(), TOperator::EOpVectorSwizzle, TOperator::EOpIndexDirect ));
 
 	// extract swizzle mask
-	for (TIntermTyped* node = binary->getLeft();
-		 node->getAsBinaryNode() and AnyEqual( node->getAsBinaryNode()->getOp(), TOperator::EOpVectorSwizzle, TOperator::EOpIndexDirect );)
+	for (TIntermTyped* node = binary->getLeft();;)
 	{
-		swizzle_op.push_back( node->getAsBinaryNode() );
+		TIntermBinary*	bin = node->getAsBinaryNode();
+
+		if ( bin == null or not AnyEqual( bin->getOp(), TOperator::EOpVectorSwizzle, TOperator::EOpIndexDirect ))
+			break;
+
+		if ( bin->getLeft()->isArray() )
+			break;	// TODO: use GetArraySwizzleMask()
+
+		swizzle_op.push_back( bin );
 
 		node = swizzle_op.back()->getLeft();
 	}
@@ -571,9 +578,9 @@ ND_ static ShaderTrace::Swizzle  GetVectorSwizzleMask (TIntermBinary* binary)
 
 	uint2	origin_dim {0u};
 
-	if ( TIntermSymbol*  src_symb = binary->getLeft()->getAsSymbolNode())
+	if ( TIntermTyped*  src_typed = binary->getLeft()->getAsTyped())
 	{
-		TType const&	type = src_symb->getType();
+		TType const&	type = src_typed->getType();
 
 		if ( type.isVector() )
 		{
@@ -1029,10 +1036,56 @@ ND_ static TIntermAggregate*  CreateAppendToTrace (TIntermTyped* exprNode, uint 
 
 /*
 =================================================
-	CreateGraphicsShaderDebugStorage
+	CreateShaderDebugStorage
 =================================================
 */
-static void  CreateGraphicsShaderDebugStorage (TTypeList* typeList, INOUT TPublicType &type)
+static void  CreateShaderDebugStorage (TTypeList* typeList, INOUT TPublicType &type)
+{
+	type.basicType = TBasicType::EbtInt;
+
+	TType*	padding0	= new TType{type};		padding0->setFieldName( "padding0" );
+	type.qualifier.layoutOffset += sizeof(int);
+
+	TType*	padding1	= new TType{type};		padding1->setFieldName( "padding1" );
+	type.qualifier.layoutOffset += sizeof(int);
+
+	TType*	padding2	= new TType{type};		padding2->setFieldName( "padding2" );
+	type.qualifier.layoutOffset += sizeof(int);
+
+	typeList->push_back( TTypeLoc{ padding0,	TSourceLoc{} });
+	typeList->push_back( TTypeLoc{ padding1,	TSourceLoc{} });
+	typeList->push_back( TTypeLoc{ padding2,	TSourceLoc{} });
+}
+
+/*
+=================================================
+	CreateVertexShaderDebugStorage
+=================================================
+*/
+static void  CreateVertexShaderDebugStorage (TTypeList* typeList, INOUT TPublicType &type)
+{
+	type.basicType = TBasicType::EbtInt;
+
+	TType*	vtx_idx	= new TType{type};		vtx_idx->setFieldName( "vertexIndex" );
+	type.qualifier.layoutOffset += sizeof(int);
+
+	TType*	inst_idx = new TType{type};		inst_idx->setFieldName( "instanceIndex" );
+	type.qualifier.layoutOffset += sizeof(int);
+
+	TType*	padding	= new TType{type};		padding->setFieldName( "padding1" );
+	type.qualifier.layoutOffset += sizeof(int);
+
+	typeList->push_back( TTypeLoc{ vtx_idx,		TSourceLoc{} });
+	typeList->push_back( TTypeLoc{ inst_idx,	TSourceLoc{} });
+	typeList->push_back( TTypeLoc{ padding,		TSourceLoc{} });
+}
+
+/*
+=================================================
+	CreateFragmentShaderDebugStorage
+=================================================
+*/
+static void  CreateFragmentShaderDebugStorage (TTypeList* typeList, INOUT TPublicType &type)
 {
 	type.basicType = TBasicType::EbtInt;
 
@@ -1106,11 +1159,15 @@ static void  CreateShaderDebugStorage (uint descSetIndex, DebugInfo &dbgInfo, OU
 	//	staticSize: 16, arrayStride: 4
 	//	layout(binding=x, std430) buffer dbg_ShaderTraceStorage {
 	//		union {
-	//		  // graphics
+	//		  // fragment
 	//			readonly int  fragCoordX;
 	//			readonly int  fragCoordY;
 	//			readonly int  padding1;
-	//		  // compute
+	//		  // vertex
+	//			readonly int  vertexIndex;
+	//			readonly int  instanceIndex;
+	//			readonly int  padding1;
+	//		  // compute, mesh
 	//			readonly uint  globalInvocationX;
 	//			readonly uint  globalInvocationY;
 	//			readonly uint  globalInvocationZ;
@@ -1136,14 +1193,15 @@ static void  CreateShaderDebugStorage (uint descSetIndex, DebugInfo &dbgInfo, OU
 
 	switch_enum( dbgInfo.GetShaderType() )
 	{
-		case EShLangVertex :
 		case EShLangTessControl :
 		case EShLangTessEvaluation :
-		case EShLangGeometry :
-		case EShLangFragment :
-		case EShLangTask :
-		case EShLangMesh :				CreateGraphicsShaderDebugStorage( type_list, INOUT temp );		break;
+		case EShLangGeometry :			CreateShaderDebugStorage( type_list, INOUT temp );				break;
 
+		case EShLangVertex :			CreateVertexShaderDebugStorage( type_list, INOUT temp );		break;
+		case EShLangFragment :			CreateFragmentShaderDebugStorage( type_list, INOUT temp );		break;
+
+		case EShLangTask :
+		case EShLangMesh :
 		case EShLangCompute :			CreateComputeShaderDebugStorage( type_list, INOUT temp );		break;
 
 		case EShLangRayGen :
@@ -2788,6 +2846,56 @@ ND_ static TIntermAggregate*  RecordShaderInfo (const TSourceLoc &loc, DebugInfo
 
 /*
 =================================================
+	CreateVertexShaderIsDebugInvocation
+=================================================
+*/
+ND_ static TIntermOperator*  CreateVertexShaderIsDebugInvocation (DebugInfo &dbgInfo)
+{
+	TPublicType		bool_type;	bool_type.init( Default );
+	bool_type.basicType			= TBasicType::EbtBool;
+	bool_type.qualifier.storage	= TStorageQualifier::EvqTemporary;
+
+	TIntermSymbol*	gl_vtx_idx	= dbgInfo.GetCachedSymbolNode( "gl_VertexIndex" );
+	CHECK_ERR( gl_vtx_idx != null );
+
+	TIntermSymbol*	gl_inst_idx	= dbgInfo.GetCachedSymbolNode( "gl_InstanceIndex" );
+	CHECK_ERR( gl_inst_idx != null );
+
+	TIntermBinary*	eq1 = new TIntermBinary{ TOperator::EOpEqual };
+	{
+		// dbg_ShaderTrace.vertexIndex
+		TIntermBinary*			vtx_idx = dbgInfo.GetDebugStorageField( "vertexIndex" );
+		CHECK_ERR( vtx_idx != null );
+
+		// dbg_ShaderTrace.vertexIndex == gl_VertexIndex
+		eq1->setType( TType{bool_type} );
+		eq1->setLeft( gl_vtx_idx );
+		eq1->setRight( vtx_idx );
+	}
+
+	TIntermBinary*	eq2 = new TIntermBinary{ TOperator::EOpEqual };
+	{
+		// dbg_ShaderTrace.instanceIndex
+		TIntermBinary*			inst_idx = dbgInfo.GetDebugStorageField( "instanceIndex" );
+		CHECK_ERR( inst_idx != null );
+
+		// dbg_ShaderTrace.instanceIndex == gl_InstanceIndex
+		eq2->setType( TType{bool_type} );
+		eq2->setLeft( gl_inst_idx );
+		eq2->setRight( inst_idx );
+	}
+
+	// ... && ...
+	TIntermBinary*	cmp1		= new TIntermBinary{ TOperator::EOpLogicalAnd };
+	cmp1->setType( TType{bool_type} );
+	cmp1->setLeft( eq1 );
+	cmp1->setRight( eq2 );
+
+	return cmp1;
+}
+
+/*
+=================================================
 	CreateFragmentShaderIsDebugInvocation
 =================================================
 */
@@ -3070,7 +3178,7 @@ ND_ static TIntermOperator*  CreateRayTracingShaderIsDebugInvocation (DebugInfo 
 	CreateAppendToTrace
 ----
 	returns new node instead of 'exprNode'.
-	'exprNode' - any operator.
+	'exprNode' - any function or operator.
 	'sourceLoc' - location index returned by DebugInfo::GetSourceLocation or ::GetCustomSourceLocation.
 	also see 'CreateAppendToTraceBody()'
 =================================================

@@ -41,14 +41,14 @@
 		{
 			RC<SceneGraphicsPass>	draw_pass = scene.AddGraphicsPass( "opaque" );
 			draw_pass.AddPipeline( "samples/Model.as" );	// [src](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/pipelines/samples/Model.as)
-			draw_pass.Output( "out_Color", rt, RGBA32f(0.0f, 1.f, 1.f, 1.f) );
-			draw_pass.Output( ds, DepthStencil(1.f, 0) );
+			draw_pass.Output( "out_Color",	rt,		RGBA32f(0.0f, 1.f, 1.f, 1.f) );
+			draw_pass.Output(				ds,		DepthStencil(1.f, 0) );
 			draw_pass.Layer( ERenderLayer::Opaque );
 		}{
 			RC<SceneGraphicsPass>	draw_pass = scene.AddGraphicsPass( "translucent" );
 			draw_pass.AddPipeline( "samples/Model.as" );	// [src](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/pipelines/samples/Model.as)
-			draw_pass.Output( "out_Color", rt );
-			draw_pass.Output( ds );
+			draw_pass.Output( "out_Color",	rt );
+			draw_pass.Output(				ds );
 			draw_pass.Layer( ERenderLayer::Translucent );
 		}
 		Present( rt );

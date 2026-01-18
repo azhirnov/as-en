@@ -34,7 +34,7 @@ namespace AE::ResEditor
 				ppln = it->second;
 
 				DirectCtx::Transfer		tctx{ pd.rtask, RVRef(pd.cmdbuf) };
-				CHECK( pd.dbg.debugger->AllocForGraphics( OUT dbg, tctx, ppln, uint2{~0u} ));
+				CHECK( pd.dbg.debugger->AllocForGraphics( OUT dbg, tctx, ppln ));
 				pd.cmdbuf = tctx.ReleaseCommandBuffer();
 			}
 		}

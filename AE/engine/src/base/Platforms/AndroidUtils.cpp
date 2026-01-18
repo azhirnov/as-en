@@ -254,6 +254,24 @@ namespace AE::Base
 		return false;
 	}
 
+/*
+=================================================
+	SetProcessAffinity
+=================================================
+*/
+	bool  AndroidUtils::SetProcessAffinity (CpuArchInfo::CoreBits_t coreMask) __NE___
+	{
+		pid_t	pid = ::getpid();
+
+		::cpu_set_t  mask;
+		CPU_ZERO( OUT &mask );
+
+        StaticAssert( sizeof(mask.__bits[0]) == 8 );
+        mask.__bits[0] = coreMask.to_ullong();
+
+		return ::sched_setaffinity( pid, sizeof(mask), &mask ) == 0;
+	}
+
 } // AE::Base
 
 #endif // AE_PLATFORM_ANDROID

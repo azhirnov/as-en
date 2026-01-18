@@ -212,7 +212,7 @@ namespace AE::RemoteGraphics
 		{{
 			if ( auto* p_core = cpu_info.GetCore( ECoreType::Performance ))
 			{
-				int		idx = BitScanForward( p_core->physicalBits.to_ullong() & ~used );
+				int		idx = LowBitIndex( p_core->physicalBits.to_ullong() & ~used );
 				if ( idx >= 0 )
 				{
 					used |= 1ull << idx;

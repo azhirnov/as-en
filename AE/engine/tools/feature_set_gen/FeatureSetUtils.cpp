@@ -1225,6 +1225,8 @@ namespace
 */
 	bool  FeatureSetFromJSON (const Path &jsonFile, OUT FeatureSetExt &outFeatureSet, OUT String &outName)
 	{
+		StaticAssert( FeatureSet::GetFeatureCount() == 272 );
+
 		String	json;
 		{
 			FileRStream		file{ jsonFile };
@@ -1320,6 +1322,9 @@ namespace
 
 		if ( HasSubString( json, "VK_KHR_shader_expect_assume" ))
 			outFeatureSet.shaderExpectAssume = EFeature::RequireTrue;
+
+		if ( HasSubString( json, "VK_EXT_conservative_rasterization" ))
+			outFeatureSet.conservativeRasterization = EFeature::RequireTrue;
 
 		#define AE_FEATURE_SET_VISIT( _type_, _name_, _bits_ )	outFeatureSet._name_ = FS_ParseJSON( outFeatureSet._name_, json, ReplaceName(AE_TOSTRING(_name_)) );
 		AE_FEATURE_SET_FIELDS_ALL( AE_FEATURE_SET_VISIT )

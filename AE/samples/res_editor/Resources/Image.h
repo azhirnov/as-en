@@ -117,11 +117,8 @@ namespace AE::ResEditor
 		Image (const ImageDesc &	desc,
 			   const ImageViewDesc&	viewDesc,
 			   Renderer&			renderer,
-			   StringView			dbgName);
+			   StringView			dbgName)										__NE___;
 
-		void  _Remove (Image* derived);
-
-	public:
 		Image (Strong<ImageID>		id,
 			   Strong<ImageViewID>	view,
 			   ArrayView<LoadOp>	loadOps,
@@ -132,9 +129,30 @@ namespace AE::ResEditor
 			   RC<DynamicDim>		inDynSize,
 			   RC<DynamicDim>		outDynSize,
 			   EImageFlags			flags,
-			   StringView			dbgName)										__Th___;
+			   StringView			dbgName)										__NE___;
 
+		void  _Init ()																__Th___;
+		void  _Remove (Image* derived);
+
+	public:
 		~Image ()																	__NE_OV;
+
+		ND_ static RC<Image>  Create (const ImageDesc &		desc,
+									  const ImageViewDesc&	viewDesc,
+									  Renderer&				renderer,
+									  StringView			dbgName)				__NE___;
+
+		ND_ static RC<Image>  Create (Strong<ImageID>		id,
+									  Strong<ImageViewID>	view,
+									  ArrayView<LoadOp>		loadOps,
+									  Renderer &			renderer,
+									  bool					isDummy,
+									  const ImageDesc &		desc,
+									  const ImageViewDesc&	viewDesc,
+									  RC<DynamicDim>		inDynSize,
+									  RC<DynamicDim>		outDynSize,
+									  EImageFlags			flags,
+									  StringView			dbgName)				__NE___;
 
 			bool  Resize (TransferCtx_t &ctx)										__Th_OV;
 			bool  RequireResize ()													C_Th_OV;
@@ -186,7 +204,7 @@ namespace AE::ResEditor
 		ND_ bool  _ResizeImage (TransferCtx_t &ctx, const ImageDesc &, const ImageViewDesc &);
 			void  _GenMipmaps (TransferCtx_t &ctx)									const;
 
-		ND_ static IntermImageRC  _Load (const AsyncDSRequestResult &in, EImageFormat fileFormat);
+		ND_ static IntermImageRC  _Load (const AsyncDSRequestResult &in, String dbgName, EImageFormat fileFormat);
 	};
 
 

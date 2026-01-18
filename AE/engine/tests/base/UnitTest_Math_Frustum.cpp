@@ -23,7 +23,7 @@ namespace
 			float2	near_far = camera.projection.ExtractClipPlanes();
 
 			TEST( Equal( clip_planes[0], near_far[0], 1_pct ));
-			TEST( Equal( clip_planes[1],  near_far[1], 1_pct ));
+			TEST( Equal( clip_planes[1], near_far[1], 1_pct ));
 
 			TEST( Equal( -frustum.GetPlane( Frustum::EPlane::Near ).dist, clip_planes[0], 1_pct ));
 			TEST( Equal(  frustum.GetPlane( Frustum::EPlane::Far  ).dist, clip_planes[1], 1_pct ));

@@ -288,7 +288,7 @@
 
 		gl.image.Store( un_Noise, tid, ToSNorm( noise ));
 
-		if ( GetGlobalIndex() == 0 )
+		if ( OncePerDispatch() )
 		{
 			un_Params.A		= iA;
 			un_Params.B		= iB;

@@ -85,7 +85,7 @@ namespace AE::ResEditor
 					"Failed to open file for writing '"s << ToString(_currPath) << "'" );
 
 				auto	read_res = ctx.ReadbackBuffer( _src->GetBufferId( ctx.GetFrameId() ), ReadbackBufferDesc{}.AnyHeap() );
-				CHECK_MSG( read_res.IsCompleted(), "Buffer is too large" );
+				CHECK_MSG( read_res.IsFullyRead(), "Buffer is too large" );
 
 				read_res.Then(
 					GetRC<ExportBuffer>(), RVRef(stream),

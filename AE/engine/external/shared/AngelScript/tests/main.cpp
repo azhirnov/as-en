@@ -4,8 +4,8 @@
 #endif
 
 #include "angelscript.h"
-#include "scriptarray.h"
-#include "scriptstdstring.h"
+//#include "scriptarray.h"
+//#include "scriptstdstring.h"
 
 using namespace AngelScript;
 
@@ -23,8 +23,8 @@ int main ()
 	if ( !eng )
 		return 1;
 
-	RegisterScriptArray( eng, true );
-	RegisterStdString( eng );
+	//RegisterScriptArray( eng, true );
+	//RegisterStdString( eng );
 
 	eng->ShutDownAndRelease();
 	return 0;

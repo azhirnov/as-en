@@ -88,7 +88,7 @@ namespace AE::Serializing
 	template <typename T>
 	bool  ObjectFactory::Register (SerializedID::Ref id, Serialize_t ser, Deserialize_t des) __NE___
 	{
-		StaticAssert( not IsTriviallySerializable<T>, "Can not register trivial type" );
+		StaticAssertMsg( not IsTriviallySerializable<T>, "Can not register trivial type" );
 		CHECK_ERR( id.IsDefined() );
 
 		EXLOCK( _guard );
@@ -110,7 +110,7 @@ namespace AE::Serializing
 	template <typename T>
 	bool  ObjectFactory::Register (SerializedID::Ref id) __NE___
 	{
-		StaticAssert( not IsTriviallySerializable<T>, "Can not register trivial type" );
+		StaticAssertMsg( not IsTriviallySerializable<T>, "Can not register trivial type" );
 		StaticAssert( IsBaseOf< ISerializable, T >);
 		CheckNothrow( IsNothrowCtor< T >);
 
@@ -138,7 +138,7 @@ namespace AE::Serializing
 	template <typename T>
 	bool  ObjectFactory::Serialize (Serializer &ser, const T* obj) C_NE___
 	{
-		StaticAssert( not IsTriviallySerializable<T>, "Can not serialize trivial type" );
+		StaticAssertMsg( not IsTriviallySerializable<T>, "Can not serialize trivial type" );
 
 		if ( obj == null )
 			return ser( SerializedID{} );
@@ -149,7 +149,7 @@ namespace AE::Serializing
 	template <typename T>
 	bool  ObjectFactory::Serialize (Serializer &ser, const RC<T> &obj) C_NE___
 	{
-		StaticAssert( not IsTriviallySerializable<T>, "Can not serialize trivial type" );
+		StaticAssertMsg( not IsTriviallySerializable<T>, "Can not serialize trivial type" );
 
 		if ( obj == null )
 			return ser( SerializedID{} );
@@ -160,7 +160,7 @@ namespace AE::Serializing
 	template <typename T>
 	bool  ObjectFactory::Serialize (Serializer &ser, const Unique<T> &obj) C_NE___
 	{
-		StaticAssert( not IsTriviallySerializable<T>, "Can not serialize trivial type" );
+		StaticAssertMsg( not IsTriviallySerializable<T>, "Can not serialize trivial type" );
 
 		if ( obj == null )
 			return ser( SerializedID{} );
@@ -228,7 +228,7 @@ namespace AE::Serializing
 	template <typename T>
 	bool  ObjectFactory::Deserialize (Deserializer &des, Ptr<IAllocator> alloc, INOUT RC<T> &obj) C_NE___
 	{
-		StaticAssert( not IsTriviallySerializable<T>, "Can not deserialize trivial type" );
+		StaticAssertMsg( not IsTriviallySerializable<T>, "Can not deserialize trivial type" );
 
 		void*	ptr = null;
 		bool	res = _Deserialize( des, alloc, INOUT ptr );
@@ -245,7 +245,7 @@ namespace AE::Serializing
 	template <typename T>
 	bool  ObjectFactory::Deserialize (Deserializer &des, Ptr<IAllocator> alloc, INOUT Unique<T> &obj) C_NE___
 	{
-		StaticAssert( not IsTriviallySerializable<T>, "Can not deserialize trivial type" );
+		StaticAssertMsg( not IsTriviallySerializable<T>, "Can not deserialize trivial type" );
 
 		void*	ptr = null;
 		bool	res = _Deserialize( des, alloc, INOUT ptr );

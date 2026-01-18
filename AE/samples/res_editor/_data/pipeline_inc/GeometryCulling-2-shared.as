@@ -52,6 +52,7 @@
 			if ( name == "DepthPrePass" )			vs.Define( "DEPTH_PRE_PASS" );
 			if ( name == "VisibilityBuffer1Pass2" )	vs.Define( "VIS_BUF_2" );
 			if ( name == "VisibilityBuffer2Pass2" )	vs.Define( "VIS_BUF_2" );
+			if ( name == "DeferredTexturingPass2" )	vs.Define( "VIS_BUF_2" );
 			if ( dbgVS )							vs.options = dbg_mode;
 			ppln.SetVertexShader( vs );
 		}{
@@ -63,6 +64,8 @@
 			if ( name == "VisibilityBuffer1Pass2" )	{ fs.Define( "VIS_BUF1_2" );  if ( pass != "main" ) fs.Define( "VISBUF_SUBPASS" ); }
 			if ( name == "VisibilityBuffer2Pass1" )	{ fs.Define( "VIS_BUF2_1" );  if ( pass != "main" ) fs.Define( "VISBUF_SUBPASS" ); }
 			if ( name == "VisibilityBuffer2Pass2" )	{ fs.Define( "VIS_BUF2_2" );  if ( pass != "main" ) fs.Define( "VISBUF_SUBPASS" ); }
+			if ( name == "DeferredTexturingPass1" )	{ fs.Define( "DEFER_TEX_1" );  if ( pass != "main" ) fs.Define( "VISBUF_SUBPASS" ); }
+			if ( name == "DeferredTexturingPass2" )	{ fs.Define( "DEFER_TEX_2" );  if ( pass != "main" ) fs.Define( "VISBUF_SUBPASS" ); }
 			if ( dbgFS )							fs.options = dbg_mode;
 			ppln.SetFragmentShader( fs );
 		}
@@ -74,7 +77,10 @@
 
 			RenderState	rs;
 
-			if ( name != "WithoutDepthTest" and name != "VisibilityBuffer1Pass2" and name != "VisibilityBuffer2Pass2" )
+			if ( name != "WithoutDepthTest"			and
+				 name != "VisibilityBuffer1Pass2"	and
+				 name != "VisibilityBuffer2Pass2"	and
+				 name != "DeferredTexturingPass2"	)
 			{
 				rs.depth.test				= true;
 				rs.depth.write				= true;
@@ -179,9 +185,14 @@
 	#define PERF_LEVEL	3	// [1, 4]
 	#define ALU_BOUND	0	// 0/1
 
+	// for deferred texturing
+	#define BITS_PER_UV			12
+	#define LOD_PACKING_SCALE	8.0
+
 	#include "Noise.glsl"
 	#include "Color.glsl"
 	#include "Normal.glsl"
+	#include "GBuffer.glsl"
 	#include "InvocationID.glsl"
 	#include "../3party_shaders/VisibilityBuffer.glsl"
 
@@ -222,6 +233,10 @@
 		}
 
 		#define TexSample( _tex_ )	gl.texture.SampleGrad( (_tex_), uv_res.interp, uv_res.dx, uv_res.dy )
+
+	#elif defined(DEFER_TEX_2)
+		#define TexSample( _tex_ )	gl.texture.SampleLod( (_tex_), uv, lod )
+
 	#else
 		#define TexSample( _tex_ )	gl.texture.SampleGrad( (_tex_), uv, gl.dFdx(uv), gl.dFdy(uv) )
 	#endif
@@ -246,6 +261,21 @@
 	#elif defined(VIS_BUF2_1)
 		out_VisBuf.rg	= uint2( gl.PrimitiveID, In.objId );
 		out_VisBuf2		= float4( gl.BaryCoord, 0.0 );
+		return;
+
+	#elif defined(DEFER_TEX_1)
+		uint	texId		= In.objId % TEX_COUNT;
+		float3	norm		= ComputeNormalInWS_dxdy( In.worldPos );
+		float2	enc_norm	= Stereo_EncodeNormal( norm );
+
+		uint	mask		= (1 << BITS_PER_UV) - 1;
+		uint2	uv			= uint2(In.uv * mask) & mask;
+		float	lod			= gl.texture.QueryLod( gl::Nonuniform(gl::CombinedTex2D<float>( un_Textures[texId], un_Sampler )), In.uv ).y;
+		uint	p_lod		= uint(lod * LOD_PACKING_SCALE) & ((1 << (32 - BITS_PER_UV*2)) - 1);	// 8bit
+
+		out_GBuffer.r	= uv.x | (uv.y << BITS_PER_UV) | (p_lod << (BITS_PER_UV*2));
+		out_GBuffer.g	= packSnorm4x8( norm.xyzz ) & 0xFFFFFF00;
+		out_GBuffer.g	|= texId;
 		return;
 
 	#else
@@ -291,6 +321,19 @@
 											// TODO: dFdx(uv), dFdy(uv)
 			const float4		color		= unpackUnorm4x8( obj.color );
 			const float3		norm		= Normalize(iLight);	// TODO
+
+		#elif defined(DEFER_TEX_2)
+			const uint2			gbuf		= SubpassLoad( GBuffer ).rg;
+
+			if ( AllEqual( gbuf, uint2(~0u) ))
+				gl.Discard;
+
+			const uint			mask		= (1 << BITS_PER_UV) - 1;
+			const float2		uv			= float2( uint2(gbuf.x, gbuf.x >> BITS_PER_UV) & mask ) / mask;
+			const float			lod			= float(gbuf.x >> (BITS_PER_UV*2)) / LOD_PACKING_SCALE;
+			const float4		color		= float4(1.0);	// unsupported
+			const float3		norm		= unpackSnorm4x8( gbuf.y ).xyz;
+			const uint			texId		= gbuf.y & 0xFF;
 
 		#else
 			const uint			texId		= In.objId % TEX_COUNT;

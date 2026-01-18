@@ -18,12 +18,13 @@
 		// initialize
 		RC<FeatureSet>		fs			= GetFeatureSet();
 		const bool			nv_type		= fs.hasCooperativeMatrixConfig( ECoopMatrixCfg::As8_Bs8_Cs32_Rs32_M16_N16_K32 );
+		const bool			amd_type	= fs.hasCooperativeMatrixConfig( ECoopMatrixCfg::As8_Bs8_Cs32_Rs32_M16_N16_K16 );
 		const bool			intel_type	= fs.hasCooperativeMatrixConfig( ECoopMatrixCfg::As8_Bs8_Cs32_Rs32_M8_N8_K32 );
-		Assert( nv_type or intel_type, "unsupported cooperative matrix config" );
+		Assert( nv_type or amd_type or intel_type, "unsupported cooperative matrix config" );
 
-		const uint			M			= nv_type ? 16 : (intel_type ? 8 : 0);
-		const uint			N			= nv_type ? 16 : (intel_type ? 8 : 0);
-		const uint			K			= nv_type ? 32 : (intel_type ? 32 : 0);
+		const uint			M			= nv_type or amd_type ? 16 : (intel_type ? 8 : 0);
+		const uint			N			= nv_type or amd_type ? 16 : (intel_type ? 8 : 0);
+		const uint			K			= nv_type ? 32 : amd_type ? 16 : (intel_type ? 32 : 0);
 		const uint			n_muls		= M * N * K;
 		const uint			n_adds		= M * N * (K - 1);
 
@@ -81,13 +82,13 @@
 			s_MatR = gl.CoopMatMulAdd( s_MatA, s_MatB, s_MatC );
 
 			// latency can be hidden
-			int		a = s_MatR[ (i + j + 1) % s_MatR.length() ];
-			int		b = s_MatR[ (i + j + 2) % s_MatR.length() ];
-			int		c = s_MatR[ (i + j + 3) % s_MatR.length() ];
+				int		a = s_MatR[ (i + j + 1) % s_MatR.length() ];
+				int		b = s_MatR[ (i + j + 2) % s_MatR.length() ];
+				int		c = s_MatR[ (i + j + 3) % s_MatR.length() ];
 
-			s_MatA[ (i + j) % s_MatA.length() ] += sbyte(i);
-			s_MatB[ (i + j) % s_MatB.length() ] += sbyte(i);
-			s_MatC[ (i + j) % s_MatC.length() ] += c;
+				s_MatA[ (i + j) % s_MatA.length() ] += sbyte(i);
+				s_MatB[ (i + j) % s_MatB.length() ] += sbyte(i);
+				s_MatC[ (i + j) % s_MatC.length() ] += c;
 		}
 
 		int4	icol = int4( s_MatR[ (j*4+0) % s_MatR.length() ], s_MatR[ (j*4+1) % s_MatR.length() ],

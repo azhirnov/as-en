@@ -49,7 +49,7 @@
 			pass.Constant(	"iTileCount",	tile_count );
 			pass.Slider(	"iLightPos",	float3(-1.5, -1.5, 0.0),	float3(1.5, 1.5, 1.0),	float3(0.0, 0.0, 0.6) );
 			pass.Slider(	"iLightParams",	float4(0.0),				float4(1.0),			float4(0.1, 0.1, 0.0, 0.0) );
-			pass.Slider(	"iLightType",	0,							1,						1 );
+			pass.Slider(	"iLightType",	0,							1,						0 );
 			pass.Slider(	"iMode",		0,							2 );
 		}
 
@@ -73,12 +73,14 @@
 
 	int2  NdcToCeilTile (float2 ndc)
 	{
-		return int2( ToUNorm( ndc ) * float2(iTileCount) + 0.5 );
+		return int2(Ceil( ToUNorm( ndc ) * float2(iTileCount) ));
 	}
 
 	int2  FragCoordToTile (float2 coord)
 	{
-		return int2( coord * un_PerPass.invResolution * float2(iTileCount) );
+		coord *= un_PerPass.invResolution;
+		coord.y = 1.0 - coord.y;
+		return int2( coord * float2(iTileCount) );
 	}
 
 
@@ -107,11 +109,44 @@
 
 			case 1 :	// is sphere visible for tile frustum
 			{
-				Frustum		main_fr		= Frustum_Create( un_PerPass.camera.frustum );
-				FrustumRays	main_rays	= Frustum_ToRays( main_fr );
-				Frustum		tile_fr		= Frustum_FromTile( tileIdx, int2(iTileCount), main_rays, un_PerPass.camera.clipPlanes, un_PerPass.camera.pos );	// world space
+				Frustum		main_fr	= Frustum_Create( un_PerPass.camera.frustum );
+				Frustum		tile_fr	= Frustum_ToTile( main_fr, tileIdx, int2(iTileCount) );	// world space
 
 				if ( Frustum_IsVisible( tile_fr, sp ))
+					result |= 2;
+				break;
+			}
+
+			case 2 :	// is sphere visible for tile frustum without false positive
+			{
+				Frustum		main_fr	= Frustum_Create( un_PerPass.camera.frustum );
+				Frustum		tile_fr	= Frustum_ToTile( main_fr, tileIdx, int2(iTileCount) );	// world space
+				Line3d		line	= Frustum_AxisZ( tile_fr );
+				bool		vis		= Frustum_IsVisible( tile_fr, sp );
+
+				if ( vis )
+				{
+					// find perpendicular to frustum Z axis
+					float3	proj_point = Line_ProjectPoint( line, sp.center );
+					if ( Line_IsPointInside( line, proj_point ))
+					{
+						float	tile_r	= Frustum_ZSliceOuterRadius( tile_fr, Line_InvLerp( line, proj_point ));
+						float	dist	= Distance( proj_point, sp.center );
+						vis = tile_r + sp.radius > dist;
+					}
+				}
+
+				if ( vis )
+					result |= 2;
+				break;
+			}
+
+			case 3 :	// for debugging: draw sphere bounding rect
+			{
+				float4	aabb_ndc = Sphere_FastProject( Sphere_Create( viewPos, sp.radius ), un_PerPass.camera.proj[0][0], un_PerPass.camera.proj[1][1] );
+				float2	frag_ndc = ToSNorm( gl.FragCoord.xy * un_PerPass.invResolution );
+
+				if ( AllGreater( frag_ndc, aabb_ndc.xy ) and AllLess( frag_ndc, aabb_ndc.zw ))
 					result |= 2;
 				break;
 			}
@@ -127,7 +162,7 @@
 		q = QMul( q, QRotationX( float_Pi * iLightParams.z * 0.5 ));
 		q = QNormalize( q );
 
-		const Cone	cone	= Cone_Create( viewPos, -QMul(q, float3(0.0, 1.0, 0.0)), float_Pi * iLightParams.y, iLightParams.x * 10.0 );	// world space
+		const Cone	cone	= Cone_Create( viewPos, -QMul(q, float3(0.0, 1.0, 0.0)), float_Pi * iLightParams.y, iLightParams.x * 10.0 );  // world space
 		uint		result	= 0;
 
 		// find intersection with cone using sphere tracing
@@ -170,9 +205,8 @@
 
 			case 1 :	// is cone visible for tile frustum
 			{
-				Frustum		main_fr		= Frustum_Create( un_PerPass.camera.frustum );
-				FrustumRays	main_rays	= Frustum_ToRays( main_fr );
-				Frustum		tile_fr		= Frustum_FromTile( tileIdx, int2(iTileCount), main_rays, un_PerPass.camera.clipPlanes, un_PerPass.camera.pos );	// world space
+				Frustum		main_fr	= Frustum_Create( un_PerPass.camera.frustum );
+				Frustum		tile_fr	= Frustum_ToTile( main_fr, tileIdx, int2(iTileCount) );	// world space
 
 				if ( Frustum_IsVisible( tile_fr, cone ))
 					result |= 2;
@@ -220,16 +254,17 @@
 		{
 			case 0 :	mode = PointLight( tile_idx, light_wpos, light_vpos, scr_wpos0, scr_wpos1 );	break;
 			case 1 :	mode = SpotLight( tile_idx, light_wpos, light_vpos, scr_wpos0, scr_wpos1 );		break;
+			// TODO: area light
 		}
 
 		if ( mode == 1 )
-			out_Color = float4(1.0, 0.0, 0.0, 1.0);		// error
+			out_Color = float4(1.0, 0.0, 0.0, 1.0);		// red - error
 
 		if ( mode == 2 )
-			out_Color = float4(0.9, 0.7, 0.3, 1.0);		// false positive
+			out_Color = float4(0.9, 0.7, 0.3, 1.0);		// orange - false positive
 
 		if ( mode == 3 )
-			out_Color = float4(0.3, 1.0, 0.3, 1.0);
+			out_Color = float4(0.3, 1.0, 0.3, 1.0);		// green - ok
 	}
 
 #endif

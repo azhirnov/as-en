@@ -99,6 +99,11 @@ ND_ float4  WorldPosToClipSpace (const float4 pos)
 	return un_PerPass.camera.viewProj * pos;
 }
 
+ND_ float4  WorldPosToClipSpace (const float3 pos)
+{
+	return WorldPosToClipSpace( float4( pos, 1.0f ));
+}
+
 ND_ float4  LocalPosToClipSpace (const float4 pos)
 {
 	return WorldPosToClipSpace( LocalPosToWorldSpace( pos ));
@@ -143,7 +148,7 @@ ND_ float4  LocalPosToNormClipSpace (const float3 pos)
 */
 ND_ float4  WorldPosToScreenSpace (const float4 pos, float4 viewport)
 {
-	return ProjectToScreenSpace( un_PerPass.camera.viewProj, pos, viewport );
+	return ProjectToScreenSpace( un_PerPass.camera.viewProj, pos, Rect_FromMinMax(viewport) );
 }
 
 ND_ float4  LocalPosToScreenSpace (const float4 pos, float4 viewport)
@@ -158,5 +163,5 @@ ND_ float4  LocalPosToScreenSpace (const float3 pos, float4 viewport)
 
 ND_ float4  ViewPosToScreenSpace (const float4 pos, float4 viewport)
 {
-	return ProjectToScreenSpace( un_PerPass.camera.proj, pos, viewport );
+	return ProjectToScreenSpace( un_PerPass.camera.proj, pos, Rect_FromMinMax(viewport) );
 }

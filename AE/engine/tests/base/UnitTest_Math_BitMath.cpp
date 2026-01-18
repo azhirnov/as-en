@@ -48,9 +48,9 @@ namespace
 	static void  BitScanForward_Test1 ()
 	{
 		int	val;
-		val = BitScanForward( 0 );			TEST_Lt( val, 0 );
-		val = BitScanForward( 0x100 );		TEST_Eq( val, 8 );
-		val = BitScanForward( 0x101 );		TEST_Eq( val, 0 );
+		val = LowBitIndex( 0 );			TEST_Lt( val, 0 );
+		val = LowBitIndex( 0x100 );		TEST_Eq( val, 8 );
+		val = LowBitIndex( 0x101 );		TEST_Eq( val, 0 );
 	}
 
 

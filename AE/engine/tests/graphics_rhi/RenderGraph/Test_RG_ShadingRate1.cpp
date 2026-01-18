@@ -185,7 +185,7 @@ namespace
 
 		for (uint i = 0; i < 3; ++i)
 		{
-			t.result[i] = ctx.ReadbackImage( t.img[i], Default ).Then( t, i,
+			t.result[i] = ctx.ReadbackImage( t.img[i], Default ).IfFullyRead( t, i,
 								[] (Promise<ImageMemView> readRes, CoSafe<SR1_TestData &> t, const uint i) -> InlineCoro<>
 								{
 									auto view = co_await readRes;

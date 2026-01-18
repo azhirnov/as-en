@@ -21,7 +21,7 @@ void ASmain ()
 		{
 			RC<PipelineCompiler>	ppln = PipelineCompiler();
 
-			ppln.AddPipelineFolderRecursive( GetSharedFeatureSetPath() );
+			ppln.AddPipelineFolder( GetSharedFeatureSetPath() );
 			ppln.AddPipeline( "config_" + suffix[i] + ".as" );
 			ppln.AddPipeline( GetCanvasVerticesPath() );
 			ppln.AddPipeline( "../_data/pipelines/VertexInput.as" );

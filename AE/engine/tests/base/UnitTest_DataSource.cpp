@@ -912,6 +912,69 @@ namespace
 			}
 		}
 	}
+
+
+	template <typename RFile, typename WFile>
+	static void  File_Test2 (typename RFile::EMode readAccess, typename WFile::EMode writeAccess)
+	{
+		const ulong	file_size	= 128ull << 20;	// Mb
+		const uint	buf_size	= 4u << 10;		// Kb
+		StaticAssert( IsMultipleOf( file_size, buf_size ));
+
+		const Path		fname {"file1_data.bin"};
+		{
+			WFile	wfile { fname, writeAccess };
+			TEST( wfile.IsOpen() );
+			TEST( AllBits( wfile.GetSourceType(), ESourceType::RandomAccess | ESourceType::WriteAccess ));
+
+			const Bytes	align = Max( Bytes{wfile.OffsetAlign().ptrAlign}, AlignOf<ulong> );
+
+			DynUntypedStorage	buf;
+			TEST( buf.Alloc( Bytes{buf_size}, align, null ));
+
+			usize	cnt = buf_size / sizeof(ulong);
+			ulong*	ptr = buf.Ptr<ulong>();
+			ulong	pos = 0;
+
+			while ( pos < file_size )
+			{
+				for (uint i = 0; i < cnt; ++i) {
+					ptr[i] = pos + i;
+				}
+
+				TEST_Eq( wfile.WriteBlock( Bytes{pos}, ptr, buf.Size() ), buf_size );
+				pos += buf_size;
+			}
+
+			TEST_Eq( wfile.Capacity(), file_size );
+		}
+		{
+			RFile	rfile { fname, readAccess };
+			TEST( rfile.IsOpen() );
+			TEST( AllBits( rfile.GetSourceType(), ESourceType::RandomAccess | ESourceType::ReadAccess ));
+			TEST_Eq( rfile.Size(), file_size );
+
+			const Bytes	align = Max( Bytes{rfile.OffsetAlign().ptrAlign}, AlignOf<ulong> );
+
+			DynUntypedStorage	dst_buf;
+			TEST( dst_buf.Alloc( Bytes{buf_size}, align, null ));
+
+			ulong	ref_buf [buf_size / sizeof(ulong)];
+			ulong	pos = 0;
+
+			while ( pos < file_size )
+			{
+				for (uint i = 0; i < CountOf(ref_buf); ++i) {
+					ref_buf[i] = pos + i;
+				}
+
+				TEST_Eq( rfile.ReadBlock( Bytes{pos}, OUT dst_buf.Data(), dst_buf.Size() ), buf_size );
+				TEST( MemEqual( dst_buf.Data(), ref_buf, dst_buf.Size() ));
+
+				pos += buf_size;
+			}
+		}
+	}
 }
 
 
@@ -971,6 +1034,8 @@ extern void UnitTest_DataSource (const Path &curr)
 		File_Test1<   WinFileRDataSource,	StdFileWDataSource	>( false );
 		File_Test1<   StdFileRDataSource,	WinFileWDataSource	>( false );
 		File_Test1<   WinFileRDataSource,	WinFileWDataSource	>( true );
+
+		File_Test2<   WinFileRDataSource,	WinFileWDataSource	>( WinFileRDataSource::EMode::Direct,	WinFileWDataSource::EMode::Direct );
 	#else
 
 		Stream_Test1< UnixFileRStream,		UnixFileWStream		>();
@@ -984,6 +1049,8 @@ extern void UnitTest_DataSource (const Path &curr)
 		File_Test1<   UnixFileRDataSource,	UnixFileWDataSource	>( false );
 		File_Test1<   UnixFileRDataSource,	StdFileWDataSource	>( false );
 		File_Test1<   StdFileRDataSource,	UnixFileWDataSource	>( false );
+
+		File_Test2<   UnixFileRDataSource,	UnixFileWDataSource	>( UnixFileRDataSource::EMode::Direct,  UnixFileWDataSource::EMode::Direct );
 
 	# ifndef AE_PLATFORM_ANDROID
 		File_Test1<   UnixFileRDataSource,	UnixFileWDataSource	>( true );

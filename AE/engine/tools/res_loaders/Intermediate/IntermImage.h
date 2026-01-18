@@ -90,6 +90,9 @@ namespace AE::ResLoader
 
 		ND_ bool  Copy (const ImageMemView &memView, RC<IAllocator> allocator = null)			__NE___;
 
+		ND_ bool  Convert (EPixelFormat dstFormat, OUT IntermImage &dst,
+							RC<IAllocator> allocator = null)									C_NE___;
+
 
 		// Allocate pixel storage for all mips and layers.
 		//

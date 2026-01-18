@@ -97,7 +97,7 @@
 	}
 
 
-	void mainImage (out float4 fragColor, in float2 fragCoord) //[[maximally_reconverges]]
+	void mainImage (out float4 fragColor, in float2 fragCoord)
 	{
 		// get ray from ViewProj matrix and pixel coordinate
 		Ray			ray = Ray_Perspective( un_PerPass.camera.invViewProj, un_PerPass.camera.pos, un_PerPass.camera.clipPlanes.x, gl.FragCoord.xy * un_PerPass.invResolution );
@@ -105,9 +105,6 @@
 		DistAndMtr	dm = SphereTrace( ray );
 
 		Ray_Move( INOUT ray, dm.dist );
-
-		// TODO: must reconverge here for correct dxdy
-		//gl.subgroup.ExecutionBarrier();
 
 		const float3	light_dir	= Normalize( float3( 0.f, -1.0f, -0.7f ));
 		const float3	normal		= ComputeNormalInWS_dxdy( ray.pos );

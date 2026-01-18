@@ -30,6 +30,8 @@ namespace AE::ResEditor
 		NearPOT,
 		Min,			// min( x, const )
 		Max,			// max( x, const )
+		AlignUp,
+		AlignDown,
 	};
 
 	template <typename T, int I>
@@ -184,7 +186,9 @@ namespace AE::ResEditor
 				break;
 
 			case EOperator::NearPOT :
-				if constexpr( IsInteger<T> )
+				if constexpr( IsFloatPoint<T> )
+					result = Log2( Max( result, T(0) ));
+				else
 					result = NearPOT( result );
 				break;
 
@@ -200,6 +204,16 @@ namespace AE::ResEditor
 					result = Pow( result, r_value );
 				else
 					result = IPow( result, r_value );
+				break;
+
+			case EOperator::AlignUp :
+				if constexpr( IsInteger<T> )
+					result = AlignUp( result, r_value );
+				break;
+
+			case EOperator::AlignDown :
+				if constexpr( IsInteger<T> )
+					result = AlignDown( result, r_value );
 				break;
 		}
 		switch_end

@@ -57,24 +57,24 @@
 		// render loop
 		{
 			RC<SceneGraphicsPass>	pass = scene0.AddGraphicsPass( "uniform tex" );
-			pass.AddPipeline( "tests/BrokenNonuniform-Tex.as" );	// [src](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/pipelines/tests/BrokenNonuniform-Tex.as)
+			pass.AddPipeline( "*-Tex.ppln" );
 			pass.Output( "out_Color",		rt1 );
 			pass.EnableIfEqual( mode, 0 );
 		}{
 			RC<SceneGraphicsPass>	pass = scene0.AddGraphicsPass( "non-uniform tex" );
-			pass.AddPipeline( "tests/BrokenNonuniform-Tex.as" );	// [src](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/pipelines/tests/BrokenNonuniform-Tex.as)
+			pass.AddPipeline( "*-Tex.ppln" );
 			pass.Output( "out_Color",	rt2 );
 			pass.Constant( "NONUNIFORM",	1 );
 			pass.EnableIfEqual( mode, 0 );
 		}{
 			RC<SceneGraphicsPass>	pass = scene1.AddGraphicsPass( "non-uniform(tex) + non-uniform(samp)" );
-			pass.AddPipeline( "tests/BrokenNonuniform-Samp.as" );	// [src](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/pipelines/tests/BrokenNonuniform-Samp.as)
+			pass.AddPipeline( "*-Samp.as" );
 			pass.Output( "out_Color",	rt1 );
 			pass.Constant( "NONUNIFORM",	1 );
 			pass.EnableIfEqual( mode, 1 );
 		}{
 			RC<SceneGraphicsPass>	pass = scene1.AddGraphicsPass( "non-uniform( tex + samp )" );
-			pass.AddPipeline( "tests/BrokenNonuniform-Samp.as" );	// [src](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/pipelines/tests/BrokenNonuniform-Samp.as)
+			pass.AddPipeline( "*-Samp.as" );
 			pass.Output( "out_Color",	rt2 );
 			pass.EnableIfEqual( mode, 1 );
 		}

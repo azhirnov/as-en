@@ -66,11 +66,11 @@ namespace AE::ResEditor
 
 		struct Label
 		{
-			String					label;
-			AnyDynVecOrScalar_t		dyn;
-			RC<DynamicUInt>			ifDyn;
-			uint					ref		= 0;
-			IPass::ECompare			op		= Default;
+			String						label;
+			AnyDynVecOrScalarOrNull_t	dyn;
+			RC<DynamicUInt>				ifDyn;
+			uint						ref		= 0;
+			IPass::ECompare				op		= Default;
 		};
 
 		using Labels_t			= Array< Label >;
@@ -201,9 +201,11 @@ namespace AE::ResEditor
 		{
 			String							name;
 			usize							firstId		= UMax;		// ID for selection
-			usize							lastId		= UMax;
+			usize2							foldersIdRange;
 			Array< Unique<ScriptFolder> >	folders;
 			Array< String >					scripts;
+
+			ScriptFolder () __NE___ {}
 		};
 
 		struct ImGuiData

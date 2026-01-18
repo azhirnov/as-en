@@ -169,6 +169,8 @@ namespace AE::ResEditor
 		ND_ ScriptDynamicUInt2*	FloorPOT ()								__Th___;
 		ND_ ScriptDynamicUInt2*	CeilPOT ()								__Th___;
 		ND_ ScriptDynamicUInt2*	NearPOT ()								__Th___;
+		ND_ ScriptDynamicUInt2*	AlignUp (const packed_uint2 &value)		__Th___;
+		ND_ ScriptDynamicUInt2*	AlignDown (const packed_uint2 &value)	__Th___;
 
 		ND_ ScriptDynamicUInt2*	Add1 (const ScriptDynamicUInt2Ptr &)	__Th___;
 		ND_ ScriptDynamicUInt2*	Sub1 (const ScriptDynamicUInt2Ptr &)	__Th___;
@@ -398,6 +400,7 @@ namespace AE::ResEditor
 		ND_ ScriptDynamicFloat*		Max (float value)						__Th___;
 		ND_ ScriptDynamicFloat*		Exp2 ()									__Th___;
 		ND_ ScriptDynamicFloat*		Exp2Mul (float value)					__Th___;
+		ND_ ScriptDynamicFloat*		Log2 ()									__Th___;
 
 		ND_ ScriptDynamicFloat*		Add1 (const ScriptDynamicFloatPtr &)	__Th___;
 		ND_ ScriptDynamicFloat*		Sub1 (const ScriptDynamicFloatPtr &)	__Th___;

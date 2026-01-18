@@ -23,7 +23,7 @@
 	  #endif
 
 		RC<DynamicUInt2>	pyramid_dim			= rt_dim.Div(uint2(2)).NearPOT();
-		RC<Image>			rt					= Image( EPixelFormat::RGBA16F, dim );		rt.Name( "RT" );
+		RC<Image>			rt					= Image( EPixelFormat::RGBA8_UNorm, dim );	rt.Name( "RT" );
 		RC<Image>			ds					= Image( Supported_DepthFormat(), dim );	ds.Name( "Depth" );
 		RC<Image>			pyramid				= Image( EPixelFormat::R32F, pyramid_dim.Dimension(), MipmapLevel(~0) );	pyramid.Name( "Depth pyramid" );
 		RC<Image>			vis					= Image( EPixelFormat::RG16U, dim );		vis.Name( "Visibility buffer" );
@@ -44,6 +44,17 @@
 		RC<DynamicUInt>		tris_count;
 		RC<DynamicUInt>		repeat				= DynamicUInt();
 		RC<DynamicFloat3>	light_dir			= DynamicFloat3( float3( 0.4, -1.0, -1.0 ));
+		const RGBA32f		bg_color			= RGBA32f(1.0);
+
+		RC<DynamicFloat>	time_cull_1			= DynamicFloat();
+		RC<DynamicFloat>	time_cull_2			= DynamicFloat();
+		RC<DynamicFloat>	time_cull_3			= DynamicFloat();
+		RC<DynamicFloat>	time_cull			= time_cull_1.Add( time_cull_2 ).Add( time_cull_3 );
+		RC<DynamicFloat>	time_draw_1			= DynamicFloat();
+		RC<DynamicFloat>	time_draw_2			= DynamicFloat();
+		RC<DynamicFloat>	time_draw			= time_draw_1.Add( time_draw_2 );
+		RC<DynamicFloat>	total_time			= time_draw.Add( time_cull );
+
 		uint				index_count;
 		const bool			has_minmax_sampler	= GetFeatureSet().hasSamplerFilterMinmax();
 		bool				low_detail			= true;
@@ -177,6 +188,16 @@
 		// render loop //
 		uint	mode_id = 0;
 
+		// clear timers
+		{
+			array<RC<DynamicFloat>>		arr = {
+				time_cull_1, time_cull_2, time_cull_3,
+				time_draw_1, time_draw_2
+			};
+			ResetUnusedTimers( arr );
+		}
+
+		// put spheres
 		{
 			RC<ComputePass>		pass = ComputePass( "", "PUT_OBJECTS" );
 			pass.ArgInOut(	"un_Objects",		obj_buf );
@@ -193,9 +214,10 @@
 		{
 			RC<SceneGraphicsPass>	pass = scene_direct_draw.AddGraphicsPass( "no depth" );
 			pass.AddPipeline( "perf/Culling/1-NoDepthTest.as" );	// [src](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/pipelines/perf/Culling/1-NoDepthTest.as)
-			pass.Output( "out_Color",	rt,		RGBA32f(1.0) );
+			pass.Output( "out_Color",	rt,		bg_color );
 			pass.Constant( "iLight",	light_dir );
 			pass.EnableIfEqual( mode, mode_id );
+			pass.MeasureTime( time_draw_1 );
 			pass.Repeat( repeat );
 		}
 
@@ -204,10 +226,11 @@
 		{
 			RC<SceneGraphicsPass>	pass = scene_direct_draw.AddGraphicsPass( "late ZS" );
 			pass.AddPipeline( "perf/Culling/1-DepthLateTest.as" );	// [src](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/pipelines/perf/Culling/1-DepthLateTest.as)
-			pass.Output( "out_Color",	rt,		RGBA32f(1.0) );
+			pass.Output( "out_Color",	rt,		bg_color );
 			pass.Output(				ds,		DepthStencil(1.0, 0) );
 			pass.Constant( "iLight",	light_dir );
 			pass.EnableIfEqual( mode, mode_id );
+			pass.MeasureTime( time_draw_1 );
 			pass.Repeat( repeat );
 		}
 
@@ -216,10 +239,11 @@
 		{
 			RC<SceneGraphicsPass>	pass = scene_direct_draw.AddGraphicsPass( "discard" );
 			pass.AddPipeline( "perf/Culling/1-EarlyZDiscard.as" );	// [src](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/pipelines/perf/Culling/1-EarlyZDiscard.as)
-			pass.Output( "out_Color",	rt,		RGBA32f(1.0) );
+			pass.Output( "out_Color",	rt,		bg_color );
 			pass.Output(				ds,		DepthStencil(1.0, 0) );
 			pass.Constant( "iLight",	light_dir );
 			pass.EnableIfEqual( mode, mode_id );
+			pass.MeasureTime( time_draw_1 );
 			pass.Repeat( repeat );
 		}
 
@@ -228,10 +252,11 @@
 		{
 			RC<SceneGraphicsPass>	pass = scene_direct_draw.AddGraphicsPass( "early ZS" );
 			pass.AddPipeline( "perf/Culling/1-DepthTest.as" );		// [src](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/pipelines/perf/Culling/1-DepthTest.as)
-			pass.Output( "out_Color",	rt,		RGBA32f(1.0) );
+			pass.Output( "out_Color",	rt,		bg_color );
 			pass.Output(				ds,		DepthStencil(1.0, 0) );
 			pass.Constant( "iLight",	light_dir );
 			pass.EnableIfEqual( mode, mode_id );
+			pass.MeasureTime( time_draw_1 );
 			pass.Repeat( repeat );
 		}
 
@@ -242,14 +267,16 @@
 			pass.AddPipeline( "perf/Culling/1-DepthPrePass.as" );	// [src](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/pipelines/perf/Culling/1-DepthPrePass.as)
 			pass.Output(				ds,		DepthStencil(1.0, 0) );
 			pass.EnableIfEqual( mode, mode_id );
+			pass.MeasureTime( time_cull_1 );
 			pass.Repeat( repeat );
 		}{
 			RC<SceneGraphicsPass>	pass = scene_direct_draw.AddGraphicsPass( "draw" );
 			pass.AddPipeline( "perf/Culling/1-DepthEqual.as" );		// [src](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/pipelines/perf/Culling/1-DepthEqual.as)
-			pass.Output( "out_Color",	rt,		RGBA32f(1.0) );
+			pass.Output( "out_Color",	rt,		bg_color );
 			pass.Output(				ds );
 			pass.Constant( "iLight",	light_dir );
 			pass.EnableIfEqual( mode, mode_id );
+			pass.MeasureTime( time_draw_1 );
 			pass.Repeat( repeat );
 		}
 
@@ -258,15 +285,16 @@
 		{
 			RC<SceneGraphicsPass>	pass = scene_direct_draw.AddGraphicsPass( "DPP subpass" );
 			pass.EnableIfEqual( mode, mode_id );
+			pass.MeasureTime( time_draw_1 );
 			pass.Repeat( repeat );
 			{
-				pass.AddPipeline( "perf/Culling/1-DepthPrePass-p0.as" );// [src](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/pipelines/perf/Culling/1-DepthPrePass-p0.as)
+				pass.AddPipeline( "perf/Culling/1-DepthPrePass-sp0.as" );// [src](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/pipelines/perf/Culling/1-DepthPrePass-sp0.as)
 				pass.Output(				ds,		DepthStencil(1.0, 0) );
 			}
 			pass.NextSubpass( "draw" );
 			{
-				pass.AddPipeline( "perf/Culling/1-DepthEqual-p1.as" );	// [src](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/pipelines/perf/Culling/1-DepthEqual-p1.as)
-				pass.Output( "out_Color",	rt,		RGBA32f(1.0) );
+				pass.AddPipeline( "perf/Culling/1-DepthEqual-sp1.as" );	// [src](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/pipelines/perf/Culling/1-DepthEqual-sp1.as)
+				pass.Output( "out_Color",	rt,		bg_color );
 				pass.Output(				ds );
 				pass.Constant( "iLight",	light_dir );
 			}
@@ -280,15 +308,17 @@
 			pass.Output( "out_VisBuf",	vis,	RGBA32u(~0) );
 			pass.Output(				ds,		DepthStencil(1.0, 0) );
 			pass.EnableIfEqual( mode, mode_id );
+			pass.MeasureTime( time_cull_1 );
 			pass.Repeat( repeat );
 		}{
 			RC<SceneGraphicsPass>	pass = scene_direct_draw.AddGraphicsPass( "VisBuf1-resolve" );
 			pass.AddPipeline( "perf/Culling/1-VisBuf1-resolve.as" );	// [src](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/pipelines/perf/Culling/1-VisBuf1-resolve.as)
-			pass.Output( "out_Color",	rt,		RGBA32f(1.0) );
+			pass.Output( "out_Color",	rt,		bg_color );
 			pass.ArgIn(  "un_VisBuf",	vis,	Sampler_NearestClamp );
 			pass.Constant( "iLight",	light_dir );
 			pass.Layer( ERenderLayer::PostProcess );
 			pass.EnableIfEqual( mode, mode_id );
+			pass.MeasureTime( time_draw_1 );
 			pass.Repeat( repeat );
 		}
 
@@ -297,16 +327,17 @@
 		{
 			RC<SceneGraphicsPass>	pass = scene_direct_draw.AddGraphicsPass( "VisBuf1" );
 			pass.EnableIfEqual( mode, mode_id );
+			pass.MeasureTime( time_draw_1 );
 			pass.Repeat( repeat );
 			{
-				pass.AddPipeline( "perf/Culling/1-VisBuf1-p0.as" );	// [src](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/pipelines/perf/Culling/1-VisBuf1-p0.as)
+				pass.AddPipeline( "perf/Culling/1-VisBuf1-sp0.as" );	// [src](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/pipelines/perf/Culling/1-VisBuf1-sp0.as)
 				pass.Output( "out_VisBuf",	vis,	RGBA32u(~0) );
 				pass.Output(				ds,		DepthStencil(1.0, 0) );
 			}
 			pass.NextSubpass( "resolve" );
 			{
-				pass.AddPipeline( "perf/Culling/1-VisBuf1-p1.as" );	// [src](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/pipelines/perf/Culling/1-VisBuf1-p1.as)
-				pass.Output( "out_Color",	rt,		RGBA32f(1.0) );
+				pass.AddPipeline( "perf/Culling/1-VisBuf1-sp1.as" );	// [src](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/pipelines/perf/Culling/1-VisBuf1-sp1.as)
+				pass.Output( "out_Color",	rt,		bg_color );
 				pass.Input(  "in_VisBuf",	vis,	"out_VisBuf" );
 				pass.Constant( "iLight",	light_dir );
 				pass.Layer( ERenderLayer::PostProcess );
@@ -321,7 +352,8 @@
 			pass.OutputLS(					ds,		EAttachmentLoadOp::Load,	EAttachmentStoreOp::None );
 			pass.ArgInOut( "un_VisFlags",	vis_flags );
 			pass.EnableIfEqual( mode, mode_id );
-			pass.Repeat( repeat );  // incorrect time on multiple passes
+			pass.MeasureTime( time_cull_1 );
+			//pass.Repeat( repeat );  // incorrect time on multiple passes
 		}{
 			RC<ComputePass>		pass = ComputePass( "", "CHECK_VIS_FLAGS" );
 			pass.ArgInOut(  "un_VisFlags",		vis_flags );		// read and set zero
@@ -330,15 +362,17 @@
 			pass.LocalSize( local_size );
 			pass.DispatchThreads( count3d );
 			pass.EnableIfEqual( mode, mode_id );
+			pass.MeasureTime( time_cull_2 );
 		}{
 			RC<SceneGraphicsPass>	pass = scene_indirect_draw.AddGraphicsPass( "draw" );
 			pass.AddPipeline( "perf/Culling/1-DepthTest.as" );		// [src](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/pipelines/perf/Culling/1-DepthTest.as)
-			pass.Output( "out_Color",	rt,		RGBA32f(1.0) );
+			pass.Output( "out_Color",	rt,		bg_color );
 			pass.Output(				ds,		DepthStencil(1.0, 0) );
 			pass.ArgIn(  "un_RemapIdx",	remap_idx );
 			pass.Constant( "iLight",	light_dir );
 			pass.Constant( "iRemapIdx",	1 );
 			pass.EnableIfEqual( mode, mode_id );
+			pass.MeasureTime( time_draw_1 );
 			pass.Repeat( repeat );
 		}
 
@@ -351,11 +385,12 @@
 			pass.ArgInOut(	"un_RemapIdx",		remap_idx );
 			pass.ArgIn(		"un_DepthPyramid",	pyramid,	(has_minmax_sampler ? Sampler_MaxLinearClamp : Sampler_NearestClamp) );
 			pass.Constant(	"iPyramidDim",		dim.ToFloat2() );
-			pass.Slider(	"iCullMode",		0,		2,		2 );	// 0 - none, 1 - frustum, 2 - HiZ, 3 - HiZ culled
+			pass.Slider(	"iCullMode",		0,		2,		2 );	// 0 - none, 1 - frustum, 2 - HiZ
 			pass.Set( camera );
 			pass.LocalSize( local_size );
 			pass.DispatchThreads( count3d );
 			pass.EnableIfGreater( mode, hiz_mode );
+			pass.MeasureTime( time_cull_1 );
 		}
 
 		// HiZ
@@ -363,12 +398,13 @@
 		{
 			RC<SceneGraphicsPass>	pass = scene_indirect_draw.AddGraphicsPass( "HiZ" );
 			pass.AddPipeline( "perf/Culling/1-DepthTest.as" );		// [src](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/pipelines/perf/Culling/1-DepthTest.as)
-			pass.Output( "out_Color",	rt,		RGBA32f(1.0) );
+			pass.Output( "out_Color",	rt,		bg_color );
 			pass.Output(				ds,		DepthStencil(1.0, 0) );
 			pass.ArgIn(  "un_RemapIdx",	remap_idx );
 			pass.Constant( "iLight",	light_dir );
 			pass.Constant( "iRemapIdx",	1 );
 			pass.EnableIfEqual( mode, mode_id );
+			pass.MeasureTime( time_draw_1 );
 			pass.Repeat( repeat );
 		}
 
@@ -381,16 +417,18 @@
 			pass.ArgIn(  "un_RemapIdx",	remap_idx );
 			pass.Constant( "iRemapIdx",	1 );
 			pass.EnableIfEqual( mode, mode_id );
+			pass.MeasureTime( time_draw_1 );
 			pass.Repeat( repeat );
 		}{
 			RC<SceneGraphicsPass>	pass = scene_indirect_draw.AddGraphicsPass( "HiZ" );
 			pass.AddPipeline( "perf/Culling/1-DepthEqual.as" );		// [src](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/pipelines/perf/Culling/1-DepthEqual.as)
-			pass.Output( "out_Color",	rt,		RGBA32f(1.0) );
+			pass.Output( "out_Color",	rt,		bg_color );
 			pass.Output(				ds );
 			pass.ArgIn(  "un_RemapIdx",	remap_idx );
 			pass.Constant( "iLight",	light_dir );
 			pass.Constant( "iRemapIdx",	1 );
 			pass.EnableIfEqual( mode, mode_id );
+			pass.MeasureTime( time_draw_2 );
 			pass.Repeat( repeat );
 		}
 
@@ -399,17 +437,18 @@
 		{
 			RC<SceneGraphicsPass>	pass = scene_indirect_draw.AddGraphicsPass( "HiZ + DPP subpass" );
 			pass.EnableIfEqual( mode, mode_id );
+			pass.MeasureTime( time_draw_1 );
 			pass.Repeat( repeat );
 			{
-				pass.AddPipeline( "perf/Culling/1-DepthPrePass-p0.as" );	// [src](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/pipelines/perf/Culling/1-DepthPrePass-p0.as)
+				pass.AddPipeline( "perf/Culling/1-DepthPrePass-sp0.as" );	// [src](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/pipelines/perf/Culling/1-DepthPrePass-sp0.as)
 				pass.Output(				ds,		DepthStencil(1.0, 0) );
 				pass.ArgIn(  "un_RemapIdx",	remap_idx );
 				pass.Constant( "iRemapIdx",	1 );
 			}
 			pass.NextSubpass( "HiZ draw" );
 			{
-				pass.AddPipeline( "perf/Culling/1-DepthEqual-p1.as" );		// [src](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/pipelines/perf/Culling/1-DepthEqual-p1.as)
-				pass.Output( "out_Color",	rt,		RGBA32f(1.0) );
+				pass.AddPipeline( "perf/Culling/1-DepthEqual-sp1.as" );		// [src](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/pipelines/perf/Culling/1-DepthEqual-sp1.as)
+				pass.Output( "out_Color",	rt,		bg_color );
 				pass.Output(				ds );
 				pass.ArgIn(  "un_RemapIdx",	remap_idx );
 				pass.Constant( "iLight",	light_dir );
@@ -424,10 +463,12 @@
 			RC<Postprocess>		pass = Postprocess( "", "MIPMAP_0" );	// non-POT to POT image
 			pass.Output( "out_Color",	pyramid );
 			pass.ArgIn(  "un_Depth",	ds,		Sampler_NearestClamp );
+			pass.MeasureTime( time_cull_2 );
 			pass.EnableIfGreater( mode, hiz_mode );
 		}{
 			RC<ComputeMip>		pass = ComputeMip( "", "GEN_MIPMAP;USE_REDUCTION="+has_minmax_sampler );
 			pass.Variable( "un_InImage",	"un_OutImage",	pyramid,	(has_minmax_sampler ? Sampler_MaxLinearClamp : Sampler_NearestClamp) );
+			pass.MeasureTime( time_cull_3 );
 			pass.EnableIfGreater( mode, hiz_mode );
 		}
 
@@ -447,11 +488,15 @@
 		string depth_fmt;
 		switch ( Supported_DepthFormat() )
 		{
-			case EPixelFormat::Depth16 :	depth_fmt = "Depth16";	break;
-			case EPixelFormat::Depth24 :	depth_fmt = "Depth24";	break;
-			case EPixelFormat::Depth32F :	depth_fmt = "Depth32F";	break;
+			case EPixelFormat::Depth16 :	depth_fmt = "D16";	break;
+			case EPixelFormat::Depth24 :	depth_fmt = "D24";	break;
+			case EPixelFormat::Depth32F :	depth_fmt = "D32F";	break;
 		}
-		Label( DynamicUInt(low_detail ? 0 : 1), depth_fmt + ", lod:"  );
+		Label( "depth fmt: " + depth_fmt + ", detail: " + (low_detail ? "low" : "high"), EnableLabel() );
+
+		Label( total_time.Mul( 1000.f ),	"Total (ms)" );
+		Label( time_cull.Mul( 1000.f ),		"Culling (ms)" );
+		Label( time_draw.Mul( 1000.f ),		"Draw (ms)" );
 
 		Present( rt );
 	}
@@ -466,7 +511,6 @@
 #	define GEN_MIPMAP
 #	define USE_REDUCTION	1
 #	define CHECK_VIS_FLAGS
-#	define CHECK_VIS_BITS
 #endif
 //-----------------------------------------------------------------------------
 #ifdef PUT_OBJECTS
@@ -527,7 +571,7 @@
 		  #else
 			// fix for Metal
 			un_IndirectCmd.cmd.indexCount		= iIndexCount;
-			un_IndirectCmd.cmd.instanceCount	= 1;
+			un_IndirectCmd.cmd.instanceCount	= 0;
 			un_IndirectCmd.cmd.firstIndex		= 0;
 			un_IndirectCmd.cmd.vertexOffset		= 0;
 			un_IndirectCmd.cmd.firstInstance	= 0;
@@ -556,7 +600,7 @@
 		const float			znear			= un_PerPass.camera.clipPlanes.x;
 
 		// frustum culling
-		if ( ! Frustum_IsVisible( un_PerPass.camera.frustum, obj.position - un_PerPass.camera.pos, sphere_radius ))
+		if ( ! Frustum_IsSphereVisible( un_PerPass.camera.frustum, obj.position - un_PerPass.camera.pos, sphere_radius ))
 			return false;
 
 		if ( iCullMode == 1 )
@@ -597,13 +641,13 @@
 
 	void  Main ()
 	{
-		const uint	idx		= GetGlobalIndex();
-		const uint	count	= GetGlobalIndexSize();
+		const uint	idx			= GetGlobalIndex();
+		const uint	count		= GetGlobalIndexSize();
+		const bool	is_visible	= IsVisible( idx );
 
 	#ifdef AE_shader_subgroup_ballot
 
-		bool	is_visible	= IsVisible( idx );
-		uint	dst_idx		= 0;
+		uint	dst_idx			= 0;
 		uint4	visible_mask	= gl.subgroup.Ballot( is_visible );
 		uint	visible_count	= gl.subgroup.BallotBitCount( visible_mask );
 
@@ -611,9 +655,9 @@
 		{
 			dst_idx = gl.AtomicAdd( INOUT un_IndirectCmd.cmd.instanceCount, visible_count );
 		}
-		gl.subgroup.ExecutionBarrier();	// reconvergence
+		gl.subgroup.Barrier();	// reconvergence
 
-		dst_idx = gl.subgroup.Broadcast( dst_idx, 0 );
+		dst_idx = gl.subgroup.Broadcast( dst_idx, 0 );		// read 'dst_idx' from 'gl.subgroup.Index = 0'
 		dst_idx += gl.subgroup.BallotExclusiveBitCount( visible_mask );
 
 		if ( is_visible )
@@ -621,7 +665,7 @@
 
 	#else
 
-		if ( IsVisible( idx ))
+		if ( is_visible )
 		{
 			uint	dst_idx = gl.AtomicAdd( INOUT un_IndirectCmd.cmd.instanceCount, 1 );
 
@@ -654,7 +698,7 @@
 		{
 			dst_idx = gl.AtomicAdd( INOUT un_IndirectCmd.cmd.instanceCount, visible_count );
 		}
-		gl.subgroup.ExecutionBarrier();	// reconvergence
+		gl.subgroup.Barrier();	// reconvergence
 
 		dst_idx = gl.subgroup.Broadcast( dst_idx, 0 );
 		dst_idx += gl.subgroup.BallotExclusiveBitCount( visible_mask );

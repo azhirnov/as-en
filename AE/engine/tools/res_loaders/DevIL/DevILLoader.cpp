@@ -188,15 +188,15 @@ namespace {
 
 		CHECK_ERR( ConvertDevILFormat( fmt, type, dxtc, OUT format, OUT is_compressed ));
 
-		const ILint		width			= Max( 1, devil.ilGetInteger(IL_IMAGE_WIDTH) );
-		const ILint		height			= Max( 1, devil.ilGetInteger(IL_IMAGE_HEIGHT) );
-		const ILint		depth			= Max( 1, devil.ilGetInteger(IL_IMAGE_DEPTH) );
-		const uint		bpp				= devil.ilGetInteger( IL_IMAGE_BITS_PER_PIXEL );
-		const Bytes		calc_data_size	= Bytes(width * height * depth * bpp) / 8;
+		const uint		width			= uint(Max( 1, devil.ilGetInteger(IL_IMAGE_WIDTH) ));
+		const uint		height			= uint(Max( 1, devil.ilGetInteger(IL_IMAGE_HEIGHT) ));
+		const uint		depth			= uint(Max( 1, devil.ilGetInteger(IL_IMAGE_DEPTH) ));
+		const uint		bpp				= Max( 1, devil.ilGetInteger( IL_IMAGE_BYTES_PER_PIXEL ));
+		const Bytes		calc_data_size	= Bytes{width} * height * depth * bpp;
 
-		imageLevel.dimension	= uint3{int3{ width, height, depth }};
-		imageLevel.rowPitch		= Bytes( width * bpp ) / 8;
-		imageLevel.slicePitch	= Bytes( width * height * bpp ) / 8;
+		imageLevel.dimension	= uint3{ width, height, depth };
+		imageLevel.rowPitch		= Bytes( width * bpp );
+		imageLevel.slicePitch	= Bytes( width * height * bpp );
 		imageLevel.format		= format;
 
 		if ( dxtc != IL_DXT_NO_COMP )

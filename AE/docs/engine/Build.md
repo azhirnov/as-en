@@ -4,8 +4,8 @@ Build instructions.
 
 ### Android (PC)
 
-When building from PC.<br/>
-Install [Android Studio](https://developer.android.com/studio) with NDK.
+When building from PC:
+* Install [Android Studio](https://developer.android.com/studio) with NDK.
 
 ### Android (device)
 
@@ -22,47 +22,35 @@ When building from Android device:
 
 ### Linux
 
-In terminal run:
-```
-sudo apt install build-essential pkg-config libx11-dev libxcursor-dev \
-    libxinerama-dev libgl1-mesa-dev libasound2-dev \
-    libxi-dev libxrandr-dev yasm liburing-dev libpng-dev libbz2-dev libwayland-dev \
-    libxkbcommon-dev libc++-dev libc++abi-dev \
-    mesa-vulkan-drivers libvulkan1 vulkan-validationlayers \
-	libpng-dev libzip-dev libbz2-dev
-```
+* In terminal run:
+	```
+	sudo apt install build-essential pkg-config libx11-dev libxcursor-dev \
+		libxinerama-dev libgl1-mesa-dev libasound2-dev \
+		libxi-dev libxrandr-dev yasm liburing-dev libpng-dev libbz2-dev libwayland-dev \
+		libxkbcommon-dev libc++-dev libc++abi-dev \
+		mesa-vulkan-drivers libvulkan1 vulkan-validationlayers \
+		libpng-dev libzip-dev libbz2-dev
+	```
 
-Optional: install clang
-```
-sudo apt install clang libc++-dev libc++abi-dev
-```
+* Optional: install clang
+	```
+	sudo apt install clang libc++-dev libc++abi-dev
+	```
 
-Install [CMake](https://cmake.org/download/).<br/>
-Install [VSCode](https://code.visualstudio.com/) with CMake and C++ plugins.
+* Install [CMake](https://cmake.org/download/).
+* Install [VSCode](https://code.visualstudio.com/) with CMake and C++ plugins.
 
 ### MacOS
 
-Install [CMake](https://cmake.org/download/).<br/>
-Install XCode.
+* Install [CMake](https://cmake.org/download/)
+* Install XCode.
 
 ### Windows
 
-Install [CMake](https://cmake.org/download/).<br/>
-Install [Visual Studio 2022](https://visualstudio.microsoft.com/downloads/).<br/>
-Alternative: install [VSCode](https://code.visualstudio.com/) with CMake and C++ plugins.<br/>
-Optional: install ClangCL in Visual Studio components.
-
-
-## Download third party dependencies
-
-Script `AE/build_scripts/utils-win/clone_3party.bat` or `AE/build_scripts/utils-unix/clone_3party.sh` will copy git repositories to local folder `AE/../3party`.
-
-You can replace path to your local git server to get stable and safe connection.
-
-**Alternative**<br/>
-Use `download-<platform>-<compiler>` scripts in `AE-Bin` folder to download and extract binaries.
-
-Then [Build engine and samples](#Build-engine-and-samples)
+* Install [CMake](https://cmake.org/download/).
+* Install [Visual Studio 2022](https://visualstudio.microsoft.com/downloads/).
+	* Alternative: install [VSCode](https://code.visualstudio.com/) with CMake and C++ plugins.
+* Optional: install ClangCL in Visual Studio components.
 
 
 ## Build third party dependencies
@@ -70,6 +58,10 @@ Then [Build engine and samples](#Build-engine-and-samples)
 Open folder `AE/engine/external` and run scripts for required platforms and compiler version.
 
 Libraries and headers will be installed to the `AE/../AE-Bin/external` folder.
+
+**Alternative**<br/>
+Use `download-<platform>-<compiler>` scripts in `AE-Bin` folder to download and extract binaries.<br/>
+Then [Build engine and samples](#Build-engine-and-samples)
 
 ### Android (PC)
 
@@ -140,7 +132,7 @@ Run `HeaderGen` (*VS: in 'Engine/ToolApps'*) to generate Vulkan and OpenXR loade
 ### Android (PC)
 
 Script `AE/build_scripts/build-*.bat` will build project from console.<br/>
-To use Android IDE open project in folder `AE/android` from IDE.
+To use Android IDE open project in folder `AE/android`.
 
 ### Android (device)
 
@@ -148,7 +140,7 @@ For example you have folder structure:
 ```
 /sdcard/Code
   AE      -- from git
-  AE-Bin  -- from git or downloaded, see 'Download third party dependencies'
+  AE-Bin  -- from git or downloaded, see 'Build third party dependencies'
   AE-Temp -- from git or downloaded, see 'Compile resources'
   build   -- empty
 ```
@@ -164,7 +156,7 @@ cmake --build . --config Debug
 
 ## Compile resources
 
-Projects which is require precompiled resources has cmake targets with `.PackRes` suffixes.<br/>
+Projects which requires precompiled resources has cmake targets with `.PackRes` suffixes.<br/>
 You should run it first to compile resources.
 
 From console: `cmake --build . --config <config> --target <project>.PackRes`.<br/>

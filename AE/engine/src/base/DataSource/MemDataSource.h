@@ -48,6 +48,7 @@ namespace AE::Base
 
 		Bytes		ReadBlock (Bytes pos, OUT void* buffer, Bytes size)			__NE_OF;
 
+		ReqAlign	OffsetAlign ()												C_NE_OV	{ return Default; }
 
 		ND_ ArrayView<ubyte>	GetData ()										C_NE___	{ return ArrayView<ubyte>{ Cast<ubyte>(_dataPtr), usize{_size} }; }
 
@@ -142,6 +143,8 @@ namespace AE::Base
 		Bytes		WriteBlock (Bytes pos, const void* buffer, Bytes size)		__NE_OF;
 		void		Flush ()													__NE_OF	{}
 
+		ReqAlign	OffsetAlign ()												C_NE_OV	{ return Default; }
+
 	protected:
 		explicit MemRefWDataSource (Bytes maxSize)								__NE___ : _maxSize{maxSize} {}
 
@@ -178,32 +181,6 @@ namespace AE::Base
 	private:
 		bool  _Resize (Bytes newSize)											__NE_OV;
 	};
-
-
-
-	//
-	// Shared Memory as Write-only Data Source
-	//
-	/*
-	class SharedMemWDataSource final : public MemRefWDataSource
-	{
-	// variables
-	private:
-		RC<SharedMem>	_data;
-
-	// methods
-	public:
-		SharedMemWDataSource ()													__NE___ {}
-		explicit SharedMemWDataSource (Bytes bufferSize)						__NE___;
-		explicit SharedMemWDataSource (RC<SharedMem> data)						__NE___;
-
-		void   Clear ()															__NE___;
-
-		ND_ RC<SharedMem>  ReleaseData ()										__NE___;
-
-	private:
-		bool  _Resize (Bytes newSize)											__NE_OV;
-	};*/
 
 
 } // AE::Base

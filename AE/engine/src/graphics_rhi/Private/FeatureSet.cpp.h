@@ -162,6 +162,8 @@ namespace AE::Base
 			case ECoopMatrixCfg::Afp16_Bfp16_Cfp32_Rfp32_M8_N8_K16 :		return "A: fp16, B: fp16, C: fp32, Res: fp32, MxNxK: 8x8x32";
 			case ECoopMatrixCfg::Au8_Bu8_Cu32_Ru32_M16_N16_K32 :			return "A: u8, B: u8, C: u32, Res: u32, MxNxK: 16x16x32";
 			case ECoopMatrixCfg::As8_Bs8_Cs32_Rs32_M16_N16_K32 :			return "A: s8, B: s8, C: s32, Res: s32, MxNxK: 16x16x32";
+			case ECoopMatrixCfg::Au8_Bu8_Cu32_Ru32_M16_N16_K16 :			return "A: u8, B: u8, C: u32, Res: u32, MxNxK: 16x16x16";
+			case ECoopMatrixCfg::As8_Bs8_Cs32_Rs32_M16_N16_K16 :			return "A: s8, B: s8, C: s32, Res: s32, MxNxK: 16x16x16";
 			case ECoopMatrixCfg::Au8_Bu8_Cu32_Ru32_M8_N8_K32 :				return "A: u8, B: u8, C: u32, Res: u32, MxNxK: 8x8x32";
 			case ECoopMatrixCfg::As8_Bs8_Cs32_Rs32_M8_N8_K32 :				return "A: s8, B: s8, C: s32, Res: s32, MxNxK: 8x8x32";
 			case ECoopMatrixCfg::_Count :									break;
@@ -1417,6 +1419,17 @@ namespace
 		if ( rs.rasterOrderAccess.stencil )
 			CHECK_ERR( rasterizationOrderStencilAttachmentAccess == True );
 
+		if ( rs.rasterization.conservativeRasterMode != Default )
+		{
+			switch_enum( rs.rasterization.conservativeRasterMode )
+			{
+				case EConservativeRasterizationMode::Overestimate :	CHECK_ERR( conservativeRasterization == True );  break;
+				case EConservativeRasterizationMode::Disabled :		break;
+				case EConservativeRasterizationMode::_Count :		break;
+			}
+			switch_end
+		}
+
 		return true;
 	}
 
@@ -1580,14 +1593,14 @@ namespace
 				case EImageOpt::StorageAtomic :				result &= CheckFormatUsage( storageImageAtomicFormats );	break;
 				case EImageOpt::ColorAttachmentBlend :		result &= CheckFormatUsage( attachmentBlendFormats );		break;
 				case EImageOpt::SampledLinear :				result &= CheckFormatUsage( linearSampledFormats );			break;
-				case EImageOpt::SampledMinMax :				break;	// TODO
+				case EImageOpt::SampledMinMax :				result &= CheckFormatUsage( minmaxFilterFormats );			break;
+				case EImageOpt::BlitSrc :					result &= CheckFormatUsage( linearSampledFormats );			break;
+				case EImageOpt::BlitDst :					result &= CheckFormatUsage( attachmentFormats );			break;
+				case EImageOpt::LossyRTCompression :		result &= CheckFormatUsage( lossyCompressedAttachmentFormats );			break;
 				case EImageOpt::VertexPplnStore :			result &= (fragmentStoresAndAtomics			== EFeature::RequireTrue);	break;
 				case EImageOpt::FragmentPplnStore :			result &= (vertexPipelineStoresAndAtomics	== EFeature::RequireTrue);	break;
 				case EImageOpt::Subsampled :				result &= (fragmentDensityMap				== EFeature::RequireTrue);	break;
-				case EImageOpt::LossyRTCompression :		break;	// TODO
-				case EImageOpt::BlitSrc :					break;
-				case EImageOpt::BlitDst :					break;
-				case EImageOpt::ExtendedUsage :				break;	// TODO
+				case EImageOpt::ExtendedUsage :				break;
 
 				case EImageOpt::_Last :
 				case EImageOpt::SparseResidencyAliased :
@@ -1750,7 +1763,7 @@ namespace
 		AE_FEATURE_SET_FIELDS_ALL( AE_FEATURE_SET_VISIT )
 		#undef AE_FEATURE_SET_VISIT
 
-		#define FS_CHECK_ALIGN( _name_, _align_ )	StaticAssert( alignof(_name_) == _align_, "" #_name_ );
+		#define FS_CHECK_ALIGN( _name_, _align_ )	StaticAssertMsg( alignof(_name_) == _align_, "" #_name_ );
 		#define FS_CHECK_ALIGN_1( _name_, ... )		FS_CHECK_ALIGN( _name_, 1 )
 		#define FS_CHECK_ALIGN_2( _name_, ... )		FS_CHECK_ALIGN( _name_, 2 )
 		#define FS_CHECK_ALIGN_4( _name_, ... )		FS_CHECK_ALIGN( _name_, 4 )
@@ -1842,19 +1855,25 @@ namespace
 =================================================
 */
 namespace {
-	ND_ static HashVal64  HashOfStr (const char* str, uint shift) { return HashVal64{ ulong(uint(CT_Hash( str, UMax, 0x7453 ))) << (shift & 32) }; }
+	ND_ static HashVal64  HashOfStr (const char* str, uint shift) { return HashVal64{ ulong(uint(CT_Hash( str, UMax, 0x7453 ))) << (shift & 31) }; }
 }
 	HashVal64  FeatureSet::GetHashOfFieldNames () __NE___
 	{
 		HashVal64	result;
-		uint		counter	= 0;
+		uint		offset	= 0;
 
 		#define AE_FEATURE_SET_VISIT( _type_, _name_, _bits_ )														\
-			result += (HashOfStr( AE_TOSTRING( _type_ ), counter ) + HashOfStr( AE_TOSTRING( _name_ ), counter ));	\
-			++counter;																								\
+			result += (HashOfStr( AE_TOSTRING( _type_ ), offset ) + HashOfStr( AE_TOSTRING( _name_ ), offset ));	\
+			offset += sizeof(_name_);
 
-		AE_FEATURE_SET_FIELDS_ALL( AE_FEATURE_SET_VISIT )
+		#define AE_FEATURE_SET_VISIT_BF( _type_, _name_, _bits_ )													\
+			result += (HashOfStr( AE_TOSTRING( _type_ ), offset ) + HashOfStr( AE_TOSTRING( _name_ ), offset ));	\
+			++offset;
+
+		AE_FEATURE_SET_FIELDS( AE_FEATURE_SET_VISIT_BF, AE_FEATURE_SET_VISIT, AE_FEATURE_SET_VISIT, AE_FEATURE_SET_VISIT, AE_FEATURE_SET_VISIT )
+
 		#undef AE_FEATURE_SET_VISIT
+		#undef AE_FEATURE_SET_VISIT_BF
 
 		return result;
 	}
@@ -1887,6 +1906,8 @@ namespace {
 		result += HashVal64{ uint(EGPUVendor::_Count) };
 		result += HashVal64{ uint(ESubgroupTypes::All) };
 		result += HashVal64{ uint(EShaderStages::All) };
+		result += HashVal64{ uint(ECoopMatrixCfg::_Count) };
+		result += HashVal64{ uint(ECoopVecCfg::_Count) };
 
 		result += HashVal64{ MaxSpirvVersion };
 		result += HashVal64{ MaxMetalVersion };
@@ -1941,7 +1962,7 @@ namespace {
 */
 	HashVal64  FeatureSet::GetHashOfFS_Precalculated () __NE___
 	{
-		return HashVal64{0x27fca4234eb1848bull};
+		return HashVal64{0x8960393fe035dfe9ull};
 	}
 
 

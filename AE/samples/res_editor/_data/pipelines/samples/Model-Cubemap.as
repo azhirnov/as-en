@@ -94,7 +94,10 @@
 		const int	face		= int(gl.InstanceIndex - idx * un_Nodes.instanceCount);
 
 		ModelNode	node		= un_Nodes.elements[idx];
-		float4		world_pos	= LocalPosToWorldSpace( node.transform * float4( in_Position, 1.0f ));
+		float4		world_pos	= node.transform * float4( in_Position, 1.0f );
+
+		if ( iUseCameraPos == 1 )
+			world_pos.xyz -= un_PerPass.camera.pos;
 
 		gl.Position		= un_CBuf.cubemapViewProj[face] * world_pos;
 		Out.worldPos	= world_pos.xyz;
@@ -142,7 +145,9 @@
 	  #ifdef TRANSLUCENT
 		out_Color = albedo;
 	  #else
-		out_Color = albedo * CalcLighting( In.worldPos, normal );
+		float3	cam_pos = iUseCameraPos == 1 ? un_PerPass.camera.pos : float3(0.0);
+
+		out_Color = albedo * CalcLighting( In.worldPos, normal, un_PerPass.camera.pos );
 	  #endif
 	}
 
@@ -166,7 +171,9 @@
 	  #ifdef TRANSLUCENT
 		out_Color = albedo;
 	  #else
-		out_Color = albedo * CalcLighting( In.worldPos, normal );
+		float3	cam_pos = iUseCameraPos == 1 ? un_PerPass.camera.pos : float3(0.0);
+
+		out_Color = albedo * CalcLighting( In.worldPos, normal, cam_pos );
 	  #endif
 	}
 

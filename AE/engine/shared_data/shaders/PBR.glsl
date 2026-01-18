@@ -8,10 +8,11 @@
 #endif
 
 #include "Math.glsl"
+#include "SafeMath.glsl"
 
-ND_ float  LinearAttenuation (const float dist, const float radius);
-ND_ float  QuadraticAttenuation (const float dist, const float radius);
+
 ND_ float  Attenuation (const float3 attenFactor, const float dist);
+ND_ float  SpotAttenuation (const float3 attenFactor, const float nDotL, const float dist, const float2 coneInnerOuterCutOff);
 //-----------------------------------------------------------------------------
 
 
@@ -52,26 +53,69 @@ ND_ float3  ApproxLightAbsorptionInVolume (const float3 sceneColor, const float3
 #include "../3party_shaders/PBR-1.glsl"
 #include "../3party_shaders/PBR-2.glsl"
 #include "../3party_shaders/LightModels.glsl"
+//-----------------------------------------------------------------------------
+
 
 /*
 =================================================
 	Attenuation
+----
+	'attenFactor'	- constant, linear, quadratic attenuation factors.
+	'dist'			- distance to light
+----
+	omni light:
+		* linear attenuation used to approximate absorption and scattering in participation medium.
+		* in space linear attenuation is not used, only quadratic attenuation.
+		* quadratic attenuation is true attenuation for omni light.
+	directional light:
+		* linear attenuation used to approximate absorption and scattering in participation medium.
+		* in space linear attenuation is not used.
+		* quadratic attenuation is not used.
 =================================================
 */
-float  LinearAttenuation (const float dist, const float radius)
-{
-	return Saturate( 1.0 - (dist / radius) );
-}
-
-float  QuadraticAttenuation (const float dist, const float radius)
-{
-	float	f = dist / radius;
-	return Saturate( 1.0 - f*f );
-}
-
 float  Attenuation (const float3 attenFactor, const float dist)
 {
-	return Max( 0.0, 1.0 / ( attenFactor.x + attenFactor.y * dist + attenFactor.z * dist * dist ));
+	return SafeDiv( 1.0, attenFactor.x + attenFactor.y * dist + attenFactor.z * dist * dist );
+}
+
+/*
+=================================================
+	SpotAttenuation
+----
+	*
+	| \
+	|\ \
+	| \ \
+	|  \ \
+	  |  '---- half of outer angle
+	half of inner angle
+
+	Inner cone has constant intensity.
+	Area between inner and outer cone has attenuation function.
+=================================================
+*/
+float  SpotAttenuation (const float3 attenFactor, const float cosTheta, const float dist, const float2 coneInnerOuterCutOff)
+{
+    float	atten   = Attenuation( attenFactor, dist );
+    float	spot	= Saturate( (cosTheta - coneInnerOuterCutOff.y) / (coneInnerOuterCutOff.x - coneInnerOuterCutOff.y) );
+    return	atten * spot;
+}
+
+/*
+=================================================
+	RectAreaLightSolidAngle
+----
+	return solid angle in steradians
+=================================================
+*/
+float  RectAreaLightSolidAngle (const float3 vecToLight, const float3 lightDir, const float area)
+{
+    float	dist2		= LengthSq( vecToLight );
+	float	inv_dist	= InvSqrt( dist2 );
+    float3	dir_to_l	= vecToLight * inv_dist;
+    float	nl			= Max( Dot( lightDir, dir_to_l ), 0.0 );
+    float	omega		= area * nl / dist2;
+    return	omega * GreaterF( nl, 0.0 );	// zero if nl <= 0.0
 }
 
 /*

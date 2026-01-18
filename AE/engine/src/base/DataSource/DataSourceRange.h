@@ -50,6 +50,8 @@ namespace AE::Base
 		Bytes		Size ()								C_NE_OV	{ return _size; }
 
 		Bytes		ReadBlock (Bytes, OUT void*, Bytes) __NE_OV;
+
+		ReqAlign	OffsetAlign ()						C_NE_OV	{ return _dataSource->OffsetAlign(); }
 	};
 
 
@@ -99,6 +101,8 @@ namespace AE::Base
 		Bytes		WriteBlock (Bytes, const void*, Bytes)	__NE_OV;
 
 		void		Flush ()								__NE_OV	{ ASSERT( IsOpen() );  return _dataSource->Flush(); }
+
+		ReqAlign	OffsetAlign ()							C_NE_OV	{ return _dataSource->OffsetAlign(); }
 	};
 //-----------------------------------------------------------------------------
 

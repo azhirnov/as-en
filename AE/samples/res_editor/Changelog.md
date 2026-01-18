@@ -1,5 +1,16 @@
+## 1.2026
+- Sample: Voxels (cubes, marching cubes, surface nets, dual contoruing)
+- Sample: interior mapping
+- Sample: classic/tiled deferred, clustered forward
+- Sample: light shafts
+- load buffer from CSV
+- debug shader by specified coord ('Set coord' checkbox)
+- debug vertex shader by vertexIndex & instanceIndex using 'Set coord'
+- debug mesh shader by global ID using 'Set coord'
+
+
 ## 11.2025
-- Sample: tiled deferred, clustered deferred
+- Sample: utils for tiled deferred & clustered forward
 - update frustum culling sample
 
 

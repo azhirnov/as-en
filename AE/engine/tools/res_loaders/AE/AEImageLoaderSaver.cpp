@@ -28,7 +28,10 @@ namespace {
 		AssetPacker::ImagePacker::Header	header;
 
 		if ( not ImagePacker_ReadHeader( stream, OUT header ))
+		{
+			AE_LOG_DBG( "Invalid image header" );
 			return false;
+		}
 
 		if ( not allocator )
 			allocator = AE::GetDefaultAllocator();

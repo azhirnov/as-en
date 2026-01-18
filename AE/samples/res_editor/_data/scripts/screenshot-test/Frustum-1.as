@@ -12,7 +12,7 @@
 	void ASmain ()
 	{
 		// initialize
-		RC<Image>		rt		= Image( EPixelFormat::RGBA16F, SurfaceSize() );
+		RC<Image>		rt		= Image( EPixelFormat::RGBA8_UNorm, SurfaceSize() );
 		RC<FPVCamera>	camera	= FPVCamera();
 
 		// setup camera

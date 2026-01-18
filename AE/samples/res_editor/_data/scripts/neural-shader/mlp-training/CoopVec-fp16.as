@@ -12,7 +12,7 @@
 
 		// initialize
 		RC<Image>		rt			= Image( EPixelFormat::RGBA16F, SurfaceSize() );
-		RC<Buffer>		mlp_buf		= Buffer( "export/mlp-4x16-fp16-0.bin" );
+		RC<Buffer>		mlp_buf		= Buffer( "res/mlp/mlp-4x16-fp16-0.bin" );
 		RC<Buffer>		cbuf		= Buffer();
 		ulong			addr		= mlp_buf.DeviceAddress();
 

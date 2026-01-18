@@ -47,8 +47,8 @@ namespace
 
 		template <typename T>	static int  IntLog2 (T x)					{ return Base::IntLog2( x ); }
 		template <typename T>	static int  CeilIntLog2 (T x)				{ return Base::CeilIntLog2( x ); }
-		template <typename T>	static int  BitScanReverse (T x)			{ return Base::BitScanReverse( x ); }
-		template <typename T>	static int  BitScanForward (T x)			{ return Base::BitScanForward( x ); }
+		template <typename T>	static int  HighBitIndex (T x)				{ return Base::HighBitIndex( x ); }
+		template <typename T>	static int  LowBitIndex (T x)				{ return Base::LowBitIndex( x ); }
 		template <typename T>	static uint  BitCount (T x)					{ using U = ToUnsignedInteger<T>; return uint(Base::BitCount( U(x) )); }
 		template <typename T>	static bool  IsPowerOfTwo (T x)				{ return Base::IsPowerOfTwo( x ); }
 		template <typename T>	static bool  IsSingleBitSet (T x)			{ return Base::IsSingleBitSet( x ); }
@@ -125,8 +125,8 @@ namespace
 	{
 		AS_GLOBAL_FN( se, ScalarFunc::IntLog2<T>,			"IntLog2",			{"x"} );
 		AS_GLOBAL_FN( se, ScalarFunc::CeilIntLog2<T>,		"CeilIntLog2",		{"x"} );
-		AS_GLOBAL_FN( se, ScalarFunc::BitScanReverse<T>,	"BitScanReverse",	{"x"} );
-		AS_GLOBAL_FN( se, ScalarFunc::BitScanForward<T>,	"BitScanForward",	{"x"} );
+		AS_GLOBAL_FN( se, ScalarFunc::HighBitIndex<T>,		"HighBitIndex",		{"x"} );
+		AS_GLOBAL_FN( se, ScalarFunc::LowBitIndex<T>,		"LowBitIndex",		{"x"} );
 		AS_GLOBAL_FN( se, ScalarFunc::BitCount<T>,			"BitCount",			{"x"} );
 		AS_GLOBAL_FN( se, ScalarFunc::IsPowerOfTwo<T>,		"IsPowerOfTwo",		{"x"} );
 		AS_GLOBAL_FN( se, ScalarFunc::IsSingleBitSet<T>,	"IsSingleBitSet",	{"x"} );

@@ -41,13 +41,31 @@
 
 		// specialization
 		{
-			RC<GraphicsPipelineSpec>	spec = ppln.AddSpecialization( "spec" );
+			RC<GraphicsPipelineSpec>	spec = ppln.AddSpecialization( "LEqual" );
 			spec.AddToRenderTech( "rtech", "main" );  // in ScriptSceneGraphicsPass
 
 			RenderState	rs;
 
 			rs.depth.test					= true;
 			rs.depth.write					= true;
+			rs.depth.compareOp				= ECompareOp::LEqual;
+
+			rs.inputAssembly.topology		= EPrimitive::LineList;
+
+			rs.rasterization.lineWidth		= 4;
+			rs.rasterization.frontFaceCCW	= true;
+			rs.rasterization.cullMode		= ECullMode::Back;
+
+			spec.SetRenderState( rs );
+		}{
+			RC<GraphicsPipelineSpec>	spec = ppln.AddSpecialization( "GEqual" );
+			spec.AddToRenderTech( "rtech", "main" );  // in ScriptSceneGraphicsPass
+
+			RenderState	rs;
+
+			rs.depth.test					= true;
+			rs.depth.write					= true;
+			rs.depth.compareOp				= ECompareOp::GEqual;
 
 			rs.inputAssembly.topology		= EPrimitive::LineList;
 
@@ -79,7 +97,7 @@
 
 		if ( is_visible )
 			color = float4(0.0, 1.0, 0.0, 1.0);	// green - visible
-		
+
 		if ( iRndColor == 1 and is_visible )
 		{
 			color.rgb = DHash33( line_pos );

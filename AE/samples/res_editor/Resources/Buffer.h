@@ -94,9 +94,8 @@ namespace AE::ResEditor
 	// methods
 	private:
 		Buffer (Renderer&	renderer,
-			    StringView	dbgName);
+			    StringView	dbgName)								__NE___;
 
-	public:
 		Buffer (IDs_t				ids,
 				const BufferDesc &	desc,
 				Bytes				staticSize,
@@ -108,9 +107,28 @@ namespace AE::ResEditor
 				RC<DynamicUInt>		outDynCount,
 				StringView			dbgName,
 				EBufferFlags		flags,
-				Array<RC<Buffer>>	refBuffers)						__Th___;
+				Array<RC<Buffer>>	refBuffers)						__NE___;
 
+		void  _Init ()												__Th___;
+
+	public:
 		~Buffer ()													__NE_OV;
+
+		ND_ static RC<Buffer>	Create (Renderer&	renderer,
+										StringView	dbgName)		__Th___;
+
+		ND_ static RC<Buffer>	Create (IDs_t				ids,
+										const BufferDesc &	desc,
+										Bytes				staticSize,
+										Bytes				elemSize,
+										LoadOp				loadOp,
+										ShaderStructName	typeName,
+										Renderer &			renderer,
+										RC<DynamicUInt>		inDynCount,
+										RC<DynamicUInt>		outDynCount,
+										StringView			dbgName,
+										EBufferFlags		flags,
+										Array<RC<Buffer>>	refBuffers)	__Th___;
 
 		ND_ BufferID				GetBufferId (uint fid)			const	{ return _ids[ fid ].Get(); }
 		ND_ BufferID				GetBufferId (FrameUID fid)		const	{ return _ids[ fid.Index() ].Get(); }
@@ -145,6 +163,9 @@ namespace AE::ResEditor
 											   Bytes		 offset,
 											   Bytes		 size,
 											   StringView    dbgName) __Th___;
+
+	private:
+		void  _SetUploadStatus (EUploadStatus newStatus)			__NE___;
 	};
 
 

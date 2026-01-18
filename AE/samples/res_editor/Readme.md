@@ -35,7 +35,7 @@ Content:
 * Supports async streaming (async file and partially uploading in single graphics queue, async transfer queue is not used).
 * Video encoder and decoder (using ffmpeg).
 * Screenshot capture (dds, png, jpeg and other).
-* Supports [HDR display](https://github.com/azhirnov/as-en/blob/dev/AE/docs/papers/HDR_Display.md).
+* Supports [HDR display](https://github.com/azhirnov/AsEn-ShaderEditor/blob/main/papers/HDR_Display-en.md).
 * Resource export:
 	- Image export to engine internal format.
 	- Buffer export to binary or text format which reflect buffer structure in shader.

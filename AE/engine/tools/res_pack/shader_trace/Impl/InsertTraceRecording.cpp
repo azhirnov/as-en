@@ -131,11 +131,16 @@ ND_ static bool  InsertGlobalVariablesAndBuffers (TIntermAggregate* linkerObjs, 
 	switch_enum( dbgInfo.GetShaderType() )
 	{
 		case EShLangVertex :
+		{
+			auto*	op = CreateVertexShaderIsDebugInvocation( dbgInfo );
+			CHECK_ERR( op != null );
+			init_enable_recording->setRight( op );
+			break;
+		}
+
 		case EShLangTessControl :
 		case EShLangTessEvaluation :
 		case EShLangGeometry :
-		case EShLangTask :
-		case EShLangMesh :
 		{
 			type.qualifier.storage	= TStorageQualifier::EvqConst;
 			TConstUnionArray		false_value(1);	false_value[0].setBConst( false );
@@ -154,6 +159,8 @@ ND_ static bool  InsertGlobalVariablesAndBuffers (TIntermAggregate* linkerObjs, 
 		}
 
 		case EShLangCompute :
+		case EShLangTask :
+		case EShLangMesh :
 		{
 			auto*	op = CreateComputeShaderIsDebugInvocation( dbgInfo );
 			CHECK_ERR( op != null );
@@ -612,7 +619,7 @@ ND_ static bool  RecursiveProcessAggregateNode (TIntermAggregate* aggr, DebugInf
 				 qual == TStorageQualifier::EvqIn			 or
 				 qual == TStorageQualifier::EvqInOut )
 			{
-				if ( auto* fncall = CreateAppendToTrace( symb, dbgInfo.GetSourceLocation( symb, loc ), dbgInfo ))
+				if ( auto*  fncall = CreateAppendToTrace( symb, dbgInfo.GetSourceLocation( symb, loc ), dbgInfo ))
 					begin_iter = body->getSequence().insert( begin_iter, fncall );
 			}
 		}

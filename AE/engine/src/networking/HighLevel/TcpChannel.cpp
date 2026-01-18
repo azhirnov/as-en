@@ -667,7 +667,7 @@ namespace {
 			if_likely( not client.Accept( _socket, OUT addr ))
 				break;
 
-			const int	idx = BitScanForward( ~_poolBits.to_ullong() );
+			const int	idx = LowBitIndex( ~_poolBits.to_ullong() );
 
 			if_unlikely( idx < 0 or idx >= int(_maxClients) )
 				break;	// client pool overflow

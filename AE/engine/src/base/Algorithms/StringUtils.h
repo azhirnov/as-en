@@ -658,6 +658,9 @@ namespace _hidden_ {
 	inline uint  FindAndReplace (INOUT MutableArrayView<CharUtf8> str, const CharUtf8 oldSymb, const CharUtf8 newSymb)	__NE___	{ return Base::_hidden_::FindAndReplaceCharImpl( INOUT str, oldSymb, newSymb ); }
 	inline uint  FindAndReplace (INOUT U8String &str, const CharUtf8 oldSymb, const CharUtf8 newSymb)					__NE___	{ return Base::_hidden_::FindAndReplaceCharImpl( INOUT str, oldSymb, newSymb ); }
 	inline uint  FindAndReplace (INOUT U8String &str, U8StringView oldStr, U8StringView newStr)							__Th___	{ return Base::_hidden_::FindAndReplaceStringImpl( INOUT str, oldStr, newStr ); }
+//-----------------------------------------------------------------------------
+
+
 
 /*
 =================================================
@@ -665,6 +668,7 @@ namespace _hidden_ {
 ----
 	Converts wide string to ansi string (7bit), unsupported symbols replaced by 'defaultChar'.
 	Returns 'true' if 'src' is already ansi string and 'false' otherwise.
+	deprecated, use 'ConvertString()'
 =================================================
 */
 	template <typename T>
@@ -686,8 +690,10 @@ namespace _hidden_ {
 /*
 =================================================
 	Utf8ToAnsi
+----
 	Converts utf8 string to ansi string (7bit), unsupported symbols replaced by 'defaultChar'.
 	Returns 'true' if 'src' is already ansi string and 'false' otherwise.
+	deprecated, use 'ConvertString()'
 =================================================
 */
 #ifdef AE_ENABLE_UTF8PROC
@@ -713,6 +719,8 @@ namespace _hidden_ {
 /*
 =================================================
 	Utf32ToUtf8
+----
+	deprecated, use 'ConvertString()'
 =================================================
 */
 #ifdef AE_ENABLE_UTF8PROC
@@ -742,6 +750,7 @@ namespace _hidden_ {
 	ToAnsiString
 ----
 	See 'WCharToAnsi' and 'Utf8ToAnsi'.
+	deprecated, use 'ConvertString()'
 =================================================
 */
 	template <typename R, typename T>
@@ -824,6 +833,317 @@ namespace _hidden_ {
 	NdCx__ bool  StringLessThan (const StringType& lhs, const StringType& rhs) __NE___
 	{
 		return std::lexicographical_compare( lhs.begin(), lhs.end(), rhs.begin(), rhs.end() );
+	}
+
+/*
+=================================================
+	ConvertString (WString)
+=================================================
+*/
+#ifdef AE_PLATFORM_WINDOWS
+	template <typename T>
+	Nd__In bool  ConvertString (OUT WString &dst, BasicStringView<T> src) __NE___
+	{
+		//StaticAssert( not IsSame< T, wchar_t >);
+		//StaticAssert( not IsSame< T, CharUtf16 >);
+		StaticAssert( sizeof(wchar_t) == sizeof(CharUtf16) );
+
+		if constexpr( IsSame< T, CharAnsi >	or
+					  IsSame< T, wchar_t >	or
+					  IsSame< T, CharUtf16 >)
+		{
+			NOTHROW_ERR( dst.assign( src.begin(), src.end() ));
+			return true;
+		}
+
+		if constexpr( IsSame< T, CharUtf8 >)
+		{
+			NOTHROW_ERR( dst.resize( src.size() ));
+
+			usize j = 0;
+			for (usize i = 0; i < src.size();)
+			{
+				if_unlikely( j+2 >= dst.size() )
+				{
+					NOTHROW_ERR( dst.resize( dst.size() + 128 ));
+				}
+
+				auto [c32, w] = Base::_hidden_::Utf8Decode_v2( src.data() + i, src.size()-i );
+				ASSERT( w > 0 and w <= 4 );
+				i += Max( w, 1u );
+
+				uint	cnt = Utf16Encode( c32, 2, OUT Cast<CharUtf16>(dst.data() + j) );
+				ASSERT( cnt > 0 );
+				j += cnt;
+			}
+			dst.resize( j );
+			return true;
+		}
+
+		if constexpr( IsSame< T, CharUtf32 >)
+		{
+			NOTHROW_ERR( dst.resize( src.size() ));
+
+			usize j = 0;
+			for (CharUtf32 c : src)
+			{
+				if_unlikely( j+2 >= dst.size() )
+				{
+					NOTHROW_ERR( dst.resize( dst.size() + 128 ));
+				}
+
+				uint	cnt = Utf16Encode( c, 2, OUT Cast<CharUtf16>(dst.data() + j) );
+				ASSERT( cnt > 0 );
+				j += cnt;
+			}
+
+			dst.resize( j );
+			return true;
+		}
+	}
+#endif
+
+/*
+=================================================
+	ConvertString (U16String)
+=================================================
+*/
+	template <typename T>
+	Nd__In bool  ConvertString (OUT U16String &dst, BasicStringView<T> src) __NE___
+	{
+	  #ifdef AE_PLATFORM_WINDOWS
+		//StaticAssert( not IsSame< T, wchar_t >);
+	  #endif
+		//StaticAssert( not IsSame< T, CharUtf16 >);
+
+		if constexpr( IsSame< T, CharAnsi >	or
+					  IsSame< T, CharUtf16 >
+					#ifdef AE_PLATFORM_WINDOWS
+					  or IsSame< T, wchar_t >
+					#endif
+					)
+		{
+			NOTHROW_ERR( dst.assign( src.begin(), src.end() ));
+			return true;
+		}
+
+		if constexpr( IsSame< T, CharUtf8 >)
+		{
+			NOTHROW_ERR( dst.resize( src.size() ));
+
+			usize j = 0;
+			for (usize i = 0; i < src.size();)
+			{
+				if_unlikely( j+2 >= dst.size() )
+				{
+					NOTHROW_ERR( dst.resize( dst.size() + 128 ));
+				}
+
+				auto [c32, w] = Base::_hidden_::Utf8Decode_v2( src.data() + i, src.size()-i );
+				ASSERT( w > 0 and w <= 4 );
+				i += Max( w, 1u );
+
+				uint	cnt = Utf16Encode( c32, 2, OUT dst.data() + j );
+				ASSERT( cnt > 0 );
+				j += cnt;
+			}
+			dst.resize( j );
+			return true;
+		}
+
+		if constexpr( IsSame< T, CharUtf32 >)
+		{
+			NOTHROW_ERR( dst.resize( src.size() ));
+
+			usize j = 0;
+			for (CharUtf32 c : src)
+			{
+				if_unlikely( j+2 >= dst.size() )
+				{
+					NOTHROW_ERR( dst.resize( dst.size() + 128 ));
+				}
+
+				uint	cnt = Utf16Encode( c, 2, OUT Cast<CharUtf16>(dst.data() + j) );
+				ASSERT( cnt > 0 );
+				j += cnt;
+			}
+
+			dst.resize( j );
+			return true;
+		}
+	}
+
+/*
+=================================================
+	ConvertString (U8String)
+=================================================
+*/
+	template <typename T>
+	Nd__In bool  ConvertString (OUT U8String &dst, BasicStringView<T> src) __NE___
+	{
+		//StaticAssert( not IsSame< T, CharAnsi >);
+		//StaticAssert( not IsSame< T, CharUtf8 >);
+
+		if constexpr( IsSame< T, CharAnsi >	or
+					  IsSame< T, CharUtf8 >)
+		{
+			NOTHROW_ERR( dst.assign( src.begin(), src.end() ));
+			return true;
+		}
+
+		if constexpr( IsSame< T, CharUtf16 >
+					#ifdef AE_PLATFORM_WINDOWS
+					  or IsSame< T, wchar_t >
+					#endif
+					)
+		{
+			NOTHROW_ERR( dst.resize( src.size()*2 ));
+
+			usize j = 0;
+			for (usize i = 0; i < src.size();)
+			{
+				if_unlikely( j+4 >= dst.size() )
+				{
+					NOTHROW_ERR( dst.resize( dst.size() + 128 ));
+				}
+
+				auto [c32, w] = Utf16Decode( Cast<CharUtf16>(src.data() + i), src.size()-i );
+				ASSERT( w > 0 and w <= 2 );
+				i += Max( w, 1u );
+
+				uint	cnt = Base::_hidden_::Utf8Encode_v2( c32, 4, OUT dst.data() + j );
+				ASSERT( cnt > 0 );
+				j += cnt;
+			}
+			dst.resize( j );
+			return true;
+		}
+
+		if constexpr( IsSame< T, CharUtf32 >)
+		{
+			NOTHROW_ERR( dst.resize( src.size()*3 ));
+
+			usize j = 0;
+			for (CharUtf32 c : src)
+			{
+				if_unlikely( j+4 >= dst.size() )
+				{
+					NOTHROW_ERR( dst.resize( dst.size() + 128 ));
+				}
+
+				uint	cnt = Base::_hidden_::Utf8Encode_v2( c, 4, OUT dst.data() + j );
+				ASSERT( cnt > 0 );
+				j += cnt;
+			}
+			dst.resize( j );
+			return true;
+		}
+	}
+
+/*
+=================================================
+	ConvertString (U32String)
+=================================================
+*/
+	template <typename T>
+	Nd__In bool  ConvertString (OUT U32String &dst, BasicStringView<T> src) __NE___
+	{
+		//StaticAssert( not IsSame< T, CharUtf32 >);
+
+		if constexpr( IsSame< T, CharUtf32 > or
+					  IsSame< T, CharAnsi >)
+		{
+			NOTHROW_ERR( dst.assign( src.begin(), src.end() ));
+			return true;
+		}
+
+		if constexpr( IsSame< T, CharUtf16 >
+					#ifdef AE_PLATFORM_WINDOWS
+					  or IsSame< T, wchar_t >
+					#endif
+					)
+		{
+			NOTHROW_ERR( dst.resize( src.size() ));
+
+			usize j = 0;
+			for (usize i = 0; i < src.size(); ++j)
+			{
+				auto [c, w] = Utf16Decode( src.data() + i, src.size() - i );
+				ASSERT( w > 0 and w <= 2 );
+
+				i += w;
+				dst[j] = c;
+			}
+			dst.resize( j );
+			return true;
+		}
+
+		if constexpr( IsSame< T, CharUtf8 >)
+		{
+			NOTHROW_ERR( dst.resize( src.size() ));
+
+			usize j = 0;
+			for (usize i = 0; i < src.size(); ++j)
+			{
+				auto [c, w] = Base::_hidden_::Utf8Decode_v2( src.data() + i, src.size() - i );
+				ASSERT( w > 0 and w <= 4 );
+
+				i += w;
+				dst[j] = c;
+			}
+			dst.resize( j );
+			return true;
+		}
+	}
+
+/*
+=================================================
+	ConvertString (AnsiString)
+=================================================
+*/
+	template <typename T>
+	Nd__In bool  ConvertString (OUT String &dst, BasicStringView<T> src, const CharAnsi defaultChar = '?') __NE___
+	{
+		StaticAssert( not IsSame< T, CharAnsi >);
+
+		if constexpr( IsSame< T, CharAnsi >)
+		{
+			NOTHROW_ERR( dst.assign( src.begin(), src.end() ));
+			return true;
+		}
+
+		if constexpr( IsSame< T, CharUtf8 >)
+		{
+			NOTHROW_ERR( dst.resize( src.size() ));
+
+			usize j = 0;
+			for (usize i = 0; i < src.size(); ++j)
+			{
+				auto [c, w] = Base::_hidden_::Utf8Decode_v2( src.data() + i, src.size() - i );
+				ASSERT( w > 0 and w <= 4 );
+
+				i += w;
+				dst[j] = c < 0x7F ? CharAnsi(c) : defaultChar;
+			}
+			dst.resize( j );
+			return true;
+		}
+
+		if constexpr( IsSame< T, CharUtf16 >)
+		{
+			NOTHROW_ERR( dst.resize( src.size() ));
+
+			usize j = 0;
+			for (usize i = 0; i < src.size(); ++j)
+			{
+				auto [c, w] = Utf16Decode( src.data() + i, src.size() - i );
+
+				i += w;
+				dst[j] = c < 0x7F ? CharAnsi(c) : defaultChar;
+			}
+			dst.resize( j );
+			return true;
+		}
 	}
 //-----------------------------------------------------------------------------
 

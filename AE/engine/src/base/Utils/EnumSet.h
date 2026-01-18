@@ -537,11 +537,11 @@ namespace AE::Base
 		for (uint i = 0; i < _ArraySize - 1; ++i)
 		{
 			if ( _bits[i] != 0 )
-				return E( BitScanForward( _bits[i] ) + i * _ElemSize );
+				return E( LowBitIndex( _bits[i] ) + i * _ElemSize );
 		}
 
 		if_likely( Elem_t bits = (_bits.back() & _LastElemMask);  bits != 0 )
-			return E( BitScanForward( bits ) + (_ArraySize - 1) * _ElemSize );
+			return E( LowBitIndex( bits ) + (_ArraySize - 1) * _ElemSize );
 
 		return E::_Count;
 	}
@@ -557,12 +557,12 @@ namespace AE::Base
 	__Cx__ E  EnumSet<E>::Last () C_NE___
 	{
 		if_likely( Elem_t bits = (_bits.back() & _LastElemMask);  bits != 0 )
-			return E( BitScanReverse( bits ) + (_ArraySize - 1) * _ElemSize );
+			return E( HighBitIndex( bits ) + (_ArraySize - 1) * _ElemSize );
 
 		for (int i = _ArraySize - 1; i >= 0; --i)
 		{
 			if ( _bits[i] != 0 )
-				return E( BitScanReverse( _bits[i] ) + i * _ElemSize );
+				return E( HighBitIndex( _bits[i] ) + i * _ElemSize );
 		}
 
 		return E::_Count;
@@ -581,7 +581,7 @@ namespace AE::Base
 		if constexpr( _ArraySize == 1 )
 		{
 			const Elem_t	bits = (_bits[0] & _LastElemMask) & ~ToBitMask<Elem_t>( uint(value) + 1 );
-			return bits != 0 ? E(BitScanForward( bits )) : E::_Count;
+			return bits != 0 ? E(LowBitIndex( bits )) : E::_Count;
 		}
 		else
 		{
@@ -592,12 +592,12 @@ namespace AE::Base
 			{
 				const Elem_t	bits = _bits[i] & (i == first ? mask : ~Elem_t{0});
 				if ( bits != 0 )
-					return E( BitScanForward( bits ) + i * _ElemSize );
+					return E( LowBitIndex( bits ) + i * _ElemSize );
 			}
 
 			const Elem_t	last_bits = (_bits.back() & _LastElemMask) & (first == _ArraySize-1 ? mask : ~Elem_t{0});
 			if_likely( last_bits != 0 )
-				return E( BitScanForward( last_bits ) + (_ArraySize - 1) * _ElemSize );
+				return E( LowBitIndex( last_bits ) + (_ArraySize - 1) * _ElemSize );
 
 			return E::_Count;
 		}

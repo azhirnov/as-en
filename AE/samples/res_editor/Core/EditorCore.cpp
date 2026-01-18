@@ -77,6 +77,10 @@ namespace
 			for (usize i = 0, cnt = Min( cfg.graphics.driverList.size(), s_REConfig.driverList.size() ); i < cnt; ++i) {
 				cfg.graphics.driverList[i] = s_REConfig.driverList[i];
 			}
+
+			// custom size for staging
+		//	cfg.graphics.staging.maxWriteDynamicSize = 256_MiB;
+			cfg.graphics.staging.maxReadDynamicSize	 = 128_MiB;
 		}
 
 		// window

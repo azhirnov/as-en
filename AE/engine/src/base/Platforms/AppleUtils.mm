@@ -126,7 +126,7 @@ namespace
 	ClipboardExtract
 =================================================
 */
-	bool  AppleUtils::ClipboardExtract (OUT String &result) __NE___
+	bool  AppleUtils::ClipboardExtract (OUT U8String &result) __NE___
 	{
 		// TODO
 		return false;
@@ -137,7 +137,7 @@ namespace
 	ClipboardPut
 =================================================
 */
-	bool  AppleUtils::ClipboardPut (StringView str) __NE___
+	bool  AppleUtils::ClipboardPut (U8StringView str) __NE___
 	{
 		// TODO
 		return false;

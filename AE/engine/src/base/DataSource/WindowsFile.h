@@ -20,9 +20,10 @@ namespace AE::Base
 	public:
 		enum class EMode : uint
 		{
-			RandomAccess	= 1 << 0,	// access is intended to be random
-			SequentialScan	= 1 << 1,	// access is intended to be sequential from beginning to end
-			Win_NoBuffering	= 1 << 2,	// file or device is being opened with no system caching for data reads and writes
+			RandomAccess	= 1 << 0,	// access is intended to be random.
+			SequentialScan	= 1 << 1,	// access is intended to be sequential from beginning to end.
+			Win_NoBuffering	= 1 << 2,	// file or device is being opened with no system caching for data reads and writes,
+										// read/write size must be multiple of 'OffsetAlign()'.
 			Direct			= Win_NoBuffering,
 
 			Unknown			= 0,
@@ -39,13 +40,17 @@ namespace AE::Base
 	private:
 		Handle_t		_file;
 		const Bytes		_fileSize;
+		const ReqAlign	_align;
 
-		DEBUG_ONLY( const Path  _filename;)
+		DEBUG_ONLY(
+			const Path  _dbgFilename;
+			const EMode	_dbgMode;
+		)
 
 
 	// methods
 	private:
-		WinFileRStream (const Handle_t &file DEBUG_ONLY(, Path filename))				__NE___;
+		WinFileRStream (const Handle_t &file, EMode mode DEBUG_ONLY(, Path filename))	__NE___;
 
 	public:
 		explicit WinFileRStream (const char* filename, EMode mode = c_DefaultMode)		__NE___;
@@ -71,6 +76,8 @@ namespace AE::Base
 
 		Bytes		ReadSeq (OUT void*, Bytes)											__NE_OV;
 
+		ReqAlign	OffsetAlign ()														C_NE_OV	{ return _align; }
+
 	private:
 		ND_ Bytes  _Position ()															C_NE___;
 	};
@@ -86,15 +93,16 @@ namespace AE::Base
 	public:
 		enum class EMode : uint
 		{
-			Win_NoBuffering	= 1 << 0,	// file or device is being opened with no system caching for data reads and writes
+			Win_NoBuffering	= 1 << 0,	// file or device is being opened with no system caching for data reads and writes,
+										// read/write size must be multiple of 'OffsetAlign()'.
 			Win_NoCaching	= 1 << 1,	// write operations will not go through any intermediate cache, they will go directly to disk.
 			Direct			= Win_NoBuffering | Win_NoCaching,
 
-			OpenRewrite		= 0,		// create new or discard previous file	// default
-			OpenUpdate		= 1 << 3,	// keep previous content and update some parts in the file
-			OpenAppend		= 1 << 4,	// write operations will not overwrite existing data
+			OpenRewrite		= 0,		// create new or discard previous file.						// default
+			OpenUpdate		= 1 << 3,	// keep previous content and update some parts in the file.
+			OpenAppend		= 1 << 4,	// write operations will not overwrite existing data.
 
-			SharedRead		= 1 << 5,	// other process can read file
+			SharedRead		= 1 << 5,	// other process can read file.
 
 			Unknown			= 0,
 			_BITOPS_
@@ -108,14 +116,18 @@ namespace AE::Base
 
 	// variables
 	private:
-		Handle_t	_file;
+		Handle_t		_file;
+		const ReqAlign	_align;
 
-		DEBUG_ONLY( const Path  _filename;)
+		DEBUG_ONLY(
+			const Path  _dbgFilename;
+			const EMode	_dbgMode;
+		)
 
 
 	// methods
 	private:
-		WinFileWStream (const Handle_t &file DEBUG_ONLY(, Path filename))				__NE___;
+		WinFileWStream (const Handle_t &file, EMode mode DEBUG_ONLY(, Path filename))	__NE___;
 
 	public:
 		explicit WinFileWStream (const char*  filename, EMode mode = c_DefaultMode)		__NE___;
@@ -141,6 +153,8 @@ namespace AE::Base
 
 		Bytes		WriteSeq (const void*, Bytes)										__NE_OV;
 		void		Flush ()															__NE_OV;
+
+		ReqAlign	OffsetAlign ()														C_NE_OV	{ return _align; }
 	};
 //-----------------------------------------------------------------------------
 
@@ -164,14 +178,18 @@ namespace AE::Base
 	// variables
 	private:
 		Handle_t		_file;
-		Bytes const		_fileSize;
+		const Bytes 	_fileSize;
+		const ReqAlign	_align;
 
-		DEBUG_ONLY( const Path  _filename;)
+		DEBUG_ONLY(
+			const Path  _dbgFilename;
+			const EMode	_dbgMode;
+		)
 
 
 	// methods
 	private:
-		WinFileRDataSource (const Handle_t &file DEBUG_ONLY(, Path filename))				__NE___;
+		WinFileRDataSource (const Handle_t &file, EMode mode DEBUG_ONLY(, Path filename))	__NE___;
 
 	public:
 		explicit WinFileRDataSource (const char* filename, EMode mode = c_DefaultMode)		__NE___;
@@ -193,6 +211,8 @@ namespace AE::Base
 		Bytes		Size ()																	C_NE_OV	{ return _fileSize; }
 
 		Bytes		ReadBlock (Bytes, OUT void*, Bytes)										__NE_OV;
+
+		ReqAlign	OffsetAlign ()															C_NE_OV	{ return _align; }
 	};
 
 
@@ -214,14 +234,18 @@ namespace AE::Base
 
 	// variables
 	private:
-		Handle_t	_file;
+		Handle_t		_file;
+		const ReqAlign	_align;
 
-		DEBUG_ONLY( const Path  _filename;)
+		DEBUG_ONLY(
+			const Path  _dbgFilename;
+			const EMode	_dbgMode;
+		)
 
 
 	// methods
 	private:
-		WinFileWDataSource (const Handle_t &file DEBUG_ONLY(, Path filename))				__NE___;
+		WinFileWDataSource (const Handle_t &file, EMode mode DEBUG_ONLY(, Path filename))	__NE___;
 
 	public:
 		explicit WinFileWDataSource (const char* filename, EMode mode = c_DefaultMode)		__NE___;
@@ -246,6 +270,8 @@ namespace AE::Base
 
 		Bytes		WriteBlock (Bytes, const void*, Bytes)									__NE_OV;
 		void		Flush ()																__NE_OV;
+
+		ReqAlign	OffsetAlign ()															C_NE_OV	{ return _align; }
 	};
 
 

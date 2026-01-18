@@ -706,14 +706,14 @@ namespace
 		return result;
 	}
 
-	bool  WindowsUtils::ClipboardExtract (OUT WString &outResult, void* wnd) __NE___
+	bool  WindowsUtils::ClipboardExtract (OUT U8String &outResult, void* wnd) __NE___
 	{
-		return _ClipboardExtract< WString, CF_UNICODETEXT >( OUT outResult, wnd );
-	}
+		WString	tmp;
+		if ( not _ClipboardExtract< WString, CF_UNICODETEXT >( OUT tmp, wnd ))
+			return false;
 
-	bool  WindowsUtils::ClipboardExtract (OUT String &outResult, void* wnd) __NE___
-	{
-		return _ClipboardExtract< String, CF_TEXT >( OUT outResult, wnd );
+		CHECK_ERR( ConvertString<wchar_t>( OUT outResult, tmp ));
+		return true;
 	}
 
 /*
@@ -747,20 +747,15 @@ namespace
 		return result;
 	}
 
-	bool  WindowsUtils::ClipboardPut (NtWStringView str, void* wnd) __NE___
+	bool  WindowsUtils::ClipboardPut (U8StringView str, void* wnd) __NE___
 	{
 		if_unlikely( str.empty() )
 			return ClipboardClear();
 
-		return _ClipboardPut( str.c_str(), (str.size()+1) * SizeOf<wchar_t>, CF_UNICODETEXT, wnd );
-	}
+		WString		wstr;
+		CHECK_ERR( ConvertString( OUT wstr, str ));
 
-	bool  WindowsUtils::ClipboardPut (NtStringView str, void* wnd) __NE___
-	{
-		if_unlikely( str.empty() )
-			return ClipboardClear();
-
-		return _ClipboardPut( str.c_str(), (str.size()+1) * SizeOf<char>, CF_TEXT, wnd );
+		return _ClipboardPut( wstr.c_str(), (wstr.size()+1) * SizeOf<wchar_t>, CF_UNICODETEXT, wnd );
 	}
 
 /*
@@ -1194,6 +1189,29 @@ namespace
 			case IDOK :		return 0;
 		}
 		return -1;
+	}
+
+/*
+=================================================
+	SetProcessAffinity
+=================================================
+*/
+	bool  WindowsUtils::SetProcessAffinity (CpuArchInfo::CoreBits_t coreMask) __NE___
+	{
+		DWORD_PTR	mask;
+
+		#if AE_PLATFORM_BITS == 64
+			mask = coreMask.to_ullong();
+
+		#elif AE_PLATFORM_BITS == 32
+			mask = coreMask.to_ulong();
+		#endif
+
+		if_likely( ::SetProcessAffinityMask( ::GetCurrentProcess(), mask ) != 0 )	// winxp
+			return true;
+
+		Unused( CheckError( "SetProcessAffinityMask ", {}, ELogLevel::Info ));
+		return false;
 	}
 
 /*

@@ -29,11 +29,10 @@ namespace AE::ResEditor
 		struct BufferLayout
 		{
 		// variables
-			Array<ubyte>		_data;
-			String				source;
-			String				staticSrc;
-			Bytes				_align	= 4_b;
-			String				typeName;			// ShaderStructName
+			Array<ubyte>	_data;
+			String			source;
+			String			staticSrc;
+			String			typeName;			// ShaderStructName
 
 		// methods
 			BufferLayout () {}
@@ -91,6 +90,8 @@ namespace AE::ResEditor
 							   const String &staticSrc, uint count)								__Th___;
 		void  SetArrayLayout6 (const String &typeName, const String &source,
 							   const String &staticSrc, const ScriptDynamicUIntPtr &count)		__Th___;
+		void  LoadCSV (const String &filename, const String &elemTypeName)						__Th___;
+
 
 		ND_ StringView		GetName ()															C_NE___	{ return _dbgName; }
 		ND_ bool			HasLayout ()														C_NE___	{ return not _layout.typeName.empty(); }
@@ -191,6 +192,8 @@ namespace AE::ResEditor
 
 	private:
 		ND_ bool  _IsArray ()																	C_NE___;
+
+		void  _CanSetLayout ()																	__Th___;
 
 		void  _SetType (EBufferType type)														__Th___;
 

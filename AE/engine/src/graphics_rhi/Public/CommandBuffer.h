@@ -256,26 +256,30 @@ namespace AE::Graphics
 		struct ReadbackBufferResult2 : ReadbackBufferResult
 		{
 			Bytes						remain;		// non-zero if not enough space to read whole buffer
+			DEBUG_ONLY( mutable bool	_isFullyReadChecked = false;)
 
 			ReadbackBufferResult2 ()											__NE___ = default;
 			ReadbackBufferResult2 (Promise<BufferMemView> readOp, Bytes remain)	__NE___ : ReadbackBufferResult{RVRef(readOp)}, remain{remain} {}
 
-			ND_ bool  IsCompleted ()											C_NE___	{ return remain == 0; }
+			ND_ bool  IsFullyRead ()											C_NE___	{ DEBUG_ONLY( _isFullyReadChecked = true; )  return remain == 0; }
 
-			template <typename ...Args>		auto  Then (Args&& ...args)			__NE___	{ return _Then( readOp, FwdArg<Args>(args)... ); }
+			template <typename ...Args>		auto  Then (Args&& ...args)			__NE___	{ ASSERT( _isFullyReadChecked );  return _Then( readOp, FwdArg<Args>(args)... ); }
+			template <typename ...Args>		auto  IfFullyRead (Args&& ...args)	__NE___	-> CoroCtorResult<Args...>;
 		};
 
 
 		struct ReadbackImageResult2 : ReadbackImageResult
 		{
 			uint3						remain;		// non-zero if not enough space to read whole image
+			DEBUG_ONLY( mutable bool	_isFullyReadChecked = false;)
 
 			ReadbackImageResult2 ()												__NE___ = default;
 			ReadbackImageResult2 (Promise<ImageMemView> readOp, uint3 remain)	__NE___ : ReadbackImageResult{RVRef(readOp)}, remain{remain} {}
 
-			ND_ bool  IsCompleted ()											C_NE___	{ return All( IsZero( remain )); }
+			ND_ bool  IsFullyRead ()											C_NE___	{ DEBUG_ONLY( _isFullyReadChecked = true; )  return All( IsZero( remain )); }
 
-			template <typename ...Args>		auto  Then (Args&& ...args)			__NE___	{ return _Then( readOp, FwdArg<Args>(args)... ); }
+			template <typename ...Args>		auto  Then (Args&& ...args)			__NE___	{ ASSERT( _isFullyReadChecked );  return _Then( readOp, FwdArg<Args>(args)... ); }
+			template <typename ...Args>		auto  IfFullyRead (Args&& ...args)	__NE___	-> CoroCtorResult<Args...>;
 		};
 
 		struct ReadHostBufferResult : _ReadbackResult
@@ -551,6 +555,29 @@ namespace AE::Graphics
 //-----------------------------------------------------------------------------
 
 
+
+/*
+=================================================
+	IfFullyRead
+=================================================
+*/
+	template <typename ...Args>
+	auto  ITransferContext::ReadbackBufferResult2::IfFullyRead (Args&& ...args) __NE___ -> CoroCtorResult<Args...>
+	{
+		if ( IsFullyRead() )
+			return _Then( readOp, FwdArg<Args>(args)... );
+		else
+			return Default;
+	}
+
+	template <typename ...Args>
+	auto  ITransferContext::ReadbackImageResult2::IfFullyRead (Args&& ...args) __NE___ -> CoroCtorResult<Args...>
+	{
+		if ( IsFullyRead() )
+			return _Then( readOp, FwdArg<Args>(args)... );
+		else
+			return Default;
+	}
 
 /*
 =================================================

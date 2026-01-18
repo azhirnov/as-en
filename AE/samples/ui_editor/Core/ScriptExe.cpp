@@ -15,14 +15,16 @@ namespace
 	ConvertString
 =================================================
 */
-	ND_ static BasicString<CharType>  ConvertString (const String &src)
+#ifdef AE_PLATFORM_WINDOWS
+	ND_ static BasicString<CharType>  ConvertString (const WString &src)
 	{
 		BasicString<CharType>	dst;
 		dst.assign( src.begin(), src.end() );
 		return dst;
 	}
+#endif
 
-	ND_ static BasicString<CharType>  ConvertString (const WString &src)
+	ND_ static BasicString<CharType>  ConvertString (const String &src)
 	{
 		BasicString<CharType>	dst;
 		dst.assign( src.begin(), src.end() );

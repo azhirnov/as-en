@@ -2038,6 +2038,25 @@ namespace AE::Graphics
 		RETURN_ERR( "unknown cooperative matrix layout", VK_COOPERATIVE_VECTOR_MATRIX_LAYOUT_MAX_ENUM_NV );
 	}
 
+/*
+=================================================
+	VEnumCast (EConservativeRasterizationMode)
+=================================================
+*/
+	Nd__In  VkConservativeRasterizationModeEXT  VEnumCast (EConservativeRasterizationMode value) __NE___
+	{
+		switch_enum( value )
+		{
+			case EConservativeRasterizationMode::Overestimate :		return VK_CONSERVATIVE_RASTERIZATION_MODE_OVERESTIMATE_EXT;
+		//	case EConservativeRasterizationMode::Underestimate :	return VK_CONSERVATIVE_RASTERIZATION_MODE_OVERESTIMATE_EXT;
+			case EConservativeRasterizationMode::Disabled :			return VK_CONSERVATIVE_RASTERIZATION_MODE_DISABLED_EXT;
+			case EConservativeRasterizationMode::_Count :			break;
+		}
+		switch_end
+		RETURN_ERR( "unknown conservative rasterization mode", VK_CONSERVATIVE_RASTERIZATION_MODE_MAX_ENUM_EXT );
+	}
+
+
 } // AE::Graphics
 
 #endif // AE_ENABLE_VULKAN

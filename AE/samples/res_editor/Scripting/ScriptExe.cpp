@@ -195,11 +195,9 @@ namespace {
 			_AddSlidersToUIInteraction( *_tempData, result.get() );
 		}
 
-		// in VS: click in console to open script
-	  #ifdef AE_COMPILER_MSVC
-		if ( result and PlatformUtils::IsUnderDebugger() )
+		// in VS / VSCode: click in console to open script
+		if ( result )
 			AE_LOGI( "<<<<< Loaded script >>>>>", SourceLoc( ToString(filePath).c_str(), 1 ));
-	  #endif
 
 		_tempData.reset();
 		return result;
@@ -712,6 +710,21 @@ namespace {
 
 /*
 =================================================
+	_ResetUnusedTimers
+=================================================
+*/
+	void  ScriptExe::_ResetUnusedTimers (const ScriptArray<ScriptDynamicFloatPtr> &arr) __Th___
+	{
+		CHECK_THROW_MSG( not arr.empty() );
+
+		auto&	data = _GetTempData();
+		CHECK_THROW_MSG( data.passGroup );
+
+		data.passGroup->Add( ScriptBasePassPtr{ new ScriptResetUnusedTimers{ arr }});
+	}
+
+/*
+=================================================
 	_ExportImage
 =================================================
 */
@@ -1136,6 +1149,22 @@ namespace {
 		}
 	}
 
+	void  ScriptExe::_LabelWithoutValue (const String &name, const EnableLabel &enableIf) __Th___
+	{
+		auto&	data	= _GetTempData();
+		auto&	dst		= data.labels.emplace_back();
+
+		dst.dyn		= NullUnion{};
+		dst.label	= name;
+
+		if ( enableIf.dyn and enableIf.op != Default )
+		{
+			dst.ifDyn	= enableIf.dyn->Get();
+			dst.op		= enableIf.op;
+			dst.ref		= enableIf.ref;
+		}
+	}
+
 /*
 =================================================
 	_EnableIf*
@@ -1525,6 +1554,8 @@ namespace {
 			{"numRows", "numColumns", "srcType", "srcBuffer", "srcOffset", "srcSize", "srcStride", "srcLayout",
 			 "dstType", "dstBuffer", "dstOffset", "dstSize", "dstStride", "dstLayout"} );
 
+		AS_GLOBAL_FN( se, ScriptExe::_ResetUnusedTimers,		"ResetUnusedTimers",		{} );
+
 		AS_GLOBAL_FN( se, ScriptExe::_ExportImage,				"Export",					{"image", "prefix"},	"Readback the image and save it to a file in DDS format. Rendering will be paused until the readback is completed." );
 		AS_GLOBAL_FN( se, ScriptExe::_DbgExportBuffer,			"DbgExport",				{"buffer", "prefix"},	"Readback the buffer and save it to a file in structured format. Rendering will be paused until the readback is completed." );
 		AS_GLOBAL_FN( se, ScriptExe::_ExportBuffer,				"Export",					{"buffer", "prefix"},	"Readback the buffer and save it to a file in binary format. Rendering will be paused until the readback is completed." );
@@ -1552,6 +1583,7 @@ namespace {
 		AS_GLOBAL_FN( se, ScriptExe::_GetCone1,					"GetCone",					{"segmentCount", "radius", "height", "positions", "indices"},													"Returns cone, apex in +Z" );
 		AS_GLOBAL_FN( se, ScriptExe::_GetCone2,					"GetCone",					{"segmentCount", "radius", "height", "positions", "normals", "texcoords", "indices"},							"Returns cone, apex in +Z" );
 		AS_GLOBAL_FN( se, ScriptExe::_GetCone3,					"GetCone",					{"segmentCount", "radius", "height", "positions", "normals", "tangents", "bitangents", "texcoords", "indices"},	"Returns cone, apex in +Z" );
+		AS_GLOBAL_FN( se, ScriptExe::_GetFrustumIndices,		"GetFrustumIndices",		{} );
 
 		AS_GLOBAL_FN( se, ScriptExe::_GetSphericalCube1,		"GetSphericalCube",			{"lod", "positions", "indices"},						"Returns spherical cube without projection and face rotation.\nIn 'positions': xy - pos on face, z - face index." );
 
@@ -1632,6 +1664,8 @@ namespace {
 		AS_GLOBAL_FN( se, ScriptExe::_LabelF3a,					"Label",					{"dyn", "name", "enableIf"} );
 		AS_GLOBAL_FN( se, ScriptExe::_LabelF4a,					"Label",					{"dyn", "name", "enableIf"} );
 
+		AS_GLOBAL_FN( se, ScriptExe::_LabelWithoutValue,		"Label",					{"name", "enableIf"} );
+
 		AS_GLOBAL_FN( se, ScriptExe::_EnableIfEqual,			"EnableIfEqual",			{"dyn", "ref"} );
 		AS_GLOBAL_FN( se, ScriptExe::_EnableIfGreater,			"EnableIfGreater",			{"dyn", "ref"} );
 		AS_GLOBAL_FN( se, ScriptExe::_EnableIfLess,				"EnableIfLess",				{"dyn", "ref"} );
@@ -1662,6 +1696,7 @@ namespace {
 		AS_GLOBAL_FN( se, ScriptExe::_CM_TangentialSC_Forward,	"CM_TangentialSC_Forward",	{"snormCoord_cubeFace"},	"Convert 2D regular grid on cube face to 3D position on sphere using tangential projection." );
 
 		AS_GLOBAL_FN( se, ScriptExe::_GetMarchingCubeTable,		"GetMarchingCubeTable",		{"edgeTable", "triangleTable", "uvw"} );
+		AS_GLOBAL_FN( se, ScriptExe::_GetTransvoxelTable,		"GetTransvoxelTable",		{"regularCellClass", "regularCellData", "regularVertexData", "transitionCellClass", "transitionCellData", "transitionCornerData", "transitionVertexData"} );
 
 		AS_GLOBAL_FN( se, _GetGPUVendor,									"GPUVendor",						{} );
 		AS_GLOBAL_FN( se, _IsDiscreteGPU,									"IsDiscreteGPU",					{} );

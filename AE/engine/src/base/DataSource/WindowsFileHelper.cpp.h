@@ -83,6 +83,8 @@ namespace
 		DWORD	dwCreationDisposition	= OPEN_EXISTING;
 		DWORD	dwFlagsAndAttributes	= FileFlagCast( flags ) | addFlags;
 
+		// TODO: use CreateFile2 (win8)
+
 		if constexpr( IsSame< T, char >)
 		{
 			return ::CreateFileA( filename,			// winxp
@@ -187,7 +189,7 @@ namespace
 	SetOverlappedOffset
 =================================================
 */
-	inline void  SetOverlappedOffset (INOUT OVERLAPPED &ov, Bytes offset)
+	inline void  SetOverlappedOffset (INOUT OVERLAPPED &ov, Bytes offset) __NE___
 	{
 		LARGE_INTEGER	li;
 		li.QuadPart		= ulong(offset);
@@ -201,13 +203,105 @@ namespace
 	GetOverlappedOffset
 =================================================
 */
-	Nd__In Bytes  GetOverlappedOffset (const OVERLAPPED &ov)
+	Nd__In Bytes  GetOverlappedOffset (const OVERLAPPED &ov) __NE___
 	{
 		LARGE_INTEGER	li;
 		li.LowPart		= ov.Offset;
 		li.HighPart		= ov.OffsetHigh;
 
 		return Bytes{ulong(li.QuadPart)};
+	}
+
+/*
+=================================================
+	GetLogicalBytesPerSector
+----
+	docs:
+	https://learn.microsoft.com/en-us/windows/win32/fileio/file-buffering
+	https://learn.microsoft.com/en-us/windows/win32/api/ioapiset/nf-ioapiset-deviceiocontrol
+	https://learn.microsoft.com/en-us/windows/win32/w8cookbook/advanced-format--4k--disk-compatibility-update?redirectedfrom=MSDN
+=================================================
+*/
+	ND_ static IDataSource::ReqAlign  GetLogicalBytesPerSector (HANDLE file) __NE___
+	{
+		static constexpr POTBytes	logical_sector_size		{PowerOfTwo(9)};	// 512_b
+		static constexpr POTBytes	physical_sector_size	{PowerOfTwo(12)};	// 4_KiB
+
+		WCHAR	path [MAX_PATH+1];
+		bool	ok = ::GetFinalPathNameByHandleW( file, OUT path, DWORD(CountOf( path )), FILE_NAME_NORMALIZED | VOLUME_NAME_DOS ) != 0;  // winvista
+
+		if ( not ok or path[0] == 0 )
+		{
+			DBG_WARNING( "failed to get file path" );
+			return IDataSource::ReqAlign{ logical_sector_size, physical_sector_size };
+		}
+
+		WStringView  str {path};
+
+		usize	pos = str.find( L":\\" );
+		ASSERT( pos < str.size() );
+
+		IDataSource::ReqAlign	res;
+
+
+		const auto	Variant1 = [pos, str, OUT &res] ()
+		{{
+			WStringView  part = str.substr( pos-1, 3 );
+
+			DWORD	spc, bps = 0, freec, totalc;
+			bool	ok = ::GetDiskFreeSpaceW( NtWStringView{part}.c_str(), OUT &spc, OUT &bps, OUT &freec, OUT &totalc ) != 0;  // winxp
+			ASSERT( ok );
+
+			if ( not ok or bps < 512 )
+				return false;
+
+			res = IDataSource::ReqAlign{ POTBytes{Bytes{bps}}, physical_sector_size };
+			return true;
+		}};
+
+
+		const auto	Variant2 = [pos, str, OUT &res] ()
+		{{
+			// "Microsoft strongly recommends that developers align unbuffered I/O to the physical sector size as reported by
+			//  the IOCTL_STORAGE_QUERY_PROPERTY control code to help ensure their applications are prepared for this sector size transition."
+
+			WCHAR	vol_name [10] = L"\\\\.\\C:";
+			vol_name[4] = str[pos-1];
+
+			HANDLE	volume = ::CreateFileW( vol_name, 0, FILE_SHARE_READ | FILE_SHARE_WRITE, null, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, null );
+			if ( volume == INVALID_HANDLE_VALUE )
+			{
+				WIN_CHECK( "CreateFile failed to open volume: " );
+				return false;
+			}
+
+			ON_DESTROY( [&volume](){ ::CloseHandle(volume); });
+
+			STORAGE_PROPERTY_QUERY	query = {};
+			query.PropertyId	= StorageAccessAlignmentProperty;
+			query.QueryType		= PropertyStandardQuery;
+
+			STORAGE_ACCESS_ALIGNMENT_DESCRIPTOR	prop = {};
+			DWORD	written = 0;
+
+			bool	ok = ::DeviceIoControl( volume, IOCTL_STORAGE_QUERY_PROPERTY, &query, sizeof(query), OUT &prop, sizeof(prop), OUT &written, null ) != 0;  // winxp
+			if ( not ok )
+			{
+				WIN_CHECK( "DeviceIoControl failed: " );
+				return false;
+			}
+
+			res = IDataSource::ReqAlign{ Bytes{prop.BytesPerLogicalSector}, Bytes{prop.BytesPerPhysicalSector} };
+			return true;
+		}};
+
+		if ( Variant2() )
+			return res;
+
+		if ( Variant1() )
+			return res;
+
+		return IDataSource::ReqAlign{ logical_sector_size, physical_sector_size };
 	}
 
 

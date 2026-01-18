@@ -325,7 +325,7 @@ namespace
 			}
 			else
 			{
-				const int	bit_idx = BitScanForward( ~assignedAttachments.to_ulong() );
+				const int	bit_idx = LowBitIndex( ~assignedAttachments.to_ulong() );
 				CHECK_THROW_MSG( bit_idx >= 0 and bit_idx < int(GraphicsConfig::MaxColorAttachments), "(internal error)" );
 				io.index = uint(bit_idx);
 				CHECK_THROW_MSG( not assignedAttachments.test( io.index ), "(internal error)" );

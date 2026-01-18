@@ -16,7 +16,7 @@ int main (const int argc, char* argv[])
 			port = ushort(StringToInt( argv[2] ));
 	}
 
-	StaticLogger::LoggerScope	log{};
+	StaticLogger::LoggerScope	log{0};
 	StaticLogger::AddLogger( ILogger::CreateConsoleOutput() );
 	//StaticLogger::AddLogger( ILogger::CreateDialogOutput() );
 

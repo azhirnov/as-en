@@ -334,33 +334,6 @@ namespace {
 
 /*
 =================================================
-	AllocForCompute
-=================================================
-*/
-	bool  ShaderDebugger::AllocForCompute (OUT Result &result, ITransferContext &ctx, ComputePipelineID ppln, const uint3 &globalID, DescriptorSetName::Ref dsName, Bytes size) __Th___
-	{
-		DRC_EXLOCK( _drCheck );
-
-		if_unlikely( not _GetComputePipeline( ppln, dsName, OUT result ))
-			return false;
-
-		if_unlikely( not _AllocStorage( size, OUT result ))
-			return false;
-
-		const uint	data[4] = { globalID.x, globalID.y, globalID.z, 0 };
-		StaticAssert( _TraceHeaderSize == sizeof(data) );
-
-		_FillBuffer( result, ctx, Sizeof(data), data );
-		return true;
-	}
-
-	bool  ShaderDebugger::AllocForCompute (OUT Result &result, ITransferContext &ctx, ComputePipelineID ppln, DescriptorSetName::Ref dsName, Bytes size) __Th___
-	{
-		return AllocForCompute( OUT result, ctx, ppln, uint3{~0u}, dsName, size );
-	}
-
-/*
-=================================================
 	AllocForRayTracing
 =================================================
 */

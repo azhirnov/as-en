@@ -36,6 +36,8 @@ namespace AE::Base
 
 		bool		SeekFwd (Bytes offset)									__NE_OV;
 		Bytes		ReadSeq (OUT void* buffer, Bytes size)					__NE_OV;
+
+		ReqAlign	OffsetAlign ()											C_NE_OV	{ return Default; }
 	};
 
 
@@ -85,6 +87,8 @@ namespace AE::Base
 		void		Flush ()												__NE_OV	{ _Flush(); }
 
 		Bytes		WriteSeq (const void* buffer, Bytes size)				__NE_OV;
+
+		ReqAlign	OffsetAlign ()											C_NE_OV	{ return Default; }
 
 	private:
 		bool		_Flush ()												__NE___;

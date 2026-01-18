@@ -62,8 +62,8 @@ namespace AE::ResLoader
 				   EPrimitive topology, ArrayView<I> indices,
 				   ENormalEncoding normalEncoding = Default)				__NE___;
 
-			void  CalcAABB ()												__NE___;
-			void  CalcSphere ()												__NE___;
+		ND_	bool  CalcAABB ()												__NE___;
+		ND_	bool  CalcSphere ()												__NE___;
 		ND_ bool  IsValid ()												C_NE___;
 
 		ND_ ArrayView<ubyte>			Vertices ()							C_NE___	{ return _vertices; }
@@ -98,6 +98,10 @@ namespace AE::ResLoader
 
 		// convert all normalized/scaled vertices to float-point type
 		ND_ bool  ConvertToFloatPointFormat (OUT IntermMesh &)				C_NE___;
+
+		//
+			bool  Recenter ()												__NE___;
+			bool  Recenter (const float3 offset)							__NE___;
 
 		// change triangle index order: CW <-> CCW
 		ND_ bool  InvertFrontFace ()										__NE___;

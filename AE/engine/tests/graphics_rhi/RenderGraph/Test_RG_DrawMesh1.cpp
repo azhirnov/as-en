@@ -72,7 +72,7 @@ namespace
 
 		Ctx		ctx{ RenderCoro_Get() };
 
-		t.result = ctx.ReadbackImage( t.img, Default ).Then( t,
+		t.result = ctx.ReadbackImage( t.img, Default ).IfFullyRead( t,
 							[] (Promise<ImageMemView> readRes, CoSafe<DM1_TestData &> t) -> InlineCoro<>
 							{
 								auto view = co_await readRes;

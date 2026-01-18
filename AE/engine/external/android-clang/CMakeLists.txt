@@ -3,7 +3,7 @@
 # External dependencies
 set( AE_ENABLE_ARM_HWCPIPE 		ON  CACHE BOOL "enable ARM (Mali) performance counters" )
 set( AE_ENABLE_PVRCOUNTER 		ON  CACHE BOOL "enable PowerVR performance counters" )
-set( AE_ENABLE_PICO_OPENXR 		ON  CACHE BOOL "enable PICO OpenXR SDK" )
+set( AE_ENABLE_PICO_OPENXR 		OFF CACHE BOOL "enable PICO OpenXR SDK" )
 
 set( AE_ENABLE_ASSIMP			OFF CACHE INTERNAL "" FORCE )
 set( AE_ENABLE_ASTC_ENCODER	 	OFF CACHE INTERNAL "" FORCE )

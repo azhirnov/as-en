@@ -20,9 +20,6 @@ LightingResult  Lambert (const float3 diffuse, const float3 lightDir, const floa
 /*
 =================================================
 	Phong
-----
-	possible source (CC BY-NC 4.0 license)
-	https://github.com/JoeyDeVries/LearnOpenGL/blob/master/src/5.advanced_lighting/1.advanced_lighting/1.advanced_lighting.fs
 =================================================
 */
 float  PhongSpecular (const float shininess, const float3 lightDir, const float3 viewDir, const float3 surfNorm)
@@ -74,7 +71,6 @@ LightingResult  Blinn (const float3 diffuse, const float3 specular, const float 
 	original paper https://dl.acm.org/doi/pdf/10.1145/192161.192213
 =================================================
 */
-
 #ifdef AE_LICENSE_MIT
 
 float  OrenNayarDiffuse (const float3 lightDir, const float3 viewDir, const float3 surfNorm, float roughness, float albedo)
@@ -163,10 +159,10 @@ LightingResult  CookTorrance (const float3 diffuse, const float3 specular, const
 	float		g2		= (2.0 * NdotH * NdotL) / VdotH;
 	float		G		= Min( 1.0, Min( g1, g2 ));
 
-	float		Rs		= (F * D * G) / (float_Pi * NdotL * NdotV);
+	float		Rs		= Max( (F * D * G) / (float_Pi * NdotL * NdotV), 0.0 );
 
 	LightingResult	res;
-	res.diffuse  = diffuse * NdotL;
+	res.diffuse  = diffuse * NdotL;  // lambert
 	res.specular = specular * Rs;
 	return res;
 }

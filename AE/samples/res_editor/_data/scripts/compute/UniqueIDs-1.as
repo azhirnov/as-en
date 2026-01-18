@@ -24,8 +24,8 @@
 		RC<Buffer>		id_buf				= Buffer();
 		RC<DynamicUInt>	max_id				= DynamicUInt();
 		RC<DynamicUInt>	row_count			= DynamicUInt();
-		const bool		has_subgroup_size	= GetFeatureSet().hasSubgroupSizeControl();
-		const uint		local_size			= has_subgroup_size ? GetFeatureSet().getMaxSubgroupSize() : GetSubgroupSize();
+		const bool		has_sg_size_ctrl	= GetFeatureSet().hasSubgroupSizeControl();
+		const uint		local_size			= has_sg_size_ctrl ? GetFeatureSet().getMaxSubgroupSize() : GetSubgroupSize();
 		const uint		col_count			= local_size;
 		RC<DynamicUInt>	id_count			= row_count.Mul( col_count );
 		RC<DynamicUInt>	mode				= DynamicUInt();
@@ -52,14 +52,14 @@
 			pass.ArgInOut(	"un_IdBuf",		id_buf );
 			pass.LocalSize( col_count );
 			pass.DispatchGroups( row_count );
-			if ( has_subgroup_size ) pass.SubgroupSize( local_size );
+			if ( has_sg_size_ctrl ) pass.SubgroupSize( local_size );
 			pass.EnableIfEqual( mode, 0 );
 		}{
 			RC<ComputePass>		pass = ComputePass( "", "WARERFALL_LOOP=2" );
 			pass.ArgInOut(	"un_IdBuf",		id_buf );
 			pass.LocalSize( col_count );
 			pass.DispatchGroups( row_count );
-			if ( has_subgroup_size ) pass.SubgroupSize( local_size );
+			if ( has_sg_size_ctrl ) pass.SubgroupSize( local_size );
 			pass.EnableIfEqual( mode, 1 );
 		}{
 			RC<Postprocess>		pass = Postprocess();
@@ -105,9 +105,7 @@
 			if ( gl.subgroup.Index == 0 )
 				s_Pos = 0;
 
-			gl.subgroup.memoryBarrier.Shared();	// release
-			gl.subgroup.ExecutionBarrier();
-			gl.subgroup.memoryBarrier.Shared();	// acquire
+			gl.subgroup.Barrier();
 		}
 
 		const int	src_idx	= GetGlobalIndex();
@@ -122,7 +120,7 @@
 		for (;;)
 		{
 			// get unique ID per subgroup
-			int		id = gl.subgroup.BroadcastFirst( src_id );
+			uniform int		id = gl.subgroup.BroadcastFirst( src_id );
 
 			// if current lane equal to unique ID
 			//[[branch]]  // by default all 'if' is a branch
@@ -146,9 +144,9 @@
 		for (;;)
 		{
 			// get unique ID per subgroup
-			int		id = gl.subgroup.BroadcastFirst( src_id );
+			uniform int		id = gl.subgroup.BroadcastFirst( src_id );
 
-			// fix for AMD, used instead of Elect() in branch
+			// fix for AMD, used Ballot() instead of Elect() in branch
 			uint4	active_threads	= gl.subgroup.Ballot( id == src_id );
 			uint	first_thread	= gl.subgroup.BallotFindLSB( active_threads );
 

@@ -92,6 +92,8 @@ namespace AE::Base
 
 		ND_ static Path		GetExeLocation ()												__NE___;
 
+		ND_ static bool		SetProcessAffinity (CpuArchInfo::CoreBits_t)					__NE___;
+
 		ND_ static bool		AddExceptionToFirewall (const Path			&exePath,
 													StringView			ruleName,
 													Bool				inbound,
@@ -132,10 +134,8 @@ namespace AE::Base
 
 
 		// Clipboard //
-		ND_ static bool		ClipboardExtract (OUT WString &result, void* wnd = null)		__NE___;
-		ND_ static bool		ClipboardExtract (OUT String &result, void* wnd = null)			__NE___;
-		ND_ static bool		ClipboardPut (NtWStringView str, void* wnd = null)				__NE___;
-		ND_ static bool		ClipboardPut (NtStringView str, void* wnd = null)				__NE___;
+		ND_ static bool		ClipboardExtract (OUT U8String &result, void* wnd = null)		__NE___;
+		ND_ static bool		ClipboardPut (U8StringView str, void* wnd = null)				__NE___;
 		ND_ static bool		ClipboardClear (void* wnd = null)								__NE___;
 
 

@@ -24,7 +24,7 @@
 			pl.DSLayout( "material", 1, "mtr.ds" );
 		}
 
-		
+
 		RC<GraphicsPipeline>	ppln = GraphicsPipeline( "tmpl" );
 		ppln.SetLayout( "pl" );
 		ppln.SetFragmentOutputFromRenderTech( "rtech", "main" );
@@ -42,7 +42,7 @@
 
 		// specialization
 		{
-			RC<GraphicsPipelineSpec>	spec = ppln.AddSpecialization( "spec" );
+			RC<GraphicsPipelineSpec>	spec = ppln.AddSpecialization( "LEqual" );
 			spec.AddToRenderTech( "rtech", "main" );  // in ScriptSceneGraphicsPass
 
 			RenderState	rs;
@@ -55,6 +55,29 @@
 			}
 			rs.depth.test					= true;
 			rs.depth.write					= false;
+			rs.depth.compareOp				= ECompareOp::LEqual;
+
+			rs.inputAssembly.topology		= EPrimitive::TriangleList;
+
+			rs.rasterization.frontFaceCCW	= true;
+			rs.rasterization.cullMode		= ECullMode::None;
+
+			spec.SetRenderState( rs );
+		}{
+			RC<GraphicsPipelineSpec>	spec = ppln.AddSpecialization( "GEqual" );
+			spec.AddToRenderTech( "rtech", "main" );  // in ScriptSceneGraphicsPass
+
+			RenderState	rs;
+			{
+				RenderState_ColorBuffer		cb;
+				cb.SrcBlendFactor( EBlendFactor::One );
+				cb.DstBlendFactor( EBlendFactor::One );
+				cb.BlendOp( EBlendOp::Add );
+				rs.color.SetColorBuffer( 0, cb );
+			}
+			rs.depth.test					= true;
+			rs.depth.write					= false;
+			rs.depth.compareOp				= ECompareOp::GEqual;
 
 			rs.inputAssembly.topology		= EPrimitive::TriangleList;
 

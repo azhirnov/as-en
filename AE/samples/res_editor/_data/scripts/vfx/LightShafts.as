@@ -51,7 +51,6 @@
 			pass.ArgIn(		"un_SrcImage",		blur2,			Sampler_LinearClamp );
 			pass.Slider(	"iSampleCount",		2,				32,				16 );
 			pass.Slider(	"iBlur",			0.0,			1.0,			0.2 );
-			pass.Slider(	"iAttenuation",		0,				1 );
 			pass.Constant(	"iCenter",			center );
 		}{
 			RC<Postprocess>		pass = Postprocess( "", "VIEW" );

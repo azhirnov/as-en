@@ -616,7 +616,7 @@ namespace AE::PipelineCompiler
 			return false;
 		}
 
-		if ( not glslangData.prog.mapIO() )		// TODO: use resolver
+		if ( not glslangData.prog.mapIO() )
 		{
 			log += "mapIO - failed";
 			return false;
@@ -974,7 +974,14 @@ namespace AE::PipelineCompiler
 					Parser::ReadLineToEnd( cur_source, INOUT line_pos, OUT line_str );
 
 					if ( not path_str.empty() and error_info.line > in.fileLoc.line )
-						str << path_str << '(' << ToString(error_info.line - in.fileLoc.line) << "):\n";
+					{
+						#ifdef AE_COMPILER_MSVC
+							str << path_str << '(' << ToString(error_info.line - in.fileLoc.line) << "):\n";
+						#else
+							// SCode style
+							str << path_str << ':' << ToString(error_info.line - in.fileLoc.line) << ":\n";
+						#endif
+					}
 					else
 						str << "in source (" << ToString(error_info.sourceIndex) << ": " << ToString(error_info.line) << "):\n";
 

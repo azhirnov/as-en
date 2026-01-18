@@ -170,7 +170,7 @@ namespace
 			}
 		};
 
-		const auto	Load = [&] (uint miplevel, uint layer, const uint3 mipDim, ArrayView<ubyte> pixels) -> bool
+		const auto	Load = [&] (uint miplevel, uint firstLayer, const uint3 mipDim, ArrayView<ubyte> pixels) -> bool
 		{{
 			const uint3		block_dim	{ (mipDim.x + info.TexBlockDim().x-1) / info.TexBlockDim().x,
 										  (mipDim.y + info.TexBlockDim().y-1) / info.TexBlockDim().y,
@@ -180,27 +180,36 @@ namespace
 			image_level.format		= format;
 			image_level.dimension	= mipDim;
 			image_level.mipmap		= MipmapLevel{ miplevel };
-			image_level.layer		= ImageLayer{ layer };
+			image_level.layer		= ImageLayer{ firstLayer };
 			image_level.rowPitch	= Bytes{ktxTexture_GetRowPitch( ktx_tex, miplevel )};
 			image_level.slicePitch	= image_level.rowPitch * mipDim.y;
-			const Bytes  mip_size	= image_level.slicePitch * mipDim.z;
 
-			CHECK( Bytes{pixels.size()} == mip_size );
-			CHECK_ERR( image_level.SetPixelData( SharedMem::Create( allocator, mip_size )));
+			const Bytes	mip_size	= image_level.slicePitch * mipDim.z;
+			const usize	layer_count = Max( usize(Bytes{pixels.size()} / mip_size), 1u );
+			Bytes		offset;
 
-			MemCopy( OUT image_level.PixelData(), pixels.data(), mip_size );
+			CHECK( Bytes{pixels.size()} == mip_size * layer_count );
+			CHECK( layer_count == 1 or layer_count == ktx_tex->numLayers );
 
-			if ( usize(miplevel) >= image_data.size() )
-				image_data.resize( miplevel + 1 );
+			for (uint layer = firstLayer; layer < firstLayer + layer_count; ++layer)
+			{
+				if ( usize(miplevel) >= image_data.size() )
+					image_data.resize( miplevel + 1 );
 
-			if ( usize(layer) >= image_data[miplevel].size() )
-				image_data[miplevel].resize( layer + 1 );
+				if ( usize(layer) >= image_data[miplevel].size() )
+					image_data[miplevel].resize( layer + 1 );
 
-			auto&	curr_mm = image_data[miplevel][layer];
+				auto&	curr_mm = image_data[miplevel][layer];
 
-			CHECK_MSG( curr_mm.Empty(), "warning: previous data will be discarded" );
+				CHECK_MSG( curr_mm.Empty(), "warning: previous data will be discarded" );
 
-			curr_mm = RVRef(image_level);
+				curr_mm = image_level;
+
+				CHECK_ERR( curr_mm.SetPixelData( SharedMem::Create( allocator, mip_size )));
+
+				MemCopy( OUT curr_mm.PixelData(), pixels.data() + offset, mip_size );
+				offset += mip_size;
+			}
 			return true;
 		}};
 
@@ -277,7 +286,7 @@ namespace
 		}
 		else
 		{
-			 auto	err = ktxTexture2_CreateFromStream( &ktx_stream, flags, OUT &temp_tex2 );
+			auto	err = ktxTexture2_CreateFromStream( &ktx_stream, flags, OUT &temp_tex2 );
 
 			if ( err == KTX_UNKNOWN_FILE_FORMAT )
 			{

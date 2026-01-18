@@ -831,7 +831,7 @@ namespace
 			mode				= g_data->surfaceFormats [color_mode];
 			mode.presentMode	= g_data->presentModes [present_mode];
 
-			// function does not check errors, surface mode will try to change in next frames
+			// function does not check errors, surface mode will try to change at next frame
 			if ( g_data->output->SetSurfaceMode( mode ))
 			{
 				g_mode->colorModeIdx	 = color_mode;
@@ -869,7 +869,19 @@ namespace
 
 		// UI
 		{
-			ImGui::SliderInt( "UI scale", INOUT &imgui->uiScale, 1, 4*3, ToString(imgui->uiScale * 0.25f, 2).c_str() );
+			// don't use slider, it cause flickering when scale changed but mouse is still pressed
+			if ( ImGui::BeginCombo( "UI scale", ToString( imgui->uiScale * 0.25f, 2 ).c_str() ))
+			{
+				const int	min_scale	= 1;
+				const int	max_scale	= 4*3;
+
+				for (int i = min_scale; i <= max_scale; ++i)
+				{
+					if ( ImGui::Selectable( ToString( i * 0.25f, 2 ).c_str(), i == imgui->uiScale ))
+						imgui->uiScale = i;
+				}
+				ImGui::EndCombo();
+			}
 		}
 		ImGui::Separator();
 
@@ -1218,7 +1230,11 @@ namespace
 					auto	labels	= pass->ReadLock();
 					usize	max_len	= 0;
 
-					for (auto& info : *labels) {
+					for (auto& info : *labels)
+					{
+						if ( IsNullUnion( info.dyn ))
+							continue;
+
 						max_len = Max( max_len, info.label.length() );
 					}
 					++max_len;
@@ -1245,24 +1261,28 @@ namespace
 						}
 
 						value.assign( info.label );
-						AppendToString( INOUT value, max_len - info.label.length(), ' ' );
 
-						value << ": " <<
-							Visit( info.dyn,
-								[](const RC<DynamicInt> &src)		{ return DivStringBySteps( ToString( src->Get() ), 3, '\'' ); },
-								[](const RC<DynamicInt2> &src)		{ return ToString( src->Get() ); },
-								[](const RC<DynamicInt3> &src)		{ return ToString( src->Get() ); },
-								[](const RC<DynamicInt4> &src)		{ return ToString( src->Get() ); },
-								[](const RC<DynamicUInt> &src)		{ return DivStringBySteps( ToString( src->Get() ), 3, '\'' ); },
-								[](const RC<DynamicUInt2> &src)		{ return ToString( src->Get() ); },
-								[](const RC<DynamicUInt3> &src)		{ return ToString( src->Get() ); },
-								[](const RC<DynamicUInt4> &src)		{ return ToString( src->Get() ); },
-								[](const RC<DynamicFloat> &src)		{ return ToString( src->Get() ); },
-								[](const RC<DynamicFloat2> &src)	{ return ToString( src->Get() ); },
-								[](const RC<DynamicFloat3> &src)	{ return ToString( src->Get() ); },
-								[](const RC<DynamicFloat4> &src)	{ return ToString( src->Get() ); }
-							);
+						if ( not IsNullUnion( info.dyn ))
+						{
+							AppendToString( INOUT value, max_len - info.label.length(), ' ' );
 
+							value << ": " <<
+								Visit( info.dyn,
+									[](NullUnion)						{ return ""s; },
+									[](const RC<DynamicInt> &src)		{ return DivStringBySteps( ToString( src->Get() ), 3, '\'' ); },
+									[](const RC<DynamicInt2> &src)		{ return ToString( src->Get() ); },
+									[](const RC<DynamicInt3> &src)		{ return ToString( src->Get() ); },
+									[](const RC<DynamicInt4> &src)		{ return ToString( src->Get() ); },
+									[](const RC<DynamicUInt> &src)		{ return DivStringBySteps( ToString( src->Get() ), 3, '\'' ); },
+									[](const RC<DynamicUInt2> &src)		{ return ToString( src->Get() ); },
+									[](const RC<DynamicUInt3> &src)		{ return ToString( src->Get() ); },
+									[](const RC<DynamicUInt4> &src)		{ return ToString( src->Get() ); },
+									[](const RC<DynamicFloat> &src)		{ return ToString( src->Get() ); },
+									[](const RC<DynamicFloat2> &src)	{ return ToString( src->Get() ); },
+									[](const RC<DynamicFloat3> &src)	{ return ToString( src->Get() ); },
+									[](const RC<DynamicFloat4> &src)	{ return ToString( src->Get() ); }
+								);
+						}
 						ImGui::TextUnformatted( value.c_str() );
 						value.clear();
 					}
@@ -1420,7 +1440,7 @@ namespace
 		{
 			auto	flags = node_flags;
 
-			if ( clicked > dir.firstId and clicked < dir.lastId )
+			if ( clicked > dir.foldersIdRange.x and clicked < dir.foldersIdRange.y )
 				flags |= ImGuiTreeNodeFlags_DefaultOpen;
 
 			bool	node_open = ImGui::TreeNodeEx( BitCast<void*>(node_id), flags, "%s", dir.name.c_str() );
@@ -1471,9 +1491,9 @@ namespace
 		t._compiling.store( true );
 
 		imgui->activeTab	= 1;
-		imgui->dbgPassIdx	= UMax;
-		imgui->dbgModeIdx	= UMax;
-		imgui->dbgStageIdx	= UMax;
+	//	imgui->dbgPassIdx	= UMax;
+	//	imgui->dbgModeIdx	= UMax;
+	//	imgui->dbgStageIdx	= UMax;
 
 		Path	path = t._scriptDir.root;
 		path /= rootPath;
@@ -2112,7 +2132,7 @@ namespace
 					str2 << '\n';
 				}
 
-				CHECK( PlatformUtils::ClipboardPut( str2 ));
+				CHECK( PlatformUtils::ClipboardPut( U8StringView{ Cast<CharUtf8>(str2.c_str()), str2.size() }));
 				AE_LOGI( "slider state copied to clipboard" );
 			});
 	}
@@ -2182,8 +2202,7 @@ R"(UI controls:
 	{
 		ASSERT( depth < maxDepth );
 
-		rootDst.firstId = nodeID;
-		++nodeID;
+		rootDst.foldersIdRange.x = nodeID;
 
 		// process directories
 		for (auto& dir : FileSystem::Enum( rootDir ))
@@ -2209,7 +2228,7 @@ R"(UI controls:
 				_RecursiveCheckScriptDir( INOUT *dst, INOUT nodeID, dir, depth+1, maxDepth );
 
 				// remove empty folder
-				if_unlikely( dst->scripts.empty() )
+				if_unlikely( dst->scripts.empty() and dst->folders.empty() )
 				{
 					for (auto it = rootDst.folders.begin(); it != rootDst.folders.end();)
 					{
@@ -2221,6 +2240,9 @@ R"(UI controls:
 				}
 			}
 		}
+
+		rootDst.firstId = nodeID;
+		++nodeID;
 
 		// process files
 		for (auto& dir : FileSystem::Enum( rootDir ))
@@ -2244,7 +2266,7 @@ R"(UI controls:
 					[](auto& lhs, auto &rhs) { return StringLessThan( lhs, rhs ); });
 
 		nodeID += rootDst.scripts.size();
-		rootDst.lastId = nodeID;
+		rootDst.foldersIdRange.y = nodeID;
 
 		// reserve for new script files
 		nodeID = AlignUp( nodeID + 32, 128 );

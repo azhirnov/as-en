@@ -57,7 +57,7 @@ namespace
 		read.imageDim		= ImageDim_t{copy.extent};
 		read.heapType		= EStagingHeapType::Static;
 
-		t.result = ctx.ReadbackImage( t.img_2, read ).Then( t,
+		t.result = ctx.ReadbackImage( t.img_2, read ).IfFullyRead( t,
 							[] (Promise<ImageMemView> readRes, CoSafe<CI1_TestData &> t) -> InlineCoro<>
 							{
 								auto view = co_await readRes;

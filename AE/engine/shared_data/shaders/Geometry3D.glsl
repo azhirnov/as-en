@@ -9,6 +9,7 @@
 
 #include "Math.glsl"
 #include "SafeMath.glsl"
+#include "AABB.glsl"
 #include "Sphere.glsl"
 
 
@@ -34,12 +35,24 @@ ND_ float3		RightVectorXZ (const float3 v)													{ return float3(  v.z, v.
 //-----------------------------------------------------------------------------
 
 
+	void		Ray_GetPerpendicular (const float3 dir, out float3 outLeft, out float3 outUp);
+ND_ float		Ray_MinDistance (const float3 dir, const float3 point);
+//-----------------------------------------------------------------------------
+
+
 ND_ Line3d		Line_Create (const float3 begin, const float3 end);
 
-	void		Ray_GetPerpendicular (const float3 dir, out float3 outLeft, out float3 outUp);
+ND_ float		Line_MinDistance (const Line3d line, const float3 point);
+ND_ float3		Line_ProjectPoint (const Line3d line, const float3 point);
 
-ND_ float		Ray_MinDistance (const float3 dir, const float3 point);
-ND_ float		Line_MinDistance (const float3 begin, const float3 end, const float3 point);
+ND_ bool		Line_IsPointInside (const Line3d line, const float3 projectedPoint);
+ND_ bool		Line_IsPointOnLine (const Line3d line, const float3 point);
+
+ND_ float3		Line_Dir (const Line3d line)													{ return Normalize( line.end - line.begin ); }
+ND_ float		Line_Length (const Line3d line)													{ return Distance( line.begin, line.end ); }
+
+ND_ float3		Line_Lerp (const Line3d line, float t)											{ return Lerp( line.begin, line.end, t ); }
+ND_ float		Line_InvLerp (const Line3d line, const float3 pointOnLine);
 //-----------------------------------------------------------------------------
 
 
@@ -56,11 +69,15 @@ ND_ float4		Plane_PointPerpendicular (const float3 point, const float4 planeNorm
 ND_ float2		Plane_ProjectPoint (const float3 point, const float3 planeNorm);
 ND_ float		Plane_Distance (const float4 planeNormalAndDist, const float3 point);
 
-// will return zero on error, use 'IsNormalized()' to check
+// will return zero on error, use 'IsNormalized()' or 'IsZero()' to check
 ND_ float3		Plane_IntersectionRay (const float4 p0, const float4 p1);
 ND_ float3		Plane_IntersectionPoint (const float4 p0, const float4 p1, const float4 p2);
 ND_ float4		Plane_FromPoints (const float3 p0, const float3 p1, const float3 p2);
 ND_ float4		Plane_From2Normals (const float3 n0, const float3 n1, const float3 origin);
+//-----------------------------------------------------------------------------
+
+
+ND_ Sphere		AABB_ToOuterSphere (const AABB box);
 //-----------------------------------------------------------------------------
 
 
@@ -107,18 +124,6 @@ float3  GetAbsMinorAxis (const float3 dir)
 //-----------------------------------------------------------------------------
 
 
-/*
-=================================================
-	Line3d_Create
-=================================================
-*/
-Line3d  Line_Create (const float3 begin, const float3 end)
-{
-	Line3d	res;
-	res.begin	= begin;
-	res.end		= end;
-	return res;
-}
 
 /*
 =================================================
@@ -148,16 +153,89 @@ float  Ray_MinDistance (const float3 dir, const float3 point)
 
 	return Sqrt( a / c );
 }
+//-----------------------------------------------------------------------------
+
+
+
+/*
+=================================================
+	Line3d_Create
+=================================================
+*/
+Line3d  Line_Create (const float3 begin, const float3 end)
+{
+	Line3d	res;
+	res.begin	= begin;
+	res.end		= end;
+	return res;
+}
 
 /*
 =================================================
 	Line_MinDistance
 =================================================
 */
-float  Line_MinDistance (const float3 begin, const float3 end, const float3 point)
+float  Line_MinDistance (const Line3d line, const float3 point)
 {
-	return Min(	Ray_MinDistance( end - begin, point - begin ),
-				Min( Distance( point, begin ), Distance( point, end )) );
+	return Min(	Ray_MinDistance( Line_Dir( line ), point - line.begin ),
+				Min( Distance( point, line.begin ), Distance( point, line.end )) );
+}
+
+/*
+=================================================
+	Line_ProjectPoint
+=================================================
+*/
+float3  Line_ProjectPoint (const Line3d line, const float3 point)
+{
+	float3	lvec	= line.end - line.begin;
+	float3	pvec	= point - line.begin;
+
+	float	pdl		= Dot( pvec, lvec );
+	float	len_sq	= LengthSq( lvec );
+	float	proj	= SafeDiv( pdl, len_sq );
+
+	return	line.begin + lvec * proj;
+}
+
+/*
+=================================================
+	Line_IsPointInside
+=================================================
+*/
+bool  Line_IsPointInside (const Line3d line, const float3 projectedPoint)
+{
+	float3	min = Min( line.begin, line.end );
+	float3	max = Max( line.begin, line.end );
+	return	AllGreater( projectedPoint, min ) and AllLess( projectedPoint, max );
+}
+
+/*
+=================================================
+	Line_IsPointOnLine
+=================================================
+*/
+bool  Line_IsPointOnLine (const Line3d line, const float3 point)
+{
+	float3	proj = Line_ProjectPoint( line, point );
+	return	Line_IsPointInside( line, proj ) and
+			DistanceSq( proj, point ) < 1.0e-4;
+}
+
+/*
+=================================================
+	Line_InvLerp
+----
+	returns barycentric coordinate of the point,
+	equal to 'distance( begin, point ) / distance( begin, end )'
+=================================================
+*/
+float  Line_InvLerp (const Line3d line, const float3 pointOnLine)
+{
+	float3	v		= line.end - line.begin;
+	float	inv_len	= SafeRcp( LengthSq( v ));	// zero on NaN
+	float	t		= Dot( pointOnLine - line.begin, v ) * inv_len;
+	return	t;
 }
 //-----------------------------------------------------------------------------
 
@@ -290,4 +368,16 @@ float4  Plane_From2Normals (const float3 n0, const float3 n1, const float3 origi
 {
 	float3	n = Normalize( Cross( n0, n1 ));
 	return	float4( n, -Dot( n, origin ));
+}
+//-----------------------------------------------------------------------------
+
+
+/*
+=================================================
+	AABB_ToOuterSphere
+=================================================
+*/
+Sphere  AABB_ToOuterSphere (const AABB box)
+{
+	return Sphere_Create( AABB_Center( box ), AABB_OuterRadius( box ));
 }

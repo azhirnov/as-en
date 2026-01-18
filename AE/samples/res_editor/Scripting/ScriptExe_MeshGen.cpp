@@ -798,8 +798,8 @@ namespace AE::ResEditor
 			uint	next	= (i + 1) % segmentCount;
 
 			indices[j]		= i;
-			indices[j+1]	= next;
-			indices[j+2]	= base_idx;
+			indices[j+1]	= base_idx;
+			indices[j+2]	= next;
 		}
 	}
 
@@ -854,6 +854,30 @@ namespace AE::ResEditor
 	{
 		using namespace AE::GeometryTools;
 		return packed_float3{ SCProj2_Spherical< SCProj1_Tangential >::Forward( double2{float2{c.x, c.y}}, ECubeFace(c.z) )};
+	}
+
+/*
+=================================================
+	_GetFrustumIndices
+=================================================
+*/
+	void  ScriptExe::_GetFrustumIndices (OUT ScriptArray<uint> &indices) __Th___
+	{
+		const ubyte		c_Indices [] = {
+			0, 1, 3,	0, 3, 2,	// front
+			5, 4, 6,	5, 6, 7,	// back
+			1, 5, 7,	1, 7, 3,	// right
+			4, 0, 2,	4, 2, 6,	// left
+			3, 7, 6,	3, 6, 2,	// top
+			0, 4, 5,	0, 5, 1		// bottom
+		};
+
+		indices.resize( CountOf(c_Indices) );  // throw
+
+		for (usize i : IndicesOnly( CountOf(c_Indices) ))
+		{
+			indices[i] = c_Indices[i];
+		}
 	}
 
 } // AE::ResEditor

@@ -61,17 +61,30 @@ namespace AE::ResEditor
 
 
 	// methods
-	public:
+	private:
 		RTGeometry (TriangleMeshes_t	triangleMeshes,
 					RC<Buffer>			indirectBuffer,
 					Renderer &			renderer,
 					StringView			dbgName,
-					Bool				allowUpdate)								__Th___;
+					Bool				isMutable)									__NE___;
 
 		RTGeometry (Renderer &			renderer,
-					StringView			dbgName)									__Th___;
+					StringView			dbgName)									__NE___;
 
+		void  _Init1 ()																__Th___;
+		void  _Init2 ()																__Th___;
+
+	public:
 		~RTGeometry ()																__NE_OV;
+
+		ND_ static RC<RTGeometry>  Create (TriangleMeshes_t	triangleMeshes,
+										   RC<Buffer>		indirectBuffer,
+										   Renderer &		renderer,
+										   StringView		dbgName,
+										   Bool				isMutable)				__Th___;
+
+		ND_ static RC<RTGeometry>  Create (Renderer &		renderer,
+										   StringView		dbgName)				__Th___;
 
 		ND_ RTGeometryID	GetGeometryId (FrameUID)								const	{ return _geomId.Get(); }
 
@@ -148,15 +161,25 @@ namespace AE::ResEditor
 
 
 	// methods
-	public:
+	private:
 		RTScene (Instances_t	instances,
 				 RC<Buffer>		instanceBuffer,
 				 RC<Buffer>		indirectBuffer,
 				 Renderer &		renderer,
 				 StringView		dbgName,
-				 Bool			allowUpdate)									__Th___;
+				 Bool			allowUpdate)									__NE___;
 
+		void  _Init ()															__Th___;
+
+	public:
 		~RTScene ()																__NE_OV;
+
+		ND_ static RC<RTScene>  Create (Instances_t		instances,
+										RC<Buffer>		instanceBuffer,
+										RC<Buffer>		indirectBuffer,
+										Renderer &		renderer,
+										StringView		dbgName,
+										Bool			allowUpdate)			__Th___;
 
 		ND_ RTSceneID	GetSceneId (FrameUID)									const	{ return _sceneId; }
 			void		Validate (FrameUID fid)									const;

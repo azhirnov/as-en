@@ -272,12 +272,16 @@ namespace
 	_FindPipelinesByResources
 =================================================
 */
-	template <typename PplnSpec>
-	static void  _FindPipelinesByResources (StringView dsName, const ScriptPassArgs::Arguments_t &args, INOUT Array<PplnSpec> &inoutPipelines) __Th___
+	enum class EDefoultArgs
 	{
-		if ( args.empty() )
-			return;	// keep all pipelines
+		Unknown,
+		Model,
+		SphericalCube,
+	};
 
+	template <typename PplnSpec>
+	static void  _FindPipelinesByResources (StringView dsName, const ScriptPassArgs::Arguments_t &args, EDefoultArgs defArgs, INOUT Array<PplnSpec> &inoutPipelines) __Th___
+	{
 		auto&											storage		= *ObjectStorage::Instance();
 		Array<PplnSpec>									out_pplns;
 		const DescriptorSetName							req_ds_name {dsName};
@@ -286,6 +290,7 @@ namespace
 		HashSet< UniformName::Optimized_t >				texbuf_names;
 		HashSet< UniformName::Optimized_t >				img_names;
 		HashSet< UniformName::Optimized_t >				rtas_names;
+		Array< UniformName::Optimized_t >				unbound_names;
 
 		for (auto& arg : args)
 		{
@@ -320,6 +325,23 @@ namespace
 			);
 		}
 
+		switch ( defArgs )
+		{
+			case EDefoultArgs::Unknown :
+			case EDefoultArgs::SphericalCube :
+				break;
+
+			case EDefoultArgs::Model :
+			{
+				// see 'model.mtr.ds' in [src](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/pipeline_inc/ModelTypes.as)
+				buf_names.insert( UniformName::Optimized_t{"un_Nodes"} );
+				buf_names.insert( UniformName::Optimized_t{"un_Materials"} );
+				buf_names.insert( UniformName::Optimized_t{"un_Lights"} );
+				img_names.emplace( UniformName::Optimized_t{"un_AlbedoMaps"} );
+				break;
+			}
+		}
+
 		for (auto& ppln : inoutPipelines)
 		{
 			auto	ppln_layout = ppln->GetBase()->GetLayout();
@@ -336,24 +358,26 @@ namespace
 				usize	texbuf_counter	= 0;
 				usize	img_counter		= 0;
 				usize	rtas_counter	= 0;
-				usize	unbound_counter	= 0;
 
-				const auto	IncCounter = [&unbound_counter] (bool found, INOUT usize &resCount)
+				const auto	IncCounter = [&unbound_names] (bool found, UniformName::Ref name, INOUT usize &resCount)
 				{{
-					if ( found )	++resCount;
-					else			++unbound_counter;
+					if ( found ){
+						++resCount;
+					}else{
+						unbound_names.push_back( name );
+					}
 				}};
 
 				for (auto& [un_name, un] : dsl->GetUniforms())
 				{
 					// storage image
 					if ( un.type == EDescriptorType::StorageImage ) {
-						IncCounter( img_names.contains( un_name ), img_counter );
+						IncCounter( img_names.contains( un_name ), un_name, img_counter );
 						continue;
 					}else
 					if ( un.type == EDescriptorType::SampledImage )
 					{
-						IncCounter( img_names.contains( un_name ), img_counter );
+						IncCounter( img_names.contains( un_name ), un_name, img_counter );
 						continue;
 					}else{
 						CHECK_THROW_MSG( not img_names.contains( un_name ),
@@ -362,7 +386,7 @@ namespace
 
 					// storage buffer
 					if ( un.type == EDescriptorType::StorageBuffer ) {
-						IncCounter( buf_names.contains( un_name ), buf_counter );
+						IncCounter( buf_names.contains( un_name ), un_name, buf_counter );
 						continue;
 					}else{
 						CHECK_THROW_MSG( not buf_names.contains( un_name ),
@@ -371,7 +395,7 @@ namespace
 
 					// storage texel buffer
 					if ( un.type == EDescriptorType::StorageTexelBuffer ) {
-						IncCounter( texbuf_names.contains( un_name ), texbuf_counter );
+						IncCounter( texbuf_names.contains( un_name ), un_name, texbuf_counter );
 						continue;
 					}else{
 						CHECK_THROW_MSG( not texbuf_names.contains( un_name ),
@@ -380,7 +404,7 @@ namespace
 
 					// ray tracing scene
 					if ( un.type == EDescriptorType::RayTracingScene ) {
-						IncCounter( rtas_names.contains( un_name ), rtas_counter );
+						IncCounter( rtas_names.contains( un_name ), un_name, rtas_counter );
 						continue;
 					}else{
 						CHECK_THROW_MSG( not rtas_names.contains( un_name ),
@@ -398,7 +422,7 @@ namespace
 							++tex_counter;
 						}
 						else
-							++unbound_counter;
+							unbound_names.push_back( un_name );
 						continue;
 					}else{
 						CHECK_THROW_MSG( not tex_names.contains( un_name ),
@@ -412,9 +436,20 @@ namespace
 					 img_counter	== img_names.size()		and
 					 rtas_counter	== rtas_names.size()	)
 				{
-					CHECK_THROW_MSG( unbound_counter == 0,
-						"Pipeline '"s << ppln->NameStr() << "' with DS '" << dsName << "' has all resources from geometry, but has " << ToString(unbound_counter) << " unbound resources" );
+					if ( not unbound_names.empty() )
+					{
+						String	names;
+						for (auto& un : unbound_names)
+						{
+							names << "'" << storage.GetName( un ) << "', ";
+						}
+						names.pop_back();
+						names.pop_back();
 
+						CHECK_THROW_MSG( false,
+							"Pipeline '"s << ppln->NameStr() << "' with DS '" << dsName << "' has all resources from geometry, but has " << ToString(unbound_names.size()) <<
+							" unbound resources: " << names );
+					}
 					out_pplns.push_back( ppln );
 					break;
 				}
@@ -615,7 +650,8 @@ namespace
 		ScriptGeomSource::PipelineNames_t	result;
 		{
 			result = _GetSuitablePipeline( pipelines, subpassIdx, hint, objId );
-			CHECK_THROW_MSG( result.size() == 1 );
+			CHECK_THROW_MSG( result.size() == 1,
+				"Expected to find one suitable pipeline, instead found "s << ToString(result.size()) );
 		}
 
 		for (EShaderStages stage : BitfieldIterate( stages ))
@@ -846,7 +882,7 @@ namespace
 		Array<GraphicsPipelineSpecPtr>	pipelines;
 		_FindPipelinesByVB( "VB{SphericalCubeVertex}", OUT pipelines );				// throw
 		_FindPipelinesByUB( c_MtrDS, "SphericalCubeMaterialUB", INOUT pipelines );	// throw
-		_FindPipelinesByResources( c_MtrDS, _args.Args(), INOUT pipelines );		// throw
+		_FindPipelinesByResources( c_MtrDS, _args.Args(), EDefoultArgs::SphericalCube, INOUT pipelines );	// throw
 
 		return _GetAllSuitablePipelines( pipelines, EShaderStages::GraphicsPipeStages, subpassIdx );
 	}
@@ -2074,8 +2110,8 @@ namespace
 			if ( passLayer != drawLayer )	return;
 			Array<MeshPipelineSpecPtr>		pipelines;
 			_GetMeshPipelines( OUT pipelines );
-			_FindPipelinesByUB( c_MtrDS, "UnifiedGeometryMaterialUB", INOUT pipelines );	// throw
-			_FindPipelinesByResources( c_MtrDS, _args.Args(), INOUT pipelines );			// throw
+			_FindPipelinesByUB( c_MtrDS, "UnifiedGeometryMaterialUB", INOUT pipelines );					// throw
+			_FindPipelinesByResources( c_MtrDS, _args.Args(), EDefoultArgs::Unknown, INOUT pipelines );		// throw
 			auto	tmp = _GetAllSuitablePipelines( pipelines, EShaderStages::MeshPipeStages, subpassIdx, hint, idx );
 			result.insert( result.end(), tmp.begin(), tmp.end() );
 		}};
@@ -2085,8 +2121,8 @@ namespace
 			if ( passLayer != drawLayer )	return;
 			Array<GraphicsPipelineSpecPtr>	pipelines;
 			_FindPipelinesWithVB( OUT pipelines, _vertexBuffers );
-			_FindPipelinesByUB( c_MtrDS, "UnifiedGeometryMaterialUB", INOUT pipelines );	// throw
-			_FindPipelinesByResources( c_MtrDS, _args.Args(), INOUT pipelines );			// throw
+			_FindPipelinesByUB( c_MtrDS, "UnifiedGeometryMaterialUB", INOUT pipelines );					// throw
+			_FindPipelinesByResources( c_MtrDS, _args.Args(), EDefoultArgs::Unknown, INOUT pipelines );		// throw
 			auto	tmp = _GetAllSuitablePipelines( pipelines, EShaderStages::GraphicsPipeStages, subpassIdx, hint, idx );
 			result.insert( result.end(), tmp.begin(), tmp.end() );
 		}};
@@ -2625,7 +2661,7 @@ namespace {
 		usize								obj_id			= 0;
 
 		_intermScene->ForEachModel(
-			[&ppln_per_obj, &shared_mtr_dsl, layer, subpassIdx, &obj_id] (const ResLoader::IntermScene::ModelData &model)
+			[this, &ppln_per_obj, &shared_mtr_dsl, layer, subpassIdx, &obj_id] (const ResLoader::IntermScene::ModelData &model)
 			{
 				++obj_id;
 
@@ -2654,7 +2690,7 @@ namespace {
 						_FindPipelinesByVB( attribs_name, OUT pipelines );						// throw
 						_FindPipelinesByLayout( "model.pl", INOUT pipelines );					// throw
 
-					//	_FindPipelinesByResources( c_MtrDS, _args.Args(), INOUT pipelines );	// throw
+						_FindPipelinesByResources( c_MtrDS, _args.Args(), EDefoultArgs::Model, INOUT pipelines );	// throw
 						_FindPipelinesByMaterial( *mtr, INOUT pipelines );						// throw
 
 						if ( not pipelines.empty() )

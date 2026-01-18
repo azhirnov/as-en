@@ -28,6 +28,7 @@ namespace AE::Threading
 		ReadRequestPtr  ReadBlock (Bytes pos, OUT void* data, Bytes dataSize, RC<> mem)	__NE_OV;
 		ReadRequestPtr  ReadBlock (Bytes pos, Bytes size)								__NE_OV;
 		bool			CancelAllRequests ()											__NE_OV;
+		ReqAlign		OffsetAlign ()													C_NE_OV	{ return _ds->OffsetAlign(); }
 	};
 
 
@@ -54,6 +55,7 @@ namespace AE::Threading
 		ReadRequestPtr	ReadSeq (OUT void* data, Bytes dataSize, RC<> mem)		__NE_OV;
 		ReadRequestPtr	ReadSeq (Bytes size)									__NE_OV;
 		bool			CancelAllRequests ()									__NE_OV;
+		ReqAlign		OffsetAlign ()											C_NE_OV	{ return _ds->OffsetAlign(); }
 	};
 
 

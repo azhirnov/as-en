@@ -1001,6 +1001,13 @@ namespace
 			state.depth.compareOp	= ECompareOp::Always;
 		}
 
+		if ( not state.rasterization.depthBias )
+		{
+			CHECK_MSG( state.rasterization.depthBiasConstFactor == 0.f,	"If 'depthBias' is disabled then 'depthBiasConstFactor' is unused and must be zero" );
+			CHECK_MSG( state.rasterization.depthBiasSlopeFactor == 0.f,	"If 'depthBias' is disabled then 'depthBiasSlopeFactor' is unused and must be zero" );
+			CHECK_MSG( state.rasterization.depthBiasClamp == 0.f,		"If 'depthBias' is disabled then 'depthBiasClamp' is unused and must be zero" );
+		}
+
 		// same as FeatureSet::IsSupported (RenderState)
 		{
 			if ( state.multisample.alphaToOne )
@@ -1097,6 +1104,17 @@ namespace
 
 			if ( state.rasterOrderAccess.stencil )
 				TEST_FEATURE( features, rasterizationOrderStencilAttachmentAccess );
+
+			if ( state.rasterization.conservativeRasterMode != Default )
+			{
+				switch_enum( state.rasterization.conservativeRasterMode )
+				{
+					case EConservativeRasterizationMode::Overestimate :	TEST_FEATURE( features, conservativeRasterization );  break;
+					case EConservativeRasterizationMode::Disabled :		break;
+					case EConservativeRasterizationMode::_Count :		break;
+				}
+				switch_end
+			}
 		}
 	}
 

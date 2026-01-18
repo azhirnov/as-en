@@ -33,7 +33,7 @@ namespace AE::Networking
 			ushort	p6;		// ::::::xxxx:
 			ushort	p7;		// :::::::xxxx
 		};
-		StaticAssert( sizeof(IPv6Bits) == 16, "IPv6Bits must have 128 bits" );
+		StaticAssertMsg( sizeof(IPv6Bits) == 16, "IPv6Bits must have 128 bits" );
 
 
 	// variables

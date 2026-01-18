@@ -10,17 +10,6 @@
 	|___\ __ base radius
 	 \
 	 direction or axis
-
-	*
-	| \
-	|\ \
-	| \ \
-	|  \ \
-	  |  \---- half of outer angle
-	half of inner angle
-
-	Inner cone has constant intensity.
-	Area between inner and outer cone has attenuation function.
 */
 
 #ifdef __cplusplus
@@ -39,14 +28,23 @@ struct Cone
 
 
 ND_ Cone	Cone_Create (const float3 origin, const float3 dir, const float angle, const float height);
+	void	Cone_Rotate (inout Cone c, const float3x3 mat);
+
 ND_ float	Cone_BaseRadius (const Cone c);
 ND_ float3	Cone_BaseCenter (const Cone c);
+ND_ float	Cone_SlantLength (const Cone c);
 ND_ float	Cone_Volume (const Cone c);
 
 ND_ Sphere	Cone_ToBoundingSphere (const Cone c);
 //-----------------------------------------------------------------------------
 
 
+
+/*
+=================================================
+	Cone_Create
+=================================================
+*/
 Cone  Cone_Create (const float3 origin, const float3 dir, const float angle, const float height)
 {
 	Cone	res;
@@ -57,25 +55,66 @@ Cone  Cone_Create (const float3 origin, const float3 dir, const float angle, con
 	return res;
 }
 
+/*
+=================================================
+	Cone_Rotate
+=================================================
+*/
+void  Cone_Rotate (inout Cone cone, const float3x3 mat)
+{
+	cone.origin	= mat * cone.origin;
+	cone.dir	= Normalize( mat * cone.dir );
+}
 
+/*
+=================================================
+	Cone_BaseRadius
+=================================================
+*/
 float  Cone_BaseRadius (const Cone c)
 {
 	return c.height * Tan( c.halfAngle );
 }
 
+/*
+=================================================
+	Cone_BaseCenter
+=================================================
+*/
 float3  Cone_BaseCenter (const Cone c)
 {
 	return c.origin + c.dir * c.height;
 }
 
+/*
+=================================================
+	Cone_SlantLength
+=================================================
+*/
+float  Cone_SlantLength (const Cone c)
+{
+	float	r = Cone_BaseRadius( c );
+	float	h = c.height;
+	return	Sqrt( r * r * h * h );
+}
+
+/*
+=================================================
+	Cone_Volume
+=================================================
+*/
 float  Cone_Volume (const Cone c)
 {
 	float	area = float_Pi * Square( c.height * Tan( c.halfAngle ));
-	float	vol  = 1.0 / 3.0 * c.height * area;
-	return vol;
+	float	vol  = (1.0 / 3.0) * c.height * area;
+	return	vol;
 }
 
-
+/*
+=================================================
+	Cone_ToBoundingSphere
+=================================================
+*/
 Sphere  Cone_ToBoundingSphere (const Cone c)
 {
 	Sphere	sp;

@@ -2,6 +2,18 @@
 /*
 	Draw animated cubes using mesh and task shaders.
 	Invisible cubes are frustum culled in task shader.
+
+	Supports shader debugging.
+
+	Debug TS/MS:
+	 * In Debugger section set: 'draw cubes', 'Trace', 'Task' or 'Mesh'.
+	 * Use 'Set coord' to select which 'GlobalInvocationID' will be debugged.
+	 * Press 'G' key and wait for shader trace recording (see logs).
+
+	Debug FS:
+	 * In Debugger section set: 'draw cubes', 'Trace', 'Fragment'.
+	 * Use mouse to select pixel to debug.
+	 * Press 'G' key and wait for shader trace recording (see logs).
 */
 #ifdef __INTELLISENSE__
 # 	include <res_editor.as>

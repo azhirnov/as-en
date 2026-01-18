@@ -26,6 +26,7 @@ ND_ float  SDF2_Trapezeoid (float2 position, const float r1, const float r2, con
 ND_ float  SDF2_UnevenCapsule (float2 position, const float r1, const float r2, const float height);
 ND_ float  SDF2_Hexagram (float2 position, const float radius);
 ND_ float  SDF2_Star5 (float2 position, const float radius, const float rf);
+ND_ float  SDF2_Pie (float2 position, const float2 arcSinCos, const float radius);
 
 
 // 3D Shapes
@@ -38,6 +39,7 @@ ND_ float  SDF_Torus (const float3 position, const float2 outerAndInnerRadius);
 ND_ float  SDF_Cylinder (const float3 position, const float2 radiusHeight);
 ND_ float  SDF_InfiniteCone (const float3 position, const float2 direction);
 ND_ float  SDF_Cone (const float3 position, const float2 angleSinCos, const float height);
+ND_ float  SDF_SolidAngle (const float3 position, const float2 angleSinCos, const float height);
 ND_ float  SDF_Plane (const float3 position, const float3 norm, const float dist);
 ND_ float  SDF_Plane (const float3 center, const float3 planePos, const float3 pos);
 ND_ float  SDF_HexagonalPrism (const float3 position, const float2 h);
@@ -99,6 +101,14 @@ ND_ float  SDF_Repetition (const float2 position, const float  step, const float
 ND_ float  SDF_Repetition (const float2 position, const float2 step, const float2 count, float (*sdf)(float2));
 ND_ float  SDF_Repetition (const float3 position, const float  step, const float3 count, float (*sdf)(float3));
 ND_ float  SDF_Repetition (const float3 position, const float3 step, const float3 count, float (*sdf)(float3));
+#endif
+
+
+// Normal
+#if 0 // macros
+#define GEN_SDF_NORMAL_6sp_FN( _fnName_, _sdf_ )
+#define GEN_SDF_NORMAL_4sp_FN( _fnName_, _sdf_ )
+#define GEN_SDF_NORMAL_27sp_FN( _fnName_, _sdf_ )
 #endif
 //-----------------------------------------------------------------------------
 

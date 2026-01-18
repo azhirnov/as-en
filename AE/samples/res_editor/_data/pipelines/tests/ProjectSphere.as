@@ -73,7 +73,7 @@
 			RC<DescriptorSetLayout>	ds = DescriptorSetLayout( "mtr.ds" );
 			ds.UniformBuffer( EShaderStages::Vertex, "un_PerObject", "UnifiedGeometryMaterialUB" );
 			ds.StorageBuffer( EShaderStages::Vertex, "un_Geometry",  "GeometryData",			EResourceState::ShaderStorage_Read );	// external
-			ds.StorageBuffer( EShaderStages::Vertex, "un_Transform", "ObjectTransform_Array",	EResourceState::ShaderStorage_Read );
+			ds.StorageBuffer( EShaderStages::Vertex, "un_Transform", "ObjectTransform_Array",	EResourceState::ShaderStorage_Read );	// external
 		}{
 			RC<PipelineLayout>		pl = PipelineLayout( "pl" );
 			pl.DSLayout( "pass",	 0, "pass.ds" );

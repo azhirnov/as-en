@@ -17,21 +17,25 @@ namespace AE::Base
 	constructor
 =================================================
 */
-	WinFileRStream::WinFileRStream (const Handle_t &file DEBUG_ONLY(, Path filename)) __NE___ :
+	WinFileRStream::WinFileRStream (const Handle_t &file, EMode mode DEBUG_ONLY(, Path filename)) __NE___ :
 		_file{ file.Ref<HANDLE>() },
-		_fileSize{ GetFileSize( _file.Ref<HANDLE>() )}
-		DEBUG_ONLY(, _filename{ FileSystem::ToAbsolute( filename )})
+		_fileSize{ GetFileSize( _file.Ref<HANDLE>() )},
+		_align{ AllBits( mode, EMode::Win_NoBuffering ) ? GetLogicalBytesPerSector( _file.Ref<HANDLE>() ) : ReqAlign{} }
+		DEBUG_ONLY(
+			, _dbgFilename{ FileSystem::ToAbsolute( filename )}
+			, _dbgMode{ mode }
+		)
 	{
 		if_unlikely( not IsOpen() )
-			WIN_CHECK_DEV( "Can't open file: \""s << ToString(_filename) << "\": " );
+			WIN_CHECK_DEV( "Can't open file: \""s << ToString(_dbgFilename) << "\": " );
 	}
 
 	WinFileRStream::WinFileRStream (const char* filename, EMode mode)		__NE___ :
-		WinFileRStream{ Handle_t{OpenFileForRead( filename, mode )} DEBUG_ONLY(, filename )}
+		WinFileRStream{ Handle_t{OpenFileForRead( filename, mode )}, mode DEBUG_ONLY(, filename )}
 	{}
 
 	WinFileRStream::WinFileRStream (const wchar_t* filename, EMode mode)	__NE___ :
-		WinFileRStream{ Handle_t{OpenFileForRead( filename, mode )} DEBUG_ONLY(, filename )}
+		WinFileRStream{ Handle_t{OpenFileForRead( filename, mode )}, mode DEBUG_ONLY(, filename )}
 	{}
 
 	WinFileRStream::WinFileRStream (NtStringView filename, EMode mode)		__NE___ : WinFileRStream{ filename.c_str(), mode } {}
@@ -141,20 +145,24 @@ namespace AE::Base
 	constructor
 =================================================
 */
-	WinFileWStream::WinFileWStream (const Handle_t &file DEBUG_ONLY(, Path filename)) __NE___ :
-		_file{ file.Ref<HANDLE>() }
-		DEBUG_ONLY(, _filename{ FileSystem::ToAbsolute( filename )})
+	WinFileWStream::WinFileWStream (const Handle_t &file, EMode mode DEBUG_ONLY(, Path filename)) __NE___ :
+		_file{ file.Ref<HANDLE>() },
+		_align{ AllBits( mode, EMode::Win_NoBuffering ) ? GetLogicalBytesPerSector( _file.Ref<HANDLE>() ) : ReqAlign{} }
+		DEBUG_ONLY(
+			, _dbgFilename{ FileSystem::ToAbsolute( filename )}
+			, _dbgMode{ mode }
+		)
 	{
 		if_unlikely( not IsOpen() )
-			WIN_CHECK_DEV( "Can't open file: \""s << ToString(_filename) << "\": " );
+			WIN_CHECK_DEV( "Can't open file: \""s << ToString(_dbgFilename) << "\": " );
 	}
 
 	WinFileWStream::WinFileWStream (const char* filename, EMode mode)		__NE___ :
-		WinFileWStream{ Handle_t{OpenFileForWrite( filename, INOUT mode )} DEBUG_ONLY(, Path{filename} )}
+		WinFileWStream{ Handle_t{OpenFileForWrite( filename, INOUT mode )}, mode DEBUG_ONLY(, Path{filename} )}
 	{}
 
 	WinFileWStream::WinFileWStream (const wchar_t* filename, EMode mode)	__NE___ :
-		WinFileWStream{ Handle_t{OpenFileForWrite( filename, INOUT mode )} DEBUG_ONLY(, Path{filename} )}
+		WinFileWStream{ Handle_t{OpenFileForWrite( filename, INOUT mode )}, mode DEBUG_ONLY(, Path{filename} )}
 	{}
 
 	WinFileWStream::WinFileWStream (NtStringView filename, EMode mode)		__NE___	: WinFileWStream{ filename.c_str(), mode } {}
@@ -285,25 +293,29 @@ namespace AE::Base
 	constructor
 =================================================
 */
-	WinFileRDataSource::WinFileRDataSource (const Handle_t &file DEBUG_ONLY(, Path filename)) __NE___ :
+	WinFileRDataSource::WinFileRDataSource (const Handle_t &file, EMode mode DEBUG_ONLY(, Path filename)) __NE___ :
 		_file{ file.Ref<HANDLE>() },
-		_fileSize{ GetFileSize( _file.Ref<HANDLE>() )}
-		DEBUG_ONLY(, _filename{ FileSystem::ToAbsolute( filename )})
+		_fileSize{ GetFileSize( _file.Ref<HANDLE>() )},
+		_align{ AllBits( mode, EMode::Win_NoBuffering ) ? GetLogicalBytesPerSector( _file.Ref<HANDLE>() ) : ReqAlign{} }
+		DEBUG_ONLY(
+			, _dbgFilename{ FileSystem::ToAbsolute( filename )}
+			, _dbgMode{ mode }
+		)
 	{
 		if_unlikely( not IsOpen() )
-			WIN_CHECK_DEV( "Can't open file: \""s << ToString(_filename) << "\": " );
+			WIN_CHECK_DEV( "Can't open file: \""s << ToString(_dbgFilename) << "\": " );
 	}
 
 	WinFileRDataSource::WinFileRDataSource (NtStringView filename, EMode mode)		__NE___	: WinFileRDataSource{ filename.c_str(), mode } {}
 	WinFileRDataSource::WinFileRDataSource (const String &filename, EMode mode)		__NE___	: WinFileRDataSource{ filename.c_str(), mode } {}
 	WinFileRDataSource::WinFileRDataSource (const char* filename, EMode mode)		__NE___	:
-		WinFileRDataSource{ Handle_t{OpenFileForRead( filename, mode, FILE_FLAG_OVERLAPPED )} DEBUG_ONLY(, filename )}
+		WinFileRDataSource{ Handle_t{OpenFileForRead( filename, mode, FILE_FLAG_OVERLAPPED )}, mode DEBUG_ONLY(, Path{filename} )}
 	{}
 
 	WinFileRDataSource::WinFileRDataSource (NtWStringView filename, EMode mode)		__NE___	: WinFileRDataSource{ filename.c_str(), mode } {}
 	WinFileRDataSource::WinFileRDataSource (const WString &filename, EMode mode)	__NE___	: WinFileRDataSource{ filename.c_str(), mode } {}
 	WinFileRDataSource::WinFileRDataSource (const wchar_t* filename, EMode mode)	__NE___	:
-		WinFileRDataSource{ Handle_t{OpenFileForRead( filename, mode, FILE_FLAG_OVERLAPPED )} DEBUG_ONLY(, filename )}
+		WinFileRDataSource{ Handle_t{OpenFileForRead( filename, mode, FILE_FLAG_OVERLAPPED )}, mode DEBUG_ONLY(, Path{filename} )}
 	{}
 
 	WinFileRDataSource::WinFileRDataSource (const Path &path, EMode mode)			__NE___	: WinFileRDataSource{ path.c_str(), mode } {}
@@ -353,6 +365,9 @@ namespace AE::Base
 	{
 		ASSERT( IsOpen() );
 		ASSERT_Lt( size, MaxValue<DWORD>() );
+		ASSERT( IsMultipleOf( pos, _align.offsetAlign ));
+		ASSERT( IsMultipleOf( size, _align.offsetAlign ));
+		ASSERT( IsMultipleOf( buffer, _align.ptrAlign ));
 
 		OVERLAPPED	ov = {};
 		SetOverlappedOffset( INOUT ov, pos );
@@ -388,24 +403,28 @@ namespace AE::Base
 	constructor
 =================================================
 */
-	WinFileWDataSource::WinFileWDataSource (const Handle_t &file DEBUG_ONLY(, Path filename)) __NE___ :
-		_file{ file.Ref<HANDLE>() }
-		DEBUG_ONLY(, _filename{ FileSystem::ToAbsolute( filename )})
+	WinFileWDataSource::WinFileWDataSource (const Handle_t &file, EMode mode DEBUG_ONLY(, Path filename)) __NE___ :
+		_file{ file.Ref<HANDLE>() },
+		_align{ AllBits( mode, EMode::Win_NoBuffering ) ? GetLogicalBytesPerSector( _file.Ref<HANDLE>() ) : ReqAlign{} }
+		DEBUG_ONLY(
+			, _dbgFilename{ FileSystem::ToAbsolute( filename )}
+			, _dbgMode{ mode }
+		)
 	{
 		if_unlikely( not IsOpen() )
-			WIN_CHECK_DEV( "Can't open file: \""s << ToString(_filename) << "\": " );
+			WIN_CHECK_DEV( "Can't open file: \""s << ToString(_dbgFilename) << "\": " );
 	}
 
 	WinFileWDataSource::WinFileWDataSource (NtStringView filename, EMode mode)		__NE___	: WinFileWDataSource{ filename.c_str(), mode } {}
 	WinFileWDataSource::WinFileWDataSource (const String &filename, EMode mode)		__NE___	: WinFileWDataSource{ filename.c_str(), mode } {}
 	WinFileWDataSource::WinFileWDataSource (const char* filename, EMode mode)		__NE___	:
-		WinFileWDataSource{ Handle_t{OpenFileForWrite( filename, INOUT mode, FILE_FLAG_OVERLAPPED )} DEBUG_ONLY(, Path{filename} )}
+		WinFileWDataSource{ Handle_t{OpenFileForWrite( filename, INOUT mode, FILE_FLAG_OVERLAPPED )}, mode DEBUG_ONLY(, Path{filename} )}
 	{}
 
 	WinFileWDataSource::WinFileWDataSource (NtWStringView filename, EMode mode)		__NE___	: WinFileWDataSource{ filename.c_str(), mode } {}
 	WinFileWDataSource::WinFileWDataSource (const WString &filename, EMode mode)	__NE___	: WinFileWDataSource{ filename.c_str(), mode } {}
 	WinFileWDataSource::WinFileWDataSource (const wchar_t* filename, EMode mode)	__NE___	:
-		WinFileWDataSource{ Handle_t{OpenFileForWrite( filename, INOUT mode, FILE_FLAG_OVERLAPPED )} DEBUG_ONLY(, Path{filename} )}
+		WinFileWDataSource{ Handle_t{OpenFileForWrite( filename, INOUT mode, FILE_FLAG_OVERLAPPED )}, mode DEBUG_ONLY(, Path{filename} )}
 	{}
 
 	WinFileWDataSource::WinFileWDataSource (const Path &path, EMode mode)			__NE___	: WinFileWDataSource{ path.c_str(), mode } {}
@@ -460,6 +479,7 @@ namespace AE::Base
 	Bytes  WinFileWDataSource::Reserve (Bytes newSize) __NE___
 	{
 		ASSERT( IsOpen() );
+		ASSERT( IsMultipleOf( newSize, _align.offsetAlign ));
 
 		const Bytes		cur_size = GetFileSize( _file.Ref<HANDLE>() );
 
@@ -489,6 +509,9 @@ namespace AE::Base
 	{
 		ASSERT( IsOpen() );
 		ASSERT_Lt( size, MaxValue<DWORD>() );
+		ASSERT( IsMultipleOf( pos, _align.offsetAlign ));
+		ASSERT( IsMultipleOf( size, _align.offsetAlign ));
+		ASSERT( IsMultipleOf( buffer, _align.ptrAlign ));
 
 		OVERLAPPED	ov = {};
 		SetOverlappedOffset( INOUT ov, pos );

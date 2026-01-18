@@ -18,12 +18,50 @@ namespace AE::ResEditor
 							RC<Buffer>			indirectBuffer,
 							Renderer &			renderer,
 							StringView			dbgName,
-							Bool				isMutable) __Th___ :
+							Bool				isMutable) __NE___ :
 		IResource{ renderer },
 		_indirectBuffer{ RVRef(indirectBuffer) },
 		_triangleMeshes{ RVRef(triangleMeshes) },
 		_isMutable{ isMutable },
 		_dbgName{ dbgName }
+	{}
+
+	RTGeometry::RTGeometry (Renderer &	renderer,
+							StringView	dbgName) __NE___ :
+		IResource{ renderer },
+		_dbgName{ dbgName }
+	{}
+
+/*
+=================================================
+	Create
+=================================================
+*/
+	RC<RTGeometry>  RTGeometry::Create (TriangleMeshes_t	triangleMeshes,
+										RC<Buffer>			indirectBuffer,
+										Renderer &			renderer,
+										StringView			dbgName,
+										Bool				allowUpdate) __Th___
+	{
+		RC<RTGeometry>	res { new RTGeometry{ RVRef(triangleMeshes), RVRef(indirectBuffer), renderer, dbgName, allowUpdate }};
+		res->_Init1();  // throw
+		return res;
+	}
+
+	RC<RTGeometry>  RTGeometry::Create (Renderer &	renderer,
+										StringView	dbgName) __Th___
+	{
+		RC<RTGeometry>	res { new RTGeometry{ renderer, dbgName }};
+		res->_Init2();  // throw
+		return res;
+	}
+
+/*
+=================================================
+	_Init1
+=================================================
+*/
+	void  RTGeometry::_Init1 () __Th___
 	{
 		_uploadStatus.store( EUploadStatus::InProgress );
 
@@ -87,17 +125,14 @@ namespace AE::ResEditor
 
 /*
 =================================================
-	constructor
+	_Init2
 =================================================
 */
-	RTGeometry::RTGeometry (Renderer &	renderer,
-							StringView	dbgName) __Th___ :
-		IResource{ renderer },
-		_dbgName{ dbgName }
+	void  RTGeometry::_Init2 () __Th___
 	{
 		_uploadStatus.store( EUploadStatus::InProgress );
 
-		auto	id = renderer.GetDummyRTGeometry();
+		auto	id = _Renderer().GetDummyRTGeometry();
 		CHECK_THROW( id );
 
 		Unused( _geomId.Attach( RVRef(id) ));
@@ -356,7 +391,7 @@ namespace AE::ResEditor
 					  RC<Buffer>	indirectBuffer,
 					  Renderer &	renderer,
 					  StringView	dbgName,
-					  Bool			allowUpdate) __Th___ :
+					  Bool			allowUpdate) __NE___ :
 		IResource{ renderer },
 		_instanceBuffer{ RVRef(instanceBuffer) },
 		_indirectBuffer{ RVRef(indirectBuffer) },
@@ -367,6 +402,14 @@ namespace AE::ResEditor
 										return is_mutable;
 									}() },
 		_dbgName{ dbgName }
+	{}
+
+/*
+=================================================
+	_Init
+=================================================
+*/
+	void  RTScene::_Init () __Th___
 	{
 		_uploadStatus.store( EUploadStatus::InProgress );
 
@@ -410,6 +453,23 @@ namespace AE::ResEditor
 			_indirectBufferMem = Cast<ASBuildIndirectCommand>( mem_obj.mappedPtr );
 			CHECK_THROW( _indirectBufferMem != null );
 		}
+	}
+
+/*
+=================================================
+	Create
+=================================================
+*/
+	RC<RTScene>  RTScene::Create (Instances_t	instances,
+								  RC<Buffer>	instanceBuffer,
+								  RC<Buffer>	indirectBuffer,
+								  Renderer &	renderer,
+								  StringView	dbgName,
+								  Bool			allowUpdate) __Th___
+	{
+		RC<RTScene>		res { new RTScene{ RVRef(instances), RVRef(instanceBuffer), RVRef(indirectBuffer), renderer, dbgName, allowUpdate }};
+		res->_Init();  // throw
+		return res;
 	}
 
 /*

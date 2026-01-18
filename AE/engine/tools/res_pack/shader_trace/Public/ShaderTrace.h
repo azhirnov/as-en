@@ -99,6 +99,8 @@ namespace AE::PipelineCompiler
 			Swizzle ()												__NE___ {}
 			Swizzle (const Swizzle &other)							__NE___ : _value{other._value} {}
 
+			Swizzle&	operator = (const Swizzle &)				__NE___ = default;
+
 			ND_ uint	DstRows ()									C_NE___	{ ASSERT( not IsArray() );  return (_value >> c_DstRowsOffset) & 7; }				// 0..4
 			ND_ uint	OriginRows ()								C_NE___	{ ASSERT( not IsArray() );  return ((_value >> c_OriginRowsOffset) & 3) + 1; }
 			ND_ uint	OriginCols ()								C_NE___	{ ASSERT( not IsArray() );  return ((_value >> c_OriginColsOffset) & 3) + 1; }

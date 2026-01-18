@@ -42,7 +42,9 @@ ND_ float2  RayInverse_PlaneToVR180 (const float3 rayDir, const uint eye);
 ND_ float2  RayInverse_PlaneToVR360 (const float3 rayDir, const uint eye);
 ND_ float2  RayInverse_PlaneTo360 (const float3 rayDir);
 ND_ float2  RayInverse_PlaneToCubemap360 (const float3 rayDir);
+ND_ float2  RayInverse_PlaneToCubemap360 (const float3 rayDir, const float2 pixSize);
 ND_ float2  RayInverse_PlaneToCubemapVR360 (const float3 rayDir, const uint eye);
+ND_ float2  RayInverse_PlaneToCubemapVR360 (const float3 rayDir, const uint eye, const float2 pixSize);
 ND_ float2  RayInverse_PlaneToSphere (const float2 invHalfFov, const float3 rayDir);			// returns snorm
 ND_ float2  RayInverse_Perspective (const float2 fov, const float3 rayDir);						// returns snorm
 ND_ float2  RayInverse_Perspective (const float fovY, const float ratio, const float3 rayDir);	// returns snorm
@@ -305,66 +307,85 @@ float2  RayInverse_PlaneTo360 (const float3 rayDir)
 	for webm 360;  top plane (horizontal): left, front, right;  bottom plane (vertical): down, back, up.
 =================================================
 */
+#ifdef AE_shader_quad_control
+# define IF_QUAD_ANY( x )	if ( gl.quadGroup.Any( x ))
+#else
+# define IF_QUAD_ANY( x )	if ( x )
+#endif
+
 float2  RayInverse_PlaneToCubemap360 (const float3 c)
 {
-	// front (xy space)
-	if ( All3( Abs(c.x) <= c.z,  c.z > 0.f,  Abs(c.y) <= c.z ))
-		return Lerp( float2(1.0/3.0, 0.0), float2(2.0/3.0, 0.5), ToUNorm(c.xy / c.z) );
-
-	// right (zy space)
-	if ( All3( Abs(c.z) <= c.x,  c.x > 0.f,  Abs(c.y) <= c.x ))
-		return Lerp( float2(2.0/3.0, 0.0), float2(1.0, 0.5), ToUNorm(float2( -c.z, c.y ) / c.x) );
-
-	// back (xy space)
-	if ( All3( Abs(c.x) <= -c.z,  c.z < 0.f,  Abs(c.y) <= -c.z ))
-		return Lerp( float2(2.0/3.0, 1.0), float2(1.0/3.0, 0.5), ToUNorm(c.yx / -c.z) );
-
-	// left (zy space)
-	if ( All3( Abs(c.z) <= -c.x,  c.x < 0.f,  Abs(c.y) <= -c.x ))
-		return Lerp( float2(0.0, 0.0), float2(1.0/3.0, 0.5), ToUNorm(c.zy / -c.x) );
-
-	// down (xz space)
-	if ( c.y > 0.f )
-		return Lerp( float2(1.0/3.0, 1.0), float2(0.0, 0.5), ToUNorm(c.zx / c.y) );
-
-	// up (xz space)
-	return Lerp( float2(1.0, 1.0), float2(2.0/3.0, 0.5), ToUNorm(float2( c.z, -c.x ) / c.y) );
+	return RayInverse_PlaneToCubemap360( c, float2(0.0) );
 }
 
+float2  RayInverse_PlaneToCubemap360 (const float3 c, const float2 pixSize)
+{
+	// front (xy space)
+	IF_QUAD_ANY( All3( Abs(c.x) <= c.z,  c.z > 0.f,  Abs(c.y) <= c.z ))
+		return Lerp( float2(1.0/3.0 + pixSize.x, 0.0), float2(2.0/3.0, 0.5) - pixSize, ToUNorm(c.xy / c.z) );
+
+	// right (zy space)
+	IF_QUAD_ANY( All3( Abs(c.z) <= c.x,  c.x > 0.f,  Abs(c.y) <= c.x ))
+		return Lerp( float2(2.0/3.0 + pixSize.x, 0.0), float2(1.0, 0.5 - pixSize.y), ToUNorm(float2( -c.z, c.y ) / c.x) );
+
+	// back (xy space)
+	IF_QUAD_ANY( All3( Abs(c.x) <= -c.z,  c.z < 0.f,  Abs(c.y) <= -c.z ))
+		return Lerp( float2(2.0/3.0 + pixSize.x, 1.0), float2(1.0/3.0, 0.5) - pixSize, ToUNorm(c.yx / -c.z) );
+
+	// left (zy space)
+	IF_QUAD_ANY( All3( Abs(c.z) <= -c.x,  c.x < 0.f,  Abs(c.y) <= -c.x ))
+		return Lerp( float2(0.0, 0.0), float2(1.0/3.0, 0.5) - pixSize, ToUNorm(c.zy / -c.x) );
+
+	// down (xz space)
+	IF_QUAD_ANY( c.y > 0.f )
+		return Lerp( float2(1.0/3.0 + pixSize.x, 1.0), float2(0.0, 0.5 - pixSize.y), ToUNorm(c.zx / c.y) );
+
+	// up (xz space)
+	return Lerp( float2(1.0, 1.0), float2(2.0/3.0, 0.5) - pixSize, ToUNorm(float2( c.z, -c.x ) / c.y) );
+}
+
+float2  RayInverse_PlaneToCubemap360_v2 (const float3 c, const float2 pixSize)
+{
+	// front (xy space)
+	IF_QUAD_ANY( All3( Abs(c.x) <= c.z,  c.z > 0.f,  Abs(c.y) <= c.z ))
+		return Lerp( float2(1.0/3.0 + pixSize.x, 0.0), float2(2.0/3.0, 0.5) - pixSize, ToUNorm(c.xy / c.z) );
+	
+	// right (zy space)
+	IF_QUAD_ANY( All3( Abs(c.z) <= c.x,  c.x > 0.f,  Abs(c.y) <= c.x ))
+		return Lerp( float2(2.0/3.0 + pixSize.x, 0.0), float2(1.0, 0.5 - pixSize.y), ToUNorm(float2( -c.z, c.y ) / c.x) );
+	
+	// back (xy space)
+	IF_QUAD_ANY( All3( Abs(c.x) <= -c.z,  c.z < 0.f,  Abs(c.y) <= -c.z ))
+		return Lerp( float2(2.0/3.0 + pixSize.x, 1.0), float2(1.0/3.0, 0.5) - pixSize, ToUNorm(c.yx / c.z) );
+	
+	// left (zy space)
+	IF_QUAD_ANY( All3( Abs(c.z) <= -c.x,  c.x < 0.f,  Abs(c.y) <= -c.x ))
+		return Lerp( float2(0.0, 0.0), float2(1.0/3.0, 0.5) - pixSize, ToUNorm(c.zy / -c.x) );
+	
+	// down (xz space)
+	IF_QUAD_ANY( c.y > 0.f )
+		return Lerp( float2(1.0, 1.0), float2(2.0/3.0, 0.5) - pixSize, ToUNorm(c.zx / -c.y) );
+
+	// up (xz space)
+	return Lerp( float2(1.0/3.0 + pixSize.x, 1.0), float2(0.0, 0.5 - pixSize.y), ToUNorm(float2( -c.z, c.x ) / c.y) );
+}
+
+#undef IF_QUAD_ANY
 /*
 =================================================
-	RayInverse_PlaneToCubemap360
+	RayInverse_PlaneToCubemapVR360
 ----
 	for webm VR360;  left plane (vertical): left, front, right;  bottom plane (vertical): down, back, up.
 =================================================
 */
 float2  RayInverse_PlaneToCubemapVR360 (const float3 c, const uint eye)
 {
-	float2	uv;
+	return RayInverse_PlaneToCubemapVR360( c, eye, float2(0.0) );
+}
 
-	// front (xy space)
-	if ( All3( Abs(c.x) <= c.z,  c.z > 0.f,  Abs(c.y) <= c.z ))
-		uv = Lerp( float2(1.0/3.0, 0.0), float2(2.0/3.0, 0.5), ToUNorm(c.xy / c.z) );
-	else
-	// right (zy space)
-	if ( All3( Abs(c.z) <= c.x,  c.x > 0.f,  Abs(c.y) <= c.x ))
-		uv = Lerp( float2(2.0/3.0, 0.0), float2(1.0, 0.5), ToUNorm(float2( -c.z, c.y ) / c.x) );
-	else
-	// back (xy space)
-	if ( All3( Abs(c.x) <= -c.z,  c.z < 0.f,  Abs(c.y) <= -c.z ))
-		uv = Lerp( float2(2.0/3.0, 1.0), float2(1.0/3.0, 0.5), ToUNorm(c.yx / c.z) );
-	else
-	// left (zy space)
-	if ( All3( Abs(c.z) <= -c.x,  c.x < 0.f,  Abs(c.y) <= -c.x ))
-		uv = Lerp( float2(0.0, 0.0), float2(1.0/3.0, 0.5), ToUNorm(c.zy / -c.x) );
-	else
-	// down (xz space)
-	if ( c.y > 0.f )
-		uv = Lerp( float2(1.0, 1.0), float2(2.0/3.0, 0.5), ToUNorm(c.zx / -c.y) );
-	else
-	// up (xz space)
-		uv = Lerp( float2(1.0/3.0, 1.0), float2(0.0, 0.5), ToUNorm(float2( -c.z, c.x ) / c.y) );
-
+float2  RayInverse_PlaneToCubemapVR360 (const float3 c, const uint eye, const float2 pixSize)
+{
+	float2	uv = RayInverse_PlaneToCubemap360_v2( c, pixSize * float2(2.0, 1.0) );
 	uv = uv.yx;
 	uv.x = uv.x * 0.5f + (eye == 0 ? 0.f : 0.5f);
 	return uv;

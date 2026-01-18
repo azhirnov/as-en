@@ -29,12 +29,13 @@ void  SetupPasses ()
 		AddNoise( params );
 	}{
 		const array<float>	params = {
-			0, 							// iMode
-			-0.25f, 0.0f, 0.25f, 0.5f, 	// iA
-			0.75f, 1.0f, 1.25f, 		// iB
-			1.f,						// iScale
+			0, 										// iMode
+			2.0000f, 0.5360f, 0.6960f, 0.4820f, 	// iA
+			0.7680f, 0.9460f, 1.9110f, 				// iB
+			1.5220f, 								// iScale
+			0.0000f, 								// iBias
 		};
-		AddSpline( params );
+		AddYAxisSpline( params );
 	}
 }
 

@@ -44,6 +44,7 @@ add_subdirectory( "src/pch" )
 include( "tools/EngineTools.cmake" )
 add_subdirectory( "src" )
 add_subdirectory( "tools" )
+add_subdirectory( "shared_data" )
 
 if (EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/_experimental/CMakeLists.txt")
 	add_subdirectory( "_experimental" )

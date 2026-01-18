@@ -29,7 +29,8 @@ rmdir /Q /S ".gradle"
 rmdir /Q /S "app\.cxx"
 rmdir /Q /S "app\build"
 cd ".."
-robocopy "temp\angelscript\include" "..\..\..\..\..\AE-Bin\external\android-clang\AngelScript\include" *.h /S 
-robocopy "temp\add_on\scriptstdstring" "..\..\..\..\..\AE-Bin\external\android-clang\AngelScript\include" *.h /S 
-robocopy "temp\add_on\scriptarray" "..\..\..\..\..\AE-Bin\external\android-clang\AngelScript\include" *.h /S 
+robocopy "temp\sdk\angelscript\include" "..\..\..\..\..\AE-Bin\external\android-clang\AngelScript\include" *.h /S 
+robocopy "temp\sdk\add_on\scriptstdstring" "..\..\..\..\..\AE-Bin\external\android-clang\AngelScript\include" *.h /S 
+robocopy "temp\sdk\add_on\scriptarray" "..\..\..\..\..\AE-Bin\external\android-clang\AngelScript\include" *.h /S 
+copy /Y "temp\LICENSE.md" "..\..\..\..\..\AE-Bin\external\android-clang\AngelScript\LICENSE.md"
 rmdir /Q /S "temp"

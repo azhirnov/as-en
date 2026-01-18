@@ -76,14 +76,16 @@
 		d = Saturate( 1.0 - d );
 
 		if ( iIsolines == 1 )
-			out_Color = float4( SDF_Isolines( d * 10.0 ), 1.0 );
+			out_Color.rgb = SDF_Isolines( d * 10.0 );
 		else
-			out_Color = float4( d*d );
+			out_Color.rgb = float3( d*d );
 
 	#ifdef AE_fragment_shader_barycentric
 		if ( iWire == 1 )
-			out_Color += float4(1.0, 1.0, 0.0, 0.0) * (1.0 - FSBarycentricWireframe( 1.0, 2.5 ).x);
+			out_Color.rgb += float3(1.0, 1.0, 0.0) * (1.0 - FSBarycentricWireframe( 1.0, 2.5 ).x);
 	#endif
+
+		out_Color.a = 1.0;
 	}
 
 #endif

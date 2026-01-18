@@ -137,7 +137,7 @@ namespace AE::Graphics
 			{
 				auto&	low_level		= pageArr.lowLevel [hi_lvl_idx];
 				uint	low_available	= low_level.load();								// 0 - empty block bit
-				int		low_lvl_idx		= BitScanForward( ~low_available & low_mask );	// first 0 bit
+				int		low_lvl_idx		= LowBitIndex( ~low_available & low_mask );		// first 0 bit
 
 				for (; low_lvl_idx >= 0 and low_lvl_idx < int(_bitsPerPage);)
 				{
@@ -161,7 +161,7 @@ namespace AE::Graphics
 						return true;
 					}
 
-					low_lvl_idx = BitScanForward( ~low_available & low_mask );	// first 0 bit
+					low_lvl_idx = LowBitIndex( ~low_available & low_mask );	// first 0 bit
 					ThreadUtils::Pause();
 				}
 
@@ -237,7 +237,7 @@ namespace AE::Graphics
 			page_arr = &_pageMap( key );
 
 			const uint	alloc_page_bits	= page_arr->hiLevel.load() >> 16;		// 1 - allocated
-			const int	idx				= BitScanForward( ~alloc_page_bits );	// first 0 bit
+			const int	idx				= LowBitIndex( ~alloc_page_bits );		// first 0 bit
 			CHECK_ERR( idx >= 0 and idx < int(_PageCount) );
 
 			page_arr->hiLevel.fetch_or( 1u << (idx+16) );	// 0 -> 1 -- allocated page bit

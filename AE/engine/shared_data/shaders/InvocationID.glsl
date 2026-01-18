@@ -38,6 +38,8 @@ ND_ int    GetGroupIndex ();						// 0..size-1
 ND_ float  GetGroupIndexUNorm ();					//  0..1
 ND_ float  GetGroupIndexSNorm ();					// -1..1
 
+ND_ bool   OncePerGroup ();
+
 // group coordinate in 3D
 ND_ int3    GetGroupSize ();
 ND_ int3    GetGroupCoord ();						// 0..size-1
@@ -56,6 +58,8 @@ ND_ int    GetGlobalIndex ();						// 0..size-1
 ND_ float  GetGlobalIndexUNorm ();					//  0..1
 ND_ float  GetGlobalIndexSNorm ();					// -1..1
 
+ND_ bool   OncePerDispatch ();
+
 // global coordinate in 3D
 ND_ int3    GetGlobalSize ();
 ND_ int3    GetGlobalCoord ();						// 0..size-1
@@ -73,7 +77,18 @@ ND_ float2  GetGlobalCoordUNormCorrected ();		//  0..1
 ND_ float2  GetGlobalCoordSNormCorrected ();		// -1..1
 ND_ float2  GetGlobalCoordSNormCorrected2 ();		// -X..X,	X may be > 1
 
+ND_ float4  GetGlobalRectUNormCorrected ();			//  0..1
+ND_ float4  GetGlobalRectSNormCorrected ();			// -1..1
+ND_ float4  GetGlobalRectSNormCorrected2 ();		// -X..X,	X may be > 1
+
 ND_ int3    GetGlobalCoordQuadCorrected ();			// 0..size-1	- for quad subgroup operations
+
+
+//-----------------------------------------------------------------------------
+// subgroup helper
+
+ND_ uint	BallotToQuadgroup (uint4 ballotMask);	// result in low 4 bits
+
 
 //-----------------------------------------------------------------------------
 
@@ -90,6 +105,10 @@ ND_ float2  MapPixCoordToSNormCorrected2 (const float2 posPx, const float2 sizeP
 // map pixels to unorm coords with correct aspect ratio.
 ND_ float2  MapPixCoordToUNormCorrected (const float2 srcPosPx, const float2 srcSizePx, const float2 dstSizePx);
 ND_ float2  MapPixCoordToUNormCorrected (const float2 srcPosPx, const float2 srcSizePx, const float2 dstSizePx, const float snormScale);
+
+// inverse for 'MapPixCoordToUNormCorrected()'
+ND_ float2  MapUNormCorrectedToSrcPixCoord (const float2 srcUNorm, const float2 srcSizePx, const float2 dstSizePx);
+ND_ float2  MapUNormCorrectedToDstPixCoord (const float2 dstUNorm, const float2 srcSizePx, const float2 dstSizePx);
 //-----------------------------------------------------------------------------
 
 
@@ -129,15 +148,37 @@ float2  MapPixCoordToUNormCorrected (const float2 srcPosPx, const float2 srcSize
 	return MapPixCoordToUNormCorrected( srcPosPx, srcSizePx, dstSizePx, 1.f );
 }
 
-float2  MapPixCoordToUNormCorrected (const float2 srcPosPx, const float2 srcSizePx, const float2 dstSizePx, const float snormScale)
+float2  _MapPixCoordToUNormCorrected_CalcScale (const float2 srcSizePx, const float2 dstSizePx)
 {
-	const float2	snorm		= ToSNorm( srcPosPx / srcSizePx );
 	const float		src_ratio	= srcSizePx.x / srcSizePx.y;
 	const float		dst_ratio	= dstSizePx.x / dstSizePx.y;
 	const float		scale1		= Max( src_ratio, dst_ratio ) / dst_ratio;
 	const float		scale2		= Min( src_ratio, dst_ratio ) / dst_ratio;
 	const float2	scale		= src_ratio >= dst_ratio ? float2(scale1, 1.0f) : float2(1.0f, 1.0f/scale2);
+	return scale;
+}
+
+float2  MapPixCoordToUNormCorrected (const float2 srcPosPx, const float2 srcSizePx, const float2 dstSizePx, const float snormScale)
+{
+	const float2	snorm	= ToSNorm( srcPosPx / srcSizePx );
+	const float2	scale	= _MapPixCoordToUNormCorrected_CalcScale( srcSizePx, dstSizePx );
 	return ToUNorm( snorm * scale * snormScale );
+}
+
+float2  MapUNormCorrectedToSrcPixCoord (const float2 srcUNorm, const float2 srcSizePx, const float2 dstSizePx)
+{
+	const float2	scale	= _MapPixCoordToUNormCorrected_CalcScale( srcSizePx, dstSizePx );
+	const float2	snorm	= ToSNorm( srcUNorm );
+	const float2	uv		= ToUNorm( snorm / scale );
+	return uv * srcSizePx;
+}
+
+float2  MapUNormCorrectedToDstPixCoord (const float2 dstUNorm, const float2 srcSizePx, const float2 dstSizePx)
+{
+	const float2	scale	= _MapPixCoordToUNormCorrected_CalcScale( srcSizePx, dstSizePx );
+	const float2	snorm	= ToSNorm( dstUNorm );
+	const float2	uv		= ToUNorm( snorm * scale );
+	return uv * dstSizePx;
 }
 //-----------------------------------------------------------------------------
 
@@ -333,6 +374,11 @@ float  GetGlobalIndexSNorm ()
 	return ToSNorm( GetGlobalIndexUNorm() );
 }
 
+bool  OncePerDispatch ()
+{
+	return GetGlobalIndex() == 0;
+}
+
 
 // local linear index
 int  GetLocalIndexSize ()
@@ -374,6 +420,11 @@ float  GetGroupIndexUNorm ()
 float  GetGroupIndexSNorm ()
 {
 	return ToSNorm( GetGroupIndexUNorm() );
+}
+
+bool  OncePerGroup ()
+{
+	return GetGroupIndex() == 0;
 }
 
 
@@ -468,3 +519,42 @@ float2  GetGlobalCoordSNormCorrected2 ()
 {
 	return MapPixCoordToSNormCorrected2( float2(GetGlobalCoord().xy), float2(GetGlobalSize().xy) );
 }
+
+float4  GetGlobalRectUNormCorrected ()
+{
+	float2	size_px		= float2(GetGlobalSize().xy);
+	float	inv_scale	= Rcp( Max( size_px.x, size_px.y ));
+	return	Saturate( float4( 0.5f, 0.5f, size_px - 1.0 ) * inv_scale );
+}
+
+float4  GetGlobalRectSNormCorrected ()
+{
+	float2	hsize		= float2(GetGlobalSize().xy) * 0.5f;
+	float	inv_scale	= Rcp( Max( hsize.x, hsize.y ));
+	float2	pos			= hsize * inv_scale;
+	return	float4( -pos, pos );
+}
+
+float4  GetGlobalRectSNormCorrected2 ()
+{
+	float2	hsize		= float2(GetGlobalSize().xy) * 0.5f;
+	float	inv_scale	= Rcp( Min( hsize.x, hsize.y ));
+	float2	pos			= hsize * inv_scale;
+	return	float4( -pos, pos );
+}
+
+
+#ifdef AE_shader_subgroup_ballot
+uint  BallotToQuadgroup (uint4 ballotMask)
+{
+	uint	idx			= gl.subgroup.Index & ~3;	// to quad group index
+	uint	idx_high	= (idx / 32) & 3;
+	uint	bits [4]	= {
+		ballotMask[0] >> (idx & 31),
+		ballotMask[1] >> ((idx - 32) & 31),
+		ballotMask[2] >> ((idx - 64) & 31),
+		ballotMask[3] >> ((idx - 96) & 31)
+	};
+	return	bits[ idx_high ];
+}
+#endif

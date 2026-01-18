@@ -7,7 +7,7 @@
 # pragma once
 #endif
 
-#include "Math.glsl"
+#include "Geometry2D.glsl"
 
 
 struct Sphere
@@ -18,7 +18,8 @@ struct Sphere
 
 ND_ Sphere  Sphere_Create (const float3 center, const float radius);
 
-ND_ float4  Sphere_FastProject (const Sphere sphereInViewSpace, const float P00, const float P11);
+ND_ Rect	Sphere_FastProject (const Sphere sphereInViewSpace, const float P00, const float P11);
+ND_ bool	Sphere_FastProject2 (const Sphere sphereInViewSpace, const float P00, const float P11, float nearZ, OUT Rect ndcRect);
 
 // spherical coordinates
 ND_ float3	SphericalToCartesian (const float2 phiTheta);
@@ -48,6 +49,8 @@ Sphere  Sphere_Create (const float3 center, const float radius)
 /*
 =================================================
 	SphericalToCartesian
+----
+	(0, 0) -> (0, 1, 0)
 =================================================
 */
 float3  SphericalToCartesian (const float2 phiTheta)
@@ -94,7 +97,7 @@ float3  CartesianToSpherical (const float3 cartesian)
 	MIT license
 =================================================
 */
-	float4  Sphere_FastProject (const Sphere sp, const float P00, const float P11)
+	Rect  Sphere_FastProject (const Sphere sp, const float P00, const float P11)
 	{
 		float3	cr		= sp.center * sp.radius;
 		float	czr2	= Square( sp.center.z ) - Square( sp.radius );
@@ -107,7 +110,16 @@ float3  CartesianToSpherical (const float3 cartesian)
 		float	miny	= (vy * sp.center.y - cr.z) / (vy * sp.center.z + cr.y);
 		float	maxy	= (vy * sp.center.y + cr.z) / (vy * sp.center.z - cr.y);
 
-		return float4( minx * P00, miny * P11, maxx * P00, maxy * P11 );
+		return Rect_Create( minx * P00, miny * P11, maxx * P00, maxy * P11 );
+	}
+
+	bool  Sphere_FastProject2 (const Sphere sp, const float P00, const float P11, float nearZ, OUT Rect ndcRect)
+	{
+		if ( sp.center.z - sp.radius < nearZ )
+			return false;
+
+		ndcRect = Sphere_FastProject( sp, P00, P11 );
+		return true;
 	}
 
 #endif

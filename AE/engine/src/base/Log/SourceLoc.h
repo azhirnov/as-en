@@ -47,7 +47,7 @@ namespace AE::Base
 
 		NdCx__ static SourceLoc  current (const std::source_location &loc = std::source_location::current()) __NE___ { return SourceLoc{loc}; }
 
-	private:
+	//private:
 		NdCx__ static StringView  _ExtractFnName (StringView)		__NE___;
 		NdCx__ static StringView  _ExtractStem (StringView)			__NE___;
 	};
@@ -80,18 +80,36 @@ namespace AE::Base
 */
 	__CxIn StringView  SourceLoc::_ExtractFnName (StringView fnSign) __NE___
 	{
-		usize   end    = fnSign.rfind( '(' );
-		usize   begin  = end;
+		usize   end = fnSign.rfind( '(' );
 
-		for (; fnSign[begin] != ' ' and fnSign[begin] != ':'; --begin) {}
+		//ASSERT( fnSign.find( '(', end+1 ) == StringView::npos );
+		--end;
 
 		// remove template specialization
-		#ifdef AE_COMPILER_MSVC
-			end = std::min( end, fnSign.find( '<', begin ));
+		#if defined(AE_COMPILER_MSVC) and not defined(AE_COMPILER_CLANG_CL)
+		if ( fnSign[end] == '>' )
+		{
+			int	br_count = 1;
+			--end;
+			for (; br_count > 0 and end > 0;)
+			{
+				char	c = fnSign[end];
+				--end;
+				if ( c == '>' )
+					++br_count;
+				if ( c == '<' )
+					--br_count;
+			}
+			//ASSERT( br_count == 0 );
+		}
 		#endif
 
+		usize   begin  = end;
+
+		for (; begin > 0 and fnSign[begin] != ' ' and fnSign[begin] != ':'; --begin) {}
+
 		if ( begin < end and end < fnSign.size() )
-			return StringView{ fnSign.data() + begin+1, fnSign.data() + end };
+			return StringView{ fnSign.data() + begin+1, fnSign.data() + end+1 };
 
 		return {};  // error
 	}

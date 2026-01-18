@@ -638,7 +638,7 @@ namespace
 		CPUID( 0, OUT cpui );
 		const uint	count = cpui[0];
 
-		if ( count < 0x16 )
+		if ( count <= 0x16 )
 			return false;
 
 		bool	ok = false;
@@ -651,7 +651,7 @@ namespace
 				core.baseClock	= cpui[0];
 				core.maxClock	= cpui[1];
 
-				ok = true;
+				ok |= (core.baseClock > 0 and core.maxClock > 0);
 			}
 		}
 		return ok;

@@ -118,13 +118,15 @@ Workgroup size: 8x8, image size: 102x53, gl_SMCountNV: 46. First set (from red t
 ![](img/nv-turing-smid-compute.png)
 
 
-### SM tile size depends on register count
+### Register count
 
 * SM supports limited number of registers, but must run multiple warps to hide memory latency.
-* SM will decrease tile size to execute minimal required number of warps which has a large number of registers.
-* Maximal tile size is 16x16 pix (left side in image).
+* On low register count only one SM used per tile, it increase concurrency - 46 SM will fill 16x16 pixels (11.7K pixels).
+* On high register count 4 SMs used per tile, so it 4 times decrease concurrency.
+* Warp occupancy is same for any register count, so tile size is not changed.
 
-![](img/nv-turing-smid-regcount.png)
+test source: [[17](../GPU_Benchmarks.md#17-tile-size)]
+![](img/hw-tile-size/nv-turing.png)
 
 
 ### Instruction cost

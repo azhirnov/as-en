@@ -39,6 +39,8 @@ namespace AE::Base
 		// Process //
 		ND_ static Path		GetExeLocation ()												__NE___;
 
+		ND_ static bool		SetProcessAffinity (CpuArchInfo::CoreBits_t)					__NE___;
+
 
 		// OS //
 		ND_ static bool			IsUnderDebugger ()											__NE___;
@@ -60,8 +62,8 @@ namespace AE::Base
 
 
 		// Clipboard //
-		ND_ static bool		ClipboardExtract (OUT String &result, void* disp = null, void* wnd = null)	__NE___;
-		ND_ static bool		ClipboardPut (NtStringView str, void* disp = null, void* wnd = null)		__NE___;
+		ND_ static bool		ClipboardExtract (OUT U8String &result, void* disp = null, void* wnd = null)__NE___;
+		ND_ static bool		ClipboardPut (NtU8StringView str, void* disp = null, void* wnd = null)		__NE___;
 		ND_ static bool		ClipboardClear (void* disp = null, void* wnd = null)						__NE___;
 	};
 

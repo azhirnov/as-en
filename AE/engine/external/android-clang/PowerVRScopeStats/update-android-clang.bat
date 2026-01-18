@@ -1,7 +1,7 @@
 echo "update 'PowerVRScopeStats'..."
 rmdir /Q /S "..\..\..\..\..\AE-Bin\external\android-clang\PowerVRScopeStats"
 rmdir /Q /S "temp"
-git clone "..\..\..\..\..\3party\PowerVR-SDK" "temp"
+git clone --branch "R24.2-v5.13" "https://github.com/powervr-graphics/Native_SDK.git" "temp"
 mkdir "..\..\..\..\..\AE-Bin\external\android-clang\PowerVRScopeStats"
 mkdir "..\..\..\..\..\AE-Bin\external\android-clang\PowerVRScopeStats\include"
 mkdir "..\..\..\..\..\AE-Bin\external\android-clang\PowerVRScopeStats\lib"

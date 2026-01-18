@@ -102,7 +102,7 @@ namespace AE::Graphics
 		struct StencilFaceState
 		{
 		// variables
-			EStencilOp		failOp			= EStencilOp::Keep;		// stencil test failed
+			EStencilOp		stencilFailOp	= EStencilOp::Keep;		// stencil test failed
 			EStencilOp		depthFailOp		= EStencilOp::Keep;		// stencil test passed and depth test failed
 			EStencilOp		passOp			= EStencilOp::Keep;		// depth and stencil tests are passed
 			ECompareOp		compareOp		= ECompareOp::Always;
@@ -203,6 +203,8 @@ namespace AE::Graphics
 			EPolygonMode	polygonMode				= EPolygonMode::Fill;
 			ECullMode		cullMode				= ECullMode::None;
 
+			EConservativeRasterizationMode	conservativeRasterMode	= Default;
+
 		// methods
 			RasterizationState ()									__NE___ {}
 
@@ -214,9 +216,9 @@ namespace AE::Graphics
 
 
 		//
-		// Multisample State
+		// Multisampling State
 		//
-		struct MultisampleState
+		struct MultisamplingState
 		{
 		// types
 			//using SampleMask	= StaticArray< uint, GraphicsConfig::MaxSamples / CT_SizeOfInBits<uint> >;
@@ -232,13 +234,13 @@ namespace AE::Graphics
 			bool				alphaToOne			= false;
 
 		// methods
-			MultisampleState ()										__NE___	{}
+			MultisamplingState ()									__NE___	{}
 
-			ND_ bool	operator == (const MultisampleState &rhs)	C_NE___;
-			ND_ bool	operator != (const MultisampleState &rhs)	C_NE___	{ return not (*this == rhs); }
+			ND_ bool	operator == (const MultisamplingState &rhs)	C_NE___;
+			ND_ bool	operator != (const MultisamplingState &rhs)	C_NE___	{ return not (*this == rhs); }
 			ND_ HashVal	CalcHash ()									C_NE___;
 		};
-		StaticAssert( sizeof(MultisampleState) == 12 );
+		StaticAssert( sizeof(MultisamplingState) == 12 );
 
 
 		//
@@ -260,7 +262,7 @@ namespace AE::Graphics
 		StencilBufferState			stencil;
 		InputAssemblyState			inputAssembly;
 		RasterizationState			rasterization;
-		MultisampleState			multisample;
+		MultisamplingState			multisample;
 		RasterizationOrderAccess	rasterOrderAccess;
 
 
@@ -358,8 +360,8 @@ namespace AE::Base
 	template <> struct TMemCopyAvailable< AE::Graphics::RenderState::RasterizationState >		: CT_True {};
 	template <> struct TTriviallySerializable< AE::Graphics::RenderState::RasterizationState >	: CT_True {};
 
-	template <> struct TMemCopyAvailable< AE::Graphics::RenderState::MultisampleState >			: CT_True {};
-	template <> struct TTriviallySerializable< AE::Graphics::RenderState::MultisampleState >	: CT_True {};
+	template <> struct TMemCopyAvailable< AE::Graphics::RenderState::MultisamplingState >		: CT_True {};
+	template <> struct TTriviallySerializable< AE::Graphics::RenderState::MultisamplingState >	: CT_True {};
 
 	template <> struct TMemCopyAvailable< AE::Graphics::RenderState >							: CT_True {};
 	template <> struct TTriviallySerializable< AE::Graphics::RenderState >						: CT_True {};

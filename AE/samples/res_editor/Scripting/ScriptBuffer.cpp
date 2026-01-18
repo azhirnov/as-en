@@ -260,15 +260,27 @@ namespace
 
 /*
 =================================================
+	_CanSetLayout
+=================================================
+*/
+	void  ScriptBuffer::_CanSetLayout () __Th___
+	{
+		CHECK_THROW_MSG( _layout.typeName.empty(), "Buffer layout is already defined" );
+		CHECK_THROW_MSG( _layout.source.empty(), "Buffer layout is already defined" );
+		CHECK_THROW_MSG( _layout.staticSrc.empty(), "Buffer layout is already defined" );
+		CHECK_THROW_MSG( (not _inDynCount) and (_staticCount == 0), "array size is already defined" );
+
+		_SetType( EBufferType::MutableData_NonInitialized );  // throw
+	}
+
+/*
+=================================================
 	SetLayout*
 =================================================
 */
 	void  ScriptBuffer::SetLayout1 (const String &typeName) __Th___
 	{
-		CHECK_THROW_MSG( _layout.typeName.empty(), "Buffer layout is already defined" );
-		CHECK_THROW_MSG( _layout.source.empty(), "Buffer layout is already defined" );
-		CHECK_THROW_MSG( _layout.staticSrc.empty(), "Buffer layout is already defined" );
-		_SetType( EBufferType::MutableData_NonInitialized );  // throw
+		_CanSetLayout();  // throw
 
 		_layout.typeName = typeName;
 		_staticCount	 = UMax;
@@ -276,10 +288,7 @@ namespace
 
 	void  ScriptBuffer::SetLayout2 (const String &typeName, const String &source) __Th___
 	{
-		CHECK_THROW_MSG( _layout.typeName.empty(), "Buffer layout is already defined" );
-		CHECK_THROW_MSG( _layout.source.empty(), "Buffer layout is already defined" );
-		CHECK_THROW_MSG( _layout.staticSrc.empty(), "Buffer layout is already defined" );
-		_SetType( EBufferType::MutableData_NonInitialized );  // throw
+		_CanSetLayout();  // throw
 
 		_layout.typeName = typeName;
 		_layout.source	 = source;
@@ -293,13 +302,8 @@ namespace
 */
 	void  ScriptBuffer::SetArrayLayout1 (const String &typeName, uint count) __Th___
 	{
-		CHECK_THROW_MSG( _layout.typeName.empty(), "Buffer layout is already defined" );
-		CHECK_THROW_MSG( _layout.source.empty(), "Buffer layout is already defined" );
-		CHECK_THROW_MSG( _layout.staticSrc.empty(), "Buffer layout is already defined" );
-		CHECK_THROW_MSG( (not _inDynCount) and (_staticCount == 0), "array size is already defined" );
+		_CanSetLayout();  // throw
 		CHECK_THROW_MSG( count > 0 );
-
-		_SetType( EBufferType::MutableData_NonInitialized );  // throw
 
 		_layout.typeName = typeName;
 		_staticCount	 = count;
@@ -307,43 +311,28 @@ namespace
 
 	void  ScriptBuffer::SetArrayLayout2 (const String &typeName, const ScriptDynamicUIntPtr &count) __Th___
 	{
-		CHECK_THROW_MSG( _layout.typeName.empty(), "Buffer layout is already defined" );
-		CHECK_THROW_MSG( _layout.source.empty(), "Buffer layout is already defined" );
-		CHECK_THROW_MSG( _layout.staticSrc.empty(), "Buffer layout is already defined" );
-		CHECK_THROW_MSG( (not _inDynCount) and (_staticCount == 0), "Array size is already defined" );
-
-		_SetType( EBufferType::MutableData_NonInitialized );  // throw
+		_CanSetLayout();  // throw
 
 		_layout.typeName = typeName;
 		_inDynCount		 = count;
 	}
 
-	void  ScriptBuffer::SetArrayLayout3 (const String &typeName, const String &source, uint count) __Th___
+	void  ScriptBuffer::SetArrayLayout3 (const String &typeName, const String &elemSource, uint count) __Th___
 	{
-		CHECK_THROW_MSG( _layout.typeName.empty(), "Buffer layout is already defined" );
-		CHECK_THROW_MSG( _layout.source.empty(), "Buffer layout is already defined" );
-		CHECK_THROW_MSG( _layout.staticSrc.empty(), "Buffer layout is already defined" );
-		CHECK_THROW_MSG( (not _inDynCount) and (_staticCount == 0), "Array size is already defined" );
+		_CanSetLayout();  // throw
 		CHECK_THROW_MSG( count > 0 );
 
-		_SetType( EBufferType::MutableData_NonInitialized );  // throw
-
 		_layout.typeName = typeName;
-		_layout.source	 = source;
+		_layout.source	 = elemSource;
 		_staticCount	 = count;
 	}
 
-	void  ScriptBuffer::SetArrayLayout4 (const String &typeName, const String &source, const ScriptDynamicUIntPtr &count) __Th___
+	void  ScriptBuffer::SetArrayLayout4 (const String &typeName, const String &elemSource, const ScriptDynamicUIntPtr &count) __Th___
 	{
-		CHECK_THROW_MSG( _layout.typeName.empty(), "Buffer layout is already defined" );
-		CHECK_THROW_MSG( _layout.source.empty(), "Buffer layout is already defined" );
-		CHECK_THROW_MSG( _layout.staticSrc.empty(), "Buffer layout is already defined" );
-		CHECK_THROW_MSG( (not _inDynCount) and (_staticCount == 0), "Array size is already defined" );
-
-		_SetType( EBufferType::MutableData_NonInitialized );  // throw
+		_CanSetLayout();  // throw
 
 		_layout.typeName = typeName;
-		_layout.source	 = source;
+		_layout.source	 = elemSource;
 		_inDynCount		 = count;
 	}
 
@@ -352,33 +341,23 @@ namespace
 	SetArrayLayout*
 =================================================
 */
-	void  ScriptBuffer::SetArrayLayout5 (const String &typeName, const String &source, const String &staticSrc, uint count) __Th___
+	void  ScriptBuffer::SetArrayLayout5 (const String &typeName, const String &elemSource, const String &staticSrc, uint count) __Th___
 	{
-		CHECK_THROW_MSG( _layout.typeName.empty(), "Buffer layout is already defined" );
-		CHECK_THROW_MSG( _layout.source.empty(), "Buffer layout is already defined" );
-		CHECK_THROW_MSG( _layout.staticSrc.empty(), "Buffer layout is already defined" );
-		CHECK_THROW_MSG( (not _inDynCount) and (_staticCount == 0), "Array size is already defined" );
+		_CanSetLayout();  // throw
 		CHECK_THROW_MSG( count > 0 );
 
-		_SetType( EBufferType::MutableData_NonInitialized );  // throw
-
 		_layout.typeName	= typeName;
-		_layout.source		= source;
+		_layout.source		= elemSource;
 		_layout.staticSrc	= staticSrc;
 		_staticCount		= count;
 	}
 
-	void  ScriptBuffer::SetArrayLayout6 (const String &typeName, const String &source, const String &staticSrc, const ScriptDynamicUIntPtr &count) __Th___
+	void  ScriptBuffer::SetArrayLayout6 (const String &typeName, const String &elemSource, const String &staticSrc, const ScriptDynamicUIntPtr &count) __Th___
 	{
-		CHECK_THROW_MSG( _layout.typeName.empty(), "Buffer layout is already defined" );
-		CHECK_THROW_MSG( _layout.source.empty(), "Buffer layout is already defined" );
-		CHECK_THROW_MSG( _layout.staticSrc.empty(), "Buffer layout is already defined" );
-		CHECK_THROW_MSG( (not _inDynCount) and (_staticCount == 0), "Array size is already defined" );
-
-		_SetType( EBufferType::MutableData_NonInitialized );  // throw
+		_CanSetLayout();  // throw
 
 		_layout.typeName	= typeName;
-		_layout.source		= source;
+		_layout.source		= elemSource;
 		_layout.staticSrc	= staticSrc;
 		_inDynCount			= count;
 	}
@@ -979,6 +958,9 @@ namespace
 		binder.Comment( "Constant array size, can be used for draw call." );
 		AS_METHOD( binder, ScriptBuffer::ConstArraySize,		"ConstArraySize",	{} );
 
+		binder.Comment( "Load CSV and put it to buffer with same column names." );
+		AS_METHOD( binder, ScriptBuffer::LoadCSV,				"LoadCSV",			{"filename", "elemTypeName"} );
+
 		binder.Comment( "Build buffer data layout with initial content.\n"
 						"Returns offset in bytes where data is begin." );
 
@@ -1206,6 +1188,8 @@ namespace
 		const ShaderStructName	struct_type	{GetTypeName()};
 		Buffer::IDs_t			buf_ids;
 
+		ON_DESTROY( [&buf_ids, &res_mngr](){ res_mngr.ReleaseResourceArray( buf_ids ); });
+
 		if ( AllBits( flags, Buffer::EBufferFlags::WithHistory ))
 		{
 			for (auto& id : buf_ids) {
@@ -1230,9 +1214,9 @@ namespace
 			ref_buffers.push_back( src->ToResource() );
 		}
 
-		_resource = MakeRCTh<Buffer>( RVRef(buf_ids), _desc, static_size, elem_size, RVRef(load_op), struct_type,
-									  renderer, (_inDynCount ? _inDynCount->Get() : null), (_outDynCount ? _outDynCount->Get() : null),
-									  _dbgName, flags, RVRef(ref_buffers) );  // throw
+		_resource = Buffer::Create( RVRef(buf_ids), _desc, static_size, elem_size, RVRef(load_op), struct_type,
+									renderer, (_inDynCount ? _inDynCount->Get() : null), (_outDynCount ? _outDynCount->Get() : null),
+									_dbgName, flags, RVRef(ref_buffers) );  // throw
 		return _resource;
 	}
 
@@ -1393,6 +1377,251 @@ namespace
 
 		ASSERT_MSG( _staticCount == 0, "use ConstArraySize() instead" );
 		return result;
+	}
+
+/*
+=================================================
+	LoadCSV
+=================================================
+*/
+	void  ScriptBuffer::LoadCSV (const String &filename, const String &elemTypeName) __Th___
+	{
+		_CanSetLayout();  // throw
+		CHECK_THROW_MSG( not _filename.IsDefined(), "Buffer data is already loaded from file" );
+
+		const VFS::FileName		fname {filename};
+		CHECK_THROW_MSG( GetVFS().Exists( fname ), "File '"s << filename << "' is not exists" );
+
+		String	csv_data;
+		{
+			RC<RStream>		file;
+			CHECK_THROW( GetVFS().Open( OUT file, fname ));
+			CHECK_THROW( file->Read( file->RemainingSize(), OUT csv_data ));
+		}
+
+		enum class EType
+		{
+			Unknown		= 0,
+			Float		= 1 << 0,
+			Int			= 1 << 1,
+			Vec			= 1 << 2,
+			Array		= 1 << 3,
+			Scalar		= 1 << 4,
+
+			ValueMask	= Float | Int,
+			DimMask		= Vec | Array | Scalar,
+
+			_BITOPS_
+		};
+
+		Array< Array<StringView> >							rows;
+		Array< Tuple< StringView, EType, Array<uint> >>		column_groups;
+		{
+			HashMap<StringView, uint>	column_names;
+			CHECK_THROW( Parser::ParseCSV( csv_data, OUT column_names, OUT rows ));
+
+			CHECK_THROW( not column_names.empty() and not rows.empty() );
+
+			// find vectors and arrays
+			for (auto& [name, col] : column_names)
+			{
+				if ( col == UMax )
+					continue; // already processed
+
+				// array of vectors
+				if ( EndsWith( name, "[0].x" ))
+				{
+					ASSERT( false );	// not supported yet
+				}
+
+				// vector
+				if ( EndsWith( name, ".x" ))
+				{
+					auto&	[group_name, type, col_arr] = column_groups.emplace_back();
+
+					group_name	= name.substr( 0, name.size()-2 );
+					type		= EType::Vec;
+
+					col_arr.push_back( col );
+					col = UMax;
+
+					const char	xyzw[] = "xyzw";
+					for (uint i = 1; i < 4; ++i)
+					{
+						auto	it = column_names.find( String{group_name} << '.' << xyzw[i] );
+						if ( it == column_names.end() )
+							break;
+
+						ASSERT( it->second != UMax );
+						col_arr.push_back( it->second );
+						it->second = UMax;
+					}
+					continue;
+				}
+
+				// array
+				if ( EndsWith( name, "[0]" ))
+				{
+					auto&	[group_name, type, col_arr] = column_groups.emplace_back();
+
+					group_name	= name.substr( 0, name.size()-3 );
+					type		= EType::Array;
+
+					col_arr.push_back( col );
+					col = UMax;
+
+					for (uint i = 1;; ++i)
+					{
+						auto	it = column_names.find( String{group_name} << '[' << ToString(i) << ']' );
+						if ( it == column_names.end() )
+							break;
+
+						ASSERT( it->second != UMax );
+						col_arr.push_back( it->second );
+						it->second = UMax;
+					}
+					continue;
+				}
+			}
+
+			// add scalars
+			for (auto& [name, col] : column_names)
+			{
+				if ( col == UMax )
+					continue; // already processed
+
+				auto&	[group_name, type, col_arr] = column_groups.emplace_back();
+
+				group_name	= name;
+				type		= EType::Scalar;
+
+				col_arr.push_back( col );
+				col = UMax;
+			}
+
+			// detect type
+			usize	count = 0;
+			for (auto& [name, type, col_arr] : column_groups)
+			{
+				ASSERT( not name.empty() );
+				ASSERT( not col_arr.empty() );
+				ASSERT( type != Default );
+
+				count += col_arr.size();
+				bool	is_int	= true;
+
+				for (uint col : col_arr)
+				{
+					if ( rows[0][col].contains( '.' ))
+					{
+						is_int = false;
+						break;
+					}
+				}
+
+				type |= (is_int ? EType::Int : EType::Float);
+			}
+
+			CHECK( count == column_names.size() );
+		}
+
+		_staticCount = uint(rows.size());
+		_layout.typeName = elemTypeName;
+
+		Bytes	elem_size;
+		for (auto& [name, type, col_arr] : column_groups)
+		{
+			Bytes	size = 4_b;
+
+			switch ( type & EType::ValueMask )
+			{
+				case EType::Float :		_layout.source << "float";	break;
+				case EType::Int :		_layout.source << "int";	break;
+				default :				CHECK( false );				break;
+			}
+
+			switch ( type & EType::DimMask )
+			{
+				case EType::Scalar :
+					_layout.source << "  " << name << ";\n";
+					ASSERT( col_arr.size() == 1 );
+					break;
+
+				case EType::Vec :
+					_layout.source << ToString( col_arr.size() ) << "  " << name << ";\n";
+					size *= (col_arr.size() == 3 ? 4 : col_arr.size());
+					elem_size = AlignUp( elem_size, size );
+					break;
+
+				case EType::Array :
+					_layout.source << "  " << name << '[' << ToString( col_arr.size() ) << "];\n";
+					size *= col_arr.size();
+					break;
+
+				case EType::Vec | EType::Array :	// TODO
+				default :
+					CHECK( false );
+					break;
+			}
+
+			elem_size += size;
+		}
+
+		_layout._data.reserve( usize{ elem_size * _staticCount });  // throw
+
+		AddUsage( EResourceUsage::UploadedData );  // throw
+
+
+		// copy data with correct alignment
+		for (const auto& columns : rows)
+		{
+			const Bytes	begin = Bytes{_layout._data.size()};
+
+			for (const auto& [name, type, col_arr] : column_groups)
+			{
+				Bytes	align	= 4_b;
+				Bytes	size	= 4_b * col_arr.size();
+
+				if ( AllBits( type, EType::Vec ))
+				{
+					align *= (col_arr.size() == 3 ? 4 : col_arr.size());
+					size  = Max( align, size );		// TODO: incorrect for Vec|Array
+				}
+
+				Bytes	offset	= AlignUp( Bytes{_layout._data.size()}, align );
+				_layout._data.resize( usize{ offset + size });
+
+				switch ( type & EType::ValueMask )
+				{
+					case EType::Float :
+					{
+						for (uint col : col_arr)
+						{
+							float	f = float(StringToDouble( columns[col] ));
+							memcpy( OUT _layout._data.data() + offset, &f, sizeof(f) );
+							offset += 4_b;
+						}
+						break;
+					}
+
+					case EType::Int :
+					{
+						for (uint col : col_arr)
+						{
+							int		i = CheckCast{StringToSLong( columns[col] )};
+							memcpy( OUT _layout._data.data() + offset, &i, sizeof(i) );
+							offset += 4_b;
+						}
+						break;
+					}
+				}
+			}
+
+			Bytes	row_size = Bytes{_layout._data.size()} - begin;
+			ASSERT_Eq( row_size, elem_size );
+		}
+
+		ASSERT_Eq( _layout._data.size(), usize{elem_size * _staticCount} );
 	}
 
 

@@ -251,6 +251,8 @@ namespace AE::LangModel
 			CHECK_ERR( _modelRC->_channel.Send( msg ));
 		}
 
+		_history.emplace_back( ERole::User, RVRef(prompt) );
+
 		// response
 		{
 			auto	resp = _modelRC->_WaitFor< Msg::LangModelContext_Resp >();

@@ -2182,7 +2182,7 @@ namespace {
 				f.arraySize	= 0;	// non-array
 				f.align		= ValueTypeSizeOf( field.type );
 				f.size		= f.align * f.rows * f.cols;
-				
+
 				if ( not field.IsPointer() )
 					ASSERT( field.align == f.align );
 
@@ -3039,7 +3039,7 @@ namespace {
 
 					if ( not field.IsPointer() )
 						ASSERT( field.align == f.align );
-					
+
 					ASSERT( field.IsMat() == f.IsMat() );
 					ASSERT( field.IsVec() == f.IsVec() );
 

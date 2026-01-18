@@ -344,7 +344,7 @@ namespace AE::Base
 	// methods
 	public:
 		AtomicRC ()													__NE___ {}
-		~AtomicRC ()												__NE___ { _ResetDec();  StaticAssert( alignof(T) > 1, "first bit is used for lock bit" ); }
+		~AtomicRC ()												__NE___ { _ResetDec();  StaticAssertMsg( alignof(T) > 1, "first bit is used for lock bit" ); }
 
 		ND_ T *		unsafe_get ()									C_NE___ { return _RemoveLockBit( _ptr.load() ); }
 		ND_ RC_t	release ()										__NE___;

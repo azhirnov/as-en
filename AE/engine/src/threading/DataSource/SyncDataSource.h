@@ -25,6 +25,7 @@ namespace AE::Threading
 		ESourceType	GetSourceType ()										C_NE_OV	{ return _ds->GetSourceType() & ~(ESourceType::Async | ESourceType::Buffered); }
 		Bytes		Size ()													C_NE_OV	{ return _ds->Size(); }
 		Bytes		ReadBlock (Bytes pos, OUT void* buffer, Bytes size)		__NE_OV;
+		ReqAlign	OffsetAlign ()											C_NE_OV	{ return _ds->OffsetAlign(); }
 	};
 
 
@@ -47,6 +48,7 @@ namespace AE::Threading
 		ESourceType	GetSourceType ()										C_NE_OV	{ return _ds->GetSourceType() & ~(ESourceType::Async | ESourceType::Buffered); }
 		Bytes		WriteBlock (Bytes pos, const void* buffer, Bytes size)	__NE_OV;
 		void		Flush ()												__NE_OV	{}
+		ReqAlign	OffsetAlign ()											C_NE_OV	{ return _ds->OffsetAlign(); }
 	};
 //-----------------------------------------------------------------------------
 
@@ -73,6 +75,7 @@ namespace AE::Threading
 		bool		SeekFwd (Bytes)												__NE_OV	{ return false; }
 		Bytes		ReadSeq (OUT void* buffer, Bytes size)						__NE_OV;
 		bool		SeekSet (Bytes)												__NE_OV	{ return false; }
+		ReqAlign	OffsetAlign ()												C_NE_OV	{ return _stream->OffsetAlign(); }
 	};
 
 
@@ -98,6 +101,7 @@ namespace AE::Threading
 		bool		SeekFwd (Bytes)												__NE_OV	{ return false; }
 		Bytes		WriteSeq (const void* buffer, Bytes size)					__NE_OV;
 		void		Flush ()													__NE_OV	{}
+		ReqAlign	OffsetAlign ()												C_NE_OV	{ return _stream->OffsetAlign(); }
 	};
 //-----------------------------------------------------------------------------
 
@@ -125,6 +129,7 @@ namespace AE::Threading
 		bool		SeekFwd (Bytes offset)											__NE_OV;
 		Bytes		ReadSeq (OUT void* buffer, Bytes size)							__NE_OV;
 		bool		SeekSet (Bytes newPos)											__NE_OV;
+		ReqAlign	OffsetAlign ()													C_NE_OV	{ return _ds->OffsetAlign(); }
 	};
 
 
@@ -151,6 +156,7 @@ namespace AE::Threading
 		bool		SeekFwd (Bytes offset)											__NE_OV;
 		Bytes		WriteSeq (const void* buffer, Bytes size)						__NE_OV;
 		void		Flush ()														__NE_OV	{}
+		ReqAlign	OffsetAlign ()													C_NE_OV	{ return _ds->OffsetAlign(); }
 	};
 //-----------------------------------------------------------------------------
 

@@ -266,26 +266,26 @@ namespace
 		// can not link with static library, so use dynamic
 		#ifdef AE_PLATFORM_WINDOWS
 		# ifdef AE_CFG_DEBUG
-			_lib.Load( libPath / "slangd.dll" );
+			Unused( _lib.Load( libPath / "slangd.dll" ));
 		# endif
 			if ( not _lib )
-				_lib.Load( libPath / "slang.dll" );
+				Unused( _lib.Load( libPath / "slang.dll" ));
 		#endif
 
 		#ifdef AE_PLATFORM_LINUX
 		# ifdef AE_CFG_DEBUG
-			_lib.Load( libPath / "libslangd.so" );
+			Unused( _lib.Load( libPath / "libslangd.so" ));
 		# endif
 			if ( not _lib )
-				_lib.Load( libPath / "libslang.so" );
+				Unused( _lib.Load( libPath / "libslang.so" ));
 		#endif
 
 		#ifdef AE_PLATFORM_APPLE
 		# ifdef AE_CFG_DEBUG
-			_lib.Load( libPath / "slangd.dylib" );
+			Unused( _lib.Load( libPath / "slangd.dylib" ));
 		# endif
 			if ( not _lib )
-				_lib.Load( libPath / "slang.dylib" );
+				Unused( _lib.Load( libPath / "slang.dylib" ));
 		#endif
 
 		if ( not _lib )

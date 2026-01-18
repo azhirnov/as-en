@@ -1,6 +1,6 @@
 rm -rf "../../../../../AE-Bin/external/source/GLM"
 rm -rf "temp"
-git clone --branch "ae-24.08" "../../../../../3party/ae-glm" "temp"
+git clone --branch "ae-24.08" "https://github.com/azhirnov/glm.git" "temp"
 mkdir "../../../../../AE-Bin/external/source/GLM"
 cd "temp/glm"
 find . -type d -exec mkdir -p "../../../../../../../AE-Bin/external/source/GLM/"{} \;

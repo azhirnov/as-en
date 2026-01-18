@@ -143,7 +143,7 @@ namespace {
 		_connArr.Unlock( lock );
 		return ok;
 	}
-	
+
 /*
 =================================================
 	ConvertCooperativeVectorMatrix

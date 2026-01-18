@@ -22,39 +22,37 @@
 			pl.DSLayout( "material", 1, "mtr.ds" );
 		}
 
+		RC<GraphicsPipeline>	ppln = GraphicsPipeline( "tmpl" );
+		ppln.SetLayout( "pl" );
+		ppln.SetFragmentOutputFromRenderTech( "rtech", "main" );
+		ppln.SetShaderIO( EShader::Vertex, EShader::Fragment, "io" );
+
 		{
-			RC<GraphicsPipeline>	ppln = GraphicsPipeline( "tmpl" );
-			ppln.SetLayout( "pl" );
-			ppln.SetFragmentOutputFromRenderTech( "rtech", "main" );
-			ppln.SetShaderIO( EShader::Vertex, EShader::Fragment, "io" );
+			RC<Shader>	vs = Shader();
+			vs.LoadSelf();
+			ppln.SetVertexShader( vs );
+		}{
+			RC<Shader>	fs = Shader();
+			fs.LoadSelf();
+			ppln.SetFragmentShader( fs );
+		}
 
-			{
-				RC<Shader>	vs = Shader();
-				vs.LoadSelf();
-				ppln.SetVertexShader( vs );
-			}{
-				RC<Shader>	fs = Shader();
-				fs.LoadSelf();
-				ppln.SetFragmentShader( fs );
-			}
+		// specialization
+		{
+			RC<GraphicsPipelineSpec>	spec = ppln.AddSpecialization( "spec" );
+			spec.AddToRenderTech( "rtech", "main" );  // in ScriptSceneGraphicsPass
 
-			// specialization
-			{
-				RC<GraphicsPipelineSpec>	spec = ppln.AddSpecialization( "spec" );
-				spec.AddToRenderTech( "rtech", "main" );  // in ScriptSceneGraphicsPass
+			RenderState	rs;
 
-				RenderState	rs;
+			rs.depth.test					= true;
+			rs.depth.write					= true;
 
-				rs.depth.test					= true;
-				rs.depth.write					= true;
+			rs.inputAssembly.topology		= EPrimitive::TriangleList;
 
-				rs.inputAssembly.topology		= EPrimitive::TriangleList;
+			rs.rasterization.frontFaceCCW	= true;
+			rs.rasterization.cullMode		= ECullMode::Back;
 
-				rs.rasterization.frontFaceCCW	= true;
-				rs.rasterization.cullMode		= ECullMode::Back;
-
-				spec.SetRenderState( rs );
-			}
+			spec.SetRenderState( rs );
 		}
 	}
 

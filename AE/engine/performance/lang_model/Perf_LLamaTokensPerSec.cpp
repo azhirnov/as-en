@@ -558,6 +558,20 @@ public half4 groundtruth(half x, half y)
 		);
 	}
 
+
+	static void  LLamaPerf_Test12 ()
+	{
+		LLamaPerf_RunTest2(
+			Path{OUTPUT_FOLDER} / AE_FUNCTION_NAME,
+			u8"Write optimized radix sort on glsl using only subgroup operations.\n"
+			u8"Minimize access to shared memory.\n"
+			u8"Don't use loops in single lane like `if (gl_SubgroupInvocationID == 0) { for each lane... }`.\n"
+		);
+
+		// answer must not contain loops and Ballot(radix == radix)
+	}
+
+
 	// TODO:
 	// - generics in slang
 	// - C++ refactoring
@@ -579,4 +593,5 @@ extern void Perf_LLamaTokensPerSecond ()
 	LLamaPerf_Test9();
 	LLamaPerf_Test10();
 	LLamaPerf_Test11();
+	LLamaPerf_Test12();
 }

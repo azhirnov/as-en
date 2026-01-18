@@ -3,7 +3,7 @@ rm -rf "build"
 rm -rf "../../../../../AE-Bin/external/macos-arm64-clang17/Abseil"
 rm -rf "temp"
 mkdir "build"
-git clone --branch "20250127.1" "../../../../../3party/Abseil" "temp"
+git clone --branch "20250127.1" "https://github.com/abseil/abseil-cpp.git" "temp"
 cp "abseil_CMakeLists.txt" "temp/CMakeLists.txt"
 cmake -S temp -B build  -DAE_ENABLE_COMPILER_WARNINGS=OFF -DCMAKE_BUILD_TYPE=Debug -DCMAKE_OSX_DEPLOYMENT_TARGET=10.15 -DCMAKE_OSX_ARCHITECTURES=arm64 -DCMAKE_INSTALL_PREFIX="../../../../../AE-Bin/external/macos-arm64-clang17/Abseil" 
 cmake --build build --config Debug --target install -j 6

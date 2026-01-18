@@ -785,11 +785,16 @@ ND_ static bool  InsertGlobalVariablesAndBuffers (TIntermAggregate* linkerObjs, 
 	switch_enum( dbgInfo.GetShaderType() )
 	{
 		case EShLangVertex :
+		{
+			auto*	op = CreateVertexShaderIsDebugInvocation( dbgInfo );
+			CHECK_ERR( op != null );
+			init_debug_enabled->setRight( op );
+			break;
+		}
+
 		case EShLangTessControl :
 		case EShLangTessEvaluation :
 		case EShLangGeometry :
-		case EShLangTask :
-		case EShLangMesh :
 		{
 			type.qualifier.storage	= TStorageQualifier::EvqConst;
 			TConstUnionArray		false_value(1);	false_value[0].setBConst( false );
@@ -808,6 +813,8 @@ ND_ static bool  InsertGlobalVariablesAndBuffers (TIntermAggregate* linkerObjs, 
 		}
 
 		case EShLangCompute :
+		case EShLangTask :
+		case EShLangMesh :
 		{
 			auto*	op = CreateComputeShaderIsDebugInvocation( dbgInfo );
 			CHECK_ERR( op != null );

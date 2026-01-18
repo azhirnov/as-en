@@ -72,4 +72,42 @@ FLOPS = clock * CU * warp_width * 2 (dual issue)
 		|---|---|---|
 		| 3.9 | Add, Mul    | 3.9   |
 		| 2.5 | FMA, MulAdd | **5** |
-	
+
+
+### Wavefront scheduler
+
+In test [[17](../GPU_Benchmarks.md#17-tile-size)]:
+* grid size: 8x8 pix.
+* blue color - max occupancy (full subgroups)
+* red color - low occupancy
+* white color - selected subgroup, max measured distance between quads: 142 pix.
+
+Results:
+* GPU can merge multiple triangles into single subgroup.
+* GPU can merge instances into single VS subgroup.
+* GPU can merge instances into single FS subgroup, but in very rare cases when occupancy is low.
+* subgroup scheduling is not limited by tile size (like on NV and mobile).
+
+Possible implementation in HW:
+* After rasterization triangles divided on subgroups. Algorithm prefer to create full subgroups.
+* If subgroup in not full it delayed.
+* New rasterized triangles doesn't fill delayed subgroups until they can be divided on full subgroups.
+* Non-full subgroups merged and added to subgroup scheduler.
+
+![](img/hw-tile-size/amd-rdna3.png)
+
+Merged instances. Dark blue - single instance; light blue - single instance in FS, multiple in VS; orange - multiple instances in FS and VS.
+
+![](img/merge-inst/amd-rdna3.png)
+
+
+### Ray tracing
+
+* Ray query performance: [[15](../GPU_Benchmarks.md#15-ray-tracing-performance)]
+	- 3.8 GigaRays/s
+
+### Tensor
+
+* Cooperative matrix: [[16](../GPU_Benchmarks.md#16-tensor-performance)]
+	- fp16: 144 TOPS (optimized to no-op)
+	- i8: 155 TOPS (optimized to no-op)

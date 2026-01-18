@@ -233,34 +233,35 @@
 
 // compile time assert
 #if 1
-#	define StaticAssert								static_assert
+#	define StaticAssertMsg( _expr_, _msg_ )			static_assert( bool{_expr_}, _msg_ )
+#	define StaticAssert( ... )						static_assert( bool{ __VA_ARGS__ }, AE_TOSTRING( __VA_ARGS__ ))
 
 # if AE_PLATFORM_BITS == 32
-#	define StaticAssert32							static_assert
+#	define StaticAssert32							StaticAssert
 # else
 #	define StaticAssert32( /* expr, msg */... )		static_assert(true)
 # endif
 
 # if AE_PLATFORM_BITS == 64
-#	define StaticAssert64							static_assert
+#	define StaticAssert64							StaticAssert
 # else
 #	define StaticAssert64( /* expr, msg */... )		static_assert(true)
 # endif
 
 # ifdef AE_ENABLE_EXCEPTIONS
-#	define CheckNothrow								static_assert
+#	define CheckNothrow								StaticAssert
 # else
 #	define CheckNothrow( /* expr, msg */... )		static_assert(true)
 #endif
 
 # ifdef AE_DEBUG
-#	define StaticAssertDbg							static_assert
+#	define StaticAssertDbg							StaticAssert
 # else
 #	define StaticAssertDbg( /* expr, msg */... )	static_assert(true)
 # endif
 
 # ifdef AE_RELEASE
-#	define StaticAssertRel							static_assert
+#	define StaticAssertRel							StaticAssert
 # else
 #	define StaticAssertRel( /* expr, msg */... )	static_assert(true)
 # endif
@@ -405,7 +406,7 @@
 
 // mark branches of the new code until someone will enter to this brunch
 #if defined(AE_CI_BUILD_TEST)
-#	define UNTESTED							CHECK_MSG( false, "UNTESTED" )
+#	define UNTESTED							CHECK_MSG( false, "UNTESTED" )	// write warning to log
 
 #elif defined(AE_CI_BUILD_PERF)
 #	define UNTESTED							{}

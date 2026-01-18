@@ -57,6 +57,10 @@ namespace AE::Base
 
 			static void  Align (INOUT String &str, usize pos, usize lineSize, char c = ' ')				__Th___;
 
+		ND_	static bool  ParseCSV (StringView str,
+									OUT HashMap<StringView, uint> &columnNames,
+									OUT Array<Array<StringView>> &rows)									__NE___;
+
 		static constexpr struct _CPPHelper
 		{
 			ND_ static bool  IsWordBegin (char c)	__NE___;

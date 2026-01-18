@@ -4,6 +4,7 @@
 
 namespace
 {
+	static constexpr int	c_Fn1Line = __LINE__;
 	static SourceLoc  SomeFunction (const char* = null, int = 0)
 	{
 		return SourceLoc::current();
@@ -26,10 +27,11 @@ namespace
 		#	error not implemented!
 		#endif
 		TEST_Eq( loc.FunctionName(), "SomeFunction" );
-		TEST_Eq( loc.Line(), 9 );
+		TEST_Eq( loc.Line(), c_Fn1Line+3 );
 	}
 
 
+	static constexpr int	c_Fn2Line = __LINE__;
 	template <typename T>
 	static SourceLoc  SomeTemplateFn (T t = {})
 	{
@@ -54,10 +56,29 @@ namespace
 		#	error not implemented!
 		#endif
 		TEST_Eq( loc.FunctionName(), "SomeTemplateFn" );
-		TEST_Eq( loc.Line(), 37 );
+		TEST_Eq( loc.Line(), c_Fn2Line+5 );
+	}
 
 
-		// TODO: 'struct AE::Base::RC<class AE::_Coro_::AsyncTaskImpl> __cdecl AE::Graphics::CommandBatch::SubmitAsTask<struct AE::Base::ArrayView<struct AE::Base::RC<class AE::_Coro_::AsyncTaskImpl>,unsigned __int64>>(const struct AE::Base::Tuple<struct AE::Base::ArrayView<struct AE::Base::RC<class AE::_Coro_::AsyncTaskImpl>,unsigned __int64> > &) noexcept'
+	static void  SourceLoc_Test3 ()
+	{
+		// MSVC style signature
+		{
+			StringView	fn_sig  = "struct AE::Base::RC<class AE::_Coro_::AsyncTaskImpl> __cdecl AE::Graphics::CommandBatch::SubmitAsTask<struct AE::Base::ArrayView<struct AE::Base::RC<class AE::_Coro_::AsyncTaskImpl>,unsigned __int64>>(const struct AE::Base::Tuple<struct AE::Base::ArrayView<struct AE::Base::RC<class AE::_Coro_::AsyncTaskImpl>,unsigned __int64> > &) noexcept";
+			StringView	fn_name = SourceLoc::_ExtractFnName( fn_sig );
+			TEST_Eq( fn_name, "SubmitAsTask" );
+		}{
+			StringView	fn_sig  = "struct AE::Base::SourceLoc __cdecl `anonymous-namespace'::SomeFunction(const char *,int)";
+			StringView	fn_name = SourceLoc::_ExtractFnName( fn_sig );
+			TEST_Eq( fn_name, "SomeFunction" );
+		}
+
+		// MSVC+Clang style signature
+		{
+			StringView	fn_sig  = "SourceLoc __cdecl (anonymous namespace)::SomeFunction(const char *, int)";
+			StringView	fn_name = SourceLoc::_ExtractFnName( fn_sig );
+			TEST_Eq( fn_name, "SomeFunction" );
+		}
 	}
 }
 

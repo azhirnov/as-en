@@ -27,7 +27,7 @@
 			pass.Slider( "iRadius",		4.0,	1000.0,		100.0 );	// pixels
 			pass.ColorSelector( "iColor",	RGBA32f(0.f, 1.f, 0.f, 1.f) );
 		}
-		Present( rt ); //, EColorSpace::Extended_sRGB_linear );
+		Present( rt, EColorSpace::Extended_sRGB_linear );
 	}
 
 #endif

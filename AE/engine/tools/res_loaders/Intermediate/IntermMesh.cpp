@@ -33,23 +33,24 @@ namespace AE::ResLoader
 	CalcAABB
 =================================================
 */
-	void  IntermMesh::CalcAABB () __NE___
+	bool  IntermMesh::CalcAABB () __NE___
 	{
-		CHECK_ERRV( _attribs and _vertexStride > 0 and _vertices.size() );
+		CHECK_ERR( _attribs and _vertexStride > 0 and _vertices.size() );
 
 		auto	positions = _attribs->GetData< packed_float3 >( VertexAttributeName::Position, _vertices.data(),
 																VertexCount(), _vertexStride );
 		if ( positions.empty() )
-			return;
+			return false;
 
 		AABB	bbox{ positions[0] };
 
-		for (size_t i = 1; i < positions.size(); ++i)
+		for (auto& pos : positions)
 		{
-			bbox.Add( positions[i] );
+			bbox.Add( pos );
 		}
 
 		_boundingBox = bbox;
+		return true;
 	}
 
 /*
@@ -57,28 +58,29 @@ namespace AE::ResLoader
 	CalcSphere
 =================================================
 */
-	void  IntermMesh::CalcSphere () __NE___
+	bool  IntermMesh::CalcSphere () __NE___
 	{
-		CHECK_ERRV( _attribs and _vertexStride > 0 and _vertices.size() );
+		CHECK_ERR( _attribs and _vertexStride > 0 and _vertices.size() );
 
 		auto	positions = _attribs->GetData< packed_float3 >( VertexAttributeName::Position, _vertices.data(),
 																VertexCount(), _vertexStride );
 		if ( positions.empty() )
-			return;
+			return false;
 
 		if ( not _boundingBox.has_value() )
-			return;
+			return false;
 
 		packed_float3	center	= _boundingBox->Center();
 		float			radius	= 0.0f;
 
-		for (size_t i = 1; i < positions.size(); ++i)
+		for (auto& pos : positions)
 		{
-			float	r = Distance( positions[i], center );
+			float	r = Distance( pos, center );
 			radius = Max( radius, r );
 		}
 
 		_boundingSphere = Sphere{ center, radius };
+		return true;
 	}
 
 /*

@@ -2,6 +2,7 @@
 
 #include "base/Algorithms/Parser.h"
 #include "base/Math/Vec.h"
+#include "base/Algorithms/ToString.h"
 
 namespace AE::Base
 {
@@ -901,5 +902,77 @@ namespace
 			str += c;
 	}
 
+/*
+=================================================
+	ParseCSV
+=================================================
+*/
+	bool  Parser::ParseCSV (StringView str, OUT HashMap<StringView, uint> &columnNames, OUT Array<Array<StringView>> &rows) __NE___
+	{
+		TRY
+		{
+			columnNames.clear();
+			rows.clear();
+
+			Array<StringView>	tokens;
+			usize				pos = 0;
+
+			// first line
+			{
+				StringView	line;
+				ReadLineToEnd( str, INOUT pos, OUT line );
+
+				for (usize i = 0; i < line.size();)
+				{
+					usize	next = line.find( ',', i );
+					next = Min( next, line.size() );
+
+					StringView	name = SubStringBE( line, i, next );
+
+					CHECK_ERR_MSG( columnNames.emplace( name, uint(columnNames.size()) ).second,  // throw
+						"Duplicate column name '"s << name << "'" );
+
+					i = next+2;
+				}
+			}
+
+			if ( columnNames.empty() )
+				return true;
+
+			for (; pos < str.size();)
+			{
+				StringView	line;
+				ReadLineToEnd( str, INOUT pos, OUT line );
+
+				auto&	cur_row = rows.emplace_back();  // throw
+				cur_row.reserve( columnNames.size() );
+
+				for (usize i = 0; i < line.size();)
+				{
+					usize	next = line.find( ',', i );
+					next = Min( next, line.size() );
+
+					StringView	val = SubStringBE( line, i, next );
+
+					// first column
+					if ( cur_row.empty() )
+					{
+						uint	row_idx = StringToUInt( val );
+						CHECK_Eq( row_idx, rows.size()-1 );
+					}
+
+					cur_row.push_back( val );  // throw
+					i = next+2;
+				}
+
+				CHECK_Eq( cur_row.size(), columnNames.size() );
+			}
+
+			return true;
+		}
+		CATCH_ALL(
+			return false;
+		)
+	}
 
 } // AE::Base

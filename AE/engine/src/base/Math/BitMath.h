@@ -194,9 +194,9 @@ namespace AE::Base
 
 /*
 =================================================
-	IntLog2 / GetPowerOfTwo / BitScanReverse / MSB
+	IntLog2 / GetPowerOfTwo / HighBitIndex / MSB
 ----
-	returns < 0 if x == 0
+	returns -1 if x == 0, same as GLSL findMSB
 	find high non-zero bit.
 	0b010000100
 	   ^
@@ -228,33 +228,27 @@ namespace AE::Base
 			return uint(x) > 0 ? 31 - __builtin_clz( uint(x) ) : INVALID_INDEX;
 
 	  #else
-		#error add BitScanReverse implementation
+		#error add HighBitIndex implementation
 	  #endif
 	}
 
 	template <typename T> requires(HasScalarBitOp<T>)
-	NdCx__ int  BitScanReverse (const T x) __NE___
+	NdCx__ int  HighBitIndex (const T x) __NE___
 	{
 		return IntLog2( x );
 	}
 
 /*
 =================================================
-	HighBit / HighZeroBit
+	HighZeroBitIndex
 ----
 	return 'UMax' if empty
 =================================================
 */
 	template <typename T> requires(HasScalarBitOp<T>)
-	NdCx__ uint  HighBit (const T x) __NE___
+	NdCx__ uint  HighZeroBitIndex (const T x) __NE___
 	{
-		return uint(IntLog2( x ));
-	}
-
-	template <typename T> requires(HasScalarBitOp<T>)
-	NdCx__ uint  HighZeroBit (const T x) __NE___
-	{
-		return uint(HighBit( ~ToNearUInt( x )));
+		return uint(HighBitIndex( ~ToNearUInt( x )));
 	}
 
 /*
@@ -292,16 +286,16 @@ namespace AE::Base
 
 /*
 =================================================
-	BitScanForward / LSB
+	LowBitIndex / LSB
 ----
-	returns < 0 if x == 0
+	returns -1 if x == 0, same as GLSL findLSB
 	find low non-zero bit.
 	0b010000100
 	        ^
 =================================================
 */
 	template <typename T> requires(HasScalarBitOp<T>)
-	ND_ int  BitScanForward (const T x) __NE___
+	ND_ int  LowBitIndex (const T x) __NE___
 	{
 	#ifdef AE_COMPILER_MSVC
 		constexpr int	INVALID_INDEX = -1;
@@ -321,43 +315,39 @@ namespace AE::Base
 			return __builtin_ffs( uint(x) ) - 1;
 
 	#else
-		#error add BitScanForward implementation
+		#error add LowBitIndex implementation
 	#endif
 	}
 
 /*
 =================================================
-	CountRZero / LSB
+	CountRZero
 ----
 	returns max_bit_count if x == 0
-	find low non-zero bit.
+	find distance to low non-zero bit.
 	0b010000100
-	        ^
+	        ^^^
 =================================================
 */
 	template <typename T> requires(HasScalarBitOp<T>)
 	NdCx__ uint  CountRZero (const T x) __NE___
 	{
-		return uint( std::countr_zero( ToUnsignedInteger<T>(x) ));
+		return uint( std::countr_zero( ToNearUInt(x) ));
 	}
 
 /*
 =================================================
-	LowBit / LowZeroBit
+	LowZeroBitIndex
 ----
-	return 'UMax' if empty
+	return 'UMax' if empty.
+	0b010000111
+	       ^
 =================================================
 */
 	template <typename T> requires(HasScalarBitOp<T>)
-	NdCx__ uint  LowBit (const T x) __NE___
+	NdCx__ uint  LowZeroBitIndex (const T x) __NE___
 	{
-		return BitScanForward( x );
-	}
-
-	template <typename T> requires(HasScalarBitOp<T>)
-	NdCx__ uint  LowZeroBit (const T x) __NE___
-	{
-		return LowBit( ~ToNearUInt( x ));
+		return LowBitIndex( ~ToNearUInt( x ));
 	}
 
 /*
@@ -389,38 +379,52 @@ namespace AE::Base
 /*
 =================================================
 	BitCount
+----
+	0b00110110
+	    ^^ ^^
 =================================================
 */
 	template <typename T> requires(HasScalarBitOp<T>)
 	NdCx__ usize  BitCount (const T x) __NE___
 	{
-		return usize( std::popcount( ToUnsignedInteger<T>(x) ));
+		return usize( std::popcount( ToNearUInt(x) ));
+	}
+
+	template <typename T> requires(HasScalarBitOp<T>)
+	NdCx__ usize  ZeroBitCount (const T x) __NE___
+	{
+		return usize( std::popcount( ~ToNearUInt(x) ));
 	}
 
 /*
 =================================================
-	CountLZero
+	HighBitCount
 ----
-	counts the number of consecutive 0 bits, starting from the most significant bit
+	counts the number of consecutive 1 bits, starting from the most significant bit.
+	0b11100011
+	  ^^^
 =================================================
 */
 	template <typename T> requires(HasScalarBitOp<T>)
-	NdCx__ usize  CountLZero (const T x) __NE___
+	NdCx__ usize  HighBitCount (const T x) __NE___
 	{
-		return usize( std::countl_zero( ToUnsignedInteger<T>(x) ));
+		return usize( std::countl_one( ToNearUInt(x) ));
 	}
 
 /*
 =================================================
-	CountLOne
+	HighZeroBitCount
 ----
-	counts the number of consecutive 1 bits, starting from the most significant bit
+	counts the number of consecutive 0 bits, starting from the most significant bit.
+	0b00011110
+	  ^^^
 =================================================
 */
 	template <typename T> requires(HasScalarBitOp<T>)
-	NdCx__ usize  CountLOne (const T x) __NE___
+	NdCx__ usize  HighZeroBitCount (const T x) __NE___
 	{
-		return usize( std::countl_one( ToUnsignedInteger<T>(x) ));
+		// or HighBitCount( ~x )
+		return usize( std::countl_zero( ToNearUInt(x) ));
 	}
 
 /*
@@ -486,7 +490,7 @@ namespace AE::Base
 		ASSERT( shuffle >= 0 );
 
 		int off = int(shuffle & (CT_SizeofInBits(x) - 1));
-		int	idx = BitScanForward( BitRotateLeft( x, shuffle ));
+		int	idx = LowBitIndex( BitRotateLeft( x, shuffle ));
 
 		return	idx >= 0 ?
 				(idx >= off ?

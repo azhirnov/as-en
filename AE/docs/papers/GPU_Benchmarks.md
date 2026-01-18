@@ -23,21 +23,22 @@ Other:
 	- [Memory](#Memory)
 	- [Render target compression](#Render-target-compression)
 * [Test Sources](#Test-Sources)
-	- [1](#1-fp16-instruction-performance)
-	- [2](#2-fp32-instruction-performance)
-	- [3](#3-Render-target-compression)
-	- [4](#4-Shader-instruction-benchmark)
-	- [5](#5-Texture-lookup-performance)
-	- [6](#6-Subgroups)
-	- [7](#7-BufferImage-storage-access)
-	- [9](#9-Texture-cache)
-	- [10](#10-Shared-memory)
-	- [11](#11-NaN)
-	- [12](#12-Branching)
-	- [13](#13-Circle-geometry)
-	- [14](#14-Nonuniform)
-	- [15](#15-ray-tracing-performance)
-	- [16](#16-tensor-performance)
+	- [1. fp16 instruction performance](#1-fp16-instruction-performance)
+	- [2. fp32 instruction performance](#2-fp32-instruction-performance)
+	- [3. Render target compression](#3-Render-target-compression)
+	- [4. Shader instruction benchmark](#4-Shader-instruction-benchmark)
+	- [5. Texture lookup performance](#5-Texture-lookup-performance)
+	- [6. Subgroups](#6-Subgroups)
+	- [7. Buffer/image storage access](#7-BufferImage-storage-access)
+	- [9. Cache size](#9-Texture-cache)
+	- [10. Shared memory](#10-Shared-memory)
+	- [11. NaN](#11-NaN)
+	- [12. Branching in shader](#12-Branching)
+	- [13. Circle geometry](#13-Circle-geometry)
+	- [14. Nonuniform](#14-Nonuniform)
+	- [15. Ray tracing performance](#15-ray-tracing-performance)
+	- [16. Tensor performance](#16-tensor-performance)
+	- [17. Tile size](#17-tile-size)
 
 
 # Comparison of Results
@@ -45,25 +46,27 @@ Other:
 ## Subgroups
 
 * Some GPU has early termination for helper invocation if derivatives are not used.
-* TBR architectures can fill multiple triangles with a single subgroup, but only with the same instance.
 * TBDR architectures can fill multiple triangles and instances with a single subgroup.
-* TB* architectures can fill triangles with a single subgroup only inside tile region.
+* TBR/TBDR architectures can fill triangles with a single subgroup only inside tile region, except AMD and Intel.
+* On mobile GPUs tile size depends on sum of render targets bytes per pixels, on NV tile size depends on register count. Intel has 4x4 tile but on low occupancy subgroup can fill pixels from another tiles like on AMD.
+* Desktop GPUs (NV, AMD, Intel) merge instances only on low occupancy.
 
-| GPU | subgroup size | tile size | helper invocation early termination | merge triangles | merge between instances | always full subgroup in FS |
-|---|---|---|---|---|---|---|
-| Adreno 5xx            | ?      | as large as possible | -       |         | -              | -       |
-| Adreno 6xx            | 64/128 | as large as possible | **yes** |         | **yes**        | no      |
-| AMD GCN4              | 64     | -                    | no      | **yes** | no             | ?       |
-| AMD RDNA3             | ?      | ?                    | ?       | ?       | ?              | ?       |
-| Apple M1              | 32     | 16x16                | no      | **yes** | no             | no      |
-| ARM Mali Midgard gen4 | (4)    | 16x16                | ?       | ?       | ?              | ?       |
-| ARM Mali Valhall gen1 | 16     | 16x16                | **yes** | **yes** | **yes** (rare) | no      |
-| Intel UHD 6xx 9.5gen  | 16     | -                    | no      | no      | no             | ?       |
+| GPU | subgroup size | tile size | tile size depends on | helper invocation early termination | merge triangles | merge between instances in FS | merge between instances in VS | always full subgroup in FS |
+|---|---|---|---|---|---|---|---|---|
+| Adreno 5xx            | ?      | as large as possible | RT bpp         |  -      |         | -         | ?       | -       |
+| Adreno 6xx            | 64/128 | as large as possible | RT bpp         | **yes** |         | **yes**   | ?       | no      |
+| AMD GCN4              | 64     | -                    | ?              | no      | **yes** | no        | ?       | ?       |
+| AMD RDNA3             | 64     | -                    | ?              | ?       | **yes** | **yes**   | **yes** | ?       |
+| Apple M1              | 32     | 16x16                | RT bpp         | no      | **yes** | no        | ?       | no      |
+| ARM Mali Midgard gen4 | (4)    | 16x16                | RT bpp         | ?       | ?       | ?         | ?       | ?       |
+| ARM Mali Valhall gen1 | 16     | 16x16                | RT bpp         | **yes** | **yes** | **yes**   | ?       | no      |
+| ARM Mali Valhall gen3 | 16     | 32x32?               | RT bpp         | ?       | ?       | ?         | ?       | no      |
+| Intel UHD 6xx 9.5gen  | 16     | -                    | ?              | no      | no      | no        | ?       | ?       |
 | Intel UHD 730         | 16     |
-| Intel Arc 140T        | 16     | 16x16                | no      | **yes** | no             | no      |
-| NV RTX 20xx           | 32     | 16x16                | no      | **yes** | no             | no      |
-| NV RTX 50xx           | 32     | 16x16                | no ?    | **yes** | yes?           | no      |
-| PowerVR B‑Series      | 128    | 32x32?               | no      | **yes** | no             | **yes** |
+| Intel Arc 140T        | 8/16   | (4x4)                | -              | no      | **yes** | **yes**   | **yes** | no      |
+| NV RTX 20xx           | 32     | 16x16                | register count | no      | **yes** | no?       | ?       | no      |
+| NV RTX 50xx           | 32     | 16x16                | register count | no ?    | **yes** | **yes**   | ?       | no      |
+| PowerVR B‑Series      | 128    | 32x32?               | RT bpp?        | no      | **yes** | no        | ?       | **yes** |
 
 
 ## Shader instructions
@@ -87,9 +90,9 @@ Other:
 | ARM Mali Valhall gen1   | fma/mad | mad     | -       | 1     | 2:1 | 2:1 |
 | Intel UHD 6xx 9.5gen    | fma/mad | **fma** | -       | **2** | 2:1 | no  |
 | Intel UHD 730           |
-| Intel Arc 140T          | fma/mad | **fma** | -       | **2** | 2:1 | ?   |
+| Intel Arc 140T          | fma/mad | **fma** | -       | **2** | 2:1 | 2:1 |
 | NV RTX 20xx (Turing)    | fma/mad | **fma** | -       | **2** | 1:1 **(specs)** | 2:1 |
-| NV RTX 50xx (Blackwell) |         |         | -       | **2** | no  | ?   |
+| NV RTX 50xx (Blackwell) | fma/mad | **fma** | -       | **2** | no  | no  |
 | PowerVR B‑Series        | fma/mad | no      | mad     | 1     | 1:1 | no  |
 
 
@@ -127,7 +130,7 @@ How match Mul and Matrix variants are slower than uniform Branch. [[12](#12-Bran
 | Apple M1              | 1.1 | 0.8  |   1.4 | **1.1** | 1.8 |   1.24 | **1.03** | 1.26 |
 | ARM Mali Midgard gen4 | 1.5 | 0.7  |   1.8 | **1.3** | 2.4 |   1.64 | **1.1**  | 1.57 |
 | ARM Mali Valhall gen1 | 2.1 | 1.4  |   2.3 | **2.1** | 3.5 |   2.18 | **1.56** | 2.45 |
-| ARM Mali Valhall gen3 | 1.7 | 1.2  |   2.1 | **1.6** | 3.0 |   1.9  | **1.3**  | 2.1  |
+| ARM Mali Valhall gen3 | 1.7 | 1.2  |   2.1 | **1.6** | 3.0 |   1.9  | **1.3**  | 2.1  |
 | Intel UHD 6xx 9.5gen  | 1.3 | 0.87 |   1.9 | **1.2** | 2.6 |   1.59 | **1.07** | 1.71 |
 | Intel UHD 730         |
 | Intel Arc 140T        |
@@ -143,13 +146,13 @@ How match Mul and Matrix variants are slower than uniform Branch. [[12](#12-Bran
 | Adreno 5xx             | ? |
 | Adreno 6xx             | grid of 4 large quads (4x4 threads) with 4 quads, row major | ![](bench-gpu/img/graphics-subgroups/adreno-600.png)   | row major 8x8    | ![](bench-gpu/img/compute-subgroups/adreno-600.png) |
 | AMD GCN4               | grid of 4 large quads (4x4 threads) with 4 quads, row major | ![](bench-gpu/img/graphics-subgroups/amd-gcn4.png)     | column major 8x4, 2 threads in row per column | ![](bench-gpu/img/compute-subgroups/amd-gcn4.png) |
-| AMD RDNA3              |
-| Apple M1               | row major 4x2                                               | ![](bench-gpu/img/graphics-subgroups/mac-m1.png)       | row major 8x4    | ![](bench-gpu/img/compute-subgroups/mac-m1.png) |
+| AMD RDNA3              | grid of 4 large quads (4x4 threads) with 4 quads, row major | ![](bench-gpu/img/graphics-subgroups/amd-gcn4.png)     | row major 8x8    | ![](bench-gpu/img/compute-subgroups/amd-rdna3.png) |
+| Apple M1               | row major 4x2 quads                                         | ![](bench-gpu/img/graphics-subgroups/mac-m1.png)       | row major 8x4    | ![](bench-gpu/img/compute-subgroups/mac-m1.png) |
 | ARM Mali Valhall gen1  | random                                                      | ![](bench-gpu/img/graphics-subgroups/valhall-1.png)    | row major 8x2    | ![](bench-gpu/img/compute-subgroups/valhall-1.png) |
-| ARM Mali Valhall gen3  |
-| Intel 9.5gen -<br/> Arc140T | grid of 4 quads, row major                                  | ![](bench-gpu/img/graphics-subgroups/intel-gen9_5.png) | column major 4x4 | ![](bench-gpu/img/compute-subgroups/intel-gen9_5.png) |
-| NV RTX 20xx -<br/> RTX 50xx | column major 2x4                                            | ![](bench-gpu/img/graphics-subgroups/nv-turing.png)    | row major 8x4    | ![](bench-gpu/img/compute-subgroups/nv-turing.png) |
-| PowerVR B‑Series       | [_]-curve, row major 8x4 (Hilbert curve?)                   | ![](bench-gpu/img/graphics-subgroups/powervr-bxm.png)  | row major 8x16   | ![](bench-gpu/img/compute-subgroups/powervr-bxm-16x16.png) |
+| ARM Mali Valhall gen3  |
+| Intel 9.5gen -<br/> Arc140T | 2x2 quads with Z-shape (simd16)<br/> or 2x1 quads (simd8) | simd16 mode on low register count ![](bench-gpu/img/graphics-subgroups/intel-gen9_5.png)<br/> simd8 mode on high register count ![](bench-gpu/img/graphics-subgroups/intel-arc140t-simd8.png)  | column major 4x4 | ![](bench-gpu/img/compute-subgroups/intel-gen9_5.png) |
+| NV RTX 20xx -<br/> RTX 50xx | column major 2x4 quads                                 | ![](bench-gpu/img/graphics-subgroups/nv-turing.png)    | row major 8x4    | ![](bench-gpu/img/compute-subgroups/nv-turing.png) |
+| PowerVR B‑Series       | [_]-curve, row major 4x2 quads<br/>(Hilbert curve?)         | ![](bench-gpu/img/graphics-subgroups/powervr-bxm.png)  | row major 16x8   | ![](bench-gpu/img/compute-subgroups/powervr-bxm-16x16.png) |
 
 ## NaN
 
@@ -180,7 +183,7 @@ How match Mul and Matrix variants are slower than uniform Branch. [[12](#12-Bran
 
 <details><summary>differences</summary>
 
-* FP32 on **NV Turing**, **Adreno 5xx/6xx**
+* FP32 on **NV Turing - Blackwell**, **Adreno 5xx/6xx**
 
 	| op \ type | nan1 | nan2 | nan3 | nan4 | inf | -inf | max | -max |
 	|---|---|---|---|---|---|---|---|---|
@@ -303,7 +306,7 @@ How match Mul and Matrix variants are slower than uniform Branch. [[12](#12-Bran
 
 * FP16 is not supported on **Adreno 5xx**, **Mali Midgard gen4**, **AMD GCN4**
 
-* FP16 on **NV Turing**, **Adreno 6xx**
+* FP16 on **NV Turing - Blackwell**, **Adreno 6xx**
 
 	| op \ type | nan1 | nan2 | nan3 | nan4 | inf | -inf | max | -max |
 	|---|---|---|---|---|---|---|---|---|
@@ -607,7 +610,7 @@ How match Mul and Matrix variants are slower than uniform Branch. [[12](#12-Bran
 | NV RTX 50xx           |
 | ARM Mali Valhall gen1 | 4x4   | 1.9 | 3.9 | 1.9 | 3.7  | exec time       | only 32bit formats, **V2** |
 | ARM Mali Valhall gen1 | 4x4   | 5.9 | 19  | 5.7 | 20   | **mem traffic** | used performance counters |
-| ARM Mali Valhall gen3 |
+| ARM Mali Valhall gen3 |
 | PowerVR B‑Series      | 8x8   | 23  | 134 | 24  | 134  | **mem traffic** | used performance counters |
 
 
@@ -668,6 +671,7 @@ Has much accurate results than **Shader instruction benchmark**.<br/>
 
 * [Subgroups in fullscreen triangle](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/scripts/perf/Subgroups-1.as)
 * [Subgroups with multiple triangles](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/scripts/perf/Subgroups-2.as)
+* [Pack triangles into single subgroup](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/scripts/perf/TrisPerSubgroup.as)
 
 ### 7. Buffer/Image storage access
 
@@ -723,3 +727,9 @@ Test intersection with low poly spheres.
 1. [Cooperative matrix fp16](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/scripts/neural-shader/perf-CoopMatrix-fp16.as)
 2. [Cooperative matrix int8](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/scripts/neural-shader/perf-CoopMatrix-i8.as)
 3. [Cooperative vector](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/scripts/neural-shader/perf-CoopVec.as)
+
+### 17. Tile size
+
+1. [TBR - change register count](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/scripts/perf/TileSize-TBR.as)
+2. [TBDR - change attachment size](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/scripts/perf/TileSize-TBDR.as)
+

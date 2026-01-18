@@ -37,7 +37,7 @@ namespace
 */
 	void  VDevice::InitFeatureSet (OUT FeatureSet &outFeatureSet) C_NE___
 	{
-		StaticAssert( FeatureSet::GetFeatureCount() == 271 );
+		StaticAssert( FeatureSet::GetFeatureCount() == 272 );
 
 		using EFeature	= FeatureSet::EFeature;
 		using KiBytes	= FeatureSet::KiBytes;
@@ -98,9 +98,22 @@ namespace
 					case VK_SUBGROUP_FEATURE_SHUFFLE_RELATIVE_BIT :	outFeatureSet.subgroupOperations.InsertRange( ESubgroupOperation::_ShuffleRelative_Begin,	ESubgroupOperation::_ShuffleRelative_End );	break;
 					case VK_SUBGROUP_FEATURE_CLUSTERED_BIT :		outFeatureSet.subgroupOperations.InsertRange( ESubgroupOperation::_Clustered_Begin,			ESubgroupOperation::_Clustered_End );		break;
 					case VK_SUBGROUP_FEATURE_QUAD_BIT :				outFeatureSet.subgroupOperations.InsertRange( ESubgroupOperation::_Quad_Begin,				ESubgroupOperation::_Quad_End );			break;
+
 					case VK_SUBGROUP_FEATURE_PARTITIONED_BIT_NV :
-					case VK_SUBGROUP_FEATURE_ROTATE_BIT_KHR :
-					case VK_SUBGROUP_FEATURE_ROTATE_CLUSTERED_BIT_KHR :	break;	// TODO
+						CHECK( _extensions.subgroupPartitioned );
+						outFeatureSet.subgroupOperations.insert( ESubgroupOperation::PartitionedNV );
+						break;
+
+					case VK_SUBGROUP_FEATURE_ROTATE_BIT :
+						CHECK( _properties.shaderSubgroupRotateFeats.shaderSubgroupRotate == VK_TRUE );
+						outFeatureSet.subgroupOperations.insert( ESubgroupOperation::Rotate );
+						break;
+
+					case VK_SUBGROUP_FEATURE_ROTATE_CLUSTERED_BIT :
+						CHECK( _properties.shaderSubgroupRotateFeats.shaderSubgroupRotateClustered == VK_TRUE );
+						outFeatureSet.subgroupOperations.insert( ESubgroupOperation::RotateClustered );
+						break;
+
 					case VK_SUBGROUP_FEATURE_FLAG_BITS_MAX_ENUM :
 					default_unlikely :								DBG_WARNING( "unknown subgroup feature" );	break;
 				}
@@ -245,39 +258,47 @@ namespace
 			for (auto& mp : mat_props)
 			{
 				if ( mp.AType == VK_COMPONENT_TYPE_FLOAT16_KHR and mp.BType      == VK_COMPONENT_TYPE_FLOAT16_KHR and
-					 mp.CType == VK_COMPONENT_TYPE_FLOAT16_KHR and mp.ResultType == VK_COMPONENT_TYPE_FLOAT16_KHR and
-					 mp.MSize == 16 and mp.NSize == 16 and mp.KSize == 16 )
-					outFeatureSet.cooperativeMatrixConfig.insert( ECoopMatrixCfg::Afp16_Bfp16_Cfp16_Rfp16_M16_N16_K16 );	// NV
+					 mp.CType == VK_COMPONENT_TYPE_FLOAT16_KHR and mp.ResultType == VK_COMPONENT_TYPE_FLOAT16_KHR )
+				{
+					if ( mp.MSize == 16 and mp.NSize == 16 and mp.KSize == 16 )
+						outFeatureSet.cooperativeMatrixConfig.insert( ECoopMatrixCfg::Afp16_Bfp16_Cfp16_Rfp16_M16_N16_K16 );	// NV, AMD
+				}
 				else
 				if ( mp.AType == VK_COMPONENT_TYPE_FLOAT16_KHR and mp.BType      == VK_COMPONENT_TYPE_FLOAT16_KHR and
-					 mp.CType == VK_COMPONENT_TYPE_FLOAT32_KHR and mp.ResultType == VK_COMPONENT_TYPE_FLOAT32_KHR and
-					 mp.MSize == 16 and mp.NSize == 16 and mp.KSize == 16 )
-					outFeatureSet.cooperativeMatrixConfig.insert( ECoopMatrixCfg::Afp16_Bfp16_Cfp32_Rfp32_M16_N16_K16 );	// NV
-				else
-				if ( mp.AType == VK_COMPONENT_TYPE_FLOAT16_KHR and mp.BType      == VK_COMPONENT_TYPE_FLOAT16_KHR and
-					 mp.CType == VK_COMPONENT_TYPE_FLOAT32_KHR and mp.ResultType == VK_COMPONENT_TYPE_FLOAT32_KHR and
-					 mp.MSize == 8 and mp.NSize == 8 and mp.KSize == 16 )
-					outFeatureSet.cooperativeMatrixConfig.insert( ECoopMatrixCfg::Afp16_Bfp16_Cfp32_Rfp32_M8_N8_K16 );		// Intel
-				else
-				if ( mp.AType == VK_COMPONENT_TYPE_UINT8_KHR  and mp.BType      == VK_COMPONENT_TYPE_UINT8_KHR  and
-					 mp.CType == VK_COMPONENT_TYPE_UINT32_KHR and mp.ResultType == VK_COMPONENT_TYPE_UINT32_KHR and
-					 mp.MSize == 16 and mp.NSize == 16 and mp.KSize == 32 )
-					outFeatureSet.cooperativeMatrixConfig.insert( ECoopMatrixCfg::Au8_Bu8_Cu32_Ru32_M16_N16_K32 );			// NV
-				else
-				if ( mp.AType == VK_COMPONENT_TYPE_SINT8_KHR  and mp.BType      == VK_COMPONENT_TYPE_SINT8_KHR  and
-					 mp.CType == VK_COMPONENT_TYPE_SINT32_KHR and mp.ResultType == VK_COMPONENT_TYPE_SINT32_KHR and
-					 mp.MSize == 16 and mp.NSize == 16 and mp.KSize == 32 )
-					outFeatureSet.cooperativeMatrixConfig.insert( ECoopMatrixCfg::As8_Bs8_Cs32_Rs32_M16_N16_K32 );			// NV
+					 mp.CType == VK_COMPONENT_TYPE_FLOAT32_KHR and mp.ResultType == VK_COMPONENT_TYPE_FLOAT32_KHR )
+				{
+					if ( mp.MSize == 16 and mp.NSize == 16 and mp.KSize == 16 )
+						outFeatureSet.cooperativeMatrixConfig.insert( ECoopMatrixCfg::Afp16_Bfp16_Cfp32_Rfp32_M16_N16_K16 );	// NV, AMD
+					else
+					if ( mp.MSize == 8 and mp.NSize == 8 and mp.KSize == 16 )
+						outFeatureSet.cooperativeMatrixConfig.insert( ECoopMatrixCfg::Afp16_Bfp16_Cfp32_Rfp32_M8_N8_K16 );		// Intel
+				}
 				else
 				if ( mp.AType == VK_COMPONENT_TYPE_UINT8_KHR  and mp.BType      == VK_COMPONENT_TYPE_UINT8_KHR  and
-					 mp.CType == VK_COMPONENT_TYPE_UINT32_KHR and mp.ResultType == VK_COMPONENT_TYPE_UINT32_KHR and
-					 mp.MSize == 8 and mp.NSize == 8 and mp.KSize == 32 )
-					outFeatureSet.cooperativeMatrixConfig.insert( ECoopMatrixCfg::Au8_Bu8_Cu32_Ru32_M8_N8_K32 );			// Intel
+					 mp.CType == VK_COMPONENT_TYPE_UINT32_KHR and mp.ResultType == VK_COMPONENT_TYPE_UINT32_KHR )
+				{
+					if ( mp.MSize == 16 and mp.NSize == 16 and mp.KSize == 32 )
+						outFeatureSet.cooperativeMatrixConfig.insert( ECoopMatrixCfg::Au8_Bu8_Cu32_Ru32_M16_N16_K32 );			// NV
+					else
+					if ( mp.MSize == 16 and mp.NSize == 16 and mp.KSize == 16 )
+						outFeatureSet.cooperativeMatrixConfig.insert( ECoopMatrixCfg::Au8_Bu8_Cu32_Ru32_M16_N16_K16 );			// AMD
+					else
+					if ( mp.MSize == 8 and mp.NSize == 8 and mp.KSize == 32 )
+						outFeatureSet.cooperativeMatrixConfig.insert( ECoopMatrixCfg::Au8_Bu8_Cu32_Ru32_M8_N8_K32 );			// Intel
+				}
 				else
 				if ( mp.AType == VK_COMPONENT_TYPE_SINT8_KHR  and mp.BType      == VK_COMPONENT_TYPE_SINT8_KHR  and
-					 mp.CType == VK_COMPONENT_TYPE_SINT32_KHR and mp.ResultType == VK_COMPONENT_TYPE_SINT32_KHR and
-					 mp.MSize == 8 and mp.NSize == 8 and mp.KSize == 32 )
-					outFeatureSet.cooperativeMatrixConfig.insert( ECoopMatrixCfg::As8_Bs8_Cs32_Rs32_M8_N8_K32 );			// Intel
+					 mp.CType == VK_COMPONENT_TYPE_SINT32_KHR and mp.ResultType == VK_COMPONENT_TYPE_SINT32_KHR )
+				{
+					if ( mp.MSize == 16 and mp.NSize == 16 and mp.KSize == 32 )
+						outFeatureSet.cooperativeMatrixConfig.insert( ECoopMatrixCfg::As8_Bs8_Cs32_Rs32_M16_N16_K32 );			// NV
+					else
+					if ( mp.MSize == 16 and mp.NSize == 16 and mp.KSize == 16 )
+						outFeatureSet.cooperativeMatrixConfig.insert( ECoopMatrixCfg::As8_Bs8_Cs32_Rs32_M16_N16_K16 );			// AMD
+					else
+					if ( mp.MSize == 8 and mp.NSize == 8 and mp.KSize == 32 )
+						outFeatureSet.cooperativeMatrixConfig.insert( ECoopMatrixCfg::As8_Bs8_Cs32_Rs32_M8_N8_K32 );			// Intel
+				}
 			}
 
 		  #if 0
@@ -730,6 +751,11 @@ namespace
 			SET_FEAT2( shaderBFloat16CooperativeMatrix,	_properties.shaderBFloat16Feats );
 		}
 
+		if ( _extensions.conservativeRasterization )
+		{
+			outFeatureSet.conservativeRasterization = True;
+		}
+
 		constexpr usize	max_samples = CT_SizeOfInBits< FeatureSet::SampleCountBits >;
 		for (usize i = 0; i < max_samples; ++i)
 		{
@@ -871,7 +897,7 @@ namespace
 		#define SET_FEAT( _name_ )			feats10._name_ = (inFS._name_ == True ? VK_TRUE : VK_FALSE)
 		#define SET_FEAT2( _name_, _feat_ )	_feat_._name_  = (inFS._name_ == True ? VK_TRUE : VK_FALSE)
 
-		StaticAssert( FeatureSet::GetFeatureCount() == 271 );
+		StaticAssert( FeatureSet::GetFeatureCount() == 272 );
 		using EFeature = FeatureSet::EFeature;
 
 		auto&			feats10		= _properties.features;

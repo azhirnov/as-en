@@ -45,21 +45,21 @@
 			spec.AddToRenderTech( "rtech", "main" );  // in ScriptSceneGraphicsPass
 
 			RenderState	rs;
-			/*{
+			{
 				RenderState_ColorBuffer	cb;
 				cb.blend = true;
 				cb.BlendOp( EBlendOp::Add );
-				cb.SrcBlendFactor( EBlendFactor::One );
+				cb.SrcBlendFactor( EBlendFactor::SrcAlpha );
 				cb.DstBlendFactor( EBlendFactor::OneMinusSrcAlpha );
 				rs.color.SetColorBuffer( 0, cb );
-			}*/
+			}
 			rs.depth.test					= true;
-			rs.depth.write					= true;
+			rs.depth.write					= false;
 
 			rs.inputAssembly.topology		= EPrimitive::TriangleList;
 
 			rs.rasterization.frontFaceCCW	= true;
-			rs.rasterization.cullMode		= ECullMode::None;
+			rs.rasterization.cullMode		= ECullMode::Back;
 
 			spec.SetRenderState( rs );
 		}
@@ -81,7 +81,7 @@
 		float4			sp		= un_Clusters.elements[ gl.InstanceIndex ].sp;
 						pos		= sp.xyz + pos * sp.w;
 	#endif
-						
+
 		float4	wpos	= LocalPosToWorldSpace( pos );
 
 		gl.Position		= WorldPosToClipSpace( wpos );
@@ -102,12 +102,12 @@
 
 	void  Main ()
 	{
-		float3		color	= DHash31( float(In.cluster) * 0.1 );
+		float3	color = DHash31( float(In.cluster) * 0.1 );
 
 		if ( Dot( color, color ) < 0.2 )
 			color = 1.0 - color;
 
-		out_Color = float4( color, 0.4 );
+		out_Color = float4( color, iClusterAlpha );
 	}
 
 #endif

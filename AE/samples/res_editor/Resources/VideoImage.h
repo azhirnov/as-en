@@ -66,15 +66,24 @@ namespace AE::ResEditor
 
 
 	// methods
-	public:
+	private:
 		VideoImage (Renderer &			renderer,
-					const ImageDesc &	desc,
-					const VFS::FileName	&filename,
 					RC<DynamicDim>		outDynSize,
 					const Video::IVideoDecoder::VideoStreamInfo &,
-					StringView			dbgName)				__Th___;
+					StringView			dbgName)				__NE___;
 
+		void  _Init (const ImageDesc &		desc,
+					 const VFS::FileName	&filename)			__Th___;
+
+	public:
 		~VideoImage ()											__NE_OV;
+
+		ND_ static RC<VideoImage>  Create (Renderer &			renderer,
+										   const ImageDesc &	desc,
+										   const VFS::FileName	&filename,
+										   RC<DynamicDim>		outDynSize,
+										   const Video::IVideoDecoder::VideoStreamInfo &,
+										   StringView			dbgName) __Th___;
 
 			bool  Resize (TransferCtx_t &)						__Th_OV	{ return true; }
 			bool  RequireResize ()								C_Th_OV;

@@ -155,6 +155,24 @@ namespace AE::Base
 
 /*
 =================================================
+	SetProcessAffinity
+=================================================
+*/
+	bool  LinuxUtils::SetProcessAffinity (CpuArchInfo::CoreBits_t coreMask) __NE___
+	{
+		pid_t	pid = ::getpid();
+
+		::cpu_set_t  mask;
+		CPU_ZERO( OUT &mask );
+
+		StaticAssert( sizeof(mask.__bits[0]) == 8 );
+		mask.__bits[0] = coreMask.to_ullong();
+
+		return ::sched_setaffinity( pid, sizeof(mask), &mask ) == 0;
+	}
+
+/*
+=================================================
 	GetLogicalCoreIndex
 =================================================
 */
@@ -204,7 +222,7 @@ namespace AE::Base
 	ClipboardExtract
 =================================================
 */
-	bool  LinuxUtils::ClipboardExtract (OUT String &result, void* disp, void* wnd) __NE___
+	bool  LinuxUtils::ClipboardExtract (OUT U8String &result, void* disp, void* wnd) __NE___
 	{
 		// TODO: https://stackoverflow.com/questions/27378318/c-get-string-from-clipboard-on-linux
 		return false;
@@ -215,7 +233,7 @@ namespace AE::Base
 	ClipboardPut
 =================================================
 */
-	bool  LinuxUtils::ClipboardPut (NtStringView str, void* disp, void* wnd) __NE___
+	bool  LinuxUtils::ClipboardPut (NtU8StringView str, void* disp, void* wnd) __NE___
 	{
 		// TODO
 		return false;

@@ -358,6 +358,32 @@ static void  CreateShaderBuiltinSymbols (TIntermNode*, DebugInfo &dbgInfo)
 		dbgInfo.CacheSymbolNode( symb, true );
 	}
 
+	if ( shader == EShLangVertex and not dbgInfo.GetCachedSymbolNode( "gl_VertexIndex" ))
+	{
+		TPublicType		vec4_type;	vec4_type.init( Default );
+		vec4_type.basicType			= TBasicType::EbtInt;
+		vec4_type.vectorSize		= 1;
+		vec4_type.qualifier.storage	= TStorageQualifier::EvqVertexId;
+		vec4_type.qualifier.builtIn	= TBuiltInVariable::EbvVertexIndex;
+
+		TIntermSymbol*	symb = new TIntermSymbol{ dbgInfo.GetUniqueSymbolID(), "gl_VertexIndex", dbgInfo.GetShaderType(), TType{vec4_type} };
+		symb->setLoc( loc );
+		dbgInfo.CacheSymbolNode( symb, true );
+	}
+
+	if ( shader == EShLangVertex and not dbgInfo.GetCachedSymbolNode( "gl_InstanceIndex" ))
+	{
+		TPublicType		vec4_type;	vec4_type.init( Default );
+		vec4_type.basicType			= TBasicType::EbtInt;
+		vec4_type.vectorSize		= 1;
+		vec4_type.qualifier.storage	= TStorageQualifier::EvqInstanceId;
+		vec4_type.qualifier.builtIn	= TBuiltInVariable::EbvInstanceIndex;
+
+		TIntermSymbol*	symb = new TIntermSymbol{ dbgInfo.GetUniqueSymbolID(), "gl_InstanceIndex", dbgInfo.GetShaderType(), TType{vec4_type} };
+		symb->setLoc( loc );
+		dbgInfo.CacheSymbolNode( symb, true );
+	}
+
 	if ( is_compute and not dbgInfo.GetCachedSymbolNode( "gl_GlobalInvocationID" ))
 	{
 		TPublicType		uint_type;	uint_type.init( Default );

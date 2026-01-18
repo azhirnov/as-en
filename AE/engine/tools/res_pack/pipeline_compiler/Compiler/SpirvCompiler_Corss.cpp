@@ -3,8 +3,18 @@
 #include "res_pack/pipeline_compiler/Compiler/SpirvCompiler.h"
 
 #ifdef AE_ENABLE_SPIRV_CROSS
-#	include "spirv_cross/spirv_cross.hpp"
-#	include "spirv_cross/spirv_glsl.hpp"
+
+# if defined(AE_COMPILER_CLANG) or defined(AE_COMPILER_CLANG_CL)
+#	pragma clang diagnostic push
+#	pragma clang diagnostic ignored "-Wdouble-promotion"
+# endif
+
+# include "spirv_cross/spirv_cross.hpp"
+# include "spirv_cross/spirv_glsl.hpp"
+
+# if defined(AE_COMPILER_CLANG) or defined(AE_COMPILER_CLANG_CL)
+#	pragma clang diagnostic pop
+# endif
 
 namespace AE::PipelineCompiler
 {

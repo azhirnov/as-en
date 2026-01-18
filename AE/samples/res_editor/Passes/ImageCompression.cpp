@@ -184,7 +184,7 @@ namespace AE::ResEditor
 
 			auto	read_res = ctx.ReadbackImage( _srcId, read );
 
-			if_likely( read_res.IsCompleted() )
+			if_likely( read_res.IsFullyRead() )
 			{
 				read_res.Then(
 					CoSafe{block}, GetRC<ImageCompressionPass>(),

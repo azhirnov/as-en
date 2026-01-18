@@ -55,11 +55,11 @@
 	#if PERPENDICULAR == 1
 		// same as 'Line_Perpendicular()'
 		pointOnLine = Line_ProjectPoint( line, pos );
-		return Line_PointInside( line, pointOnLine );
+		return Line_IsPointInside( line, pointOnLine );
 	#else
 		float2	norm = LeftVector( end - begin );
 		return	Line_RayIntersection( line, Line_Create( pos, pos + norm ), pointOnLine ) and
-				Line_PointInside( line, pointOnLine );
+				Line_IsPointInside( line, pointOnLine );
 	#endif
 	}
 
@@ -115,7 +115,7 @@
 
 		float2	point	= Line_ProjectPoint( line, uv2 );
 		float	dist3	= SDF2_Circle( uv - point, line_width );
-		bool	side	= Line_PointOnLeftSide( line, uv2 );
+		bool	side	= Line_IsPointOnLeftSide( line, uv2 );
 
 		if ( dist3 < 0.0 )
 			out_Color = float4(0.0, 0.0, 1.0, 1.0);

@@ -3,8 +3,8 @@
 #include "scripting/Impl/ScriptEngine.h"
 #include "scripting/Impl/ScriptTypes.h"
 
-#if ANGELSCRIPT_VERSION != 23700
-#	pragma message( "required AngelScript 2.37" )
+#if ANGELSCRIPT_VERSION != 23800
+#	pragma message( "required AngelScript 2.38" )
 #endif
 
 namespace AE::Scripting
@@ -780,6 +780,28 @@ namespace
 			}
 		}
 
+		// replace '@' by 'RC<>'
+		for (usize pos = 0; pos < str.size(); ++pos)
+		{
+			const usize	next = str.find( '@', pos );
+			if ( next >= str.size() )
+				break;
+
+			// scan backward
+			for (usize i = next - 1; i > pos; --i)
+			{
+				char	c = str[i];
+				if ( not Parser::CPP.IsWord( c ))
+				{
+					str[next] = '>';
+					str.insert( i+1, "RC<" );
+					break;
+				}
+			}
+
+			pos = next + 1;
+		}
+
 		// free memory
 		Reconstruct( _cppHeaders );
 		Reconstruct( _cppHeaderMap );
@@ -808,7 +830,9 @@ namespace
 					ASSERT( hash_str[0] == '/' );
 					ASSERT( hash_str[1] == '/' );
 					ASSERT( hash_str[10] == '\n' );
-					prev_hash = HashVal32{StringToUInt( StringView{hash_str}.substr( 2 ), 16 )};
+
+					if ( hash_str[0] == '/' and hash_str[1] == '/' and hash_str[10] == '\n' )
+						prev_hash = HashVal32{StringToUInt( StringView{hash_str}.substr( 2 ), 16 )};
 				}
 			}
 		}

@@ -22,7 +22,7 @@ namespace AE::Base
 	template <usize Align, typename T>
 	NdCx__ bool  CheckPointerAlignment (T const* ptr) __NE___
 	{
-		StaticAssert( ((Align & (Align - 1)) == 0), "Align must be power of 2" );
+		StaticAssertMsg( ((Align & (Align - 1)) == 0), "Align must be power of 2" );
 
 		return (usize(ptr) & (Align-1)) == 0;
 	}
@@ -276,8 +276,8 @@ namespace AE::Base
 	template <typename To, typename From>
 	NdCx__ To  BitCast (const From& src) __NE___
 	{
-		StaticAssert( sizeof(To) == sizeof(From), "must be same size!" );
-		StaticAssert( IsMemCopyAvailable<From> and IsMemCopyAvailable<To>, "must be trivial types!" );
+		StaticAssertMsg( sizeof(To) == sizeof(From), "must be same size!" );
+		StaticAssertMsg( IsMemCopyAvailable<From> and IsMemCopyAvailable<To>, "must be trivial types!" );
 		//StaticAssert( not IsSame< To, From >);	// to find unnecessary cast
 
 	  #ifdef __cpp_lib_bit_cast
@@ -312,8 +312,8 @@ namespace AE::Base
 	template <typename To, typename From>
 	NdCx__ To  BitCastRlx (const From& src) __NE___
 	{
-		//StaticAssert( sizeof(From) <= sizeof(To), "cast will loose data!" );
-		StaticAssert( IsMemCopyAvailable<From> and IsMemCopyAvailable<To>, "must be trivial types!" );
+		//StaticAssertMsg( sizeof(From) <= sizeof(To), "cast will loose data!" );
+		StaticAssertMsg( IsMemCopyAvailable<From> and IsMemCopyAvailable<To>, "must be trivial types!" );
 		//StaticAssert( not IsSame< To, From >);	// to find unnecessary cast
 
 	  #ifdef __cpp_lib_bit_cast
@@ -345,7 +345,7 @@ namespace AE::Base
 	template <typename To, typename From>
 	NdCx__ To  BitCastPtr (const From* src) __NE___
 	{
-		StaticAssert( (IsVoid<From> or IsMemCopyAvailable<From>) and IsMemCopyAvailable<To>, "must be trivial types!" );
+		StaticAssertMsg( (IsVoid<From> or IsMemCopyAvailable<From>) and IsMemCopyAvailable<To>, "must be trivial types!" );
 
 		To	dst;
 		std::memcpy( OUT &dst, src, sizeof(To) );

@@ -290,6 +290,7 @@ namespace
 		if ( expr.swizzle.IsArray() )
 		{
 			// TODO
+			ASSERT( false );
 		}
 		else
 		if ( not expr.swizzle.IsUndefined() )	// update part of variable

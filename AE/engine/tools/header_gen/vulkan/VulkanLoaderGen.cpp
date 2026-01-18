@@ -560,6 +560,7 @@ namespace AE::Parsers
 			{ "maintenance7",					VK_KHR_MAINTENANCE_7_EXTENSION_NAME,						NoVer,	{1,1},	{} },
 		//	{ "pipelineBinary",					VK_KHR_PIPELINE_BINARY_EXTENSION_NAME,						NoVer,	{1,3},	{VK_KHR_MAINTENANCE_5_EXTENSION_NAME} },
 			{ "deviceGeneratedCommands",		VK_EXT_DEVICE_GENERATED_COMMANDS_EXTENSION_NAME,			NoVer,	{1,1},	{VK_KHR_BUFFER_DEVICE_ADDRESS_EXTENSION_NAME, VK_KHR_MAINTENANCE_5_EXTENSION_NAME} },
+			{ "conservativeRasterization",		VK_EXT_CONSERVATIVE_RASTERIZATION_EXTENSION_NAME,			NoVer,	{1,1},	{VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME} },
 
 		// dynamic rendering //
 		#if 0
@@ -672,6 +673,7 @@ namespace AE::Parsers
 			{ "partitionedAccelStructNV",		VK_NV_PARTITIONED_ACCELERATION_STRUCTURE_EXTENSION_NAME,	NoVer,	{1,1},	{VK_KHR_ACCELERATION_STRUCTURE_EXTENSION_NAME} },
 			{ "cooperativeVectorNV",			VK_NV_COOPERATIVE_VECTOR_EXTENSION_NAME,					NoVer,	{1,0},	{} },
 			{ "shaderAtomicPackedFp16",			VK_NV_SHADER_ATOMIC_FLOAT16_VECTOR_EXTENSION_NAME,			NoVer,	{1,0},	{} },
+			{ "subgroupPartitioned",			VK_NV_SHADER_SUBGROUP_PARTITIONED_EXTENSION_NAME,			NoVer,	{1,1},	{} },
 		// not supported on Turing:
 		//	{ "rayTracingLinearSweptSpheresNV",	VK_NV_RAY_TRACING_LINEAR_SWEPT_SPHERES_EXTENSION_NAME,		NoVer,	{1,1},	{VK_KHR_RAY_TRACING_PIPELINE_EXTENSION_NAME} },
 		//	{ "rayTracingMotionBlurNV",			VK_NV_RAY_TRACING_MOTION_BLUR_EXTENSION_NAME,				NoVer,	{1,1},	{VK_KHR_RAY_TRACING_PIPELINE_EXTENSION_NAME} },

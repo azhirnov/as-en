@@ -155,7 +155,7 @@ namespace AE::PipelineCompiler
 */
 	String  ObjectStorage::GetShaderExtensionsGLSL (INOUT Version2 &spirvVer, const EShaderStages stage, bool hasDebugInfo, ArrayView<ScriptFeatureSetPtr> features) __Th___
 	{
-		StaticAssert( Graphics::FeatureSet::GetFeatureCount() == 271 );
+		StaticAssert( Graphics::FeatureSet::GetFeatureCount() == 272 );
 
 		ASSERT( IsSingleBitSet( stage ));
 
@@ -251,6 +251,20 @@ namespace AE::PipelineCompiler
 				ext << "#extension GL_KHR_shader_subgroup_quad                     : require\n";
 				def << "#define AE_shader_subgroup_quad 1\n";
 			}
+			if ( ops.contains( ESubgroupOperation::PartitionedNV )) {
+				ext << "#extension GL_NV_shader_subgroup_partitioned               : require\n";
+				def << "#define AE_shader_subgroup_partitioned 1\n";
+			}
+			if ( ops.contains( ESubgroupOperation::Rotate )) {
+				ext << "#extension GL_KHR_shader_subgroup_rotate                   : require\n";
+				def << "#define AE_shader_subgroup_rotate 1\n";
+			}
+			if ( ops.contains( ESubgroupOperation::RotateClustered )) {
+				ext << "#extension GL_KHR_shader_subgroup_rotate                   : require\n";
+				def << "#define AE_shader_subgroup_rotate_clustered 1\n";
+			}
+			StaticAssert( uint(ESubgroupOperation::_Count) == 55 );
+
 
 			for (auto t : BitfieldIterate( types ))
 			{

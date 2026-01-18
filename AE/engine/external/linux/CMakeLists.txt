@@ -1,6 +1,7 @@
 # Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
-set( AE_ENABLE_KTX	 			OFF CACHE INTERNAL "" FORCE )
+set( AE_ENABLE_KTX	 				OFF CACHE INTERNAL "" FORCE )
+set( AE_ENABLE_OPENXR				OFF CACHE INTERNAL "" FORCE )
 
 #----------------------------------------------------------
 

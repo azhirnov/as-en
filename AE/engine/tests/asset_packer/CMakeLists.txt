@@ -9,7 +9,6 @@ if (TARGET "PipelineCompiler-shared" OR TARGET "PipelineCompiler-shared" OR TARG
 	set( PLATFORM_DIR			"${MAIN_SOURCE_DIR}/engine/src/platform" )
 
 	file( GLOB_RECURSE SOURCES "*.h" "*.cpp" "*.as" "*.txt" "*.glsl" "*.msl" )
-	file( GLOB_RECURSE SHARED_DATA "${AE_ENGINE_SHARED_DATA}/*.*" )
 
 	set( PIPELINE_COMPILER_SRC
 		"${PIPELINE_COMPILER_DIR}/Packer/PipelinePackDeserializer.cpp"
@@ -50,7 +49,6 @@ if (TARGET "PipelineCompiler-shared" OR TARGET "PipelineCompiler-shared" OR TARG
 	set_target_properties( "Tests.AssetPacker" PROPERTIES SUFFIX "${AE_EXECUTABLE_SUFFIX}" )
 
 	source_group( TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${SOURCES} )
-	source_group( TREE "${AE_ENGINE_SHARED_DATA}/.." FILES ${SHARED_DATA} )
 	source_group( "external/graphics" FILES ${GRAPHICS_SRC} )
 	source_group( "external/platform" FILES ${PLATFORM_SRC} )
 	source_group( "external/pipeline_compiler" FILES ${PIPELINE_COMPILER_SRC} )

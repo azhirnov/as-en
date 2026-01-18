@@ -23,6 +23,9 @@ namespace AE::Graphics
 		Au8_Bu8_Cu32_Ru32_M16_N16_K32,
 		As8_Bs8_Cs32_Rs32_M16_N16_K32,
 
+		Au8_Bu8_Cu32_Ru32_M16_N16_K16,
+		As8_Bs8_Cs32_Rs32_M16_N16_K16,
+
 		Au8_Bu8_Cu32_Ru32_M8_N8_K32,
 		As8_Bs8_Cs32_Rs32_M8_N8_K32,
 
@@ -232,16 +235,16 @@ namespace AE::Graphics
 
 		//								|-------------------------------------------------------|-----------------------------------------------|
 		// ---- Shuffle ----			|						 GL_KHR_shader_subgroup_shuffle |												|
-		Shuffle,					//	|	T subgroupShuffle(T value, uint index)				|	T simd_shuffle(T value, ushort index)		|
-		ShuffleXor,					//	|	T subgroupShuffleXor(T value, uint mask)			|	T simd_shuffle_xor(T value, ushort mask)	|
+		Shuffle,					//	|	T subgroupShuffle(T value, uint index)				|	T simd_shuffle(T value, ushort index)		| - returns the 'value' whose ID is equal to 'id'
+		ShuffleXor,					//	|	T subgroupShuffleXor(T value, uint mask)			|	T simd_shuffle_xor(T value, ushort mask)	| - returns the 'value' whose ID is equal to the current invocation's ID xored with 'mask'
 									//	'-------------------------------------------------------'-----------------------------------------------'
 		_Shuffle_Begin				= Shuffle,
 		_Shuffle_End				= ShuffleXor,
 
 		//								|-------------------------------------------------------|-----------------------------------------------|
 		// ---- Shuffle Relative ----	|				GL_KHR_shader_subgroup_shuffle_relative |												|
-		ShuffleUp,					//	|	T subgroupShuffleUp(T value, uint delta)			|	T simd_shuffle_up(T value, ushort delta)	|
-		ShuffleDown,				//	|	T subgroupShuffleDown(T value, uint delta)			|	T simd_shuffle_down(T value, ushort delta)	|
+		ShuffleUp,					//	|	T subgroupShuffleUp(T value, uint delta)			|	T simd_shuffle_up(T value, ushort delta)	| - returns the 'value' whose ID is equal to this invocation's ID minus 'delta'
+		ShuffleDown,				//	|	T subgroupShuffleDown(T value, uint delta)			|	T simd_shuffle_down(T value, ushort delta)	| - returns the 'value' whose ID is equal to this invocation's ID plus 'delta'
 									//	'-------------------------------------------------------'-----------------------------------------------'
 		_ShuffleRelative_Begin		= ShuffleUp,
 		_ShuffleRelative_End		= ShuffleDown,
@@ -269,20 +272,13 @@ namespace AE::Graphics
 		_Quad_Begin					= QuadBroadcast,
 		_Quad_End					= QuadSwapDiagonal,
 
-		//								|-------------------------------------------------------|-----------------------------------------------|
-		// ---- Partitioned NV ----		|					  GL_NV_shader_subgroup_partitioned |	-											|
-		//PartitionedAdd_NV,		//	|	T subgroupPartitionedAddNV(T value, uint4 ballot)	|	-											|
-		//PartitionedMin_NV,		//	|	T subgroupPartitionedMinNV(T value, uint4 ballot)	|	-											|
-		//PartitionedMax_NV,		//	|	T subgroupPartitionedMaxNV(T value, uint4 ballot)	|	-											|
-		//PartitionedAnd_NV,		//	|	T subgroupPartitionedAndNV(T value, uint4 ballot)	|	-											|
-		//PartitionedOr_NV,			//	|	T subgroupPartitionedOrNV(T value, uint4 ballot)	|	-											|
-		//PartitionedXor_NV,		//	|	T subgroupPartitionedXorNV(T value, uint4 ballot)	|	-											|
-									//	'-------------------------------------------------------'-----------------------------------------------'
-		// TODO
+		PartitionedNV,				// all operations
+		Rotate,						// all operations
+		RotateClustered,			// all operations
 
 		_Count
 	};
-	StaticAssert( uint(ESubgroupOperation::_Count) == 52 );
+	StaticAssert( uint(ESubgroupOperation::_Count) == 55 );
 
 
 	//

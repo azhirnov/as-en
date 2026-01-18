@@ -123,16 +123,16 @@ namespace
 
 		auto	read1_res = ctx.ReadbackImage( t.image[0], readback );
 		auto	read2_res = ctx.ReadbackImage( t.image[1], readback );
-		CHECK( read1_res.IsCompleted() and read2_res.IsCompleted() );
+		CHECK_CE( read1_res.IsFullyRead() and read2_res.IsFullyRead() );
 
-		t.result[0] = read1_res.Then( t,
+		t.result[0] = read1_res.IfFullyRead( t,
 							[](Promise<ImageMemView> readRes, CoSafe<AC1_TestData &> t) -> InlineCoro<>
 							{
 								auto view = co_await readRes;
 								t->isOK[0] = t->imgCmp->Compare( view );
 							});
 
-		t.result[1] = read2_res.Then( t,
+		t.result[1] = read2_res.IfFullyRead( t,
 							[](Promise<ImageMemView> readRes, CoSafe<AC1_TestData &> t) -> InlineCoro<>
 							{
 								auto view = co_await readRes;

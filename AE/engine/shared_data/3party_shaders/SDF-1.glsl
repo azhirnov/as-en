@@ -167,6 +167,15 @@ float  SDF2_Star5 (float2 p, const float r, const float rf)
 }
 
 
+float  SDF2_Pie (float2 position, const float2 arcSinCos, const float radius)
+{
+	position.x = Abs( position.x );
+	float	l = Length( position ) - radius;
+	float	m = Length( position - arcSinCos * Clamp( Dot( position, arcSinCos ), 0.0, radius ));
+	return	Max( l, m * Sign( arcSinCos.y * position.x - arcSinCos.x * position.y ));
+}
+
+
 //-----------------------------------------------------------------------------
 // 3D Shapes
 
@@ -209,7 +218,7 @@ float  SDF_BoxFrame (const float3 position, const float3 halfSize, const float w
 }
 
 
-float SDF_Torus (const float3 position, const float2 outerAndInnerRadius)
+float  SDF_Torus (const float3 position, const float2 outerAndInnerRadius)
 {
 	const float2  q = float2( Length( position.xz ) - outerAndInnerRadius.x, position.y );
 	return Length( q ) - outerAndInnerRadius.y;
@@ -241,6 +250,15 @@ float  SDF_Cone (const float3 position, const float2 angleSinCos, const float he
 	float	d = Min( Dot( a, a ), Dot( b, b ));
 	float	s = Max( k*(w.x * q.y - w.y * q.x), k * (w.y - q.y) );
 	return Sqrt(d) * Sign(s);
+}
+
+
+float  SDF_SolidAngle (const float3 position, const float2 angleSinCos, const float height)
+{
+	float2	q = float2( Length( position.xz ), position.y );
+	float	l = Length( q ) - height;
+	float	m = Length( q - angleSinCos * Clamp( Dot( q, angleSinCos ), 0.0, height ));
+	return	Max( l, m * Sign( angleSinCos.y * q.x - angleSinCos.x * q.y ));
 }
 
 

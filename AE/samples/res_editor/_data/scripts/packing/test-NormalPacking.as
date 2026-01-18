@@ -23,6 +23,7 @@
 		RC<Image>			norm_fp32	= Image( EPixelFormat::RGBA32F, SurfaceSize() );
 		RC<Image>			norm_fp16	= Image( EPixelFormat::RGBA16F, SurfaceSize() );
 		RC<Image>			norm_un16	= Image( EPixelFormat::RGBA16_UNorm, SurfaceSize() );
+		RC<Image>			norm_un10	= Image( EPixelFormat::RGB10_A2_UNorm, SurfaceSize() );
 		RC<Image>			norm_un8	= Image( EPixelFormat::RGBA8_UNorm, SurfaceSize() );
 
 		RC<DynamicUInt>		p_shape		= DynamicUInt();
@@ -31,7 +32,7 @@
 		RC<DynamicUInt>		p_mode		= DynamicUInt();
 
 		Slider( p_shape,	"Shape",	0,	4 );
-		Slider( p_mode,		"Format",	0,	3 );
+		Slider( p_mode,		"Format",	0,	4 );		// fp32, fp16, un16, un10, un8
 		Slider( p_cmp,		"Cmp",		0,	2 );
 		Slider( p_diff,		"Diff",		0,	8,	2 );
 
@@ -41,6 +42,7 @@
 			pass.Output( "out_NormalFp32",	norm_fp32 );
 			pass.Output( "out_NormalFp16",	norm_fp16 );
 			pass.Output( "out_NormalUn16",	norm_un16 );
+			pass.Output( "out_NormalUn10",	norm_un10 );
 			pass.Output( "out_NormalUn8",	norm_un8 );
 			pass.Constant( "iShape",		p_shape );
 		}{
@@ -49,7 +51,8 @@
 			pass.ArgIn( "un_NormalFp32",	norm_fp32,	Sampler_NearestClamp );
 			pass.ArgIn( "un_NormalFp16",	norm_fp16,	Sampler_NearestClamp );
 			pass.ArgIn( "un_NormalUn16",	norm_un16,	Sampler_NearestClamp );
-			pass.ArgIn( "un_NormalUn8",	norm_un8,	Sampler_NearestClamp );
+			pass.ArgIn( "un_NormalUn10",	norm_un10,	Sampler_NearestClamp );
+			pass.ArgIn( "un_NormalUn8",		norm_un8,	Sampler_NearestClamp );
 			pass.Constant( "iShape",		p_shape );
 			pass.Constant( "iCmp",			p_cmp );
 			pass.Constant( "iFormat",		p_mode );
@@ -135,6 +138,7 @@
 		out_NormalFp32	= packed;
 		out_NormalFp16	= packed;
 		out_NormalUn16	= packed;
+		out_NormalUn10	= packed;
 		out_NormalUn8	= packed;
 	}
 
@@ -148,11 +152,13 @@
 		float4	packed_fp32	= gl.texture.Fetch( un_NormalFp32, int2(gl.FragCoord.xy), 0 );
 		float4	packed_fp16	= gl.texture.Fetch( un_NormalFp16, int2(gl.FragCoord.xy), 0 );
 		float4	packed_un16	= gl.texture.Fetch( un_NormalUn16, int2(gl.FragCoord.xy), 0 );
-		float4	packed_un8	= gl.texture.Fetch( un_NormalUn8, int2(gl.FragCoord.xy), 0 );
+		float4	packed_un10	= gl.texture.Fetch( un_NormalUn10, int2(gl.FragCoord.xy), 0 );
+		float4	packed_un8	= gl.texture.Fetch( un_NormalUn8,  int2(gl.FragCoord.xy), 0 );
 
 		float3	norm_fp32	= DecodeNormal( uint(n_idx.w), packed_fp32 );
 		float3	norm_fp16	= DecodeNormal( uint(n_idx.w), packed_fp16 );
 		float3	norm_un16	= DecodeNormal( uint(n_idx.w), packed_un16 );
+		float3	norm_un10	= DecodeNormal( uint(n_idx.w), packed_un10 );
 		float3	norm_un8	= DecodeNormal( uint(n_idx.w), packed_un8 );
 		float	diff		= Pow( 10.f, float(iDiff) );
 		float3	norm;
@@ -162,7 +168,8 @@
 			case 0 :	norm = norm_fp32;	break;
 			case 1 :	norm = norm_fp16;	break;
 			case 2 :	norm = norm_un16;	break;
-			case 3 :	norm = norm_un8;	break;
+			case 3 :	norm = norm_un10;	break;
+			case 4 :	norm = norm_un8;	break;
 		}
 
 		out_Color = float4(1.0);

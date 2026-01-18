@@ -101,7 +101,7 @@ namespace AE::Threading
 			for (auto& low_chunk : *low_chunks)
 			{
 				LowLvlBits_t	low_bits	= low_chunk.assigned.exchange( 0 );
-				int				idx			= BitScanForward( low_bits );		// first 1 bit
+				int				idx			= LowBitIndex( low_bits );		// first 1 bit
 
 				for (; idx >= 0;)
 				{
@@ -111,7 +111,7 @@ namespace AE::Threading
 					visitor( INOUT low_chunk.values[idx] );
 
 					low_bits &= ~bit;						// 1 -> 0
-					idx		 = BitScanForward( low_bits );	// first 1 bit
+					idx		 = LowBitIndex( low_bits );		// first 1 bit
 				}
 			}
 
@@ -146,7 +146,7 @@ namespace AE::Threading
 			for (auto& low_chunk : *low_chunks)
 			{
 				LowLvlBits_t	low_bits	= low_chunk.assigned.load();
-				int				idx			= BitScanForward( low_bits );		// first 1 bit
+				int				idx			= LowBitIndex( low_bits );		// first 1 bit
 
 				for (; idx >= 0;)
 				{
@@ -156,7 +156,7 @@ namespace AE::Threading
 					fn( low_chunk.values[idx] );
 
 					low_bits &= ~bit;						// 1 -> 0
-					idx		 = BitScanForward( low_bits );	// first 1 bit
+					idx		 = LowBitIndex( low_bits );		// first 1 bit
 				}
 			}
 		}
@@ -188,7 +188,7 @@ namespace AE::Threading
 			for (auto& low_chunk : *low_chunks)
 			{
 				LowLvlBits_t	low_bits	= low_chunk.assigned.exchange( 0 );
-				int				idx			= BitScanForward( low_bits );		// first 1 bit
+				int				idx			= LowBitIndex( low_bits );		// first 1 bit
 
 				for (; idx >= 0;)
 				{
@@ -198,7 +198,7 @@ namespace AE::Threading
 					visitor( INOUT low_chunk.values[idx] );
 
 					low_bits &= ~bit;						// 1 -> 0
-					idx		 = BitScanForward( low_bits );	// first 1 bit
+					idx		 = LowBitIndex( low_bits );		// first 1 bit
 				}
 			}
 
@@ -294,7 +294,7 @@ namespace AE::Threading
 	{
 		LowLvlChunkArray_t*	low_chunks		= highChunk.chunksPtr.load();
 		HighLvlBits_t		hi_available	= ~highChunk.available.load();		// 1 - unassigned
-		int					chunk_idx		= BitScanForward( hi_available );	// first 1 bit
+		int					chunk_idx		= LowBitIndex( hi_available );		// first 1 bit
 
 		// TODO: offset 'chunk_idx' by thread id
 
@@ -304,7 +304,7 @@ namespace AE::Threading
 		{
 			LowLevelChunk&	low_chunk		= (*low_chunks)[ chunk_idx ];
 			LowLvlBits_t	low_available	= low_chunk.assigned.load();		// 0 - unassigned
-			int				idx				= BitScanForward( ~low_available );	// first 0 bit
+			int				idx				= LowBitIndex( ~low_available );	// first 0 bit
 
 			for (; idx >= 0;)
 			{
@@ -327,12 +327,12 @@ namespace AE::Threading
 					return true;
 				}
 
-				idx = BitScanForward( ~low_available );	// first 0 bit
+				idx = LowBitIndex( ~low_available );	// first 0 bit
 				ThreadUtils::Pause();
 			}
 
 			hi_available &= ~(HighLvlBits_t{1} << chunk_idx);	// 1 -> 0
-			chunk_idx	 = BitScanForward( hi_available );		// first 1 bit
+			chunk_idx	 = LowBitIndex( hi_available );			// first 1 bit
 		}
 
 		return false;

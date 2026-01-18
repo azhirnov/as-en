@@ -173,29 +173,42 @@ namespace
 
 			EAttrib		attr = Default;
 			if ( HasSubStringIC( name, "position" ))	attr = EAttrib::Position;		else
+			if ( HasSubStringIC( name, "pos" ))			attr = EAttrib::Position;		else
 			if ( HasSubStringIC( name, "normal" ))		attr = EAttrib::Normal;			else
 			if ( HasSubStringIC( name, "bitangent" ))	attr = EAttrib::BiTangent;		else
 			if ( HasSubStringIC( name, "tangent" ))		attr = EAttrib::Tangent;		else
+			if ( HasSubStringIC( name, "color" ))		attr = EAttrib::Color;			else
 			if ( HasSubStringIC( name, "Texcoord3" ))	attr = EAttrib::TextureUV_3;	else
 			if ( HasSubStringIC( name, "Texcoord2" ))	attr = EAttrib::TextureUV_2;	else
 			if ( HasSubStringIC( name, "Texcoord1" ))	attr = EAttrib::TextureUV_1;	else
 			if ( HasSubStringIC( name, "Texcoord0" ))	attr = EAttrib::TextureUV;		else
-			if ( HasSubStringIC( name, "Texcoord" ))	attr = EAttrib::TextureUV;
+			if ( HasSubStringIC( name, "Texcoord" ))	attr = EAttrib::TextureUV;		else
+			if ( HasSubString( name, "UV3" ))			attr = EAttrib::TextureUV_3;	else
+			if ( HasSubString( name, "UV2" ))			attr = EAttrib::TextureUV_2;	else
+			if ( HasSubString( name, "UV1" ))			attr = EAttrib::TextureUV_1;	else
+			if ( HasSubString( name, "UV0" ))			attr = EAttrib::TextureUV;		else
+			if ( HasSubString( name, "UV" ))			attr = EAttrib::TextureUV;
 
 			if ( attr != Default )
 			{
+				VertexMapping2	tmp;
+				tmp.type	= DetectFormat( values[i] );
+				tmp.index	= ushort(attr);
+				tmp.comp	= comp_count[ uint(attr) ] ++;
+				tmp.offset	= vertStride;
 
-				mapping.type	= DetectFormat( values[i] );
-				mapping.index	= ushort(attr);
-				mapping.comp	= comp_count[ uint(attr) ] ++;
-				mapping.offset	= vertStride;
+				if ( tmp.comp >= 4 )
+					continue;
 
-				vertStride += EVertexType_SizeOf( mapping.type );
+				if ( tmp.comp > 0 and i > 0 )
+				{
+					if ( vertMapping[i-1].index != tmp.index )
+						continue;
+				}
 
-				CHECK( mapping.comp < 4 );
+				mapping = tmp;
 
-				if ( mapping.comp > 0 and i > 0 )
-					CHECK( vertMapping[i-1].index == mapping.index );
+				vertStride += EVertexType_SizeOf( tmp.type );
 			}
 		}
 		return true;
@@ -247,6 +260,7 @@ namespace
 
 			EAttrib		attr = Default;
 			if ( HasSubStringIC( name, "position" ))	attr = EAttrib::Position;		else
+			if ( HasSubStringIC( name, "pos" ))			attr = EAttrib::Position;		else
 			if ( HasSubStringIC( name, "normal" ))		attr = EAttrib::Normal;			else
 			if ( HasSubStringIC( name, "bitangent" ))	attr = EAttrib::BiTangent;		else
 			if ( HasSubStringIC( name, "tangent" ))		attr = EAttrib::Tangent;		else
@@ -255,7 +269,12 @@ namespace
 			if ( HasSubStringIC( name, "Texcoord1" ))	attr = EAttrib::TextureUV_1;	else
 			if ( HasSubStringIC( name, "Texcoord0" ))	attr = EAttrib::TextureUV;		else
 			if ( HasSubStringIC( name, "Texcoord" ))	attr = EAttrib::TextureUV;		else
-			if ( HasSubStringIC( name, "Color" ))		attr = EAttrib::Color;
+			if ( HasSubStringIC( name, "Color" ))		attr = EAttrib::Color;			else
+			if ( HasSubString( name, "UV3" ))			attr = EAttrib::TextureUV_3;	else
+			if ( HasSubString( name, "UV2" ))			attr = EAttrib::TextureUV_2;	else
+			if ( HasSubString( name, "UV1" ))			attr = EAttrib::TextureUV_1;	else
+			if ( HasSubString( name, "UV0" ))			attr = EAttrib::TextureUV;		else
+			if ( HasSubString( name, "UV" ))			attr = EAttrib::TextureUV;
 
 			if ( attr != Default )
 			{

@@ -186,11 +186,13 @@ namespace AE::ResLoader
 		for (auto& part : memView.Parts())
 		{
 			Bytes	size = part.size;
+			ASSERT_LE( offset + size, storage->Size() );
+
 			MemCopy( OUT storage->Data() + offset, part.ptr, size );
 			offset += size;
 		}
 
-		ASSERT( offset == storage->Size() );
+		ASSERT_Eq( offset, storage->Size() );
 
 		ImageMemView	view{ storage->Data(), storage->Size(), uint3{}, memView.Dimension(), memView.RowPitch(), memView.SlicePitch(), memView.Format(), memView.Aspect() };
 		return SetData( view, RVRef(storage) );
@@ -401,6 +403,29 @@ namespace AE::ResLoader
 		CHECK_ERR( storage );
 
 		return img.SetPixelData( RVRef(storage) );
+	}
+
+/*
+=================================================
+	Convert
+=================================================
+*/
+	bool  IntermImage::Convert (EPixelFormat dstFormat, OUT IntermImage &dstImage, RC<IAllocator> allocator) C_NE___
+	{
+		CHECK_ERR( dstImage.Allocate( GetType(), dstFormat, Dimension(), RVRef(allocator) ));
+
+		for (uint mip = 0; mip < MipLevels(); ++mip)
+		{
+			for (uint layer = 0; layer < ArrayLayers(); ++layer)
+			{
+				ImageMemView	r_view	= ConstCast(this)->ToView( MipmapLevel(mip), ImageLayer(layer) );
+				RWImageMemView	w_view	{dstImage.ToView( MipmapLevel(mip), ImageLayer(layer) )};
+
+				CHECK_ERR( w_view.Blit( r_view ));
+			}
+		}
+
+		return true;
 	}
 
 

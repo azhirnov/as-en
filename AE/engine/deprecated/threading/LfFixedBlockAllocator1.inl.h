@@ -84,7 +84,7 @@ namespace AE::Threading
 					#if AE_LFFIXEDBLOCKALLOC_DEBUG
 					if ( dbg_info != null )
 					{
-						int		low_idx = BitScanForward( old_low_level );	// first 1 bit
+						int		low_idx = LowBitIndex( old_low_level );	// first 1 bit
 
 						for (; low_idx >= 0;)
 						{
@@ -94,7 +94,7 @@ namespace AE::Threading
 
 							old_low_level &= (LowLevelBits_t{1} << low_idx);	// 1 -> 0
 
-							low_idx = BitScanForward( old_low_level );	// first 1 bit
+							low_idx = LowBitIndex( old_low_level );	// first 1 bit
 						}
 					}
 					#endif
@@ -256,7 +256,7 @@ namespace AE::Threading
 		for (uint j = 0; j < HighWaitCount; ++j, ++dbgCounter)
 		{
 			HiLevelBits_t	hi_available	= ~chunk.hiLevel.load();			// 1 - unassigned bit
-			int				hi_lvl_idx		= BitScanForward( hi_available );	// first 1 bit
+			int				hi_lvl_idx		= LowBitIndex( hi_available );		// first 1 bit
 
 			for (; hi_lvl_idx >= 0; ++dbgCounter)
 			{
@@ -265,7 +265,7 @@ namespace AE::Threading
 				// find available index in low level
 				auto&			level			= chunk.lowLevel[ hi_lvl_idx ];
 				LowLevelBits_t	low_available	= level.load();						// 0 - unassigned bit
-				int				low_lvl_idx		= BitScanForward( ~low_available );	// first 0 bit
+				int				low_lvl_idx		= LowBitIndex( ~low_available );	// first 0 bit
 
 				for (; low_lvl_idx >= 0; ++dbgCounter)
 				{
@@ -307,12 +307,12 @@ namespace AE::Threading
 						return Ptr_t{result};
 					}
 
-					low_lvl_idx = BitScanForward( ~low_available );	// first 0 bit
+					low_lvl_idx = LowBitIndex( ~low_available );	// first 0 bit
 					ThreadUtils::Pause();
 				}
 
 				hi_available &= ~(HiLevelBits_t{1} << hi_lvl_idx);	// 1 -> 0
-				hi_lvl_idx = BitScanForward( hi_available );		// first 1 bit
+				hi_lvl_idx = LowBitIndex( hi_available );			// first 1 bit
 			}
 
 			ThreadUtils::Pause();

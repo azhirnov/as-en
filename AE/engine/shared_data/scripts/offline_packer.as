@@ -1,4 +1,4 @@
-//0afb5604
+//1590b721
 #pragma once
 #include <vector>
 #include <string>
@@ -24,8 +24,23 @@ using array = std::vector<T>;
 
 using namespace std::string_literals;
 
-struct uint2;
+struct ubyte4;
+struct InputActions;
+struct ubyte3;
+struct ubyte2;
+struct bool4;
+struct int3;
+struct bool2;
+struct bool3;
+struct int2;
+struct int4;
+struct Archive;
+struct ushort3;
+struct sbyte2;
+struct ushort2;
+struct short4;
 struct uint3;
+struct uint2;
 struct uint4;
 struct float4;
 struct ushort4;
@@ -37,21 +52,6 @@ struct AssetPacker;
 struct float2;
 struct float3;
 struct PipelineCompiler;
-struct ubyte4;
-struct InputActions;
-struct ubyte3;
-struct ubyte2;
-struct bool4;
-struct bool2;
-struct int3;
-struct bool3;
-struct int2;
-struct int4;
-struct Archive;
-struct sbyte2;
-struct ushort3;
-struct ushort2;
-struct short4;
 
 enum class EFileType : uint32
 {
@@ -94,8 +94,8 @@ int  Wrap (int x, int min, int max);
 int  Average (int x, int y);
 int  IntLog2 (int x);
 int  CeilIntLog2 (int x);
-int  BitScanReverse (int x);
-int  BitScanForward (int x);
+int  HighBitIndex (int x);
+int  LowBitIndex (int x);
 uint  BitCount (int x);
 bool  IsPowerOfTwo (int x);
 bool  IsSingleBitSet (int x);
@@ -120,8 +120,8 @@ uint  Wrap (uint x, uint min, uint max);
 uint  Average (uint x, uint y);
 int  IntLog2 (uint x);
 int  CeilIntLog2 (uint x);
-int  BitScanReverse (uint x);
-int  BitScanForward (uint x);
+int  HighBitIndex (uint x);
+int  LowBitIndex (uint x);
 uint  BitCount (uint x);
 bool  IsPowerOfTwo (uint x);
 bool  IsSingleBitSet (uint x);
@@ -1152,18 +1152,6 @@ struct Archive
 };
 
 template <>
-struct RC<AssetPacker> : AssetPacker
-{
-	RC (const AssetPacker &);
-};
-
-template <>
-struct RC<PipelineCompiler> : PipelineCompiler
-{
-	RC (const PipelineCompiler &);
-};
-
-template <>
 struct RC<InputActions> : InputActions
 {
 	RC (const InputActions &);
@@ -1173,5 +1161,17 @@ template <>
 struct RC<Archive> : Archive
 {
 	RC (const Archive &);
+};
+
+template <>
+struct RC<AssetPacker> : AssetPacker
+{
+	RC (const AssetPacker &);
+};
+
+template <>
+struct RC<PipelineCompiler> : PipelineCompiler
+{
+	RC (const PipelineCompiler &);
 };
 

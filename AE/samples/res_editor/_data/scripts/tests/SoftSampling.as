@@ -1,7 +1,7 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 /*
-	Use trilinear filter with bias as alternative to anisotropy filtering.
-	Much usefull for tiling when anisotropy has access out of 2x2x2 cube which cause artifacts.
+	Compare gl.texture.Sample() with SwSampling().
+	Use bilinear, triliniar and anisotropy filtering.
 */
 #ifdef __INTELLISENSE__
 # 	include <res_editor.as>
@@ -15,9 +15,8 @@
 	void ASmain ()
 	{
 		// initialize
-		RC<Image>		rt		= Image( EPixelFormat::RGBA16F, SurfaceSize() );
+		RC<Image>		rt		= Image( EPixelFormat::RGBA8_UNorm, SurfaceSize() );
 		RC<Image>		tex		= Image( EPixelFormat::sRGB8_A8, uint2(128), MipmapLevel(~0) );
-		RC<Image>		dbg_tex	= Image( EPixelFormat::sRGB8_A8, uint2(128), MipmapLevel(~0) );
 		RC<FPVCamera>	camera	= FPVCamera();
 
 		// setup camera
@@ -44,7 +43,7 @@
 			pass.ArgIn(  "un_Linear",		tex,		Sampler_LinearRepeat );
 			pass.ArgIn(  "un_LinearMipmap",	tex,		Sampler_LinearMipmapRepeat );
 			pass.ArgIn(  "un_Anisotropy",	tex,		Sampler_Anisotropy16Repeat );
-			pass.Slider( "iMode",			0,			4 );
+			pass.Slider( "iMode",			0,			6 );
 			pass.Slider( "iView",			0,			2 );
 			pass.Slider( "iEnableBias",		0,			1,		1 );
 			pass.Slider( "iBias",			-3.0,		3.0,	0.0 );	// limits: [-maxSamplerLodBias, maxSamplerLodBias]
@@ -77,17 +76,18 @@
 
 	void Main ()
 	{
-		float2	uv		= gl.FragCoord.xy / un_PerPass.resolution.xy;
-		int		mode	= int(iMode-1);
-		float	fov		= ToRad( 60.0 );
-		float	ratio	= un_PerPass.resolution.x / un_PerPass.resolution.y;
+		float2		uv			= gl.FragCoord.xy * un_PerPass.invResolution;
+		int			mode		= int(iMode-1);
+		float		fov			= ToRad( 60.0 );
+		float		ratio		= un_PerPass.resolution.x / un_PerPass.resolution.y;
+		const int	max_mode	= iMode_max-1;
 
 		// split screen
 		if ( iMode == 0 )
 		{
-			mode = Min( int(uv.x * 4.0), 3 );
-			uv.x = Fract( uv.x * 4.0 );
-			ratio /= 4.0;
+			mode = Min( int(uv.x * iMode_max), max_mode );
+			uv.x = Fract( uv.x * iMode_max );
+			ratio /= iMode_max;
 		}
 
 		bool	isec;
@@ -115,6 +115,17 @@
 					case 1 :	out_Color = SwSampling( un_Linear, uv, bias );					break;
 					case 2 :	out_Color = gl.texture.Sample( un_LinearMipmap, uv, bias );		break;
 					case 3 :	out_Color = SwSampling( un_LinearMipmap, uv, bias );			break;
+
+					case 4 : {
+						float	lod = gl.texture.QueryLod( un_LinearMipmap, uv * Exp2(bias) ).y;
+						out_Color = gl.texture.SampleLod( un_LinearMipmap, uv, lod );
+						break;
+					}
+					case 5 : {
+						float	lod = SwQueryLod( un_LinearMipmap, uv, bias ).y;
+						out_Color = gl.texture.SampleLod( un_LinearMipmap, uv, lod );
+						break;
+					}
 				}
 				break;
 
@@ -123,10 +134,12 @@
 			{
 				float2	lod;
 				switch ( mode ) {
-					case 0 :	lod = gl.texture.QueryLod( un_Linear, uv );			break;
-					case 1 :	lod = SwQueryLod( un_Linear, uv, bias );			break;
-					case 2 :	lod = gl.texture.QueryLod( un_LinearMipmap, uv );	break;
-					case 3 :	lod = SwQueryLod( un_LinearMipmap, uv, bias );		break;
+					case 0 :	lod = gl.texture.QueryLod( un_Linear, uv * Exp2(bias) );		break;
+					case 1 :	lod = SwQueryLod( un_Linear, uv, bias );						break;
+					case 2 :
+					case 4 :	lod = gl.texture.QueryLod( un_LinearMipmap, uv * Exp2(bias) );	break;
+					case 3 :
+					case 5 :	lod = SwQueryLod( un_LinearMipmap, uv, bias );					break;
 				}
 				float	level = (iView == 1 ? lod.x : lod.y);
 
@@ -139,10 +152,15 @@
 		}
 
 		if ( ! isec )
-			out_Color = float4(0.25);
+			out_Color = Rainbow( float(mode) / max_mode ) * 0.2;
 
-		if ( gl.dFdx( float(mode) ) != 0 )
-			out_Color = float4(0.0);
+		// split screen
+		if ( iMode == 0 )
+		{
+			int	mode1 = Min( int((gl.FragCoord.x + 1.0) * un_PerPass.invResolution.x * iMode_max), max_mode );
+			if ( mode != mode1 )
+				out_Color = float4(0.0);
+		}
 	}
 
 #endif

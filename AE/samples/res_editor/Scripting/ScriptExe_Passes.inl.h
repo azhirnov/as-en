@@ -525,6 +525,37 @@
 
 
 	//
+	// Reset Unused Timers
+	//
+	class ScriptExe::ScriptResetUnusedTimers final : public ScriptBasePass
+	{
+	private:
+		Array< RC<DynamicFloat> >		_arr;
+
+	public:
+		ScriptResetUnusedTimers (const ScriptArray< ScriptDynamicFloatPtr > &arr) __Th___
+		{
+			_arr.reserve( arr.size() );
+
+			for (auto& dyn : arr)
+			{
+				CHECK_THROW( dyn and dyn->Get() );
+				_arr.push_back( dyn->Get() );
+			}
+		}
+
+		void		_OnAddArg (INOUT ScriptPassArgs::Argument &) C_Th_OV {}
+
+		RC<IPass>	ToPass () __Th_OV
+		{
+			return MakeRCTh<ResEditor::ResetUnusedTimersPass>( _arr );
+		}
+	};
+//-----------------------------------------------------------------------------
+
+
+
+	//
 	// Export Image
 	//
 	class ScriptExe::ScriptExportImage final : public ScriptBasePass

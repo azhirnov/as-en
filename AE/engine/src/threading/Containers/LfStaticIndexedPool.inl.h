@@ -100,7 +100,7 @@ namespace AE::Threading
 			auto&		chunk	= (*_arr)[i];
 			Bitfield_t	bits	= chunk.assigned.exchange( 0 );
 
-			int		idx = BitScanForward( bits );	// first 1 bit
+			int		idx = LowBitIndex( bits );	// first 1 bit
 			for (; idx >= 0;)
 			{
 				Bitfield_t	mask = Bitfield_t{1} << idx;
@@ -109,7 +109,7 @@ namespace AE::Threading
 				fn( INOUT chunk.values[idx] );
 
 				bits &= ~mask;					// 1 -> 0
-				idx  = BitScanForward( bits );	// first 1 bit
+				idx  = LowBitIndex( bits );		// first 1 bit
 			}
 		}
 	}
@@ -135,7 +135,7 @@ namespace AE::Threading
 			auto&		chunk	= (*_arr)[i];
 			Bitfield_t	bits	= chunk.assigned.load();
 
-			int		idx = BitScanForward( bits );	// first 1 bit
+			int		idx = LowBitIndex( bits );	// first 1 bit
 			for (; idx >= 0;)
 			{
 				Bitfield_t	mask = Bitfield_t{1} << idx;
@@ -144,7 +144,7 @@ namespace AE::Threading
 				fn( chunk.values[idx] );
 
 				bits &= ~mask;					// 1 -> 0
-				idx  = BitScanForward( bits );	// first 1 bit
+				idx  = LowBitIndex( bits );		// first 1 bit
 			}
 		}
 	}
@@ -170,7 +170,7 @@ namespace AE::Threading
 				usize		chunk_idx	= (initial_idx + i * ChunkIdxStep) % ChunksCount;
 				auto&		chunk		= (*_arr)[ chunk_idx ];
 				Bitfield_t	bits		= chunk.assigned.load();	// 0 - unassigned
-				int			idx			= BitScanForward( ~bits );	// first 0 bit
+				int			idx			= LowBitIndex( ~bits );		// first 0 bit
 
 				for (; idx >= 0;)
 				{
@@ -184,7 +184,7 @@ namespace AE::Threading
 						return true;
 					}
 
-					idx = BitScanForward( ~bits );	// first 0 bit
+					idx = LowBitIndex( ~bits );	// first 0 bit
 					ThreadUtils::Pause();
 				}
 			}

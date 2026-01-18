@@ -399,6 +399,7 @@ namespace AE::ResEditor
 	//
 	class ConvertCooperativeVectorMatrixPass final : public IPass
 	{
+	// variables
 	private:
 		ConvertCoopMatrixCmd2		_cmd;
 		RC<Buffer>					_srcBuffer;
@@ -412,6 +413,36 @@ namespace AE::ResEditor
 			Bytes srcOffset, Bytes srcSize,  Bytes srcStride, ECoopVecMatrixLayout srcLayout,
 			ECoopMatrixComponentType dstType, RC<Buffer> dstBuffer,
 			Bytes dstOffset, Bytes dstSize,  Bytes dstStride, ECoopVecMatrixLayout dstLayout) __Th___;
+
+	// IPass //
+		EPassType	GetType ()											C_NE_OV	{ return EPassType::Sync; }
+		bool		Execute (SyncPassData &)							__Th_OV;
+		void		GetResourcesToResize (INOUT Array<RC<IResource>> &)	__NE_OV	{}
+	};
+
+
+
+
+	//
+	// Reset Unused Timers Pass
+	//
+	class ResetUnusedTimersPass final : public IPass
+	{
+	// variables
+	private:
+		struct Item
+		{
+			RC<DynamicFloat>	timer;
+			float				value		= 0.f;
+			uint				frameCount	= 0;
+		};
+
+		Array< Item >	_arr;
+
+
+	// methods
+	public:
+		ResetUnusedTimersPass (ArrayView< RC<DynamicFloat> >)			__Th___;
 
 	// IPass //
 		EPassType	GetType ()											C_NE_OV	{ return EPassType::Sync; }

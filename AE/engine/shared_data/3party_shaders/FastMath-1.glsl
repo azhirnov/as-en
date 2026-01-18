@@ -307,7 +307,6 @@ Gen_FAST_ATAN( float, float_vec_t )
 
 
 #ifdef AE_LICENSE_MIT
-
 /*
 =================================================
 	FastSqrt
@@ -355,4 +354,49 @@ Gen_FAST_ATAN( float, float_vec_t )
 	}
 
 #endif // AE_LICENSE_MIT
+//-----------------------------------------------------------------------------
+
+
+#ifdef AE_ENABLE_UNKNOWN_LICENSE
+/*
+=================================================
+	ATan2Approx
+----
+	from [Coverage Bitmasks](https://media.contentapi.ea.com/content/dam/ea/seed/presentations/seed-coverage-bitmasks-mittring.pdf)
+----
+	correct for 0, 90/360, 180/360, 270/360 and 360/360 but inbetween a bit distorted
+	return unitAngle 0..1 for -PI .. PI
+=================================================
+*/
+ND_ float  ATan2Approx (float y, float x)
+{
+	// diamond shape in -0.5 .. 0.5 range
+	float	temp = x * Rcp( Abs(x) + Abs(y) );
+	// 0..0.5
+	float	squareUnitSide = temp * 0.25f + 0.25f;
+	return	float(y > 0) - Sign(y) * squareUnitSide;
+}
+
+/*
+=================================================
+	SinCosApprox
+----
+	from [Coverage Bitmasks](https://media.contentapi.ea.com/content/dam/ea/seed/presentations/seed-coverage-bitmasks-mittring.pdf)
+----
+	diamond shape
+	unitAngle in range 0..1
+	return approximates float2(sin(unitAngle * PI * 2 - PI), cos(unitAngle* PI * 2 - PI))
+=================================================
+*/
+ND_ float2  SinCosApprox (float unitAngle)
+{
+	float2	vec;
+	// cos() approximation, zigzag pattern around 0.5f, scaled to -1..1 range
+	vec.y = 1.0 - Abs( unitAngle * 4.0 - 2.0 );
+	vec.x = Abs( Abs( 3.0 - 4.0 * unitAngle ) - 2.0 ) - 1.0;
+	// this make the crude zigzag pattern much smoother
+	return Normalize( vec );
+}
+
+#endif // AE_ENABLE_UNKNOWN_LICENSE
 //-----------------------------------------------------------------------------

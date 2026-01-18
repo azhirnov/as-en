@@ -77,7 +77,7 @@ namespace AE::ResEditor
 			IGSMaterials &				mtr;
 			DirectCtx::Transfer &		ctx;
 			Debugger const&				dbg;
-			const uint2					dbgCoord;
+			const uint3					dbgCoord;
 			IAllocator &				allocator;
 			PplnToObjID_t &				pplnToObjId;
 			ShaderDebugger::Result* &	outDbgStorage;

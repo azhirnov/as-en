@@ -1,6 +1,6 @@
 **How to get release binaries from CI**
 
-## Release 
+## Release
 
 AsEn-ShaderEditor project has precompiled binaries in [release](https://github.com/azhirnov/AsEn-ShaderEditor/releases) folder.
 

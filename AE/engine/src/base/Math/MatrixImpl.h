@@ -183,6 +183,7 @@ namespace AE::Base
 		ND_ Vec4_t		 Project (const Vec3_t &pos, const Rect_t &viewport)				C_NE___	{ return ProjectToScreenSpace( pos, viewport ); }
 		ND_ Vec4_t		 ProjectToScreenSpace (const Vec3_t &pos, const Rect_t &viewport)	C_NE___;
 		ND_ Vec4_t		 ProjectToNormClipSpace (const Vec3_t &pos)							C_NE___;
+		ND_ Vec2_t		 FastProjectZW (T z)												C_NE___;
 		ND_ T			 FastProjectZ (T z)													C_NE___;
 		ND_ static T	 FastProjectZInf (T zNear, T z)										__NE___;
 		ND_ static T	 FastProjectRevZInf (T zNear, T z)									__NE___;
@@ -538,7 +539,8 @@ namespace AE::Base
 =================================================
 */
 	template <typename T, glm::qualifier Q>
-	T  TMatrix<T, Columns, Rows, Q>::FastProjectZ (T z) C_NE___
+	typename TMatrix<T, Columns, Rows, Q>::Vec2_t
+		TMatrix<T, Columns, Rows, Q>::FastProjectZW (T z) C_NE___
 	{
 		T	p23 = (*this)[2][3];	// 1
 		T	p22	= (*this)[2][2];	// zFar / (zNear - zFar)
@@ -546,7 +548,14 @@ namespace AE::Base
 
 		T	w = p23 * z;
 			z = (p22 * z) + p32;
-		return	z / w;
+		return	Vec2_t{ z, w };
+	}
+
+	template <typename T, glm::qualifier Q>
+	T  TMatrix<T, Columns, Rows, Q>::FastProjectZ (T z) C_NE___
+	{
+		Vec2_t	zw = FastProjectZW( z );
+		return	zw[0] / zw[1];
 	}
 
 	template <typename T, glm::qualifier Q>

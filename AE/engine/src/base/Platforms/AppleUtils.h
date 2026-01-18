@@ -56,6 +56,10 @@ namespace AE::Base
 		ND_ static MemorySize		GetMemorySize ()										__NE___;
 
 
+		// Process //
+		ND_ static bool		SetProcessAffinity (CpuArchInfo::CoreBits_t)					__NE___;
+
+
 		// OS //
 		ND_ static bool				IsUnderDebugger ()										__NE___;
 		ND_ static Version3			GetOSVersion ()											__NE___;
@@ -83,8 +87,8 @@ namespace AE::Base
 
 
 		// Clipboard //
-		ND_ static bool		ClipboardExtract (OUT String &result)							__NE___;
-		ND_ static bool		ClipboardPut (StringView str)									__NE___;
+		ND_ static bool		ClipboardExtract (OUT U8String &result)							__NE___;
+		ND_ static bool		ClipboardPut (U8StringView str)									__NE___;
 		ND_ static bool		ClipboardClear ()												__NE___;
 	};
 

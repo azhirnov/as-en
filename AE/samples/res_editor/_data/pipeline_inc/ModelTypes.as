@@ -67,7 +67,7 @@ void  InitPipelineLayout ()
 		ds.StorageBuffer( EShaderStages::Fragment,	"un_Materials",	"ModelMaterial_Array",	EResourceState::ShaderStorage_Read );
 		ds.StorageBuffer( EShaderStages::Fragment,	"un_Lights",	"SceneLights",			EResourceState::ShaderStorage_Read );
 		ds.SampledImage(  EShaderStages::Fragment,	"un_AlbedoMaps", albedoMapsCount, EImageType::Float_2D );
-		ds.ImtblSampler(  EShaderStages::Fragment,	"un_AlbedoMapSampler", "model.Sampler" );
+		ds.ImtblSampler(  EShaderStages::Fragment,	"un_AlbedoMapSampler", "model.Sampler" );	// TODO: array of samplers
 	}
 
 	// pipeline layout
@@ -92,7 +92,7 @@ void  InitMeshPipelineLayout ()
 		ds.StorageBuffer( EShaderStages::Fragment,	"un_Materials",	"ModelMaterial_Array",	EResourceState::ShaderStorage_Read );
 		ds.StorageBuffer( EShaderStages::Fragment,	"un_Lights",	"SceneLights",			EResourceState::ShaderStorage_Read );
 		ds.SampledImage(  EShaderStages::Fragment,	"un_AlbedoMaps", albedoMapsCount, EImageType::Float_2D );
-		ds.ImtblSampler(  EShaderStages::Fragment,	"un_AlbedoMapSampler", "model.Sampler" );
+		ds.ImtblSampler(  EShaderStages::Fragment,	"un_AlbedoMapSampler", "model.Sampler" );	// TODO: array of samplers
 	}
 
 	// pipeline layout

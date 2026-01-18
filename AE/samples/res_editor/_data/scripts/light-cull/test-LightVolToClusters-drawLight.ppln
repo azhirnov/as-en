@@ -66,32 +66,26 @@
 
 	void Main ()
 	{
-		float3	light_pos = iLightPos;
-		light_pos.z = Lerp( iClipPlanes.x, iClipPlanes.y, light_pos.z );
+		float3	light_pos = un_Params.lightPos;
 		light_pos -= un_PerPass.camera.pos;
 
 		#ifdef SPOTLIGHT
-			const float3	dir			= SphericalToCartesian( float2( float_Pi2 * iLightParams.z, float_Pi2 * iLightParams.w ));
-			const float		angle		= float_Pi * iLightParams.y;
-			const float		height		= iLightParams.x;
-
-			const Cone		cone		= Cone_Create( light_pos, dir, angle, height );
+			const Cone		cone		= Cone_Create( light_pos, un_Params.coneDir, un_Params.coneAngle, un_Params.coneHeight );
 			const float		radius		= Cone_BaseRadius( cone );
-			
-			Quat			rot			= QFrom2Normals( float3(0.0, 1.0, 0.0), // origin direction
-														 dir );					// new direction
 
-			const float3	vert_pos	= cone.origin + QMul( rot, (un_Geometry.positions[ gl.VertexIndex ] * float3(radius, radius, height)).xzy );
+			Quat			rot			= QFrom2Normals( float3(0.0, 1.0, 0.0), // origin direction
+														 cone.dir );			// new direction
+
+			const float3	vert_pos	= cone.origin + QMul( rot, (un_Geometry.positions[ gl.VertexIndex ] * float3(radius, radius, cone.height)).xzy );
 
 		#else
-			const float3	sphere_pos	= light_pos;
-			const float		radius		= iLightParams.x;
-			
-			const float3	vert_pos	= sphere_pos + (un_Geometry.positions[ gl.VertexIndex ] * radius);
+			const Sphere	sp			= Sphere_Create( light_pos, un_Params.sphereRadius );
+
+			const float3	vert_pos	= sp.center + (un_Geometry.positions[ gl.VertexIndex ] * sp.radius);
 		#endif
 
 		gl.Position		= WorldPosToClipSpace( float4( vert_pos, 1.0 ));
-		Out.color		= float4( 0.0, 1.0, 0.0, 1.0 );
+		Out.color		= float4( 1.0 );
 	}
 
 #endif

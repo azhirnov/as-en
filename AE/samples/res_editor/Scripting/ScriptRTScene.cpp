@@ -473,7 +473,7 @@ namespace
 
 		if ( _dummy )
 		{
-			_resource = MakeRCTh<RTGeometry>( renderer, _dbgName );
+			_resource = RTGeometry::Create( renderer, _dbgName );  // throw
 			return _resource;
 		}
 
@@ -501,7 +501,7 @@ namespace
 			dst.indexDataOffset	= src.indexDataOffset;
 		}
 
-		_resource = MakeRCTh<RTGeometry>( RVRef(tri_meshes), RVRef(ind_buf), renderer, _dbgName, Bool{_allowUpdate} );
+		_resource = RTGeometry::Create( RVRef(tri_meshes), RVRef(ind_buf), renderer, _dbgName, Bool{_allowUpdate} );  // throw
 		return _resource;
 	}
 
@@ -1118,7 +1118,7 @@ namespace
 		}
 
 		Renderer&	renderer	= ScriptExe::ScriptResourceApi::GetRenderer(); // throw
-		auto		result		= MakeRCTh<RTScene>( RVRef(instances), inst_buf, ind_buf, renderer, _dbgName, Bool{_allowUpdate} );
+		auto		result		= RTScene::Create( RVRef(instances), inst_buf, ind_buf, renderer, _dbgName, Bool{_allowUpdate} );  // throw
 
 		_resource = result;
 		return _resource;

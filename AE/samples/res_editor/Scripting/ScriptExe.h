@@ -101,6 +101,7 @@ namespace AE::ResEditor
 		class ScriptExportBuffer;
 		class ScriptCompressImage;
 		class ScriptReadBufferValue;
+		class ScriptResetUnusedTimers;
 		class ScriptConvertCooperativeVectorMatrix;
 
 		using ScriptPassGroupPtr	= ScriptRC<ScriptPassGroup>;
@@ -203,6 +204,8 @@ namespace AE::ResEditor
 						uint srcOffset, uint srcSize, uint srcStride, ECoopVecMatrixLayout srcLayout,
 						ECoopMatrixComponentType dstType, const ScriptBufferPtr &dstBuffer,
 						uint dstOffset, uint dstSize, uint dstStride, ECoopVecMatrixLayout dstLayout)			__Th___;
+
+		static void  _ResetUnusedTimers (const ScriptArray<ScriptDynamicFloatPtr> &arr)								__Th___;
 
 		static void  _ExportImage (const ScriptImagePtr &image, const String &prefix)							__Th___;
 		static void  _ExportBuffer (const ScriptBufferPtr &buffer, const String &prefix)						__Th___;
@@ -323,10 +326,20 @@ namespace AE::ResEditor
 								OUT ScriptArray<packed_float2>	&texcoords,
 								OUT ScriptArray<uint>			&indices)										__Th___;
 
+		static void  _GetFrustumIndices (OUT ScriptArray<uint> &indices)										__Th___;
+
 
 		static void  _GetMarchingCubeTable (OUT ScriptArray<uint> &edgeTable,
 											OUT ScriptArray<int> &triangleTable,
-											OUT ScriptArray<packed_float3> &uvw)								__Th___;
+											OUT ScriptArray<packed_int3> &uvw)									__Th___;
+
+		static void  _GetTransvoxelTable (OUT ScriptArray<uint> &regularCellClass,
+										  OUT ScriptArray<uint> &regularCellData,
+										  OUT ScriptArray<uint> &regularVertexData,
+										  OUT ScriptArray<uint> &transitionCellClass,
+										  OUT ScriptArray<uint> &transitionCellData,
+										  OUT ScriptArray<uint> &transitionCornerData,
+										  OUT ScriptArray<uint> &transitionVertexData)							__Th___;
 
 		static void  _IndicesToPrimitives (const ScriptArray<uint>			&indices,
 										   OUT ScriptArray<packed_uint3>	&primitives)						__Th___;
@@ -416,6 +429,7 @@ namespace AE::ResEditor
 
 		template <typename D>
 		static void  _Label (const D &dyn, const String &name, const EnableLabel &)								__Th___;
+		static void  _LabelWithoutValue (const String &name, const EnableLabel &)								__Th___;
 
 		static packed_float3  _CM_CubeSC_Forward (const packed_float3 &);
 		static packed_float3  _CM_IdentitySC_Forward (const packed_float3 &);

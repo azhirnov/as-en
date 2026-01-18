@@ -105,6 +105,7 @@ namespace AE::Graphics
 		switch_enum( cfg )
 		{
 			case ECoopMatrixCfg::Afp16_Bfp16_Cfp16_Rfp16_M16_N16_K16 :
+			{
 				a	= ECoopMatrixComponentType::Float16;
 				b	= ECoopMatrixComponentType::Float16;
 				c	= ECoopMatrixComponentType::Float16;
@@ -113,67 +114,63 @@ namespace AE::Graphics
 				n	= 16;
 				k	= 16;
 				break;
-
+			}
 			case ECoopMatrixCfg::Afp16_Bfp16_Cfp32_Rfp32_M16_N16_K16 :
-				a	= ECoopMatrixComponentType::Float16;
-				b	= ECoopMatrixComponentType::Float16;
-				c	= ECoopMatrixComponentType::Float32;
-				res	= ECoopMatrixComponentType::Float32;
-				m	= 16;
-				n	= 16;
-				k	= 16;
-				break;
-
 			case ECoopMatrixCfg::Afp16_Bfp16_Cfp32_Rfp32_M8_N8_K16 :
+			{
 				a	= ECoopMatrixComponentType::Float16;
 				b	= ECoopMatrixComponentType::Float16;
 				c	= ECoopMatrixComponentType::Float32;
 				res	= ECoopMatrixComponentType::Float32;
-				m	= 8;
-				n	= 8;
-				k	= 16;
-				break;
 
+				if ( cfg == ECoopMatrixCfg::Afp16_Bfp16_Cfp32_Rfp32_M16_N16_K16 ){
+					m = 16;		n = 16;		k = 16;
+				}
+				if ( cfg == ECoopMatrixCfg::Afp16_Bfp16_Cfp32_Rfp32_M8_N8_K16 ){
+					m = 8;		n = 8;		k = 16;
+				}
+				break;
+			}
 			case ECoopMatrixCfg::Au8_Bu8_Cu32_Ru32_M16_N16_K32 :
-				a	= ECoopMatrixComponentType::UInt8;
-				b	= ECoopMatrixComponentType::UInt8;
-				c	= ECoopMatrixComponentType::UInt32;
-				res	= ECoopMatrixComponentType::UInt32;
-				m	= 16;
-				n	= 16;
-				k	= 32;
-				break;
-
-			case ECoopMatrixCfg::As8_Bs8_Cs32_Rs32_M16_N16_K32 :
-				a	= ECoopMatrixComponentType::SInt8;
-				b	= ECoopMatrixComponentType::SInt8;
-				c	= ECoopMatrixComponentType::SInt32;
-				res	= ECoopMatrixComponentType::SInt32;
-				m	= 16;
-				n	= 16;
-				k	= 32;
-				break;
-
+			case ECoopMatrixCfg::Au8_Bu8_Cu32_Ru32_M16_N16_K16 :
 			case ECoopMatrixCfg::Au8_Bu8_Cu32_Ru32_M8_N8_K32 :
+			{
 				a	= ECoopMatrixComponentType::UInt8;
 				b	= ECoopMatrixComponentType::UInt8;
 				c	= ECoopMatrixComponentType::UInt32;
 				res	= ECoopMatrixComponentType::UInt32;
-				m	= 8;
-				n	= 8;
-				k	= 32;
-				break;
 
+				if ( cfg == ECoopMatrixCfg::Au8_Bu8_Cu32_Ru32_M16_N16_K32 ){
+					m = 16;		n = 16;		k = 32;
+				}
+				if ( cfg == ECoopMatrixCfg::Au8_Bu8_Cu32_Ru32_M16_N16_K16 ){
+					m = 16;		n = 16;		k = 16;
+				}
+				if ( cfg == ECoopMatrixCfg::Au8_Bu8_Cu32_Ru32_M8_N8_K32 ){
+					m = 8;		n = 8;		k = 32;
+				}
+				break;
+			}
+			case ECoopMatrixCfg::As8_Bs8_Cs32_Rs32_M16_N16_K32 :
+			case ECoopMatrixCfg::As8_Bs8_Cs32_Rs32_M16_N16_K16 :
 			case ECoopMatrixCfg::As8_Bs8_Cs32_Rs32_M8_N8_K32 :
+			{
 				a	= ECoopMatrixComponentType::SInt8;
 				b	= ECoopMatrixComponentType::SInt8;
 				c	= ECoopMatrixComponentType::SInt32;
 				res	= ECoopMatrixComponentType::SInt32;
-				m	= 8;
-				n	= 8;
-				k	= 32;
-				break;
 
+				if ( cfg == ECoopMatrixCfg::As8_Bs8_Cs32_Rs32_M16_N16_K32 ){
+					m = 16;		n = 16;		k = 32;
+				}
+				if ( cfg == ECoopMatrixCfg::As8_Bs8_Cs32_Rs32_M16_N16_K16 ){
+					m = 16;		n = 16;		k = 16;
+				}
+				if ( cfg == ECoopMatrixCfg::As8_Bs8_Cs32_Rs32_M8_N8_K32 ){
+					m = 8;		n = 8;		k = 32;
+				}
+				break;
+			}
 			case ECoopMatrixCfg::_Count :
 			default :
 				DBG_WARNING( "unknown cooperative matrix config" );
@@ -200,58 +197,46 @@ namespace AE::Graphics
 		if ( a		== ECoopMatrixComponentType::Float16	and
 			 b		== ECoopMatrixComponentType::Float16	and
 			 c		== ECoopMatrixComponentType::Float32	and
-			 res	== ECoopMatrixComponentType::Float32	and
-			 m		== 16									and
-			 n		== 16									and
-			 k		== 16 )
-			return ECoopMatrixCfg::Afp16_Bfp16_Cfp32_Rfp32_M16_N16_K16;
+			 res	== ECoopMatrixComponentType::Float32 )
+		{
+			if ( m == 16 and n == 16 and k == 16 )
+				return ECoopMatrixCfg::Afp16_Bfp16_Cfp32_Rfp32_M16_N16_K16;
 
-		if ( a		== ECoopMatrixComponentType::Float16	and
-			 b		== ECoopMatrixComponentType::Float16	and
-			 c		== ECoopMatrixComponentType::Float32	and
-			 res	== ECoopMatrixComponentType::Float32	and
-			 m		== 8									and
-			 n		== 8									and
-			 k		== 16 )
-			return ECoopMatrixCfg::Afp16_Bfp16_Cfp32_Rfp32_M8_N8_K16;
+			if ( m ==  8 and n ==  8 and k == 16 )
+				return ECoopMatrixCfg::Afp16_Bfp16_Cfp32_Rfp32_M8_N8_K16;
+		}
 
 		if ( a		== ECoopMatrixComponentType::UInt8		and
 			 b		== ECoopMatrixComponentType::UInt8		and
 			 c		== ECoopMatrixComponentType::UInt32		and
-			 res	== ECoopMatrixComponentType::UInt32		and
-			 m		== 16									and
-			 n		== 16									and
-			 k		== 32 )
-			return ECoopMatrixCfg::Au8_Bu8_Cu32_Ru32_M16_N16_K32;
+			 res	== ECoopMatrixComponentType::UInt32 )
+		{
+			if ( m == 16 and n == 16 and k == 32 )
+				return ECoopMatrixCfg::Au8_Bu8_Cu32_Ru32_M16_N16_K32;
+
+			if ( m == 16 and n == 16 and k == 16 )
+				return ECoopMatrixCfg::Au8_Bu8_Cu32_Ru32_M16_N16_K16;
+
+			if ( m ==  8 and n ==  8 and k == 32 )
+				return ECoopMatrixCfg::Au8_Bu8_Cu32_Ru32_M8_N8_K32;
+		}
 
 		if ( a		== ECoopMatrixComponentType::SInt8		and
 			 b		== ECoopMatrixComponentType::SInt8		and
 			 c		== ECoopMatrixComponentType::SInt32		and
-			 res	== ECoopMatrixComponentType::SInt32		and
-			 m		== 16									and
-			 n		== 16									and
-			 k		== 32 )
-			return ECoopMatrixCfg::As8_Bs8_Cs32_Rs32_M16_N16_K32;
+			 res	== ECoopMatrixComponentType::SInt32	)
+		{
+			if ( m == 16 and n == 16 and k == 32 )
+				return ECoopMatrixCfg::As8_Bs8_Cs32_Rs32_M16_N16_K32;
 
-		if ( a		== ECoopMatrixComponentType::UInt8		and
-			 b		== ECoopMatrixComponentType::UInt8		and
-			 c		== ECoopMatrixComponentType::UInt32		and
-			 res	== ECoopMatrixComponentType::UInt32		and
-			 m		== 8									and
-			 n		== 8									and
-			 k		== 32 )
-			return ECoopMatrixCfg::Au8_Bu8_Cu32_Ru32_M8_N8_K32;
+			if ( m == 16 and n == 16 and k == 16 )
+				return ECoopMatrixCfg::As8_Bs8_Cs32_Rs32_M16_N16_K16;
 
-		if ( a		== ECoopMatrixComponentType::SInt8		and
-			 b		== ECoopMatrixComponentType::SInt8		and
-			 c		== ECoopMatrixComponentType::SInt32		and
-			 res	== ECoopMatrixComponentType::SInt32		and
-			 m		== 8									and
-			 n		== 8									and
-			 k		== 32 )
-			return ECoopMatrixCfg::As8_Bs8_Cs32_Rs32_M8_N8_K32;
+			if ( m ==  8 and n ==  8 and k == 32 )
+				return ECoopMatrixCfg::As8_Bs8_Cs32_Rs32_M8_N8_K32;
+		}
 
-		StaticAssert( uint(ECoopMatrixCfg::_Count) == 7 );
+		StaticAssert( uint(ECoopMatrixCfg::_Count) == 9 );
 
 		return Default;
 	}

@@ -40,6 +40,10 @@ namespace AE::LangModel::LLama
 		bool			keepModelInMemory	= true;		// force system to keep model in RAM
 		bool			checkTensors		= true;		// validate model tensor data
 		bool			useMMap				= true;		// use mmap if possible, improves load time, improve stability on low RAM
+
+		OpenParams ()					__NE___ {}
+		OpenParams (OpenParams &&)		__NE___ = default;
+		OpenParams (const OpenParams &)	__NE___ = default;
 	};
 
 

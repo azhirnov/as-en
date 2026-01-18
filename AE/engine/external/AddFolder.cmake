@@ -98,10 +98,10 @@ set( AE_DST_PATH			"${AE_EXTERNAL_BIN_PATH}/external/${EXT_PLATFORM_AND_COMPILER
 set( AE_DST_SHARED_PATH		"${AE_EXTERNAL_BIN_PATH}/external/${EXT_PLATFORM}"					CACHE INTERNAL "path to header-only and shared objects external dependencies"	FORCE )
 
 if (NOT EXISTS "${AE_DST_SHARED_PATH}")
-	message( FATAL_ERROR "platform specific folder '${AE_DST_SHARED_PATH}' is not exists" )
+	message( FATAL_ERROR "platform specific folder '${AE_DST_SHARED_PATH}' is not exists, see 'Build.md' for instructions how to build or download third party libs" )
 endif()
 if (NOT EXISTS "${AE_DST_PATH}")
-	message( FATAL_ERROR "platform and compiler specific folder '${AE_DST_PATH}' is not exists" )
+	message( FATAL_ERROR "platform and compiler specific folder '${AE_DST_PATH}' is not exists, see 'Build.md' for instructions how to build or download third party libs" )
 endif()
 
 

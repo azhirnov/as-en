@@ -1,6 +1,6 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 /*
-
+	Check precision of world position reconstruction.
 */
 #ifdef __INTELLISENSE__
 # 	include <res_editor.as>
@@ -25,6 +25,7 @@
 		RC<DynamicUInt>		obj_count		= DynamicUInt();
 		RC<DynamicUInt2>	count2d			= obj_count.XX().Mul( local_size );
 		RC<DynamicUInt>		count			= count2d.Area();
+		const bool			rev_z			= true;
 
 		obj_buf.ArrayLayout(
 			"ObjectTransform",
@@ -35,13 +36,13 @@
 
 		// setup camera
 		{
-			#if 1
+			if ( rev_z ){
 				// better precision
 				camera.ReverseZ( true );
 				camera.ClipPlanes( 0.5f );	// infinite projection
-			#else
+			}else{
 				camera.ClipPlanes( 1.0f, 100.f );
-			#endif
+			}
 
 			camera.FovY( 60.f );
 
@@ -72,6 +73,7 @@
 			cmd.indexCount	= indices.size();
 			cmd.IndexBuffer( geom_data, "indices" );
 			cmd.InstanceCount( count );
+			cmd.PipelineHint( rev_z ? "GEqual" : "LEqual" );
 			geometry.Draw( cmd );
 
 			scene.Add( geometry );
@@ -88,9 +90,9 @@
 		}{
 			RC<SceneGraphicsPass>	pass = scene.AddGraphicsPass( "draw scene" );
 			pass.AddPipeline( "tests/WorldPosReconstruction.as" );	// [src](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/pipelines/tests/WorldPosReconstruction.as)
-			pass.Output( "out_Color",		rt,			RGBA32f(0.0) );
-			pass.Output( "out_WorldPos",	wp,			RGBA32f(0.0) );
-			pass.Output(					ds,			DepthStencil(1.0, 0) );
+			pass.Output( "out_Color",		rt,		RGBA32f(0.0) );
+			pass.Output( "out_WorldPos",	wp,		RGBA32f(0.0) );
+			pass.Output(					ds,		DepthStencil(rev_z ? 0.0 : 1.0, 0) );
 			pass.Constant( "iLight",		float3(0.4, -1.0, -1.0) );
 		}{
 			RC<Postprocess>		pass = Postprocess();
@@ -99,8 +101,11 @@
 			pass.ArgIn(	 "un_Color",		rt,		Sampler_NearestClamp );
 			pass.ArgIn(	 "un_Depth",		ds,		Sampler_NearestClamp );
 			pass.ArgIn(	 "un_WorldPos",		wp,		Sampler_NearestClamp );
-			pass.Slider( "iCmp",			0,	3,		1 );
+			pass.Slider( "iCmp",			0,	2,		1 );
 			pass.Slider( "iCmpDiff",		0,	10,		4 );
+
+			if ( rev_z )
+				pass.Constant( "iReverseZ",	1 );
 		}
 
 		Present( rt2 );
@@ -146,20 +151,26 @@
 		float4	color			= gl.texture.Fetch( un_Color, int2(gl.FragCoord.xy), 0 );
 		float	depth			= gl.texture.Fetch( un_Depth, int2(gl.FragCoord.xy), 0 ).r;
 		float3	ref_world_pos	= gl.texture.Fetch( un_WorldPos, int2(gl.FragCoord.xy), 0 ).rgb;
-		float3	world_pos		= UnProject( un_PerPass.camera.invViewProj, float3( gl.FragCoord.xy, depth ), un_PerPass.invResolution.xy );
+		float3	world_pos		= UnProject( un_PerPass.camera.invViewProj, float3( gl.FragCoord.xy, depth ), un_PerPass.invResolution );
 
 		// camera offset is not included to view matrix
 		world_pos += un_PerPass.camera.pos;
 
-		if ( depth >= 0.999999 )
-			world_pos = float3(0.0);
+		#ifdef iReverseZ
+			if ( depth <= 0.000001 )
+				world_pos = float3(0.0);
+		#else
+			if ( depth >= 0.999999 )
+				world_pos = float3(0.0);
+		#endif
+
+		float3	wp_diff = Abs( ref_world_pos - world_pos );
 
 		switch ( iCmp )
 		{
 			case 0 :	out_Color = color;  break;
-			case 1 :	out_Color = float4( Abs( ref_world_pos - world_pos ) * Exp10( float(iCmpDiff) ), 1.0 );  break;
-			case 2 :	out_Color = float4( ref_world_pos, 1.0 ) * 0.1;  break;
-			case 3 :	out_Color = float4( world_pos, 1.0 ) * 0.1;  break;
+			case 1 :	out_Color = float4( wp_diff * Exp10( float(iCmpDiff) ), 1.0 );  break;
+			case 2 :	out_Color = float4( (wp_diff / Max( Abs(ref_world_pos), 0.0001 )) * Exp10( float(iCmpDiff) ), 1.0 );  break;
 		}
 	}
 

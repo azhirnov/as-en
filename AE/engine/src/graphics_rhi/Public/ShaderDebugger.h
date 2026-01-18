@@ -103,10 +103,12 @@ namespace AE::Graphics
 		explicit ShaderDebugger (Bytes blockSize = _AllocBlockSize)																__NE___ : _blockSize{blockSize} {}
 		~ShaderDebugger ()																										__NE___;
 
-		ND_ bool  AllocForCompute (OUT Result &result, ITransferContext &ctx, ComputePipelineID ppln, const uint3 &globalID,
+		template <typename PplnID>
+		ND_ bool  AllocForCompute (OUT Result &result, ITransferContext &ctx, PplnID ppln, const uint3 &globalID,
 								   DescriptorSetName::Ref dsName = _DbgShaderTrace, Bytes size = _SingleBufferSize)				__Th___;
 
-		ND_ bool  AllocForCompute (OUT Result &result, ITransferContext &ctx, ComputePipelineID ppln,
+		template <typename PplnID>
+		ND_ bool  AllocForCompute (OUT Result &result, ITransferContext &ctx, PplnID ppln,
 								   DescriptorSetName::Ref dsName = _DbgShaderTrace, Bytes size = _SingleBufferSize)				__Th___;
 
 		ND_ bool  AllocForRayTracing (OUT Result &result, ITransferContext &ctx, RayTracingPipelineID ppln, const uint3 &launchID,
@@ -116,7 +118,8 @@ namespace AE::Graphics
 									  DescriptorSetName::Ref dsName = _DbgShaderTrace, Bytes size = _SingleBufferSize)			__Th___;
 
 		template <typename PplnID>
-		ND_ bool  AllocForGraphics (OUT Result &result, ITransferContext &ctx, PplnID ppln, const uint2 &fragCoord,
+		ND_ bool  AllocForGraphics (OUT Result &result, ITransferContext &ctx, PplnID ppln,
+									const uint2 &fragCoord_or_vertexIdInstanceId,
 									DescriptorSetName::Ref dsName = _DbgShaderTrace, Bytes size = _SingleBufferSize)			__Th___;
 
 		template <typename PplnID>
@@ -156,11 +159,53 @@ namespace AE::Graphics
 
 /*
 =================================================
+	AllocForCompute
+=================================================
+*/
+	template <typename PplnID>
+	bool  ShaderDebugger::AllocForCompute (OUT Result &result, ITransferContext &ctx, PplnID ppln, const uint3 &globalID, DescriptorSetName::Ref dsName, Bytes size) __Th___
+	{
+		DRC_EXLOCK( _drCheck );
+
+		if constexpr( IsSame< PplnID, ComputePipelineID >)
+		{
+			if_unlikely( not _GetComputePipeline( ppln, dsName, OUT result ))
+				return false;
+		}
+		else
+		if constexpr( IsSame< PplnID, MeshPipelineID >)
+		{
+			if_unlikely( not _GetGraphicsPipeline( ppln, dsName, OUT result ))
+				return false;
+		}
+		else
+		{
+			return false;
+		}
+
+		if_unlikely( not _AllocStorage( size, OUT result ))
+			return false;
+
+		const uint	data[4] = { globalID.x, globalID.y, globalID.z, 0 };
+		StaticAssert( _TraceHeaderSize == sizeof(data) );
+
+		_FillBuffer( result, ctx, Sizeof(data), data );
+		return true;
+	}
+
+	template <typename PplnID>
+	bool  ShaderDebugger::AllocForCompute (OUT Result &result, ITransferContext &ctx, PplnID ppln, DescriptorSetName::Ref dsName, Bytes size) __Th___
+	{
+		return AllocForCompute( OUT result, ctx, ppln, uint3{~0u}, dsName, size );
+	}
+
+/*
+=================================================
 	AllocForGraphics
 =================================================
 */
 	template <typename PplnID>
-	bool  ShaderDebugger::AllocForGraphics (OUT Result &result, ITransferContext &ctx, PplnID ppln, const uint2 &fragCoord, DescriptorSetName::Ref dsName, Bytes size) __Th___
+	bool  ShaderDebugger::AllocForGraphics (OUT Result &result, ITransferContext &ctx, PplnID ppln, const uint2 &fragCoord_or_vertexIdInstanceId, DescriptorSetName::Ref dsName, Bytes size) __Th___
 	{
 		DRC_EXLOCK( _drCheck );
 
@@ -170,7 +215,7 @@ namespace AE::Graphics
 		if_unlikely( not _AllocStorage( size, OUT result ))
 			return false;
 
-		const uint	data[4] = { fragCoord.x, fragCoord.y, 0, 0 };
+		const uint	data[4] = { fragCoord_or_vertexIdInstanceId.x, fragCoord_or_vertexIdInstanceId.y, 0, 0 };
 		StaticAssert( _TraceHeaderSize == sizeof(data) );
 
 		_FillBuffer( result, ctx, Sizeof(data), data );

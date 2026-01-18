@@ -54,7 +54,7 @@ void  BuildMSVC (const string path, const ECompiler compiler, const string cmake
 
 		if ( compiler == ECompiler::MSVC )
 			CloneRepository( "win-x64-msvc" );
-		
+
 		if ( compiler == ECompiler::MSVC_Clang )
 			CloneRepository( "win-x64-clang" );
 

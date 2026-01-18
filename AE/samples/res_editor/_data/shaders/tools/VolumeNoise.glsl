@@ -4,6 +4,7 @@
 #	define GEN_NOISE
 #	define GEN_TURB
 #	define APPLY_SPLINE
+#	define APPLY_Y_SPLINE
 #	define TRACE_OPAQUE
 #	define TRACE_CLOUD
 #	define TRACE_CLOUD2
@@ -50,6 +51,31 @@
 
 #endif
 //-----------------------------------------------------------------------------
+#ifdef APPLY_Y_SPLINE
+	#include "tools/SplineHelper.glsl"
+
+	void  Main ()
+	{
+		const int3	tid		= GlobalThreadID();
+		float4		noise	= ToUNorm( gl.image.Load( un_Noise, tid ));
+		float		factor	= ToUNorm( GlobalThreadSNorm().y );
+
+		factor = Saturate( ApplySpline( factor, iMode, iA, iB ).x );
+
+		noise = ( noise * factor ) * iScale + iBias;
+
+		gl.image.Store( un_Noise, tid, ToSNorm( noise ));
+
+		if ( OncePerDispatch() )
+		{
+			un_Params.A		= iA;
+			un_Params.B		= iB;
+			un_Params.Mode	= iMode;
+		}
+	}
+
+#endif
+//-----------------------------------------------------------------------------
 #ifdef VIEW_2D
 
 	#include "tools/TerrainNoise.glsl"
@@ -66,7 +92,6 @@
 
 	const float3	c_VolumePos		= float3(0.0, 0.0, 3.0);
 	const AABB		c_VolumeAABB	= {float3(-1.0) + c_VolumePos, float3(1.0) + c_VolumePos};
-	const uint		c_MaxOpSteps	= 512;
 	const uint		c_MaxTrSteps	= 256;
 
 
@@ -79,11 +104,11 @@
   #ifdef TRACE_OPAQUE
 	ND_ float4  RayTraceOpaque (in Ray ray, const float3 center, const float2 minMaxT)
 	{
-		const float		step	= Distance( c_VolumeAABB.min, c_VolumeAABB.max ) / float(c_MaxOpSteps) * 0.5;
+		const float		step	= Distance( c_VolumeAABB.min, c_VolumeAABB.max ) / float(iMaxSteps);
 		float			n		= 0.f;
 		float			scale	= 1.0;
 
-		for (uint i = 0; All3( i < c_MaxOpSteps, scale > 0.06, ray.t < minMaxT.y ); ++i)
+		for (uint i = 0; All3( i < iMaxSteps, scale > 0.06, ray.t < minMaxT.y ); ++i)
 		{
 			float3	local_pos = ray.pos - center;
 

@@ -19,12 +19,26 @@ ND_ float	LinearFilterHQ (gl::CombinedTex2D<float> tex, float2 uv);
 ND_ float	CubicFilterHQ (gl::CombinedTex2D<float> tex, float2 uv);
 
 // software version of gl.texture.* functions
-ND_ float4  SwSampling (gl::CombinedTex2D<float> tex, float2 uv, float bias);	// .Sample()
-ND_ float2  SwQueryLod (gl::CombinedTex2D<float> tex, float2 uv, float bias);	// .QueryLod()
+//	.Sample()
+ND_ float4  SwSampling (gl::CombinedTex2D<float> tex, float2 uv);
+ND_ float4  SwSampling (gl::CombinedTex2D<float> tex, float2 uv, float bias);
+//	.QueryLod()
+ND_ float2  SwQueryLod (float2 texDim, float2 uv, float bias);
+ND_ float2  SwQueryLod (gl::CombinedTex2D<float> tex, float2 uv, float bias);
+
+//	.SampleProj()
+ND_ float	SampleShadow (gl::CombinedTex2D<float> tex, const float4 shadowCoord);
+ND_ float	SampleShadow (gl::CombinedTex2DArray<float> tex, const float4 shadowCoord, float layer);
+ND_ float	SampleShadowRevZ (gl::CombinedTex2D<float> tex, const float4 shadowCoord);
+ND_ float	SampleShadowRevZ (gl::CombinedTex2DArray<float> tex, const float4 shadowCoord, float layer);
 
 // helper
 ND_ float2	UVLerpFactor (float2 uv, float2 dim);
 ND_ float2	UVLerpFactor (float2 uv, gl::CombinedTex2D<float> tex);
+
+ND_ uint	NumberOfMipmaps (uint dim)		{ return IntLog2( dim ) + 1; }
+ND_ uint	NumberOfMipmaps (uint2 dim)		{ return NumberOfMipmaps( MaxOf( dim )); }
+ND_ uint	NumberOfMipmaps (uint3 dim)		{ return NumberOfMipmaps( MaxOf( dim )); }
 //-----------------------------------------------------------------------------
 
 
@@ -150,19 +164,23 @@ float2  UVLerpFactor (float2 uv, gl::CombinedTex2D<float> tex)
 		return SwSampling_GetDxDy( uv ) * Exp2( bias );
 	}
 
+	float4  SwSampling (gl::CombinedTex2D<float> tex, float2 uv)
+	{
+		float4	dxdy = SwSampling_GetDxDy( uv );
+		return	gl.texture.SampleGrad( tex, uv, dxdy.xy, dxdy.zw );
+	}
+
 	float4  SwSampling (gl::CombinedTex2D<float> tex, float2 uv, float bias)
 	{
 		float4	dxdy = SwSampling_GetDxDy( uv, bias );
-		return gl.texture.SampleGrad( tex, uv, dxdy.xy, dxdy.zw );
+		return	gl.texture.SampleGrad( tex, uv, dxdy.xy, dxdy.zw );
 	}
 
-	float2  SwQueryLod (gl::CombinedTex2D<float> tex, float2 uv, float bias)
+
+	float2  SwQueryLod (float2 texDim, float4 uvdxdy)
 	{
-		bias += 0.08; // TODO: mipmapPrecisionBits?
-		float4	dxdy	= SwSampling_GetDxDy( uv, bias );
-		float2	size	= float2(gl.texture.GetSize( tex, 0 ));
-		float2	dx		= dxdy.xy * size.x;
-		float2	dy		= dxdy.zw * size.y;
+		float2	dx		= uvdxdy.xy * texDim.x;
+		float2	dy		= uvdxdy.zw * texDim.y;
 
 	  #if 1
 		float	Pmax	= Max( Length(dx), Length(dy) );
@@ -191,4 +209,55 @@ float2  UVLerpFactor (float2 uv, gl::CombinedTex2D<float> tex)
 		return float2( Round(level), level );
 	}
 
+	float2  SwQueryLod (float2 texDim, float2 uv, float bias)
+	{
+		bias += 0.08; // TODO: mipmapPrecisionBits?
+		float4	dxdy = SwSampling_GetDxDy( uv, bias );
+		return SwQueryLod( texDim, dxdy );
+	}
+
+	float2  SwQueryLod (gl::CombinedTex2D<float> tex, float2 uv, float bias)
+	{
+		return SwQueryLod( float2(gl.texture.GetSize( tex, 0 )), uv, bias );
+	}
+
 #endif
+
+/*
+=================================================
+	SampleShadow
+----
+	returns 1.0 if not shaded and 0.0 if shaded
+=================================================
+*/
+bool  SampleShadow_IsValidCoord (const float4 shadowCoord)
+{
+	// also see ClipSpacePointIsVisible()
+	bool	valid_w		= shadowCoord.w >= 0.0;
+	bool	valid_uvz	= IsUNorm( shadowCoord.xyz );
+	return	valid_w and valid_uvz;
+}
+
+float  SampleShadow (gl::CombinedTex2D<float> tex, const float4 shadowCoord)
+{
+	float	d = gl.texture.Sample( tex, shadowCoord.xy ).r;
+	return	GreaterF( d, shadowCoord.z );
+}
+
+float  SampleShadow (gl::CombinedTex2DArray<float> tex, const float4 shadowCoord, float layer)
+{
+	float	d = gl.texture.Sample( tex, float3( shadowCoord.xy, layer )).r;
+	return	GreaterF( d, shadowCoord.z );
+}
+
+float  SampleShadowRevZ (gl::CombinedTex2D<float> tex, const float4 shadowCoord)
+{
+	float	d = gl.texture.Sample( tex, shadowCoord.xy ).r;
+	return	LessF( d, shadowCoord.z );
+}
+
+float  SampleShadowRevZ (gl::CombinedTex2DArray<float> tex, const float4 shadowCoord, float layer)
+{
+	float	d = gl.texture.Sample( tex, float3( shadowCoord.xy, layer )).r;
+	return	LessF( d, shadowCoord.z );
+}
