@@ -151,8 +151,8 @@ namespace AE::Graphics
 
 	enum class EImageOpt : uint
 	{
-		BlitSrc						= 1 << 0,
-		BlitDst						= 1 << 1,
+		BlitSrc						= 1 << 0,		// used to check format compatibility with Blit command
+		BlitDst						= 1 << 1,		// used to check format compatibility with Blit command
 		CubeCompatible				= 1 << 2,		// allows to create CubeMap and CubeMapArray from 2D Array
 		MutableFormat				= 1 << 3,		// allows to change image format
 		Array2DCompatible			= 1 << 4,		// allows to create 2D Array view from 3D image

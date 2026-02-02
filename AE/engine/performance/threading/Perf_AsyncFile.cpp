@@ -40,6 +40,14 @@ namespace
 		return ToStringSfx( double(c_FileSize) * 1.0e+9 / double(dt.count()) ) << "B/s";
 	}
 
+	template <typename FileType>
+	static bool  AllocBuffer (OUT DynUntypedStorage &buf, Bytes bufSize, const FileType &file)
+	{
+		const Bytes		align = Max( Bytes{file.OffsetAlign().ptrAlign}, AlignOf<ulong> );
+
+		return buf.Alloc( bufSize, align, null );
+	}
+
 
 	template <typename RFile, typename WFile>
 	static void  SyncSeqReadDS (IntervalProfiler &profiler)
@@ -53,15 +61,17 @@ namespace
 			WFile	wfile { fname, wflags };
 			TEST( wfile.IsOpen() );
 
-			Array<ulong>	buf;	buf.resize( c_BufferSize / sizeof(ulong) );
+			DynUntypedStorage	buf;
+			TEST( AllocBuffer( OUT buf, Bytes{c_BufferSize}, wfile ));
 
+			auto*	ptr = buf.Ptr<ulong>();
 			for (ulong pos = 0; pos < c_FileSize; pos += c_BufferSize)
 			{
-				for (uint i = 0; i < buf.size(); ++i) {
-					buf[i] = pos + i;
+				for (uint i = 0, cnt = c_BufferSize/sizeof(ulong); i < cnt; ++i) {
+					ptr[i] = pos + i;
 				}
 
-				TEST_Eq( wfile.WriteSeq( buf.data(), ArraySizeOf(buf) ), c_BufferSize );
+				TEST_Eq( wfile.WriteSeq( buf.Data(), buf.Size() ), c_BufferSize );
 			}
 
 			TEST_Eq( wfile.Position(), c_FileSize );
@@ -73,24 +83,26 @@ namespace
 			TEST( rfile->IsOpen() );
 			TEST_Eq( rfile->Size(), c_FileSize );
 
-			Array<ulong>	buf;	buf.resize( c_FileSize / sizeof(ulong) );
+			DynUntypedStorage	buf;
+			TEST( AllocBuffer( OUT buf, Bytes{c_FileSize}, *rfile ));
 
 			profiler.BeginIteration();
 			for (ulong pos = 0; pos < c_FileSize; pos += c_BufferSize)
 			{
 				TEST_Eq( Bytes{pos}, rfile->Position() );
-				TEST_Eq( rfile->ReadSeq( OUT buf.data() + Bytes{pos}, Bytes{c_BufferSize} ), Bytes{c_BufferSize});
+				TEST_Eq( rfile->ReadSeq( OUT buf.Data() + Bytes{pos}, Bytes{c_BufferSize} ), Bytes{c_BufferSize});
 			}
 			profiler.EndIteration();
 
 			// validate data
 			AE_LOGI( "validate data" );
+			const auto*	ptr = buf.Ptr<ulong>();
 			for (ulong pos = 0; pos < c_FileSize; pos += c_BufferSize)
 			{
 				bool	valid = true;
 				for (ulong i = 0, j = pos/sizeof(ulong), cnt = c_BufferSize / sizeof(ulong); i < cnt; ++i, ++j)
 				{
-					valid = (buf[j] == pos+i);
+					valid = (ptr[j] == pos+i);
 				}
 				TEST( valid );
 			}
@@ -112,15 +124,17 @@ namespace
 			WFile	wfile { fname, wflags };
 			TEST( wfile.IsOpen() );
 
-			Array<ulong>	buf;	buf.resize( c_BufferSize / sizeof(ulong) );
+			DynUntypedStorage	buf;
+			TEST( AllocBuffer( OUT buf, Bytes{c_BufferSize}, wfile ));
 
+			auto*	ptr = buf.Ptr<ulong>();
 			for (ulong pos = 0; pos < c_FileSize; pos += c_BufferSize)
 			{
-				for (uint i = 0; i < buf.size(); ++i) {
-					buf[i] = pos + i;
+				for (uint i = 0, cnt = c_BufferSize/sizeof(ulong); i < cnt; ++i) {
+					ptr[i] = pos + i;
 				}
 
-				TEST_Eq( wfile.WriteSeq( buf.data(), ArraySizeOf(buf) ), c_BufferSize );
+				TEST_Eq( wfile.WriteSeq( buf.Data(), buf.Size() ), c_BufferSize );
 			}
 
 			TEST( wfile.Position() == c_FileSize );
@@ -135,7 +149,8 @@ namespace
 			Array<AsyncDSRequest>	req_arr;
 			req_arr.reserve( c_FileSize / c_BufferSize );
 
-			Array<ulong>	buf;	buf.resize( c_FileSize / sizeof(ulong) );
+			DynUntypedStorage	buf;
+			TEST( AllocBuffer( OUT buf, Bytes{c_FileSize}, *rfile ));
 
 			profiler.BeginIteration();
 
@@ -143,7 +158,7 @@ namespace
 			{
 				for (;;)
 				{
-					AsyncDSRequest	req = rfile->ReadBlock( Bytes{pos}, buf.data() + Bytes{pos}, Bytes{c_BufferSize}, null );
+					AsyncDSRequest	req = rfile->ReadBlock( Bytes{pos}, buf.Data() + Bytes{pos}, Bytes{c_BufferSize}, null );
 					if_unlikely( req->IsCancelled() )
 					{
 						Unused( scheduler->GetFileIOService()->ProcessEvents() );
@@ -175,12 +190,13 @@ namespace
 
 			// validate data
 			AE_LOGI( "validate data" );
+			const auto*	ptr = buf.Ptr<ulong>();
 			for (ulong pos = 0; pos < c_FileSize; pos += c_BufferSize)
 			{
 				bool	valid = true;
 				for (ulong i = 0, j = pos/sizeof(ulong), cnt = c_BufferSize / sizeof(ulong); i < cnt; ++i, ++j)
 				{
-					valid = (buf[j] == pos+i);
+					valid = (ptr[j] == pos+i);
 				}
 				TEST( valid );
 			}
@@ -207,15 +223,17 @@ namespace
 			WFile	wfile { fname, wflags };
 			TEST( wfile.IsOpen() );
 
-			Array<ulong>	buf;	buf.resize( c_BufferSize / sizeof(ulong) );
+			DynUntypedStorage	buf;
+			TEST( AllocBuffer( OUT buf, Bytes{c_BufferSize}, wfile ));
 
+			auto*	ptr = buf.Ptr<ulong>();
 			for (ulong pos = 0; pos < c_FileSize; pos += c_BufferSize)
 			{
-				for (uint i = 0; i < buf.size(); ++i) {
-					buf[i] = pos + i;
+				for (uint i = 0, cnt = c_BufferSize/sizeof(ulong); i < cnt; ++i) {
+					ptr[i] = pos + i;
 				}
 
-				TEST_Eq( wfile.WriteSeq( buf.data(), ArraySizeOf(buf) ), c_BufferSize );
+				TEST_Eq( wfile.WriteSeq( buf.Data(), buf.Size() ), c_BufferSize );
 				pos_arr.push_back( pos );
 			}
 
@@ -230,23 +248,25 @@ namespace
 			TEST( rfile->IsOpen() );
 			TEST_Eq( rfile->Size(), c_FileSize );
 
-			Array<ulong>	buf;	buf.resize( c_FileSize / sizeof(ulong) );
+			DynUntypedStorage	buf;
+			TEST( AllocBuffer( OUT buf, Bytes{c_FileSize}, *rfile ));
 
 			profiler.BeginIteration();
 			for (ulong pos : pos_arr)
 			{
-				TEST_Eq( rfile->ReadBlock( Bytes{pos}, buf.data() + Bytes{pos}, Bytes{c_BufferSize} ), Bytes{c_BufferSize});
+				TEST_Eq( rfile->ReadBlock( Bytes{pos}, buf.Data() + Bytes{pos}, Bytes{c_BufferSize} ), Bytes{c_BufferSize});
 			}
 			profiler.EndIteration();
 
 			// validate data
 			AE_LOGI( "validate data" );
+			const auto*	ptr = buf.Ptr<ulong>();
 			for (ulong pos = 0; pos < c_FileSize; pos += c_BufferSize)
 			{
 				bool	valid = true;
 				for (ulong i = 0, j = pos/sizeof(ulong), cnt = c_BufferSize / sizeof(ulong); i < cnt; ++i, ++j)
 				{
-					valid = (buf[j] == pos+i);
+					valid = (ptr[j] == pos+i);
 				}
 				TEST( valid );
 			}
@@ -271,15 +291,17 @@ namespace
 			WFile	wfile { fname, wflags };
 			TEST( wfile.IsOpen() );
 
-			Array<ulong>	buf;	buf.resize( c_BufferSize / sizeof(ulong) );
+			DynUntypedStorage	buf;
+			TEST( AllocBuffer( OUT buf, Bytes{c_BufferSize}, wfile ));
 
+			auto*	ptr = buf.Ptr<ulong>();
 			for (ulong pos = 0; pos < c_FileSize; pos += c_BufferSize)
 			{
-				for (uint i = 0; i < buf.size(); ++i) {
-					buf[i] = pos + i;
+				for (uint i = 0, cnt = c_BufferSize/sizeof(ulong); i < cnt; ++i) {
+					ptr[i] = pos + i;
 				}
 
-				TEST_Eq( wfile.WriteSeq( buf.data(), ArraySizeOf(buf) ), c_BufferSize );
+				TEST_Eq( wfile.WriteSeq( buf.Data(), buf.Size() ), c_BufferSize );
 				pos_arr.push_back( pos );
 			}
 
@@ -297,7 +319,8 @@ namespace
 			Array<AsyncDSRequest>	req_arr;
 			req_arr.reserve( c_FileSize / c_BufferSize );
 
-			Array<ulong>	buf;	buf.resize( c_FileSize / sizeof(ulong) );
+			DynUntypedStorage	buf;
+			TEST( AllocBuffer( OUT buf, Bytes{c_FileSize}, *rfile ));
 
 			profiler.BeginIteration();
 
@@ -305,7 +328,7 @@ namespace
 			{
 				for (;;)
 				{
-					AsyncDSRequest	req = rfile->ReadBlock( Bytes{pos}, buf.data() + Bytes{pos}, Bytes{c_BufferSize}, null );
+					AsyncDSRequest	req = rfile->ReadBlock( Bytes{pos}, buf.Data() + Bytes{pos}, Bytes{c_BufferSize}, null );
 					if_unlikely( req->IsCancelled() )
 					{
 						Unused( scheduler->GetFileIOService()->ProcessEvents() );
@@ -337,12 +360,13 @@ namespace
 
 			// validate data
 			AE_LOGI( "validate data" );
+			const auto*	ptr = buf.Ptr<ulong>();
 			for (ulong pos = 0; pos < c_FileSize; pos += c_BufferSize)
 			{
 				bool	valid = true;
 				for (ulong i = 0, j = pos/sizeof(ulong), cnt = c_BufferSize / sizeof(ulong); i < cnt; ++i, ++j)
 				{
-					valid = (buf[j] == pos+i);
+					valid = (ptr[j] == pos+i);
 				}
 				TEST( valid );
 			}

@@ -10,7 +10,7 @@
 	{
 		// initialize
 		RC<Image>	rt	= Image( EPixelFormat::RGBA8_UNorm, SurfaceSize() );
-		RC<Image>	tex	= Image( EImageType::Float_3D, "res2/hzd/c5-vollight.dds" );
+		RC<Image>	tex	= Image( EImageType::Float_3D, "TODO" );
 
 		// render loop
 		{

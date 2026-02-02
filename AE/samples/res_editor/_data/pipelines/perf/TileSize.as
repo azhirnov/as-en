@@ -14,7 +14,8 @@
 					"float2		uv;" );
 		}{
 			RC<DescriptorSetLayout>	ds = DescriptorSetLayout( "mtr.ds" );
-			ds.UniformBuffer( EShaderStages::Vertex,	"un_PerObject", "UnifiedGeometryMaterialUB" );
+			ds.UniformBuffer( EShaderStages::Vertex,		"un_PerObject", "UnifiedGeometryMaterialUB" );
+			ds.StorageBuffer( EShaderStages::AllGraphics,	"un_OutBuf",	"OutBuffer",  EResourceState::ShaderStorage_RW );
 		}{
 			RC<PipelineLayout>		pl = PipelineLayout( "pl" );
 			pl.DSLayout( "pass",	 0, "pass.ds" );
@@ -67,6 +68,9 @@
 
 		gl.Position		= float4( vpos, 1.0 );
 		Out.uv			= float2(ipos);
+
+		if ( gl.VertexIndex == 0 )
+			gl.AtomicMax( INOUT un_OutBuf.vsSubgroupSize, gl.subgroup.Size );
 	}
 
 #endif
@@ -149,13 +153,42 @@
 	{
 		return Rainbow( DHash11( (float(gl.NV.SMID) / gl.NV.SMCount) * 11.1 )).rgb;
 	}
+
+	void  SelectSMID (inout float4 color)
+	{
+		if ( un_PerPass.mouse.z > 0.0 )
+		{
+			uint	id = uint(un_PerPass.mouse.x * float(gl.NV.SMCount) + 0.5);
+
+			color.rgb *= 0.5;
+
+			if ( id == gl.NV.SMID )
+				color = float4(1.0);
+		}
+	}
+
   #elif defined(AE_ARM_shader_core_builtins)
 	float3  SMID ()
 	{
 		return Rainbow( DHash11( (float(gl.ARM.CoreID) / gl.ARM.CoreMaxID) * 11.1 )).rgb;
 	}
+
+	void  SelectSMID (inout float4 color)
+	{
+		if ( un_PerPass.mouse.z > 0.0 )
+		{
+			uint	id = uint(un_PerPass.mouse.x * float(gl.NV.SMCount) + 0.5);
+
+			color.rgb *= 0.5;
+
+			if ( id == gl.NV.SMID )
+				color = float4(1.0);
+		}
+	}
+
   #else
 	float3  SMID () { return float3(0.0); }
+	void  SelectSMID (inout float4 color) {}
   #endif
 
 
@@ -172,7 +205,13 @@
 			case 4 :	out_Color.rgb = SMID();					break;
 		}
 
-		SelectSubgroup( INOUT out_Color );
+		if ( AllLess( gl.FragCoord.xy, float2(8.0) ))
+			gl.AtomicMax( INOUT un_OutBuf.fsSubgroupSize, gl.subgroup.Size );
+
+		if ( iDrawMode == 4 )
+			SelectSMID( INOUT out_Color );
+		else
+			SelectSubgroup( INOUT out_Color );
 
 		#if defined(iOutput_0)
 			// nothing

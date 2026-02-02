@@ -3,7 +3,16 @@
 #pragma once
 
 #ifdef AE_ENABLE_XXHASH
+# ifdef AE_COMPILER_MSVC
+#	pragma warning (push, 0)
+#	pragma warning (disable: 5039)
+# endif
+
 # include "xxhash.h"
+
+# ifdef AE_COMPILER_MSVC
+#	pragma warning (pop)
+# endif
 #endif
 
 namespace AE::Base

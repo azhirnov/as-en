@@ -8,6 +8,8 @@
 #endif
 
 #include "Math.glsl"
+#include "Quaternion.glsl"
+
 
 ND_ float2  CryTeck_EncodeNormal (const float3 norm);	// snorm
 ND_ float3  CryTeck_DecodeNormal (const float2 norm);
@@ -33,6 +35,10 @@ ND_ float3  Spherical_DecodeNormal (const float2 enc);
 
 ND_ float   Diamond_EncodeTangent (float3 normal, float3 tangent);
 ND_ float3  Diamond_DecodeTangent (float3 normal, float diamond_tangent);
+
+ND_ uint	EncodeQuat32 (const float3x3 tbn);
+ND_ uint	EncodeQuat32 (const Quat q);
+ND_ Quat	DecodeQuat32 (const uint u);
 //-----------------------------------------------------------------------------
 
 #include "../3party_shaders/GBuffer-1.glsl"

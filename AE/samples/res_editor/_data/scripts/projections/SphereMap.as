@@ -34,7 +34,6 @@
 			pass.ArgIn(  "un_SphereMap",	spheremap,	Sampler_LinearMipmapClamp );
 			pass.Slider( "iProj",			0,		1,		1 );
 			pass.Slider( "iTonemap",		0,		1 );
-			pass.AddFlag( EPassFlags::Enable_ShaderTrace );
 		}
 		Present( rt );
 	}
@@ -50,7 +49,7 @@
 	{
 		Ray		ray = Ray_Perspective( un_PerPass.camera.invViewProj, float3(0.0), 0.1, uv );
 
-		uv = RayInverse_PlaneTo360( ray.dir );
+		uv = RayInverse_PlaneToSphereMap360( ray.dir );
 
 		// fix UV discontinue
 		float2	dx = Abs( gl.dFdxCoarse( uv ));

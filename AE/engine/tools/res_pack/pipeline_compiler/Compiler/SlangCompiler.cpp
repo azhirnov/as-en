@@ -382,6 +382,7 @@ namespace
 				case EShaderOpt::Trace :
 				case EShaderOpt::FnProfiling :
 				case EShaderOpt::TimeHeatMap :
+				case EShaderOpt::Asserts :
 					RETURN_ERR( "not supported" );
 
 				case EShaderOpt::DebugInfo :

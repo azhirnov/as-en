@@ -25,9 +25,11 @@ namespace AE::Scripting
 
 	struct GraphicsBindings final : Noninstanceable
 	{
-		static void  BindEnums (const ScriptEnginePtr &se)			__Th___;
-		static void  BindTypes (const ScriptEnginePtr &se)			__Th___;
-		static void  BindRenderState (const ScriptEnginePtr &se)	__Th___;
+		static void  BindEnums (const ScriptEnginePtr &se)				__Th___;
+		static void  BindTypes (const ScriptEnginePtr &se)				__Th___;
+		static void  BindRenderState (const ScriptEnginePtr &se)		__Th___;
+
+		static void  Bind_EDeviceValidation (const ScriptEnginePtr &se)	__Th___;
 	};
 
 } // AE::Scripting
@@ -81,6 +83,7 @@ AE_DECL_SCRIPT_TYPE( AE::Graphics::ECoopMatrixComponentType,	"ECoopMatrixCompone
 AE_DECL_SCRIPT_TYPE( AE::Graphics::ECoopVecMatrixLayout,		"ECoopVecMatrixLayout"	);
 AE_DECL_SCRIPT_TYPE( AE::Graphics::ECoopMatrixCfg,				"ECoopMatrixCfg"		);
 AE_DECL_SCRIPT_TYPE( AE::Graphics::ECoopVecCfg,					"ECoopVecCfg"			);
+AE_DECL_SCRIPT_TYPE( AE::Graphics::EDeviceValidation,			"EDeviceValidation"		);
 
 AE_DECL_SCRIPT_TYPE( AE::Graphics::EPipelineDynamicState,			"EPipelineDynamicState"			);
 AE_DECL_SCRIPT_TYPE( AE::Graphics::ESamplerChromaLocation,			"ESamplerChromaLocation"		);

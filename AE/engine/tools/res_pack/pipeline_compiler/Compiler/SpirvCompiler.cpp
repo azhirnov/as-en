@@ -456,6 +456,10 @@ namespace AE::PipelineCompiler
 					COMP_CHECK_LOG( trace.InsertShaderClockHeatmap( interm, in.dbgDescSetIdx ), out.log );
 					break;
 
+				case EShaderOpt::Asserts :
+					COMP_CHECK_LOG( trace.InsertAsserts( interm, in.dbgDescSetIdx, in.subgroupBasic ), out.log );
+					break;
+
 				default :
 					AE_LOGI( "unsupported shader debug mode: 0x" + ToString<16>( dbg_mode ));
 					break;

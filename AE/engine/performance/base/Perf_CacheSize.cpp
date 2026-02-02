@@ -221,7 +221,8 @@ namespace
 	template <uint V>
 	static void  Check_MemSet (StringView str, RstPtr<void> data, const Bytes baseSize, const usize baseCount, ECoreType coreType)
 	{
-		IntervalProfiler	profiler	{ String{str} << ", single thread, " << ToString(coreType) << " core", IntervalProfiler::EFlags::Unknown };
+		IntervalProfiler	profiler	{ String{str} << ", single thread, " << ToString(coreType) << " core",
+										  IntervalProfiler::EFlags::IncludeDiffFromFastest };
 		Bytes				size		= baseSize;
 		for (; size <= c_BufSize; size <<= 1)
 		{
@@ -272,7 +273,8 @@ namespace
 	template <uint V>
 	static void  Check_MemCopy (StringView str, RstPtr<void> data0, RstPtr<void> data1, const Bytes baseSize, const usize baseCount, ECoreType coreType)
 	{
-		IntervalProfiler	profiler	{ String{str} << ", single thread, " << ToString( coreType ) << " core", IntervalProfiler::EFlags::Unknown };
+		IntervalProfiler	profiler	{ String{str} << ", single thread, " << ToString( coreType ) << " core",
+										  IntervalProfiler::EFlags::IncludeDiffFromFastest };
 		Bytes				size		= baseSize;
 		for (; size <= c_BufSize; size <<= 1)
 		{
@@ -308,11 +310,11 @@ namespace
 					Check_MemCopy<0>( "memcpy", st0.Data(), st1.Data(), base_size, base_count, core_type );
 					Check_MemCopy<1>( "SIMD cached copy", st0.Data(), st1.Data(), base_size, base_count, core_type );
 					Check_MemCopy<2>( "SIMD non-cached copy", st0.Data(), st1.Data(), base_size, base_count, core_type );
-					Check_MemCopy<3>( "SIMD cached load, non-cached store", st0.Data(), st1.Data(), base_size, base_count, core_type );
+					//Check_MemCopy<3>( "SIMD cached load, non-cached store", st0.Data(), st1.Data(), base_size, base_count, core_type );
 				#endif
 				#if 1
-					Check_MemCopy<4>( "SIMD fp32 sum cached", st0.Data(), st1.Data(), base_size, base_count, core_type );
-					Check_MemSet<3>( "SIMD xor cached", st0.Data(), base_size, base_count, core_type );
+					Check_MemCopy<4>( "SIMD fp32 sum cached", st0.Data(), st1.Data(), base_size, base_count, core_type );  // 4x read, 2x write
+					Check_MemSet<3>( "SIMD xor cached", st0.Data(), base_size, base_count, core_type );  // read only
 				#endif
 			});
 	}
@@ -332,7 +334,7 @@ namespace
 
 		IntervalProfiler	profiler{ String{str} << ", multithreading, " << ToString(thread_count) << "T, " <<
 									  ToString(physicalCoreCount) << "C, on " << ToString( coreType ) << " core",
-									  IntervalProfiler::EFlags::Unknown };
+									  IntervalProfiler::EFlags::IncludeDiffFromFastest };
 
 		DynUntypedStorage	st0, st1;
 		TEST( st0.Alloc( buf_size, c_BufAlign, null ));
@@ -451,8 +453,8 @@ extern void PerfTest_CacheSize ()
 				CheckCacheSizeMT<11>( "SIMD cached fill", core_bits, core.type, core_count );
 				CheckCacheSizeMT<12>( "SIMD non-cached fill", core_bits, core.type, core_count );
 
-				CheckCacheSizeMT<4>(  "SIMD fp32 sum cached", core_bits, core.type, core_count );
-				CheckCacheSizeMT<13>( "SIMD xor cached", core_bits, core.type, core_count );
+				CheckCacheSizeMT<4>(  "SIMD fp32 sum cached", core_bits, core.type, core_count );  // 4x read, 2x write
+				CheckCacheSizeMT<13>( "SIMD xor cached", core_bits, core.type, core_count );  // read only
 			}
 
 			if ( not core.HasLogicalCores() )
@@ -472,8 +474,8 @@ extern void PerfTest_CacheSize ()
 				CheckCacheSizeMT<11>( "SIMD cached fill", core_bits, core.type, core_count );
 				CheckCacheSizeMT<12>( "SIMD non-cached fill", core_bits, core.type, core_count );
 
-				CheckCacheSizeMT<4>(  "SIMD fp32 sum cached", core_bits, core.type, core_count );
-				CheckCacheSizeMT<13>( "SIMD xor cached", core_bits, core.type, core_count );
+				CheckCacheSizeMT<4>(  "SIMD fp32 sum cached", core_bits, core.type, core_count );  // 4x read, 2x write
+				CheckCacheSizeMT<13>( "SIMD xor cached", core_bits, core.type, core_count );  // read only
 			}
 		});
 #endif

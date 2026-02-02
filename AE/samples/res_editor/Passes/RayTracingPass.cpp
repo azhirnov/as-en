@@ -73,20 +73,26 @@ namespace AE::ResEditor
 			if ( it != _pipelines.end()							and
 				 AnyBits( pd.dbg.stage, EShaderStages::AllRayTracing ))
 			{
-				// TODO: dispatch indirect?
-				const uint2		dim		= uint2{Iteration::FindMaxConstDimension( _iterations )};
-				const uint3		coord	= pd.dbg.exactCoord.has_value() ?
-											*pd.dbg.exactCoord :
-											uint3{ pd.dbg.coord * float2(dim-1u), 0u };
-
 				ppln = it->second.Get<0>();
 				sbt  = it->second.Get<1>();
 
 				DirectCtx::Transfer		tctx{ pd.rtask, RVRef(pd.cmdbuf) };
-				CHECK( pd.dbg.debugger->AllocForRayTracing( OUT dbg, tctx, ppln, coord ));
-				pd.cmdbuf = tctx.ReleaseCommandBuffer();
 
-				//UIInteraction::Instance().SetShaderDebugCoord( coord );	// TODO
+				if ( pd.dbg.mode == EDebugMode::Asserts )
+				{
+					CHECK( pd.dbg.debugger->AllocForAsserts( OUT dbg, tctx, ppln ));
+				}
+				else
+				{
+					// TODO: dispatch indirect?
+					const uint2		dim		= uint2{Iteration::FindMaxConstDimension( _iterations )};
+					const uint3		coord	= pd.dbg.exactCoord.has_value() ?
+												*pd.dbg.exactCoord :
+												uint3{ pd.dbg.coord * float2(dim-1u), 0u };
+
+					CHECK( pd.dbg.debugger->AllocForRayTracing( OUT dbg, tctx, ppln, coord ));
+				}
+				pd.cmdbuf = tctx.ReleaseCommandBuffer();
 			}
 		}
 

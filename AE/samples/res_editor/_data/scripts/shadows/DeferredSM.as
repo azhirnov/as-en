@@ -18,7 +18,8 @@
 		// initialize
 		const EPixelFormat	hdr_fmt			= EPixelFormat::RGBA16F;
 		RC<DynamicDim>		dim				= SurfaceSize();
-		const uint2			sm_dim			= uint2(1<<12);	// 4K
+		RC<DynamicUInt>		sm_pot			= DynamicUInt();
+		RC<DynamicDim>		sm_dim			= sm_pot.Add( 9 ).Exp2().Dimension2();
 		RC<Image>			rt				= Image( hdr_fmt, dim );							rt.Name( "Main-RT" );
 		RC<Image>			rt_col			= Image( EPixelFormat::RGB10_A2_UNorm, dim );		rt_col.Name( "Albedo" );
 		RC<Image>			rt_norm			= Image( EPixelFormat::RGB10_A2_UNorm, dim );		rt_norm.Name( "Normals" );
@@ -125,6 +126,9 @@
 		}
 
 		Slider( obj_count,	"ObjCount",		100,	400,	100 );
+		Slider( sm_pot,		"ShadowDim",	0,		3,		1 );
+
+		Label( sm_dim.X(),	"ShadowMap dim" );
 
 		// render loop
 		{
@@ -138,12 +142,11 @@
 			pass.ArgInOut(	"un_Params",	cbuf );
 			pass.Slider(	"iLightDir",	float3(-1.0),	float3(1.0),	float3(0.3, 0.0, -0.35) );
 			pass.Slider(	"iShadowDist",	1.0,			100.0,			30.0 );
-			pass.Slider(	"iShadowZ",		0.0,			100.0,			10.0 );		// or set 'depthClamp=true' in pipeline
+			pass.Slider(	"iShadowZ",		0.0,			100.0,			25.0 );		// or set 'depthClamp=true' in pipeline
 			pass.Slider(	"iSnapToTexel",	0,				1 );
 			pass.Constant(	"iShadowDim",	sm_dim );
 			pass.LocalSize( 1 );
 			pass.DispatchThreads( 1 );
-			pass.AddFlag( EPassFlags::Enable_ShaderTrace );
 		}{
 			RC<SceneGraphicsPass>	pass = scene.AddGraphicsPass( "opaque" );
 			pass.AddPipeline( "samples/StreetLights-Opaque.as" );		// [src](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/pipelines/samples/StreetLights-Opaque.as)
@@ -178,7 +181,6 @@
 			pass.ArgIn( "un_Params",		cbuf );
 			pass.Slider( "iView",			0,		5,				0 );
 			pass.Slider( "iScale",			1.0,	10.0,			1.0 );
-			pass.AddFlag( EPassFlags::Enable_ShaderTrace );
 		}
 
 		Present( rt );

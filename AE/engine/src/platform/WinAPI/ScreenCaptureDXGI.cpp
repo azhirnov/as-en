@@ -7,6 +7,7 @@
 #	pragma warning (push)
 #	pragma warning (disable: 4668)
 #	pragma warning (disable: 4005)
+#	pragma warning (disable: 5039)
 # endif
 
 # include <Windows.h>

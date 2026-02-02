@@ -16,26 +16,38 @@ namespace AE::PipelineCompiler
 	GetShaderDebuggerFeatures
 =================================================
 */
-	ShaderDebuggerFeatures  ObjectStorage::GetShaderDebuggerFeatures (ArrayView<ScriptFeatureSetPtr> features)
+	ShaderDebuggerFeatures  ObjectStorage::GetShaderDebuggerFeatures (ArrayView<ScriptFeatureSetPtr> features, EShaderStages stages)
 	{
-		FeatureSetCounter		device;
-		FeatureSetCounter		subgroup;
-		FeatureSetCounter		vertex_atomic;
-		FeatureSetCounter		frag_atomic;
-		ShaderDebuggerFeatures	result;
+		FeatureSetCounter	device;
+		FeatureSetCounter	subgroup;
+		FeatureSetCounter	vertex_atomic;
+		FeatureSetCounter	frag_atomic;
+		FeatureSetCounter	subgroup_basic;
 
 		for (auto& ptr : features)
 		{
-			device			.Add( ptr->fs.shaderDeviceClock );
-			subgroup		.Add( ptr->fs.shaderSubgroupClock );
-			vertex_atomic	.Add( ptr->fs.vertexPipelineStoresAndAtomics );
-			frag_atomic		.Add( ptr->fs.fragmentStoresAndAtomics );
+			auto&	fs = ptr->fs;
+
+			device			.Add( fs.shaderDeviceClock );
+			subgroup		.Add( fs.shaderSubgroupClock );
+			vertex_atomic	.Add( fs.vertexPipelineStoresAndAtomics );
+			frag_atomic		.Add( fs.fragmentStoresAndAtomics );
+
+			if ( fs.subgroup == FeatureSet::EFeature::RequireTrue )
+			{
+				if ( AnyBits( fs.subgroupStages, stages ))
+					subgroup_basic.Add( fs.subgroup );
+			}
+			else
+				subgroup_basic.Add( fs.subgroup );
 		}
 
+		ShaderDebuggerFeatures	result;
 		result.shaderDeviceClock				= device.IsTrue();
 		result.shaderSubgroupClock				= subgroup.IsTrue();
 		result.fragmentStoresAndAtomics			= frag_atomic.IsTrue();
 		result.vertexPipelineStoresAndAtomics	= vertex_atomic.IsTrue();
+		result.subgroupBasic					= subgroup_basic.IsTrue();
 
 		return result;
 	}
@@ -81,7 +93,7 @@ namespace AE::PipelineCompiler
 			TestFeature_Min( features, &FeatureSet::maxDescriptorSets, ushort(debugDSIndex), "maxDescriptorSets", "Debug descriptor set index" );
 		}
 
-		const auto	dbg_feats = GetShaderDebuggerFeatures( features );
+		const auto	dbg_feats = GetShaderDebuggerFeatures( features, EShaderStages(0) | info.type );
 		if ( AnyBits( info.options, EShaderOpt::_ShaderTrace_Mask ))
 		{
 			#ifndef AE_ENABLE_GLSL_TRACE
@@ -116,6 +128,7 @@ namespace AE::PipelineCompiler
 		in.fileLoc				= shaderPath;
 		in.shaderDeviceClock	= dbg_feats.shaderDeviceClock;
 		in.shaderSubgroupClock	= dbg_feats.shaderSubgroupClock;
+		in.subgroupBasic		= dbg_feats.subgroupBasic;
 
 		if_unlikely( not spirvCompiler->Compile( in, OUT out ))
 		{
@@ -1038,6 +1051,7 @@ namespace AE::PipelineCompiler
 				case EShaderOpt::Trace :
 				case EShaderOpt::FnProfiling :
 				case EShaderOpt::TimeHeatMap :
+				case EShaderOpt::Asserts :
 				case EShaderOpt::Optimize :
 				case EShaderOpt::OptimizeSize :
 				case EShaderOpt::StrongOptimization :

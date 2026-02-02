@@ -79,7 +79,7 @@ namespace AE::Graphics
 		msg.flags		= desc.flags;
 		msg.frameId		= frameId;
 		msg.submitIdx	= desc.submitIdx;
-		
+
 		GFX_DBG_ONLY(
 			msg.dbgLabel = DebugLabel{ _dbgName, _dbgColor };
 		)

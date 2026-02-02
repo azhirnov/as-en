@@ -36,6 +36,7 @@
 
 #define uniform			// used scalar register and uniform control flow
 #define nonuniform		// used vector register
+#define quad_uniform	// required for derivatives (dFdx, etc), otherwise result is undefined
 
 // used for vec/mat type building (templates)
 // AEStyleGLSLPreprocessor will replace it by GLSL vec/mat type without dimension suffix
@@ -752,48 +753,53 @@ public:
 			ND_ _type_  FetchOffset (_texType_ tex, typename _texType_::Size p, int lod, typename _texType_::Offset offset) const; \
 
 		// 1D, 2D, 3D 1DArr, 2DArr, Cube, CubeArr
+		// Sample - implicitly calculate derivatives, 'p' must be quad uniform
 		#define _GEN_TEXTURE3( _type_, _texType_ ) \
-			ND_ _type_  Sample (_texType_ tex, typename _texType_::UNorm p) const; \
-			ND_ _type_  Sample (_texType_ tex, typename _texType_::UNorm p, float bias) const; \
+			ND_ _type_  Sample (_texType_ tex, quad_uniform typename _texType_::UNorm p) const; \
+			ND_ _type_  Sample (_texType_ tex, quad_uniform typename _texType_::UNorm p, float bias) const; \
 			\
 			ND_ _type_  SampleLod (_texType_ tex, typename _texType_::UNorm p, float lod) const; \
 			\
 			ND_ _type_  SampleGrad (_texType_ tex, typename _texType_::UNorm p, typename _texType_::Grad dPdx, typename _texType_::Grad dPdy) const; \
 
 		// 1D, 2D, 3D 1DArr, 2DArr
+		// SampleOffset - implicitly calculate derivatives, 'p' must be quad uniform
 		#define _GEN_TEXTURE4( _type_, _texType_ ) \
-			ND_ _type_  SampleOffset (_texType_ tex, typename _texType_::UNorm p, typename _texType_::Offset offset) const; \
-			ND_ _type_  SampleOffset (_texType_ tex, typename _texType_::UNorm p, typename _texType_::Offset offset, float bias) const; \
+			ND_ _type_  SampleOffset (_texType_ tex, quad_uniform typename _texType_::UNorm p, typename _texType_::Offset offset) const; \
+			ND_ _type_  SampleOffset (_texType_ tex, quad_uniform typename _texType_::UNorm p, typename _texType_::Offset offset, float bias) const; \
 			\
 			ND_ _type_  SampleLodOffset (_texType_ tex, typename _texType_::UNorm p, float lod, typename _texType_::Offset offset) const; \
 			\
 			ND_ _type_  SampleGradOffset (_texType_ tex, typename _texType_::UNorm p, typename _texType_::Grad dPdx, typename _texType_::Grad dPdy, typename _texType_::Offset offset) const; \
 
 		// 2D, 2DArr, Cube, CubeArr
+		// Gather - implicitly calculate derivatives, 'p' must be quad uniform
 		#define _GEN_TEXTURE5( _type_, _texType_ ) \
-			ND_ _type_  Gather (_texType_ tex, typename _texType_::UNorm p) const; \
-			ND_ _type_  Gather (_texType_ tex, typename _texType_::UNorm p, int comp) const; \
+			ND_ _type_  Gather (_texType_ tex, quad_uniform typename _texType_::UNorm p) const; \
+			ND_ _type_  Gather (_texType_ tex, quad_uniform typename _texType_::UNorm p, int comp) const; \
 
 		// 2D, 2DArr
+		// GatherOffset, GatherOffsets - implicitly calculate derivatives, 'p' must be quad uniform
 		#define _GEN_TEXTURE6( _type_, _texType_ ) \
-			ND_ _type_  GatherOffset (_texType_ tex, typename _texType_::UNorm p, int2 offset) const; \
-			ND_ _type_  GatherOffset (_texType_ tex, typename _texType_::UNorm p, int2 offset, int comp) const; \
+			ND_ _type_  GatherOffset (_texType_ tex, quad_uniform typename _texType_::UNorm p, int2 offset) const; \
+			ND_ _type_  GatherOffset (_texType_ tex, quad_uniform typename _texType_::UNorm p, int2 offset, int comp) const; \
 			\
-			ND_ _type_  GatherOffsets (_texType_ tex, typename _texType_::UNorm p, const int2 (&offsets)[4]) const; \
-			ND_ _type_  GatherOffsets (_texType_ tex, typename _texType_::UNorm p, const int2 (&offsets)[4], int comp) const; \
+			ND_ _type_  GatherOffsets (_texType_ tex, quad_uniform typename _texType_::UNorm p, const int2 (&offsets)[4]) const; \
+			ND_ _type_  GatherOffsets (_texType_ tex, quad_uniform typename _texType_::UNorm p, const int2 (&offsets)[4], int comp) const; \
 
 		// 1D, 2D, 3D
+		// QueryLod, SampleProj, SampleProjOffset - implicitly calculate derivatives, 'p' must be quad uniform
 		#define _GEN_TEXTURE7( _type_, _texType_ ) \
-			ND_ float2  QueryLod (_texType_ tex, typename _texType_::UNorm p) const; \
+			ND_ float2  QueryLod (_texType_ tex, quad_uniform typename _texType_::UNorm p) const; \
 			\
-			ND_ _type_  SampleProj (_texType_ tex, float4 p) const; \
-			ND_ _type_  SampleProj (_texType_ tex, float4 p, float bias) const; \
+			ND_ _type_  SampleProj (_texType_ tex, quad_uniform float4 p) const; \
+			ND_ _type_  SampleProj (_texType_ tex, quad_uniform float4 p, float bias) const; \
 			ND_ _type_  SampleProjGrad (_texType_ tex, float4 p, typename _texType_::Grad dPdx, typename _texType_::Grad dPdy) const; \
 			ND_ _type_  SampleProjGradOffset (_texType_ tex, float4 p, typename _texType_::Grad dPdx, typename _texType_::Grad dPdy, typename _texType_::Offset offset) const; \
 			ND_ _type_  SampleProjLod (_texType_ tex, float4 p, float lod) const; \
 			ND_ _type_  SampleProjLodOffset (_texType_ tex, float4 p, float lod, typename _texType_::Offset offset) const; \
-			ND_ _type_  SampleProjOffset (_texType_ tex, float4 p, typename _texType_::Offset offset) const; \
-			ND_ _type_  SampleProjOffset (_texType_ tex, float4 p, typename _texType_::Offset offset, float bias) const; \
+			ND_ _type_  SampleProjOffset (_texType_ tex, quad_uniform float4 p, typename _texType_::Offset offset) const; \
+			ND_ _type_  SampleProjOffset (_texType_ tex, quad_uniform float4 p, typename _texType_::Offset offset, float bias) const; \
 
 		#define GEN_TEXTURE( _type4_, _type_ ) \
 			_GEN_TEXTURE1( _type4_,	CombinedTex1D<_type_>        )\
@@ -1053,7 +1059,7 @@ public:
 		// quad ids:	bits:
 		//   0  1		00  01
 		//   2  3		10  11
-		template <typename T>	ND_ uniform	T		Broadcast (T value, uint id) const;	// 'AE_subgroupBroadcastDynamicId' allows dynamically uniform 'id',
+		template <typename T>	ND_ quad_uniform T	Broadcast (T value, uint id) const;	// 'AE_subgroupBroadcastDynamicId' allows dynamically uniform 'id',
 																						// otherwise it must be constant.
 																						// result is quad-uniform
 
@@ -1063,8 +1069,8 @@ public:
 	  #endif
 
 	  #ifdef AE_shader_quad_control
-		ND_ uniform bool  All (bool) const;		// result is quad-uniform
-		ND_ uniform bool  Any (bool) const;		// result is quad-uniform
+		ND_ quad_uniform bool  All (bool) const;		// result is quad-uniform
+		ND_ quad_uniform bool  Any (bool) const;		// result is quad-uniform
 	  #endif
 
 	} quadGroup {};
@@ -1251,15 +1257,15 @@ public:
 
   #ifdef SH_FRAG
 	// derivatives
-	template <typename T>	ND_ T  dFdx (const T &p);			// QuadBroadcast( p, (Index&2)|1 ) - QuadBroadcast( p, Index&2 )
-	template <typename T>	ND_ T  dFdy (const T &p);			// QuadBroadcast( p, (Index&1)|2 ) - QuadBroadcast( p, Index&1 )
-	template <typename T>	ND_ T  dFdxFine (const T &);
-	template <typename T>	ND_ T  dFdyFine (const T &);
-	template <typename T>	ND_ T  dFdxCoarse (const T &);		// 'coarse' compute the same derivative for all quad
-	template <typename T>	ND_ T  dFdyCoarse (const T &);
-	template <typename T>	ND_ T  fwidth (const T &p);			// Abs(dFdx(p)) + Abs(dFdy(p))
-	template <typename T>	ND_ T  fwidthCoarse (const T &);
-	template <typename T>	ND_ T  fwidthFine (const T &);
+	template <typename T>	ND_ T  dFdx (quad_uniform const T &p);			// QuadBroadcast( p, (Index&2)|1 ) - QuadBroadcast( p, Index&2 )
+	template <typename T>	ND_ T  dFdy (quad_uniform const T &p);			// QuadBroadcast( p, (Index&1)|2 ) - QuadBroadcast( p, Index&1 )
+	template <typename T>	ND_ T  dFdxFine (quad_uniform const T &);
+	template <typename T>	ND_ T  dFdyFine (quad_uniform const T &);
+	template <typename T>	ND_ T  dFdxCoarse (quad_uniform const T &);		// 'coarse' compute the same derivative for all quad
+	template <typename T>	ND_ T  dFdyCoarse (quad_uniform const T &);
+	template <typename T>	ND_ T  fwidth (quad_uniform const T &p);		// Abs(dFdx(p)) + Abs(dFdy(p))
+	template <typename T>	ND_ T  fwidthCoarse (quad_uniform const T &);
+	template <typename T>	ND_ T  fwidthFine (quad_uniform const T &);
 
 	ND_ float   InterpolateAtCentroid (float);
 	ND_ float2  InterpolateAtCentroid (float2);

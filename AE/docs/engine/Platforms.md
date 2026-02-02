@@ -72,8 +72,8 @@ Supported platforms
 	- Vulkan (without timeline semaphore, compile with `-DAE_VK_TIMELINE_SEMAPHORE=OFF`)
 - Vulkan drivers:
 	- [x] RADV
-	- [ ] AMDVLK
-	- [ ] AMDPRO
+	- [x] AMDVLK
+	- [x] AMDPRO
 - Window system:
 	- [x] X11
 	- [x] Wayland

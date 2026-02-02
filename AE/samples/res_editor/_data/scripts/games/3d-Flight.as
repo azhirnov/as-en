@@ -176,7 +176,7 @@
 			case 0 : {
 				float	fov		= ToRad(Min( iFov, 140.0 ));
 				float	ratio	= un_PerPass.resolution.x / un_PerPass.resolution.y;
-				ray = Ray_Perspective( un_CBuf.actualPos, fov, ratio, un_PerPass.camera.clipPlanes.x, ToSNorm( fragCoord / iResolution.xy ));
+				ray = Ray_Perspective( un_CBuf.actualPos, fov, ratio, un_PerPass.camera.clipPlanes.x, fragCoord / iResolution.xy );
 				break;
 			}
 
@@ -189,7 +189,7 @@
 			case 2 : {
 				float2	fov = float2(ToRad(iFov));
 				fov.y *= un_PerPass.resolution.y / un_PerPass.resolution.x;
-				ray = Ray_PlaneToSphere( fov, un_CBuf.actualPos, un_PerPass.camera.clipPlanes.x, ToSNorm( fragCoord / iResolution.xy ));
+				ray = Ray_PlaneToSphere( fov, un_CBuf.actualPos, un_PerPass.camera.clipPlanes.x, fragCoord / iResolution.xy );
 				break;
 			}
 		}

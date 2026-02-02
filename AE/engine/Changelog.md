@@ -1,8 +1,10 @@
-## 26.01.300
+
+## 26.01.302
 
 - Graphics|Vulkan: add VK_NV_shader_subgroup_partitioned, VK_KHR_shader_subgroup_rotate, VK_EXT_conservative_rasterization
 - Base: rename BitScanReverse -> HighBitIndex, BitScanForward -> LowBitIndex
 - Base: add DataSource::OffsetAlign() for Direct file access
+- ShaderTrace: enable asserts in shader
 
 
 ## 25.06.295

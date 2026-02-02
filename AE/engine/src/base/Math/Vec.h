@@ -484,6 +484,17 @@ namespace _hidden_
 
 /*
 =================================================
+	SubtractionIsSafe (signed integer)
+=================================================
+*/
+	template <typename T1, typename T2> requires(IsSignedInteger<T1> and IsSignedInteger<T2>)
+	NdCx__ bool  SubtractionIsSafe (const T1 a, const T2 b) __NE___
+	{
+		return AdditionIsSafe<T1, T2>( a, -b );
+	}
+
+/*
+=================================================
 	AdditionIsSafe (unsigned integer)
 =================================================
 */
@@ -498,6 +509,94 @@ namespace _hidden_
 		const T	y	= T(b);
 
 		return (x + y) >= (x | y);
+	}
+
+/*
+=================================================
+	SubtractionIsSafe (unsigned integer)
+=================================================
+*/
+	template <typename T1, typename T2> requires(IsUnsignedInteger<T1> and IsUnsignedInteger<T2>)
+	NdCx__ bool  SubtractionIsSafe (const T1 a, const T2 b) __NE___
+	{
+		StaticAssert( IsScalar<T1> and IsScalar<T2> );
+
+		using T = decltype(a + b);
+
+		const T	x	= T(a);
+		const T	y	= T(b);
+
+		return (x - y) <= (x | y);
+	}
+
+/*
+=================================================
+	AddSat
+=================================================
+*/
+	template <typename T1, typename T2>
+	NdCx__ auto  AddSat (const T1 a, const T2 b) __NE___
+	{
+		StaticAssert( IsInteger<T1> and IsInteger<T2> );
+		StaticAssert( IsSigned<T1> == IsSigned<T2> );
+
+		using T = decltype(a + b);
+
+		const T		at = T(a);
+		const T		bt = T(b);
+
+		if constexpr( IsSigned<T1> )
+		{
+			constexpr T		min = MinValue<T>();
+			constexpr T		max = MaxValue<T>();
+
+			if ( bt > 0 and at < min - bt )
+				return min;
+
+			if ( bt < 0 and at > max - bt )
+				return max;
+
+			return at - bt;
+		}
+		else
+		{
+			return (at + bt) >= (at | bt) ?  at + bt :  MaxValue<T>();
+		}
+	}
+
+/*
+=================================================
+	SubSat
+=================================================
+*/
+	template <typename T1, typename T2>
+	NdCx__ auto  SubSat (const T1 a, const T2 b) __NE___
+	{
+		StaticAssert( IsInteger<T1> and IsInteger<T2> );
+		StaticAssert( IsSigned<T1> == IsSigned<T2> );
+
+		using T = decltype(a + b);
+
+		const T		at = T(a);
+		const T		bt = T(b);
+
+		if constexpr( IsSigned<T1> )
+		{
+			constexpr T		min = MinValue<T>();
+			constexpr T		max = MaxValue<T>();
+
+			if ( bt > 0 and at < min + bt )
+				return min;
+
+			if ( bt < 0 and at > max + bt )
+				return max;
+
+			return at - bt;
+		}
+		else
+		{
+			return (at < bt) ? T(0) : at - bt;
+		}
 	}
 
 /*

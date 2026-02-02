@@ -92,7 +92,7 @@
 
 		bool	isec;
 		{
-			Ray	ray = Ray_Perspective( un_PerPass.camera.pos, fov, ratio, 1.0, ToSNorm(uv) );
+			Ray	ray = Ray_Perspective( un_PerPass.camera.pos, fov, ratio, 1.0, uv );
 
 			float	t;
 			isec = Plane_Ray_Intersect( ray, float3(0.0, 1.0, 0.0), float3(0.0, 1.0, 0.0), OUT t );

@@ -55,7 +55,7 @@ namespace AE::PipelineCompiler
 
 // Warning:
 // Before testing on new GPU set 'UpdateReferences' to 'true', run tests,
-// using git compare new references with origin, only float values may differ slightly.
+// use git diff to compare new references with origin, only float values may differ slightly.
 // Then set 'UpdateReferences' to 'false' and run tests again.
 // All tests must pass.
 static const bool	UpdateReferences = true;
@@ -360,6 +360,35 @@ bool  TestDevice::Compile  (OUT VkShaderModule &		shaderModule,
 
 /*
 =================================================
+	GlslStageToVkStage
+=================================================
+*/
+static VkShaderStageFlagBits  GlslStageToVkStage (EShLanguage shaderType)
+{
+	switch_enum( shaderType )
+	{
+		case EShLanguage::EShLangVertex :			return VK_SHADER_STAGE_VERTEX_BIT;
+		case EShLanguage::EShLangTessControl :		return VK_SHADER_STAGE_TESSELLATION_CONTROL_BIT;
+		case EShLanguage::EShLangTessEvaluation :	return VK_SHADER_STAGE_TESSELLATION_EVALUATION_BIT;
+		case EShLanguage::EShLangGeometry :			return VK_SHADER_STAGE_GEOMETRY_BIT;
+		case EShLanguage::EShLangFragment :			return VK_SHADER_STAGE_FRAGMENT_BIT;
+		case EShLanguage::EShLangCompute :			return VK_SHADER_STAGE_COMPUTE_BIT;
+		case EShLanguage::EShLangRayGen :			return VK_SHADER_STAGE_RAYGEN_BIT_KHR;
+		case EShLanguage::EShLangIntersect :		return VK_SHADER_STAGE_INTERSECTION_BIT_KHR;
+		case EShLanguage::EShLangAnyHit :			return VK_SHADER_STAGE_ANY_HIT_BIT_KHR;
+		case EShLanguage::EShLangClosestHit :		return VK_SHADER_STAGE_CLOSEST_HIT_BIT_KHR;
+		case EShLanguage::EShLangMiss :				return VK_SHADER_STAGE_MISS_BIT_KHR;
+		case EShLanguage::EShLangCallable :			return VK_SHADER_STAGE_CALLABLE_BIT_KHR;
+		case EShLanguage::EShLangTask :				return VK_SHADER_STAGE_TASK_BIT_EXT;
+		case EShLanguage::EShLangMesh :				return VK_SHADER_STAGE_MESH_BIT_EXT;
+		case EShLanguage::EShLangCount :			break;
+	}
+	switch_end
+	return Zero;
+}
+
+/*
+=================================================
 	_Compile
 =================================================
 */
@@ -421,6 +450,15 @@ bool  TestDevice::_Compile (OUT Array<uint>&			spirvData,
 				CHECK_ERR( GetShaderClockFeats().shaderDeviceClock == VK_TRUE );
 				CHECK_ERR( dbgInfo->InsertShaderClockHeatmap( INOUT *intermediate, dbgBufferSetIndex ));
 				break;
+
+			case ETraceMode::Asserts :
+			{
+				bool	sg_basic		= AllBits( GetSubgroupProps().supportedOperations, VK_SUBGROUP_FEATURE_BASIC_BIT );
+				bool	stage_supported	= AllBits( GetSubgroupProps().supportedOperations, GlslStageToVkStage(shaderType) );
+
+				CHECK_ERR( dbgInfo->InsertAsserts( INOUT *intermediate, dbgBufferSetIndex, sg_basic and stage_supported ));
+				break;
+			}
 
 			case ETraceMode::None :
 			default :
@@ -525,6 +563,19 @@ bool  TestDevice::_GetDebugOutput (VkShaderModule shaderModule, const void* ptr,
 	CHECK_ERR( iter != _debuggableShaders.end() );
 
 	return iter->second->ParseShaderTrace( ptr, Bytes{maxSize}, ShaderTrace::ELogFormat::Text, OUT result );
+}
+
+/*
+=================================================
+	_GetAssertLocations
+=================================================
+*/
+bool  TestDevice::_GetAssertLocations (VkShaderModule shaderModule, const void* ptr, VkDeviceSize maxSize, OUT Array<String> &result) const
+{
+	auto	iter = _debuggableShaders.find( shaderModule );
+	CHECK_ERR( iter != _debuggableShaders.end() );
+
+	return iter->second->ParseAsserts( ptr, Bytes{maxSize}, ShaderTrace::ELogFormat::Text, OUT result );
 }
 
 /*
@@ -1664,7 +1715,7 @@ bool  TestDevice::CreateRayTracingScene (VkPipeline rtPipeline, uint numGroups, 
 	TestDebugTraceOutput
 =================================================
 */
-bool  TestDevice::TestDebugTraceOutput (Array<VkShaderModule> modules, String referenceFile)
+bool  TestDevice::TestDebugTraceOutput (Array<VkShaderModule> modules, String referenceFile, ETraceMode mode)
 {
 	CHECK_ERR( not referenceFile.empty() );
 	CHECK_ERR( not modules.empty() );
@@ -1675,15 +1726,41 @@ bool  TestDevice::TestDebugTraceOutput (Array<VkShaderModule> modules, String re
 	for (auto& module : modules)
 	{
 		Array<String>	temp;
-		CHECK_ERR( _GetDebugOutput( module, readBackPtr, debugOutputSize, OUT temp ));
+
+		switch_enum( mode )
+		{
+			case ETraceMode::None :
+			case ETraceMode::DebugTrace :
+			case ETraceMode::Performance :
+				CHECK_ERR( _GetDebugOutput( module, readBackPtr, debugOutputSize, OUT temp ));
+				break;
+
+			case ETraceMode::Asserts :
+				CHECK_ERR( _GetAssertLocations( module, readBackPtr, debugOutputSize, OUT temp ));
+				break;
+
+			case ETraceMode::TimeMap :
+				break;
+		}
+		switch_end
+
 		CHECK( not temp.empty() );
 		debug_output.insert( debug_output.end(), temp.begin(), temp.end() );
 	}
 
-	std::sort( debug_output.begin(), debug_output.end() );
+	if ( mode == ETraceMode::Asserts )
+	{
+		for (auto& str : debug_output) {
+			merged << str << '\n';
+		}
+	}
+	else
+	{
+		std::sort( debug_output.begin(), debug_output.end() );
 
-	for (auto& str : debug_output) {
-		(merged += str) += "//---------------------------\n\n";
+		for (auto& str : debug_output) {
+			merged << str << "//---------------------------\n\n";
+		}
 	}
 
 	if ( UpdateReferences )

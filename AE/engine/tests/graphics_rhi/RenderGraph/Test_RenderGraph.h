@@ -131,6 +131,7 @@ private:
 	bool  Test_Debugger3 ();		// mesh
 	bool  Test_Debugger4 ();		// ray tracing
 	bool  Test_Debugger5 ();		// ray query
+	bool  Test_Debugger6 ();		// asserts in compute
 
 	// TODO:
 	//	MSAA resolve

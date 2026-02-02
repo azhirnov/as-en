@@ -381,7 +381,8 @@ if ( MSVC )
 		# errors
 		/we4002 /we4099 /we4129 /we4130 /we4172 /we4201 /we4238 /we4239 /we4240 /we4251 /we4263 /we4264 /we4266 /we4273 /we4293
 		/we4305 /we4390 /we4455 /we4456 /we4457 /we4458 /we4459 /we4473 /we4474 /we4522 /we4552 /we4553 /we4554 /we4700 /we4706 /we4715 /we4716 /we4717
-		/we4927 /we5062 /we5054 /we4565 /we5054 /we4291 /we4297 /we4584 /we4566 /we4033 /we5063 /we5030 /we5201 /we5244 /we4844
+		/we4927 /we5062 /we5054 /we4565 /we5054 /we4291 /we4297 /we4584 /we4566 /we4033 /we5063 /we5030 /we5201 /we5244 /we4844 /we4067
+		/we5039
 		# disable warnings
 		/wd4061 /wd4062 /wd4063 /wd4310 /wd4324 /wd4365 /wd4503 /wd4514 /wd4530 /wd4623 /wd4625 /wd4626 /wd4710 /wd4714 /wd5026 /wd5027
 	)
@@ -418,6 +419,7 @@ if ( MSVC )
 			-Werror=ignored-qualifiers -Werror=microsoft-template -Werror=nonportable-include-path -Werror=inconsistent-missing-override
 			-Werror=microsoft-cast -Werror=invalid-token-paste -Werror=sign-compare -Werror=bitwise-instead-of-logical -Werror=bitwise-conditional-parentheses
 			-Werror=backslash-newline-escape -Werror=array-bounds -Werror=c++14-extensions -Werror=c++17-extensions -Werror=c++20-extensions -Werror=typename-missing
+			-Werror=exceptions -Werror=duplicate-decl-specifier
 			# warnings
 			-Wunused-parameter -Wnarrowing -Wlogical-op-parentheses  -Wunused  -Wloop-analysis -Wincrement-bool
 			-Wdelete-non-virtual-dtor -Wrange-loop-analysis -Wundefined-bool-conversion

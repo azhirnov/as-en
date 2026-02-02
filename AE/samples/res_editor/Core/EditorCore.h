@@ -55,6 +55,7 @@ namespace AE::ResEditor
 		bool			setStableGPUClock	= false;
 		bool			enableRenderDoc		= false;
 		String			deviceName;
+		EDeviceValidation			gapiValidation = EDeviceValidation::Enabled;
 		Array<Graphics::EDriver>	driverList;
 
 		// remote graphics device

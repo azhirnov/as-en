@@ -559,7 +559,7 @@ namespace
 		StaticAssert( uint(ELogFormat::Unknown)		== uint(ShaderDebugger::ELogFormat::Unknown) );
 		StaticAssert( uint(ELogFormat::Text)		== uint(ShaderDebugger::ELogFormat::Text) );
 		StaticAssert( uint(ELogFormat::VS_Console)	== uint(ShaderDebugger::ELogFormat::VS_Console)	);
-		StaticAssert( uint(ELogFormat::VS)			== uint(ShaderDebugger::ELogFormat::VS)	);
+		StaticAssert( uint(ELogFormat::FileURL)		== uint(ShaderDebugger::ELogFormat::FileURL) );
 		StaticAssert( uint(ELogFormat::VSCode)		== uint(ShaderDebugger::ELogFormat::VSCode)	);
 
 		return ELogFormat(fmt);

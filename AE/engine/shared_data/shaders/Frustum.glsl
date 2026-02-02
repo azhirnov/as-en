@@ -46,10 +46,10 @@ struct FrustumRays
 
 ND_ Frustum		Frustum_Create (const float4 frustum[6]);
 ND_ Frustum		Frustum_FromMatrix (const float4x4 mat);
-ND_ Frustum		Frustum_FromMatrix (const float4x4 mat, const float2 clipPlanes);
+ND_ Frustum		Frustum_FromMatrix (const float4x4 mat, const float2 zRange);
 ND_ Frustum		Frustum_FromCornerPoints (const float3 points[8]);
 
-ND_ Frustum		Frustum_FromRays (const FrustumRays rays, const float2 clipPlanes, const float3 origin);
+ND_ Frustum		Frustum_FromRays (const FrustumRays rays, const float2 zRange, const float3 origin);
 ND_ FrustumRays	Frustum_ToRays (const Frustum fr);
 
 ND_ Frustum		Frustum_WithXYOffset (const Frustum fr, const float2 offset);
@@ -136,14 +136,14 @@ Frustum  Frustum_FromMatrix2 (const float4x4 mat)
 	return res;
 }
 
-Frustum  Frustum_FromMatrix (const float4x4 mat, const float2 clipPlanes)
+Frustum  Frustum_FromMatrix (const float4x4 mat, const float2 zRange)
 {
 	Frustum	fr = Frustum_FromMatrix2( mat );
 
-	bool	revZ = clipPlanes.x > clipPlanes.y;
+	bool	revZ = zRange.x > zRange.y;
 
-	fr.planes[0].w = revZ ? -clipPlanes.y : -clipPlanes.x;
-	fr.planes[1].w = revZ ?  clipPlanes.x :  clipPlanes.y;
+	fr.planes[0].w = revZ ? -zRange.y : -zRange.x;
+	fr.planes[1].w = revZ ?  zRange.x :  zRange.y;
 	fr.planes[1].xyz = -fr.planes[0].xyz;
 
 	return fr;
@@ -433,7 +433,7 @@ Sphere  Frustum_ToSphere (const Frustum fr)
 	Frustum_FromRays
 =================================================
 */
-Frustum  Frustum_FromRays (const FrustumRays rays, const float2 clipPlanes, const float3 origin)
+Frustum  Frustum_FromRays (const FrustumRays rays, const float2 zRange, const float3 origin)
 {
 	Frustum	res;
 	res.planes[2] = Plane_From2Normals( rays.leftTop,		rays.leftBottom,	origin );
@@ -442,8 +442,8 @@ Frustum  Frustum_FromRays (const FrustumRays rays, const float2 clipPlanes, cons
 	res.planes[5] = Plane_From2Normals( rays.leftBottom,	rays.rightBottom,	origin );
 
 	const float3	avr_dir = Normalize( rays.leftBottom + rays.leftTop + rays.rightBottom + rays.rightTop );
-	res.planes[0] = float4(  avr_dir, -clipPlanes.x );
-	res.planes[1] = float4( -avr_dir,  clipPlanes.y );
+	res.planes[0] = float4(  avr_dir, -zRange.x );
+	res.planes[1] = float4( -avr_dir,  zRange.y );
 	return res;
 }
 

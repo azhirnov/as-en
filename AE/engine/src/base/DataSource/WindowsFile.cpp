@@ -98,6 +98,7 @@ namespace AE::Base
 	bool  WinFileRStream::SeekSet (Bytes newPos) __NE___
 	{
 		ASSERT( IsOpen() );
+		ASSERT( IsMultipleOf( newPos, _align.offsetAlign ));
 
 		LARGE_INTEGER	info;
 		info.QuadPart = slong(newPos);
@@ -113,6 +114,7 @@ namespace AE::Base
 	bool  WinFileRStream::SeekFwd (Bytes offset) __NE___
 	{
 		ASSERT( IsOpen() );
+		ASSERT( IsMultipleOf( offset, _align.offsetAlign ));
 
 		LARGE_INTEGER	info;
 		info.QuadPart = slong(offset);
@@ -129,6 +131,8 @@ namespace AE::Base
 	{
 		ASSERT( IsOpen() );
 		ASSERT_Lt( size, MaxValue<DWORD>() );
+		ASSERT( IsMultipleOf( size, _align.offsetAlign ));
+		ASSERT( IsMultipleOf( buffer, _align.ptrAlign ));
 
 		DWORD	readn = 0;
 		if_likely( ::ReadFile( _file.Ref<HANDLE>(), OUT buffer, DWORD(size), OUT &readn, null ) != FALSE )
@@ -249,6 +253,7 @@ namespace AE::Base
 	bool  WinFileWStream::SeekFwd (Bytes offset) __NE___
 	{
 		ASSERT( IsOpen() );
+		ASSERT( IsMultipleOf( offset, _align.offsetAlign ));
 
 		LARGE_INTEGER	info;
 		info.QuadPart = slong(offset);
@@ -265,6 +270,8 @@ namespace AE::Base
 	{
 		ASSERT( IsOpen() );
 		ASSERT_Lt( size, MaxValue<DWORD>() );
+		ASSERT( IsMultipleOf( size, _align.offsetAlign ));
+		ASSERT( IsMultipleOf( buffer, _align.ptrAlign ));
 
 		DWORD	written = 0;
 		if_likely( ::WriteFile( _file.Ref<HANDLE>(), buffer, DWORD(size), OUT &written, null ) != FALSE )

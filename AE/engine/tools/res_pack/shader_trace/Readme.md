@@ -3,9 +3,11 @@
 Standalone library for shader trace recording.
 
 ## Features
+
  * Shader trace recording for debugging.
  * Shader profiling (using extensions [EXT_shader_realtime_clock](https://github.com/KhronosGroup/GLSL/blob/master/extensions/ext/EXT_shader_realtime_clock.txt) and [ARB_shader_clock](https://www.khronos.org/registry/OpenGL/extensions/ARB/ARB_shader_clock.txt).
  * Supports mesh and ray tracing shaders.
+ * Enable asserts in shader.
 
 ## Debugging
 

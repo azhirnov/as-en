@@ -29,9 +29,9 @@ namespace AE::Graphics
 		{
 			Unknown,
 			Text,			// as plane text with part of source code
-			VS_Console,		// compatible with VS output, allow navigation to code by click
-			VS,				// click to file path will open shader source file
-			VSCode,			// click to file path will open shader source file in specified line
+			VS_Console,		// compatible with VS output, allow navigation to code by click, format: 'file (line): ...'
+			FileURL,		// click to file path will open shader source file, format: 'file:///file (line)'
+			VSCode,			// click to file path will open shader source file in specified line, format: 'file:///file#line'
 			_Count
 		};
 
@@ -75,7 +75,14 @@ namespace AE::Graphics
 			FrameUID			lastUsage;
 		};
 
+		enum class EShaderTraceFormat
+		{
+			Trace,
+			Asserts,
+		};
+
 		static constexpr Bytes	_SingleBufferSize	{4_MiB};
+		static constexpr Bytes	_AssertsBufferSize	{1_KiB};
 		static constexpr Bytes	_AllocBlockSize		{16_MiB};
 		static constexpr Bytes	_OffsetAlign		{16_b};
 		static constexpr Bytes	_TraceHeaderSize	{16_b};
@@ -94,8 +101,6 @@ namespace AE::Graphics
 		AtomicRC< IGfxMemAllocator >				_gfxAlloc;
 
 		const Bytes									_blockSize;
-
-		DRC_ONLY( RWDataRaceCheck					_drCheck;)
 
 
 	// methods
@@ -126,6 +131,10 @@ namespace AE::Graphics
 		ND_ bool  AllocForGraphics (OUT Result &result, ITransferContext &ctx, PplnID ppln,
 									DescriptorSetName::Ref dsName = _DbgShaderTrace, Bytes size = _SingleBufferSize)			__Th___;
 
+		template <typename PplnID>
+		ND_ bool  AllocForAsserts (OUT Result &result, ITransferContext &ctx, PplnID ppln,
+									DescriptorSetName::Ref dsName = _DbgShaderTrace, Bytes size = _AssertsBufferSize)			__Th___;
+
 
 		ND_ Promise<Array<String>>  Read (ITransferContext &ctx, const Result &request, ELogFormat format = Default)			__Th___;
 		ND_ Promise<Array<String>>  ReadAll (ITransferContext &ctx, ELogFormat format = Default)								__Th___;
@@ -136,14 +145,14 @@ namespace AE::Graphics
 
 
 	private:
-		ND_ bool  _GetComputePipeline (ComputePipelineID ppln, DescriptorSetName::Ref dsName, OUT Result &result);
-		ND_ bool  _GetRayTracingPipeline (RayTracingPipelineID ppln, DescriptorSetName::Ref dsName, OUT Result &result);
-		ND_ bool  _GetGraphicsPipeline (GraphicsPipelineID ppln, DescriptorSetName::Ref dsName, OUT Result &result);
-		ND_ bool  _GetGraphicsPipeline (MeshPipelineID ppln, DescriptorSetName::Ref dsName, OUT Result &result);
-		ND_ bool  _GetGraphicsPipeline (TilePipelineID ppln, DescriptorSetName::Ref dsName, OUT Result &result);
+		ND_ bool  _GetComputePipeline (ComputePipelineID, DescriptorSetName::Ref, EShaderTraceFormat, OUT Result &result);
+		ND_ bool  _GetRayTracingPipeline (RayTracingPipelineID, DescriptorSetName::Ref, EShaderTraceFormat, OUT Result &result);
+		ND_ bool  _GetGraphicsPipeline (GraphicsPipelineID, DescriptorSetName::Ref, EShaderTraceFormat, OUT Result &result);
+		ND_ bool  _GetGraphicsPipeline (MeshPipelineID, DescriptorSetName::Ref, EShaderTraceFormat, OUT Result &result);
+		ND_ bool  _GetGraphicsPipeline (TilePipelineID, DescriptorSetName::Ref, EShaderTraceFormat, OUT Result &result);
 
 		template <typename PplnID>
-		ND_ bool  _GetPipeline (PplnID ppln, DescriptorSetName::Ref dsName, OUT Result &result);
+		ND_ bool  _GetPipeline (PplnID, DescriptorSetName::Ref, EShaderTraceFormat, OUT Result &result);
 
 			void  _FillBuffer (const Result &result, ITransferContext &ctx, Bytes headerSize, const void* headerData) const;
 
@@ -165,17 +174,15 @@ namespace AE::Graphics
 	template <typename PplnID>
 	bool  ShaderDebugger::AllocForCompute (OUT Result &result, ITransferContext &ctx, PplnID ppln, const uint3 &globalID, DescriptorSetName::Ref dsName, Bytes size) __Th___
 	{
-		DRC_EXLOCK( _drCheck );
-
 		if constexpr( IsSame< PplnID, ComputePipelineID >)
 		{
-			if_unlikely( not _GetComputePipeline( ppln, dsName, OUT result ))
+			if_unlikely( not _GetComputePipeline( ppln, dsName, EShaderTraceFormat::Trace, OUT result ))
 				return false;
 		}
 		else
 		if constexpr( IsSame< PplnID, MeshPipelineID >)
 		{
-			if_unlikely( not _GetGraphicsPipeline( ppln, dsName, OUT result ))
+			if_unlikely( not _GetGraphicsPipeline( ppln, dsName, EShaderTraceFormat::Trace, OUT result ))
 				return false;
 		}
 		else
@@ -207,9 +214,7 @@ namespace AE::Graphics
 	template <typename PplnID>
 	bool  ShaderDebugger::AllocForGraphics (OUT Result &result, ITransferContext &ctx, PplnID ppln, const uint2 &fragCoord_or_vertexIdInstanceId, DescriptorSetName::Ref dsName, Bytes size) __Th___
 	{
-		DRC_EXLOCK( _drCheck );
-
-		if_unlikely( not _GetGraphicsPipeline( ppln, dsName, OUT result ))
+		if_unlikely( not _GetGraphicsPipeline( ppln, dsName, EShaderTraceFormat::Trace, OUT result ))
 			return false;
 
 		if_unlikely( not _AllocStorage( size, OUT result ))
@@ -228,5 +233,44 @@ namespace AE::Graphics
 		return AllocForGraphics( OUT result, ctx, ppln, uint2{~0u}, dsName, size );
 	}
 
+/*
+=================================================
+	AllocForAsserts
+=================================================
+*/
+	template <typename PplnID>
+	bool  ShaderDebugger::AllocForAsserts (OUT Result &result, ITransferContext &ctx, PplnID ppln, DescriptorSetName::Ref dsName, Bytes size) __Th___
+	{
+		if constexpr( IsSame< PplnID, ComputePipelineID >)
+		{
+			if_unlikely( not _GetComputePipeline( ppln, dsName, EShaderTraceFormat::Asserts, OUT result ))
+				return false;
+		}
+		else
+		if constexpr( IsSame< PplnID, GraphicsPipelineID > or IsSame< PplnID, MeshPipelineID >)
+		{
+			if_unlikely( not _GetGraphicsPipeline( ppln, dsName, EShaderTraceFormat::Asserts, OUT result ))
+				return false;
+		}
+		else
+		if constexpr( IsSame< PplnID, RayTracingPipelineID >)
+		{
+			if_unlikely( not _GetRayTracingPipeline( ppln, dsName, EShaderTraceFormat::Asserts, OUT result ))
+				return false;
+		}
+		else
+		{
+			return false;
+		}
+
+		if_unlikely( not _AllocStorage( size, OUT result ))
+			return false;
+
+		ctx.FillBuffer( result._deviceBuf, result._offset, result._size, 0 );
+		ctx.BufferBarrier( result._deviceBuf, EResourceState::ClearDst, result._state );
+		ctx.CommitBarriers();
+
+		return true;
+	}
 
 } // AE::Graphics

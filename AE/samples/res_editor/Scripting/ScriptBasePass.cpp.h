@@ -41,26 +41,31 @@ namespace
 			if ( not binder.IsRegistered() )
 			{
 				binder.Create();
-				binder.AddValue( "None",				EFlags::Unknown );
+				binder.AddValue( "None",					EFlags::Unknown );
 
 				binder.Comment( "ShaderTrace - record all variables, function result, etc and save it to file.\n"
 								"It is very useful to debug shaders. In UI select 'Debugging' menu, select pass,"
 								"'Trace' and shader stage then click 'G' key to record trace for pixel under cursor.\n"
 								"Reference to the last recorded trace will be added to console and IDE log, click on it to open file." );
-				binder.AddValue( "Enable_ShaderTrace",	EFlags::Enable_ShaderTrace );
+				binder.AddValue( "Enable_ShaderTrace",		EFlags::Enable_ShaderTrace );
 
-				binder.Comment( "ShaderFunctionProfiling - record time of user function calls, then sort results and save to file.\n" );
-				binder.AddValue( "Enable_ShaderFnProf",	EFlags::Enable_ShaderFnProf );
+				binder.Comment( "ShaderFunctionProfiling - same as Trace but record time of user function calls, then sort results and save to file.\n" );
+				binder.AddValue( "Enable_ShaderFnProf",		EFlags::Enable_ShaderFnProf );
+
+				binder.Comment( "Enable asserts in shader, add some performance loss, but much faster than Trace.\n"
+								"It applied to default shader, so you don't need to press 'G' like for Trace.\n"
+								"Result is written to 'ShaderErrors' tab." );
+				binder.AddValue( "Enable_ShaderAsserts",	EFlags::Enable_ShaderAsserts );
 
 				//binder.AddValue( "Enable_ShaderTmProf",	EFlags::Enable_ShaderTmProf );	// not supported yet
 
 				binder.Comment( "Enable all debug features." );
-				binder.AddValue( "Enable_AllShaderDbg",	EFlags::Enable_AllShaderDbg );
+				binder.AddValue( "Enable_AllShaderDbg",		EFlags::Enable_AllShaderDbg );
 
 				binder.Comment( "Compile shader using Slang compiler." );
-				binder.AddValue( "UseSLang",	EFlags::UseSLang );
+				binder.AddValue( "UseSLang",				EFlags::UseSLang );
 
-				StaticAssert( uint(EFlags::All) == 0xF );
+				StaticAssert( uint(EFlags::All) == 0x1F );
 			}
 		}
 

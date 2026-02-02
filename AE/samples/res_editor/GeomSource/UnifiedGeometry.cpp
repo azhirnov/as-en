@@ -77,6 +77,9 @@ namespace AE::ResEditor
 				if ( inserted ) {
 					Visit( it->second,
 						[&] (GraphicsPipelineID ppln) {
+							if ( dd.dbg.mode == EDebugMode::Asserts ){
+								CHECK( dd.dbg.debugger->AllocForAsserts( OUT dbg_storage, dd.ctx, ppln ));
+							}else
 							if ( AnyBits( dd.dbg.stage, EShaderStages::Fragment | EShaderStages::Vertex )) {
 								CHECK( dd.dbg.debugger->AllocForGraphics( OUT dbg_storage, dd.ctx, ppln, uint2{dd.dbgCoord} ));
 							}else{
@@ -84,6 +87,9 @@ namespace AE::ResEditor
 							}
 						},
 						[&] (MeshPipelineID ppln) {
+							if ( dd.dbg.mode == EDebugMode::Asserts ){
+								CHECK( dd.dbg.debugger->AllocForAsserts( OUT dbg_storage, dd.ctx, ppln ));
+							}else
 							if ( AllBits( dd.dbg.stage, EShaderStages::Fragment )) {
 								CHECK( dd.dbg.debugger->AllocForGraphics( OUT dbg_storage, dd.ctx, ppln, uint2{dd.dbgCoord} ));
 							}else{

@@ -1070,7 +1070,7 @@ namespace
 
 	static void  DotProductPerf (const String &name)
 	{
-		IntervalProfiler	profiler{ "Vertical SIMD, Dot test, "s << name, IntervalProfiler::EFlags::SortByPerf };
+		IntervalProfiler	profiler{ "Vertical SIMD, Dot test, "s << name, IntervalProfiler::EFlags::SortByTime };
 
 		DynUntypedStorage	st0;
 		TEST( st0.Alloc( 512_MiB, 4_KiB, null ));
@@ -1125,7 +1125,7 @@ namespace
 
 	static void  CrossProductPerf (const String &name)
 	{
-		IntervalProfiler	profiler{ "Vertical SIMD, Cross test, "s << name, IntervalProfiler::EFlags::SortByPerf };
+		IntervalProfiler	profiler{ "Vertical SIMD, Cross test, "s << name, IntervalProfiler::EFlags::SortByTime };
 
 		DynUntypedStorage	st0;
 		TEST( st0.Alloc( 512_MiB, 4_KiB, null ));

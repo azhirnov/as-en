@@ -485,6 +485,7 @@ namespace
 		}};
 
 		AddPpln( IPass::EDebugMode::Unknown,		EFlags::Unknown,				PipelineName{"raytrace"},			RTShaderBindingName{"raytrace.sbt"} );
+		AddPpln( IPass::EDebugMode::Asserts,		EFlags::Unknown,				PipelineName{"raytrace.Asserts"},	RTShaderBindingName{"raytrace.Asserts.sbt"} );
 		AddPpln( IPass::EDebugMode::Trace,			EFlags::Enable_ShaderTrace,		PipelineName{"raytrace.Trace"},		RTShaderBindingName{"raytrace.Trace.sbt"} );
 		AddPpln( IPass::EDebugMode::FnProfiling,	EFlags::Enable_ShaderFnProf,	PipelineName{"raytrace.FnProf"},	RTShaderBindingName{"raytrace.FnProf.sbt"} );
 		AddPpln( IPass::EDebugMode::TimeHeatMap,	EFlags::Enable_ShaderTmProf,	PipelineName{"raytrace.TmProf"},	RTShaderBindingName{"raytrace.TmProf.sbt"} );
@@ -703,11 +704,16 @@ namespace AE::ResEditor
 		if ( flags.contains( UIInteraction::EShaderFlags::CaptureInternalRepresentation ))
 			ppln_opt |= EPipelineOpt::CaptureInternalRepresentation;
 
-		StaticAssert( uint(UIInteraction::EShaderFlags::_Count) == 5 );
+		StaticAssert( uint(UIInteraction::EShaderFlags::_Count) == 6 );
 
 		_CompilePipeline3( header, "raytrace", uint(sh_opt), ppln_opt );
 
 	  #ifdef AE_ENABLE_GLSL_TRACE
+		if ( AllBits( _baseFlags, EFlags::Enable_ShaderAsserts )		or
+			 flags.contains( UIInteraction::EShaderFlags::EnableAsserts ))
+		{
+			NOTHROW( _CompilePipeline3( header, "raytrace.Asserts", uint(sh_opt | EShaderOpt::Asserts), Default ));
+		}
 		if ( AllBits( _baseFlags, EFlags::Enable_ShaderTrace ))
 			NOTHROW( _CompilePipeline3( header, "raytrace.Trace", uint(sh_opt | EShaderOpt::Trace), Default ));
 
@@ -745,7 +751,7 @@ namespace AE::ResEditor
 			String	hdr = header;
 			_AddDefines( sh.defines, INOUT hdr );
 
-			const uint	lines = uint(Parser::CalculateNumberOfLines( hdr )) - 1;
+			const uint	lines = SubSat( uint(Parser::CalculateNumberOfLines( header )), 1u );
 
 			// load shader source from file
 			{

@@ -83,7 +83,6 @@
 		// render loop
 		{
 			RC<ComputePass>		pass = ComputePass( "", "INIT" );
-			pass.AddFlag( EPassFlags::Enable_ShaderTrace );
 			pass.ArgInOut(	"un_ArgBuf",	arg_buf );
 			pass.ArgIn(		"un_CBuf",		cbuf );
 			pass.LocalSize( 1 );

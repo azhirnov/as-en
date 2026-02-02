@@ -3,13 +3,25 @@
 //> gl_WorkGroupID: uint3 {0, 0, 0} | {0x0, 0x0, 0x0}
 no source
 
+//> I: uint {0} | {0x0}
+//  gl_LocalInvocationID: uint3 {0, 0, 0} | {0x0, 0x0, 0x0}
+28. I = gl_LocalInvocationID.x;
+
+//> gl_GlobalInvocationID: uint3 {0, 0, 0} | {0x0, 0x0, 0x0}
+//> gl_LocalInvocationID: uint3 {0, 0, 0} | {0x0, 0x0, 0x0}
+//> gl_WorkGroupID: uint3 {0, 0, 0} | {0x0, 0x0, 0x0}
+no source
+
 //> (out): float4 {-1.000000, -1.000000, 0.000000, 1.000000}
+//  I: uint {0} | {0x0}
 32. gl_MeshVerticesEXT[I].gl_Position	= vec4(g_Positions[I], 0.0f, 1.0f);
 
 //> (out): float4 {0.000000, 0.000000, 0.000000, 0.000000}
+//  I: uint {0} | {0x0}
 33. Output[I].color						= g_Positions[I].xyxy * 0.5f + 0.5f;
 
 //> (out): bool {true}
+//  I: uint {0} | {0x0}
 35. if ( I == 0 )
 
 //> gl_PrimitiveTriangleIndicesEXT: uint3 {0, 1, 2} | {0x0, 0x1, 0x2}

@@ -198,7 +198,8 @@ namespace
 		static Mat_t	Scale1 (const Mat_t&, const Vec3_t &scale)												{ return Mat_t::Scale( scale ); }
 		static Mat_t	Scale2 (const Mat_t&, const Scalar_t scale)												{ return Mat_t::Scale( scale ); }
 
-		static Mat_t	LookAt (const Mat_t &, const Vec3_t &eye, const Vec3_t &center, const Vec3_t &up)		{ return Mat_t::LookAt( eye, center, up ); }
+		static Mat_t	LookAt (const Mat_t &, const Vec3_t &dir, const Vec3_t &up)								{ return Mat_t::LookAt( dir, up ); }
+		static Mat_t	LookAt2 (const Mat_t &, const Vec3_t &eye, const Vec3_t &center, const Vec3_t &up)		{ return Mat_t::LookAt( eye, center, up ); }
 
 		static Vec4_t	Project (const Mat_t &self, const Vec3_t &pos, const Rect_t &viewport)					{ return self.Project( pos, viewport ); }
 		static Vec3_t	UnProject (const Mat_t &self, const Vec3_t &pos, const Rect_t &viewport)				{ return self.UnProject( pos, viewport ); }
@@ -249,6 +250,11 @@ namespace
 			AS_METHOD_T( binder, F::RotateZ,			"RotateZ",			{"angle"} );
 		}
 
+		if constexpr( IsSame< T, packed_float3x3 >)
+		{
+			AS_METHOD_T( binder, F::LookAt,				"LookAt",			{"dir", "up"} );
+		}
+
 		if constexpr( IsSame< T, packed_float3x3 > or
 					  IsSame< T, packed_float4x4 >)
 		{
@@ -270,7 +276,8 @@ namespace
 			AS_METHOD_T( binder, F::Scale2,				"Scale",			{"scale"} );
 			AS_METHOD_T( binder, F::Project,			"Project",			{"pos", "viewport"} );
 			AS_METHOD_T( binder, F::UnProject,			"UnProject",		{"pos", "viewport"} );
-			AS_METHOD_T( binder, F::LookAt,				"LookAt",			{"eye", "center", "up"} );
+			AS_METHOD_T( binder, F::LookAt,				"LookAt",			{"dir", "up"} );
+			AS_METHOD_T( binder, F::LookAt2,			"LookAt",			{"eye", "center", "up"} );
 		}
 	}
 

@@ -1894,8 +1894,10 @@ namespace
 	AddDebugStorageBuffer
 =================================================
 */
-	void  DescriptorSetLayout::AddDebugStorageBuffer (const String &name, EShaderStages stages, Bytes staticSize, Bytes arraySize) __Th___
+	void  DescriptorSetLayout::AddDebugStorageBuffer (EShaderStages stages, Bytes staticSize, Bytes arrayStride) __Th___
 	{
+		const String	name = "dbg_ShaderTrace";
+
 		_CheckUniformName( name );
 
 		Uniform			un;
@@ -1907,7 +1909,7 @@ namespace
 		un.buffer.state					= EResourceState::ShaderStorage_RW | EResourceState_FromShaders( stages );
 		un.buffer.dynamicOffsetIndex	= UMax;
 		un.buffer.staticSize			= Bytes32u{staticSize};
-		un.buffer.arrayStride			= Bytes32u{arraySize};
+		un.buffer.arrayStride			= Bytes32u{arrayStride};
 		un.buffer.typeName				= ShaderStructName{"dbg_ShaderTraceStorage"};
 
 		CHECK( EResourceState_Validate( un.buffer.state ));

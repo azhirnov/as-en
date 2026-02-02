@@ -111,6 +111,7 @@ namespace AE::PipelineCompiler
 			PathAndLine		fileLoc;						// only for output parser
 			bool			shaderSubgroupClock	= false;	// \__ only for shader profiling
 			bool			shaderDeviceClock	= false;	// /
+			bool			subgroupBasic		= false;	// only for asserts in shader
 		};
 
 		struct Output

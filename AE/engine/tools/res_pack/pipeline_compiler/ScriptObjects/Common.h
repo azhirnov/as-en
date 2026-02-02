@@ -172,15 +172,16 @@ namespace AE::PipelineCompiler
 		Trace				= 1 << 1,
 		FnProfiling			= 1 << 2,	// function profiling
 		TimeHeatMap			= 1 << 3,	// per fragment/thread profiling
-		_ShaderTrace_Mask	= Trace | FnProfiling | TimeHeatMap,
+		Asserts				= 1 << 4,
+		_ShaderTrace_Mask	= Trace | FnProfiling | TimeHeatMap | Asserts,
 
 		// optimize
-		Optimize			= 1 << 4,
-		OptimizeSize		= 1 << 5,
-		StrongOptimization	= 1 << 6,	// very slow
+		Optimize			= 1 << 5,
+		OptimizeSize		= 1 << 6,
+		StrongOptimization	= 1 << 7,	// very slow
 
 		// options
-		WarnAsError			= 1 << 10,
+		WarnAsError			= 1 << 8,
 
 		_Last,
 		All					= ((_Last - 1) << 1) - 1,

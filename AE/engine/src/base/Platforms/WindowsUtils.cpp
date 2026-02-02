@@ -781,19 +781,16 @@ namespace
 */
 namespace
 {
-	static BOOL CALLBACK  EnumUILanguagesProc (LPSTR arg0, LONG_PTR arg1)
+	static BOOL CALLBACK  EnumUILanguagesProc (LPSTR arg0, LONG_PTR arg1) __NE___
 	{
 		auto&	arr = *BitCast< Array<String> *>( arg1 );
-		arr.push_back( arg0 );
+		NOTHROW( arr.push_back( arg0 ));
 		return TRUE;
 	}
 }
 	bool  WindowsUtils::GetLocales (OUT Array<String> &outLocales) __NE___
 	{
-		TRY{
-			return ::EnumUILanguagesA( &EnumUILanguagesProc, MUI_LANGUAGE_NAME, BitCast<LONG_PTR>( &outLocales )) == TRUE;	// win2000
-		}
-		CATCH_ALL( return false; )
+		return ::EnumUILanguagesA( &EnumUILanguagesProc, MUI_LANGUAGE_NAME, BitCast<LONG_PTR>( &outLocales )) == TRUE;	// win2000
 	}
 
 /*
@@ -1212,6 +1209,38 @@ namespace
 
 		Unused( CheckError( "SetProcessAffinityMask ", {}, ELogLevel::Info ));
 		return false;
+	}
+
+/*
+=================================================
+	OpenURL
+=================================================
+*/
+	bool  WindowsUtils::_OpenURL (const wchar_t* url) __NE___
+	{
+		SHELLEXECUTEINFOW	info = {};
+		info.cbSize		= sizeof(info);
+		info.lpVerb		= L"open";
+		info.lpFile		= url;
+		info.nShow		= SW_SHOWNORMAL;
+
+		return ::ShellExecuteExW( &info ) != FALSE;
+	}
+
+	bool  WindowsUtils::OpenURL (U8StringView url) __NE___
+	{
+		WString		path;
+		CHECK_ERR( ConvertString( OUT path, url ));
+
+		return _OpenURL( path.c_str() );
+	}
+
+	bool  WindowsUtils::OpenURL (StringView url) __NE___
+	{
+		WString		path;
+		CHECK_ERR( ConvertString( OUT path, url ));
+
+		return _OpenURL( path.c_str() );
 	}
 
 /*

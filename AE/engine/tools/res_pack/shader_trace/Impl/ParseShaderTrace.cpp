@@ -480,7 +480,13 @@ namespace
 		{
 			uint	r = swizzle[i] + rowOffset;
 			ASSERT( hasValue.Has( r ));
-			str << (i ? ", " : "") + TypeToString( values[r] );
+
+			str << (i ? ", " : "");
+
+			if ( hasValue.Has( r ))
+				str << TypeToString( values[r] );
+			else
+				str << "undefined";
 		}
 		str << '}';
 
@@ -491,7 +497,13 @@ namespace
 			{
 				uint	r = swizzle[i] + rowOffset;
 				ASSERT( hasValue.Has( r ));
-				str << (i ? ", " : "") << "0x" << ToString<16>( values[r] );
+
+				str << (i ? ", " : "");
+
+				if ( hasValue.Has( r ))
+					str << "0x" << ToString<16>( values[r] );
+				else
+					str << "undefined";
 			}
 			str << '}';
 		}
@@ -514,7 +526,13 @@ namespace
 		{
 			uint	r = swizzle[i] + rowOffset;
 			ASSERT( hasValue.Has( r ));
-			str << (i ? ", " : "") + TypeToString( BitCastRlx<Dst>( values[r] ));
+
+			str << (i ? ", " : "");
+
+			if ( hasValue.Has( r ))
+				str << TypeToString( BitCastRlx<Dst>( values[r] ));
+			else
+				str << "undefined";
 		}
 		str << "}\n";
 
@@ -555,12 +573,12 @@ namespace
 
 			// pattern: 'url (line)'
 			case Trace::ELogFormat::FileURL :
-				result << "//  file://" << src.filename << " (" << ToString(file_line) << ")\n";
+				result << "//  file:///" << src.filename << " (" << ToString(file_line) << ")\n";
 				break;
 
 			// pattern: 'url#line'
 			case Trace::ELogFormat::VSCode :
-				result << "//  file://" << src.filename << "#" << ToString(file_line) << "\n";
+				result << "//  file:///" << src.filename << "#" << ToString(file_line) << "\n";
 				break;
 
 			case Trace::ELogFormat::Text :
@@ -588,7 +606,7 @@ namespace
 
 			if ( start < end )
 			{
-				result << src.code.substr( start, end - start );
+				result << SubStringBE( src.code, start, end );
 				result << '\n';
 			}
 			else
@@ -844,6 +862,14 @@ namespace
 			format = ELogFormat::Text;
 
 		result.clear();
+
+		if ( _exprLocations.empty() )
+		{
+			ASSERT_MSG( _assertLocations.empty(),
+				"ShaderTrace module initialized to record asserts, but used to get trace."
+				"You should call 'ParseAsserts()' method instead." );
+			return true;
+		}
 
 		const ulong		count = *(static_cast<uint const*>(ptr) + _posOffset / sizeof(uint));
 		if ( count == 0 )

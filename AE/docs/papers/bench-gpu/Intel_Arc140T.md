@@ -55,8 +55,7 @@ Xe-LPG+ architecture
 ### Tile size
 
 * Subgroup scheduler prefer to put subgroup in tile 4x4 pix (in simd16 and simd8 mode).
-  If subgroup is not full then it merged with other non-full subgroups.
-  [[17](../GPU_Benchmarks.md#17-tile-size)]<br/>
+  If subgroup is not full then it merged with other non-full subgroups. [[17](../GPU_Benchmarks.md#17-tile-size)]<br/>
   ![](img/hw-tile-size/intel-arc140t.png)
 * Max measured distance between pixels in same subgroup is 48 pix.
 * On high register count used simd8 mode, otherwise used simd16 mode.<br/>
@@ -127,7 +126,7 @@ Dark blue - single instance; light blue - single instance in FS, multiple in VS;
 * RGBA8_UNorm texture with random access [[9](../GPU_Benchmarks.md#9-Texture-cache)]
 	- Measured cache size: 128KB, 8MB
 	- RT dim: 7689x4720
-	- 8 texels per pixel, 4 texels for linear filter, 36.25MPix, 4.64 GB read per frame.
+	- 8 texels per pixel, 4 texels for linear filter, 36.25MPix, 4bpp, 4.64 GB read per frame.
 
 	| size (B) | dimension (px) | approx bandwidth (GB/s) | comments |
 	|---|---|---|---|

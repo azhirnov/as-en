@@ -3,6 +3,9 @@ Content:
 * [Test description](#Test-description)
 * [ASUS NUC15](#ASUS-NUC15)
 * [Samsung SSD 860 EVO](#Samsung-SSD-860-EVO)
+* [HDD WDC 3TB](#HDD-WDC-3TB)
+* [HDD Seagate 16TB](#HDD-Seagate-16TB)
+* [MiniPC N150](#MiniPC-N150)
 
 
 # Test description
@@ -178,7 +181,7 @@ Drive Model:		Samsung SSD 860 EVO M.2 1TB
 | Sync Random Read      | 7.68 s | +685% | 35.0MB/s  |
 
 
-# HDD WDC 3GB
+# HDD WDC 3TB
 
 ## HWINFO
 
@@ -312,3 +315,68 @@ Drive Model:		Seagate ST16000NM000J-2TW103
 | Sync Sequential Read  | 3.42 s | +54%    | 78.5MB/s  |
 | Async Random Read     | 1.55 m | +4075%  | 2.89MB/s  |
 | Sync Random Read      | 4.95 m | +13266% | 903.6KB/s |
+
+
+# MiniPC N150
+
+## HWINFO
+
+```
+Drive Model:	GN-512 2280
+```
+
+## AsyncFile test
+
+### 1 GiB / 1 MiB
+
+| test                  | time   | %    | bandwidth |
+|-----------------------|--------|------|-----------|
+| Async Sequential Read | 2.03 s | -    | 529.1MB/s |
+| Sync Sequential Read  | 2.42 s | +19% | 444.4MB/s |
+| Async Random Read     | 2.48 s | +22% | 432.7MB/s |
+| Sync Random Read      | 2.87 s | +42% | 373.7MB/s |
+
+### 1 GiB / 256 KiB
+
+| test                  | time   | %     | bandwidth |
+|-----------------------|--------|-------|-----------|
+| Async Sequential Read | 2.05 s | -     | 523.9MB/s |
+| Sync Sequential Read  | 2.63 s | +28%  | 408.1MB/s |
+| Async Random Read     | 3.74 s | +82%  | 287.2MB/s |
+| Sync Random Read      | 4.52 s | +121% | 237.6MB/s |
+
+### 1 GiB / 64 KiB
+
+| test                  | time   | %     | bandwidth |
+|-----------------------|--------|-------|-----------|
+| Async Sequential Read | 2.16 s | -     | 497.2MB/s |
+| Sync Sequential Read  | 3.78 s | +75%  | 284.2MB/s |
+| Async Random Read     | 4.71 s | +118% | 228.0MB/s |
+| Sync Random Read      | 7.43 s | +244% | 144.5MB/s |
+
+### 1 GiB / 16 KiB
+
+| test                  | time    | %     | bandwidth |
+|-----------------------|---------|-------|-----------|
+| Async Sequential Read | 2.70 s  | -     | 398.4MB/s |
+| Async Random Read     | 3.58 s  | +33%  | 299.8MB/s |
+| Sync Sequential Read  | 9.53 s  | +254% | 112.6MB/s |
+| Sync Random Read      | 21.34 s | +692% | 50.3MB/s  |
+
+### 1 GiB / 8 KiB
+
+| test                  | time    | %     | bandwidth |
+|-----------------------|---------|-------|-----------|
+| Async Sequential Read | 3.52 s  | -     | 305.3MB/s |
+| Async Random Read     | 4.78 s  | +36%  | 224.8MB/s |
+| Sync Sequential Read  | 14.78 s | +320% | 72.6MB/s  |
+| Sync Random Read      | 35.95 s | +922% | 29.9MB/s  |
+
+### 256 MiB / 4 KiB
+
+| test                  | time    | %      | bandwidth |
+|-----------------------|---------|--------|-----------|
+| Async Sequential Read | 1.38 s  | -      | 195.0MB/s |
+| Async Random Read     | 1.70 s  | +24%   | 157.9MB/s |
+| Sync Sequential Read  | 6.85 s  | +398%  | 39.2MB/s  |
+| Sync Random Read      | 15.75 s | +1044% | 17.0MB/s  |

@@ -438,6 +438,7 @@ namespace
 				}
 			}
 
+			// Metal reflection is not supported
 			if ( storage.target == ECompilationTarget::Vulkan )
 			{
 				CHECK_ERR( desc.pushConstants == _pushConstants );
@@ -456,10 +457,11 @@ namespace
 						}
 					}
 
-					// Metal reflection is not supported
 					if ( _dsLayoutsFromReflection[i].uniforms.empty() )
 					{
-						CHECK_ERR( ds_ptr == null );
+						CHECK_ERR_MSG( ds_ptr == null,
+							"In pipeline '"s << _nameStr << "' DS:" << ToString(i) << " reflection is empty, but pipeline definition in script have uniforms."
+							"This mismatch indicates an error." );
 						continue;
 					}
 

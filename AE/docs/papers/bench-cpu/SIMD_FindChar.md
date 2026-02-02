@@ -37,7 +37,7 @@ AVX2, Clang
 * CPU Clock: 3.6 GHz
 * L1: 32B/cy, 115 GB/s
 * Cache:
-	- L1D: 64KB per 2 cores, 32KB per core
+	- L1D: 64KB per 2 cores (32KB per core)
 	- L2: 2MB shared
 	- L3: 6MB shared
 * Memory: 16 GB DDR4-3200, single channel, 20GB/s

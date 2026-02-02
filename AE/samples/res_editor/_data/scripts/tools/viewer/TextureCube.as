@@ -30,7 +30,7 @@
 	void  Main ()
 	{
 		float2	uv		= gl.FragCoord.xy * un_PerPass.invResolution;
-		float3	dir		= Ray_PlaneTo360( float3(0.0), 0.1, uv ).dir;
+		float3	dir		= Ray_PlaneToSphereMap360( float3(0.0), 0.1, uv ).dir;
 		float	scale	= Exp2( float(iColScale) );
 
 		out_Color = gl.texture.Sample( un_Texture, dir ) * scale;

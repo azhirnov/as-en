@@ -63,7 +63,7 @@
 			pass.ArgIn(  "un_RefBlur",		ref_blur,		Sampler_LinearClamp );
 			pass.Slider( "iColScale",		1.0,	10.0,	1.0 );
 			pass.Slider( "iUVScale",		0.5,	3.0,	1.5 );
-			pass.Slider( "iDbgView",		0,		6,		4 );
+			pass.Slider( "iCmp",			0,		6,		4 );		// 0 - light mask, 1 - single pass radial blur, 2 - single pass + post blur, 3 - 1 of 2pass, 4 - 2 of 2pass, 5 - reference
 		}
 
 		Present( rt );
@@ -147,7 +147,7 @@
 
 		if ( IsUNorm( uv ))
 		{
-			switch ( iDbgView )
+			switch ( iCmp )
 			{
 				case 0 :	out_Color.rgb = gl.texture.Sample( un_LightMask, uv ).rgb;		break;
 				case 1 :	out_Color.rgb = gl.texture.Sample( un_Blur, uv ).rgb;			break;

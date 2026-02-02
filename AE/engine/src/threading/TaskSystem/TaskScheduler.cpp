@@ -472,7 +472,7 @@ DEBUG_ONLY(
 		_dbgName.reset( new char[len] );
 
 		if ( std::snprintf( OUT _dbgName.get(), len,
-							"%.*s(%i) %.*s",
+							"%.*s(%i): %.*s",
 							int(file_stem.size()), file_stem.data(),
 							loc.Line(),
 							int(fn_name.size()), fn_name.data()

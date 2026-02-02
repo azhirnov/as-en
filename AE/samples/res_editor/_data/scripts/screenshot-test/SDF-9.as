@@ -59,7 +59,7 @@
 		const float2	scale	= float2(3.0,2.0);
 		const float2	uv		= GetGlobalCoordUNorm().xy;
 		const uint		idx		= uint(uv.x * scale.x) + uint(uv.y * scale.y) * uint(scale.x);
-		const float2	uv2		= ToSNorm( Fract( uv * scale ));
+		const float2	uv2		= Fract( uv * scale );
 		const float		min_d	= 0.001;
 
 		Ray		ray = Ray_Perspective( float3(0.0), ToRad(45), un_PerPass.resolution.x/un_PerPass.resolution.y, 0.1, uv2 );
@@ -67,7 +67,7 @@
 
 		for (uint i = 0; i < 64; ++i)
 		{
-			float	d = SDF( ray.pos, idx, uv2 );
+			float	d = SDF( ray.pos, idx, ToSNorm(uv2) );
 
 			md = Min( md, d );
 			Ray_Move( INOUT ray, d );

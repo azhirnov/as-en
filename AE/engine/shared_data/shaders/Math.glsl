@@ -33,6 +33,7 @@
 
 #define uniform					// mark as uniform value across subgroup, so it uses scalar register (SGPR on AMD)
 #define if_uniform		if		// mark as uniform control flow
+#define quad_uniform			// required for derivatives (dFdx, etc), otherwise result is undefined
 
 // helper
 #define UNITE( x, y )		x##y
@@ -178,6 +179,7 @@ ND_ float2  SinCos (const float x)		{ return float2(sin(x), cos(x)); }
 #	define float_HalfPi		(1.57079632679489661923f)
 #	define float_InvPi		(0.31830988618379067153f)
 #	define float_SqrtOf2	(1.41421356237309504880f)			// Sqrt(2.0f)
+#	define float_InvSqrtOf2	(0.70710678118654752440f)			// InvSqrt(2.0f)
 #	define float_Euler		(2.71828182845904523536f)
 #	define float_epsilon	(2.0e-5f)
 #endif
@@ -1988,4 +1990,9 @@ Gen_ALIGNUP( uint,	uint_vec_t )
 void dbg_EnableTraceRecording (bool b) {}
 void dbg_PauseTraceRecording (bool b) {}
 void dbg_EnableProfiling (bool b) {}
+void dbg_Assert (uint b) {}
 
+#define ASSERT( _expr_ )	\
+	if ( !(_expr_) ){		\
+		dbg_Assert(0);		\
+	}

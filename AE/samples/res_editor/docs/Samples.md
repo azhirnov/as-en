@@ -138,12 +138,12 @@ Supported precalculated TBN and screen-space TBN calculation. Debug drawing for 
 
 ## Projection on Screen
 
-* [Render scene to the cubemap and apply different projections](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/scripts/samples-3d/RenderToCubemap.as)<br/>
+* [Render scene to the cubemap and apply different projections](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/scripts/projections/RenderToCubemap.as)<br/>
 ![](img/RenderToCubemap.jpg)
 
 Spherical cube to fix cubemap distortion
-* [Skybox](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/scripts/samples-3d/Cubemap-1.as)
-* [Skybox with procedural generation](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/scripts/samples-3d/Cubemap-2.as)
+* [Skybox](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/scripts/projections/Cubemap-1.as)
+* [Skybox with procedural generation](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/scripts/projections/Cubemap-2.as)
 
 
 ## Particles

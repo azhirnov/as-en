@@ -34,6 +34,7 @@
 		RC<Buffer>			clusters_buf	= Buffer();
 		RC<Buffer>			lights_buf		= Buffer();
 		RC<Scene>			scene			= Scene();
+		RC<Scene>			scene_lights	= Scene();
 		RC<Scene>			scene_defer_lights1 = Scene();
 		RC<Scene>			scene_defer_lights2 = Scene();
 
@@ -82,6 +83,7 @@
 			camera.SideMovementScale( s );
 
 			scene.Set( camera );
+			scene_lights.Set( camera );
 			scene_defer_lights1.Set( camera );
 			scene_defer_lights2.Set( camera );
 		}
@@ -100,35 +102,38 @@
 			RC<UnifiedGeometry>		geometry = UnifiedGeometry();
 			geometry.ArgIn( "un_Geometry",	geom_data );
 			geometry.ArgIn( "un_Transform",	obj_buf );
-			geometry.ArgIn( "un_LightObjs",	lights_buf );
 
+			UnifiedGeometry_DrawIndexed	cmd;
+			cmd.indexCount	= indices.size();
+			cmd.IndexBuffer( geom_data, "indices" );
+			cmd.InstanceCount( obj_count );
+			cmd.PipelineHint( "opaque.GEqual|Stencil" );
+			geometry.Draw( cmd );
+
+			scene.Add( geometry );
+		}
+
+		// create scene with lights
+		{
+			RC<UnifiedGeometry>		geometry = UnifiedGeometry();
+			geometry.ArgIn( "un_LightObjs",	lights_buf );
 			{
-				UnifiedGeometry_DrawIndexed	cmd;
-				cmd.indexCount	= indices.size();
-				cmd.IndexBuffer( geom_data, "indices" );
-				cmd.InstanceCount( obj_count );
-				cmd.PipelineHint( "opaque.GEqual|Stencil" );
-				cmd.layer = ERenderLayer::Opaque;
-				geometry.Draw( cmd );
-			}{
 				UnifiedGeometry_Draw	cmd;
 				cmd.vertexCount = 4;
 				cmd.InstanceCount( light_count );
 				cmd.PipelineHint( "light_bulb" );
-				cmd.layer = ERenderLayer::Translucent;
 				geometry.Draw( cmd );
 			}{
 				UnifiedGeometry_Draw	cmd;
 				cmd.vertexCount = 5;
 				cmd.InstanceCount( light_count );
 				cmd.PipelineHint( "light_cone" );
-				cmd.layer = ERenderLayer::Translucent;
 				geometry.Draw( cmd );
 			}
-			scene.Add( geometry );
+			scene_lights.Add( geometry );
 		}
 
-		// create scene with light cones
+		// create scene with light cones for deferred shading
 		{
 			array<float3>	positions, normals;
 			array<uint>		indices;
@@ -152,7 +157,7 @@
 			scene_defer_lights1.Add( geometry );
 		}
 
-		// create scene with light billboards
+		// create scene with light billboards for deferred shading
 		{
 			RC<UnifiedGeometry>		geometry = UnifiedGeometry();
 			geometry.ArgIn( "un_LightObjs",	lights_buf );
@@ -186,7 +191,6 @@
 			pass.DispatchThreads( light_count );
 		}{
 			RC<SceneGraphicsPass>	pass = scene.AddGraphicsPass( "opaque" );
-			pass.Layer( ERenderLayer::Opaque );
 			pass.AddPipeline( "samples/StreetLights-Opaque.as" );		// [src](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/pipelines/samples/StreetLights-Opaque.as)
 			pass.Output( "out_Color",		rt_col,		RGBA32f(0.0) );
 			pass.Output( "out_Normal",		rt_norm,	RGBA32f(0.0) );
@@ -215,23 +219,7 @@
 			pass.EnableIfEqual( mode, 1 );
 		}
 
-		// tiled
 		{
-		}
-
-		// clustered
-		{
-		/*	RC<Postprocess>			pass = Postprocess( "", "CLUSTER_LIGHT_PASS" );
-			pass.Output( "out_Color",		rt_light );
-			pass.ArgIn( "un_Albedo",		rt_col,		Sampler_NearestClamp );
-			pass.ArgIn( "un_Normal",		rt_norm,	Sampler_NearestClamp );
-			pass.ArgIn( "un_Depth",			ds,			Sampler_NearestClamp );
-			pass.ArgIn( "un_Lights",		lights_buf );
-			pass.ArgIn( "un_Clusters",		clusters_buf );
-			pass.Constant( "iLight",		float3(0.4, -1.0, -1.0) );
-			pass.Constant( "iDepthSlices",	depth_slices );
-			pass.Constant( "iTileSize",		tile_size );*/
-		}{
 			RC<Postprocess>			pass = Postprocess( "", "RESOLVE" );
 			pass.Output( "out_Color",		rt );
 			pass.ArgIn( "un_Albedo",		rt_col,		Sampler_NearestClamp );
@@ -239,11 +227,8 @@
 			pass.Slider( "iView",			0,		2,		0 );	// 0 - combined, 1 - color, 2 - light
 			pass.Slider( "iLightScale",		1.0,	100.0,	10.0 );
 			pass.ColorSelector( "iAmbient",	RGBA8u(54, 61, 75, 255) );
-		}
-
-		{
-			RC<SceneGraphicsPass>	pass = scene.AddGraphicsPass( "translucent" );
-			pass.Layer( ERenderLayer::Translucent );
+		}{
+			RC<SceneGraphicsPass>	pass = scene_lights.AddGraphicsPass( "translucent" );
 			pass.AddPipeline( "samples/StreetLights-LightBulb.as" );	// [src](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/pipelines/samples/StreetLights-LightBulb.as)
 			pass.AddPipeline( "samples/StreetLights-LightCone.as" );	// [src](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/pipelines/samples/StreetLights-LightCone.as)
 			pass.Output( "out_Color",		rt );

@@ -10,27 +10,27 @@
 #include "Math.glsl"
 
 
-ND_ float4  TriplanarMapping (const float3 uvw, float3 dir, gl::CombinedTex2D<float> samp);
+ND_ float4  TriplanarMapping (quad_uniform float3 uvw, float3 dir, gl::CombinedTex2D<float> samp);
 
-ND_ float4  CubicFilter (gl::CombinedTex2D<float> tex, float2 uv);
-ND_ float4  CubicFilter (gl::CombinedTex2D<float> tex, float2 uv, const float2 dim, const float2 invDim);
+ND_ float4  CubicFilter (gl::CombinedTex2D<float> tex, quad_uniform float2 uv);
+ND_ float4  CubicFilter (gl::CombinedTex2D<float> tex, quad_uniform float2 uv, const float2 dim, const float2 invDim);
 
-ND_ float	LinearFilterHQ (gl::CombinedTex2D<float> tex, float2 uv);
-ND_ float	CubicFilterHQ (gl::CombinedTex2D<float> tex, float2 uv);
+ND_ float	LinearFilterHQ (gl::CombinedTex2D<float> tex, quad_uniform float2 uv);
+ND_ float	CubicFilterHQ (gl::CombinedTex2D<float> tex, quad_uniform float2 uv);
 
 // software version of gl.texture.* functions
 //	.Sample()
-ND_ float4  SwSampling (gl::CombinedTex2D<float> tex, float2 uv);
-ND_ float4  SwSampling (gl::CombinedTex2D<float> tex, float2 uv, float bias);
+ND_ float4  SwSampling (gl::CombinedTex2D<float> tex, quad_uniform float2 uv);
+ND_ float4  SwSampling (gl::CombinedTex2D<float> tex, quad_uniform float2 uv, float bias);
 //	.QueryLod()
-ND_ float2  SwQueryLod (float2 texDim, float2 uv, float bias);
-ND_ float2  SwQueryLod (gl::CombinedTex2D<float> tex, float2 uv, float bias);
+ND_ float2  SwQueryLod (float2 texDim, quad_uniform float2 uv, float bias);
+ND_ float2  SwQueryLod (gl::CombinedTex2D<float> tex, quad_uniform float2 uv, float bias);
 
 //	.SampleProj()
-ND_ float	SampleShadow (gl::CombinedTex2D<float> tex, const float4 shadowCoord);
-ND_ float	SampleShadow (gl::CombinedTex2DArray<float> tex, const float4 shadowCoord, float layer);
-ND_ float	SampleShadowRevZ (gl::CombinedTex2D<float> tex, const float4 shadowCoord);
-ND_ float	SampleShadowRevZ (gl::CombinedTex2DArray<float> tex, const float4 shadowCoord, float layer);
+ND_ float	SampleShadow (gl::CombinedTex2D<float> tex, quad_uniform float4 shadowCoord);
+ND_ float	SampleShadow (gl::CombinedTex2DArray<float> tex, quad_uniform float4 shadowCoord, float layer);
+ND_ float	SampleShadowRevZ (gl::CombinedTex2D<float> tex, quad_uniform float4 shadowCoord);
+ND_ float	SampleShadowRevZ (gl::CombinedTex2DArray<float> tex, quad_uniform float4 shadowCoord, float layer);
 
 // helper
 ND_ float2	UVLerpFactor (float2 uv, float2 dim);
@@ -48,7 +48,7 @@ ND_ uint	NumberOfMipmaps (uint3 dim)		{ return NumberOfMipmaps( MaxOf( dim )); }
 	TriplanarMapping
 =================================================
 */
-float4  TriplanarMapping (const float3 uvw, float3 dir, gl::CombinedTex2D<float> samp)
+float4  TriplanarMapping (quad_uniform float3 uvw, float3 dir, gl::CombinedTex2D<float> samp)
 {
 	float4  a = gl.texture.Sample( samp, uvw.zy );
 	float4  b = gl.texture.Sample( samp, uvw.xz );
@@ -62,14 +62,14 @@ float4  TriplanarMapping (const float3 uvw, float3 dir, gl::CombinedTex2D<float>
 	LinearFilterHQ
 =================================================
 */
-float  LinearFilterHQ (gl::CombinedTex2D<float> tex, float2 uv, float2 dim)
+float  LinearFilterHQ (gl::CombinedTex2D<float> tex, quad_uniform float2 uv, float2 dim)
 {
 	float2	f		= Fract( uv * dim + 0.5 + 1.0/512.0 );	// 0.5/256 - rounding for 8-bit precision
 	float4	data	= gl.texture.Gather( tex, uv, 0 );
 	return BiLerp( data[3], data[2], data[0], data[1], f );
 }
 
-float  LinearFilterHQ (gl::CombinedTex2D<float> tex, float2 uv)
+float  LinearFilterHQ (gl::CombinedTex2D<float> tex, quad_uniform float2 uv)
 {
 	return LinearFilterHQ( tex, uv, float2(gl.texture.GetSize( tex, 0 )) );
 }
@@ -79,14 +79,14 @@ float  LinearFilterHQ (gl::CombinedTex2D<float> tex, float2 uv)
 	CubicFilterHQ
 =================================================
 */
-float  CubicFilterHQ (gl::CombinedTex2D<float> tex, float2 uv, float2 dim)
+float  CubicFilterHQ (gl::CombinedTex2D<float> tex, quad_uniform float2 uv, float2 dim)
 {
 	float2	f		= Fract( uv * dim + 0.5 + 1.0/512.0 );
 	float4	data	= gl.texture.Gather( tex, uv, 0 );
 	return BiCubic( data[3], data[2], data[0], data[1], f );
 }
 
-float  CubicFilterHQ (gl::CombinedTex2D<float> tex, float2 uv)
+float  CubicFilterHQ (gl::CombinedTex2D<float> tex, quad_uniform float2 uv)
 {
 	return CubicFilterHQ( tex, uv, float2(gl.texture.GetSize( tex, 0 )) );
 }
@@ -102,7 +102,7 @@ float  CubicFilterHQ (gl::CombinedTex2D<float> tex, float2 uv)
 */
 #ifdef AE_LICENSE_MIT
 
-	float4  CubicFilter (gl::CombinedTex2D<float> tex, float2 uv, const float2 dim, const float2 invDim)
+	float4  CubicFilter (gl::CombinedTex2D<float> tex, quad_uniform float2 uv, const float2 dim, const float2 invDim)
 	{
 		uv = uv * dim + 0.5;
 
@@ -115,7 +115,7 @@ float  CubicFilterHQ (gl::CombinedTex2D<float> tex, float2 uv)
 		return gl.texture.Sample( tex, uv );
 	}
 
-	float4  CubicFilter (gl::CombinedTex2D<float> tex, float2 uv)
+	float4  CubicFilter (gl::CombinedTex2D<float> tex, quad_uniform float2 uv)
 	{
 		float2	dim = float2(gl.texture.GetSize( tex, 0 ));
 		return CubicFilter( tex, uv, dim, 1.0/dim );
@@ -147,7 +147,7 @@ float2  UVLerpFactor (float2 uv, gl::CombinedTex2D<float> tex)
 */
 #if defined(SH_FRAG) or defined(QuadGroup_dFdxCoarse)
 
-	float4  SwSampling_GetDxDy (float2 uv)
+	float4  SwSampling_GetDxDy (quad_uniform float2 uv)
 	{
 	  #ifdef SH_FRAG
 		float2	dx = gl.dFdxCoarse( uv );
@@ -159,18 +159,18 @@ float2  UVLerpFactor (float2 uv, gl::CombinedTex2D<float> tex)
 		return float4( dx, dy );
 	}
 
-	float4  SwSampling_GetDxDy (float2 uv, float bias)
+	float4  SwSampling_GetDxDy (quad_uniform float2 uv, float bias)
 	{
 		return SwSampling_GetDxDy( uv ) * Exp2( bias );
 	}
 
-	float4  SwSampling (gl::CombinedTex2D<float> tex, float2 uv)
+	float4  SwSampling (gl::CombinedTex2D<float> tex, quad_uniform float2 uv)
 	{
 		float4	dxdy = SwSampling_GetDxDy( uv );
 		return	gl.texture.SampleGrad( tex, uv, dxdy.xy, dxdy.zw );
 	}
 
-	float4  SwSampling (gl::CombinedTex2D<float> tex, float2 uv, float bias)
+	float4  SwSampling (gl::CombinedTex2D<float> tex, quad_uniform float2 uv, float bias)
 	{
 		float4	dxdy = SwSampling_GetDxDy( uv, bias );
 		return	gl.texture.SampleGrad( tex, uv, dxdy.xy, dxdy.zw );
@@ -209,14 +209,14 @@ float2  UVLerpFactor (float2 uv, gl::CombinedTex2D<float> tex)
 		return float2( Round(level), level );
 	}
 
-	float2  SwQueryLod (float2 texDim, float2 uv, float bias)
+	float2  SwQueryLod (float2 texDim, quad_uniform float2 uv, float bias)
 	{
 		bias += 0.08; // TODO: mipmapPrecisionBits?
 		float4	dxdy = SwSampling_GetDxDy( uv, bias );
 		return SwQueryLod( texDim, dxdy );
 	}
 
-	float2  SwQueryLod (gl::CombinedTex2D<float> tex, float2 uv, float bias)
+	float2  SwQueryLod (gl::CombinedTex2D<float> tex, quad_uniform float2 uv, float bias)
 	{
 		return SwQueryLod( float2(gl.texture.GetSize( tex, 0 )), uv, bias );
 	}
@@ -230,7 +230,7 @@ float2  UVLerpFactor (float2 uv, gl::CombinedTex2D<float> tex)
 	returns 1.0 if not shaded and 0.0 if shaded
 =================================================
 */
-bool  SampleShadow_IsValidCoord (const float4 shadowCoord)
+bool  SampleShadow_IsValidCoord (quad_uniform float4 shadowCoord)
 {
 	// also see ClipSpacePointIsVisible()
 	bool	valid_w		= shadowCoord.w >= 0.0;
@@ -238,25 +238,25 @@ bool  SampleShadow_IsValidCoord (const float4 shadowCoord)
 	return	valid_w and valid_uvz;
 }
 
-float  SampleShadow (gl::CombinedTex2D<float> tex, const float4 shadowCoord)
+float  SampleShadow (gl::CombinedTex2D<float> tex, quad_uniform float4 shadowCoord)
 {
 	float	d = gl.texture.Sample( tex, shadowCoord.xy ).r;
 	return	GreaterF( d, shadowCoord.z );
 }
 
-float  SampleShadow (gl::CombinedTex2DArray<float> tex, const float4 shadowCoord, float layer)
+float  SampleShadow (gl::CombinedTex2DArray<float> tex, quad_uniform float4 shadowCoord, float layer)
 {
 	float	d = gl.texture.Sample( tex, float3( shadowCoord.xy, layer )).r;
 	return	GreaterF( d, shadowCoord.z );
 }
 
-float  SampleShadowRevZ (gl::CombinedTex2D<float> tex, const float4 shadowCoord)
+float  SampleShadowRevZ (gl::CombinedTex2D<float> tex, quad_uniform float4 shadowCoord)
 {
 	float	d = gl.texture.Sample( tex, shadowCoord.xy ).r;
 	return	LessF( d, shadowCoord.z );
 }
 
-float  SampleShadowRevZ (gl::CombinedTex2DArray<float> tex, const float4 shadowCoord, float layer)
+float  SampleShadowRevZ (gl::CombinedTex2DArray<float> tex, quad_uniform float4 shadowCoord, float layer)
 {
 	float	d = gl.texture.Sample( tex, float3( shadowCoord.xy, layer )).r;
 	return	LessF( d, shadowCoord.z );

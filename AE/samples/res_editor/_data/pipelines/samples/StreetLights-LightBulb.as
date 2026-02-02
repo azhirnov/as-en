@@ -19,9 +19,7 @@
 		}{
 			RC<DescriptorSetLayout>	ds = DescriptorSetLayout( prefix+".mtr.ds" );
 			ds.UniformBuffer( EShaderStages::Vertex, "un_PerObject", "UnifiedGeometryMaterialUB" );
-			ds.StorageBuffer( EShaderStages::Vertex, "un_Geometry",  "GeometryData",			EResourceState::ShaderStorage_Read );	// external
-			ds.StorageBuffer( EShaderStages::Vertex, "un_Transform", "ObjectTransform_Array",	EResourceState::ShaderStorage_Read );	// external
-			ds.StorageBuffer( EShaderStages::Vertex, "un_LightObjs", "LightObject_Array",		EResourceState::ShaderStorage_Read );	// external
+			ds.StorageBuffer( EShaderStages::Vertex, "un_LightObjs", "LightObject_Array", EResourceState::ShaderStorage_Read );	// external
 		}{
 			RC<PipelineLayout>		pl = PipelineLayout( prefix+".pl" );
 			pl.DSLayout( "pass",	 0, "pass.ds" );

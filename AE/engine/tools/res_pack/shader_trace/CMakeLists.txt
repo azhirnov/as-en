@@ -19,6 +19,7 @@ if (TRUE)
 		"Public/ShaderTrace.h"
 		"Impl/ShaderTrace.cpp"
 		"Impl/ParseShaderTrace.cpp"
+		"Impl/ParseAsserts.cpp"
 	)
 	add_library( "ShaderTraceParser" STATIC ${SOURCES2} )
 	source_group( TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${SOURCES2} )

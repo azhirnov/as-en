@@ -1205,7 +1205,7 @@ namespace
 
 extern void Perf_Hierarchy ()
 {
-	IntervalProfiler	profiler{ "ECS Hierarchy", IntervalProfiler::EFlags::SortByPerf };
+	IntervalProfiler	profiler{ "ECS Hierarchy", IntervalProfiler::EFlags::SortByTime };
 
 	Random				rnd;
 	ulong				total_count = 0;

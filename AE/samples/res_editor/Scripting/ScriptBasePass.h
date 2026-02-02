@@ -39,13 +39,14 @@ namespace AE::ResEditor
 			Enable_ShaderTrace		= 1 << 0,
 			Enable_ShaderFnProf		= 1 << 1,
 			Enable_ShaderTmProf		= 1 << 2,
+			Enable_ShaderAsserts	= 1 << 3,	// can be enabled globally
 
-			UseSLang				= 1 << 3,
+			UseSLang				= 1 << 4,
 
 			_Last,
 			All						= ((_Last - 1) << 1) - 1,
 
-			Enable_AllShaderDbg		= Enable_ShaderTrace | Enable_ShaderFnProf | Enable_ShaderTmProf,
+			Enable_AllShaderDbg		= Enable_ShaderTrace | Enable_ShaderFnProf | Enable_ShaderTmProf | Enable_ShaderAsserts,
 		};
 
 		struct Slider

@@ -25,7 +25,7 @@
 
 **Ссылки**
 
-* GDC2015: SIMD at Insomniac Games [video](https://gdcvault.com/play/1022248/SIMD-at-Insomniac-Games-How), [pdf](https://deplinenoise.wordpress.com/wp-content/uploads/2015/03/gdc2015_afredriksson_simd.pdf)
+* GDC2015: SIMD at Insomniac Games ([video](https://gdcvault.com/play/1022248/SIMD-at-Insomniac-Games-How), [pdf](https://gdcvault.com/play/1022249/SIMD-at-Insomniac-Games-How), [pdf with notes](https://gdcvault.com/play/1022492/SIMD-at-Insomniac-Games-How))
 
 
 ## Нет компонентов произвольного размера

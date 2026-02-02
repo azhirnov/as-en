@@ -39,6 +39,20 @@ namespace AE::PipelineCompiler
 
 /*
 =================================================
+	AssertLocation
+=================================================
+*/
+	bool  ShaderTrace::AssertLocation::operator == (const AssertLocation &rhs) C_NE___
+	{
+		return	bitIndex	== rhs.bitIndex		and
+				sourceId	== rhs.sourceId		and
+				point		== rhs.point;
+	}
+//-----------------------------------------------------------------------------
+
+
+/*
+=================================================
 	Swizzle::SetDstRows
 =================================================
 */
@@ -298,6 +312,8 @@ namespace AE::PipelineCompiler
 		if ( pos < info.code.length() )
 			info.lines.emplace_back( uint(pos), uint(info.code.length()) );
 
+		ASSERT( info.firstLine <= info.lines.size() );
+
 		_sources.push_back( RVRef(info) );
 	}
 
@@ -372,6 +388,7 @@ namespace AE::PipelineCompiler
 		return	_exprLocations		== rhs._exprLocations	and
 				_varNames			== rhs._varNames		and
 				_sources			== rhs._sources			and
+				_assertLocations	== rhs._assertLocations	and
 				_posOffset			== rhs._posOffset		and
 				_dataOffset			== rhs._dataOffset		and
 				_initialPosition	== rhs._initialPosition;
@@ -388,12 +405,14 @@ namespace AE::PipelineCompiler
 		ptr->_exprLocations		= _exprLocations;
 		ptr->_varNames			= _varNames;
 		ptr->_sources			= _sources;
+		ptr->_assertLocations	= _assertLocations;
 		ptr->_posOffset			= _posOffset;
 		ptr->_dataOffset		= _dataOffset;
 		ptr->_initialPosition	= _initialPosition;
 		return ptr;
 	}
 //-----------------------------------------------------------------------------
+
 
 namespace
 {
@@ -446,6 +465,14 @@ namespace
 		return	des( OUT x.filename, OUT x.code, OUT x.firstLine, OUT x.lines );
 	}
 
+	Nd__In bool  Serialize_AssertLocation (Serializer &ser, const ShaderTrace::AssertLocation &x) {
+		return	ser( x.bitIndex, x.sourceId ) and Serialize_SourcePoint( ser, x.point );
+	}
+
+	Nd__In bool  Deserialize_AssertLocation (Deserializer &des, OUT ShaderTrace::AssertLocation &x) {
+		return	des( OUT x.bitIndex, OUT x.sourceId ) and Deserialize_SourcePoint( des, OUT x.point );
+	}
+
 } // namespace
 
 /*
@@ -469,6 +496,11 @@ namespace
 			result &= Serialize_SourceInfo( ser, item );
 		}
 
+		result &= ser( uint(_assertLocations.size()) );
+		for (auto& item : _assertLocations) {
+			result &= Serialize_AssertLocation( ser, item );
+		}
+
 		result &= ser( _posOffset, _dataOffset, _initialPosition );
 		return result;
 	}
@@ -481,6 +513,7 @@ namespace
 	bool  ShaderTrace::Deserialize (Deserializer &des) __NE___
 	{
 		try {
+			_assertLocations.clear();
 			_exprLocations.clear();
 			_varNames.clear();
 			_sources.clear();
@@ -513,6 +546,21 @@ namespace
 						return false;
 				}
 			}
+
+			// _assertLocations
+			{
+				uint	count = 0;
+				if_unlikely( not (des( OUT count ) and count < MaxCount) )
+					return false;
+
+				_assertLocations.resize( count );  // throw
+				for (auto& item : _assertLocations) {
+					if_unlikely( not Deserialize_AssertLocation( des, OUT item ))
+						return false;
+				}
+			}
+
+			ASSERT( (not _assertLocations.empty()) or (not _exprLocations.empty()) );
 
 			return des( OUT _posOffset, OUT _dataOffset, OUT _initialPosition );
 		}

@@ -23,7 +23,12 @@ namespace AE::ResEditor
 			ShadertoyVR,			// entry: mainVR
 			ShadertoyVR_180,
 			ShadertoyVR_360,
+			Shadertoy_180,
 			Shadertoy_360,
+			Shadertoy_Panini180,
+			Shadertoy_FishEye180,
+			Shadertoy_DualFishEye360,
+			Shadertoy_FishEyeVR180,
 
 			_Count,
 		};

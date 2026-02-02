@@ -9,9 +9,18 @@
 
 #include "_ui_data/cpp/types.h"
 
+#ifdef AE_COMPILER_MSVC
+#	pragma warning (push)
+#	pragma warning (disable: 5039)
+#endif
+
 //#define IMGUI_DISABLE_OBSOLETE_FUNCTIONS	// TODO
 #include "imgui.h"
 #include "imgui_internal.h"
+
+#ifdef AE_COMPILER_MSVC
+#	pragma warning (pop)
+#endif
 
 namespace ImGui
 {
@@ -49,6 +58,7 @@ namespace AE::Base
 			case EDebugMode::Trace :		return "Trace";
 			case EDebugMode::FnProfiling :	return "FnProfiling";
 			case EDebugMode::TimeHeatMap :	return "TimeHeatMap";
+			case EDebugMode::Asserts :		ASSERT(false);
 			case EDebugMode::Unknown :
 			case EDebugMode::_Count :
 			default :						return "";
@@ -292,6 +302,8 @@ namespace
 	void  UIInteraction::AddPassDbgInfo (const IPass* uid, EDebugModeBits modes, EShaderStages stages)
 	{
 		modes.erase( EDebugMode::Unknown );
+		modes.erase( EDebugMode::Asserts );
+
 		if ( modes.None() or stages == Default )
 			return;
 
@@ -323,6 +335,7 @@ namespace
 		}
 		return result;
 	}
+
 /*
 =================================================
 	DbgView
@@ -346,6 +359,18 @@ namespace
 			return _dbgView[idx].load();
 		else
 			return null;
+	}
+
+/*
+=================================================
+	SetShaderAsserts
+=================================================
+*/
+	void  UIInteraction::SetShaderAsserts (Array<String> in)
+	{
+		auto	dst = shaderAsserts.WriteLock();
+
+		dst->lines = RVRef(in);
 	}
 //-----------------------------------------------------------------------------
 
@@ -420,6 +445,9 @@ namespace
 		inline static const float		wnd_width		= 370.f;
 		inline static const float		wnd_height		= 650.f;
 
+		inline static const float		wnd2_width		= 500.f;
+		inline static const float		wnd2_height		= 300.f;
+
 
 	// methods
 	public:
@@ -445,6 +473,7 @@ namespace
 			void  _UpdateDbgView (INOUT float2 &wnd_pos);
 			void  _UpdatePopups ();
 			void  _ShowHelp ();
+			void  _UpdateAssertsWindow ();
 
 			bool  _DrawUI (DrawCtx &dctx, const ImDrawData &drawData, const PipelineSet &ppln);
 		ND_ bool  _UpdateDS (GraphicsCtx&, FrameUID);
@@ -679,6 +708,7 @@ namespace
 			_UpdateDbgView( INOUT wnd_pos );
 			_UpdatePopups();
 			_ShowHelp();
+			_UpdateAssertsWindow();
 		}
 
 		if ( imgui->reloadScript )
@@ -840,6 +870,7 @@ namespace
 			}
 		}
 		ImGui::Separator();
+		ImGui::NewLine();
 
 		// shader & pipeline options
 		{
@@ -851,13 +882,18 @@ namespace
 				 ImGui::Checkbox( "Optimize shader & pipeline", INOUT &pipe_opt ))
 				g_mode->shaderFlags.set( UIInteraction::EShaderFlags::Optimize, pipe_opt );
 
-			if ( bool pipe_stat = g_mode->shaderFlags.contains( UIInteraction::EShaderFlags::CaptureStatistics );
-				 ImGui::Checkbox( "Pipeline statistics", INOUT &pipe_stat ))
-				g_mode->shaderFlags.set( UIInteraction::EShaderFlags::CaptureStatistics, pipe_stat );
+		  #ifdef AE_ENABLE_VULKAN
+			if ( GraphicsScheduler().GetDevice().GetVExtensions().pplnExecProps )
+			{
+				if ( bool pipe_stat = g_mode->shaderFlags.contains( UIInteraction::EShaderFlags::CaptureStatistics );
+					 ImGui::Checkbox( "Pipeline statistics", INOUT &pipe_stat ))
+					g_mode->shaderFlags.set( UIInteraction::EShaderFlags::CaptureStatistics, pipe_stat );
 
-			if ( bool pipe_internal = g_mode->shaderFlags.contains( UIInteraction::EShaderFlags::CaptureInternalRepresentation );
-				 ImGui::Checkbox( "Pipeline internal representation", INOUT &pipe_internal ))
-				g_mode->shaderFlags.set( UIInteraction::EShaderFlags::CaptureInternalRepresentation, pipe_internal );
+				if ( bool pipe_internal = g_mode->shaderFlags.contains( UIInteraction::EShaderFlags::CaptureInternalRepresentation );
+					 ImGui::Checkbox( "Pipeline internal representation", INOUT &pipe_internal ))
+					g_mode->shaderFlags.set( UIInteraction::EShaderFlags::CaptureInternalRepresentation, pipe_internal );
+			}
+		  #endif
 
 		  #if defined(AE_PLATFORM_WINDOWS) and defined(AE_METAL_TOOLS)
 			if ( bool msl = g_mode->shaderFlags.contains( UIInteraction::EShaderFlags::CompileMSL );
@@ -866,6 +902,28 @@ namespace
 		  #endif
 		}
 		ImGui::Separator();
+		ImGui::NewLine();
+
+		// shader asserts
+	  #ifdef AE_ENABLE_GLSL_TRACE
+		{
+			ImGui::TextUnformatted( "Asserts in shader" );
+
+			auto&	shader_asserts = UIInteraction::Instance().shaderAsserts;
+
+			ImGui::NextColumn();
+			if ( bool enable = g_mode->shaderFlags.contains( UIInteraction::EShaderFlags::EnableAsserts );
+				 ImGui::Checkbox( "Enable", INOUT &enable ))
+				g_mode->shaderFlags.set( UIInteraction::EShaderFlags::EnableAsserts, enable );
+
+			ImGui::NextColumn();
+			if ( bool open_file = shader_asserts.ConstPtr()->openFile;
+				 ImGui::Checkbox( "Open file", INOUT &open_file ))
+				shader_asserts->openFile = open_file;
+		}
+		ImGui::Separator();
+		ImGui::NewLine();
+	  #endif
 
 		// UI
 		{
@@ -884,6 +942,7 @@ namespace
 			}
 		}
 		ImGui::Separator();
+		ImGui::NewLine();
 
 		// info
 		{
@@ -1054,7 +1113,7 @@ namespace
 			else
 			if ( imgui->dbgPassIdx == dbg_passes.size() )
 			{
-				dbg->target	= BitCast<void*>(usize(0x1));
+				dbg->target	= IPass::c_DebugAllTargets;
 				dbg->stage	= EShaderStages::All;
 			}
 
@@ -1417,6 +1476,79 @@ namespace
 
 		ImGui::Begin( "Help", null, wnd_flags );
 		ImGui::Text( "%s", imgui->helpText.c_str() );
+		ImGui::End();
+	}
+
+/*
+=================================================
+	DrawTask::_UpdateAssertsWindow
+=================================================
+*/
+	void  EditorUI::DrawTask::_UpdateAssertsWindow ()
+	{
+		const auto	wnd_flags	= ImGuiWindowFlags_NoSavedSettings;
+		ImGuiIO &	io			= ImGui::GetIO();
+
+		ImGui::SetNextWindowPos( ImVec2{io.DisplaySize.x - wnd2_width, 30.f}, ImGuiCond_Once );
+		ImGui::SetNextWindowSizeConstraints( ImVec2{wnd2_width, wnd2_height}, io.DisplaySize );
+
+		if ( ImGui::Begin( "ShaderAsserts", null, wnd_flags ))
+		{
+			auto			sh_asserts	= UIInteraction::Instance().shaderAsserts.ReadLock();
+			const usize		max_lines	= 200;
+			const usize		count		= Min( max_lines, sh_asserts->lines.size() );
+			bool			clicked		= false;
+
+			const auto		OnClick		= [&sh_asserts] (usize idx)
+			{{
+				auto	str		= StringView{ sh_asserts->lines[idx] };
+				usize	pos1	= str.find( '\n' );
+				usize	pos2	= SubString( str, 0, pos1 ).find( " (" );	// require 'FileURL' format
+
+				if ( pos2 < str.size() )
+				{
+					StringView	file		= SubStringBE( str, 8, pos2 );	// without url prefix
+					uint		line		= StringToUInt( SubStringBE( str, pos2+2, pos1-1 ));
+					StringView	file_url	= SubStringBE( str, 0, pos2 );
+					StringView	msg			= SubString( str, pos1+1 );
+
+					Parser::SkipWhiteSpaces( INOUT msg );
+
+					if ( sh_asserts->openFile )
+						Unused( PlatformUtils::OpenURL( file_url ));
+
+					AE_PRIVATE_LOGX( ELogLevel::Info, ELogScope::Unknown, msg, SourceLoc(file, line) );
+				}
+				else{
+					CHECK_MSG( false, "file path for shader assert is not exists" );
+				}
+			}};
+
+			ImGui::PushStyleVar( ImGuiStyleVar_FramePadding, ImVec2(2.f, 2.f) );
+
+			for (usize i = 0; i < count; ++i)
+			{
+				ImGui::PushID( int(i) );
+
+				// skip file name
+				String const&	line	= sh_asserts->lines[i];
+				usize			pos1	= line.find( '\n' );
+				usize			pos2	= pos1 < line.size() ? SubString( line, 0, pos1 ).rfind( '/' ) : UMax;
+				const char*		line2	= line.c_str() + (pos2 < line.size() ? pos2 + 1 : 0u);
+
+				if_unlikely( ImGui::Button( line2 ) and not clicked )
+				{
+					OnClick( i );
+					clicked = true;
+				}
+
+				ImGui::PopID();
+			}
+
+			ImGui::PopStyleVar();
+
+			// TODO: next page button
+		}
 		ImGui::End();
 	}
 

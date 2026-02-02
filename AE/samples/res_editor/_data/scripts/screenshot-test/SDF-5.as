@@ -54,7 +54,7 @@
 		const uint		idx		= uint(uv.x * scale.x) + uint(uv.y * scale.y) * uint(scale.x);
 		const float		min_d	= 0.001;
 
-		Ray		ray = Ray_Perspective( float3(0.0), ToRad(45), un_PerPass.resolution.x/un_PerPass.resolution.y, 0.1, ToSNorm( Fract( uv * scale )) );
+		Ray		ray = Ray_Perspective( float3(0.0), ToRad(45), un_PerPass.resolution.x/un_PerPass.resolution.y, 0.1, Fract( uv * scale ) );
 		float	md = float_max;
 
 		for (uint i = 0; i < 64; ++i)

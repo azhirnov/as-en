@@ -74,6 +74,16 @@ namespace AE::Graphics
 		return _dbgTrace and _dbgTrace->ParseShaderTrace( ptr, maxSize, ConvertLogFormat(format), OUT result );
 	}
 
+/*
+=================================================
+	ParseShaderAsserts
+=================================================
+*/
+	bool  RTilePipeline::ParseShaderAsserts (const void* ptr, Bytes maxSize, ShaderDebugger::ELogFormat format, OUT Array<String> &result) C_NE___
+	{
+		DRC_SHAREDLOCK( _drCheck );
+		return _dbgTrace and _dbgTrace->ParseAsserts( ptr, maxSize, ConvertLogFormat(format), OUT result );
+	}
 
 } // AE::Graphics
 

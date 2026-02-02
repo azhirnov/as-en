@@ -352,6 +352,7 @@ namespace
 		}};
 
 		AddPpln( IPass::EDebugMode::Unknown,		EFlags::Unknown,				PipelineName{"compute"} );
+		AddPpln( IPass::EDebugMode::Asserts,		EFlags::Unknown,				PipelineName{"compute.Asserts"} );
 		AddPpln( IPass::EDebugMode::Trace,			EFlags::Enable_ShaderTrace,		PipelineName{"compute.Trace"} );
 		AddPpln( IPass::EDebugMode::FnProfiling,	EFlags::Enable_ShaderFnProf,	PipelineName{"compute.FnProf"} );
 		AddPpln( IPass::EDebugMode::TimeHeatMap,	EFlags::Enable_ShaderTmProf,	PipelineName{"compute.TmProf"} );
@@ -527,7 +528,7 @@ namespace AE::ResEditor
 					"Failed to read shader file '"s << ToString(_pplnPath) << "'" );
 
 				header >> cs;
-				cs_line = uint(Parser::CalculateNumberOfLines( header )) - 1;
+				cs_line = SubSat( uint(Parser::CalculateNumberOfLines( header )), 1u );
 			}
 		}
 
@@ -552,11 +553,16 @@ namespace AE::ResEditor
 		if ( flags.contains( UIInteraction::EShaderFlags::CaptureInternalRepresentation ))
 			ppln_opt |= EPipelineOpt::CaptureInternalRepresentation;
 
-		StaticAssert( uint(UIInteraction::EShaderFlags::_Count) == 5 );
+		StaticAssert( uint(UIInteraction::EShaderFlags::_Count) == 6 );
 
 		_CompilePipeline3( cs, cs_line, "compute", uint(sh_opt), ppln_opt );
 
 	  #ifdef AE_ENABLE_GLSL_TRACE
+		if ( AllBits( _baseFlags, EFlags::Enable_ShaderAsserts )		or
+			 flags.contains( UIInteraction::EShaderFlags::EnableAsserts ))
+		{
+			NOTHROW( _CompilePipeline3( cs, cs_line, "compute.Asserts", uint(sh_opt | EShaderOpt::Asserts), Default ));
+		}
 		if ( AllBits( _baseFlags, EFlags::Enable_ShaderTrace ))
 			NOTHROW( _CompilePipeline3( cs, cs_line, "compute.Trace", uint(sh_opt | EShaderOpt::Trace), Default ));
 

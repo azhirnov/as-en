@@ -24,6 +24,9 @@ ND_ Quat	QCreateWXYZ (float w, float x, float y, float z);
 
 ND_ Quat	QFromSpherical (const float2 phiTheta);
 ND_ Quat	QFromEuler (float yaw, float pitch, float roll);
+ND_ Quat	QFromEuler (const float3 yawPitchRoll);
+
+ND_ Quat	QFromMat (const float3x3 mat);
 
 ND_ Quat	QFrom2Normals (const float3 from, const float3 to);
 
@@ -125,6 +128,11 @@ Quat  QFromEuler (float yaw, float pitch, float roll)
     return QNormalize( q );
 }
 
+Quat  QFromEuler (const float3 yawPitchRoll)
+{
+	return QFromEuler( yawPitchRoll.x, yawPitchRoll.y, yawPitchRoll.z );
+}
+
 Quat  QFromSpherical (const float2 phiTheta)
 {
 	return QFromEuler( phiTheta.y, phiTheta.x, 0.0 );
@@ -148,7 +156,7 @@ Quat  QNormalize (const Quat q)
 	}
 
 	if ( Abs( n - 1.0 ) < 1.0e-5 )
-		return ret;
+		return ret;  // already normalized
 
 	ret.data *= InvSqrt( n );
 	return ret;

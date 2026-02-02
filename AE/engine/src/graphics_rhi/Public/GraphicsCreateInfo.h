@@ -21,11 +21,11 @@ namespace AE::Graphics
 
 		// Vulkan presets
 		//    requires: VExtensions::validationFlags (VK_EXT_validation_features)
-		MinimalPreset			= 1 << 24,
+		MinimalPreset			= 1 << 24,	// low CPU overhead
 		SynchronizationPreset	= 2 << 24,
 		BestPracticesPreset		= 3 << 24,
 		ShaderBasedPreset		= 4 << 24,	// validate access in shaders and indirect commands
-		ShaderPrintfPreset		= 5 << 24,
+		ShaderPrintfPreset		= 5 << 24,	// enabled printf in shader
 
 		// Metal
 	};
@@ -59,7 +59,7 @@ namespace AE::Graphics
 	  #ifdef AE_PLATFORM_LINUX
 		_LinuxDrivers	= 0x10,
 		RADV,			// open-source driver for AMD GPU from Mesa package
-		AMDVLK,			// AMD open-source driver
+		AMD_VLK,		// AMD open-source driver
 		AMD_PRO,		// AMD proprietory driver
 		ANV,			// open-source driver for Intel GPU from Mesa package
 		IntelPro,		// Intel proprietory driver

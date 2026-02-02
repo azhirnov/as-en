@@ -519,7 +519,7 @@ namespace
 				setAffinity();
 
 				IntervalProfiler	profiler{ "SIMD-2 test, single thread, "s << ToString( core.type ) << " core",
-												IntervalProfiler::EFlags::SortByPerf };
+												IntervalProfiler::EFlags::SortByTime };
 
 				// Clang converts scalar to SIMD, so test is not correct
 				#if not defined(AE_COMPILER_CLANG) or not defined(AE_COMPILER_CLANG_CL)

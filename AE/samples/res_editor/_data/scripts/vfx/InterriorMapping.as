@@ -1,7 +1,7 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 /*
 	Used orthographic projection to build cubemap (front face is not used).
-		Based on [RenderToCubemap sample](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/scripts/samples-3d/RenderToCubemap.as)
+		Based on [RenderToCubemap sample](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/scripts/projections/RenderToCubemap.as)
 	Used ray-box intersection to build fake room.
 */
 #ifdef __INTELLISENSE__
@@ -69,7 +69,7 @@
 			scene.Add( model );
 		}
 
-		Slider( mode,	"Mode",		0,	1 );
+		Slider( mode,	"ShowCubemap",		0,	1 );
 
 		// render loop
 		{
@@ -91,7 +91,6 @@
 			pass.Slider( "iTiling",			0.5,	4.0,	1.3 );
 			pass.Slider( "iRoomDepth",		0.2,	4.0,	1.0 );
 			pass.Slider( "iView",			0,		2 );
-			pass.AddFlag( EPassFlags::Enable_ShaderTrace );
 			pass.EnableIfEqual( mode, 0 );
 		}{
 			RC<Postprocess>		pass = Postprocess( "", "VIEW_CUBEMAP" );
@@ -118,7 +117,7 @@
 		float3	view_dir;
 
 		{
-			Ray		ray			= Ray_Perspective( un_PerPass.camera.invViewProj, un_PerPass.camera.pos, un_PerPass.camera.clipPlanes.x, gl.FragCoord.xy / un_PerPass.resolution.xy );
+			Ray		ray			= Ray_Perspective( un_PerPass.camera.invViewProj, un_PerPass.camera.pos, un_PerPass.camera.clipPlanes.x, gl.FragCoord.xy * un_PerPass.invResolution );
 
 			float3	tangent		= float3(1.0, 0.0, 0.0);	// X axis
 			float3	bitangent	= float3(0.0, 1.0, 0.0);	// Y axis

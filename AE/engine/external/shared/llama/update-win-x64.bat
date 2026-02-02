@@ -9,7 +9,6 @@ copy /Y "llama_CMakeLists.txt" "temp\CMakeLists.txt"
 mkdir "..\..\..\..\..\AE-Bin\external\win-x64\llama"
 mkdir "..\..\..\..\..\AE-Bin\external\win-x64\llama\include"
 mkdir "..\..\..\..\..\AE-Bin\external\win-x64\llama\lib"
-mkdir "..\..\..\..\..\AE-Bin\external\win-x64\llama\bin"
 copy /Y "temp\LICENSE" "..\..\..\..\..\AE-Bin\external\win-x64\llama\llama-LICENSE.txt"
 copy /Y "temp\include\llama.h" "..\..\..\..\..\AE-Bin\external\win-x64\llama\include\llama.h"
 robocopy "temp\ggml\include" "..\..\..\..\..\AE-Bin\external\win-x64\llama\include" *.h /S 

@@ -136,7 +136,7 @@
 	{
 		float4			col		= float4(0.0);
 		const float2	uv		= GetGlobalCoordUNorm().xy;
-		float3			dir		= Ray_PlaneTo360( float3(0.0), 0.1, uv ).dir;
+		float3			dir		= Ray_PlaneToSphereMap360( float3(0.0), 0.1, uv ).dir;
 		const float3x3	rot		= float3x3(  0.9017,  0.4321, -0.00746,
 											-0.3461,  0.7324,  0.5862,
 											 0.2588, -0.5260,  0.8100 );

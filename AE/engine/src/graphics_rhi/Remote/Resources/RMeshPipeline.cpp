@@ -86,6 +86,24 @@ namespace AE::Graphics
 		return true;
 	}
 
+/*
+=================================================
+	ParseShaderAsserts
+=================================================
+*/
+	bool  RMeshPipeline::ParseShaderAsserts (const void* ptr, Bytes maxSize, ShaderDebugger::ELogFormat format, OUT Array<String> &result) C_NE___
+	{
+		result.clear();
+		DRC_SHAREDLOCK( _drCheck );
+
+		for (auto& trace : _dbgTrace)
+		{
+			Array<String>	temp;
+			CHECK_ERR( trace->ParseAsserts( ptr, maxSize, ConvertLogFormat(format), OUT temp ));
+			result.insert( result.end(), temp.begin(), temp.end() );
+		}
+		return true;
+	}
 
 } // AE::Graphics
 

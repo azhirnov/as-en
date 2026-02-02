@@ -731,8 +731,13 @@ namespace
 
 		if ( AllBits( _desc.usage, EImageUsage::TransferSrc )			and
 			 NoBits( _desc.usage, EImageUsage::DepthStencilAttachment )	and
-			 NoBits( _desc.options, EImageOpt::Subsampled ))
+			 NoBits( _desc.options, EImageOpt::Subsampled )				)
+		{
 			_desc.options |= EImageOpt::BlitSrc;
+
+			//if ( EPixelFormat_GetInfo( _desc.format ).IsFloatOrNormalized() )
+			//	_desc.options |= EImageOpt::SampledLinear;
+		}
 
 		if ( NoBits( _desc.usage, EImageUsage_AllowImageView ))
 			_desc.usage |= EImageUsage::Sampled;

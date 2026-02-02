@@ -55,6 +55,11 @@ namespace AE::Graphics
 									ShaderDebugger::ELogFormat	logFmt,
 									OUT Array<String>			&result)	C_NE___;
 
+		ND_ bool  ParseShaderAsserts (const void*					ptr,
+									  Bytes							maxSize,
+									  ShaderDebugger::ELogFormat	logFmt,
+									  OUT Array<String>				&result) C_NE___;
+
 		ND_ VkPipeline				Handle ()								C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _handle; }
 		ND_ VkPipelineLayout		Layout ()								C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _layout; }
 		ND_ VkPipelineBindPoint		BindPoint ()							C_NE___	{ return VK_PIPELINE_BIND_POINT_COMPUTE; }

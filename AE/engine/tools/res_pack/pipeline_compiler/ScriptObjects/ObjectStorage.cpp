@@ -1079,6 +1079,8 @@ namespace {
 		binder.AddValue( "FnProfiling",			EShaderOpt::FnProfiling );
 		binder.Comment( "Insert whole shader time measurement. Shader will be a bit slow." );
 		binder.AddValue( "TimeHeatMap",			EShaderOpt::TimeHeatMap );
+		binder.Comment( "Enable asserts. Shader will be a bit slower." );
+		binder.AddValue( "Asserts",				EShaderOpt::Asserts );
 		// optimize
 		binder.Comment( "Enable optimizations. Take a lot of CPU time at shader compilation." );
 		binder.AddValue( "Optimize",			EShaderOpt::Optimize );
@@ -1088,7 +1090,7 @@ namespace {
 		binder.AddValue( "StrongOptimization",	EShaderOpt::StrongOptimization );
 		// options
 		binder.AddValue( "WarnAsError",			EShaderOpt::WarnAsError );
-		StaticAssert( uint(EShaderOpt::All) == 0x7FF );
+		StaticAssert( uint(EShaderOpt::All) == 0x1FF );
 	}
 
 	void  ObjectStorage::Bind_EAccessType (const ScriptEnginePtr &se)

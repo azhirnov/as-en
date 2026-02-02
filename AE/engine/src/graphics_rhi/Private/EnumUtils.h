@@ -258,6 +258,7 @@ namespace AE::Graphics
 		ND_ bool	IsNormalized ()					C_NE___;
 		ND_ bool	IsInteger ()					C_NE___;
 		ND_ bool	IsFloat ()						C_NE___;
+		ND_ bool	IsFloatOrNormalized ()			C_NE___;
 
 		// only for color or depth
 		ND_ uint	BitsPerPixel ()					C_NE___	{ return uint(bitsPerBlock) / Area( TexBlockDim() ); }
@@ -273,9 +274,10 @@ namespace AE::Graphics
 
 	ND_ PixelFormatInfo const&  EPixelFormat_GetInfo (EPixelFormat value) __NE___;
 
-	inline bool  PixelFormatInfo::IsNormalized ()	C_NE___	{ return AnyBits( valueType, EType::UNorm | EType::SNorm ); }
-	inline bool  PixelFormatInfo::IsInteger ()		C_NE___	{ return AnyBits( valueType, EType::SInt | EType::UInt ); }
-	inline bool  PixelFormatInfo::IsFloat ()		C_NE___	{ return AnyBits( valueType, EType::SFloat | EType::UFloat ); }
+	inline bool  PixelFormatInfo::IsNormalized ()			C_NE___	{ return AnyBits( valueType, EType::UNorm | EType::SNorm ); }
+	inline bool  PixelFormatInfo::IsInteger ()				C_NE___	{ return AnyBits( valueType, EType::SInt | EType::UInt ); }
+	inline bool  PixelFormatInfo::IsFloat ()				C_NE___	{ return AnyBits( valueType, EType::SFloat | EType::UFloat ); }
+	inline bool  PixelFormatInfo::IsFloatOrNormalized ()	C_NE___	{ return AnyBits( valueType, EType::SFloat | EType::UFloat | EType::UNorm | EType::SNorm ); }
 
 /*
 =================================================

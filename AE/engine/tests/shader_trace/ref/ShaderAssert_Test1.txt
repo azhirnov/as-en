@@ -1,0 +1,27 @@
+	ASSERT( gl_GlobalInvocationID.x != 0 ); // 0
+	ASSERT( false ); // 1
+	ASSERT( false ); // 3
+	ASSERT( false ); // 4
+	ASSERT( false ); // 5
+	ASSERT( false ); // 7
+	ASSERT( false ); // 8
+	ASSERT( false ); // 9
+	ASSERT( false ); // 11
+	ASSERT( false ); // 12
+	ASSERT( false ); // 13
+	ASSERT( false ); // 14
+	ASSERT( false ); // 15
+	ASSERT( false ); // 17
+	ASSERT( false ); // 18
+	ASSERT( false ); // 19
+	ASSERT( false ); // 20
+	ASSERT( false ); // 22
+	ASSERT( false ); // 23
+	ASSERT( false ); // 24
+	ASSERT( false ); // 25
+	ASSERT( false ); // 27
+	ASSERT( false ); // 28
+	ASSERT( false ); // 29
+	ASSERT( false ); // 31
+	ASSERT( false ); // 32
+	ASSERT( false ); // 34

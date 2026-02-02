@@ -168,6 +168,8 @@ namespace AE::PipelineCompiler
 				case EShaderOpt::Trace :
 				case EShaderOpt::FnProfiling :
 				case EShaderOpt::TimeHeatMap :
+				case EShaderOpt::Asserts :
+														CHECK_THROW_MSG( false, "unsupported shader option" );  break;
 				case EShaderOpt::Unknown :
 				case EShaderOpt::_ShaderTrace_Mask :
 				case EShaderOpt::_Last :

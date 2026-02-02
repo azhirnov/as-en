@@ -175,6 +175,7 @@ namespace AE::Base
 		ND_ static Self  Frustum (const Rect_t &viewport, const Vec2_t &range)				__NE___	{ return Self{ glm::frustum( viewport.left, viewport.right, viewport.top, viewport.bottom, range[0], range[1] )}; }
 		ND_ static Self  InfiniteFrustum (const Rect_t &viewport, T zNear)					__NE___;
 
+		ND_ static Self  LookAt (const Vec3_t &dir, const Vec3_t &up)						__NE___;
 		ND_ static Self  LookAt (const Vec3_t &eye, const Vec3_t &center, const Vec3_t &up)	__NE___	{ return Self{ glm::lookAt( eye, center, up )}; }
 
 		ND_ static Self  Scale (const Vec3_t &scale)										__NE___;
@@ -335,7 +336,9 @@ namespace AE::Base
 						Col_t{ T(0),    scale.y,  T(0) },
 						Col_t{ T(0),    T(0),     scale.z }};
 	}
+#endif
 
+#if (Columns == 3 and Rows == 3) or (Columns == 4 and Rows == 4)
 /*
 =================================================
 	LookAt

@@ -232,7 +232,7 @@ float3  CM_InverseRotation (const ECubeFace face, const float3 c)
 	half4  CM_InverseRotation (half3 c)
 	{
 		c.y = -c.y;
-		
+
 		const half3  a = Abs(c);
 
 		// front (xy space)

@@ -89,7 +89,6 @@
 
 	void Main ()
 	{
-		// TODO: use power of 2
 		const uint	idx			= gl.InstanceIndex / un_Nodes.instanceCount;
 		const int	face		= int(gl.InstanceIndex - idx * un_Nodes.instanceCount);
 

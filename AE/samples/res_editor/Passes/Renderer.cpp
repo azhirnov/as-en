@@ -14,7 +14,8 @@ namespace AE::ResEditor
 =================================================
 */
 	Renderer::Renderer (uint seed) __Th___ :
-		_seed{ seed }
+		_seed{ seed },
+		_shaderAssertsTimer{ seconds{1} }
 	{
 		const auto&	shader_trace_folder	= ResEditorAppConfig::Get().shaderTraceFolder;
 
@@ -187,8 +188,10 @@ namespace AE::ResEditor
 		}
 
 		// setup shader debugger
+		if ( _shaderDebugger )
 		{
-			auto	dbg = UIInteraction::Instance().debugger.WriteLock();
+			auto	flags	= UIInteraction::Instance().graphics->shaderFlags;
+			auto	dbg		= UIInteraction::Instance().debugger.ReadLock();
 
 			pass_debugger.debugger	= _shaderDebugger.get();
 			pass_debugger.target	= dbg->target;
@@ -196,6 +199,15 @@ namespace AE::ResEditor
 			pass_debugger.stage		= dbg->stage;
 			pass_debugger.coord		= dbg->coord;
 			pass_debugger.exactCoord = dbg->exactCoord;
+
+			if ( not pass_debugger.IsEnabled()									and
+				 flags.contains( UIInteraction::EShaderFlags::EnableAsserts )	and
+				 _shaderAssertsTimer.Tick()										)
+			{
+				pass_debugger.mode		= IPass::EDebugMode::Asserts;
+				pass_debugger.target	= IPass::c_DebugAllTargets;
+				pass_debugger.stage		= EShaderStages::All;
+			}
 		}
 
 		// which passes need to update
@@ -296,10 +308,11 @@ namespace AE::ResEditor
 
 
 		// read shader debugger output
-		if ( _shaderDebugger and _shaderDebugger->HasPendingRequests() )
+		//
+		if ( _shaderDebugger and pass_debugger.IsEnabled() )
 		{
 			out_deps.push_back( rg.UI().Task(
-					_ReadShaderTrace(),
+					_ReadShaderTrace( pass_debugger.mode == IPass::EDebugMode::Asserts ),
 					{"Read shader debugger output"} )
 				.Run( Tuple{deps_ref} ) );
 		}
@@ -506,20 +519,45 @@ namespace AE::ResEditor
 	_ReadShaderTrace
 =================================================
 */
-	RenderCoro  Renderer::_ReadShaderTrace () __Th___
+	RenderCoro  Renderer::_ReadShaderTrace (bool shaderAsserts) __Th___
 	{
+		if ( not _shaderDebugger->HasPendingRequests() )
+		{
+			RenderCoro_SkipCommands();
+			co_return;
+		}
+
 		DirectCtx::Transfer	ctx	{RenderCoro_Get()};
 
-		CreateInlineRev(
-			_shaderDebugger->ReadAll( ctx, ShaderDebugger::ELogFormat::VS ),
-			GetRC<Renderer>(),
-			[](Promise<Array<String>> readOp, RC<Renderer> self) -> InlineCoro<ETaskQueue::Background>
-			{
-				Array<String>  output = co_await readOp;
-				self->_PrintDbgTrace( output );
-				co_return;
-			});
+		if ( shaderAsserts )
+		{
+			CreateInlineRev(
+				_shaderDebugger->ReadAll( ctx, ShaderDebugger::ELogFormat::FileURL ),
+				[](Promise<Array<String>> readOp) -> InlineCoro<ETaskQueue::Background>
+				{
+					Array<String>  output = co_await readOp;
+					UIInteraction::Instance().SetShaderAsserts( RVRef(output) );
+					co_return;
+				});
+		}
+		else
+		{
+		#ifdef AE_COMPILER_MSVC
+			const auto	log_fmt	= ShaderDebugger::ELogFormat::FileURL;
+		#else
+			const auto	log_fmt	= ShaderDebugger::ELogFormat::VSCode;
+		#endif
 
+			CreateInlineRev(
+				_shaderDebugger->ReadAll( ctx, log_fmt ),
+				GetRC<Renderer>(),
+				[](Promise<Array<String>> readOp, RC<Renderer> self) -> InlineCoro<ETaskQueue::Background>
+				{
+					Array<String>  output = co_await readOp;
+					self->_PrintDbgTrace( output );
+					co_return;
+				});
+		}
 		RenderCoro_Execute( ctx );
 	}
 

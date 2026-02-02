@@ -61,7 +61,7 @@
 				uv		= uv * 10.0 / uvScale;
 		float2	ipos	= Floor( uv );
 		float2	fpos	= ToSNorm( Fract( uv ));
-		
+
 		float	radius	= (DHash12( ipos * 22.2 ) * 0.5 + 0.5) * rScale;
 		float2	offset	= ToSNorm( DHash22( ipos * 11.1 )) * (1.0 - rScale*1.5);
 

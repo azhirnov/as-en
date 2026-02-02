@@ -246,7 +246,7 @@ namespace
 
 		const auto	Variant1 = [pos, str, OUT &res] ()
 		{{
-			WStringView  part = str.substr( pos-1, 3 );
+			WStringView  part = SubString( str, pos-1, 3 );
 
 			DWORD	spc, bps = 0, freec, totalc;
 			bool	ok = ::GetDiskFreeSpaceW( NtWStringView{part}.c_str(), OUT &spc, OUT &bps, OUT &freec, OUT &totalc ) != 0;  // winxp

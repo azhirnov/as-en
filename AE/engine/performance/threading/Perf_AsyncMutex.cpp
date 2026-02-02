@@ -1,7 +1,6 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 /*
-	Results:
-		10'000 AM calls in ~2ms on Ryzen 9 / M1, ~4.5ms on Android
+	[results](https://github.com/azhirnov/as-en/blob/dev/AE/docs/papers/bench-cpu/AsyncMutex.md)
 */
 
 #include "Perf_Common.h"

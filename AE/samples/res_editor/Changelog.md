@@ -1,4 +1,9 @@
-## 1.2026
+## 02.2026
+- asserts in shader
+- fisheye, paraboloid, dualparaboloid projections
+
+
+## 01.2026
 - Sample: Voxels (cubes, marching cubes, surface nets, dual contoruing)
 - Sample: interior mapping
 - Sample: classic/tiled deferred, clustered forward

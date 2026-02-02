@@ -10,7 +10,7 @@
 	{
 		// initialize
 		RC<Image>	rt	= Image( EPixelFormat::RGBA8_UNorm, SurfaceSize() );
-		RC<Image>	tex	= Image( EImageType::Float_2DArray, "res2/models/Plants/texturearray_plants_rgba.ktx" );
+		RC<Image>	tex	= Image( EImageType::Float_2DArray, "TODO" );
 
 		// render loop
 		{

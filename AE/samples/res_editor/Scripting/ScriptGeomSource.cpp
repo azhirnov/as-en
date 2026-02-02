@@ -601,6 +601,7 @@ namespace
 			case EDebugMode::Trace :		opt = EShaderOpt::Trace;		opt_name = "Trace";			break;
 			case EDebugMode::FnProfiling :	opt = EShaderOpt::FnProfiling;	opt_name = "FnProfiling";	break;
 			case EDebugMode::TimeHeatMap :	opt = EShaderOpt::TimeHeatMap;	opt_name = "TimeHeatMap";	break;
+			case EDebugMode::Asserts :		opt = EShaderOpt::Asserts;		opt_name = "Asserts";		break;
 			case EDebugMode::Unknown :		break;
 			case EDebugMode::_Count :
 			default :						CHECK_THROW_MSG( false, "Unsupported EDebugMode" );

@@ -108,7 +108,17 @@ namespace AE::AtlasTools
 
 } // AE::AtlasTools
 
+
+# ifdef AE_COMPILER_MSVC
+#	pragma warning (push)
+#	pragma warning (disable: 5039)
+# endif
+
 # define STB_RECT_PACK_IMPLEMENTATION
 # include "stb_rect_pack.h"
+
+# ifdef AE_COMPILER_MSVC
+#	pragma warning (pop)
+# endif
 
 #endif // AE_ENABLE_STB

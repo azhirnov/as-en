@@ -83,20 +83,43 @@ namespace
 			binder.Create();
 
 			binder.Comment( "Entry point: 'Main'");
-			binder.AddValue( "None",				EPostprocess::Unknown );
+			binder.AddValue( "None",					EPostprocess::Unknown );
 
 			binder.Comment( "Entry point: 'void mainImage (out float4 fragColor, in float2 fragCoord)'" );
-			binder.AddValue( "Shadertoy",			EPostprocess::Shadertoy );
+			binder.AddValue( "Shadertoy",				EPostprocess::Shadertoy );
 
 			binder.Comment( "Entry point: 'void mainCubemap (out float4 fragColor, in float2 fragCoord, in float3 rayOri, in float3 rayDir)'" );
-			binder.AddValue( "ShadertoyCubemap",	EPostprocess::ShadertoyCubemap );
+			binder.AddValue( "ShadertoyCubemap",		EPostprocess::ShadertoyCubemap );
 
-			binder.Comment( "Entry point: 'void mainVR (out float4 fragColor, in float2 fragCoord, in float3 fragRayOri, in float3 fragRayDir)'" );
-			binder.AddValue( "ShadertoyVR",			EPostprocess::ShadertoyVR );
-			binder.AddValue( "ShadertoyVR_180",		EPostprocess::ShadertoyVR_180 );
-			binder.AddValue( "ShadertoyVR_360",		EPostprocess::ShadertoyVR_360 );
-			binder.AddValue( "Shadertoy_360",		EPostprocess::Shadertoy_360 );
-			StaticAssert( uint(EPostprocess::_Count) == 7 );
+			binder.Comment( "For all enums below entry point is: 'void mainVR (out float4 fragColor, in float2 fragCoord, in float3 fragRayOri, in float3 fragRayDir)'\n" );
+
+			binder.Comment( "Single eye per pass. Use Postprocess::Set(IController*) to set camera params: projection and origin." );
+			binder.AddValue( "ShadertoyVR",				EPostprocess::ShadertoyVR );
+
+			binder.Comment( "Two eyes per pass. Created VR180 left/right stereographical projection." );
+			binder.AddValue( "ShadertoyVR_180",			EPostprocess::ShadertoyVR_180 );
+
+			binder.Comment( "Two eyes per pass. Created VR360 top/bottom stereographical projection." );
+			binder.AddValue( "ShadertoyVR_360",			EPostprocess::ShadertoyVR_360 );
+
+			binder.Comment( "Created 360° stereographical projection (spheremap). Equal to single eye VR360." );
+			binder.AddValue( "Shadertoy_360",			EPostprocess::Shadertoy_360 );
+
+			binder.Comment( "Created 180° stereographical projection. Equal to single eye VR180 and hemisphere of 360°." );
+			binder.AddValue( "Shadertoy_180",			EPostprocess::Shadertoy_180 );
+
+			binder.Comment( "Created 180° panini projection." );
+			binder.AddValue( "Shadertoy_Panini180",		EPostprocess::Shadertoy_Panini180 );
+
+			binder.Comment( "Created 180° fisheye (equidistant) projection. Equal to single eye FishEyeVR180 and hemisphere DualFishEye360." );
+			binder.AddValue( "Shadertoy_FishEye180",	EPostprocess::Shadertoy_FishEye180 );
+
+			binder.Comment( "Created 360° fisheye (equidistant) projection. Left side - forward direction, right - backward." );
+			binder.AddValue( "Shadertoy_DualFishEye360",EPostprocess::Shadertoy_DualFishEye360 );
+
+			binder.Comment( "Two eyes per pass. Created 180° fisheye (equidistant) projection." );
+			binder.AddValue( "Shadertoy_FishEyeVR180",	EPostprocess::Shadertoy_FishEyeVR180 );
+			StaticAssert( uint(EPostprocess::_Count) == 12 );
 		}
 		{
 			ClassBinder<ScriptPostprocess>	binder{ se };
@@ -161,6 +184,7 @@ namespace
 		}};
 
 		AddPpln( IPass::EDebugMode::Unknown,		EFlags::Unknown,				PipelineName{"postprocess"} );
+		AddPpln( IPass::EDebugMode::Asserts,		EFlags::Unknown,				PipelineName{"postprocess.Asserts"} );
 		AddPpln( IPass::EDebugMode::Trace,			EFlags::Enable_ShaderTrace,		PipelineName{"postprocess.Trace"} );
 		AddPpln( IPass::EDebugMode::FnProfiling,	EFlags::Enable_ShaderFnProf,	PipelineName{"postprocess.FnProf"} );
 		AddPpln( IPass::EDebugMode::TimeHeatMap,	EFlags::Enable_ShaderTmProf,	PipelineName{"postprocess.TmProf"} );
@@ -521,81 +545,100 @@ ND_ float3  GetGlobalSizeRcp () {
 #define iDate				un_PerPass.date
 #define iSampleRate			un_PerPass.sampleRate
 )#";
-				switch_enum( _ppFlags )
+				if ( _ppFlags == EPostprocess::Shadertoy )
 				{
-					case EPostprocess::Shadertoy :
-						header << R"#(
+					header << R"#(
 void mainImage (out float4 fragColor, in float2 fragCoord);
 
 void Main ()
 {
 	float2 coord = gl.FragCoord.xy;		// + gl.SamplePosition;
-	coord = float2(coord.x - 0.5, iResolution.y - coord.y + 0.5);
+	coord = float2(coord.x, iResolution.y - coord.y);
 
 	mainImage( )#" << _output.front().name << R"#(, coord );
 }
 )#";
-						break;
+				}
 
-					case EPostprocess::ShadertoyCubemap :
-						header << R"#(
+				if ( _ppFlags == EPostprocess::ShadertoyCubemap )
+				{
+					header << R"#(
 #include "CubeMap.glsl"
 void mainCubemap (out float4 fragColor, in float2 fragCoord, in float3 rayOri, in float3 rayDir);
 
 void Main ()
 {
 	float2	coord = gl.FragCoord.xy;		// + gl.SamplePosition;
-	coord = float2(coord.x - 0.5, iResolution.y - coord.y + 0.5);
+	coord = float2(coord.x, iResolution.y - coord.y);
 
-	mainCubemap( )#" << _output.front().name << R"#(, coord, float3(0.0), CM_IdentitySC_Forward( ToSNorm(gl.FragCoord.xy / iResolution.xy), gl.Layer ));
+	float3	dir		= CM_IdentitySC_Forward( ToSNorm(gl.FragCoord.xy / iResolution.xy), gl.Layer );
+	float3	origin	= un_PerPass.camera.pos;
+
+	mainCubemap( OUT )#" << _output.front().name << R"#(, coord, origin, dir );
 }
 )#";
-						break;
+				}
 
-					case EPostprocess::ShadertoyVR :
-					case EPostprocess::ShadertoyVR_180 :
-					case EPostprocess::ShadertoyVR_360 :
-					case EPostprocess::Shadertoy_360 :
-					{
-						CHECK_THROW_MSG( _controller,
-							"3D controller must be defined to enable VR mode" );
+				if ( _ppFlags >= EPostprocess::ShadertoyVR )
+				{
+					CHECK_THROW_MSG( _controller,
+						"3D controller must be defined to enable VR mode" );
 
-						header << R"#(
+					header << R"#(
 #include "Ray.glsl"
 void mainVR (out float4 fragColor, in float2 fragCoord, in float3 fragRayOri, in float3 fragRayDir);
 
 void Main ()
 {
-	Ray	ray = )#";
-						AE_END_ENUM_CHECKS();
-						switch ( _ppFlags )
-						{
-							case EPostprocess::ShadertoyVR :
-								header << "Ray_Perspective( un_PerPass.camera.invViewProj, un_PerPass.camera.pos, 0.f, gl.FragCoord.xy / iResolution.xy );\n";
-								break;
-							case EPostprocess::ShadertoyVR_180 :
-								header << "Ray_PlaneToVR180( un_PerPass.cameraIPD, un_PerPass.camera.pos, 0.f, gl.FragCoord.xy / iResolution.xy );\n";
-								break;
-							case EPostprocess::ShadertoyVR_360 :
-								header << "Ray_PlaneToVR360( un_PerPass.cameraIPD, un_PerPass.camera.pos, 0.f, gl.FragCoord.xy / iResolution.xy );\n";
-								break;
-							case EPostprocess::Shadertoy_360 :
-								header << "Ray_PlaneTo360( un_PerPass.camera.pos, 0.f, gl.FragCoord.xy / iResolution.xy );\n";
-								break;
-						}
-						AE_BEGIN_ENUM_CHECKS();
-						header << R"#(
-	float2 coord = gl.FragCoord.xy;		// + gl.SamplePosition;
-	coord = float2(coord.x - 0.5, iResolution.y - coord.y + 0.5);
-	mainVR( )#" << _output.front().name << R"#(, coord, ray.origin, ray.dir );
-})#";
-						break;
+	float2	uv		= gl.FragCoord.xy * un_PerPass.invResolution;
+	float	z_near	= 0.f;
+	Ray		ray		= )#";
+					switch_enum( _ppFlags )
+					{
+						case EPostprocess::ShadertoyVR :
+							header << "Ray_Perspective( un_PerPass.camera.invViewProj, un_PerPass.camera.pos, z_near, uv );\n";
+							break;
+						case EPostprocess::ShadertoyVR_180 :
+							header << "Ray_PlaneToVR180( un_PerPass.cameraIPD, un_PerPass.camera.pos, z_near, uv );\n";
+							break;
+						case EPostprocess::ShadertoyVR_360 :
+							header << "Ray_PlaneToVR360( un_PerPass.cameraIPD, un_PerPass.camera.pos, z_near, uv );\n";
+							break;
+						case EPostprocess::Shadertoy_360 :
+							header << "Ray_PlaneToSphereMap360( un_PerPass.camera.pos, z_near, uv );\n";
+							break;
+						case EPostprocess::Shadertoy_180 :
+							header << "Ray_PlaneToSphere( float2(float_Pi, float_HalfPi), un_PerPass.camera.pos, z_near, uv );\n";
+							break;
+						case EPostprocess::Shadertoy_Panini180 :
+							header << "Ray_PaniniProjection( float_Pi * 0.99, un_PerPass.camera.pos, z_near, uv );\n";
+							break;
+						case EPostprocess::Shadertoy_FishEye180 :
+							header << "Ray_FishEye( un_PerPass.camera.pos, z_near, float_Pi, uv );\n";
+							break;
+						case EPostprocess::Shadertoy_DualFishEye360 :
+							header << "Ray_DualFishEye( un_PerPass.camera.pos, z_near, float_Pi, uv );\n";
+							break;
+						case EPostprocess::Shadertoy_FishEyeVR180 :
+							header << "Ray_FishEyeVR( un_PerPass.cameraIPD, un_PerPass.camera.pos, z_near, float_Pi, uv );\n";
+							break;
+						case EPostprocess::Shadertoy :
+						case EPostprocess::ShadertoyCubemap :
+						case EPostprocess::Unknown :
+						case EPostprocess::_Count :
+							CHECK_THROW( false );
 					}
-					case EPostprocess::Unknown :
-					case EPostprocess::_Count :
-						break;
+					switch_end
+
+					if ( _ppFlags != EPostprocess::ShadertoyVR )
+						header << "\tRay_Rotate( INOUT ray, MatTranspose(float3x3(un_PerPass.camera.view)) );\n";
+
+					header << R"#(
+	float2	coord = gl.FragCoord.xy;		// + gl.SamplePosition;
+	coord = float2(coord.x, iResolution.y - coord.y);
+	mainVR( OUT )#" << _output.front().name << R"#(, coord, ray.origin, ray.dir );
+})#";
 				}
-				switch_end
 			}
 
 			_AddSliders( INOUT header );
@@ -610,7 +653,7 @@ void Main ()
 					"Failed to read shader file '"s << ToString(_pplnPath) << "'" );
 
 				header >> fs;
-				fs_line = uint(Parser::CalculateNumberOfLines( header )) - 1;
+				fs_line = SubSat( uint(Parser::CalculateNumberOfLines( header )), 1u );
 			}
 		}
 
@@ -635,19 +678,24 @@ void Main ()
 		if ( flags.contains( UIInteraction::EShaderFlags::CaptureInternalRepresentation ))
 			ppln_opt |= EPipelineOpt::CaptureInternalRepresentation;
 
-		StaticAssert( uint(UIInteraction::EShaderFlags::_Count) == 5 );
+		StaticAssert( uint(UIInteraction::EShaderFlags::_Count) == 6 );
 
 		_CompilePipeline3( subpass, vs, fs, fs_line, "postprocess", uint(sh_opt), ppln_opt );
 
 	  #ifdef AE_ENABLE_GLSL_TRACE
+		if ( AllBits( _baseFlags, EFlags::Enable_ShaderAsserts )		or
+			 flags.contains( UIInteraction::EShaderFlags::EnableAsserts ))
+		{
+			NOTHROW( _CompilePipeline3( subpass, vs, fs, fs_line, "postprocess.Asserts", uint(sh_opt | EShaderOpt::Asserts), Default ));
+		}
 		if ( AllBits( _baseFlags, EFlags::Enable_ShaderTrace ))
-			NOTHROW( _CompilePipeline3( subpass,	vs, fs, fs_line, "postprocess.Trace", uint(sh_opt | EShaderOpt::Trace), Default ));
+			NOTHROW( _CompilePipeline3( subpass, vs, fs, fs_line, "postprocess.Trace", uint(sh_opt | EShaderOpt::Trace), Default ));
 
 		if ( AllBits( _baseFlags, EFlags::Enable_ShaderFnProf ))
-			NOTHROW( _CompilePipeline3( subpass,	vs, fs, fs_line, "postprocess.FnProf", uint(sh_opt | EShaderOpt::FnProfiling), Default ));
+			NOTHROW( _CompilePipeline3( subpass, vs, fs, fs_line, "postprocess.FnProf", uint(sh_opt | EShaderOpt::FnProfiling), Default ));
 
 		if ( AllBits( _baseFlags, EFlags::Enable_ShaderTmProf ))
-			NOTHROW( _CompilePipeline3( subpass,	vs, fs, fs_line, "postprocess.TmProf", uint(sh_opt | EShaderOpt::TimeHeatMap), Default ));
+			NOTHROW( _CompilePipeline3( subpass, vs, fs, fs_line, "postprocess.TmProf", uint(sh_opt | EShaderOpt::TimeHeatMap), Default ));
 	  #endif
 	}
 

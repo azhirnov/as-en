@@ -78,10 +78,10 @@
 
 	void Main ()
 	{
-		float2	uv		= gl.FragCoord.xy / un_PerPass.resolution.xy;
+		float2	uv		= gl.FragCoord.xy * un_PerPass.invResolution;
 		int		mode	= int(iMode);
 		float	fov		= ToRad( 60.0 );
-		float	ratio	= un_PerPass.resolution.x / un_PerPass.resolution.y;
+		float	ratio	= un_PerPass.resolution.x * un_PerPass.invResolution.y;
 
 		// split screen
 		if ( iMode == 3 )
@@ -93,7 +93,7 @@
 
 		bool	isec;
 		{
-			Ray	ray = Ray_Perspective( un_PerPass.camera.pos, fov, ratio, 1.0, ToSNorm(uv) );
+			Ray	ray = Ray_Perspective( un_PerPass.camera.pos, fov, ratio, 1.0, uv );
 
 			float	t;
 			isec = Plane_Ray_Intersect( ray, float3(0.0, 1.0, 0.0), float3(0.0, 1.0, 0.0), OUT t );
@@ -102,7 +102,7 @@
 
 			uv = ray.pos.xz * 2.0;
 
-			ray = Ray_Perspective( un_PerPass.camera.pos, fov, ratio, 1.0, float2(0.0) );
+			ray = Ray_Perspective( un_PerPass.camera.pos, fov, ratio, 1.0, float2(0.5) );
 
 			uv += Normalize( ray.dir.xz ) * un_PerPass.time * 0.2;
 		}

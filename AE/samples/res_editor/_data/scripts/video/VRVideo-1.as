@@ -17,10 +17,10 @@
 	//	RC<VideoImage>	vtex		= VideoImage( "res/video/av1_16k_360.mp4" );	mode = 1;	// 360
 	//	RC<VideoImage>	vtex		= VideoImage( "res/video/h265_16k_360.mp4" );	mode = 1;	// 360
 	//	RC<VideoImage>	vtex		= VideoImage( "res/video/vp9_cube360.webm" );	mode = 2;	// Cubemap 360
-		RC<VideoImage>	vtex		= VideoImage( "res/video/vp9_vr360.webm" );		mode = 4;	// Cubemap VR360
-	//	RC<VideoImage>	vtex		= VideoImage( "res/video/vp9_vr180.webm" );		mode = 5;	// VR180
+		RC<VideoImage>	vtex		= VideoImage( "res/video/vp9_vr360.webm" );		mode = 6;	// Cubemap VR360
+	//	RC<VideoImage>	vtex		= VideoImage( "res/video/vp9_vr180.webm" );		mode = 7;	// VR180
 		RC<FPVCamera>	camera		= FPVCamera();
-		bool			has_2eyes	= mode >= 3;
+		bool			has_2eyes	= mode >= 5;
 
 		// setup camera
 		{
@@ -41,10 +41,10 @@
 			pass.Output( "out_Color",	rt );
 
 			if ( has_2eyes )
-				pass.Slider( "iEye",	-1,  1,  -1 );		// -1 - both, 0 - left, 1 - right
+				pass.Slider( "iEye",	-1,  1,  0 );		// -1 - both, 0 - left, 1 - right
 
-			pass.Slider( "VRMode",		0,	5,	mode );
-			pass.Slider( "iProj",		0,	1,	has_2eyes ? 1 : 0 );
+			pass.Slider( "iVRMode",		0,	8,	mode );
+			pass.Slider( "iSphereProj",	0,	1,	(mode == 2 or mode == 4 ? 1 : 0) );
 		}
 		Present( rt );
 	}
@@ -61,84 +61,102 @@
 	#endif
 
 
-	float4  SelectEye (float2 uvL, float2 uvR)
+	float4  SelectEye (float4 uvLR)
 	{
 		switch ( iEye )
 		{
-			case 0 :	return gl.texture.Sample( un_Video, uvL );
-			case 1 :	return gl.texture.Sample( un_Video, uvR );
+			case 0 :	return gl.texture.Sample( un_Video, uvLR.xy );
+			case 1 :	return gl.texture.Sample( un_Video, uvLR.zw );
 		}
 
-		float4	col_l	= gl.texture.Sample( un_Video, uvL );
-		float4	col_r	= gl.texture.Sample( un_Video, uvR );
-		float	t		= TriangleWave( un_PerPass.time * 2.0 );
+		float4	col_l	= gl.texture.Sample( un_Video, uvLR.xy );
+		float4	col_r	= gl.texture.Sample( un_Video, uvLR.zw );
+		float	t		= TriangleWave( un_PerPass.time );
 				t		= GreaterF( t, 0.5 );
 
 		return	Lerp( col_l, col_r, t );
 	}
 
 
-	void Main ()
+	float4  ProjectTo2D (float3 dir, const float2 uv)
 	{
-		const float2	uv				= GetGlobalCoordUNorm().xy;
-		const float		dist_to_eye		= 0.5f;		// meters
-		const float2	screen_size		= un_PerPass.resolution.xy * un_PerPass.mmPerPix * 0.001f;	// meters
-		const float		curve_radius	= 1.8f;		// meters
-		const float		z_near			= 0.1f;
-		Ray				ray				= Ray_Perspective( un_PerPass.camera.invViewProj, un_PerPass.camera.pos, z_near, uv );
-		float2			uv_l, uv_r;
-		
-		if ( iProj == 1 )
+		float2	uv_l, uv_r;
+
+		if ( iSphereProj == 1 )
 		{
-			float3	coord_face = CM_TangentialSC_Inverse( ray.dir );
-			ray.dir = CM_IdentitySC_Forward( coord_face.xy, int(coord_face.z) );
+			float3	coord_face = CM_TangentialSC_Inverse( dir );
+			dir = CM_IdentitySC_Forward( coord_face.xy, int(coord_face.z) );
 		}
 
-		switch ( VRMode )
+		switch ( iVRMode )
 		{
 			// without projection
 			case 0 :
 				uv_l = uv;
+				uv_r = uv_l;
 				break;
 
-			// 360
+			// 360 (YouTube)
 			case 1 :
-				uv_l = RayInverse_PlaneTo360( ray.dir );
+				uv_l = RayInverse_PlaneToSphereMap360( dir );
+				uv_r = uv_l;
 				break;
 
 			// Cubemap 360 (YouTube)
 			case 2 :
-				uv_l = RayInverse_PlaneToCubemap360( ray.dir );
+				uv_l = RayInverse_PlaneToCubemap360( dir );
+				uv_r = uv_l;
 				break;
+
+			// FishEye 180
+			case 3 :
+				uv_l = RayInverse_FishEye( float2(ToRad(180.0)), dir, 1.0 );
+				uv_r = uv_l;
+				break;
+
+			// Double FishEye 180 (360)
+			case 4 :
+				uv_l = RayInverse_DualFishEye( ToRad(180.0), dir, 1.0 );
+				uv_r = uv_l;
+				break;
+
+			//----------------------------------------
 
 			// VR360
-			case 3 :
-				uv_l = RayInverse_PlaneToVR360( ray.dir, 0 );
-				uv_r = RayInverse_PlaneToVR360( ray.dir, 1 );
-				break;
-			
-			// Cubemap VR360 (YouTube)
-			case 4 :
-				uv_l = RayInverse_PlaneToCubemapVR360( ray.dir, 0 );
-				uv_r = RayInverse_PlaneToCubemapVR360( ray.dir, 1 );
-				break;
-			
-			// VR180
 			case 5 :
-			{
-				ray = Ray_PlaneToSphere( ToRad(float2(80.0, 80.0)), float3(0.0), 0.1, ToSNorm(uv) );
-				if ( iProj == 1 )
-				{
-					float3	coord_face = CM_TangentialSC_Inverse( ray.dir );
-					ray.dir = CM_IdentitySC_Forward( coord_face.xy, int(coord_face.z) );
-				}
-				uv_l = RayInverse_PlaneToVR180( ray.dir, 0 );
-				uv_r = RayInverse_PlaneToVR180( ray.dir, 1 );
+				uv_l = RayInverse_PlaneToVR360( dir, 0 );
+				uv_r = RayInverse_PlaneToVR360( dir, 1 );
 				break;
-			}
-		}
 
-		out_Color = SelectEye( uv_l, uv_r );
+			// Cubemap VR360 (YouTube)
+			case 6 :
+				uv_l = RayInverse_PlaneToCubemapVR360( dir, 0 );
+				uv_r = RayInverse_PlaneToCubemapVR360( dir, 1 );
+				break;
+
+			// VR180
+			case 7 :
+				uv_l = RayInverse_PlaneToVR180( dir, 0 );
+				uv_r = RayInverse_PlaneToVR180( dir, 1 );
+				break;
+
+			// FishEye VR180
+			case 8 :
+				uv_l = RayInverse_FishEyeVR( ToRad(180.0), dir, 0 );
+				uv_r = RayInverse_FishEyeVR( ToRad(180.0), dir, 1 );
+				break;
+		}
+		return float4( uv_l, uv_r );
+	}
+
+
+	void Main ()
+	{
+		const float2	uv		= GetGlobalCoordUNorm().xy;
+		float3			dir		= ViewDir( un_PerPass.camera.invViewProj, uv );
+		float4			uv_lr	= ProjectTo2D( dir, uv );
+
+		out_Color = SelectEye( uv_lr );
 	}
 
 #endif

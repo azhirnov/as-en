@@ -9,9 +9,12 @@
 #ifdef AE_COMPILER_MSVC
 #	pragma warning (push)
 #	pragma warning (disable: 4668)
+#	pragma warning (disable: 5039)
+
 #	include "bass.h"
 #	include "bassenc.h"
 #	include "bassenc_ogg.h"
+
 #	pragma warning (pop)
 #else
 #	include "bass.h"

@@ -97,6 +97,7 @@ namespace AE::Base
 	template <typename T,
 			  typename A = std::allocator<T>>
 	using Array			= std::vector< T, A >;
+	using BitArray		= std::vector< bool >;
 
 	template <typename T,
 			  typename Deleter = std::default_delete<T>>

@@ -35,7 +35,12 @@ namespace AE::ResEditor
 				ppln = it->second;
 
 				DirectCtx::Transfer		tctx{ pd.rtask, RVRef(pd.cmdbuf) };
-				CHECK( pd.dbg.debugger->AllocForCompute( OUT dbg, tctx, ppln, uint3{~0u} ));
+
+				if ( pd.dbg.mode == EDebugMode::Asserts ){
+					CHECK( pd.dbg.debugger->AllocForAsserts( OUT dbg, tctx, ppln ));
+				}else{
+					CHECK( pd.dbg.debugger->AllocForCompute( OUT dbg, tctx, ppln, uint3{~0u} ));
+				}
 				pd.cmdbuf = tctx.ReleaseCommandBuffer();
 			}
 		}

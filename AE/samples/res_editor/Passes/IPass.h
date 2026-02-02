@@ -42,6 +42,7 @@ namespace AE::ResEditor
 			Trace,
 			FnProfiling,		// function profiling
 			TimeHeatMap,		// profiling for the whole pass
+			Asserts,
 			_Count
 		};
 
@@ -54,6 +55,8 @@ namespace AE::ResEditor
 			AnyBit,
 		};
 
+		static inline void const* const		c_DebugAllTargets = reinterpret_cast<void const*>(usize(0x1));
+
 		struct Debugger
 		{
 			void const*					target		= null;
@@ -64,7 +67,7 @@ namespace AE::ResEditor
 			Ptr<ShaderDebugger>			debugger;
 
 			ND_ bool  IsEnabled ()					const	{ return debugger and mode != Default; }
-			ND_ bool  IsEnabled (const IPass* pass)	const	{ return IsEnabled() and (pass == target or usize(target) == 0x1); }
+			ND_ bool  IsEnabled (const IPass* pass)	const;
 		};
 
 		struct SyncPassData

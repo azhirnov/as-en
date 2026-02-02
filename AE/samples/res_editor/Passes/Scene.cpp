@@ -44,8 +44,6 @@ namespace AE::ResEditor
 
 				pd.cmdbuf	= tctx.ReleaseCommandBuffer();
 				dbg_subpass	= subpass.get();
-
-				//UIInteraction::Instance().SetShaderDebugCoord( coord );	// TODO
 			}
 		}
 

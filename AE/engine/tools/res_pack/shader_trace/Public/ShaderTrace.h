@@ -39,10 +39,8 @@ namespace AE::PipelineCompiler
 			Text,			// as plane text with part of source code
 			VS_Console,		// compatible with VS output, allow navigation to code by click
 			FileURL,		// click to file path will open shader source file
-			VSCode,			// click to file path will open shader source file in specified line
-			_Count,
-
-			VS			= FileURL,
+			VSCode,			// click to file path will open shader source file in specified line, compatible with VSCode console
+			_Count
 		};
 
 		enum class VariableID : uint { Unknown = ~0u };
@@ -159,10 +157,20 @@ namespace AE::PipelineCompiler
 			ND_ bool  operator == (const SourceInfo &rhs)			C_NE___;
 		};
 
+		struct AssertLocation
+		{
+			uint			bitIndex	= UMax;
+			uint			sourceId	= UMax;
+			SourcePoint		point;
+
+			ND_ bool  operator == (const AssertLocation &rhs)		C_NE___;
+		};
+
 		using VarNames_t	= HashMap< VariableID, String >;
 		using ExprInfos_t	= Array< ExprInfo >;
 		using Sources_t		= Array< SourceInfo >;
 		using FileMap_t		= HashMap< String, uint >;	// index in '_sources'
+		using Asserts_t		= Array< AssertLocation >;
 
 		static constexpr uint	TBasicType_Clock	= 0xcc;	// 4x uint64
 
@@ -177,6 +185,7 @@ namespace AE::PipelineCompiler
 		VarNames_t		_varNames;
 		Sources_t		_sources;
 		FileMap_t		_fileMap;
+		Asserts_t		_assertLocations;
 		ulong			_posOffset			= 0;
 		ulong			_dataOffset			= 0;
 		uint			_initialPosition	= 0;
@@ -204,6 +213,13 @@ namespace AE::PipelineCompiler
 
 		// Converts binary trace into string.
 		ND_ bool  ParseShaderTrace (const void* ptr, Bytes maxSize, ELogFormat format, OUT Array<String> &result) const;
+
+
+		// Replace 'dbg_Assert()' by recording location where assert is triggered.
+		ND_ bool  InsertAsserts (glslang::TIntermediate &, uint descSetIndex, bool hasSubgroupBasicOps);
+
+		// Converts binary trace into source code location URLs.
+		ND_ bool  ParseAsserts (const void* ptr, Bytes size, ELogFormat format, OUT Array<String> &urls) const;
 
 		// Source code required for 'ParseShaderTrace' function.
 		void  AddSource (StringView source);

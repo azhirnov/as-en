@@ -110,6 +110,7 @@ namespace AE::ResEditor
 			CaptureStatistics,
 			CaptureInternalRepresentation,
 			CompileMSL,
+			EnableAsserts,
 			_Count
 		};
 
@@ -135,6 +136,13 @@ namespace AE::ResEditor
 			EVideoFormat			videoFormat		= EVideoFormat::YUV420P;
 			EVideoCodec				videoCodec		= EVideoCodec::H265;
 			EVideoColorPreset		colorPreset		= EVideoColorPreset::Unspecified;
+			// TODO: set fixed FPS and replace real dt in animations
+		};
+
+		struct ShaderAsserts
+		{
+			Array<String>			lines;
+			bool					openFile	= true;
 		};
 
 
@@ -150,6 +158,7 @@ namespace AE::ResEditor
 		Synchronized< RWSpinLock, Debugger >		debugger;
 		Synchronized< RWSpinLock, SelectedPixel >	selectedPixel;
 		Synchronized< RWSpinLock, Graphics >		graphics;		// swapchain, VR, ...
+		Synchronized< SharedMutex, ShaderAsserts >	shaderAsserts;
 
 
 	// methods
@@ -171,6 +180,8 @@ namespace AE::ResEditor
 
 			template <typename FN>
 			void  GetAllLabels (FN &&fn);
+
+			void  SetShaderAsserts (Array<String>);
 
 			void		SetDbgView (usize idx, RC<Image> img);
 			void		ResetDbgView (usize idx);

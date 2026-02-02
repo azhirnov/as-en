@@ -299,7 +299,7 @@ namespace AE::ResEditor
 	{
 		using FrameInfo			= Video::IVideoDecoder::FrameInfo;
 		using ImageMemViewArr	= Video::IVideoDecoder::ImageMemViewArr;
-		
+
 		if_unlikely( _Renderer().FreezeTime() )
 			return 0;
 

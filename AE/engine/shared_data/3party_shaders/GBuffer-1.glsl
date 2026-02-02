@@ -245,5 +245,88 @@ float3  Diamond_DecodeTangent (float3 normal, float diamond_tangent)
 	return packed_tangent.x * t1 + packed_tangent.y * t2;
 }
 
-
 #endif // AE_ENABLE_UNKNOWN_LICENSE
+
+/*
+=================================================
+	Encode Quaternion to 32bit
+----
+	based on code from https://github.com/r-lyeh-archived/quant (Unlicense)
+=================================================
+*/
+#ifdef AE_LICENSE_UNLICENSE
+
+uint  _EncodeSNorm10 (float x)
+{
+	const float	scale	= float((1u << 9) - 1);
+	uint		res		= uint(x < 0.0);
+	x = Abs(x);
+	x = x * scale + 0.5f;
+	res |= uint(x) << 1;
+	return res;
+}
+
+float  _DecodeSNorm10 (const uint u)
+{
+	const float	scale	= 1.0 / float((1u << 9) - 1);
+	float		res		= float(u >> 1) * scale;
+	res *= ((u & 1) == 0 ? 1.0 : -1.0);
+	return res;
+}
+
+uint  EncodeQuat32 (const Quat q)
+{
+	const float		rmin	= -float_InvSqrtOf2;
+	const float		rmax	= float_InvSqrtOf2;
+
+	const float4	q2		= Square( q.data );
+	uint			idx		= 3;
+
+	if ( AllGreaterEqual( q2.xxx, q2.yzw ))		idx = 0;	else
+	if ( AllGreaterEqual( q2.yy,  q2.zw  ))		idx = 1;	else
+	if ( q2.z >= q2.w )							idx = 2;
+
+	float3	rm = float3( q.data[(idx+1) & 3], q.data[(idx+2) & 3], q.data[(idx+3) & 3] );
+			rm = Remap( float2(rmin, rmax), float2(-1.0, 1.0), rm );
+
+	if ( q.data[idx] < 0.0 )
+		rm = -rm;
+
+	uint	res = idx << 30;
+	res |= _EncodeSNorm10( rm.x ) << 20;
+	res |= _EncodeSNorm10( rm.y ) << 10;
+	res |= _EncodeSNorm10( rm.z );
+	return res;
+}
+
+uint  EncodeQuat32 (const float3x3 tbn)
+{
+	return EncodeQuat32( QFromMat( tbn ));
+}
+
+Quat  DecodeQuat32 (const uint u)
+{
+	const float		rmin	= -float_InvSqrtOf2;
+	const float		rmax	= float_InvSqrtOf2;
+	const uint		mask	= (1u << 10) - 1;
+
+	uint	idx = u >> 30;	// [0..3]
+	float3	rm;
+
+	rm.x = _DecodeSNorm10( (u >> 20) & mask );
+	rm.y = _DecodeSNorm10( (u >> 10) & mask );
+	rm.z = _DecodeSNorm10( u & mask );
+
+	rm = Remap( float2(-1.0, 1.0), float2(rmin, rmax), rm );
+
+	float3	sq = Square( rm );
+
+	Quat	res;
+	res.data[(idx+1) & 3] = rm.x;
+	res.data[(idx+2) & 3] = rm.y;
+	res.data[(idx+3) & 3] = rm.z;
+	res.data[idx] = Sqrt( 1.0 - sq.x - sq.y - sq.z );
+	return res;
+}
+
+#endif // AE_LICENSE_UNLICENSE

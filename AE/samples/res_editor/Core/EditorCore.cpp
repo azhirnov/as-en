@@ -56,10 +56,10 @@ namespace
 												  EDeviceFlags::EnablePerfCounters;
 			cfg.graphics.device.deviceName		= s_REConfig.deviceName;
 
-		  #if AE_PORTABLE_APP and defined(AE_RELEASE)
+		  #ifdef AE_CFG_RELEASE
 			cfg.graphics.device.validation		= EDeviceValidation::Disabled;
 		  #else
-			cfg.graphics.device.validation		= EDeviceValidation::Enabled;
+			cfg.graphics.device.validation		= s_REConfig.gapiValidation;
 		  #endif
 
 			cfg.graphics.swapchain.colorFormat	= EPixelFormat::RGBA8_UNorm;
@@ -435,7 +435,7 @@ namespace
 			  #ifdef AE_PLATFORM_LINUX
 				case EDriver::_LinuxDrivers : break;
 				CASE( RADV )
-				CASE( AMDVLK )
+				CASE( AMD_VLK )
 				CASE( AMD_PRO )
 				CASE( ANV )
 				CASE( IntelPro )
@@ -486,6 +486,7 @@ namespace
 
 		CoreBindings::BindString( se );
 		CoreBindings::BindArray( se );
+		GraphicsBindings::Bind_EDeviceValidation( se );
 		{
 			ClassBinder<ResEditorAppConfig>		binder{ se };
 			binder.CreateClassValue();
@@ -519,6 +520,7 @@ namespace
 			binder.AddProperty( &ResEditorAppConfig::screenHeight,			"screenHeight"			);
 			binder.AddProperty( &ResEditorAppConfig::monitorId,				"monitorId"				);
 			binder.AddProperty( &ResEditorAppConfig::deviceName,			"deviceName"			);
+			binder.AddProperty( &ResEditorAppConfig::gapiValidation,		"gapiValidation"		);
 		}
 
 		ScriptEngine::ModuleSource	src;
@@ -649,6 +651,7 @@ void main (Config &out cfg)
 	cfg.enableRenderDoc = false;
 	//	GPU index or part of name
 	//cfg.deviceName = "";
+	//cfg.gapiValidation = EDeviceValidation::Enabled;
 	//cfg.AddGraphicsDriver( "LavaPipe" );
 
 	// remote input //
@@ -1176,7 +1179,7 @@ void main (Config &out cfg)
 		if ( _test.isActive.load() )
 			renderer->SetFreezeTime( true );
 
-		CreateAsyncRev(
+		Unused( CreateAsyncRev(
 			GetRC<ResEditorCore>(), renderer,
 			[] (RC<ResEditorCore> self, RC<Renderer> renderer) -> ScheduledCoro<ETaskQueue::Main>
 			{
@@ -1184,7 +1187,7 @@ void main (Config &out cfg)
 				self->_ui.SetSurfaceFormat( renderer->GetSurfaceFormat() );
 				self->_mainLoop->renderer = RVRef(renderer);
 				co_return;
-			});
+			}));
 
 		return true;
 	}

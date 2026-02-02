@@ -243,7 +243,7 @@ Step=1
 | Dot3 SSE4.1    | 158.1MOp/s | 3.16GFLOPS | 7.59GB/s |
 
 
-| name           | op/s       | FLOPS      | bandwidth |
+| name             | op/s       | FLOPS      | bandwidth |
 |------------------|------------|------------|----------|
 | vert CrossAVX v1 | 668.7MOp/s | 24.1GFLOPS | 24.1GB/s |
 | vert CrossAVX v3 | 648.3MOp/s | 23.3GFLOPS | 23.3GB/s |
@@ -273,7 +273,7 @@ Step=1
 | Dot3 SSE4.1    | 382.3MOp/s | 7.65GFLOPS | 18.3GB/s |
 | Dot3 SSE3      | 243.1MOp/s | 4.86GFLOPS | 11.7GB/s |
 
-| name           | op/s       | FLOPS      | bandwidth |
+| name             | op/s       | FLOPS      | bandwidth |
 |------------------|------------|------------|----------|
 | vert CrossAVX v1 | 538.6MOp/s | 19.4GFLOPS | 19.4GB/s |
 | vert Cross v1    | 527.7MOp/s | 19.0GFLOPS | 19.0GB/s |
@@ -302,7 +302,7 @@ Step=1
 | Dot3 SSE3      | 75.7MOp/s  | 1.51GFLOPS | 3.63GB/s |
 | Dot3 SSE4.1    | 58.3MOp/s  | 1.17GFLOPS | 2.80GB/s |
 
-| name           | op/s       | FLOPS      | bandwidth |
+| name             | op/s       | FLOPS      | bandwidth |
 |------------------|------------|------------|----------|
 | vert Cross v2    | 148.9MOp/s | 5.36GFLOPS | 5.36GB/s |
 | vert Cross v3    | 128.2MOp/s | 4.61GFLOPS | 4.61GB/s |

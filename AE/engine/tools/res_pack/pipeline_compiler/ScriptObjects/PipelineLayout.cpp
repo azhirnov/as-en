@@ -227,17 +227,16 @@ namespace
 	{
 		CHECK_THROW_MSG( inStages != 0 );
 
-		const String	un_name			= "dbg_ShaderTrace";
-		const Bytes		static_size		= 16_b;
-		const Bytes		array_stride	= 4_b;
-		String			name			= "DbgDS_";
+		Bytes		static_size		= 16_b;
+		Bytes		array_stride	= 4_b;
+		String		name			= "DbgDS_";
 
 		CHECK_THROW_MSG( not _dbgInfo.IsDefined(), "debug descriptor set is already defined" );
 		CHECK_THROW_MSG( (dbgMode & ~EShaderOpt::_ShaderTrace_Mask) == Default, "only 'ShaderTrace_Mask' flags are supported" );
 
 		// validate
 		{
-			const ShaderDebuggerFeatures	dbg_feats = ObjectStorage::GetShaderDebuggerFeatures( _features );
+			const ShaderDebuggerFeatures	dbg_feats = ObjectStorage::GetShaderDebuggerFeatures( _features, EShaderStages(inStages) );
 
 			for (auto t : BitfieldIterate( EShaderStages( inStages )))
 			{
@@ -270,10 +269,11 @@ namespace
 
 		switch ( dbgMode & EShaderOpt::_ShaderTrace_Mask )
 		{
-			case EShaderOpt::Trace :			name << "Trace";	break;
-			case EShaderOpt::FnProfiling :		name << "FnProf";	break;
-			case EShaderOpt::TimeHeatMap :		name << "TmProf";	break;
-			default :							CHECK_THROW_MSG( false, "unknown shader trace mode" );
+			case EShaderOpt::Trace :		name << "Trace";	break;
+			case EShaderOpt::FnProfiling :	name << "FnProf";	break;
+			case EShaderOpt::TimeHeatMap :	name << "TmProf";	break;
+			case EShaderOpt::Asserts :		name << "Asserts";	static_size = 0_b;	array_stride = 4_b; break;
+			default :						CHECK_THROW_MSG( false, "unknown shader trace mode" );
 		}
 
 		name << "_";
@@ -323,7 +323,7 @@ namespace
 		if ( ds_it == ds_layouts.end() )
 		{
 			ds_ptr = DescriptorSetLayoutPtr{ new DescriptorSetLayout{ name }};
-			ds_ptr->AddDebugStorageBuffer( un_name, EShaderStages(inStages), static_size, array_stride );
+			ds_ptr->AddDebugStorageBuffer( EShaderStages(inStages), static_size, array_stride );
 			CHECK_THROW_MSG( ds_ptr->Build() );
 		}else{
 			ds_ptr = ds_it->second;

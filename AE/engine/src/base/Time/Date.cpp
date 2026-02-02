@@ -97,7 +97,7 @@ namespace AE::Base
 			for (auto t : tokens)
 			{
 				if ( t == "yy" )
-					str << FormatAlignedI<10>( Year(), 4, '0' ).substr(2);
+					str << SubString( FormatAlignedI<10>( Year(), 4, '0' ), 2 );
 				else
 				if ( t == "yyyy" )
 					str << FormatAlignedI<10>( Year(), 4, '0' );
@@ -106,7 +106,7 @@ namespace AE::Base
 					str << FormatAlignedI<10>( _month+1, 2, '0' );
 				else
 				if ( t == "mmm" )
-					str << MonthName().substr( 0, 3 );
+					str << SubString( MonthName(), 0, 3 );
 				else
 				if ( StartsWith( t, "mmmm" ))
 					str << MonthName();

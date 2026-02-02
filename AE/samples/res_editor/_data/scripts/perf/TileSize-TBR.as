@@ -27,10 +27,18 @@
 		RC<DynamicUInt>		tile_size_pot	= DynamicUInt();
 		RC<DynamicUInt>		tile_size		= tile_size_pot.Exp2();
 		RC<DynamicUInt>		reg_cnt			= DynamicUInt();
+		RC<Buffer>			out_buf			= Buffer();
+
+		out_buf.UseLayout(
+			"OutBuffer",
+			"uint	vsSubgroupSize;"	// atomic
+			"uint	fsSubgroupSize;"	// atomic
+		);
 
 		// create grid
 		{
 			RC<UnifiedGeometry>		geometry = UnifiedGeometry();
+			geometry.ArgInOut( "un_OutBuf",	out_buf );
 
 			UnifiedGeometry_Draw	cmd;
 			cmd.VertexCount( grid_size.Add( 1 ).Pow( 2 ).Mul( 2 ).Sub( 4 ));
@@ -48,7 +56,17 @@
 		Label( tile_size,	"Tile size" );
 		Label( rt_size,		"RT dim" );
 
+		RC<DynamicUInt>		vs_sg_size = DynamicUInt();
+		RC<DynamicUInt>		fs_sg_size = DynamicUInt();
+		ReadBuffer( vs_sg_size, out_buf, "vsSubgroupSize" );
+		ReadBuffer( fs_sg_size, out_buf, "fsSubgroupSize" );
+
+		Label( vs_sg_size,	"VS Warp size" );
+		Label( fs_sg_size,	"FS Warp size" );
+
 		// render loop
+		ClearBuffer( out_buf, 0 );
+
 		{
 			RC<SceneGraphicsPass>	pass = scene.AddGraphicsPass( "draw" );
 			pass.AddPipeline( "perf/TileSize.as" );	// [src](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/pipelines/perf/TileSize.as)

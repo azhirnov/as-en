@@ -345,9 +345,7 @@ void  DebugInfo::AddLocation (const SrcLoc &src)
 */
 bool  DebugInfo::SetDebugStorage (TIntermSymbol* symb)
 {
-	if ( _dbgStorage )
-		return true;
-
+	CHECK_ERR( not _dbgStorage );
 	CHECK_ERR( symb and symb->getType().isStruct() );
 
 	_dbgStorage = symb;
@@ -1394,6 +1392,7 @@ static void  CreateShaderBuiltinSymbols (TIntermNode*, DebugInfo &dbgInfo)
 		float_type.basicType			= TBasicType::EbtFloat;
 		float_type.qualifier.storage	= TStorageQualifier::EvqVaryingIn;
 		float_type.qualifier.builtIn	= TBuiltInVariable::EbvTessLevelInner;
+		float_type.qualifier.patch		= true;
 		float_type.arraySizes			= new TArraySizes{};
 		float_type.arraySizes->addInnerSize( 2 );
 
@@ -1408,6 +1407,7 @@ static void  CreateShaderBuiltinSymbols (TIntermNode*, DebugInfo &dbgInfo)
 		float_type.basicType			= TBasicType::EbtFloat;
 		float_type.qualifier.storage	= TStorageQualifier::EvqVaryingIn;
 		float_type.qualifier.builtIn	= TBuiltInVariable::EbvTessLevelOuter;
+		float_type.qualifier.patch		= true;
 		float_type.arraySizes			= new TArraySizes{};
 		float_type.arraySizes->addInnerSize( 4 );
 

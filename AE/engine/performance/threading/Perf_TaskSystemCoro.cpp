@@ -1,4 +1,7 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+/*
+	[results](https://github.com/azhirnov/as-en/blob/dev/AE/docs/papers/bench-cpu/TaskSystem.md)
+*/
 
 #include "Perf_Common.h"
 #include "threading/TaskSystem/TaskScheduler.h"
@@ -15,8 +18,14 @@ namespace
 	static Atomic<ulong>			task_complete		{0};
 	static Atomic<ulong>			task_payload_time	{0};
 	static Atomic<ulong>			task_counter		{0};
+
+  #if 1
 	static constexpr uint			W					= 4;
 	static constexpr uint			H					= 4;
+  #else
+	static constexpr uint			W					= 16;
+	static constexpr uint			H					= 16;
+  #endif
 
 	using TimePoint_t	= HighResClock::time_point;
 
@@ -89,7 +98,7 @@ namespace
 					"worker "s << ToString(i)
 				}));
 			}
-			AE_LOGI( "Thread count: "s << ToString(num_threads) );
+			AE_LOGI( "Thread count: "s << ToString(num_threads+1) );
 
 			const auto	start_time = TimePoint_t::clock::now();
 
@@ -174,7 +183,7 @@ namespace
 					"worker "s << ToString(i)
 				}));
 			}
-			AE_LOGI( "Thread count: "s << ToString(num_threads) );
+			AE_LOGI( "Thread count: "s << ToString(num_threads+1) );
 
 			const auto	start_time = TimePoint_t::clock::now();
 
@@ -256,7 +265,7 @@ namespace
 					"worker "s << ToString(i)
 				}));
 			}
-			AE_LOGI( "Thread count: "s << ToString(num_threads) );
+			AE_LOGI( "Thread count: "s << ToString(num_threads+1) );
 
 			const auto	start_time	= TimePoint_t::clock::now();
 			const uint	grid_size	= ThreadUtils::MaxThreadCount() * 16;

@@ -6,7 +6,7 @@ namespace
 {
 	constexpr uint	c_maxDepth		= 100;
 	constexpr uint	c_queueCount	= 2;
-	constexpr uint	c_threadCount	= 10'000;
+	constexpr uint	c_baseTaskCount	= 10'000;
 	constexpr uint	c_repeatCount	= 1;
 
 	using TimePoint_t	= HighResClock::time_point;
@@ -180,17 +180,18 @@ namespace
 	{
 		LocalTaskScheduler	scheduler		{WorkerQueueCount(c_queueCount)};
 		const uint			thread_count	= ThreadUtils::MaxThreadCount();
+		const EThreadArray	thread_type		{EThread::PerFrame};
 
 		for (uint i = 0; i < thread_count; ++i) {
 			scheduler->AddThread( ThreadMngr::CreateThread( ThreadMngr::ThreadConfig{
-				EThreadArray{ EThread::PerFrame },
+				thread_type,
 				"worker "s << ToString(i)
 			}));
 		}
 
 		Promise<ulong>	p = RunTasks( seed, baseTaskCount );
 
-		TEST( scheduler->Wait( {AsyncTask{p}}, seconds{10000} ));
+		TEST( scheduler->Wait( {AsyncTask{p}}, thread_type, seconds{10'000} ));
 		TEST( p->IsCompleted() );
 
 		ulong	h;
@@ -206,10 +207,10 @@ extern void  PerfTest_TaskOrder2 ()
 	for (uint i = 0; i < c_repeatCount; ++i)
 	{
 		const ulong		seed		= Random{}.Uniform<ulong>();
-		const ulong		ref_hash	= SingleThreadHash( seed, c_threadCount );
+		const ulong		ref_hash	= SingleThreadHash( seed, c_baseTaskCount );
 
 		AE_LOGI( ToString<16>( ref_hash ));
 
-		MultiThreadHash( seed, c_threadCount, ref_hash );
+		MultiThreadHash( seed, c_baseTaskCount, ref_hash );
 	}
 }

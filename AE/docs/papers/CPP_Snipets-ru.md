@@ -91,6 +91,46 @@ Array<int>& arr = *sync.Ptr(); // lock(), operator*, unlock()
 arr.emplace_back(); // unprotected access!
 ```
 
+### Неявная конвертация в bool
+
+С этим связано множество проблем, начиная с `operator bool`:
+
+```
+struct ValueAndError
+{
+private:
+  int value;
+  bool isOK;
+
+public:
+  operator bool() const { return isOK; }
+  int Unwrap() { return value; }
+};
+
+ValueAndError  getValue();
+
+int value = getValue(); // cast bool to int
+```
+
+Но эта проблема легко отлавливается если настроить ошибки компиляции, а еще лучше **всегда** использовать только `explicit operator bool`.
+
+Другие ошибки сложнее отловить, например `if (x)` позволяет использовать и `bool` тип и `int` и указатели, поэтому такой код компилируется и предумпреждение никогда не выведется:
+
+```
+assert("error");
+static_assert("error");
+```
+
+Но после улучшения и с настроенными ошибками компиляции, такой код больше не скомпилируется:
+
+```
+#define Assert( _expr_ )  assert(bool{_expr_})
+#define StaticAssertMsg( _expr_, _msg_ ) static_assert(bool{_expr_}, _msg_)
+
+Assert("error");  // compilation error
+StaticAssertMsg(false, "error"); // ok
+```
+
 ## Шаблоны
 
 ### Специализация
@@ -714,7 +754,7 @@ w.y = 0;  // error
 Но макросы до `import ""` не влияют на компиляцию того, что импортируется, в этом большое отличие от `#include`.
 
 
-## Как подключить заголовки по-старинке
+### Как подключить заголовки по-старинке
 
 Интерфейс модуля (.cppm).
 

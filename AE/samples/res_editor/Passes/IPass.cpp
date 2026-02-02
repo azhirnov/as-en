@@ -48,7 +48,7 @@ namespace
 
 /*
 =================================================
-	constructor / destructor
+	ResourceArray
 =================================================
 */
 	ResourceArray::ResourceArray ()
@@ -57,6 +57,20 @@ namespace
 	ResourceArray::~ResourceArray ()
 	{}
 //-----------------------------------------------------------------------------
+
+
+/*
+=================================================
+	Debugger::IsEnabled
+=================================================
+*/
+	bool  IPass::Debugger::IsEnabled (const IPass* pass) const
+	{
+		return	IsEnabled()		and
+				(pass == target or target == IPass::c_DebugAllTargets);
+	}
+//-----------------------------------------------------------------------------
+
 
 
 /*

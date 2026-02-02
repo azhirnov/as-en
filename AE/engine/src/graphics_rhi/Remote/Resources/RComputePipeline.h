@@ -44,7 +44,15 @@ namespace AE::Graphics
 		ND_ bool  Create (ResourceManager &, const CreateInfo &ci)				__NE___;
 			void  Destroy (ResourceManager &)									__NE___;
 
-		ND_ bool  ParseShaderTrace (const void* ptr, Bytes maxSize, ShaderDebugger::ELogFormat, OUT Array<String> &result)	C_NE___;
+		ND_ bool  ParseShaderTrace (const void*					ptr,
+									Bytes						maxSize,
+									ShaderDebugger::ELogFormat	logFmt,
+									OUT Array<String>			&result)		C_NE___;
+
+		ND_ bool  ParseShaderAsserts (const void*					ptr,
+									  Bytes							maxSize,
+									  ShaderDebugger::ELogFormat	logFmt,
+									  OUT Array<String>				&result)	C_NE___;
 
 		ND_ RmComputePipelineID		Handle ()									C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _pplnId; }
 		ND_ PipelineLayoutID		LayoutId ()									C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _layoutId; }

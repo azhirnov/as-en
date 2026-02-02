@@ -24,6 +24,8 @@ extern bool ShaderPerf_Test1 (TestDevice& vulkan);
 extern bool ClockMap_Test1 (TestDevice& vulkan);
 extern bool ClockMap_Test2 (TestDevice& vulkan);
 
+extern bool ShaderAssert_Test1 (TestDevice& vulkan);
+
 
 int main (const int argc, char* argv[])
 {
@@ -59,6 +61,10 @@ int main (const int argc, char* argv[])
 		passed &= ShaderPerf_Test1( vulkan );		// graphics
 		passed &= ClockMap_Test1( vulkan );			// graphics
 		passed &= ClockMap_Test2( vulkan );			// ray tracing
+	}
+
+	{
+		ShaderAssert_Test1( vulkan );
 	}
 
 	CHECK( passed );

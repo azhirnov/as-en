@@ -162,6 +162,7 @@ namespace
 		}};
 
 		AddPpln( IPass::EDebugMode::Unknown,		EFlags::Unknown,				PipelineName{"rastermip"} );
+		AddPpln( IPass::EDebugMode::Asserts,		EFlags::Unknown,				PipelineName{"rastermip.Asserts"} );
 		AddPpln( IPass::EDebugMode::Trace,			EFlags::Enable_ShaderTrace,		PipelineName{"rastermip.Trace"} );
 		AddPpln( IPass::EDebugMode::FnProfiling,	EFlags::Enable_ShaderFnProf,	PipelineName{"rastermip.FnProf"} );
 		AddPpln( IPass::EDebugMode::TimeHeatMap,	EFlags::Enable_ShaderTmProf,	PipelineName{"rastermip.TmProf"} );
@@ -388,7 +389,7 @@ namespace AE::ResEditor
 					"Failed to read shader file '"s << ToString(_pplnPath) << "'" );
 
 				header >> fs;
-				fs_line = uint(Parser::CalculateNumberOfLines( header )) - 1;
+				fs_line = SubSat( uint(Parser::CalculateNumberOfLines( header )), 1u );
 			}
 		}
 
@@ -413,11 +414,16 @@ namespace AE::ResEditor
 		if ( flags.contains( UIInteraction::EShaderFlags::CaptureInternalRepresentation ))
 			ppln_opt |= EPipelineOpt::CaptureInternalRepresentation;
 
-		StaticAssert( uint(UIInteraction::EShaderFlags::_Count) == 5 );
+		StaticAssert( uint(UIInteraction::EShaderFlags::_Count) == 6 );
 
 		_CompilePipeline3( vs, fs, fs_line, "rastermip", uint(sh_opt), ppln_opt );
 
 	  #ifdef AE_ENABLE_GLSL_TRACE
+		if ( AllBits( _baseFlags, EFlags::Enable_ShaderAsserts )		or
+			 flags.contains( UIInteraction::EShaderFlags::EnableAsserts ))
+		{
+			NOTHROW( _CompilePipeline3( vs, fs, fs_line, "rastermip.Asserts", uint(sh_opt | EShaderOpt::Asserts), Default ));
+		}
 		if ( AllBits( _baseFlags, EFlags::Enable_ShaderTrace ))
 			NOTHROW( _CompilePipeline3( vs, fs, fs_line, "rastermip.Trace", uint(sh_opt | EShaderOpt::Trace), Default ));
 

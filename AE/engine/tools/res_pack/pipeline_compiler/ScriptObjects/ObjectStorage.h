@@ -58,6 +58,7 @@ namespace AE::PipelineCompiler
 		bool	shaderSubgroupClock				= false;
 		bool	fragmentStoresAndAtomics		= false;
 		bool	vertexPipelineStoresAndAtomics	= false;
+		bool	subgroupBasic					= false;
 	};
 
 
@@ -233,7 +234,7 @@ namespace AE::PipelineCompiler
 		static void  Bind_EValueType (const ScriptEnginePtr &se)																	__Th___;
 		static void  Bind_EShaderPreprocessor (const ScriptEnginePtr &se)															__Th___;
 
-		ND_ static ShaderDebuggerFeatures  GetShaderDebuggerFeatures (ArrayView<ScriptFeatureSetPtr> features);
+		ND_ static ShaderDebuggerFeatures  GetShaderDebuggerFeatures (ArrayView<ScriptFeatureSetPtr> features, EShaderStages);
 
 		ND_ bool  CompilePipeline (const ScriptEnginePtr &se, const Path &pplnPath,
 									ArrayView<Path> includeDirs, bool includeCurrentDir = false);

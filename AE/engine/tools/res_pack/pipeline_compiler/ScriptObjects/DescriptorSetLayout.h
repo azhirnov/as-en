@@ -91,7 +91,7 @@ namespace AE::PipelineCompiler
 		void  AddImmutableSampler (EShaderStages, const String &name, ArrayView<String> samplerNames)														__Th___;
 		void  AddRayTracingScene (EShaderStages, const String &name, const ArraySize &)																		__Th___;
 		void  AddRayTracingPartitionedScene (EShaderStages, const String &name, const ArraySize &)															__Th___;
-		void  AddDebugStorageBuffer (const String &name, EShaderStages, Bytes staticSize, Bytes arraySize)													__Th___;
+		void  AddDebugStorageBuffer (EShaderStages, Bytes staticSize, Bytes arrayStride)																	__Th___;
 
 		void  SetUsage (EDescSetUsage value)																												__Th___;
 		void  SetUsage2 (uint value)																														__Th___;

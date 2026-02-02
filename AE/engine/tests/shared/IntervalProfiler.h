@@ -22,7 +22,7 @@ public:
 
 		// sort
 		SortByName				= 1 << 0,
-		SortByPerf				= 1 << 1,
+		SortByTime				= 1 << 1,
 
 		// include
 		IncludeDelta			= 1 << 8,		// difference from previous to current, depends on sorting
@@ -48,7 +48,7 @@ private:
 		AddInfoFn_t			addInfoFn;
 	};
 
-	static constexpr EFlags		c_DefaultFlags = EFlags::SortByPerf | EFlags::IncludeTime | EFlags::IncludeDiffFromFastest;
+	static constexpr EFlags		c_DefaultFlags = EFlags::SortByTime | EFlags::IncludeTime | EFlags::IncludeDiffFromFastest;
 
 
 // variables
@@ -93,7 +93,7 @@ inline void  IntervalProfiler::PrintAndReset ()
 
 	Duration_t	min_time {MaxValue<slong>()};
 
-	if ( AllBits( _flags, EFlags::SortByPerf ))
+	if ( AllBits( _flags, EFlags::SortByTime ))
 	{
 		std::sort( _tests.begin(), _tests.end(), [](const auto& lhs, const auto& rhs) { return lhs.medium < rhs.medium; });
 		min_time = _tests.begin()->medium;

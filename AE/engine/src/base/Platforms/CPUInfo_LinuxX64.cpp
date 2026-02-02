@@ -21,12 +21,12 @@ namespace
 {
 	ND_ static uint  ReadUint10 (StringView line)
 	{
-		return StringToUInt( line.substr( line.find(": ")+2, line.length() ), 10 );
+		return StringToUInt( SubString( line, line.find(": ")+2, line.length() ), 10 );
 	}
 
 	ND_ static uint  ReadUint16 (StringView line)
 	{
-		return StringToUInt( line.substr( line.find(": ")+4, line.length() ), 16 );
+		return StringToUInt( SubString( line, line.find(": ")+4, line.length() ), 16 );
 	}
 
 	ND_ static uint  GetMinClockSpeed (uint id)
@@ -134,7 +134,7 @@ namespace
 						}
 					}
 					if ( flags_str.empty() and StartsWith( line, "flags\t" ))
-						flags_str = line.substr( line.find(':'));
+						flags_str = SubString( line, line.find(':') );
 				}
 
 				FixedSet< uint, max_cores >	unique_cores;

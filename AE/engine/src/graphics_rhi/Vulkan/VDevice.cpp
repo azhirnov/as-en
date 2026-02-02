@@ -721,6 +721,7 @@ namespace
 	PrintPipelineExecutableStatistics
 ----
 	print register count, local memory usage
+	requires 'EPipelineOpt::CaptureStatistics'
 =================================================
 */
 	bool  VDevice::PrintPipelineExecutableStatistics (StringView pplnName, const VkPipeline pipeline) C_NE___
@@ -833,6 +834,8 @@ namespace
 /*
 =================================================
 	PrintPipelineExecutableInternalRepresentations
+----
+	requires 'EPipelineOpt::CaptureInternalRepresentation'
 =================================================
 */
 	bool  VDevice::PrintPipelineExecutableInternalRepresentations (StringView pplnName, const VkPipeline pipeline) C_NE___
@@ -1280,7 +1283,7 @@ namespace
 						AE_LOGW( "RADV (Mesa for AMD) ICD is not exist in '"s << radv_icd << "'" );
 					break;
 
-				case EDriver::AMDVLK :
+				case EDriver::AMD_VLK :
 					if ( FileSystem::IsFile( amdvlk_icd ))
 						return LinuxUtils::SetEnvironmentVariable( "VK_DRIVER_FILES", amdvlk_icd );
 					else
@@ -3819,8 +3822,15 @@ namespace {
 
 			if ( enable_validation )
 			{
-				CreateDebugCallback( c_DefaultDebugMessageSeverity, c_DefaultDebugMessageTypes,
-									 [] (const VDeviceInitializer::DebugReport &rep) { AE_LOGW(rep.message);  CHECK(not rep.isError); });
+				if ( _extensions.debugUtils or _extensions.debugReport )
+				{
+					CreateDebugCallback( c_DefaultDebugMessageSeverity, c_DefaultDebugMessageTypes,
+										 [] (const VDeviceInitializer::DebugReport &rep) { AE_LOGW(rep.message);  CHECK(not rep.isError); });
+				}
+				else
+				{
+					CHECK_MSG( false, "API Validation is not supported. Check that Vulkan SDK is installed and validation layers added implicit layers." );
+				}
 			}
 		}
 

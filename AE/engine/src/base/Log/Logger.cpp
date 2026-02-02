@@ -211,7 +211,7 @@ namespace
 		{
 			usize	pos = 0;
 			if ( Parser::MoveToLine( info.message, INOUT pos, 30 ))
-				str << info.message.substr( 0, pos ) << "...";
+				str << SubString( info.message, 0, pos ) << "...";
 			else
 				str << info.message;
 		}

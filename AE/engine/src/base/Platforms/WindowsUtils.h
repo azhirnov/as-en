@@ -103,6 +103,9 @@ namespace AE::Base
 		ND_ static bool		IsRunningAsAdmin ()												__NE___;
 		ND_ static bool		RunAsAdmin (const Path &path)									__NE___;
 
+		ND_ static bool		OpenURL (U8StringView url)										__NE___;
+		ND_ static bool		OpenURL (StringView url)										__NE___;
+
 
 		// OS //
 		ND_ static Version3		GetOSVersion ()												__NE___;
@@ -155,6 +158,8 @@ namespace AE::Base
 		ND_ static bool  _ClipboardPut (const void* data, Bytes dataSize, uint format, void* wnd)	__NE___;
 
 			static bool  _MicroSleepImpl (nanoseconds relativeTime, bool isWin10v1803)		__NE___;
+
+		ND_ static bool  _OpenURL (const wchar_t* url)										__NE___;
 
 	public:
 		ND_ static void*  _GetSystemCpuSetInformationFn ()									__NE___;

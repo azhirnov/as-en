@@ -67,6 +67,11 @@ namespace AE::Graphics
 									ShaderDebugger::ELogFormat	logFmt,
 									OUT Array<String>			&result)	C_NE___;
 
+		ND_ bool  ParseShaderAsserts (const void*					ptr,
+									  Bytes							maxSize,
+									  ShaderDebugger::ELogFormat	logFmt,
+									  OUT Array<String>				&result) C_NE___;
+
 		ND_ Bytes  GetShaderGroupStackSize (const VDevice			 &dev,
 											ArrayView<RayTracingGroupName>,
 											ERTShaderGroup			 type)	C_NE___;

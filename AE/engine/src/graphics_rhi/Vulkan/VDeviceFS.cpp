@@ -476,11 +476,14 @@ namespace
 			}
 			std::sort( outFeatureSet.fragmentShadingRates.begin(), outFeatureSet.fragmentShadingRates.end() );
 
-			outFeatureSet.fragmentShadingRateTexelSize.minX			= POTValue{_properties.fragShadingRateProps.minFragmentShadingRateAttachmentTexelSize.width }.GetPOT();
-			outFeatureSet.fragmentShadingRateTexelSize.minY			= POTValue{_properties.fragShadingRateProps.minFragmentShadingRateAttachmentTexelSize.height}.GetPOT();
-			outFeatureSet.fragmentShadingRateTexelSize.maxX			= POTValue{_properties.fragShadingRateProps.maxFragmentShadingRateAttachmentTexelSize.width }.GetPOT();
-			outFeatureSet.fragmentShadingRateTexelSize.maxY			= POTValue{_properties.fragShadingRateProps.maxFragmentShadingRateAttachmentTexelSize.height}.GetPOT();
-			outFeatureSet.fragmentShadingRateTexelSize.aspectRatio	= POTValue{_properties.fragShadingRateProps.maxFragmentShadingRateAttachmentTexelSizeAspectRatio}.GetPOT();
+			if ( _properties.fragShadingRateFeats.attachmentFragmentShadingRate == VK_TRUE )
+			{
+				outFeatureSet.fragmentShadingRateTexelSize.minX = POTValue{ _properties.fragShadingRateProps.minFragmentShadingRateAttachmentTexelSize.width }.GetPOT();
+				outFeatureSet.fragmentShadingRateTexelSize.minY = POTValue{ _properties.fragShadingRateProps.minFragmentShadingRateAttachmentTexelSize.height }.GetPOT();
+				outFeatureSet.fragmentShadingRateTexelSize.maxX = POTValue{ _properties.fragShadingRateProps.maxFragmentShadingRateAttachmentTexelSize.width }.GetPOT();
+				outFeatureSet.fragmentShadingRateTexelSize.maxY = POTValue{ _properties.fragShadingRateProps.maxFragmentShadingRateAttachmentTexelSize.height }.GetPOT();
+				outFeatureSet.fragmentShadingRateTexelSize.aspectRatio = POTValue{ _properties.fragShadingRateProps.maxFragmentShadingRateAttachmentTexelSizeAspectRatio }.GetPOT();
+			}
 		}
 
 		if ( _extensions.fragDensityMap )

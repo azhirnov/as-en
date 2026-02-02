@@ -33,9 +33,9 @@ inline void  ForEachCoreType (FN &&fn)
 					{
 						if ( auto idx = ExtractBitIndex( INOUT bits ); idx >= 0 ) {
 							if ( ThreadUtils::SetAffinity( idx ))
-								break;
+								return;
 						}else{
-							bits = core->logicalBits.to_ullong();
+							bits = core->logicalBits.to_ullong(); // restart
 							CHECK_FATAL( i < 100 );
 						}
 					}

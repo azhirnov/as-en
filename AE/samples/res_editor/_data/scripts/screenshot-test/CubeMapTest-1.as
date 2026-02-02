@@ -42,7 +42,7 @@
 		const float	scale	= Exp10( float(iScale) );
 
 		float2		uv		= GetGlobalCoordUNorm().xy;		uv.y = (uv.y - y/y_max) * y_max;
-		float3		dir		= Ray_PlaneTo360( float3(0.0), 0.1, uv ).dir;
+		float3		dir		= Ray_PlaneToSphereMap360( float3(0.0), 0.1, uv ).dir;
 
 		switch ( int(y) )
 		{

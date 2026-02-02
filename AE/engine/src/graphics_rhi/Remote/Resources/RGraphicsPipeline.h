@@ -56,7 +56,15 @@ namespace AE::Graphics
 
 		ND_ uint  GetVertexBufferIndex (VertexBufferName::Ref name)		C_NE___;
 
-		ND_ bool  ParseShaderTrace (const void* ptr, Bytes maxSize, ShaderDebugger::ELogFormat, OUT Array<String> &result)	C_NE___;
+		ND_ bool  ParseShaderTrace (const void*					ptr,
+									Bytes						maxSize,
+									ShaderDebugger::ELogFormat	logFmt,
+									OUT Array<String>			&result)	C_NE___;
+
+		ND_ bool  ParseShaderAsserts (const void*					ptr,
+									  Bytes							maxSize,
+									  ShaderDebugger::ELogFormat	logFmt,
+									  OUT Array<String>				&result) C_NE___;
 
 		ND_ RmGraphicsPipelineID	Handle ()							C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _pplnId; }
 		ND_ PipelineLayoutID		LayoutId ()							C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _layoutId; }

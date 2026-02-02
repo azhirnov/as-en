@@ -66,7 +66,7 @@ namespace AE::Base
 		bool		SeekSet (Bytes newPos)												__NE_OV;
 
 		Bytes		ReadSeq (OUT void*, Bytes)											__NE_OV;
-		
+
 		ReqAlign	OffsetAlign ()														C_NE_OV	{ return Default; }		// TODO
 
 	private:
@@ -134,7 +134,7 @@ namespace AE::Base
 
 		Bytes		WriteSeq (const void*, Bytes)										__NE_OV;
 		void		Flush ()															__NE_OV;
-		
+
 		ReqAlign	OffsetAlign ()														C_NE_OV	{ return Default; }		// TODO
 	};
 //-----------------------------------------------------------------------------
@@ -183,7 +183,7 @@ namespace AE::Base
 		Bytes		Size ()																	C_NE_OV	{ return _fileSize; }
 
 		Bytes		ReadBlock (Bytes, OUT void*, Bytes)										__NE_OV;
-		
+
 		ReqAlign	OffsetAlign ()															C_NE_OV	{ return Default; }		// TODO
 	};
 
@@ -233,7 +233,7 @@ namespace AE::Base
 
 		Bytes		WriteBlock (Bytes, const void*, Bytes)									__NE_OV;
 		void		Flush ()																__NE_OV;
-		
+
 		ReqAlign	OffsetAlign ()															C_NE_OV	{ return Default; }		// TODO
 	};
 

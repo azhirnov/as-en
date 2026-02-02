@@ -71,6 +71,7 @@ Source folder: [Vulkan backend](https://github.com/azhirnov/as-en/blob/dev/AE/en
 - [x] VK_EXT_shader_replicated_composites - required for coopvec, coopmat
 - [x] VK_EXT_rasterization_order_attachment_access, VK_ARM_rasterization_order_attachment_access
 - [x] VK_EXT_conservative_rasterization
+- [x] VK_KHR_driver_properties
 
 **Supported shader extensions:**
 - [x] VK_KHR_shader_clock, GL_EXT_shader_realtime_clock, GL_ARB_shader_clock
@@ -194,7 +195,6 @@ Source folder: [Vulkan backend](https://github.com/azhirnov/as-en/blob/dev/AE/en
 - VK_KHR_compute_shader_derivatives (VK_NV_compute_shader_derivatives)
 - VK_EXT_depth_bias_control
 - VK_EXT_depth_clamp_control
-- VK_EXT_external_memory_acquire_unmodified
 - VK_EXT_map_memory_placed
 - VK_ANDROID_external_format_resolve
 - VK_HUAWEI_hdr_vivid
@@ -209,7 +209,6 @@ Source folder: [Vulkan backend](https://github.com/azhirnov/as-en/blob/dev/AE/en
 - VK_KHR_depth_clamp_zero_one
 - VK_KHR_copy_commands2
 - VK_KHR_depth_stencil_resolve
-- VK_KHR_driver_properties
 - VK_KHR_imageless_framebuffer
 - VK_KHR_relaxed_block_layout
 - VK_KHR_separate_depth_stencil_layouts
@@ -285,6 +284,7 @@ Source folder: [Vulkan backend](https://github.com/azhirnov/as-en/blob/dev/AE/en
 - VK_EXT_private_data
 - VK_NV_ray_tracing
 - VK_EXT_fragment_density_map_offset
+- VK_EXT_external_memory_acquire_unmodified
 
 **Pending shader extensions:**
 - GL_EXT_null_initializer
@@ -314,6 +314,8 @@ Source folder: [Vulkan backend](https://github.com/azhirnov/as-en/blob/dev/AE/en
 - GL_EXT_shared_memory_block - ???
 - GL_EXT_long_vector
 - GL_EXT_uniform_buffer_unsized_array, VK_EXT_shader_uniform_buffer_unsized_array
+- GL_EXT_descriptor_heap
+- GL_EXT_structured_descriptor_heap
 
 **Will not be supported**
 - GL_EXT_vulkan_glsl_relaxed
@@ -324,6 +326,7 @@ Source folder: [Vulkan backend](https://github.com/azhirnov/as-en/blob/dev/AE/en
 - GL_NV_shading_rate_image
 - GL_NVX_multiview_per_view_attributes
 - GL_QCOM_image_processing
+- GL_NV_push_constant_bank
 
 **TODO:**
 - sparse memory

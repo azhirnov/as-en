@@ -64,13 +64,13 @@
 
 		// render loop
 		{
-			RC<SceneGraphicsPass>	draw = scene.AddGraphicsPass( "opaque" );
-			draw.AddPipeline( "samples/Model-Cubemap.as" );	// [src](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/pipelines/samples/Model-Cubemap.as)
-			draw.Output( "out_Color",	cubemap_rt, RGBA32f(0.0f, 1.f, 1.f, 1.f) );
-			draw.Output(				cubemap_ds, DepthStencil(1.f, 0) );
-			draw.ArgIn(  "un_CBuf",		cbuf );
+			RC<SceneGraphicsPass>	pass = scene.AddGraphicsPass( "opaque" );
+			pass.AddPipeline( "samples/Model-Cubemap.as" );	// [src](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/pipelines/samples/Model-Cubemap.as)
+			pass.Output( "out_Color",	cubemap_rt, RGBA32f(0.0f, 1.f, 1.f, 1.f) );
+			pass.Output(				cubemap_ds, DepthStencil(1.f, 0) );
+			pass.ArgIn(  "un_CBuf",		cbuf );
 			pass.Constant( "iUseCameraPos",	1 );
-			draw.Layer( ERenderLayer::Opaque );
+			pass.Layer( ERenderLayer::Opaque );
 		}{
 			RC<Postprocess>		pass = Postprocess();
 			pass.Set( camera );
@@ -110,38 +110,38 @@
 			case 0 :	ray = Ray_Perspective( un_PerPass.camera.invViewProj, float3(0.0), z_near, uv );				break;
 
 			// flat screen	(fov=45, iDistToEye=0.474) (fov=90, iDistToEye=0.105)
-			case 1 :	ray = Ray_PerspectiveFromFlatScreen( float3(0.0), iDistToEye, screen_size, z_near, ToSNorm(uv) );	break;
+			case 1 :	ray = Ray_PerspectiveFromFlatScreen( float3(0.0), iDistToEye, screen_size, z_near, uv );		break;
 
 			// flat screen FOV
-			case 2 :	ray = Ray_Perspective( float3(0.0), Min( fov.y, float_Pi*0.95 ), aspect_ratio, z_near, ToSNorm(uv) );	break;
+			case 2 :	ray = Ray_Perspective( float3(0.0), Min( fov.y, float_Pi*0.95 ), aspect_ratio, z_near, uv );	break;
 
 			// curved screen
-			case 3 :	ray = Ray_PerspectiveFromCurvedScreen( float3(0.0), iDistToEye, curve_radius, screen_size, z_near, ToSNorm(uv) ); break;
+			case 3 :	ray = Ray_PerspectiveFromCurvedScreen( float3(0.0), iDistToEye, curve_radius, screen_size, z_near, uv ); break;
 
 			// sphere
-			case 4 :	ray = Ray_PlaneToSphere( fov, float3(0.0), z_near, ToSNorm(uv) );						break;
+			case 4 :	ray = Ray_PlaneToSphere( fov, float3(0.0), z_near, uv );										break;
 
 			// flat screen + sphere
 			case 5 : {
-						ray = Ray_PerspectiveFromFlatScreen( float3(0.0), iDistToEye, screen_size, z_near, ToSNorm(uv) );
-				Ray		r = Ray_PlaneToSphere( fov, float3(0.0), z_near, ToSNorm(uv) );
+						ray = Ray_PerspectiveFromFlatScreen( float3(0.0), iDistToEye, screen_size, z_near, uv );
+				Ray		r = Ray_PlaneToSphere( fov, float3(0.0), z_near, uv );
 				ray.dir = Normalize( Lerp( ray.dir, r.dir, 0.5 ));	// flat -> sphere
 				break;
 			}
 
 			// sphere v2
-			case 6 :	ray = Ray_PlaneToSphere( fov2, float3(0.0), z_near, ToSNorm(uv) );						break;
+			case 6 :	ray = Ray_PlaneToSphere( fov2, float3(0.0), z_near, uv );										break;
 
 			// flat screen + sphere v2
 			case 7 : {
-						ray = Ray_PerspectiveFromFlatScreen( float3(0.0), iDistToEye, screen_size, z_near, ToSNorm(uv) );
-				Ray		r = Ray_PlaneToSphere( fov2, float3(0.0), z_near, ToSNorm(uv) );
+						ray = Ray_PerspectiveFromFlatScreen( float3(0.0), iDistToEye, screen_size, z_near, uv );
+				Ray		r = Ray_PlaneToSphere( fov2, float3(0.0), z_near, uv );
 				ray.dir = Normalize( Lerp( ray.dir, r.dir, 0.5 ));	// flat -> sphere
 				break;
 			}
 
 			// panini
-			case 8 :	ray = Ray_PaniniProjection( fov.x, float3(0.0), z_near, gl.FragCoord.xy, screen_dim );	break;
+			case 8 :	ray = Ray_PaniniProjection( fov.x, float3(0.0), z_near, gl.FragCoord.xy, screen_dim );			break;
 		}
 
 		float	grid = AA_QuadGrid_dxdy( ray.dir.xy * 16.0, float2(0.0, 2.75) ).x;

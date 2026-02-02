@@ -16,6 +16,7 @@ namespace AE::PipelineCompiler
 		DebugTrace,
 		Performance,
 		TimeMap,
+		Asserts,
 	};
 
 
@@ -109,7 +110,7 @@ namespace AE::PipelineCompiler
 						   ETraceMode				mode				= ETraceMode::None,
 						   uint						dbgBufferSetIndex	= UMax);
 
-		ND_ bool  TestDebugTraceOutput (Array<VkShaderModule> modules, String referenceFile);
+		ND_ bool  TestDebugTraceOutput (Array<VkShaderModule> modules, String referenceFile, ETraceMode mode = ETraceMode::None);
 
 		ND_ bool  TestPerformanceOutput (Array<VkShaderModule> modules, Array<String> fnNames);
 
@@ -130,12 +131,14 @@ namespace AE::PipelineCompiler
 		ND_ VkPhysicalDeviceShaderClockFeaturesKHR const&			GetShaderClockFeats ()	const	{ return _vulkan.GetVProperties().shaderClockFeats; }
 		ND_ VkPhysicalDeviceRayTracingPipelineFeaturesKHR const&	GetRayTracingFeats ()	const	{ return _vulkan.GetVProperties().rayTracingPipelineFeats; }
 		ND_ VkPhysicalDeviceRayTracingPipelinePropertiesKHR const&	GetRayTracingProps ()	const	{ return _vulkan.GetVProperties().rayTracingPipelineProps; }
+		ND_ VkPhysicalDeviceSubgroupProperties const&				GetSubgroupProps ()		const	{ return _vulkan.GetVProperties().subgroupProperties; }
 
 	private:
 		ND_ bool  _CreateResources ();
 			void  _DestroyResources ();
 
 		ND_ bool  _GetDebugOutput (VkShaderModule shaderModule, const void* ptr, VkDeviceSize maxSize, OUT Array<String> &result) const;
+		ND_ bool  _GetAssertLocations (VkShaderModule shaderModule, const void* ptr, VkDeviceSize maxSize, OUT Array<String> &result) const;
 
 		static void  _Decompile (const Array<uint> &);
 

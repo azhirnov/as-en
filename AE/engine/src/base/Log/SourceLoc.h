@@ -47,7 +47,7 @@ namespace AE::Base
 
 		NdCx__ static SourceLoc  current (const std::source_location &loc = std::source_location::current()) __NE___ { return SourceLoc{loc}; }
 
-	//private:
+	//private:  // for tests
 		NdCx__ static StringView  _ExtractFnName (StringView)		__NE___;
 		NdCx__ static StringView  _ExtractStem (StringView)			__NE___;
 	};
@@ -65,7 +65,15 @@ namespace AE::Base
 	{
 		if ( functionName.empty() )
 		{
+		#ifdef AE_COMPILER_MSVC
+		# if not _USE_DETAILED_FUNCTION_NAME_IN_SOURCE_LOCATION
+			_fnName = loc.function_name();
+		# else
 			_fnName = _ExtractFnName( loc.function_name() );
+		# endif
+		#else
+			_fnName = _ExtractFnName( loc.function_name() );
+		#endif
 		}
 		if ( functionSignature.empty() )
 		{
@@ -82,7 +90,9 @@ namespace AE::Base
 	{
 		usize   end = fnSign.rfind( '(' );
 
-		//ASSERT( fnSign.find( '(', end+1 ) == StringView::npos );
+		if ( end >= fnSign.size() )
+			return {};  // error
+
 		--end;
 
 		// remove template specialization
@@ -91,7 +101,7 @@ namespace AE::Base
 		{
 			int	br_count = 1;
 			--end;
-			for (; br_count > 0 and end > 0;)
+			for (; br_count > 0 and end < fnSign.size();)
 			{
 				char	c = fnSign[end];
 				--end;
@@ -100,17 +110,36 @@ namespace AE::Base
 				if ( c == '<' )
 					--br_count;
 			}
-			//ASSERT( br_count == 0 );
+			if ( br_count != 0 )
+				return {};  // error
 		}
 		#endif
 
-		usize   begin  = end;
+		usize   begin = end;
 
-		for (; begin > 0 and fnSign[begin] != ' ' and fnSign[begin] != ':'; --begin) {}
+		for (; begin != 0 and begin < fnSign.size(); --begin)
+		{
+			char	c = fnSign[begin];
+			if ( c == ' ' or c == ':' )
+			{
+				++begin;
+				break;
+			}
+		}
 
-		if ( begin < end and end < fnSign.size() )
-			return StringView{ fnSign.data() + begin+1, fnSign.data() + end+1 };
+		if ( begin <= end and end < fnSign.size() )
+		{
+			// 'operator ()'
+			if ( begin > 9 and fnSign[begin-1] == ' ' )
+			{
+				constexpr StringView	op {"operator "};
 
+				if ( StringView{ fnSign.data() + begin-9, 9 } == op )
+					return StringView{ fnSign.data() + begin-9, fnSign.data() + end+1 };
+			}
+
+			return StringView{ fnSign.data() + begin, fnSign.data() + end+1 };
+		}
 		return {};  // error
 	}
 

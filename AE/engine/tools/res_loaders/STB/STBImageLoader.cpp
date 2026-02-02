@@ -5,6 +5,7 @@
 
 # ifdef AE_COMPILER_MSVC
 #  pragma warning (push, 0)
+#  pragma warning (disable: 5039)
 # endif
 # if defined(AE_COMPILER_CLANG) or defined(AE_COMPILER_CLANG_CL)
 #	pragma clang diagnostic push

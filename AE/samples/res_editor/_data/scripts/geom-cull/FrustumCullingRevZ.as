@@ -330,7 +330,6 @@
 			pass.Constant(	"iLockFrustum",	dyn_dbg_frustum );
 			pass.LocalSize( 1 );
 			pass.DispatchGroups( 1 );
-			pass.AddFlag( EPassFlags::Enable_ShaderTrace );
 		}{
 			RC<ComputePass>		pass = ComputePass( "", "VISIBILITY_TEST" );
 			pass.ArgInOut(	"un_DrawTasks",	draw_task_buf );

@@ -2310,7 +2310,7 @@ namespace {
 					cfg.SetTarget( ECompilationTarget::Vulkan );
 				}
 
-				StaticAssert( uint(UIInteraction::EShaderFlags::_Count) == 5 );
+				StaticAssert( uint(UIInteraction::EShaderFlags::_Count) == 6 );
 
 				cfg.SetPipelineOptions( ppln_opt );
 				cfg.SetShaderOptions( sh_opt );

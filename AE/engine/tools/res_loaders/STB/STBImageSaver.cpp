@@ -4,7 +4,9 @@
 # include "base/Defines/StdInclude.h"
 
 # ifdef AE_COMPILER_MSVC
-#  pragma warning (push, 0)
+#  pragma warning (push)
+#  pragma warning (disable: 4996)
+#  pragma warning (disable: 5039)
 # endif
 # if defined(AE_COMPILER_CLANG) or defined(AE_COMPILER_CLANG_CL)
 #	pragma clang diagnostic push
@@ -43,7 +45,7 @@ namespace AE::ResLoader
 
 namespace
 {
-	static void  StbiWriteFn (void* context, void* data, int size)
+	static void  StbiWriteFn (void* context, void* data, int size) __NE___
 	{
 		WStream&	stream = *Cast<WStream>(context);
 		Unused( stream.WriteSeq( data, Bytes{uint(size)} ));

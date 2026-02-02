@@ -4,8 +4,17 @@
 # include "graphics/ImGui/ImGuiRenderer.h"
 # include "graphics_rhi/Private/EnumToString.h"
 
+# ifdef AE_COMPILER_MSVC
+#	pragma warning (push)
+#	pragma warning (disable: 5039)
+# endif
+
 # include "imgui.h"
 # include "imgui_internal.h"
+
+# ifdef AE_COMPILER_MSVC
+#	pragma warning (pop)
+# endif
 
 # if IMGUI_VERSION_NUM != 19210
 #	pragma message( "required ImGui version 1.92.1" )

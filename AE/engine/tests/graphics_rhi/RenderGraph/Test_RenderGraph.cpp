@@ -74,6 +74,7 @@ RGTest::RGTest () :
 	_tests.emplace_back( &RGTest::Test_Debugger3 );
 	_tests.emplace_back( &RGTest::Test_Debugger4 );
 	_tests.emplace_back( &RGTest::Test_Debugger5 );
+	_tests.emplace_back( &RGTest::Test_Debugger6 );
   #endif
 
 	RenderTaskScheduler::InstanceCtor::Create( _device );

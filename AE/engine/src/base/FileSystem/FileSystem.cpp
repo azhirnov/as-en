@@ -284,7 +284,7 @@ namespace {
 		}
 
 		if ( i < file.length() )
-			return file.substr( i + (j == maxParts ? 2 : 0) );
+			return SubString( file, i + (j == maxParts ? 2 : 0) );
 		else
 			return file;
 	}

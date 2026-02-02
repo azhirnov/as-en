@@ -238,7 +238,9 @@ namespace AE::PipelineCompiler
 				RayTracingScene		rtScene;
 			};
 
-			Uniform () __NE___ {}
+			Uniform ()							__NE___ {}
+
+			ND_ bool  IsRuntimeSizedArray ()	C_NE___	{ return arraySize == 0; }
 		};
 
 		using Uniforms_t	= Array<Pair< UniformName, Uniform >>;

@@ -1594,7 +1594,7 @@ namespace
 				case EImageOpt::ColorAttachmentBlend :		result &= CheckFormatUsage( attachmentBlendFormats );		break;
 				case EImageOpt::SampledLinear :				result &= CheckFormatUsage( linearSampledFormats );			break;
 				case EImageOpt::SampledMinMax :				result &= CheckFormatUsage( minmaxFilterFormats );			break;
-				case EImageOpt::BlitSrc :					result &= CheckFormatUsage( linearSampledFormats );			break;
+				case EImageOpt::BlitSrc :					break;	// only linear blit requires linear sampler compatibility
 				case EImageOpt::BlitDst :					result &= CheckFormatUsage( attachmentFormats );			break;
 				case EImageOpt::LossyRTCompression :		result &= CheckFormatUsage( lossyCompressedAttachmentFormats );			break;
 				case EImageOpt::VertexPplnStore :			result &= (fragmentStoresAndAtomics			== EFeature::RequireTrue);	break;

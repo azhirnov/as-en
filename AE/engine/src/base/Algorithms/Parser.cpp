@@ -214,7 +214,7 @@ namespace AE::Base
 
 		ToEndOfLine( str, INOUT pos );
 
-		result = str.substr( prev_pos, pos - prev_pos );
+		result = SubStringBE( str, prev_pos, pos );
 
 		ToNextLine( str, INOUT pos );
 	}
@@ -250,7 +250,7 @@ namespace AE::Base
 
 			if_unlikely( c == '"' )
 			{
-				result = str.substr( begin, pos - begin );
+				result = SubStringBE( str, begin, pos );
 				++pos;
 				return true;
 			}
@@ -276,7 +276,7 @@ namespace AE::Base
 			ToEndOfLine( str, INOUT pos );
 
 			if ( pos != prev ) {
-				lines.push_back( str.substr( prev, pos-prev ));
+				lines.push_back( SubStringBE( str, prev, pos ));
 			}
 
 			ToNextLine( str, INOUT pos );
@@ -678,7 +678,7 @@ namespace
 				// move to word end
 				for (; CStyleParser::_IsWord( str[pos] ); ++pos) {}
 
-				StringView	macro_name	= str.substr( begin, pos - begin );
+				StringView	macro_name	= SubStringBE( str, begin, pos );
 				bool		include		= false;
 
 				for (auto def : defines) {
@@ -693,7 +693,7 @@ namespace
 					usize tmp = pos;
 					ToPrevLine( str, INOUT tmp );
 
-					result.push_back( str.substr( begin_block, tmp - begin_block ));
+					result.push_back( SubStringBE( str, begin_block, tmp ));
 					begin_block = UMax;
 				}
 
@@ -759,21 +759,21 @@ namespace
 			{
 				SkipSpaces( str, INOUT ++pos );
 
-				if ( str.substr( pos, 5 ) == "ifdef" )
+				if ( SubString( str, pos, 5 ) == "ifdef" )
 				{
 					++macro_depth;
 					pos += 5;
 					CheckMacro( INOUT pos );
 				}
 				else
-				if ( str.substr( pos, 2 ) == "if" )
+				if ( SubString( str, pos, 2 ) == "if" )
 				{
 					++macro_depth;
 					pos += 2;
 					CheckMacro( INOUT pos );
 				}
 				else
-				if ( str.substr( pos, 5 ) == "endif" )
+				if ( SubString( str, pos, 5 ) == "endif" )
 				{
 					--macro_depth;
 					ASSERT( macro_depth >= 0 );
@@ -783,14 +783,14 @@ namespace
 						usize tmp = pos;
 						ToPrevLine( str, INOUT tmp );
 
-						result.push_back( str.substr( begin_block, tmp - begin_block ));
+						result.push_back( SubStringBE( str, begin_block, tmp ));
 						begin_block = UMax;
 					}
 				}
 				#ifdef AE_DEBUG
-					else if ( str.substr( pos, 5 ) == "undef" )		{}
-					else if ( str.substr( pos, 6 ) == "pragma" )	{}
-					else if ( str.substr( pos, 9 ) == "extension" )	{}	// GLSL
+					else if ( SubString( str, pos, 5 ) == "undef" )		{}
+					else if ( SubString( str, pos, 6 ) == "pragma" )	{}
+					else if ( SubString( str, pos, 9 ) == "extension" )	{}	// GLSL
 					else DBG_WARNING( "unknown macros" );
 				#endif
 
@@ -900,6 +900,24 @@ namespace
 
 		for (; pos < lineSize; ++pos)
 			str += c;
+	}
+
+/*
+=================================================
+	SkipWhiteSpaces
+=================================================
+*/
+	void  Parser::SkipWhiteSpaces (INOUT StringView &str) __NE___
+	{
+		for (usize i = 0; i < str.size(); ++i)
+		{
+			char	c = str[i];
+			if_unlikely( c != ' ' and c != '\t' )
+			{
+				str = SubString( str, i );
+				break;
+			}
+		}
 	}
 
 /*

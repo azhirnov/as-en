@@ -27,8 +27,6 @@ namespace AE::Graphics
 */
 	ShaderDebugger::~ShaderDebugger () __NE___
 	{
-		DRC_EXLOCK( _drCheck );
-
 		auto&	res_mngr = GraphicsScheduler().GetResourceManager();
 
 		{
@@ -197,58 +195,86 @@ namespace {
 }
 /*
 =================================================
+	ParseShaderAsserts
+=================================================
+*/
+namespace {
+	template <typename PplnType>
+	static bool  ParseShaderAsserts (const void* ppln, const void* ptr, Bytes maxSize, ShaderDebugger::ELogFormat format, OUT Array<String> &result) __NE___
+	{
+	#if defined(AE_ENABLE_VULKAN) or defined(AE_ENABLE_REMOTE_GRAPHICS)
+		return Cast<PplnType>( ppln )->ParseShaderAsserts( ptr, maxSize, format, OUT result );
+	#else
+		Unused( ppln, ptr, maxSize, format, result );
+		return false;
+	#endif
+	}
+}
+/*
+=================================================
 	_Get***Pipeline
 =================================================
 */
-	bool  ShaderDebugger::_GetComputePipeline (ComputePipelineID ppln, DescriptorSetName::Ref dsName, OUT Result &result)
+	bool  ShaderDebugger::_GetComputePipeline (ComputePipelineID ppln, DescriptorSetName::Ref dsName, EShaderTraceFormat format, OUT Result &result)
 	{
 		result = Default;
 		result._state = EResourceState::ShaderStorage_RW | EResourceState::ComputeShader;
 
-		return _GetPipeline( ppln, dsName, OUT result );
+		return _GetPipeline( ppln, dsName, format, OUT result );
 	}
 
-	bool  ShaderDebugger::_GetRayTracingPipeline (RayTracingPipelineID ppln, DescriptorSetName::Ref dsName, OUT Result &result)
+	bool  ShaderDebugger::_GetRayTracingPipeline (RayTracingPipelineID ppln, DescriptorSetName::Ref dsName, EShaderTraceFormat format, OUT Result &result)
 	{
 		result = Default;
 		result._state = EResourceState::ShaderStorage_RW | EResourceState::RayTracingShaders;
 
-		return _GetPipeline( ppln, dsName, OUT result );
+		return _GetPipeline( ppln, dsName, format, OUT result );
 	}
 
-	bool  ShaderDebugger::_GetGraphicsPipeline (GraphicsPipelineID ppln, DescriptorSetName::Ref dsName, OUT Result &result)
+	bool  ShaderDebugger::_GetGraphicsPipeline (GraphicsPipelineID ppln, DescriptorSetName::Ref dsName, EShaderTraceFormat format, OUT Result &result)
 	{
 		result = Default;
 		result._state = EResourceState::ShaderStorage_RW | EResourceState::AllGraphicsShaders;
 
-		return _GetPipeline( ppln, dsName, OUT result );
+		return _GetPipeline( ppln, dsName, format, OUT result );
 	}
 
-	bool  ShaderDebugger::_GetGraphicsPipeline (MeshPipelineID ppln, DescriptorSetName::Ref dsName, OUT Result &result)
+	bool  ShaderDebugger::_GetGraphicsPipeline (MeshPipelineID ppln, DescriptorSetName::Ref dsName, EShaderTraceFormat format, OUT Result &result)
 	{
 		result = Default;
 		result._state = EResourceState::ShaderStorage_RW | EResourceState::AllGraphicsShaders;
 
-		return _GetPipeline( ppln, dsName, OUT result );
+		return _GetPipeline( ppln, dsName, format, OUT result );
 	}
 
-	bool  ShaderDebugger::_GetGraphicsPipeline (TilePipelineID ppln, DescriptorSetName::Ref dsName, OUT Result &result)
+	bool  ShaderDebugger::_GetGraphicsPipeline (TilePipelineID ppln, DescriptorSetName::Ref dsName, EShaderTraceFormat format, OUT Result &result)
 	{
 		result = Default;
 		result._state = EResourceState::ShaderStorage_RW | EResourceState::TileShader;
 
-		return _GetPipeline( ppln, dsName, OUT result );
+		return _GetPipeline( ppln, dsName, format, OUT result );
 	}
 
 	template <typename PplnID>
-	bool  ShaderDebugger::_GetPipeline (PplnID ppln, DescriptorSetName::Ref dsName, OUT Result &result)
+	bool  ShaderDebugger::_GetPipeline (PplnID ppln, DescriptorSetName::Ref dsName, EShaderTraceFormat format, OUT Result &result)
 	{
 		auto&	res_mngr = GraphicsScheduler().GetResourceManager();
 
 		if ( auto* res = res_mngr.GetResource( ppln ))
 		{
 			result._ppln	= res;
-			result._fn		= &ParseShaderTrace< RemoveAllQualifiers< decltype(*res) >>;
+
+			switch_enum( format )
+			{
+				case EShaderTraceFormat::Trace :
+					result._fn = &ParseShaderTrace< RemoveAllQualifiers< decltype(*res) >>;
+					break;
+
+				case EShaderTraceFormat::Asserts :
+					result._fn = &ParseShaderAsserts< RemoveAllQualifiers< decltype(*res) >>;
+					break;
+			}
+			switch_end
 
 			auto [ds, idx]	 = res_mngr.CreateDescriptorSet( ppln, dsName );
 			CHECK_ERR( ds );
@@ -339,9 +365,7 @@ namespace {
 */
 	bool  ShaderDebugger::AllocForRayTracing (OUT Result &result, ITransferContext &ctx, RayTracingPipelineID ppln, const uint3 &launchID, DescriptorSetName::Ref dsName, Bytes size) __Th___
 	{
-		DRC_EXLOCK( _drCheck );
-
-		if_unlikely( not _GetRayTracingPipeline( ppln, dsName, OUT result ))
+		if_unlikely( not _GetRayTracingPipeline( ppln, dsName, EShaderTraceFormat::Trace, OUT result ))
 			return false;
 
 		if_unlikely( not _AllocStorage( size, OUT result ))
@@ -381,8 +405,6 @@ namespace {
 */
 	Promise<Array<String>>  ShaderDebugger::Read (ITransferContext &ctx, const Result &request, ELogFormat format) __Th___
 	{
-		DRC_EXLOCK( _drCheck );
-
 		BufferCopy	range;
 		range.srcOffset	= request._offset;
 		range.dstOffset	= request._offset;
@@ -407,8 +429,6 @@ namespace {
 */
 	Promise<Array<String>>  ShaderDebugger::ReadAll (ITransferContext &ctx, ELogFormat format) __Th___
 	{
-		DRC_EXLOCK( _drCheck );
-
 		auto	pending = _pending.WriteLock();
 
 		if ( pending->empty() )

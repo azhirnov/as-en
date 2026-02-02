@@ -9,8 +9,12 @@
 #include "threading/Primitives/Barrier.h"
 using namespace AE::Threading;
 
+#define ENABLE_SCALAR_OPS	0
+#define ENABLE_FP64			0
+
 namespace
 {
+	static constexpr uint	max_threads = 4;
 	static constexpr uint	c_MaxIter	= 10;
 	static constexpr usize	c_Repeat	= 1000'000'000;
 
@@ -1098,10 +1102,10 @@ namespace
 					setAffinity();
 
 					IntervalProfiler	profiler{ "SIMD test, single thread, "s << ToString( core.type ) << " core",
-												  IntervalProfiler::EFlags::SortByPerf };
+												  IntervalProfiler::EFlags::SortByTime };
 
 					// Clang converts scalar to SIMD, so test is not correct
-					#if not (defined(AE_COMPILER_CLANG) or defined(AE_COMPILER_CLANG_CL))
+					#if ENABLE_SCALAR_OPS and not (defined(AE_COMPILER_CLANG) or defined(AE_COMPILER_CLANG_CL))
 						TestVFloat< packed_float4 >( profiler, "Scalar Float4" );
 						profiler.PrintAndReset();
 					#endif
@@ -1115,9 +1119,9 @@ namespace
 					#endif
 					profiler.PrintAndReset();
 
-					#if 1
+					#if ENABLE_FP64
 						// Clang converts scalar to SIMD, so test is not correct
-						#if not (defined(AE_COMPILER_CLANG) or defined(AE_COMPILER_CLANG_CL))
+						#if ENABLE_SCALAR_OPS and not (defined(AE_COMPILER_CLANG) or defined(AE_COMPILER_CLANG_CL))
 						//	TestVFloat< packed_double2 >( profiler, "Scalar Double2" );
 							TestVFloat< packed_double4 >( profiler, "Scalar Double4" );
 							profiler.PrintAndReset();
@@ -1138,9 +1142,6 @@ namespace
 
 
 	#if 1
-		static constexpr uint	max_threads = 4;
-
-
 		template <typename Op>
 		static void  TestVFloatOpMT (IntervalProfiler &profiler, StringView testName, CpuArchInfo::CoreBits_t coreBits) __NE___
 		{
@@ -1241,10 +1242,10 @@ namespace
 			const uint			thread_count = Min( max_threads, uint(core_bits.count()) );
 			IntervalProfiler	profiler{ "SIMD test, "s << ToString(thread_count) << "T, " << ToString(thread_count) <<
 										  "C, on " << ToString( core.type ) << " core",
-										  IntervalProfiler::EFlags::SortByPerf };
+										  IntervalProfiler::EFlags::SortByTime };
 
 			// Clang converts scalar to SIMD, so test is not correct
-			#if not (defined(AE_COMPILER_CLANG) or defined(AE_COMPILER_CLANG_CL))
+			#if ENABLE_SCALAR_OPS and not (defined(AE_COMPILER_CLANG) or defined(AE_COMPILER_CLANG_CL))
 				TestVFloatMT< packed_float4 >( profiler, "Scalar Float4", core_bits );
 				profiler.PrintAndReset();
 			#endif
@@ -1267,10 +1268,10 @@ namespace
 			const uint			thread_count = Min( max_threads, uint(core_bits.count()) );
 			IntervalProfiler	profiler{ "SIMD test, "s << ToString(thread_count) << "T, " << ToString(thread_count/2) <<
 										  "C, on " << ToString( core.type ) << " core",
-										  IntervalProfiler::EFlags::SortByPerf };
+										  IntervalProfiler::EFlags::SortByTime };
 
 			// Clang converts scalar to SIMD, so test is not correct
-			#if not (defined(AE_COMPILER_CLANG) or defined(AE_COMPILER_CLANG_CL))
+			#if ENABLE_SCALAR_OPS and not (defined(AE_COMPILER_CLANG) or defined(AE_COMPILER_CLANG_CL))
 				TestVFloatMT< packed_float4 >( profiler, "Scalar Float4", core_bits );
 				profiler.PrintAndReset();
 			#endif
@@ -1290,8 +1291,8 @@ namespace
 
 extern void PerfTest_SIMD ()
 {
-	#if defined(AE_COMPILER_CLANG) or defined(AE_COMPILER_CLANG_CL)
-		CHECK_MSG( false, "Clang will use aggressive optimization, results are incorrect" );
+	#if ENABLE_SCALAR_OPS and (defined(AE_COMPILER_CLANG) or defined(AE_COMPILER_CLANG_CL))
+		CHECK_MSG( false, "Clang will use aggressive optimization, for scalar ops results are incorrect" );
 	#endif
 
 	SIMD_SingleThread();

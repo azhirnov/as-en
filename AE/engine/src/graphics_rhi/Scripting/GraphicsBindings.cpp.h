@@ -2088,6 +2088,33 @@ namespace
 		Bind_RenderState( se );
 	}
 
+/*
+=================================================
+	Bind_EDeviceValidation
+=================================================
+*/
+	void  GraphicsBindings::Bind_EDeviceValidation (const ScriptEnginePtr &se) __Th___
+	{
+		CHECK_THROW( se and se->IsInitialized() );
+
+		EnumBinder<EDeviceValidation>	binder{ se };
+		binder.Create();
+
+		switch_enum( EDeviceValidation::Disabled )
+		{
+			#define BIND( _name_ )		case EDeviceValidation::_name_ :	binder.AddValue( AE_TOSTRING(_name_), EDeviceValidation::_name_ );
+			BIND( Disabled )
+			BIND( Enabled )
+			BIND( MinimalPreset )
+			BIND( SynchronizationPreset )
+			BIND( BestPracticesPreset )
+			BIND( ShaderBasedPreset )
+			BIND( ShaderPrintfPreset )
+			#undef BIND
+		}
+		switch_end
+	}
+
 
 } // AE::Scripting
 

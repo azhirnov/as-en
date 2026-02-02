@@ -37,7 +37,6 @@
 			pass.Constant( "iResolution",	rt.Dimension() );
 			pass.LocalSize( 1 );
 			pass.DispatchGroups( 1 );
-			pass.AddFlag( EPassFlags::Enable_ShaderTrace );
 		}{
 			RC<Postprocess>		pass = Postprocess();
 			pass.Output( "out_Color",		rt,		RGBA32f(0.0) );
