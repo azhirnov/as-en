@@ -29,8 +29,8 @@
 
 		clusters.ArrayLayout(
 			"Cluster",
-			"	float4		sp;"s +
-			"	float3		points [8];" +
+			"	float4		sp;"
+			"	float3		points [8];"
 			"	uint		visible;",
 			clusters_count.Volume()
 		);
@@ -53,30 +53,28 @@
 
 		// create sphere
 		{
-			RC<UnifiedGeometry>		geometry	= UnifiedGeometry();
-			RC<Buffer>				geom_data	= Buffer();
 
-			array<float3>	positions;
-			array<uint>		indices;
-			GetSphere( 3, OUT positions, OUT indices );
+			RC<Mesh>	mesh = Mesh();
+			mesh.SetAttributes( EAttribute::Position );
+			mesh.AddSphere( 3 );
 
-			geom_data.FloatArray( "positions",	positions );
-			geom_data.UIntArray(  "indices",	indices );
+			RC<Buffer>	geom_data = mesh.ToBuffer();
 			geom_data.LayoutName( "GeometrySBlock" );
 
+			RC<UnifiedGeometry>		geometry = UnifiedGeometry();
+			geometry.ArgIn(	"un_Geometry",	geom_data );
+			geometry.ArgIn(	"un_Clusters",	clusters );
+
 			UnifiedGeometry_DrawIndexed	cmd;
-			cmd.indexCount		= indices.size();
+			cmd.indexCount		= mesh.IndexCount();
 			cmd.IndexBuffer(	geom_data,	"indices" );
 			cmd.InstanceCount( clusters_count.Volume() );
 			geometry.Draw( cmd );
 
-			geometry.ArgIn(	"un_Geometry",	geom_data );
-			geometry.ArgIn(	"un_Clusters",	clusters );
-
 			scene2.Add( geometry );
 		}
 
-		// create box
+		// create frustum
 		{
 			RC<UnifiedGeometry>		geometry	= UnifiedGeometry();
 			RC<Buffer>				geom_data	= Buffer();
@@ -85,17 +83,9 @@
 			// | / |           | \ |
 			// 0 - 1    far -- 4 - 5
 			array<float3>		positions;	positions.resize( 8 );	// near[4], far[4]
-			const array<uint>	indices		= {
-				0, 1, 3,	0, 3, 2,	// front
-				5, 4, 6,	5, 6, 7,	// back
-				1, 5, 7,	1, 7, 3,	// right
-				4, 0, 2,	4, 2, 6,	// left
-				3, 7, 6,	3, 6, 2,	// top
-				0, 4, 5,	0, 5, 1		// bottom
-			};
-			Assert( indices.size() == 6*2*3 );
+			array<uint>			indices;	GetFrustumIndices( OUT indices );
 
-			geom_data.FloatArray( "positions",	positions );
+			geom_data.FloatArray( "position",	positions );
 			geom_data.UIntArray(  "indices",	indices );
 			geom_data.LayoutName( "GeometrySBlock" );
 
@@ -246,7 +236,6 @@
 	// use linear interpolation from frustum corner points
 	void  GetClusterCorners_v2 (const int3 clusterIdx, const int3 clusterCount, out float3 outPoints[8])
 	{
-	#if 1
 		float2		z_near_far	= ZProjection( clusterIdx.z, clusterCount.z );
 		float2		z_factor	= (z_near_far - iNearPlane) / (iFarPlane - iNearPlane);
 
@@ -254,23 +243,6 @@
 		Frustum		cluster_fr	= Frustum_ToCluster( main_fr, clusterIdx.xy, clusterCount.xy, z_factor );
 
 		Frustum_ToCornerPoints( cluster_fr, OUT outPoints );
-
-	#else
-		float2		z_near_far	= ZProjection( clusterIdx.z, clusterCount.z );
-		float2		uv0			= float2(clusterIdx.xy) / float2(clusterCount.xy);
-		float2		uv1			= float2(clusterIdx.xy + 1) / float2(clusterCount.xy);
-		float2		z_factor	= (z_near_far - iNearPlane) / (iFarPlane - iNearPlane);
-
-		uv0.y = 1.0 - uv0.y;
-		uv1.y = 1.0 - uv1.y;
-
-		Frustum		main_fr		= Frustum_FromMatrix( un_PerPass.camera.proj, float2(iNearPlane, iFarPlane) );
-
-		float3		corners [8];
-		Frustum_ToCornerPoints( main_fr, OUT corners );
-
-		FrustumCornerPoints_Lerp( OUT outPoints, corners, uv0, uv1, z_factor );
-	#endif
 	}
 
 

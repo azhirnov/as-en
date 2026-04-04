@@ -11,8 +11,8 @@
 		{
 			RC<ShaderStructType>	st = ShaderStructType( "io" );
 			st.Set( EStructLayout::InternalIO,
-					"float		noise;" +
-					"float2		uv;" +
+					"float		noise;"
+					"float2		uv;"
 					"float3		worldPos;" );
 		}{
 			RC<DescriptorSetLayout>	ds = DescriptorSetLayout( "mtr.ds" );

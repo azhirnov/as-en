@@ -34,7 +34,7 @@ namespace AE::VFS
 		bool  Open (OUT RC<AsyncWDataSource> &ds, FileName::Ref name)				C_NE_OV;
 
 		bool  CreateFile (OUT FileName &name, const Path &path)						C_NE_OV;
-		bool  CreateUniqueFile (OUT FileName &name, INOUT Path &path)				C_NE_OV;
+		bool  CreateUniqueFile (OUT FileName &name, INOUT Path &, OUT Path*)		C_NE_OV;
 
 		bool  Exists (FileName::Ref name)											C_NE_OV;
 		bool  Exists (FileGroupName::Ref name)										C_NE_OV;

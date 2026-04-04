@@ -807,6 +807,7 @@ Requirements:
 		//	save context/summary and continue with new
 		//	-refactor-names
 		//	planing mode
+		//	write formula as code with physical dimensions
 	};
 
 
@@ -891,7 +892,7 @@ Requirements:
 } // namespace
 
 
-int main (const int argc, char* argv[])
+int main (const int argc, char const* argv[])
 {
 	std::filesystem::current_path( Path{argv[0]}.parent_path() );
 	Unused( argc );

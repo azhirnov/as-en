@@ -6,7 +6,7 @@ void ASmain ()
 	{
 		RC<ShaderStructType>	st = ShaderStructType( "camera3d.io" );
 		st.Set( EStructLayout::InternalIO,
-				"float3		normal;" +
+				"float3		normal;"
 				"float3		texcoord;" );
 	}{
 		RC<ShaderStructType>	st = ShaderStructType( "camera3d.ub" );
@@ -22,10 +22,10 @@ void ASmain ()
 	}{
 		RC<ShaderStructType>	st = ShaderStructType( "CubeVertex" );
 		st.Set( EStructLayout::InternalIO,
-				"packed_short_norm4		Position;" +
-				"packed_short_norm4		Texcoord;" +
-				"packed_short_norm4		Normal;" +
-				"packed_short_norm4		Tangent;" +
+				"packed_short_norm4		Position;"
+				"packed_short_norm4		Texcoord;"
+				"packed_short_norm4		Normal;"
+				"packed_short_norm4		Tangent;"
 				"packed_short_norm4		BiTangent;" );
 
 		RC<VertexBufferInput>	vb = VertexBufferInput( "VB{CubeVertex}" );
@@ -33,9 +33,9 @@ void ASmain ()
 	}{
 		RC<ShaderStructType>	st = ShaderStructType( "SphericalCubeVertex" );
 		st.Set( EStructLayout::InternalIO,
-				"packed_short_norm4		Position;" +
-				"packed_short_norm4		Texcoord;" +
-				"packed_short_norm4		Tangent;" +
+				"packed_short_norm4		Position;"
+				"packed_short_norm4		Texcoord;"
+				"packed_short_norm4		Tangent;"
 				"packed_short_norm4		BiTangent;" );
 
 		RC<VertexBufferInput>	vb = VertexBufferInput( "VB{SphericalCubeVertex}" );

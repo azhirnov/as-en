@@ -278,14 +278,17 @@ namespace AE::VFS
 	CreateUniqueFile
 =================================================
 */
-	bool  VirtualFileSystem::CreateUniqueFile (OUT FileName &name, INOUT Path &path, StorageName::Ref stName) C_NE___
+	bool  VirtualFileSystem::CreateUniqueFile (OUT FileName &name, INOUT Path &path, StorageName::Ref stName, OUT Path* absolutePath) C_NE___
 	{
 		CHECK_ERR( _isImmutable.load() );
 
 		auto	it = _storageMap.find( stName );
 		CHECK_ERR( it != _storageMap.end() );
 
-		return it->second->CreateUniqueFile( OUT name, INOUT path );
+		if ( absolutePath != null )
+			absolutePath->clear();
+
+		return it->second->CreateUniqueFile( OUT name, INOUT path, OUT absolutePath );
 	}
 
 

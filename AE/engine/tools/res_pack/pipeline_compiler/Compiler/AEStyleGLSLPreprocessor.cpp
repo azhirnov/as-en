@@ -526,6 +526,8 @@ namespace AE::PipelineCompiler
 		// https://github.com/KhronosGroup/GLSL/blob/master/extensions/ext/GLSL_EXT_ray_flags_primitive_culling.txt
 		_typeMap.emplace( "gl::RayFlags::SkipTriangles",					"gl_RayFlagsSkipTrianglesEXT" );
 		_typeMap.emplace( "gl::RayFlags::SkipAABB",							"gl_RayFlagsSkipAABBEXT" );
+		// https://github.com/KhronosGroup/GLSL/blob/main/extensions/ext/GLSL_EXT_opacity_micromap.txt
+		_typeMap.emplace( "gl::RayFlags::ForceOpacityMicromap2State",		"gl_RayFlagsForceOpacityMicromap2StateEXT" );
 
 		_typeMap.emplace( "gl::RayQueryCommittedIntersection",				"uint" );
 		_typeMap.emplace( "gl::RayQueryCommittedIntersection::None",		"gl_RayQueryCommittedIntersectionNoneEXT" );
@@ -612,6 +614,7 @@ namespace AE::PipelineCompiler
 		// for VkAccelerationStructureInstance
 		_typeMap.emplace( "gl::DeviceAddress",								"uvec2" );		// same as AE::Graphics::DeviceAddress
 		_typeMap.emplace( "gl::GeometryInstanceFlags",						"uint32_t" );	// type
+		_typeMap.emplace( "gl::GeometryInstanceFlags::None",				"0" );
 		_typeMap.emplace( "gl::GeometryInstanceFlags::TriangleCullDisable",	"1" );			// same as ERTInstanceOpt::TriangleCullDisable
 		_typeMap.emplace( "gl::GeometryInstanceFlags::TriangleFrontCCW",	"2" );			// same as ERTInstanceOpt::TriangleFrontCCW
 		_typeMap.emplace( "gl::GeometryInstanceFlags::ForceOpaque",			"4" );			// same as ERTInstanceOpt::ForceOpaque
@@ -814,6 +817,13 @@ namespace AE::PipelineCompiler
 		_typeMap.emplace( "IntDot4x8",					"dotPacked4x8EXT" );
 		_typeMap.emplace( "IntDotAccSat",				"dotAccSatEXT" );
 		_typeMap.emplace( "IntDotAccSat4x8",			"dotPacked4x8AccSatEXT" );
+
+		// https://github.com/KhronosGroup/GLSL/blob/main/extensions/ext/GL_EXT_shader_realtime_clock.txt
+		_typeMap.emplace( "gl.clock.Device2",			"clockRealtime2x32EXT" );
+		_typeMap.emplace( "gl.clock.Device",			"clockRealtimeEXT" );
+		// https://registry.khronos.org/OpenGL/extensions/ARB/ARB_shader_clock.txt
+		_typeMap.emplace( "gl.clock.Subgroup2",			"clock2x32ARB" );
+		_typeMap.emplace( "gl.clock.Subgroup",			"clockARB" );
 	}
 
 /*
@@ -902,6 +912,9 @@ namespace AE::PipelineCompiler
 				i = pos + dst.length();
 			}
 		}
+
+		// user-defined types which uses C++ namespaces for IDE and define/function/const with '_' separator for GLSL
+		FindAndReplace( INOUT outStr, "::", "_" );
 
 		header >> outStr;
 		return true;

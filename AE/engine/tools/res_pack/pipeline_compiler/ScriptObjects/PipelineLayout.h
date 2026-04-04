@@ -6,6 +6,8 @@
 
 namespace AE::PipelineCompiler
 {
+	using PipelineLayoutPtr = ScriptRC< struct PipelineLayout >;
+
 
 	//
 	// Pipeline Layout
@@ -47,8 +49,8 @@ namespace AE::PipelineCompiler
 
 	// methods
 	public:
-		PipelineLayout () {}
-		explicit PipelineLayout (const String &name)											__Th___;
+		ND_ static PipelineLayoutPtr  Create (const String &name)								__Th___;
+		ND_ static PipelineLayoutPtr  Create (const String &name, const PipelineLayout &other)	__Th___;
 
 		void  AddFeatureSet (const String &name)												__Th___;
 		void  Define (const String &value)														__Th___;
@@ -73,6 +75,7 @@ namespace AE::PipelineCompiler
 							INOUT String &typesStr, INOUT String &declStr)						C_Th___;
 
 		ND_ bool	MslDescSetAsArgumentBuffer ()												const;
+		ND_ bool	HasDynamicBuffers ()														const;
 
 		ND_ StringView							Name ()											const	{ return _name; }
 		ND_ DebugInfo const&					GetDebugDS ()									const	{ return _dbgInfo; }
@@ -90,11 +93,13 @@ namespace AE::PipelineCompiler
 		ND_ bool  Build ()																		__NE___;
 
 	private:
+		explicit PipelineLayout (const String &name)											__NE___;
+		PipelineLayout (const String &name, const PipelineLayout &other)						__NE___;
+
 		ND_ bool  _Build ()																		__Th___;
 
 		ND_ String  _DescriptorsMacros (EShaderStages stages)									C_Th___;
 	};
-	using PipelineLayoutPtr = ScriptRC< PipelineLayout >;
 
 
 } // AE::PipelineCompiler

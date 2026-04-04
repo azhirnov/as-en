@@ -6,23 +6,17 @@ extern void Perf_LLamaTokensPerSecond ();
 extern void Perf_LLamaContextSize ();
 
 
-#ifdef AE_PLATFORM_ANDROID
-extern "C" AE_DLL_EXPORT int Perf_LangModel (const char* path)
-#else
-int main (const int argc, char* argv[])
-#endif
+TEST_ENTRY()
 {
-	std::filesystem::current_path( Path{argv[0]}.parent_path() );
-	Unused( argc );
+	BEGIN_TEST();
 
-	StaticLogger::LoggerScope log{0};
 	StaticLogger::AddLogger( ILogger::CreateConsoleOutput() );
 	StaticLogger::AddLogger( ILogger::CreateIDEOutput() );
 
 	CHECK( PlatformUtils::SetSystemSleepState( ESystemSleepState::DontSleep_AllowTurnDisplayOff ));
 
-	Perf_LLamaTokensPerSecond();
-//	Perf_LLamaContextSize();
+	RUN_TEST( Perf_LLamaTokensPerSecond );
+	RUN_TEST( Perf_LLamaContextSize );
 
 	AE_LOGI( "PerformanceTests.LangModel finished" );
 	return 0;

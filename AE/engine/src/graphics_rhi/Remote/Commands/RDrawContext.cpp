@@ -133,7 +133,7 @@ namespace AE::Graphics
 		VALIDATE_GCTX( PushConstant( idx, size, typeName ));
 
 		Msg::CmdBuf_Bake::Draw_PushConstantCmd  cmd;
-		cmd.pcIndex_offset	= idx.bufferId;
+		cmd.pcIndex_offset	= idx.metalBufferId;
 		cmd.pcIndex_stage	= idx.stage;
 		cmd.data			= ArrayView<ubyte>{ Cast<ubyte>(values), usize{size} };
 		cmd.typeName		= typeName;
@@ -275,21 +275,6 @@ namespace AE::Graphics
 		cmd.rate		= rate;
 		cmd.primitiveOp	= primitiveOp;
 		cmd.textureOp	= textureOp;
-		_cmdbuf->AddCommand( cmd );
-	}
-
-/*
-=================================================
-	SetViewportWScaling
-=================================================
-*/
-	void  RDrawContext::SetViewportWScaling (ArrayView<packed_float2> scaling) __Th___
-	{
-		VALIDATE_GCTX( SetViewportWScaling( _GetDynamicStates(), scaling ));
-		GCTX_CHECK( _HasFeature( EFeature::ViewportWScaling ));
-
-		Msg::CmdBuf_Bake::Draw_SetViewportWScalingCmd  cmd;
-		cmd.scaling = scaling;
 		_cmdbuf->AddCommand( cmd );
 	}
 

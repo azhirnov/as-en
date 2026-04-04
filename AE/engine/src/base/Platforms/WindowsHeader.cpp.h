@@ -46,6 +46,7 @@
 //# include <HighLevelMonitorConfigurationAPI.h>
 # include <powerbase.h>
 # include <psapi.h>
+# include <iphlpapi.h>
 
 # ifdef AE_COMPILER_MSVC
 #	pragma warning (pop)

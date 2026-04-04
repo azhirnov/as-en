@@ -585,6 +585,7 @@ namespace AE::LangModel
 		_Append();
 
 		ASSERT( tokenCount == _lastSentToken );
+		Unused( tokenCount );
 
 		Msg::LangModelContextGenerate_Complete	msg;
 		msg.uid			= _uid;

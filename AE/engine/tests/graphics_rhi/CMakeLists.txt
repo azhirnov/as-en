@@ -17,13 +17,13 @@ if (TARGET "GraphicsRHI")
 	source_group( TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${SOURCES} )
 
 	set_property( TARGET ${TEST_NAME} PROPERTY FOLDER "Engine/Tests" )
-	target_link_libraries( ${TEST_NAME} PUBLIC "Platform" "GraphicsTestUtils" )
+	target_link_libraries( ${TEST_NAME} PUBLIC "GraphicsRHI" "VFS" "GraphicsTestUtils" )
 
 	target_include_directories( ${TEST_NAME} PUBLIC "." "${AE_ENGINE_SHARED_DATA}/scripts" "${AE_ENGINE_SHARED_DATA}/shaders" )
 
 	# disable if pipelines are compiled on linux
 	# enable on all platforms if pipelines are precompiled
-	if (WIN32)
+	if (WIN32 AND ${AE_ENABLE_VULKAN})
 		target_compile_definitions( ${TEST_NAME} PRIVATE AE_TEST_SHADER_DEBUGGER )
 	endif()
 
@@ -45,14 +45,8 @@ if (TARGET "GraphicsRHI")
 		add_dependencies( "PACK_RES" "Tests.GraphicsRHI.PackRes" )
 	endif()
 
-	if (${AE_CI_BUILD_TEST})
-		target_compile_definitions( ${TEST_NAME} PRIVATE AE_REF_IMG_PATH="tests_graphics_rhi_ref" )
-	elseif (ANDROID)
-		target_compile_definitions( ${TEST_NAME} PRIVATE AE_REF_IMG_PATH="tests_graphics_rhi_ref_" )
-	else()
-		target_compile_definitions( ${TEST_NAME} PRIVATE
-			AE_REF_IMG_PATH="${AE_DATA_FOLDER}/tests/graphics_rhi/"
-			AE_RES_PACK_FOLDER="${AE_TEMP_FOLDER}/engine/graphics_rhi/" )
+	if (${AE_ENABLE_VULKAN})
+		target_link_libraries( ${TEST_NAME} PUBLIC "VulkanSyncLog" )
 	endif()
 
 	UseEnginePCH2( ${TEST_NAME} )

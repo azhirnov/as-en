@@ -32,8 +32,8 @@
 		{
 			cbuf.UseLayout(
 				"CBuffer",
-				"float4		colorA;" +
-				"float4		colorB;"
+				"	float4		colorA;"
+				"	float4		colorB;"
 			);
 
 			RC<ComputePass>		pass = ComputePass();

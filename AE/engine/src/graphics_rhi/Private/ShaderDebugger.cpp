@@ -393,8 +393,8 @@ namespace {
 		ctx.FillBuffer( result._deviceBuf, result._offset + headerSize, result._size - headerSize, 0 );
 		ctx.UpdateBuffer( result._deviceBuf, result._offset, headerSize, headerData );
 
-		ctx.BufferBarrier( result._deviceBuf, EResourceState::CopyDst,  result._state );
-		ctx.BufferBarrier( result._deviceBuf, EResourceState::ClearDst, result._state );
+		ctx.ResourceBarrier( result._deviceBuf, EResourceState::CopyDst,  result._state );
+		ctx.ResourceBarrier( result._deviceBuf, EResourceState::ClearDst, result._state );
 		ctx.CommitBarriers();
 	}
 
@@ -410,12 +410,12 @@ namespace {
 		range.dstOffset	= request._offset;
 		range.size		= request._size;
 
-		ctx.BufferBarrier( request._deviceBuf, request._state, EResourceState::CopySrc );
+		ctx.ResourceBarrier( request._deviceBuf, request._state, EResourceState::CopySrc );
 		ctx.CommitBarriers();
 
 		ctx.CopyBuffer( request._deviceBuf, request._hostBuf, {range} );
 
-		ctx.BufferBarrier( request._hostBuf, EResourceState::CopyDst, EResourceState::Host_Read );
+		ctx.ResourceBarrier( request._hostBuf, EResourceState::CopyDst, EResourceState::Host_Read );
 		ctx.CommitBarriers();
 
 		return ctx.ReadHostBuffer( request._hostBuf, request._offset, request._size )
@@ -435,7 +435,7 @@ namespace {
 			return Default;
 
 		for (auto& res : *pending) {
-			ctx.BufferBarrier( res._deviceBuf, res._state, EResourceState::CopySrc );
+			ctx.ResourceBarrier( res._deviceBuf, res._state, EResourceState::CopySrc );
 		}
 		ctx.CommitBarriers();
 

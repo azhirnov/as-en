@@ -303,5 +303,6 @@ void ASmain ()
 	fset.framebufferColorSampleCounts({ 1, 4, 8 });
 	fset.framebufferDepthSampleCounts({ 1, 4, 8 });
 	fset.maxFramebufferLayers (1 << 10);
+	fset.separateDepthStencilRW (True);
 	fset.supportedQueues(EQueueMask( EQueueMask::Graphics ));
 }

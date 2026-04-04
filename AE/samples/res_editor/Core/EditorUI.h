@@ -136,13 +136,20 @@ namespace AE::ResEditor
 			EVideoFormat			videoFormat		= EVideoFormat::YUV420P;
 			EVideoCodec				videoCodec		= EVideoCodec::H265;
 			EVideoColorPreset		colorPreset		= EVideoColorPreset::Unspecified;
-			// TODO: set fixed FPS and replace real dt in animations
+			int						frameRate		= 60;
 		};
 
 		struct ShaderAsserts
 		{
+			Timer					clearTimer	{seconds{10}};
 			Array<String>			lines;
 			bool					openFile	= true;
+		};
+
+		struct CameraStats
+		{
+			float3					pos;
+			float3					viewDir;
 		};
 
 
@@ -159,6 +166,7 @@ namespace AE::ResEditor
 		Synchronized< RWSpinLock, SelectedPixel >	selectedPixel;
 		Synchronized< RWSpinLock, Graphics >		graphics;		// swapchain, VR, ...
 		Synchronized< SharedMutex, ShaderAsserts >	shaderAsserts;
+		Synchronized< RWSpinLock, CameraStats >		cameraStats;
 
 
 	// methods
@@ -182,6 +190,8 @@ namespace AE::ResEditor
 			void  GetAllLabels (FN &&fn);
 
 			void  SetShaderAsserts (Array<String>);
+
+			void  NewScriptLoaded ();
 
 			void		SetDbgView (usize idx, RC<Image> img);
 			void		ResetDbgView (usize idx);

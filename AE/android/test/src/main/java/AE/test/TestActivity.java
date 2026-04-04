@@ -1,6 +1,6 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
-package AE.test;
+package ae.test;
 
 import android.os.Bundle;
 import android.util.Log;

@@ -32,7 +32,7 @@ namespace AE::Base
 	// methods
 	public:
 		InPlaceLinearAllocator ()									__NE___ {}
-		~InPlaceLinearAllocator ()									__NE_OV	{ ASSERT( _size == 0 ); }
+		~InPlaceLinearAllocator ()									__NE_OV	{}
 
 		InPlaceLinearAllocator (Self &&)							= delete;
 			Self&	operator = (Self &&)							= delete;

@@ -26,9 +26,9 @@
 		{
 			RC<ShaderStructType>	st = ShaderStructType( "vs_gs.io" );
 			st.Set( EStructLayout::InternalIO,
-					"float3		normal;" +
-					"float3		tangent;" +
-					"float3		bitangent;" +
+					"float3		normal;"
+					"float3		tangent;"
+					"float3		bitangent;"
 					"float2		texcoord;" );
 		}{
 			RC<ShaderStructType>	st = ShaderStructType( "gs_fs.io" );
@@ -96,13 +96,13 @@
 	void Main ()
 	{
 		const uint		idx		 = gl.VertexIndex;
-		const float4	pos		 = LocalPosToWorldSpace( un_Geometry.positions[idx] );
+		const float4	pos		 = LocalPosToWorldSpace( un_Geometry.position[idx] );
 
 		gl.Position		= pos;
-		Out.texcoord	= un_Geometry.texcoords[idx];
-		Out.normal		= LocalVecToWorldSpace( un_Geometry.normals[idx] );
-		Out.tangent		= LocalVecToWorldSpace( un_Geometry.tangents[idx] );
-		Out.bitangent	= LocalVecToWorldSpace( un_Geometry.bitangents[idx] );
+		Out.texcoord	= un_Geometry.uv[idx];
+		Out.normal		= LocalVecToWorldSpace( un_Geometry.normal[idx] );
+		Out.tangent		= LocalVecToWorldSpace( un_Geometry.tangent[idx] );
+		Out.bitangent	= LocalVecToWorldSpace( un_Geometry.bitangent[idx] );
 	}
 
 #endif

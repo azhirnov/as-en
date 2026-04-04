@@ -83,10 +83,10 @@ namespace AE::ResEditor
 						ctx.ResourceState( img_id, var.inState );
 						ctx.CommitBarriers();
 					}else
-						ctx2.ImageBarrier( img_id, var.outState, var.inState, subres );
+						ctx2.ResourceBarrier( img_id, var.outState, var.inState, subres );
 
 					subres.baseMipLevel	= MipmapLevel{dst_mip};
-					ctx2.ImageBarrier( img_id, EResourceState::Invalidate, var.outState, subres );
+					ctx2.ResourceBarrier( img_id, EResourceState::Invalidate, var.outState, subres );
 				}
 				ctx.CommitBarriers();
 
@@ -111,7 +111,7 @@ namespace AE::ResEditor
 				subres.aspectMask	= EImageAspect::Color;
 				subres.baseMipLevel	= MipmapLevel{var.baseMipmap.Get() + _mipChainDS.size()};
 
-				ctx2.ImageBarrier( img_id, var.outState, var.inState, subres );
+				ctx2.ResourceBarrier( img_id, var.outState, var.inState, subres );
 			}
 			ctx2.CommitBarriers();
 
@@ -149,25 +149,9 @@ namespace AE::ResEditor
 
 		// update uniform buffer
 		{
-			ShaderTypes::ComputeMipUB	ub_data;
-			ub_data.time		= pd.totalTime.count();
-			ub_data.timeDelta	= pd.frameTime.count();
-			ub_data.frame		= pd.frameId;
-			ub_data.passFrameId	= _dynData.frame;
-			ub_data.seed		= pd.seed;
-			ub_data.mouse		= float4{ pd.unormCursorPos.x, pd.unormCursorPos.y, float(pd.pressed), 0.f };
-			ub_data.customKeys	= float2{ pd.customKeys[0], pd.customKeys[1] };
-			ub_data.pixPerMm	= pd.pixPerMm;
-			ub_data.mmPerPix	= pd.mmPerPix;
+			ShaderTypes::ComputePassUB	ub_data;
+			_UpdateComputeUB( INOUT ub_data, pd );
 
-			_CopySliders( OUT ub_data.floatSliders, OUT ub_data.intSliders, OUT ub_data.colors );
-			_CopyConstants( _shConst, OUT ub_data.floatConst, OUT ub_data.intConst );
-
-			if ( _dynData.prevFrame != pd.frameId )
-			{
-				++_dynData.frame;
-				_dynData.prevFrame = pd.frameId;
-			}
 			CHECK_ERR( ctx.UploadBuffer( _ubuffer, 0_b, Sizeof(ub_data), &ub_data ));
 		}
 
@@ -177,7 +161,7 @@ namespace AE::ResEditor
 			DescriptorSetID		ds		= _descSets[ ctx.GetFrameId().Index() ];
 
 			CHECK_ERR( updater.Set( ds, EDescUpdateMode::Partialy ));
-			CHECK_ERR( updater.BindBuffer< ShaderTypes::ComputeMipUB >( UniformName{"un_PerPass"}, _ubuffer ));
+			CHECK_ERR( updater.BindBuffer< ShaderTypes::ComputePassUB >( UniformName{"un_PerPass"}, _ubuffer ));
 			CHECK_ERR( _resources.Bind( ctx.GetFrameId(), updater ));
 			CHECK_ERR( updater.Flush() );
 		}

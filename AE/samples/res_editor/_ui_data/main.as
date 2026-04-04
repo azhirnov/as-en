@@ -11,8 +11,8 @@ void ASmain ()
 	if ( IsGLSLCompilerSupported() )
 		suffix.push_back( "vk" );
 
-	//if ( IsMetalCompilerSupported() )
-	//	suffix.push_back( "mac" );
+	if ( IsMetalCompilerSupported() )
+		suffix.push_back( "mtl" );
 
 	// pipeline compiler
 	for (uint i = 0; i < suffix.size(); ++i)

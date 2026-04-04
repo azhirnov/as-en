@@ -60,6 +60,7 @@ namespace
 */
 	Nd__In int  io_getevents_nonblock (aio_context_t ctx, const long max_nr, OUT struct io_event* events)
 	{
+        using namespace AE;
 		using namespace AE::Base;
 
 		aio_ring*	ring = BitCast< aio_ring *>(ctx);

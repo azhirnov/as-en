@@ -13,7 +13,7 @@ namespace
 		Path				modelPath;
 		uint				ctxSize;
 		uint				gpuLayers;
-		LLama::EBackend		backend;
+		EBackend		backend;
 	};
 
 	struct PerfTestResult
@@ -89,7 +89,7 @@ namespace
 			<< ToString( secondsd{out.timeToFirstToken}.count(), 2 ) << " | "
 			<< ToString( secondsd{out.responseGeneration}.count(), 2 ) << " | ";
 
-		if ( in.backend != LLama::EBackend::CPU )
+		if ( in.backend != EBackend::CPU )
 			str << ToString(Max( in.gpuLayers, out.maxLayers )) << " / " << ToString( out.maxLayers );
 		else
 			str << "0 / " << ToString( out.maxLayers );
@@ -242,9 +242,9 @@ extern void Perf_LLamaContextSize ()
 
 	PerfTestRequest		requests[] =
 	{
-		{PerfTestInput{ model_1,	8 << 10,	999,	LLama::EBackend::CUDA	}, PerfTestResult{}},
-		{PerfTestInput{ model_1,	8 << 10,	999,	LLama::EBackend::Vulkan	}, PerfTestResult{}},
-		{PerfTestInput{ model_1,	8 << 10,	0,		LLama::EBackend::CPU	}, PerfTestResult{}},
+		{PerfTestInput{ model_1,	8 << 10,	999,	EBackend::CUDA		}, PerfTestResult{}},
+		{PerfTestInput{ model_1,	8 << 10,	999,	EBackend::Vulkan	}, PerfTestResult{}},
+		{PerfTestInput{ model_1,	8 << 10,	0,		EBackend::CPU		}, PerfTestResult{}},
 	};
 
 	const U8String	prompt = GeneratePrompt( Path{TEST_SRC_FOLDER} / "base/Math", 128_KiB );

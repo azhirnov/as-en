@@ -11,7 +11,7 @@
 		{
 			RC<ShaderStructType>	st = ShaderStructType( "io" );
 			st.Set( EStructLayout::InternalIO,
-					"float2		pos;" +
+					"float2		pos;"
 					"float2		center;" );
 		}{
 			RC<DescriptorSetLayout>	ds = DescriptorSetLayout( "mtr.ds" );
@@ -59,9 +59,9 @@
 
 	void Main ()
 	{
-		gl.Position	= float4( un_VBuffer.positions[ gl.VertexIndex ] * iScale, 0.0, 1.0 );
-		Out.pos		= un_VBuffer.positions[ gl.VertexIndex ];
-		Out.center	= un_VBuffer.positions[ un_VBuffer.centerIdx[ gl.VertexIndex ]];
+		gl.Position	= float4( un_VBuffer.position[ gl.VertexIndex ] * iScale, 0.0, 1.0 );
+		Out.pos		= un_VBuffer.position[ gl.VertexIndex ];
+		Out.center	= un_VBuffer.position[ un_VBuffer.centerIdx[ gl.VertexIndex ]];
 	}
 
 #endif

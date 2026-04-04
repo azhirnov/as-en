@@ -1,6 +1,6 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
-package AE.test;
+package ae.test;
 
 
 public final class TestApplication

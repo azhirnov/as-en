@@ -149,7 +149,7 @@ namespace AE::Graphics
 			float				minBounds		= 0.f;
 			float				maxBounds		= 1.f;
 			ECompareOp			compareOp		= ECompareOp::LEqual;	// if 'test' enabled
-			bool				bounds			= false;				// enable 'minBounds' and 'maxBounds'
+			bool				bounds			= false;				// enable 'minBounds' and 'maxBounds', require 'depthBounds' feature
 			bool				write			= false;				// depth write enabled
 			bool				test			= false;				// depth test enabled
 
@@ -189,12 +189,12 @@ namespace AE::Graphics
 		{
 		// variables
 			float			depthBiasConstFactor	= 0.f;		// bias = dbclamp( m * depthBiasSlopeFactor + r * depthBiasConstFactor )
-			float			depthBiasClamp			= 0.f;		// m - max depth slope of a triangle
+			float			depthBiasClamp			= 0.f;		// m - max depth slope of a triangle, requires 'depthBiasClamp' feature
 			float			depthBiasSlopeFactor	= 0.f;		// r - implementation-dependent but must be at most 2*2^-n, n - number of mantissa bits
 			bool			depthBias				= false;	//              { x							if depthBiasClamp = 0;
 																// dbclamp(x) = { min(x, depthBiasClamp)	if depthBiasClamp > 0;
 																//              { max(x, depthBiasClamp)	if depthBiasClamp < 0
-			bool			depthClamp				= false;
+			bool			depthClamp				= false;	// requires 'depthClamp' feature
 			bool			rasterizerDiscard		= false;
 
 			bool			frontFaceCCW			= false;

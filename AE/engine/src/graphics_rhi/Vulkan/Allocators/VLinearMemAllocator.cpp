@@ -14,8 +14,8 @@ namespace AE::Graphics
 {
 namespace
 {
-	static constexpr Bytes	c_PageAlign			{4 << 10};
-	static constexpr Bytes	c_DefaultPageSize	{64 << 20};
+	static constexpr Bytes	c_PageAlign			= 4_KiB;
+	static constexpr Bytes	c_DefaultPageSize	= 64_MiB;
 
 	ND_ static Bytes  ValidatePageSize (Bytes pageSize)
 	{
@@ -38,8 +38,9 @@ namespace
 	constructor
 =================================================
 */
-	VLinearMemAllocator::VLinearMemAllocator (Bytes pageSize) __NE___ :
-		_pageSize{ ValidatePageSize( pageSize )}
+	VLinearMemAllocator::VLinearMemAllocator (Bytes pageSize, Bytes padding) __NE___ :
+		_pageSize{ ValidatePageSize( pageSize )},
+		_padding{ padding }
 	{}
 
 /*
@@ -63,6 +64,9 @@ namespace
 			for (auto& page : pages)
 			{
 				CHECK( page.dbgCounter.exchange( 0 ) == 0 );
+
+				if ( page.buffer != Default )
+					dev.vkDestroyBuffer( dev.GetVkDevice(), page.buffer, null );
 
 				if ( page.mapped != null )
 					dev.vkUnmapMemory( dev.GetVkDevice(), page.memory );
@@ -131,9 +135,11 @@ namespace
 	_Allocate
 =================================================
 */
-	inline bool  VLinearMemAllocator::_Allocate (VDevice const& dev, const Bytes memSize, const Bytes memAlign, const uint memBits,
-												 const Bool shaderAddress, const Bool isImage, const Bool mapMem, OUT Data &outData) __NE___
+	bool  VLinearMemAllocator::_Allocate (VDevice const& dev, const Bytes memSize, const Bytes memAlign, const uint memBits,
+										  const EFlags flags, OUT Data &outData) __NE___
 	{
+		StaticAssert( uint(EFlags::All) == 0x1F );
+
 		outData = Default;
 
 		// try to allocate in page
@@ -142,7 +148,7 @@ namespace
 
 			for (uint type_idx : BitIndexIterate( memBits ))
 			{
-				const Key	key{ type_idx, shaderAddress, isImage, mapMem };
+				const Key	key{ type_idx, flags };
 
 				auto	iter = _pages.find( key );
 				if ( iter == _pages.end() )
@@ -150,7 +156,7 @@ namespace
 
 				for (auto& page : iter->second)
 				{
-					Bytes	offset = AlignUp( page.size, memAlign );
+					Bytes	offset = AlignUp( page.size + _padding, memAlign );
 
 					if_unlikely( offset + memSize <= page.capacity )
 					{
@@ -173,8 +179,8 @@ namespace
 		VAutoreleaseMemory			memory		{dev};
 
 		mem_alloc.sType			 = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
-		mem_alloc.pNext			 = shaderAddress ? &mem_flag : null;
-		mem_alloc.allocationSize = VkDeviceSize( Max( AlignUp( memSize*2, c_PageAlign ), _pageSize ));
+		mem_alloc.pNext			 = AllBits( flags, EFlags::ShaderAddress ) ? &mem_flag : null;
+		mem_alloc.allocationSize = VkDeviceSize{ Max( AlignUp( memSize*2, c_PageAlign ), _pageSize )};
 
 		mem_flag.sType			 = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_FLAGS_INFO;
 		mem_flag.flags			 = VK_MEMORY_ALLOCATE_DEVICE_ADDRESS_BIT;
@@ -192,25 +198,32 @@ namespace
 
 		// map memory
 		void*	mapped_ptr = null;
-		if ( mapMem )
+		if ( AllBits( flags, EFlags::MapMemory ))
 		{
 			VK_CHECK_ERR( dev.vkMapMemory( dev.GetVkDevice(), memory.Get(), 0, mem_alloc.allocationSize, 0, OUT &mapped_ptr ));
 			CHECK_ERR( mapped_ptr != null );
 		}
 
+		// create buffer
+		if ( AllBits( flags, EFlags::CreateBuffer ))
+		{
+			CHECK_ERR( VGfxMemAllocatorUtils::CreateStorageBuffer( dev, Bytes{mem_alloc.allocationSize}, memory.Get(), OUT memory.BufferRef() ));
+		}
 
 		EXLOCK( _pageGuard );
 
-		const Key	key{ mem_alloc.memoryTypeIndex, shaderAddress, isImage, mapMem };
+		const Key	key{ mem_alloc.memoryTypeIndex, flags };
 
-		auto&	page_arr = _pages( key );
-		CHECK_ERR_MSG( not page_arr.IsFull(), "overflow!" );
+		auto	[it, inserted] = _pages.emplace( key, PageArr_t{} );
+		CHECK_ERR_MSG( it, "overflow!" );
 
+		auto&	page_arr	= it->second;
 		auto&	page		= page_arr.emplace_back();
 		auto&	mem_props	= dev.GetVProperties().memoryProperties;
 
 		page.dbgCounter.fetch_add( 1 );
 		page.memory			= memory.Release();
+		page.buffer			= memory.ReleaseBuffer();
 		page.capacity		= Bytes{mem_alloc.allocationSize};
 		page.size			= memSize;
 		page.mapped			= mapped_ptr;
@@ -256,6 +269,7 @@ namespace
 		ASSERT( _IsValidPage( mem_data.page ));
 
 		info.memory		= mem_data.page->memory;
+		info.buffer		= mem_data.page->buffer;
 		info.flags		= mem_data.page->propertyFlags;
 		info.offset		= mem_data.offset;
 		info.size		= mem_data.size;

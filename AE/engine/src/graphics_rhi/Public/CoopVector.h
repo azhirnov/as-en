@@ -58,10 +58,10 @@ namespace AE::Graphics
 	struct ConvertCoopMatrixCmd
 	{
 		Bytes						srcSize;
-		DeviceAddress				srcAddress		= Default;		// EResourceState::ShaderAddress_Read | CoopVecConvertStage
+		DeviceAddress				srcAddress		= Default;		// EResourceState::CoopVecConvert_Read
 
 		Bytes						dstSize;
-		DeviceAddress				dstAddress		= Default;		// EResourceState::ShaderAddress_Write | CoopVecConvertStage
+		DeviceAddress				dstAddress		= Default;		// EResourceState::CoopVecConvert_Write
 
 		uint						numRows			= 0;
 		uint						numColumns		= 0;
@@ -86,11 +86,11 @@ namespace AE::Graphics
 	{
 		Bytes						srcSize;
 		Bytes						srcOffset;
-		BufferID					srcBuffer;						// EResourceState::ShaderAddress_Read | CoopVecConvertStage
+		BufferID					srcBuffer;						// EResourceState::CoopVecConvert_Read
 
 		Bytes						dstSize;
 		Bytes						dstOffset;
-		BufferID					dstBuffer;						// EResourceState::ShaderAddress_Write | CoopVecConvertStage
+		BufferID					dstBuffer;						// EResourceState::CoopVecConvert_Write
 
 		uint						numRows			= 0;
 		uint						numColumns		= 0;

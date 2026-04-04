@@ -49,7 +49,6 @@ Source folder: [Vulkan backend](https://github.com/azhirnov/as-en/blob/dev/AE/en
 - [x] VK_KHR_pipeline_executable_properties
 - [x] VK_EXT_device_memory_report
 - [x] VK_NV_ray_tracing_validation
-- [x] VK_NV_clip_space_w_scaling
 - [x] VK_EXT_subgroup_size_control
 - [x] VK_EXT_surface_maintenance1, VK_KHR_surface_maintenance1
 - [x] VK_EXT_swapchain_maintenance1, VK_KHR_swapchain_maintenance1
@@ -72,6 +71,10 @@ Source folder: [Vulkan backend](https://github.com/azhirnov/as-en/blob/dev/AE/en
 - [x] VK_EXT_rasterization_order_attachment_access, VK_ARM_rasterization_order_attachment_access
 - [x] VK_EXT_conservative_rasterization
 - [x] VK_KHR_driver_properties
+- [x] VK_EXT_device_generated_commands
+- [x] VK_EXT_opacity_micromap, GL_EXT_opacity_micromap, VK_ARM_pipeline_opacity_micromap
+- [x] VK_KHR_video_queue, VK_KHR_video_encode_queue, VK_KHR_video_decode_queue
+- [x] VK_KHR_video_maintenance1
 
 **Supported shader extensions:**
 - [x] VK_KHR_shader_clock, GL_EXT_shader_realtime_clock, GL_ARB_shader_clock
@@ -126,17 +129,16 @@ Source folder: [Vulkan backend](https://github.com/azhirnov/as-en/blob/dev/AE/en
 # Not implemented
 
 **Pending extensions:**
-- VK_KHR_video_queue
-- VK_KHR_video_encode_queue
-- VK_KHR_video_decode_queue
 - VK_KHR_video_decode_h264
 - VK_KHR_video_decode_h265
 - VK_KHR_video_decode_av1
+- VK_KHR_video_decode_vp9
 - VK_KHR_video_encode_h264
 - VK_KHR_video_encode_h265
 - VK_KHR_video_encode_av1
+- VK_KHR_video_maintenance2
+- VK_KHR_video_encode_intra_refresh
 - VK_KHR_video_encode_quantization_map
-- VK_KHR_video_maintenance1
 - VK_KHR_external_memory, VK_KHR_external_memory_capabilities
 - VK_KHR_external_semaphore, VK_KHR_external_semaphore_fd, VK_KHR_external_semaphore_capabilities
 - VK_EXT_queue_family_foreign
@@ -167,7 +169,6 @@ Source folder: [Vulkan backend](https://github.com/azhirnov/as-en/blob/dev/AE/en
 - VK_QCOM_tile_properties
 - VK_EXT_display_control
 - VK_EXT_display_surface_counter
-- VK_EXT_opacity_micromap, GL_EXT_opacity_micromap
 - VK_EXT_pipeline_protected_access
 - VK_NV_present_barrier
 - VK_NV_shader_subgroup_partitioned
@@ -186,22 +187,17 @@ Source folder: [Vulkan backend](https://github.com/azhirnov/as-en/blob/dev/AE/en
 - VK_ARM_shader_core_properties
 - VK_EXT_shader_tile_image
 - VK_EXT_primitive_topology_list_restart
-- VK_NV_viewport_array2, GL_NV_viewport_array2 - add gl_ViewportMask
-- VK_NV_ray_tracing_invocation_reorder, GL_NV_shader_invocation_reorder
 - VK_NV_displacement_micromap, GL_NV_displacement_micromap
 - VK_KHR_push_descriptor
 - VK_KHR_pipeline_binary
-- VK_EXT_device_generated_commands (VK_NV_device_generated_commands, VK_NV_device_generated_commands_compute)
 - VK_KHR_compute_shader_derivatives (VK_NV_compute_shader_derivatives)
 - VK_EXT_depth_bias_control
 - VK_EXT_depth_clamp_control
 - VK_EXT_map_memory_placed
 - VK_ANDROID_external_format_resolve
 - VK_HUAWEI_hdr_vivid
-- VK_NV_display_stereo
 - VK_NV_per_stage_descriptor_set
 - VK_EXT_attachment_feedback_loop_dynamic_state, VK_EXT_attachment_feedback_loop_layout
-- VK_ARM_pipeline_opacity_micromap
 - VK_EXT_external_memory_metal
 - VK_KHR_video_maintenance2
 - VK_KHR_maintenance8
@@ -220,8 +216,6 @@ Source folder: [Vulkan backend](https://github.com/azhirnov/as-en/blob/dev/AE/en
 - VK_KHR_present_mode_fifo_latest_ready
 - VK_KHR_present_wait2
 - VK_KHR_unified_image_layouts
-- VK_KHR_video_decode_vp9
-- VK_KHR_video_encode_intra_refresh
 - VK_EXT_zero_initialize_device_memory
 - VK_ARM_data_graph
 - VK_ARM_format_pack
@@ -233,6 +227,7 @@ Source folder: [Vulkan backend](https://github.com/azhirnov/as-en/blob/dev/AE/en
 - VK_VALVE_video_encode_rgb_conversion
 - VK_NV_low_latency2
 - VK_EXT_ray_tracing_invocation_reorder, GL_EXT_shader_invocation_reorder
+- VK_ARM_performance_counters_by_region
 
 **Pending for debugging:**
 - VK_EXT_device_fault
@@ -285,6 +280,11 @@ Source folder: [Vulkan backend](https://github.com/azhirnov/as-en/blob/dev/AE/en
 - VK_NV_ray_tracing
 - VK_EXT_fragment_density_map_offset
 - VK_EXT_external_memory_acquire_unmodified
+- VK_NV_device_generated_commands, VK_NV_device_generated_commands_compute
+- VK_NV_clip_space_w_scaling
+- VK_NV_ray_tracing_invocation_reorder, GL_NV_shader_invocation_reorder
+- VK_NV_display_stereo
+- VK_NV_viewport_array2, GL_NV_viewport_array2 - add gl_ViewportMask
 
 **Pending shader extensions:**
 - GL_EXT_null_initializer
@@ -316,6 +316,7 @@ Source folder: [Vulkan backend](https://github.com/azhirnov/as-en/blob/dev/AE/en
 - GL_EXT_uniform_buffer_unsized_array, VK_EXT_shader_uniform_buffer_unsized_array
 - GL_EXT_descriptor_heap
 - GL_EXT_structured_descriptor_heap
+- GL_EXT_shader_64bit_indexing
 
 **Will not be supported**
 - GL_EXT_vulkan_glsl_relaxed
@@ -333,3 +334,7 @@ Source folder: [Vulkan backend](https://github.com/azhirnov/as-en/blob/dev/AE/en
 - reuse device memory immediately, destroy object with delay - memory on GPU side will be synchronized
 - unbounded array descriptors
 - push descriptors
+- queue ownership transfer for RTAS / micromap
+- VK_DEPENDENCY_QUEUE_FAMILY_OWNERSHIP_TRANSFER_USE_ALL_STAGES_BIT_KHR
+- per-buffer barriers mode (instead of global memory barrier)
+

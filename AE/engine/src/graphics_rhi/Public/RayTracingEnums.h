@@ -30,6 +30,11 @@ namespace AE::Graphics
 		TriangleFrontCCW			= 1 << 1,	// otherwise CW
 		ForceOpaque					= 1 << 2,	// enable  ERTGeometryOpt::Opaque flag
 		ForceNonOpaque				= 1 << 3,	// disable ERTGeometryOpt::Opaque flag
+
+		// requires 'opacityMicromap' feature
+		DisableOpacityMicromaps		= 1 << 4,
+		ForceOpacityMicromap2State	= 1 << 5,
+
 		_Last,
 		All							= ((_Last - 1) << 1) - 1,
 		Unknown						= 0,
@@ -42,18 +47,30 @@ namespace AE::Graphics
 	//
 	// Ray Tracing Acceleration Structure Options
 	//
-	enum class ERTASOptions : ubyte
+	enum class ERTASOptions : ushort
 	{
-		AllowUpdate					= 1 << 0,
-		AllowCompaction				= 1 << 1,
-		PreferFastTrace				= 1 << 2,
-		PreferFastBuild				= 1 << 3,
-		LowMemory					= 1 << 4,
-		AllowDataAccess				= 1 << 5,
+		AllowUpdate						= 1 << 0,
+		AllowCompaction					= 1 << 1,
+		PreferFastTrace					= 1 << 2,
+		PreferFastBuild					= 1 << 3,
+		LowMemory						= 1 << 4,
+		AllowDataAccess					= 1 << 5,
 		//MotionNV
+
+		// requires 'opacityMicromap' feature
+		AllowDisableOpacityMicromaps	= 1 << 6,
+		AllowOpacityMicromapDataUpdate	= 1 << 7,
+		AllowOpacityMicromapUpdate		= 1 << 8,
+
+		// requires 'displacementMicromap' feature
+		AllowDisplacementMicromapUpdate	= 1 << 9,
+
+		// requires 'opacityMicromap' and 'clusterAccelerationStructure' features
+		AllowClusterOpacityMicromap		= 1 << 10,
+
 		_Last,
-		All							= ((_Last-1) << 1) - 1,
-		Unknown						= 0,
+		All								= ((_Last-1) << 1) - 1,
+		Unknown							= 0,
 	};
 
 
@@ -216,6 +233,56 @@ namespace AE::Graphics
 	};
 //-----------------------------------------------------------------------------
 
+
+
+	enum class EMicromapType : ubyte
+	{
+		Opacity,
+		Displacement,
+
+		_Count,
+		Unknown		= _Count
+	};
+
+
+	enum class EBuildMicromapFlags : ubyte
+	{
+		PreferFastTrace		= 1 << 0,
+		PreferFastBuild		= 1 << 1,
+		AllowCompaction		= 1 << 2,
+
+		_Last,
+		All					= ((_Last-1) << 1) - 1,
+		Unknown				= 0,
+	};
+
+
+	enum class EOpacityMicromapFormat : ushort
+	{
+		Unknown,
+		TwoState			= 1,	// 1-bit mode, supports opaque and transparent states
+		FourState			= 2,	// 2-bit mode, supports opaque, transparent and unknown state which requires any-hit shader invocation
+	};
+
+
+	enum class EDisplacementMicromapFormat : ushort
+	{
+		Unknown,
+		Tris64_Bytes64		= 1,	// uncompressed format, 45 displacement values as 11 bit unorm
+		Tris256_Bytes128	= 2,	// compressed
+		Tris1024_Bytes128	= 3,	// compressed
+	};
+
+
+	enum class EOpacityMicromapSpecialIndex : int
+	{
+		FullyTransparent						= -1,	// entire triangle is fully transparent
+		FullyOpaque								= -2,	// entire triangle is fully opaque
+		FullyUnknownTransparent					= -3,	// ???
+		FullyUnknownOpaque						= -4,	// ???
+		ClusterGeometryDisableOpacityMicromap	= -5,	// opacity value will be picked from 'baseGeometryIndexAndGeometryFlags'.		// TODO
+														// only for cluster geometry.
+	};
 
 
 } // AE::Graphics

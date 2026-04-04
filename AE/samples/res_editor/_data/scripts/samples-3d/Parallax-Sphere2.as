@@ -44,24 +44,19 @@
 
 		// create cube
 		{
-			RC<Buffer>				geom_data	= Buffer();
-			RC<UnifiedGeometry>		geometry	= UnifiedGeometry();
+			RC<Mesh>	mesh = Mesh();
+			mesh.SetAttributes( EAttribute::Position | EAttribute::Texcoord3D );
+			mesh.AddSphere( 4 );
 
-			array<float3>	positions;
-			array<float3>	texcoords;
-			array<uint>		indices;
-			GetSphere( 4, OUT positions, OUT texcoords, OUT indices );
-
-			geom_data.FloatArray(	"positions",	positions );
-			geom_data.FloatArray(	"texcoords",	texcoords );
-			geom_data.UIntArray(	"indices",		indices );
-			geom_data.Float(		"lightDir",		Normalize(float3( 0.f, -1.f, 0.f )) );
+			RC<Buffer>	geom_data = mesh.ToBuffer();
+			geom_data.Float( "lightDir",	Normalize(float3( 0.f, -1.f, 0.f )) );
 			geom_data.LayoutName( "GeometrySBlock" );
 
 			UnifiedGeometry_DrawIndexed	cmd;
-			cmd.indexCount = indices.size();
+			cmd.indexCount = mesh.IndexCount();
 			cmd.IndexBuffer( geom_data, "indices" );
 
+			RC<UnifiedGeometry>		geometry = UnifiedGeometry();
 			geometry.Draw( cmd );
 			geometry.ArgIn(	"un_Geometry",			geom_data );
 			geometry.ArgIn(	"un_ColorMap",			color_view,		Sampler_LinearMipmapRepeat );

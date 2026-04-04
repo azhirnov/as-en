@@ -28,7 +28,7 @@
 			array<float2>	positions	= { float2(0.f, -0.2f), float2(0.2f, 0.2f), float2(-0.2f, 0.2f) };
 			array<uint>		indices		= { 0, 1, 2 };
 
-			triangles.FloatArray(	"positions",	positions );
+			triangles.FloatArray(	"position",		positions );
 			triangles.UIntArray(	"indices",		indices );
 
 			geom.AddIndexedTriangles( triangles, triangles );

@@ -12,6 +12,8 @@ set( AE_ENABLE_BROTLI 				ON  CACHE BOOL "use brotli" )
 
 set( AE_ENABLE_CDT	 				ON  CACHE BOOL "use CDT" )
 
+set( AE_ENABLE_FFMPEG				ON  CACHE BOOL "use FFmpeg (GPL or LGPL)" )
+
 set( AE_ENABLE_GLFW 				ON  CACHE BOOL "use GLFW" )
 set( AE_ENABLE_GLSLANG 				ON  CACHE BOOL "use GLSLang" )
 set( AE_ENABLE_GLM 					ON  CACHE BOOL "use GLM" )
@@ -38,6 +40,7 @@ set( AE_ENABLE_REMOTE_GRAPHICS		OFF CACHE BOOL "enable Remote Graphics" )
 set( AE_ENABLE_SPIRV_CROSS 			ON  CACHE BOOL "use SPIRV-Cross" )
 set( AE_ENABLE_STB 					ON  CACHE BOOL "use STB" )
 set( AE_ENABLE_SLANG				ON  CACHE BOOL "use SLang" )
+set( AE_ENABLE_STABLE_DIFFUSION		ON  CACHE BOOL "use stable-diffusion.cpp" )
 
 set( AE_ENABLE_TINYGLTF 			ON  CACHE BOOL "use tinygltf" )
 
@@ -97,6 +100,10 @@ endif()
 
 if (${AE_ENABLE_CDT})
 	add_subdirectory( "CDT" )
+endif()
+
+if (${AE_ENABLE_FFMPEG})
+	add_subdirectory( "ffmpeg" )
 endif()
 
 if (${AE_ENABLE_GLFW})
@@ -184,4 +191,8 @@ endif()
 
 if (${AE_ENABLE_SLANG})
 	add_subdirectory( "slang" )
+endif()
+
+if (${AE_ENABLE_STABLE_DIFFUSION})
+	add_subdirectory( "stable-diffusion" )
 endif()

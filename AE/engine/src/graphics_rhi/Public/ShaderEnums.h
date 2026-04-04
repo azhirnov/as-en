@@ -75,6 +75,7 @@ namespace AE::Graphics
 		Unknown					= 0,
 		_BITOPS_
 	};
+	StaticAssert( uint(EShader::_Count) < sizeof(EShaderStages)*8 );
 
 	NdCx__ EShaderStages  operator |  (EShaderStages lhs, EShader rhs)	__NE___	{ return lhs | EShaderStages(1 << uint(rhs)); }
 	__Cx__ EShaderStages  operator |= (EShaderStages &lhs, EShader rhs)	__NE___	{ return (lhs |= EShaderStages(1 << uint(rhs))); }

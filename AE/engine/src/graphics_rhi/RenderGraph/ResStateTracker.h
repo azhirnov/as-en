@@ -16,7 +16,7 @@ namespace AE::RG::_hidden_
 	struct ResourceKey
 	{
 	// types
-		using TypeList_t	= TypeList< ImageID, BufferID, RTGeometryID, RTSceneID, int >;
+		using TypeList_t	= TypeList< ImageID, BufferID, RTGeometryID, RTSceneID, RTMicromapID, int >;
 		using Value_t		= ImageID::Value_t;
 		using Index_t		= ImageID::Index_t;
 		using Generation_t	= ImageID::Generation_t;
@@ -39,6 +39,7 @@ namespace AE::RG::_hidden_
 		explicit ResourceKey (BufferID id)				__NE___	: id{id.Data()}, type{TypeList_t::Index<BufferID>}		{ ASSERT( Index() == id.Index() and Generation() == id.Generation() ); }
 		explicit ResourceKey (RTGeometryID id)			__NE___	: id{id.Data()}, type{TypeList_t::Index<RTGeometryID>}	{ ASSERT( Index() == id.Index() and Generation() == id.Generation() ); }
 		explicit ResourceKey (RTSceneID id)				__NE___	: id{id.Data()}, type{TypeList_t::Index<RTSceneID>}		{ ASSERT( Index() == id.Index() and Generation() == id.Generation() ); }
+		explicit ResourceKey (RTMicromapID id)			__NE___	: id{id.Data()}, type{TypeList_t::Index<RTMicromapID>}	{ ASSERT( Index() == id.Index() and Generation() == id.Generation() ); }
 
 		ND_ bool  operator == (const ResourceKey &rhs)	C_NE___	{ return (id == rhs.id) and (type == rhs.type); }
 		ND_ bool  operator <  (const ResourceKey &rhs)	C_NE___	{ return (type == rhs.type) ? (id < rhs.id) : (type < rhs.type); }
@@ -60,6 +61,9 @@ namespace AE::RG::_hidden_
 
 		ND_ bool			IsRTScene ()				C_NE___	{ return type == TypeList_t::Index<RTSceneID>; }
 		ND_ RTSceneID		AsRTScene ()				C_NE___	{ ASSERT(IsRTScene());  return BitCast<RTSceneID>(id); }
+
+		ND_ bool			IsRTMicromap ()				C_NE___	{ return type == TypeList_t::Index<RTMicromapID>; }
+		ND_ RTMicromapID	AsRTMicromap ()				C_NE___	{ ASSERT(IsRTMicromap());  return BitCast<RTMicromapID>(id); }
 	};
 
 
@@ -251,12 +255,15 @@ namespace AE::RG::_hidden_
 		ND_ Strong<RTGeometryID>	CreateRTGeometry (const RTGeometryDesc &desc, StringView dbgName = Default, GfxMemAllocatorPtr allocator = null)	__NE___;
 		ND_ Strong<RTSceneID>		CreateRTScene (const RTSceneDesc &desc, StringView dbgName = Default, GfxMemAllocatorPtr allocator = null)			__NE___;
 
+		ND_ Strong<RTMicromapID>	CreateRTMicromap (const RTMicromapDesc &desc, StringView dbgName = Default, GfxMemAllocatorPtr allocator = null)	__NE___;
+
 			bool					ReleaseResource (INOUT Strong<ImageID>		&id)																	__NE___;
 			bool					ReleaseResource (INOUT Strong<BufferID>		&id)																	__NE___;
 			bool					ReleaseResource (INOUT Strong<ImageViewID>	&id)																	__NE___;
 			bool					ReleaseResource (INOUT Strong<BufferViewID>	&id)																	__NE___;
 			bool					ReleaseResource (INOUT Strong<RTGeometryID>	&id)																	__NE___;
 			bool					ReleaseResource (INOUT Strong<RTSceneID>	&id)																	__NE___;
+			bool					ReleaseResource (INOUT Strong<RTMicromapID>	&id)																	__NE___;
 			bool					ReleaseResource (INOUT Strong<VideoImageID>	&id)																	__NE___;
 
 			template <typename Arg0, typename ...Args>
@@ -264,9 +271,6 @@ namespace AE::RG::_hidden_
 
 			template <typename ArrayType>
 			void					ReleaseResourceArray (INOUT ArrayType &arr)																			__NE___;
-
-		ND_ RTASBuildSizes			GetRTGeometrySizes (const RTGeometryBuild &desc)																	C_NE___	{ return _ResMngr().GetRTGeometrySizes( desc ); }
-		ND_ RTASBuildSizes			GetRTSceneSizes (const RTSceneBuild &desc)																			C_NE___	{ return _ResMngr().GetRTSceneSizes( desc ); }
 
 		template <typename ID> ND_ auto			GetDeviceAddress (ID id)																				C_NE___ { return _ResMngr().GetDeviceAddress( id ); }
 
@@ -287,10 +291,12 @@ namespace AE::RG::_hidden_
 
 	protected:
 		ND_ bool  _AddResource2 (ResourceKey key, const ResGlobalState &info)																			__NE___;
+		ND_ bool  _AddResource3 (ResourceKey key, EResourceState current, EResourceState defaultState, const CommandBatchPtr &batch, EQueueType queue)	__NE___;
 		ND_ bool  _AddResource (ImageID      id, EResourceState current, EResourceState defaultState, const CommandBatchPtr &batch, EQueueType queue)	__NE___;
 		ND_ bool  _AddResource (BufferID     id, EResourceState current, EResourceState defaultState, const CommandBatchPtr &batch, EQueueType queue)	__NE___;
-		ND_ bool  _AddResource (RTGeometryID id, EResourceState current, EResourceState defaultState, const CommandBatchPtr &batch, EQueueType queue)	__NE___;
-		ND_ bool  _AddResource (RTSceneID    id, EResourceState current, EResourceState defaultState, const CommandBatchPtr &batch, EQueueType queue)	__NE___;
+		ND_ bool  _AddResource (RTGeometryID id, EResourceState current, EResourceState defaultState, const CommandBatchPtr &batch, EQueueType queue)	__NE___	{ return _AddResource3( ResourceKey{id}, current, defaultState, batch, queue ); }
+		ND_ bool  _AddResource (RTSceneID    id, EResourceState current, EResourceState defaultState, const CommandBatchPtr &batch, EQueueType queue)	__NE___	{ return _AddResource3( ResourceKey{id}, current, defaultState, batch, queue ); }
+		ND_ bool  _AddResource (RTMicromapID id, EResourceState current, EResourceState defaultState, const CommandBatchPtr &batch, EQueueType queue)	__NE___	{ return _AddResource3( ResourceKey{id}, current, defaultState, batch, queue ); }
 		ND_ bool  _AddResource (VideoImageID id, EResourceState current, EResourceState defaultState, const CommandBatchPtr &batch, EQueueType queue)	__NE___;
 
 		template <typename ID>	ND_ bool  _ReleaseResource (INOUT ID &id)																				__NE___;

@@ -57,8 +57,8 @@ void  CreateCPipeline ()
 	{
 		RC<ShaderStructType>	st = ShaderStructType( "Histogram.ssb" );
 		st.Set( EStructLayout::Compatible_Std430,
-			    "uint	maxRGB;" +
-			    "uint	maxLuma;" +
+			    "uint	maxRGB;"
+			    "uint	maxLuma;"
 				"uint4	RGBLuma [" + HistogramSize + "];" );
 
 		RC<DescriptorSetLayout>	ds = DescriptorSetLayout( "Histogram.CS.ds0" );

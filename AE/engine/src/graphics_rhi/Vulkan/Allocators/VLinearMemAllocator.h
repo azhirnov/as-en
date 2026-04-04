@@ -2,7 +2,8 @@
 /*
 	Allocation on the GPU memory may be slow.
 	Internal data is protected by the mutex for thread safety,
-	so parallel usage is not recommended because may be too slow.
+	so parallel usage is not recommended because may be too slow,
+	use 'AsyncMutex' instead.
 */
 
 #pragma once
@@ -34,6 +35,7 @@ namespace AE::Graphics
 		struct Page
 		{
 			VkDeviceMemory				memory			= Default;
+			VkBuffer					buffer			= Default;
 			Bytes						capacity;
 			Bytes						size;
 			void*						mapped			= null;
@@ -55,20 +57,25 @@ namespace AE::Graphics
 			Bytes		size;
 		};
 
-		using Key		= VGfxMemAllocatorUtils::Key;
-		using PageMap_t = FixedMap< Key, FixedArray< Page, 8 >, 4 >;
+		using Key				= VGfxMemAllocatorUtils::Key;
+		using EFlags			= VGfxMemAllocatorUtils::EFlags;
+		using RTASMemReqAtomic	= VGfxMemAllocatorUtils::RTASMemReqAtomic;
+		using PageArr_t			= FixedArray< Page, 8 >;
+		using PageMap_t			= FixedMap< Key, PageArr_t, 8 >;
 
 
 	// variables
 	private:
 		mutable SharedMutex		_pageGuard;
-		const Bytes				_pageSize;
+		const Bytes32u			_pageSize;
+		const Bytes32u			_padding;
+		RTASMemReqAtomic		_rtasStorageMemReq  {VGfxMemAllocatorUtils::RTASMemRequirements{}};
 		PageMap_t				_pages;
 
 
 	// methods
 	public:
-		explicit VLinearMemAllocator (Bytes pageSize = 0_b)										__NE___;
+		explicit VLinearMemAllocator (Bytes pageSize = 0_b, Bytes padding = 0_b)				__NE___;
 		~VLinearMemAllocator ()																	__NE_OV;
 
 		void  Discard ()																		__NE___;
@@ -79,6 +86,7 @@ namespace AE::Graphics
 	  // IGfxMemAllocator //
 		bool  AllocForImage (VkImage image, const ImageDesc &desc, OUT Storage_t &data)			__NE_OV;
 		bool  AllocForBuffer (VkBuffer buffer, const BufferDesc &desc, OUT Storage_t &data)		__NE_OV;
+		bool  AllocStorage (Bytes storageSize, VkBufferUsageFlagBits2, OUT Storage_t &)			__NE_OV;
 		bool  AllocForVideoSession (VkVideoSessionKHR, EMemoryType, OUT VideoStorageArr_t &data)__NE_OV;
 		bool  AllocForVideoImage (VkImage, const VideoImageDesc &, OUT VideoStorageArr_t &data)	__NE_OV;
 
@@ -101,7 +109,7 @@ namespace AE::Graphics
 
 		ND_ bool  _IsValidPage (const Page* page)												C_NE___;
 		ND_ bool  _Allocate (VDevice const&, Bytes memSize, Bytes memAlign, uint memBits,
-							 Bool shaderAddress, Bool isImage, Bool mapMem, OUT Data &)			__NE___;
+							 EFlags flags, OUT Data &)											__NE___;
 	};
 
 

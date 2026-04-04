@@ -8,6 +8,22 @@
 # include "video/FFmpeg/FFmpegLoader.h"
 # include "video/Private/EnumToString.cpp.h"
 
+# if LIBAVCODEC_VERSION_MAJOR != 62 or LIBAVCODEC_VERSION_MINOR != 11
+#	pragma message( "required AVcodec version 62.11" )
+# endif
+# if LIBAVDEVICE_VERSION_MAJOR != 62 or LIBAVDEVICE_VERSION_MINOR != 1
+#	pragma message( "required AVdevice version 62.1" )
+# endif
+# if LIBAVFORMAT_VERSION_MAJOR != 62 or LIBAVFORMAT_VERSION_MINOR != 3
+#	pragma message( "required AVformat version 62.3" )
+# endif
+# if LIBAVUTIL_VERSION_MAJOR != 60 or LIBAVUTIL_VERSION_MINOR != 8
+#	pragma message( "required AVutil version 60.8" )
+# endif
+# if LIBSWSCALE_VERSION_MAJOR != 9 or LIBSWSCALE_VERSION_MINOR != 1
+#	pragma message( "required SWscale version 9.1" )
+# endif
+
 namespace AE::Video
 {
 	using namespace AE::Graphics;
@@ -211,7 +227,12 @@ namespace AE::Video
 */
 	Nd__In AVPixelFormat  PixelFormatCast (EPixelFormat fmt) __NE___
 	{
-		return EnumCast( PixelFormatToVideoFormat( fmt ));
+		auto	res = PixelFormatToVideoFormat( fmt );
+
+		if ( res.formats.empty() )
+			return AV_PIX_FMT_NONE;
+
+		return EnumCast( res.formats[0] );
 	}
 
 /*
@@ -221,7 +242,9 @@ namespace AE::Video
 */
 	Nd__In EPixelFormat  PixelFormatCast (AVPixelFormat fmt) __NE___
 	{
-		return VideoFormatToPixelFormat( EnumCast( fmt ), 3 );
+		EVideoFormat	vfmt	= EnumCast( fmt );
+		auto			res		= VideoFormatToPixelFormat( vfmt );
+		return res.format;
 	}
 
 /*
@@ -663,7 +686,6 @@ namespace AE::Base
 			case AV_PIX_FMT_BAYER_GBRG16BE :	return "BAYER_GBRG16BE  - bayer, GBGB..(odd line), RGRG..(even line), 16-bit samples, big-endian";
 			case AV_PIX_FMT_BAYER_GRBG16LE :	return "BAYER_GRBG16LE  - bayer, GRGR..(odd line), BGBG..(even line), 16-bit samples, little-endian";
 			case AV_PIX_FMT_BAYER_GRBG16BE :	return "BAYER_GRBG16BE  - bayer, GRGR..(odd line), BGBG..(even line), 16-bit samples, big-endian";
-			case AV_PIX_FMT_XVMC :				return "XVMC  - XVideo Motion Acceleration via common packet passing";
 			case AV_PIX_FMT_YUV440P10LE :		return "YUV440P10LE  - planar YUV 4:4:0,20bpp, (1 Cr & Cb sample per 1x2 Y samples), little-endian";
 			case AV_PIX_FMT_YUV440P10BE :		return "YUV440P10BE  - planar YUV 4:4:0,20bpp, (1 Cr & Cb sample per 1x2 Y samples), big-endian";
 			case AV_PIX_FMT_YUV440P12LE :		return "YUV440P12LE  - planar YUV 4:4:0,24bpp, (1 Cr & Cb sample per 1x2 Y samples), little-endian";
@@ -740,6 +762,49 @@ namespace AE::Base
 			case AV_PIX_FMT_P412LE :			return "P412LE  - interleaved chroma YUV 4:4:4, 36bpp, data in the high bits, little-endian";
 			case AV_PIX_FMT_GBRAP14BE :			return "GBRAP14BE  - planar GBR 4:4:4:4 56bpp, big-endian";
 			case AV_PIX_FMT_GBRAP14LE :			return "GBRAP14LE  - planar GBR 4:4:4:4 56bpp, little-endian";
+
+			case AV_PIX_FMT_D3D12 :				return "D3D12";
+			case AV_PIX_FMT_AYUV :				return "packed AYUV 4:4:4:4, 32bpp (1 Cr & Cb sample per 1x1 Y & A samples), AYUVAYUV...";
+			case AV_PIX_FMT_UYVA :				return "packed UYVA 4:4:4:4, 32bpp (1 Cr & Cb sample per 1x1 Y & A samples), UYVAUYVA...";
+			case AV_PIX_FMT_VYU444 :			return "packed VYU 4:4:4, 24bpp (1 Cr & Cb sample per 1x1 Y), VYUVYU...";
+			case AV_PIX_FMT_V30XBE :			return "packed VYUX 4:4:4 like XV30, 32bpp, (msb)10V 10Y 10U 2X(lsb), big-endian";
+			case AV_PIX_FMT_V30XLE :			return "packed VYUX 4:4:4 like XV30, 32bpp, (msb)10V 10Y 10U 2X(lsb), little-endian";
+			case AV_PIX_FMT_RGBF16BE :			return "half precision packed RGB 16:16:16, 48bpp, RGBRGB..., big-endian";
+			case AV_PIX_FMT_RGBF16LE :			return "half precision packed RGB 16:16:16, 48bpp, RGBRGB..., little-endian";
+			case AV_PIX_FMT_RGBA128BE :			return "packed RGBA 32:32:32:32, 128bpp, RGBARGBA..., big-endian";
+			case AV_PIX_FMT_RGBA128LE :			return "packed RGBA 32:32:32:32, 128bpp, RGBARGBA..., little-endian";
+			case AV_PIX_FMT_RGB96BE :			return "packed RGBA 32:32:32, 96bpp, RGBRGB..., big-endian";
+			case AV_PIX_FMT_RGB96LE :			return "packed RGBA 32:32:32, 96bpp, RGBRGB..., little-endian";
+			case AV_PIX_FMT_Y216BE :			return "packed YUV 4:2:2 like YUYV422, 32bpp, big-endian";
+			case AV_PIX_FMT_Y216LE :			return "packed YUV 4:2:2 like YUYV422, 32bpp, little-endian";
+			case AV_PIX_FMT_XV48BE :			return "packed XVYU 4:4:4, 64bpp, big-endian, variant of Y416 where alpha channel is left undefined";
+			case AV_PIX_FMT_XV48LE :			return "packed XVYU 4:4:4, 64bpp, little-endian, variant of Y416 where alpha channel is left undefined";
+			case AV_PIX_FMT_GBRPF16BE :			return "half precision planer GBR 4:4:4, 48bpp, big-endian";
+			case AV_PIX_FMT_GBRPF16LE :			return "half precision planer GBR 4:4:4, 48bpp, little-endian";
+			case AV_PIX_FMT_GBRAPF16BE :		return "half precision planar GBRA 4:4:4:4, 64bpp, big-endian";
+			case AV_PIX_FMT_GBRAPF16LE :		return "half precision planar GBRA 4:4:4:4, 64bpp, little-endian";
+			case AV_PIX_FMT_GRAYF16BE :			return "half precision Y, 16bpp, big-endian";
+			case AV_PIX_FMT_GRAYF16LE :			return "half precision Y, 16bpp, little-endian";
+
+			case AV_PIX_FMT_AMF_SURFACE :		return "AMF surface";
+			case AV_PIX_FMT_GRAY32BE :			return "Y, 32bpp, big-endian";
+			case AV_PIX_FMT_GRAY32LE :			return "Y, 32bpp, little-endian";
+			case AV_PIX_FMT_YAF32BE :			return "single precision packed YA, 32 bits gray, 32 bits alpha, 64bpp, big-endian";
+			case AV_PIX_FMT_YAF32LE :			return "single precision packed YA, 32 bits gray, 32 bits alpha, 64bpp, little-endian";
+			case AV_PIX_FMT_YAF16BE :			return "half precision packed YA, 16 bits gray, 16 bits alpha, 32bpp, big-endian";
+			case AV_PIX_FMT_YAF16LE :			return "half precision packed YA, 16 bits gray, 16 bits alpha, 32bpp, little-endian";
+			case AV_PIX_FMT_GBRAP32BE :			return "planar GBRA 4:4:4:4 128bpp, big-endian";
+			case AV_PIX_FMT_GBRAP32LE :			return "planar GBRA 4:4:4:4 128bpp, little-endian";
+			case AV_PIX_FMT_YUV444P10MSBBE :	return "planar YUV 4:4:4, 30bpp, (1 Cr & Cb sample per 1x1 Y samples), lowest bits zero, big-endian";
+			case AV_PIX_FMT_YUV444P10MSBLE :	return "planar YUV 4:4:4, 30bpp, (1 Cr & Cb sample per 1x1 Y samples), lowest bits zero, little-endian";
+			case AV_PIX_FMT_YUV444P12MSBBE :	return "planar YUV 4:4:4, 30bpp, (1 Cr & Cb sample per 1x1 Y samples), lowest bits zero, big-endian";
+			case AV_PIX_FMT_YUV444P12MSBLE :	return "planar YUV 4:4:4, 30bpp, (1 Cr & Cb sample per 1x1 Y samples), lowest bits zero, little-endian";
+			case AV_PIX_FMT_GBRP10MSBBE :		return "planar GBR 4:4:4 30bpp, lowest bits zero, big-endian";
+			case AV_PIX_FMT_GBRP10MSBLE :		return "planar GBR 4:4:4 30bpp, lowest bits zero, little-endian";
+			case AV_PIX_FMT_GBRP12MSBBE :		return "planar GBR 4:4:4 36bpp, lowest bits zero, big-endian";
+			case AV_PIX_FMT_GBRP12MSBLE :		return "planar GBR 4:4:4 36bpp, lowest bits zero, little-endian";
+			case AV_PIX_FMT_OHCODEC :			return "hardware decoding through openharmony";
+
 			case AV_PIX_FMT_NB :				break;
 		}
 		switch_end
@@ -783,6 +848,7 @@ namespace AE::Base
 	{
 		switch_enum( value )
 		{
+			case AVCOL_SPC_RGB :				return "RGB";					// - order of coefficients is actually GBR, also IEC 61966-2-1 (sRGB), YZX and ST 428-1
 			case AVCOL_SPC_BT709 :				return "BT709";					// - also ITU-R BT1361 / IEC 61966-2-4 xvYCC709 / derived in SMPTE RP 177 Annex B";
 			case AVCOL_SPC_UNSPECIFIED :		return "UNSPECIFIED";
 			case AVCOL_SPC_RESERVED :			return "RESERVED";				// - reserved for future use by ITU-T and ISO/IEC just like 15-255 are";
@@ -797,7 +863,9 @@ namespace AE::Base
 			case AVCOL_SPC_CHROMA_DERIVED_NCL :	return "CHROMA_DERIVED_NCL";	// - Chromaticity-derived non-constant luminance system
 			case AVCOL_SPC_CHROMA_DERIVED_CL :	return "CHROMA_DERIVED_CL";		// - Chromaticity-derived constant luminance system
 			case AVCOL_SPC_ICTCP :				return "ICTCP";					// - ITU-R BT.2100-0, ICtCp
-			case AVCOL_SPC_RGB :				return "RGB";					// - order of coefficients is actually GBR, also IEC 61966-2-1 (sRGB), YZX and ST 428-1
+			case AVCOL_SPC_IPT_C2 :				return "IPT_C2";				// - SMPTE ST 2128, IPT-C2
+			case AVCOL_SPC_YCGCO_RE :			return "YCGCO_RE";				// - YCgCo-R, even addition of bits
+			case AVCOL_SPC_YCGCO_RO :			return "YCGCO_RO";				// - YCgCo-R, odd addition of bits
 			case AVCOL_SPC_NB :					break;
 		}
 		switch_end
@@ -845,6 +913,8 @@ namespace AE::Base
 			case AVCOL_PRI_SMPTE431 :		return "SMPTE431";
 			case AVCOL_PRI_SMPTE432 :		return "SMPTE432";
 			case AVCOL_PRI_EBU3213 :		return "EBU3213";
+		//	case AVCOL_PRI_EXT_BASE :
+		//	case AVCOL_PRI_EXT_NB :
 			case AVCOL_PRI_NB :				break;
 		}
 		switch_end
@@ -879,6 +949,8 @@ namespace AE::Base
 			case AVCOL_TRC_SMPTE2084 :		return "SMPTE2084";
 			case AVCOL_TRC_SMPTE428 :		return "SMPTE428";
 			case AVCOL_TRC_ARIB_STD_B67 :	return "ARIB_STD_B67";
+		//	case AVCOL_TRC_EXT_BASE :
+		//	case AVCOL_TRC_EXT_NB :
 			case AVCOL_TRC_NB :				break;
 		}
 		switch_end
@@ -928,6 +1000,9 @@ namespace AE::Base
 			case AV_HWDEVICE_TYPE_OPENCL :			return "OpenCL";
 			case AV_HWDEVICE_TYPE_MEDIACODEC :		return "MediaCodec";
 			case AV_HWDEVICE_TYPE_VULKAN :			return "Vulkan";
+			case AV_HWDEVICE_TYPE_D3D12VA :			return "D3D12";
+			case AV_HWDEVICE_TYPE_AMF :				return "AMF";
+			case AV_HWDEVICE_TYPE_OHCODEC :			return "OpenHarmony Codec";
 		}
 		switch_end
 		RETURN_ERR( "unknown device type" );

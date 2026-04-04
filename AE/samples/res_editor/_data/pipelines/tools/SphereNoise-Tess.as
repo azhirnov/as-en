@@ -15,19 +15,19 @@
 		{
 			RC<ShaderStructType>	st = ShaderStructType( "io.vs-tcs" );
 			st.Set(	EStructLayout::InternalIO,
-					"float4		position;" +
+					"float4		position;"
 					"float3		uv;" );
 		}{
 			RC<ShaderStructType>	st = ShaderStructType( "io.tcs-tes" );
 			st.Set( EStructLayout::InternalIO,
-					"float4		position;" +
+					"float4		position;"
 					"float3		uv;" );
 		}{
 			RC<ShaderStructType>	st = ShaderStructType( "io.tes-fs" );
 			st.Set( EStructLayout::InternalIO,
-					"float		noise;" +
-					"float3		uv;" +
-					"float3		worldPos;" +
+					"float		noise;"
+					"float3		uv;"
+					"float3		worldPos;"
 					"float3		normal;" );
 		}
 

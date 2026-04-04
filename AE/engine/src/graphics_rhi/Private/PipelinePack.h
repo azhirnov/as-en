@@ -164,6 +164,7 @@ namespace AE::Graphics
 		using SerTPplnSpec_t		= ArrayView< PipelineCompiler::SerializableTilePipelineSpec >;
 
 		using SerRTSBTs_t			= ArrayView< PipelineCompiler::SerializableRTShaderBindingTable >;
+		using SerExecSets_t			= ArrayView< PipelineCompiler::SerializableIndirectExecutionSet >;
 
 		using StackAllocator_t		= StackAllocator< UntypedAllocator, 16, false >;
 		using FeatureNames_t		= THashSet< FeatureSetName::Optimized_t >;
@@ -202,6 +203,13 @@ namespace AE::Graphics
 			};
 			using RTSBTMap_t	= THashMap< RTShaderBindingName::Optimized_t, SBTInfo >;
 
+			struct ExecSetInfo
+			{
+				PipelineCompiler::IndirectExecutionSetUID	uid			= Default;
+				IndirectExecutionSetID						execSetId;
+			};
+			using ExecSetMap_t		= THashMap< IndirectExecutionSetName::Optimized_t, ExecSetInfo >;
+
 			static constexpr WGLocalSize_t::value_type		UndefinedLocalSize	= BasePipelineDesc::UndefinedLocalSize;
 			static constexpr WGLocalSizeSpec_t::value_type	UndefinedSpecConst	= PipelineCompiler::SerializableComputePipeline::UndefinedSpecConst;
 			static constexpr auto							LoadTimeLocalSize	= BasePipelineDesc::LoadTimeLocalSize;
@@ -217,6 +225,7 @@ namespace AE::Graphics
 			Passes_t						_passes;
 			PplnSpecMap_t					_pipelines;
 			RTSBTMap_t						_rtSbtMap;
+			ExecSetMap_t					_execSetMap;
 
 			WGLocalSize_t					_taskLocalSize		{UndefinedLocalSize};
 			WGLocalSize_t					_meshLocalSize		{UndefinedLocalSize};
@@ -227,41 +236,43 @@ namespace AE::Graphics
 
 		// methods
 		public:
-			explicit RenderTech (PPLNPACK& pack)																	__NE___;
-			~RenderTech ()																							__NE_OV;
+			explicit RenderTech (PPLNPACK& pack)																		__NE___;
+			~RenderTech ()																								__NE_OV;
 
-			ND_	bool  Deserialize (ResourceManager &, Serializing::Deserializer &)									__Th___;
-			ND_ auto  LoadAsync (ResourceManager &, const RenderTechDesc &, PipelineCacheID)						__NE___ -> Promise<RenderTechPipelinesPtr>;
-			ND_ bool  Load (ResourceManager &, const RenderTechDesc &, PipelineCacheID)								__NE___;
-				void  Destroy (ResourceManager &)																	__NE___;
+			ND_	bool  Deserialize (ResourceManager &, Serializing::Deserializer &)										__Th___;
+			ND_ auto  LoadAsync (ResourceManager &, const RenderTechDesc &, PipelineCacheID)							__NE___ -> Promise<RenderTechPipelinesPtr>;
+			ND_ bool  Load (ResourceManager &, const RenderTechDesc &, PipelineCacheID)									__NE___;
+				void  Destroy (ResourceManager &)																		__NE___;
 
-			ND_ RenderTechName::Optimized_t	Name ()																	C_NE_OV	{ DRC_SHAREDLOCK( _drCheck );  return _name; }
-			ND_ PipelinePackID				GetPipelinePack ()														C_NE_OV	{ DRC_SHAREDLOCK( _drCheck );  return _pack._selfId; }
-			ND_ bool						IsSupported ()															C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _isSupported; }
+			ND_ RenderTechName::Optimized_t	Name ()																		C_NE_OV	{ DRC_SHAREDLOCK( _drCheck );  return _name; }
+			ND_ PipelinePackID				GetPipelinePack ()															C_NE_OV	{ DRC_SHAREDLOCK( _drCheck );  return _pack._selfId; }
+			ND_ bool						IsSupported ()																C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _isSupported; }
 
-			GraphicsPipelineID		GetGraphicsPipeline	 (PipelineName::Ref name)									C_NE_OV;
-			MeshPipelineID			GetMeshPipeline		 (PipelineName::Ref name)									C_NE_OV;
-			TilePipelineID			GetTilePipeline		 (PipelineName::Ref name)									C_NE_OV;
-			ComputePipelineID		GetComputePipeline	 (PipelineName::Ref name)									C_NE_OV;
-			RayTracingPipelineID	GetRayTracingPipeline(PipelineName::Ref name)									C_NE_OV;
-			RTShaderBindingID		GetRTShaderBinding	 (RTShaderBindingName::Ref name)							C_NE_OV;
-			PassInfo				GetPass				 (RenderTechPassName::Ref pass)								C_NE_OV;
-			bool					FeatureSetSupported  (FeatureSetName::Ref name)									C_NE_OV;
-			EPixelFormat			GetAttachmentFormat  (RenderTechPassName::Ref pass, AttachmentName::Ref)		C_NE_OV;
+			GraphicsPipelineID		GetGraphicsPipeline	 (PipelineName::Ref name, Bool silent = False{})				C_NE_OV;
+			MeshPipelineID			GetMeshPipeline		 (PipelineName::Ref name, Bool silent = False{})				C_NE_OV;
+			TilePipelineID			GetTilePipeline		 (PipelineName::Ref name, Bool silent = False{})				C_NE_OV;
+			ComputePipelineID		GetComputePipeline	 (PipelineName::Ref name, Bool silent = False{})				C_NE_OV;
+			RayTracingPipelineID	GetRayTracingPipeline(PipelineName::Ref name, Bool silent = False{})				C_NE_OV;
+			RTShaderBindingID		GetRTShaderBinding	 (RTShaderBindingName::Ref name, Bool silent = False{})			C_NE_OV;
+			IndirectExecutionSetID	GetIndirectExecutionSet (IndirectExecutionSetName::Ref name, Bool silent = False{})	C_NE_OV;
+			PassInfo				GetPass				 (RenderTechPassName::Ref pass)									C_NE_OV;
+			bool					FeatureSetSupported  (FeatureSetName::Ref name)										C_NE_OV;
+			EPixelFormat			GetAttachmentFormat  (RenderTechPassName::Ref pass, AttachmentName::Ref)			C_NE_OV;
 
 			// for internal usage
-			ND_ PplnSpecMap_t const&	_GetPipelineSpecs ()														C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _pipelines; }
-			ND_ RTSBTMap_t const&		_GetSBTs ()																	C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _rtSbtMap; }
-			ND_ Passes_t const&			_GetPasses ()																C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _passes; }
+			ND_ PplnSpecMap_t const&	_GetPipelineSpecs ()															C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _pipelines; }
+			ND_ RTSBTMap_t const&		_GetSBTs ()																		C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _rtSbtMap; }
+			ND_ Passes_t const&			_GetPasses ()																	C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _passes; }
 
 
 		private:
 			ND_ bool  _PreloadShaders (const ResourceManager &)															__NE___;
 			ND_ bool  _CompilePipelines (ResourceManager &, PipelineCacheID, PplnSpecIter_t begin, PplnSpecIter_t end)	__NE___;
 			ND_ bool  _CreateSBTs (ResourceManager &resMngr)															__NE___;
+			ND_ bool  _CreateExecSets (ResourceManager &resMngr)														__NE___;
 
-			void  _PrintPipelines (PipelineName::Ref name, PipelineCompiler::PipelineSpecUID mask)					C_NE___;
-			void  _PrintSBTs (RTShaderBindingName::Ref reqName)														C_NE___;
+			void  _PrintPipelines (PipelineName::Ref name, PipelineCompiler::PipelineSpecUID mask)						C_NE___;
+			void  _PrintSBTs (RTShaderBindingName::Ref reqName)															C_NE___;
 
 			ND_ static bool  _OverrideLocalGroupSize (INOUT WGLocalSize_t &localSize, const WGLocalSize_t &newLocalSize,
 													  const WGLocalSizeSpec_t &localSizeSpec, const WGLocalSize_t &defaultLocalSize) __NE___;
@@ -280,7 +291,8 @@ namespace AE::Graphics
 			ND_ PipelineID  _CompileRayTracingPipeline (ResourceManager &, const PipelineCompiler::SerializableRayTracingPipelineSpec&, const PipelineCompiler::SerializableRayTracingPipeline&, PipelineCacheID, StringView) __NE___;
 			ND_ PipelineID  _CompileTilePipeline       (ResourceManager &, const PipelineCompiler::SerializableTilePipelineSpec	     &, const PipelineCompiler::SerializableTilePipeline      &, PipelineCacheID, StringView) __NE___;
 
-			ND_ RTShaderBindingID  _CreateRTShaderBinding (ResourceManager &, const PipelineCompiler::SerializableRTShaderBindingTable &, StringView) __NE___;
+			ND_ RTShaderBindingID		_CreateRTShaderBinding (ResourceManager &, const PipelineCompiler::SerializableRTShaderBindingTable &, StringView)		__NE___;
+			ND_ IndirectExecutionSetID	_CreateIndirectExecutionSet (ResourceManager &, const PipelineCompiler::SerializableIndirectExecutionSet &, StringView)	__NE___;
 		};
 
 		struct _ForInternalUsage;
@@ -321,6 +333,7 @@ namespace AE::Graphics
 		SerTPplnSpec_t				_serTPplnSpec;
 
 		SerRTSBTs_t					_serRTSBTs;
+		SerExecSets_t				_serExecSets;
 
 		InPlace< PplnTemplMap_t >	_pplnTemplMap;
 		InPlace< DSLayoutMap_t >	_dsLayoutMap;
@@ -411,6 +424,7 @@ namespace AE::Graphics
 		ND_ bool  _LoadRenderTechniques (ResourceManager &, Serializing::Deserializer &)						__Th___;
 		ND_ bool  _LoadRTShaderBindingTable (Serializing::Deserializer &)										__NE___;
 		ND_ bool  _LoadShaders (Serializing::Deserializer &)													__NE___;
+		ND_ bool  _LoadIndirectExecutionSet (Serializing::Deserializer &)										__NE___;
 
 		template <typename TName, typename TUID>
 		ND_ bool  _LoadPipelineNames (Serializing::Deserializer &des, OUT THashMap<TName, TUID> &)				__Th___;

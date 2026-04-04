@@ -63,6 +63,10 @@ namespace AE::ResEditor
 		void  ArgBufferOut (const String &name, const ScriptBufferPtr &buf)											__Th___	{ _args.ArgBufferOut( name, buf ); }
 		void  ArgBufferInOut (const String &name, const ScriptBufferPtr &buf)										__Th___	{ _args.ArgBufferInOut( name, buf ); }
 
+		void  ArgBufferViewIn (const String &name, const ScriptBufferViewPtr &buf)									__Th___	{ _args.ArgBufferViewIn( name, buf ); }
+		void  ArgBufferViewOut (const String &name, const ScriptBufferViewPtr &buf)									__Th___	{ _args.ArgBufferViewOut( name, buf ); }
+		void  ArgBufferViewInOut (const String &name, const ScriptBufferViewPtr &buf)								__Th___	{ _args.ArgBufferViewInOut( name, buf ); }
+
 		void  ArgImageIn (const String &name, const ScriptImagePtr &img)											__Th___	{ _args.ArgImageIn( name, img ); }
 		void  ArgImageOut (const String &name, const ScriptImagePtr &img)											__Th___	{ _args.ArgImageOut( name, img ); }
 		void  ArgImageInOut (const String &name, const ScriptImagePtr &img)											__Th___	{ _args.ArgImageInOut( name, img ); }
@@ -461,9 +465,7 @@ namespace AE::ResEditor
 			void  Name (const String &name)																	__Th___;
 			void  AddTextureSearchDir (const String &value)													__Th___;
 			void  SetInitialTransform1 (const packed_float4x4 &value)										__Th___;
-			void  SetInitialTransform2 (const packed_float3 &position,
-										const packed_float3 &rotation,
-										float scale)														__Th___;
+			void  SetInitialTransform2 (const ScriptTransform &tr)											__Th___;
 
 			void  SetInstanceCount (uint value)																__Th___;
 

@@ -17,7 +17,10 @@ void ASmain ()
 	r_image   .Format( EPixelFormat::R8_UNorm );
 	rgba_image.Format( EPixelFormat::RGBA8_UNorm );
 
+	// pack font into R image
 	AddRasterFont( meta, r_image );
+
+	// pack atlas and font into single RGBA image
 	AddMSdfFont( meta, rgba_image );
 	AddAtlasRGBA( meta, rgba_image );
 

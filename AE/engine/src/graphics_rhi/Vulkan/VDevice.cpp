@@ -11,14 +11,17 @@ namespace AE::Graphics
 {
 namespace
 {
-	StaticAssert( sizeof(DispatchIndirectCommand)		== sizeof(VkDispatchIndirectCommand) );
-	StaticAssert( sizeof(DrawIndirectCommand)			== sizeof(VkDrawIndirectCommand) );
-	StaticAssert( sizeof(DrawIndexedIndirectCommand)	== sizeof(VkDrawIndexedIndirectCommand) );
-	StaticAssert( sizeof(DrawMeshTasksIndirectCommand)	== sizeof(VkDrawMeshTasksIndirectCommandEXT) );
-	StaticAssert( sizeof(TraceRayIndirectCommand)		== sizeof(VkTraceRaysIndirectCommandKHR) );
-	StaticAssert( sizeof(TraceRayIndirectCommand2)		== sizeof(VkTraceRaysIndirectCommand2KHR) );
-	StaticAssert( sizeof(ASBuildIndirectCommand)		== sizeof(VkAccelerationStructureBuildRangeInfoKHR) );
-	StaticAssert( sizeof(DeviceAddress)				== sizeof(VkDeviceAddress) );
+	StaticAssert( sizeof(DispatchIndirectCommand)			== sizeof(VkDispatchIndirectCommand) );
+	StaticAssert( sizeof(DrawIndirectCommand)				== sizeof(VkDrawIndirectCommand) );
+	StaticAssert( sizeof(DrawIndexedIndirectCommand)		== sizeof(VkDrawIndexedIndirectCommand) );
+	StaticAssert( sizeof(DrawMeshTasksIndirectCommand)		== sizeof(VkDrawMeshTasksIndirectCommandEXT) );
+	StaticAssert( sizeof(TraceRayIndirectCommand)			== sizeof(VkTraceRaysIndirectCommandKHR) );
+	StaticAssert( sizeof(TraceRayIndirectCommand2)			== sizeof(VkTraceRaysIndirectCommand2KHR) );
+	StaticAssert( sizeof(ASBuildIndirectCommand)			== sizeof(VkAccelerationStructureBuildRangeInfoKHR) );
+	StaticAssert( sizeof(DeviceAddress)						== sizeof(VkDeviceAddress) );
+	StaticAssert( sizeof(DrawIndirectCountIndirectCommand)	== sizeof(VkDrawIndirectCountIndirectCommandEXT) );
+	StaticAssert( sizeof(BindVertexBufferIndirectCommand)	== sizeof(VkBindVertexBufferIndirectCommandEXT) );
+	StaticAssert( sizeof(BindIndexBufferIndirectCommand)	== sizeof(VkBindIndexBufferIndirectCommandEXT) );
 
 	StaticAssert( offsetof(DrawIndirectCommand, vertexCount)	== offsetof(VkDrawIndirectCommand, vertexCount) );
 	StaticAssert( offsetof(DrawIndirectCommand, instanceCount)	== offsetof(VkDrawIndirectCommand, instanceCount) );
@@ -33,13 +36,56 @@ namespace
 
 	StaticAssert( FrameUID::MaxFramesLimit() == GraphicsConfig::MaxFrames );
 
-	StaticAssert( VK_HEADER_VERSION == 321 );
+	StaticAssert( VK_HEADER_VERSION == 341 );
 
 	static constexpr usize	c_MaxMemTypes = List<EMemoryType>{
 												EMemoryType::DeviceLocal,	EMemoryType::Transient,		EMemoryType::HostCoherent,
 												EMemoryType::HostCached,	EMemoryType::Dedicated,		EMemoryType::HostCachedCoherent,
 												EMemoryType::Unified,		EMemoryType::UnifiedCached }.size();
 	StaticAssert( decltype(DeviceResourceFlags::memTypes)::capacity() >= c_MaxMemTypes );
+
+/*
+=================================================
+	VkDriverIdToString
+=================================================
+*/
+	static StringView  VkDriverIdToString (VkDriverId driverID)
+	{
+		switch_enum( driverID )
+		{
+			case VK_DRIVER_ID_AMD_PROPRIETARY :				return "AMD Pro";
+			case VK_DRIVER_ID_AMD_OPEN_SOURCE :				return "AMD VLK";
+			case VK_DRIVER_ID_MESA_RADV :					return "Mesa RADV";
+			case VK_DRIVER_ID_NVIDIA_PROPRIETARY :			return "NVIDIA Pro";
+			case VK_DRIVER_ID_INTEL_PROPRIETARY_WINDOWS :	return "Intel Pro Win";
+			case VK_DRIVER_ID_INTEL_OPEN_SOURCE_MESA :		return "Intel Mesa";
+			case VK_DRIVER_ID_IMAGINATION_PROPRIETARY :		return "Imagination Pro";
+			case VK_DRIVER_ID_QUALCOMM_PROPRIETARY :		return "Qualcomm Pro";
+			case VK_DRIVER_ID_ARM_PROPRIETARY :				return "ARM Pro";
+			case VK_DRIVER_ID_GOOGLE_SWIFTSHADER :			return "Swiftshader";
+			case VK_DRIVER_ID_GGP_PROPRIETARY :				return "GGP Pro";
+			case VK_DRIVER_ID_BROADCOM_PROPRIETARY :		return "Broadcom Pro";
+			case VK_DRIVER_ID_MESA_LLVMPIPE :				return "Mesa LavaPipe";
+			case VK_DRIVER_ID_MOLTENVK :					return "MoltenVk";
+			case VK_DRIVER_ID_COREAVI_PROPRIETARY :			return "CoreAVI Pro";
+			case VK_DRIVER_ID_JUICE_PROPRIETARY :			return "Juice Pro";
+			case VK_DRIVER_ID_VERISILICON_PROPRIETARY :		return "VeriSilicon Pro";
+			case VK_DRIVER_ID_MESA_TURNIP :					return "Mesa Turnip";
+			case VK_DRIVER_ID_MESA_V3DV :					return "Mesa V3DV";
+			case VK_DRIVER_ID_MESA_PANVK :					return "Mesa PanVk";
+			case VK_DRIVER_ID_SAMSUNG_PROPRIETARY :			return "Samsung Pro";
+			case VK_DRIVER_ID_MESA_VENUS :					return "Mesa Venus";
+			case VK_DRIVER_ID_MESA_DOZEN :					return "Mesa Venus";
+			case VK_DRIVER_ID_MESA_NVK :					return "Mesa NVK";
+			case VK_DRIVER_ID_IMAGINATION_OPEN_SOURCE_MESA:	return "Imagination Mesa";
+			case VK_DRIVER_ID_MESA_HONEYKRISP :				return "Mesa HoneyKrisp";
+			case VK_DRIVER_ID_VULKAN_SC_EMULATION_ON_VULKAN:return "Vulkan SC Emulation";
+			case VK_DRIVER_ID_MESA_KOSMICKRISP :			return "Mesa KosmicKrisp";
+			case VK_DRIVER_ID_MAX_ENUM :					break;
+		}
+		switch_end
+		return "unknown";
+	}
 
 
 # ifdef AE_ENABLE_LOGS
@@ -179,12 +225,12 @@ namespace
 		return result;
 	}
 
+#  ifdef AE_ENABLE_LOGS
 /*
 =================================================
 	VkObjectTypeToString
 =================================================
 */
-#  ifdef AE_ENABLE_LOGS
 	ND_ static StringView  VkObjectTypeToString (VkObjectType objType)
 	{
 		switch_enum( objType )
@@ -805,8 +851,8 @@ namespace
 						case VK_PIPELINE_EXECUTABLE_STATISTIC_FORMAT_FLOAT64_KHR :	str << ToString( stat.value.f64 );				break;
 
 						case VK_PIPELINE_EXECUTABLE_STATISTIC_FORMAT_UINT64_KHR :
-							if ( is_bytes )	str << ToString( stat.value.u64 );
-							else			str << ToString( Bytes{stat.value.u64} );
+							if ( is_bytes )	str << ToString( Bytes{stat.value.u64} );
+							else			str << ToString( stat.value.u64 );
 							break;
 
 						case VK_PIPELINE_EXECUTABLE_STATISTIC_FORMAT_MAX_ENUM_KHR :	break;
@@ -1103,42 +1149,8 @@ namespace
 	{
 		auto&	prop = _properties.driverPropertiesProps;
 		String	str;
-
 		str << prop.driverName << " (";
-
-		switch_enum( prop.driverID )
-		{
-			case VK_DRIVER_ID_AMD_PROPRIETARY :				str << "AMD Pro";				break;
-			case VK_DRIVER_ID_AMD_OPEN_SOURCE :				str << "AMD VLK";				break;
-			case VK_DRIVER_ID_MESA_RADV :					str << "Mesa RADV";				break;
-			case VK_DRIVER_ID_NVIDIA_PROPRIETARY :			str << "NVIDIA Pro";			break;
-			case VK_DRIVER_ID_INTEL_PROPRIETARY_WINDOWS :	str << "Intel Pro Win";			break;
-			case VK_DRIVER_ID_INTEL_OPEN_SOURCE_MESA :		str << "Intel Mesa";			break;
-			case VK_DRIVER_ID_IMAGINATION_PROPRIETARY :		str << "Imagination Pro";		break;
-			case VK_DRIVER_ID_QUALCOMM_PROPRIETARY :		str << "Qualcomm Pro";			break;
-			case VK_DRIVER_ID_ARM_PROPRIETARY :				str << "ARM Pro";				break;
-			case VK_DRIVER_ID_GOOGLE_SWIFTSHADER :			str << "Swiftshader";			break;
-			case VK_DRIVER_ID_GGP_PROPRIETARY :				str << "GGP Pro";				break;
-			case VK_DRIVER_ID_BROADCOM_PROPRIETARY :		str << "Broadcom Pro";			break;
-			case VK_DRIVER_ID_MESA_LLVMPIPE :				str << "Mesa LavaPipe";			break;
-			case VK_DRIVER_ID_MOLTENVK :					str << "MoltenVk";				break;
-			case VK_DRIVER_ID_COREAVI_PROPRIETARY :			str << "CoreAVI Pro";			break;
-			case VK_DRIVER_ID_JUICE_PROPRIETARY :			str << "Juice Pro";				break;
-			case VK_DRIVER_ID_VERISILICON_PROPRIETARY :		str << "VeriSilicon Pro";		break;
-			case VK_DRIVER_ID_MESA_TURNIP :					str << "Mesa Turnip";			break;
-			case VK_DRIVER_ID_MESA_V3DV :					str << "Mesa V3DV";				break;
-			case VK_DRIVER_ID_MESA_PANVK :					str << "Mesa PanVk";			break;
-			case VK_DRIVER_ID_SAMSUNG_PROPRIETARY :			str << "Samsung Pro";			break;
-			case VK_DRIVER_ID_MESA_VENUS :					str << "Mesa Venus";			break;
-			case VK_DRIVER_ID_MESA_DOZEN :					str << "Mesa Venus";			break;
-			case VK_DRIVER_ID_MESA_NVK :					str << "Mesa NVK";				break;
-			case VK_DRIVER_ID_IMAGINATION_OPEN_SOURCE_MESA:	str << "Imagination Mesa";		break;
-			case VK_DRIVER_ID_MESA_HONEYKRISP :				str << "Mesa HoneyKrisp";		break;
-			case VK_DRIVER_ID_VULKAN_SC_EMULATION_ON_VULKAN:str << "Vulkan SC Emulation";	break;
-			case VK_DRIVER_ID_MAX_ENUM :					break;
-		}
-		switch_end
-
+		str << VkDriverIdToString( prop.driverID );
 		str << ")";
 		return str;
 	}
@@ -1606,9 +1618,9 @@ namespace
 		_vkDeviceVersion	= Default;
 		_spirvVersion		= Default;
 		_extensions			= Default;
-		_properties			= Default;
 		_resFlags			= Default;
 
+		_properties.Reset();
 		_instanceExtensions.clear();
 
 		if ( _enableInfoLog )
@@ -1932,10 +1944,10 @@ namespace {
 
 		// image & buffer flags
 		{
-			StaticAssert( uint(EBufferUsage::All) == 0x3FFF );
+			StaticAssert( uint(EBufferUsage::All) == 0xFFFF );
 			StaticAssert( uint(EBufferOpt::All) == 0x1F );
 			StaticAssert( uint(EImageUsage::All) == 0x1FF );
-			StaticAssert( uint(EImageOpt::All) == 0x7FFFF );
+			StaticAssert( uint(EImageOpt::All) == 0xFFFFF );
 
 			outResFlags.bufferUsage =	EBufferUsage::TransferSrc | EBufferUsage::TransferDst | EBufferUsage::Uniform |
 										EBufferUsage::UniformTexel | EBufferUsage::StorageTexel | EBufferUsage::Storage |
@@ -1963,6 +1975,12 @@ namespace {
 
 			if ( props.bufferDeviceAddressFeats.bufferDeviceAddress )
 				outResFlags.bufferUsage |= EBufferUsage::ShaderAddress;
+
+			if ( _extensions.deviceGeneratedCommands )
+				outResFlags.bufferUsage |= EBufferUsage::ICB_Preprocess;
+
+			if ( _extensions.opacityMicromap )
+				outResFlags.bufferUsage |= EBufferUsage::MMBuild_ReadOnly | EBufferUsage::MMBuild_Scratch;
 
 			if ( props.features.vertexPipelineStoresAndAtomics )
 			{
@@ -2006,6 +2024,9 @@ namespace {
 
 			if ( _extensions.sampleLocations )
 				outResFlags.imageOptions |= EImageOpt::SampleLocationsCompatible;
+
+			if ( _extensions.samplerYcbcrConversion )
+				outResFlags.imageOptions |= EImageOpt::SeparatePlanes;
 		}
 	}
 
@@ -2238,8 +2259,12 @@ namespace {
 */
 	void  VDeviceInitializer::_ValidateSpirvVersion (OUT SpirvVersion &ver) C_NE___
 	{
+		StaticAssert( VK_VERSION_MAJOR(VK_HEADER_VERSION_COMPLETE) == 1 );
+		StaticAssert( VK_VERSION_MINOR(VK_HEADER_VERSION_COMPLETE) == 4 );
+
 		switch ( _vkDeviceVersion.To10() )
 		{
+			case 14 :
 			case 13 :			ver = SpirvVersion{1,6};					break;
 			case 12 :			ver = SpirvVersion{1,5};					break;
 			case 11 :			ver = _extensions.spirv14 ? SpirvVersion{1,4} : SpirvVersion{1,3};	break;
@@ -2519,15 +2544,19 @@ namespace {
 			for (usize i = 0; i < queue_infos.size(); ++i)
 			{
 				auto&	src = queue_infos[i];
+				usize	j	= i;
 
 				if ( src.queueCount == 0 )
 				{
-					if ( i+1 < queue_infos.size() )
-						src = queue_infos[i + 1];
-					continue;
+					for (j = i+1; j < queue_infos.size() and queue_infos[j].queueCount == 0; ++j) {}
+
+					if ( j >= queue_infos.size() )
+						continue;
+
+					std::swap( src, queue_infos[j] );
 				}
 
-				ASSERT( global_priority[i].globalPriority != VK_QUEUE_GLOBAL_PRIORITY_MAX_ENUM );
+				ASSERT( global_priority[j].globalPriority != VK_QUEUE_GLOBAL_PRIORITY_MAX_ENUM );
 
 				++device_info.queueCreateInfoCount;
 			}
@@ -2538,7 +2567,7 @@ namespace {
 		{
 			_SetupDeviceExtensions( INOUT _extensions );
 
-			void*	dev_info_pnext = null;
+			void*	dev_info_pnext = null;		// TODO: VNextChain
 			_InitFeaturesAndProperties( OUT dev_info_pnext, OUT dev_info_last_pnext );	// in 'vk_features.h'
 
 			if ( devCI.fsToDeviceFeatures != null )
@@ -2703,7 +2732,7 @@ namespace {
 	_SetupFeatures
 =================================================
 */
-	void  VDeviceInitializer::_SetupFeatures (INOUT VProperties &feats) C_NE___
+	void  VDeviceInitializer::_SetupFeatures (INOUT VProperties2 &feats) C_NE___
 	{
 		// disable some features
 		{
@@ -2764,42 +2793,7 @@ namespace {
 		{
 			const auto&	ver = _properties.driverPropertiesProps.conformanceVersion;
 			str << "\n  conformanceVersion: . . . . " << ToString( ver.major ) << '.' << ToString( ver.minor ) << '.' << ToString( ver.subminor ) << '.' << ToString( ver.patch );
-			str << "\n  driverID:                   ";
-
-			switch_enum( _properties.driverPropertiesProps.driverID )
-			{
-				case VK_DRIVER_ID_AMD_PROPRIETARY :				str << "AMD proprietary";				break;
-				case VK_DRIVER_ID_AMD_OPEN_SOURCE :				str << "AMD open source";				break;
-				case VK_DRIVER_ID_MESA_RADV :					str << "Mesa RADV";						break;
-				case VK_DRIVER_ID_NVIDIA_PROPRIETARY :			str << "NVidia proprietary";			break;
-				case VK_DRIVER_ID_INTEL_PROPRIETARY_WINDOWS :	str << "Intel proprietary windows";		break;
-				case VK_DRIVER_ID_INTEL_OPEN_SOURCE_MESA :		str << "Intel open source";				break;
-				case VK_DRIVER_ID_IMAGINATION_PROPRIETARY :		str << "Imagination proprietary";		break;
-				case VK_DRIVER_ID_QUALCOMM_PROPRIETARY :		str << "Qualcomm proprietary";			break;
-				case VK_DRIVER_ID_ARM_PROPRIETARY :				str << "ARM proprietary";				break;
-				case VK_DRIVER_ID_GOOGLE_SWIFTSHADER :			str << "Google swiftshader";			break;
-				case VK_DRIVER_ID_GGP_PROPRIETARY :				str << "GGP proprietary";				break;
-				case VK_DRIVER_ID_BROADCOM_PROPRIETARY :		str << "Broadcom proprietary";			break;
-				case VK_DRIVER_ID_MESA_LLVMPIPE :				str << "Mesa LLVMPIPE";					break;
-				case VK_DRIVER_ID_MOLTENVK :					str << "MoltenVk";						break;
-				case VK_DRIVER_ID_COREAVI_PROPRIETARY :			str << "Coreavi proprietary";			break;
-				case VK_DRIVER_ID_JUICE_PROPRIETARY :			str << "Juice proprietary";				break;
-				case VK_DRIVER_ID_VERISILICON_PROPRIETARY :		str << "Verisilicon proprietary";		break;
-				case VK_DRIVER_ID_SAMSUNG_PROPRIETARY :			str << "Samsung proprietary";			break;
-				case VK_DRIVER_ID_MESA_TURNIP :					str << "Mesa turnip";					break;
-				case VK_DRIVER_ID_MESA_V3DV :					str << "Mesa v3dv";						break;
-				case VK_DRIVER_ID_MESA_PANVK :					str << "Mesa PanVk";					break;
-				case VK_DRIVER_ID_MESA_VENUS :					str << "Mesa Venus";					break;
-				case VK_DRIVER_ID_MESA_DOZEN :					str << "Mesa Dozen";					break;
-				case VK_DRIVER_ID_MESA_NVK :					str << "Mesa NVK";						break;
-				case VK_DRIVER_ID_IMAGINATION_OPEN_SOURCE_MESA:	str << "Mesa Img open source";			break;
-			//	case VK_DRIVER_ID_MESA_AGXV :					str << "Mesa AGXV";						break;
-				case VK_DRIVER_ID_MESA_HONEYKRISP :				str << "Mesa HoneyKrisp";				break;
-				case VK_DRIVER_ID_VULKAN_SC_EMULATION_ON_VULKAN:str << "VulkanSC emulation";			break;
-				case VK_DRIVER_ID_MAX_ENUM :
-				default :										str << "unknown";						break;
-			}
-			switch_end
+			str << "\n  driverID:                   " << VkDriverIdToString( _properties.driverPropertiesProps.driverID );
 		}
 
 		if (_extensions.subgroup ) {
@@ -2821,7 +2815,12 @@ namespace {
 				<< q.debugName.c_str()
 				<< ", family: " << ToString( uint(q.familyIndex) )
 				<< ", familyFlags: " << VkQueueFlagsToString( q.familyFlags )
-				<< ", imgGran: " << ToString( q.minImageTransferGranularity );
+				<< ", imgGran: " << ToString( q.minImageTransferGranularity )
+				#if 0
+				<< ", stages: " << VkPipelineStageFlags2ToString( q.supportedStages )
+				<< ", access: " << VkAccessFlags2ToString( q.supportedAccess )
+				#endif
+				;
 		}
 		str << "\n----";
 		AE_LOGI( str );
@@ -2860,7 +2859,8 @@ namespace {
 					vq.debugName = "Graphics";
 
 				auto [stages, access] = VPipelineScope::GetStagesAndAccess({ EPipelineScope::Graphics, EPipelineScope::Compute, EPipelineScope::Transfer_Graphics,
-																			 EPipelineScope::RayTracing, EPipelineScope::RTAS_Build, EPipelineScope::Host });
+																			 EPipelineScope::RayTracing, EPipelineScope::RTAS_Build, EPipelineScope::MM_Build,
+																			 EPipelineScope::ICB_Preprocess, EPipelineScope::Host });
 
 				vq.type				= EQueueType::Graphics;
 				vq.supportedStages	= stages;
@@ -2877,8 +2877,9 @@ namespace {
 				if ( vq.debugName.empty() )
 					vq.debugName = "AsyncCompute";
 
-				auto [stages, access] = VPipelineScope::GetStagesAndAccess({ EPipelineScope::Compute, EPipelineScope::Transfer_Copy,
-																			 EPipelineScope::RayTracing, EPipelineScope::RTAS_Build, EPipelineScope::Host });
+				auto [stages, access] = VPipelineScope::GetStagesAndAccess({ EPipelineScope::Compute, EPipelineScope::Transfer_Copy, EPipelineScope::MM_Build,
+																			 EPipelineScope::RayTracing, EPipelineScope::RTAS_Build, EPipelineScope::ICB_Preprocess,
+																			 EPipelineScope::Host });
 
 				vq.type				= EQueueType::AsyncCompute;
 				vq.supportedStages	= stages;
@@ -2969,6 +2970,9 @@ namespace {
 		if ( not _properties.rayTracingPipelineFeats.rayTracingPipeline )
 			remove_stages |= VK_PIPELINE_STAGE_2_RAY_TRACING_SHADER_BIT_KHR;
 
+		if ( not _properties.cooperativeVectorNVFeats.cooperativeVector )
+			remove_stages |= VK_PIPELINE_STAGE_2_CONVERT_COOPERATIVE_VECTOR_MATRIX_BIT_NV;
+
 		if ( not _properties.accelerationStructureFeats.accelerationStructure )
 		{
 			remove_stages |= VK_PIPELINE_STAGE_2_ACCELERATION_STRUCTURE_BUILD_BIT_KHR;
@@ -2980,7 +2984,7 @@ namespace {
 			remove_access |= VK_ACCESS_2_FRAGMENT_SHADING_RATE_ATTACHMENT_READ_BIT_KHR;
 		}
 		if ( not _properties.subpassShadingHWFeats.subpassShading )
-			remove_stages |= VK_PIPELINE_STAGE_2_SUBPASS_SHADING_BIT_HUAWEI;
+			remove_stages |= VK_PIPELINE_STAGE_2_SUBPASS_SHADER_BIT_HUAWEI;
 
 		if ( not _properties.rayTracingMaintenance1Feats.rayTracingMaintenance1 )
 		{
@@ -2992,6 +2996,41 @@ namespace {
 			remove_stages |= VK_PIPELINE_STAGE_2_FRAGMENT_DENSITY_PROCESS_BIT_EXT;
 			remove_access |= VK_ACCESS_2_FRAGMENT_DENSITY_MAP_READ_BIT_EXT;
 		}
+		if ( not _properties.opacityMicromapFeats.micromap )
+		{
+			remove_stages |= VK_PIPELINE_STAGE_2_MICROMAP_BUILD_BIT_EXT;
+			remove_access |= VK_ACCESS_2_MICROMAP_READ_BIT_EXT | VK_ACCESS_2_MICROMAP_WRITE_BIT_EXT;
+		}
+		if ( not _extensions.deviceGeneratedCommands )
+		{
+			remove_stages |= VK_PIPELINE_STAGE_2_COMMAND_PREPROCESS_BIT_EXT;
+			remove_access |= VK_ACCESS_2_COMMAND_PREPROCESS_READ_BIT_EXT | VK_ACCESS_2_COMMAND_PREPROCESS_WRITE_BIT_EXT;
+		}
+		if ( not _extensions.videoDecodeQueue )
+		{
+			remove_stages |= VK_PIPELINE_STAGE_2_VIDEO_DECODE_BIT_KHR;
+			remove_access |= VK_ACCESS_2_VIDEO_DECODE_READ_BIT_KHR | VK_ACCESS_2_VIDEO_DECODE_WRITE_BIT_KHR;
+		}
+		if ( not _extensions.videoEncodeQueue )
+		{
+			remove_stages |= VK_PIPELINE_STAGE_2_VIDEO_ENCODE_BIT_KHR;
+			remove_access |= VK_ACCESS_2_VIDEO_ENCODE_READ_BIT_KHR | VK_ACCESS_2_VIDEO_ENCODE_WRITE_BIT_KHR;
+		}
+
+		remove_stages |= VK_PIPELINE_STAGE_2_INVOCATION_MASK_BIT_HUAWEI;
+		remove_stages |= VK_PIPELINE_STAGE_2_CLUSTER_CULLING_SHADER_BIT_HUAWEI;
+		remove_stages |= VK_PIPELINE_STAGE_2_OPTICAL_FLOW_BIT_NV;
+		remove_stages |= VK_PIPELINE_STAGE_2_DATA_GRAPH_BIT_ARM;
+		remove_stages |= VK_PIPELINE_STAGE_2_COPY_INDIRECT_BIT_KHR;
+		remove_stages |= VK_PIPELINE_STAGE_2_MEMORY_DECOMPRESSION_BIT_EXT;
+
+		remove_access |= VK_ACCESS_2_TRANSFORM_FEEDBACK_WRITE_BIT_EXT | VK_ACCESS_2_TRANSFORM_FEEDBACK_COUNTER_READ_BIT_EXT | VK_ACCESS_2_TRANSFORM_FEEDBACK_COUNTER_WRITE_BIT_EXT;
+		remove_access |= VK_ACCESS_2_COLOR_ATTACHMENT_READ_NONCOHERENT_BIT_EXT;
+		remove_access |= VK_ACCESS_2_DESCRIPTOR_BUFFER_READ_BIT_EXT;
+		remove_access |= VK_ACCESS_2_INVOCATION_MASK_READ_BIT_HUAWEI;
+		remove_access |= VK_ACCESS_2_OPTICAL_FLOW_READ_BIT_NV | VK_ACCESS_2_OPTICAL_FLOW_WRITE_BIT_NV;
+		remove_access |= VK_ACCESS_2_DATA_GRAPH_READ_BIT_ARM | VK_ACCESS_2_DATA_GRAPH_WRITE_BIT_ARM;
+		remove_access |= VK_ACCESS_2_MEMORY_DECOMPRESSION_READ_BIT_EXT | VK_ACCESS_2_MEMORY_DECOMPRESSION_WRITE_BIT_EXT;
 
 		for (usize i = 0, cnt = _queueCount; i < cnt; ++i)
 		{
@@ -3239,6 +3278,7 @@ namespace {
 		dev_ext.resize( count );	// throw
 
 		VK_CHECK( vkEnumerateDeviceExtensionProperties( physDev, null, OUT &count, OUT dev_ext.data() ));
+		ASSERT( count == dev_ext.size() );
 		dev_ext.resize( Min( count, dev_ext.size() ));
 
 
@@ -3495,9 +3535,11 @@ namespace {
 		// skip false positive
 		if ( HasSubString( pCallbackData->pMessage, "VUID-VkSwapchainPresentScalingCreateInfoEXT-presentGravityX-07772" )	or
 			 HasSubString( pCallbackData->pMessage, "VUID-VkSwapchainPresentScalingCreateInfoEXT-presentGravityY-07774" )	or
-			 HasSubString( pCallbackData->pMessage, "Here are the most recently acquired image indices:" )					or
 			 HasSubString( pCallbackData->pMessage, ".dstComponentType (VK_COMPONENT_TYPE_FLOAT8_E4M3_EXT) requires the extensions VK_EXT_shader_float8" ) or
-			 HasSubString( pCallbackData->pMessage, ".dstComponentType (VK_COMPONENT_TYPE_FLOAT8_E5M2_EXT) requires the extensions VK_EXT_shader_float8" ))
+			 HasSubString( pCallbackData->pMessage, ".dstComponentType (VK_COMPONENT_TYPE_FLOAT8_E5M2_EXT) requires the extensions VK_EXT_shader_float8" ) or
+			 HasSubString( pCallbackData->pMessage, "(VK_ACCESS_2_SHADER_WRITE_BIT) is not supported by stage mask (VK_PIPELINE_STAGE_2_CONVERT_COOPERATIVE_VECTOR_MATRIX_BIT_NV)" ) or
+			 HasSubString( pCallbackData->pMessage, "(VK_ACCESS_2_SHADER_READ_BIT) is not supported by stage mask (VK_PIPELINE_STAGE_2_CONVERT_COOPERATIVE_VECTOR_MATRIX_BIT_NV)" ) or
+			 HasSubString( pCallbackData->pMessage, "VkAccelerationStructureTrianglesOpacityMicromapEXT>.indexBuffer.deviceAddress is 0x0 but indexType is VK_INDEX_TYPE_NONE_KHR" ))
 			return VK_FALSE;
 
 		auto	dbg_report	= self->_dbgReport.WriteLock();

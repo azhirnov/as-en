@@ -35,22 +35,19 @@
 		RC<DynamicUInt>	count	= DynamicUInt();
 
 		{
-			RC<UnifiedGeometry>		geometry	= UnifiedGeometry();
-			RC<Buffer>				vbuf		= Buffer();
-			array<float2>			vertices;
-			array<uint>				indices;
+			RC<Mesh>	mesh = Mesh();
+			mesh.SetAttributes( EAttribute::Texcoord2D );
+			mesh.AddGrid( 64 );
 
-			GetGrid( 64, vertices, indices );
-
-			vbuf.FloatArray( "vertices",	vertices );
-			vbuf.UIntArray(  "indices",		indices );
+			RC<Buffer>	vbuf = mesh.ToBuffer();
 			vbuf.LayoutName( "VBuffer" );
 
 			UnifiedGeometry_DrawIndexed	cmd;
-			cmd.indexCount = indices.size();
+			cmd.indexCount = mesh.IndexCount();
 			cmd.IndexBuffer( vbuf, "indices" );
-			geometry.Draw( cmd );
 
+			RC<UnifiedGeometry>		geometry = UnifiedGeometry();
+			geometry.Draw( cmd );
 			geometry.ArgIn( "un_VBuffer",	vbuf );
 			geometry.ArgIn( "un_Texture",	noise,		Sampler_LinearRepeat );
 

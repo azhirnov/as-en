@@ -328,6 +328,11 @@ namespace
 					break;
 				}
 
+				case EMarker::IndirectExecutionSet :
+				{
+					// TODO
+				}
+
 				case EMarker::Unknown :
 				case EMarker::_Count :
 				default :				DBG_WARNING( "unknown marker" );

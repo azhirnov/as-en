@@ -696,7 +696,7 @@ ND_ static ShaderTrace::Swizzle  GetVectorSwizzleMask (TIntermBinary* binary)
 	GetArraySwizzleMask
 =================================================
 */
-ND_ static ShaderTrace::Swizzle  GetArraySwizzleMask (TIntermBinary* binary)
+ND_ static ShaderTrace::Swizzle  GetArraySwizzleMask (TIntermBinary*)
 {
 	// TODO: use SetArrayIndex()
 	return {};
@@ -1030,7 +1030,7 @@ void  DebugInfo::InjectNode (TIntermTyped* node)
 
 
 
-ND_ static TIntermAggregate*  CreateAppendToTrace (TIntermTyped* exprNode, uint sourceLoc, DebugInfo &dbgInfo);
+ND_ static TIntermAggregate*  CreateAppendToTrace (TIntermNode* exprNode, uint sourceLoc, DebugInfo &dbgInfo);
 
 /*
 =================================================
@@ -1922,6 +1922,7 @@ ND_ static TIntermAggregate*  CreateAppendToTraceBody (const TString &fnName, De
 				case TBasicType::EbtRayQuery :
 				case TBasicType::EbtSpirvType :
 				case TBasicType::EbtHitObjectNV :
+				case TBasicType::EbtHitObjectEXT :
 				case TBasicType::EbtCoopmat :
 				case TBasicType::EbtFunction :
 				case TBasicType::EbtTensorLayoutNV :
@@ -1931,6 +1932,7 @@ ND_ static TIntermAggregate*  CreateAppendToTraceBody (const TString &fnName, De
 				case TBasicType::EbtFloatE5M2 :
 				case TBasicType::EbtFloatE4M3 :
 				case TBasicType::EbtTensorARM :
+				case TBasicType::EbtLongVector :
 					break;
 			}
 			switch_end
@@ -3183,13 +3185,13 @@ ND_ static TIntermOperator*  CreateRayTracingShaderIsDebugInvocation (DebugInfo 
 	also see 'CreateAppendToTraceBody()'
 =================================================
 */
-ND_ static TIntermAggregate*  CreateAppendToTrace (TIntermTyped* exprNode, uint sourceLoc, DebugInfo &dbgInfo)
+ND_ static TIntermAggregate*  CreateAppendToTrace (TIntermNode* exprNode, uint sourceLoc, DebugInfo &dbgInfo)
 {
-	CHECK_ERR( exprNode != null );
+	CHECK_ERR( exprNode != null and exprNode->getAsTyped() != null );
 
 	TIntermAggregate*	fcall		= new TIntermAggregate( TOperator::EOpFunctionCall );
 	String				type_name;
-	const TType &		type		= exprNode->getType();
+	const TType &		type		= exprNode->getAsTyped()->getType();
 
 	switch_enum( type.getBasicType() )
 	{
@@ -3219,6 +3221,7 @@ ND_ static TIntermAggregate*  CreateAppendToTrace (TIntermTyped* exprNode, uint 
 		case TBasicType::EbtRayQuery :
 		case TBasicType::EbtSpirvType :
 		case TBasicType::EbtHitObjectNV :
+		case TBasicType::EbtHitObjectEXT :
 		case TBasicType::EbtCoopmat :
 		case TBasicType::EbtFunction :
 		case TBasicType::EbtTensorLayoutNV :
@@ -3228,6 +3231,7 @@ ND_ static TIntermAggregate*  CreateAppendToTrace (TIntermTyped* exprNode, uint 
 		case TBasicType::EbtFloatE5M2 :
 		case TBasicType::EbtFloatE4M3 :
 		case TBasicType::EbtTensorARM :
+		case TBasicType::EbtLongVector :
 		default :						RETURN_ERR( "not supported" );
 	}
 	switch_end
@@ -3250,7 +3254,7 @@ ND_ static TIntermAggregate*  CreateAppendToTrace (TIntermTyped* exprNode, uint 
 	fcall->setLoc( exprNode->getLoc() );
 	fcall->setUserDefined();
 	fcall->setName( TString{"dbg_AppendToTrace("} + TString{type_name.c_str()} + ";u1;" );
-	fcall->setType( exprNode->getType() );
+	fcall->setType( type );
 	fcall->getQualifierList().push_back( TStorageQualifier::EvqConstReadOnly );
 	fcall->getQualifierList().push_back( TStorageQualifier::EvqConstReadOnly );
 	fcall->getSequence().push_back( exprNode );

@@ -23,7 +23,8 @@ namespace AE::Base
 */
 	UnixFileRStream::UnixFileRStream (Handle_t file DEBUG_ONLY(, Path filename)) __NE___ :
 		_file{ file },
-		_fileSize{ GetFileSize( _file )}
+		_fileSize{ GetFileSize( _file )},
+		_align{ GetDirectAccessAlign( _file )}
 		DEBUG_ONLY(, _filename{ FileSystem::ToAbsolute( filename )})
 	{
 		if_unlikely( not IsOpen() )
@@ -117,7 +118,8 @@ namespace AE::Base
 =================================================
 */
 	UnixFileWStream::UnixFileWStream (Handle_t file DEBUG_ONLY(, Path filename)) __NE___ :
-		_file{ file }
+		_file{ file },
+		_align{ GetDirectAccessAlign( _file )}
 		DEBUG_ONLY(, _filename{ FileSystem::ToAbsolute( filename )})
 	{
 		if_unlikely( not IsOpen() )
@@ -199,6 +201,17 @@ namespace AE::Base
 
 /*
 =================================================
+	UpdateAt
+=================================================
+*/
+	bool  UnixFileWStream::UpdateAt (Bytes pos) __NE___
+	{
+		ASSERT( IsOpen() );
+		return SetPositionInFileFromBegin( _file, slong(pos) );
+	}
+
+/*
+=================================================
 	WriteSeq
 =================================================
 */
@@ -233,7 +246,8 @@ namespace AE::Base
 */
 	UnixFileRDataSource::UnixFileRDataSource (Handle_t file DEBUG_ONLY(, Path filename)) __NE___ :
 		_file{ file },
-		_fileSize{ GetFileSize( _file )}
+		_fileSize{ GetFileSize( _file )},
+		_align{ GetDirectAccessAlign( _file )}
 		DEBUG_ONLY(, _filename{ FileSystem::ToAbsolute( filename )})
 	{
 		if_unlikely( not IsOpen() )
@@ -297,7 +311,8 @@ namespace AE::Base
 =================================================
 */
 	UnixFileWDataSource::UnixFileWDataSource (Handle_t file DEBUG_ONLY(, Path filename)) __NE___ :
-		_file{ file }
+		_file{ file },
+		_align{ GetDirectAccessAlign( _file )}
 		DEBUG_ONLY(, _filename{ FileSystem::ToAbsolute( filename )})
 	{
 		if_unlikely( not IsOpen() )

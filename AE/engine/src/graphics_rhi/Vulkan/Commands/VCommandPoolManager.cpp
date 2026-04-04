@@ -7,6 +7,7 @@
 #ifdef AE_ENABLE_VULKAN
 # include "graphics_rhi/Vulkan/Commands/VCommandPoolManager.h"
 # include "graphics_rhi/Vulkan/VRenderTaskScheduler.h"
+# include "graphics_rhi/Vulkan/VResourceManager.h"
 
 namespace AE::Graphics
 {

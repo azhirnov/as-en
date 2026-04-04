@@ -8,14 +8,13 @@ namespace
 {
 	struct Elem
 	{
-		uint	v1;
-		uint	v2;
+		ulong	v1;
 
-		Elem (uint val) : v1{val}, v2{val ^ uint(usize(this))} {}
+		Elem (ulong val) : v1{val} {}
 
 		bool  operator == (const Elem &rhs) const { return v1 == rhs.v1; }
 
-		operator ulong () const { return BitCast<ulong>(*this); }
+		explicit operator ulong () const { return v1; }
 	};
 
 	struct ElemHash
@@ -99,22 +98,22 @@ namespace
 			sum[1] += SearchTest( un_map, keys3.begin(), keys3.end(), profiler );
 			profiler.EndTest();
 
-			profiler.BeginTest( "Absel-flat" );
+			profiler.BeginTest( "Abseil-flat" );
 			sum[6] += SearchTest( absl_map, keys.begin(),  keys.end(),  profiler );
 			sum[6] += SearchTest( absl_map, keys.rbegin(), keys.rend(), profiler );
 			sum[6] += SearchTest( absl_map, keys2.begin(), keys2.end(), profiler );
 			sum[6] += SearchTest( absl_map, keys3.begin(), keys3.end(), profiler );
 			profiler.EndTest();
 
-			profiler.BeginTest( "Absel-node" );
+			profiler.BeginTest( "Abseil-node" );
 			sum[7] += SearchTest( absl_map2, keys.begin(),  keys.end(),  profiler );
 			sum[7] += SearchTest( absl_map2, keys.rbegin(), keys.rend(), profiler );
 			sum[7] += SearchTest( absl_map2, keys2.begin(), keys2.end(), profiler );
 			sum[7] += SearchTest( absl_map2, keys3.begin(), keys3.end(), profiler );
 			profiler.EndTest();
 
-			CHECK( sum[1] + sum[6] > 0 );
-			CHECK( sum[1] + sum[7] > 0 );
+			CHECK( sum[1] == sum[6] );
+			CHECK( sum[1] == sum[7] );
 		}
 	}
 //-----------------------------------------------------------------------------
@@ -178,22 +177,22 @@ namespace
 			sum[1] += InsertionTest( un_map, keys3.begin(), keys3.end(), profiler );
 			profiler.EndTest();
 
-			profiler.BeginTest( "Absel-flat" );
+			profiler.BeginTest( "Abseil-flat" );
 			sum[6] += InsertionTest( absl_map, keys.begin(),  keys.end(),  profiler );
 			sum[6] += InsertionTest( absl_map, keys.rbegin(), keys.rend(), profiler );
 			sum[6] += InsertionTest( absl_map, keys2.begin(), keys2.end(), profiler );
 			sum[6] += InsertionTest( absl_map, keys3.begin(), keys3.end(), profiler );
 			profiler.EndTest();
 
-			profiler.BeginTest( "Absel-node" );
+			profiler.BeginTest( "Abseil-node" );
 			sum[7] += InsertionTest( absl_map2, keys.begin(),  keys.end(),  profiler );
 			sum[7] += InsertionTest( absl_map2, keys.rbegin(), keys.rend(), profiler );
 			sum[7] += InsertionTest( absl_map2, keys2.begin(), keys2.end(), profiler );
 			sum[7] += InsertionTest( absl_map2, keys3.begin(), keys3.end(), profiler );
 			profiler.EndTest();
 
-			CHECK( sum[1] + sum[6] > 0 );
-			CHECK( sum[1] + sum[7] > 0 );
+			CHECK( sum[1] == sum[6] );
+			CHECK( sum[1] == sum[7] );
 		}
 	}
 //-----------------------------------------------------------------------------
@@ -273,14 +272,14 @@ namespace
 		sum[1] += IterationTest( un_map, keys3.begin(), keys3.end(), profiler );
 		profiler.EndTest();
 
-		profiler.BeginTest( "Absel-flat" );
+		profiler.BeginTest( "Abseil-flat" );
 		sum[6] += IterationTest( absl_map, keys.begin(),  keys.end(),  profiler );
 		sum[6] += IterationTest( absl_map, keys.rbegin(), keys.rend(), profiler );
 		sum[6] += IterationTest( absl_map, keys2.begin(), keys2.end(), profiler );
 		sum[6] += IterationTest( absl_map, keys3.begin(), keys3.end(), profiler );
 		profiler.EndTest();
 
-		profiler.BeginTest( "Absel-node" );
+		profiler.BeginTest( "Abseil-node" );
 		sum[7] += IterationTest( absl_map2, keys.begin(),  keys.end(),  profiler );
 		sum[7] += IterationTest( absl_map2, keys.rbegin(), keys.rend(), profiler );
 		sum[7] += IterationTest( absl_map2, keys2.begin(), keys2.end(), profiler );
@@ -294,9 +293,9 @@ namespace
 		sum[8] += IterationTest( arr, keys3.begin(), keys3.end(), profiler );
 		profiler.EndTest();
 
-		CHECK( sum[1] + sum[6] > 0 );
-		CHECK( sum[1] + sum[7] > 0 );
-		CHECK( sum[1] + sum[8] > 0 );
+		CHECK( sum[1] == sum[6] );
+		CHECK( sum[1] == sum[7] );
+		CHECK( sum[1] <= sum[8] );
 	}
 }
 

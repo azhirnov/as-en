@@ -409,6 +409,8 @@ Supported queue types: Graphics / Compute
 			case EQueryType::AccelStructCompactedSize :
 			case EQueryType::AccelStructSize :
 			case EQueryType::AccelStructSerializationSize :
+			case EQueryType::MicromapSerializationSize :
+			case EQueryType::MicromapCompactedSize :
 				if_unlikely( NoBits( EQueueMask::Graphics | EQueueMask::AsyncCompute, EQueueMask(0) | queueType ))
 					return Default;
 				break;
@@ -678,9 +680,8 @@ The second synchronization scope includes all commands which reference the queri
 		CHECK_ERR( q and result != null );
 		CHECK_ERR( resultSize >= (SizeOf<Bytes64u> * q.count) );
 
-		CHECK_ERR(	q.type == EQueryType::AccelStructCompactedSize		or
-					q.type == EQueryType::AccelStructSerializationSize	or
-					q.type == EQueryType::AccelStructSize				);
+		StaticAssert( uint(EQueryType::_Count) == 10 );
+		CHECK_ERR( q.type >= EQueryType::AccelStructCompactedSize and q.type <= EQueryType::MicromapCompactedSize );
 
 		auto&	pool = _poolArr[ uint(q.type) ];
 		Unused( pool );

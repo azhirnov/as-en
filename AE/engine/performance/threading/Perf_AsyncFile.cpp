@@ -43,7 +43,7 @@ namespace
 	template <typename FileType>
 	static bool  AllocBuffer (OUT DynUntypedStorage &buf, Bytes bufSize, const FileType &file)
 	{
-		const Bytes		align = Max( Bytes{file.OffsetAlign().ptrAlign}, AlignOf<ulong> );
+		const Bytes		align = Max( Bytes{file.DirectAccessAlign().ptrAlign}, AlignOf<ulong> );
 
 		return buf.Alloc( bufSize, align, null );
 	}

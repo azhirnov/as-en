@@ -170,6 +170,7 @@ namespace
 	{
 		for (auto& path : pipelines)
 		{
+			AE_LOGI( "CompilePipeline '"s << ToString(path) << "'" );
 			CHECK_ERR( storage.CompilePipeline( scriptEngine, path, includeDirs, includeCurrentDir ));
 		}
 
@@ -224,15 +225,19 @@ namespace
 		const Path	pack_fname			= FileSystem::ToAbsolute( info->outputPackName );
 		const Path	cpp_structs_fname	= info->outputCppStructsFile != null ? FileSystem::ToAbsolute( info->outputCppStructsFile ) : Default;
 		const Path	cpp_names_fname		= info->outputCppNamesFile   != null ? FileSystem::ToAbsolute( info->outputCppNamesFile   ) : Default;
+		const Path	shader_header		= info->outputShaderHeader   != null ? FileSystem::ToAbsolute( info->outputShaderHeader )	: Default;
 
 		NOTHROW_ERR( ObjectStorage::Bind( script_engine ));
 
-		CHECK_ERR( LoadPipelines( obj_storage, script_engine, pipelines, ppln_include_dirs,
-								  AllBits( info->flags, EPipelineCompilerFlags::IncludePipelinesFromCurrentDir ) ));
+		CHECK_ERR_MSG( LoadPipelines( obj_storage, script_engine, pipelines, ppln_include_dirs,
+									  AllBits( info->flags, EPipelineCompilerFlags::IncludePipelinesFromCurrentDir ) ),
+			"Failed to compile pipelines for pack '"s << ToString(pack_fname) << "'" );
 
-		CHECK_ERR_MSG( not obj_storage.HasHashCollisions(), "Hash collision detected!" );
+		CHECK_ERR_MSG( not obj_storage.HasHashCollisions(),
+			"Hash collision detected in pipeline pack '"s << ToString(pack_fname) << "'" );
 
-		CHECK_ERR( obj_storage.SavePack( pack_fname, AllBits( info->flags, EPipelineCompilerFlags::AddNameMapping )));
+		CHECK_ERR_MSG( obj_storage.SavePack( pack_fname, AllBits( info->flags, EPipelineCompilerFlags::AddNameMapping )),
+			"Failed to save pipeline pack '"s << ToString(pack_fname) << "'" );
 
 		if ( not cpp_structs_fname.empty() )
 			CHECK_ERR( obj_storage.SaveCppStructs( cpp_structs_fname ));
@@ -240,10 +245,11 @@ namespace
 		if ( not cpp_names_fname.empty() )
 			CHECK_ERR( obj_storage.SaveCppNames( cpp_names_fname, info->cppReflectionFlags ));
 
+		if ( not shader_header.empty() )
+			CHECK_ERR( obj_storage.SaveShaderHeader( shader_header ));
+
 		if ( info->outputScriptFile != null )
-		{
 			CHECK_ERR( script_engine->SaveCppHeader( info->outputScriptFile ));
-		}
 
 		ObjectStorage::SetInstance( null );
 		return true;

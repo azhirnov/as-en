@@ -115,9 +115,7 @@
 				break;
 
 			case 2 :
-			  #ifdef AE_fragment_shader_barycentric
-				wireframe = FSBarycentricWireframe( 0.0, 1.0 ).x;
-			  #endif
+				wireframe = FSBarycentricWireframeCompat( In.uv, 0.0, 1.0 ).x;
 				break;
 		}
 

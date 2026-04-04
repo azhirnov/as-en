@@ -30,7 +30,7 @@ namespace AE::RemoteGraphics
 			StaticLogger::ClearLoggers();
 			StaticLogger::AddLogger( ILogger::CreateConsoleOutput() );
 			StaticLogger::AddLogger( ILogger::CreateIDEOutput() );
-			StaticLogger::AddLogger( Unique<ILogger>{ new LogToHost{} });
+			StaticLogger::AddLogger( Unique<ILogger>{ new LogToHost{ *this }});
 		//	StaticLogger::AddLogger( ILogger::CreateBreakOnError() );
 		//	StaticLogger::AddLogger( ILogger::CreateDialogOutput() );
 
@@ -100,7 +100,6 @@ namespace AE::RemoteGraphics
 						case EFeature::DrawIndirectCount :			if ( ext.drawIndirectCount )							res.features.insert( t );	break;
 						case EFeature::DrawIndexedIndirectCount :	if ( ext.drawIndirectCount )							res.features.insert( t );	break;
 						case EFeature::DrawMeshTasksIndirectCount :	if ( ext.meshShader )									res.features.insert( t );	break;
-						case EFeature::ViewportWScaling :			if ( ext.clipSpaceWScalingNV )							res.features.insert( t );	break;
 
 						case EFeature::ClearColorImage :																	res.features.insert( t );	break;
 						case EFeature::ClearDepthStencilImage :																res.features.insert( t );	break;
@@ -540,10 +539,12 @@ namespace AE::RemoteGraphics
 		{
 			#ifdef AE_ENABLE_VULKAN
 			# if AE_VK_TIMELINE_SEMAPHORE
-				res.semaphoreId	= _SetSemaphore( batch->GetSemaphore().semaphore );
+				res.semaphoreId  = _SetSemaphore( batch->GetSemaphore().semaphore );
+				res.semaphoreVal = batch->GetSemaphore().value;
 			# endif
 			#else
-				res.semaphoreId	= _SetSemaphore( batch->GetSemaphore().semaphore );
+				res.semaphoreId	 = _SetSemaphore( batch->GetSemaphore().semaphore );
+				res.semaphoreVal = batch->GetSemaphore().value;
 			#endif
 
 			res.batchId = _Set( RVRef(batch) );
@@ -554,7 +555,7 @@ namespace AE::RemoteGraphics
 	void  RmGAppListener::_Cb_RTS_DestroyBatch (const Msg::RTS_DestroyBatch &msg)
 	{
 		_Remove( msg.batchId );
-	//	_Remove( msg.semaphoreId );		// batch may be released when it in use
+	//	_Remove( msg.semaphoreId );		// batch may be released when it in use		// TODO: delayed remove
 	}
 
 	void  RmGAppListener::_Cb_RTS_SubmitBatch (const Msg::RTS_SubmitBatch &msg)
@@ -721,6 +722,11 @@ namespace AE::RemoteGraphics
 		_Send( res );
 	}
 
+	void  RmGAppListener::_Cb_ResMngr_CreateRTMicromap (const Msg::ResMngr_CreateRTMicromap &)
+	{
+		// TODO
+	}
+
 	void  RmGAppListener::_Cb_ResMngr_GetRTGeometrySizes (const Msg::ResMngr_GetRTGeometrySizes &msg)
 	{
 		Msg::ResMngr_GetRTGeometrySizes_Response	res;
@@ -733,6 +739,11 @@ namespace AE::RemoteGraphics
 		Msg::ResMngr_GetRTSceneSizes_Response	res;
 		res.sizes = _resMngr->GetRTSceneSizes( msg.desc );	// TODO: RmCast
 		_Send( res );
+	}
+
+	void  RmGAppListener::_Cb_ResMngr_GetRTMicromapBuildSizes (const Msg::ResMngr_GetRTMicromapBuildSizes &)
+	{
+		// TODO
 	}
 
 	void  RmGAppListener::_Cb_ResMngr_IsSupported_BufferDesc (const Msg::ResMngr_IsSupported_BufferDesc &msg)
@@ -824,6 +835,7 @@ namespace AE::RemoteGraphics
 			CASE( BufferViewID )
 			CASE( RTGeometryID )
 			CASE( RTSceneID )
+			CASE( RTMicromapID )
 			CASE( DescriptorSetID )
 			CASE( RayTracingPipelineID )
 			CASE( TilePipelineID )
@@ -840,7 +852,7 @@ namespace AE::RemoteGraphics
 
 			default :										CHECK_MSG( false, "unknown resource type" );					break;
 		}
-		StaticAssert( Types::Count == 17 );
+		StaticAssert( Types::Count == 18 );
 	}
 
 	void  RmGAppListener::_Cb_ResMngr_CreateDescriptorSets2 (const Msg::ResMngr_CreateDescriptorSets2 &msg)
@@ -1224,7 +1236,7 @@ namespace AE::RemoteGraphics
 	void  RmGAppListener::_Cb_ResMngr_CreateLinearGfxMemAllocator (const Msg::ResMngr_CreateLinearGfxMemAllocator &msg)
 	{
 		Msg::ResMngr_CreateGfxMemAllocator_Response		res;
-		if ( auto ptr = _resMngr->CreateLinearGfxMemAllocator( msg.pageSize ))
+		if ( auto ptr = _resMngr->CreateLinearGfxMemAllocator( msg.pageSize, msg.padding ))
 		{
 			res.id = _Set( ptr );
 		}
@@ -1659,6 +1671,7 @@ namespace AE::RemoteGraphics
 		res.format			= result.format;
 		res.dataRowPitch	= result.dataRowPitch;
 		res.dataSlicePitch	= result.dataSlicePitch;
+		res.regionDim		= result.regionDim;
 
 		_Send( res );
 	}
@@ -1691,6 +1704,7 @@ namespace AE::RemoteGraphics
 		res.format			= result.format;
 		res.dataRowPitch	= result.dataRowPitch;
 		res.dataSlicePitch	= result.dataSlicePitch;
+		res.regionDim		= result.regionDim;
 
 		_Send( res );
 	}
@@ -1815,13 +1829,14 @@ namespace AE::RemoteGraphics
 
 	void  RmGAppListener::RenderTask2::Execute () __Th___
 	{
+		bool	ok = true;
 		switch_enum( ctx.type )
 		{
-			case EContextType::Transfer :		baseTask.Execute( ctx.transfer );		PlacementDelete( ctx.transfer );	break;
-			case EContextType::Compute :		baseTask.Execute( ctx.compute );		PlacementDelete( ctx.compute );		break;
-			case EContextType::Graphics :		baseTask.Execute( ctx.graphics );		PlacementDelete( ctx.graphics );	break;
-			case EContextType::ASBuild :		baseTask.Execute( ctx.asBuild );		PlacementDelete( ctx.asBuild );		break;
-			case EContextType::RayTracing :		baseTask.Execute( ctx.rayTracing );		PlacementDelete( ctx.rayTracing );	break;
+			case EContextType::Transfer :		ok = baseTask.Execute( ctx.transfer );		PlacementDelete( ctx.transfer );	break;
+			case EContextType::Compute :		ok = baseTask.Execute( ctx.compute );		PlacementDelete( ctx.compute );		break;
+			case EContextType::Graphics :		ok = baseTask.Execute( ctx.graphics );		PlacementDelete( ctx.graphics );	break;
+			case EContextType::ASBuild :		ok = baseTask.Execute( ctx.asBuild );		PlacementDelete( ctx.asBuild );		break;
+			case EContextType::RayTracing :		ok = baseTask.Execute( ctx.rayTracing );	PlacementDelete( ctx.rayTracing );	break;
 			case EContextType::RenderPass :
 			case EContextType::VideoDecode :
 			case EContextType::VideoEncode :
@@ -1830,6 +1845,7 @@ namespace AE::RemoteGraphics
 		}
 		switch_end
 		ctx.type = EContextType::Unknown;
+		//CHECK_THROW_MSG( ok );	// TODO ???
 	}
 
 
@@ -2162,27 +2178,47 @@ namespace AE::RemoteGraphics::Msg
 
 	void  CmdBuf_Bake::BufferBarrierCmd::Execute (void* inCtx) __Th___
 	{
-		Cast<CmdCtx>(inCtx)->GetBaseCtx().BufferBarrier( RmCast(buffer), srcState, dstState );
+		Cast<CmdCtx>(inCtx)->GetBaseCtx().ResourceBarrier( RmCast(buffer), srcState, dstState );
 	}
 
 	void  CmdBuf_Bake::BufferViewBarrierCmd::Execute (void* inCtx) __Th___
 	{
-		Cast<CmdCtx>(inCtx)->GetBaseCtx().BufferViewBarrier( RmCast(bufferView), srcState, dstState );
+		Cast<CmdCtx>(inCtx)->GetBaseCtx().ResourceBarrier( RmCast(bufferView), srcState, dstState );
 	}
 
 	void  CmdBuf_Bake::ImageBarrierCmd::Execute (void* inCtx) __Th___
 	{
-		Cast<CmdCtx>(inCtx)->GetBaseCtx().ImageBarrier( RmCast(image), srcState, dstState );
+		Cast<CmdCtx>(inCtx)->GetBaseCtx().ResourceBarrier( RmCast(image), srcState, dstState );
 	}
 
 	void  CmdBuf_Bake::ImageRangeBarrierCmd::Execute (void* inCtx) __Th___
 	{
-		Cast<CmdCtx>(inCtx)->GetBaseCtx().ImageBarrier( RmCast(image), srcState, dstState, subRes );
+		Cast<CmdCtx>(inCtx)->GetBaseCtx().ResourceBarrier( RmCast(image), srcState, dstState, subRes );
 	}
 
 	void  CmdBuf_Bake::ImageViewBarrierCmd::Execute (void* inCtx) __Th___
 	{
-		Cast<CmdCtx>(inCtx)->GetBaseCtx().ImageViewBarrier( RmCast(imageView), srcState, dstState );
+		Cast<CmdCtx>(inCtx)->GetBaseCtx().ResourceBarrier( RmCast(imageView), srcState, dstState );
+	}
+
+	void  CmdBuf_Bake::RTGeometryBarrierCmd::Execute (void* inCtx) __Th___
+	{
+		Cast<CmdCtx>(inCtx)->GetBaseCtx().ResourceBarrier( RmCast(geomId), srcState, dstState );
+	}
+
+	void  CmdBuf_Bake::RTSceneBarrierCmd::Execute (void* inCtx) __Th___
+	{
+		Cast<CmdCtx>(inCtx)->GetBaseCtx().ResourceBarrier( RmCast(sceneId), srcState, dstState );
+	}
+
+	void  CmdBuf_Bake::RTMicromapBarrierCmd::Execute (void* inCtx) __Th___
+	{
+		Cast<CmdCtx>(inCtx)->GetBaseCtx().ResourceBarrier( RmCast(micromapId), srcState, dstState );
+	}
+
+	void  CmdBuf_Bake::VideoImageBarrierCmd::Execute (void* inCtx) __Th___
+	{
+		Cast<CmdCtx>(inCtx)->GetBaseCtx().ResourceBarrier( RmCast(imageId), srcState, dstState );
 	}
 
 	void  CmdBuf_Bake::MemoryBarrierCmd::Execute (void* inCtx) __Th___
@@ -2568,13 +2604,6 @@ namespace AE::RemoteGraphics::Msg
 		auto&	ctx = *Cast<CmdCtx>(inCtx);
 		CHECK_THROW( ctx.type == EContextType::RenderPass );
 		ctx.draw.SetFragmentShadingRate( rate, primitiveOp, textureOp );
-	}
-
-	void  CmdBuf_Bake::Draw_SetViewportWScalingCmd::Execute (void* inCtx) __Th___
-	{
-		auto&	ctx = *Cast<CmdCtx>(inCtx);
-		CHECK_THROW( ctx.type == EContextType::RenderPass );
-		ctx.draw.SetViewportWScaling( scaling );
 	}
 
 	void  CmdBuf_Bake::Draw_BindIndexBufferCmd::Execute (void* inCtx) __Th___

@@ -58,7 +58,6 @@ namespace
 		return result.Detach();
 	}
 
-
 /*
 =================================================
 	GetDescSetBinding
@@ -296,10 +295,11 @@ namespace
 		{
 			Visit( arg.res,
 				[&] (ScriptBufferPtr buf) {
-					if ( buf->HasLayout() )
-						buf_names.insert( UniformName::Optimized_t{arg.name} );
-					else
-						texbuf_names.insert( UniformName::Optimized_t{arg.name} );
+					ASSERT( buf->HasLayout() );  Unused( buf );
+					buf_names.insert( UniformName::Optimized_t{arg.name} );
+				},
+				[&] (ScriptBufferViewPtr) {
+					texbuf_names.insert( UniformName::Optimized_t{arg.name} );
 				},
 				[&] (ScriptImagePtr) {
 					if ( arg.samplerName.empty() )
@@ -463,10 +463,11 @@ namespace
 			{
 				Visit( arg.res,
 					[&] (ScriptBufferPtr buf) {
-						if ( buf->HasLayout() )
-							str << "\n  StorageBuffer '" << arg.name << "'";
-						else
-							str << "\n  TexelStorageBuffer '" << arg.name << "'";
+						ASSERT( buf->HasLayout() );  Unused( buf );
+						str << "\n  StorageBuffer '" << arg.name << "'";
+					},
+					[&] (ScriptBufferViewPtr) {
+						str << "\n  TexelStorageBuffer '" << arg.name << "'";
 					},
 					[&] (ScriptImagePtr) {
 						if ( arg.samplerName.empty() )
@@ -759,6 +760,10 @@ namespace
 			AS_METHOD_T( binder, ScriptGeomSource::ArgBufferOut,		"ArgOut",	{"uniformName", "resource"} );
 			AS_METHOD_T( binder, ScriptGeomSource::ArgBufferInOut,		"ArgInOut",	{"uniformName", "resource"} );
 
+			AS_METHOD_T( binder, ScriptGeomSource::ArgBufferViewIn,		"ArgIn",	{"uniformName", "resource"} );
+			AS_METHOD_T( binder, ScriptGeomSource::ArgBufferViewOut,	"ArgOut",	{"uniformName", "resource"} );
+			AS_METHOD_T( binder, ScriptGeomSource::ArgBufferViewInOut,	"ArgInOut",	{"uniformName", "resource"} );
+
 			AS_METHOD_T( binder, ScriptGeomSource::ArgImageIn,			"ArgIn",	{"uniformName", "resource"} );
 			AS_METHOD_T( binder, ScriptGeomSource::ArgImageOut,			"ArgOut",	{"uniformName", "resource"} );
 			AS_METHOD_T( binder, ScriptGeomSource::ArgImageInOut,		"ArgInOut",	{"uniformName", "resource"} );
@@ -950,7 +955,7 @@ namespace
 		if ( it != obj_storage.structTypes.end() )
 			return it->second;
 
-		ShaderStructTypePtr	st{ new ShaderStructType{"SphericalCubeMaterialUB"}};
+		ShaderStructTypePtr	st = ShaderStructType::Create( "SphericalCubeMaterialUB" );
 		st->Set( EStructLayout::Compatible_Std140, R"#(
 				float4x4	transform;
 				float3x3	normalMat;
@@ -1936,7 +1941,7 @@ namespace
 		if ( it != obj_storage.structTypes.end() )
 			return it->second;
 
-		ShaderStructTypePtr	st{ new ShaderStructType{"UnifiedGeometryMaterialUB"}};
+		ShaderStructTypePtr	st = ShaderStructType::Create( "UnifiedGeometryMaterialUB" );
 		st->Set( EStructLayout::Compatible_Std140, R"#(
 				float4x4	transform;
 				float3x3	normalMat;
@@ -2374,12 +2379,12 @@ namespace {
 		_initialTransform = Transformation{ float4x4{ value }};
 	}
 
-	void  ScriptModelGeometrySrc::SetInitialTransform2 (const packed_float3 &position, const packed_float3 &rotation, float scale) __Th___
+	void  ScriptModelGeometrySrc::SetInitialTransform2 (const ScriptTransform &tr) __Th___
 	{
 		CHECK_THROW_MSG( not _geomSrc,
 			"resource is already created, can not set initial transform" );
 
-		_initialTransform = Transformation{ -position, Quat::Rotate2( RadianVec<float,3>{ rotation }), scale };
+		_initialTransform = tr.ToTransform();	// TODO: use matrix
 	}
 
 /*
@@ -2453,7 +2458,7 @@ namespace {
 
 		binder.Comment( "Set transformation for model root node." );
 		AS_METHOD( binder, ScriptModelGeometrySrc::SetInitialTransform1,	"InitialTransform",		{} );
-		AS_METHOD( binder, ScriptModelGeometrySrc::SetInitialTransform2,	"InitialTransform",		{"position", "rotation", "scale"} );
+		AS_METHOD( binder, ScriptModelGeometrySrc::SetInitialTransform2,	"InitialTransform",		{"transform"} );
 
 		AS_METHOD( binder, ScriptModelGeometrySrc::SetInstanceCount,		"InstanceCount",		{} );
 

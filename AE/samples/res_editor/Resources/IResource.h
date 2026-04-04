@@ -10,9 +10,11 @@
 namespace AE::ResEditor
 {
 	class Buffer;
+	class BufferView;
 	class Image;
 	class RTGeometry;
 	class RTScene;
+	class RTMicromap;
 	class VideoImage;
 	class VideoImage2;
 

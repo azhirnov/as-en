@@ -3,9 +3,6 @@
 	popular desktop GPUs:
 	https://store.steampowered.com/hwsurvey/videocard/
 
-	popular mobile GPUs:
-	TODO
-
 	feature & properties json in:
 	https://vulkan.gpuinfo.org/
 */
@@ -36,6 +33,7 @@ enum class EType : uint
 	Unknown		= 0,
 	Desktop,
 	Mobile,
+	MobileVR,
 };
 
 struct FeatureSetInfo
@@ -296,11 +294,6 @@ static bool  GenMinNonUniformDescIndexing (ArrayView<FeatureSetInfo> fsInfo)
 		_visitor_( runtimeDescriptorArray								)\
 		_visitor_( shaderUniformTexelBufferArrayNonUniformIndexing		)\
 		_visitor_( shaderStorageTexelBufferArrayNonUniformIndexing		)\
-		_visitor_( shaderUniformBufferArrayNonUniformIndexingNative		)\
-		_visitor_( shaderSampledImageArrayNonUniformIndexingNative		)\
-		_visitor_( shaderStorageBufferArrayNonUniformIndexingNative		)\
-		_visitor_( shaderStorageImageArrayNonUniformIndexingNative		)\
-		_visitor_( shaderInputAttachmentArrayNonUniformIndexingNative	)\
 		_visitor_( shaderSampledImageArrayDynamicIndexing				)\
 		_visitor_( shaderStorageBufferArrayDynamicIndexing				)\
 		_visitor_( shaderStorageImageArrayDynamicIndexing				)\
@@ -371,99 +364,6 @@ static bool  GenMinNonUniformDescIndexing (ArrayView<FeatureSetInfo> fsInfo)
 
 /*
 =================================================
-	GenMinNativeNonUniformDescIndexing
-=================================================
-*
-static bool  GenMinNativeNonUniformDescIndexing (ArrayView<FeatureSetInfo> fsInfo)
-{
-	#define FS_LIST( _visitor_ ) \
-		_visitor_( shaderUniformBufferArrayNonUniformIndexingNative		)\
-		_visitor_( shaderSampledImageArrayNonUniformIndexingNative		)\
-		_visitor_( shaderStorageBufferArrayNonUniformIndexingNative		)\
-		_visitor_( shaderStorageImageArrayNonUniformIndexingNative		)\
-		_visitor_( shaderInputAttachmentArrayNonUniformIndexingNative	)\
-
-	#define FS_LIST2( _visitor_ ) \
-		_visitor_( quadDivergentImplicitLod								)\
-		_visitor_( runtimeDescriptorArray								)\
-		_visitor_( shaderUniformTexelBufferArrayNonUniformIndexing		)\
-		_visitor_( shaderStorageTexelBufferArrayNonUniformIndexing		)\
-		_visitor_( shaderUniformBufferArrayNonUniformIndexing			)\
-		_visitor_( shaderSampledImageArrayNonUniformIndexing			)\
-		_visitor_( shaderStorageBufferArrayNonUniformIndexing			)\
-		_visitor_( shaderStorageImageArrayNonUniformIndexing			)\
-		_visitor_( shaderInputAttachmentArrayNonUniformIndexing			)\
-		_visitor_( shaderSampledImageArrayDynamicIndexing				)\
-		_visitor_( shaderStorageBufferArrayDynamicIndexing				)\
-		_visitor_( shaderStorageImageArrayDynamicIndexing				)\
-		_visitor_( shaderUniformBufferArrayDynamicIndexing				)\
-		_visitor_( shaderInputAttachmentArrayDynamicIndexing			)\
-		_visitor_( shaderUniformTexelBufferArrayDynamicIndexing			)\
-		_visitor_( shaderStorageTexelBufferArrayDynamicIndexing			)\
-		_visitor_( perPipeline											)\
-		_visitor_( perStage												)\
-		_visitor_( maxUniformBufferSize									)\
-		_visitor_( maxStorageBufferSize									)\
-		_visitor_( maxDescriptorSets									)\
-		_visitor_( maxPushConstantsSize									)\
-		_visitor_( maxFragmentOutputAttachments							)\
-		_visitor_( maxFragmentCombinedOutputResources					)
-
-	FeatureSet	min_fs;
-	String		comment;
-	bool		init	= false;
-	const auto	True	= FeatureSet::EFeature::RequireTrue;
-
-	min_fs.Init( EFeature::Ignore );
-
-	comment << "\t// include:\n";
-
-	for (auto& info : fsInfo)
-	{
-		const auto&	fs = info.fs;
-
-		if ( not (FS_LIST( FS_ANY_TRUE ) false) )
-			continue;
-
-		if ( fs.shaderSampledImageArrayNonUniformIndexingNative != True )
-			continue;
-
-		if ( init )
-		{
-			FS_LIST( FS_MERGE );
-			FS_LIST2( FS_MERGE );
-			CHECK( FS_LIST( FS_ANY_TRUE2 ) false );
-		}
-		else
-		{
-			FS_LIST( FS_INIT );
-			FS_LIST2( FS_INIT );
-			init = true;
-		}
-
-		comment << "\t//\t" << info.name << "\n";
-	}
-
-	CHECK_ERR( init );
-
-	comment << "\n";
-
-	ValidateFS( INOUT min_fs );
-	//min_fs.Validate();
-	//CHECK( min_fs.IsValid() );
-
-	Path	dst_path = FEATURE_SET_FOLDER;
-	dst_path.append( "parts/min_native_nonuniform_desc_idx.as" );
-
-	CHECK_ERR( FeatureSetToScript( dst_path, "part.MinNativeNonUniformDescriptorIndexing", min_fs, comment ));
-	return true;
-
-#undef FS_LIST
-#undef FS_LIST2
-}
-
-/*
-=================================================
 	GenMinRecursiveRayTracing
 =================================================
 */
@@ -481,8 +381,11 @@ static bool  GenMinRecursiveRayTracing (ArrayView<FeatureSetInfo> fsInfo)
 	{
 		const auto&	fs = info.fs;
 
-		if ( fs.maxRayRecursionDepth <= 1 )
+		if ( fs.rayTracingPipeline != EFeature::RequireTrue )
 			continue;
+
+		CHECK( fs.maxRayRecursionDepth > 1 );
+		CHECK( fs.ext.maxRayDispatchInvocationCount > 0 );
 
 		if ( init )
 		{
@@ -623,6 +526,128 @@ static bool  GenMinMeshShader (ArrayView<FeatureSetInfo> fsInfo)
 
 /*
 =================================================
+	GenMinIndirectCommands
+=================================================
+*/
+static bool  GenMinIndirectCommands (ArrayView<FeatureSetInfo> fsInfo)
+{
+	FeatureSet	min_fs;
+	String		comment;
+	bool		init	= false;
+
+	min_fs.Init( EFeature::Ignore );
+
+	comment << "\t// include:\n";
+
+	const uint				min_pipes	= 8;
+	const EShaderStages		req_stages	= EShaderStages::Fragment | EShaderStages::Vertex | EShaderStages::Compute;
+
+	for (auto& info : fsInfo)
+	{
+		const auto&	fs = info.fs;
+
+		if ( fs.deviceGeneratedCommands != EFeature::RequireTrue )
+			continue;
+
+		if ( fs.maxIndirectPipelineCount < min_pipes )
+			continue;
+
+		if ( not AllBits( fs.supportedIndirectCommandsShaderStages, req_stages ))
+			continue;
+
+		if ( not AllBits( fs.supportedIndirectCommandsShaderStagesPipelineBinding, req_stages ))
+			continue;
+
+		if ( init )
+		{
+			min_fs.MergeMin( fs );
+		}
+		else
+		{
+			min_fs	= fs;
+			init	= true;
+		}
+
+		comment << "\t//\t" << info.name << "\n";
+	}
+
+	// TODO: find JSON's with device generated commands extension
+	if ( not init )
+	{
+		// from NV RTX 50xx
+		min_fs.deviceGeneratedCommands								= EFeature::RequireTrue;
+		min_fs.deviceGeneratedCommandsMultiDrawIndirectCount		= EFeature::RequireTrue;
+		min_fs.supportedIndirectCommandsShaderStages				= EShaderStages::AllGraphics | EShaderStages::Compute;
+		min_fs.supportedIndirectCommandsShaderStagesPipelineBinding	= EShaderStages::AllGraphics | EShaderStages::Compute;
+		min_fs.maxIndirectPipelineCount								= 16'000;
+	}
+	//CHECK_ERR( init );
+
+	ValidateFS( INOUT min_fs );
+	min_fs.Validate();
+	IsValidFS( min_fs );
+
+	comment << "\n";
+
+	Path	dst_path = FEATURE_SET_FOLDER;
+	dst_path.append( "min_indirect_cmds.as" );
+
+	CHECK_ERR( FeatureSetToScript( dst_path, "MinIndirectCmds", min_fs, comment ));
+	return true;
+}
+
+/*
+=================================================
+	GenMinOpacityMicromap
+=================================================
+*/
+static bool  GenMinOpacityMicromap (ArrayView<FeatureSetInfo> fsInfo)
+{
+	FeatureSet	min_fs;
+	String		comment;
+	bool		init	= false;
+
+	min_fs.Init( EFeature::Ignore );
+
+	comment << "\t// include:\n";
+
+	for (auto& info : fsInfo)
+	{
+		const auto&	fs = info.fs;
+
+		if ( fs.opacityMicromap != EFeature::RequireTrue )
+			continue;
+
+		if ( init )
+		{
+			min_fs.MergeMin( fs );
+		}
+		else
+		{
+			min_fs	= fs;
+			init	= true;
+		}
+
+		comment << "\t//\t" << info.name << "\n";
+	}
+
+	CHECK_ERR( init );
+
+	ValidateFS( INOUT min_fs );
+	min_fs.Validate();
+	IsValidFS( min_fs );
+
+	comment << "\n";
+
+	Path	dst_path = FEATURE_SET_FOLDER;
+	dst_path.append( "min_opacity_micromap.as" );
+
+	CHECK_ERR( FeatureSetToScript( dst_path, "MinOpacityMicromap", min_fs, comment ));
+	return true;
+}
+
+/*
+=================================================
 	GenMinMobile
 =================================================
 */
@@ -680,6 +705,60 @@ static bool  GenMinMobile (ArrayView<FeatureSetInfo> fsInfo)
 	dst_path.append( "min_mobile.as" );
 
 	CHECK_ERR( FeatureSetToScript( dst_path, "MinMobile", min_fs, comment ));
+	return true;
+}
+
+/*
+=================================================
+	GenMinMobileVR
+=================================================
+*/
+static bool  GenMinMobileVR (ArrayView<FeatureSetInfo> fsInfo)
+{
+	FeatureSet	min_fs;
+	String		comment;
+	bool		init	= false;
+
+	min_fs.Init( EFeature::Ignore );
+
+	comment << "\t// include:\n";
+
+	for (auto& info : fsInfo)
+	{
+		const auto&	fs = info.fs;
+
+		if ( info.type != EType::MobileVR )
+			continue;
+
+		if ( init )
+		{
+			min_fs.MergeMin( fs );
+		}
+		else
+		{
+			min_fs	= fs;
+			init	= true;
+		}
+
+		comment << "\t//\t" << info.name << "\n";
+	}
+
+	CHECK_ERR( init );
+
+	min_fs.maxShaderVersion.metal = ushort(Max( min_fs.maxShaderVersion.metal, 220u ));	// iOS 13
+
+	ValidateFS( INOUT min_fs );
+	ValidateAppleFS( INOUT min_fs );
+
+	min_fs.Validate();
+	IsValidFS( min_fs );
+
+	comment << "\n";
+
+	Path	dst_path = FEATURE_SET_FOLDER;
+	dst_path.append( "min_mobile_vr.as" );
+
+	CHECK_ERR( FeatureSetToScript( dst_path, "MinMobileVR", min_fs, comment ));
 	return true;
 }
 
@@ -1541,7 +1620,8 @@ int main ()
 					p = p.parent_path();
 					p = p.stem();
 
-					if ( p == "mobile" )	info.type = EType::Mobile;	else
+					if ( p == "mobile" )	info.type = EType::Mobile;		else
+					if ( p == "mobile-vr" )	info.type = EType::MobileVR;	else
 					if ( p == "desktop" )	info.type = EType::Desktop;
 				}
 			}
@@ -1597,7 +1677,10 @@ int main ()
 			}
 
 			if ( info.fs.rayTracingPipeline == EFeature::RequireTrue )
-				CHECK_LE( limit.rayTracing.maxRecursion,				info.fs.ext.maxRayRecursionDepth );
+			{
+				CHECK_LE( limit.rayTracing.maxRecursion,				info.fs.maxRayRecursionDepth );
+				CHECK_LE( limit.rayTracing.maxDispatchInvocations,		info.fs.ext.maxRayDispatchInvocationCount );
+			}
 		}
 
 		// not supported
@@ -1611,10 +1694,11 @@ int main ()
 	CHECK_ERR( GenMinimalFS					( fs_infos ),	-10 );
 	CHECK_ERR( GenMinDescriptorIndexing		( fs_infos ),	-10 );
 	CHECK_ERR( GenMinNonUniformDescIndexing	( fs_infos ),	-10 );
-//	CHECK_ERR( GenMinNativeNonUniformDescIndexing( fs_infos ),	-10 );
 	CHECK_ERR( GenMinRecursiveRayTracing	( fs_infos ),	-10 );
 	CHECK_ERR( GenMinInlineRayTracing		( fs_infos ),	-10 );
 	CHECK_ERR( GenMinMeshShader				( fs_infos ),	-10 );
+	CHECK_ERR( GenMinIndirectCommands		( fs_infos ),	-10 );
+	CHECK_ERR( GenMinOpacityMicromap		( fs_infos ),	-10 );
 	CHECK_ERR( GenMinDesktop				( fs_infos ),	-10 );
 	CHECK_ERR( GenMinDesktopAMD				( fs_infos ),	-10 );
 	CHECK_ERR( GenMinDesktopNV				( fs_infos ),	-10 );
@@ -1624,6 +1708,7 @@ int main ()
 	CHECK_ERR( GenMinMobileAdreno			( fs_infos ),	-10 );
 	CHECK_ERR( GenMinMobilePowerVR			( fs_infos ),	-10 );
 	CHECK_ERR( GenMinApple					( fs_infos ),	-10 );
+	CHECK_ERR( GenMinMobileVR				( fs_infos ),	-10 );
 
 	// TODO:
 	//	HightPerfDesktop

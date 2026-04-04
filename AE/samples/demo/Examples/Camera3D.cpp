@@ -69,7 +69,7 @@ namespace AE::Samples::Demo
 			CHECK_CE( copy_ctx.UploadBuffer( t->uniformBuf, off, Sizeof(ub), &ub ));
 
 			copy_ctx.AccumBarriers()
-				.BufferBarrier( t->uniformBuf, EResourceState::CopyDst, EResourceState::ShaderUniform | EResourceState::PreRasterizationShaders );
+				.ResourceBarrier( t->uniformBuf, EResourceState::CopyDst, EResourceState::ShaderUniform | EResourceState::PreRasterizationShaders );
 		}
 
 

@@ -149,14 +149,14 @@ bool  Executor::_RunPipe (ByteBuffer inputA, ByteBuffer inputB, ByteBuffer input
 							DirectCtx::Compute	ctx { RenderCoro_Get(), RVRef(cmdbuf) };
 
 							ctx.AccumBarriers()
-								.MemoryBarrier( EResourceState::CopyDst, EResourceState::ShaderAddress_RW | EResourceState::CoopVecConvertStage );
+								.MemoryBarrier( EResourceState::CopyDst, EResourceState::CoopVecConvert_Read );
 
 							ctx.BindPipeline( pipe_id );
 							ctx.BindDescriptorSet( DescSetBinding{0}, ds );
 							ctx.Dispatch( 1 );
 
 							ctx.AccumBarriers()
-								.MemoryBarrier( EResourceState::ShaderAddress_RW | EResourceState::CoopVecConvertStage, EResourceState::CopySrc );
+								.MemoryBarrier( EResourceState::ShaderAddress_Write, EResourceState::CopySrc );
 
 							cmdbuf = ctx.ReleaseCommandBuffer();
 						}{
@@ -217,7 +217,7 @@ void  Executor::_Compile (StringView source, uint elementSize,
 
 		ObjectStorage::SetInstance( &obj_storage );
 
-		ScriptFeatureSetPtr	fs {new ScriptFeatureSet{ obj_storage.defaultFeatureSet }};
+		ScriptFeatureSetPtr	fs = ScriptFeatureSet::Create( obj_storage.defaultFeatureSet );
 		fs->fs = GraphicsScheduler().GetFeatureSet();
 
 		PipelineCompiler::ScriptConfig	cfg;
@@ -233,16 +233,16 @@ void  Executor::_Compile (StringView source, uint elementSize,
 		cfg.SetShaderOptions( EShaderOpt::Optimize );
 	}
 	{
-		RenderTechniquePtr	rtech{ new RenderTechnique{ "rtech" }};
+		RenderTechniquePtr	rtech = RenderTechnique::Create( "rtech" );
 		{
 			RTComputePassPtr	pass = rtech->AddComputePass2( "Compute" );
 			Unused( pass );
 		}
 
-		const auto				stage	= EShaderStages::Compute;
-		DescriptorSetLayoutPtr	ds_layout{ new DescriptorSetLayout{ "dsl.0" }};
+		const auto				stage		= EShaderStages::Compute;
+		DescriptorSetLayoutPtr	ds_layout	= DescriptorSetLayout::Create( "dsl.0" );
 		{
-			ShaderStructTypePtr	st{ new ShaderStructType{"CoopMatData"}};
+			ShaderStructTypePtr	st = ShaderStructType::Create( "CoopMatData" );
 
 			switch ( elementSize )
 			{
@@ -259,10 +259,10 @@ void  Executor::_Compile (StringView source, uint elementSize,
 			ds_layout->AddStorageBuffer( stage, "un_Output", ArraySize{1}, "CoopMatData", EAccessType::Coherent, EResourceState::ShaderStorage_Write, False{} );
 		}
 
-		PipelineLayoutPtr		ppln_layout{ new PipelineLayout{ "comp.pl" }};
+		PipelineLayoutPtr		ppln_layout = PipelineLayout::Create( "comp.pl" );
 		ppln_layout->AddDSLayout2( "ds0", 0, "dsl.0" );
 
-		ComputePipelinePtr		ppln_templ{ new ComputePipelineScriptBinding{ "comp" }};
+		ComputePipelinePtr		ppln_templ = ComputePipelineScriptBinding::Create( "comp" );
 		ppln_templ->Disable();
 		ppln_templ->SetLayout2( ppln_layout );
 

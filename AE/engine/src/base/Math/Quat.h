@@ -199,7 +199,10 @@ namespace _hidden_
 	template <typename T, glm::qualifier Q>
 	ND_ T  Dot (const TQuat<T,Q> &lhs, const TQuat<T,Q> &rhs) __NE___
 	{
-		return glm::dot( lhs, rhs );
+		return	lhs.w * rhs.w +
+				lhs.x * rhs.x +
+				lhs.y * rhs.y +
+				lhs.z * rhs.z;
 	}
 
 /*

@@ -31,8 +31,8 @@ namespace AE::Graphics
 			ColorAttachment,
 			DepthStencilTest,
 			DepthStencilAttachment_RW,
-			DepthTest_StencilRW,				// VK_KHR_maintenance2 or 1.1
-			DepthRW_StencilTest,				// VK_KHR_maintenance2 or 1.1
+			DepthTest_StencilRW,				// 'separateDepthStencilRW' feature
+			DepthRW_StencilTest,				// 'separateDepthStencilRW' feature
 			PresentImage,
 			ShadingRateImage,
 			FragmentDensityMap,
@@ -49,7 +49,7 @@ namespace AE::Graphics
 			InputDepthStencilAttachment,
 			InputDepthStencilAttachment_RW,
 			DepthStencilTest_ShaderSample,
-			DepthTest_DepthSample_StencilRW,	// VK_KHR_maintenance2 or 1.1
+			DepthTest_DepthSample_StencilRW,	// 'separateDepthStencilRW' feature
 			Host_Read,
 
 			// buffer state in shader stages
@@ -65,7 +65,24 @@ namespace AE::Graphics
 			BuildRTAS_Read,
 			BuildRTAS_RW,
 			BuildRTAS_IndirectBuffer,
+			BuildRTAS_MicromapRead,
 			RTShaderBindingTable,
+			BuildMicromap_Read,
+			BuildMicromap_RW,
+
+			CoopVecConvert_Read,
+			CoopVecConvert_Write,
+
+			ICB_Preprocess_Read,
+			ICB_Preprocess_Write,
+
+			VideoDecodeSrc,
+			VideoDecodeDst,
+			VideoDecodeDpb,
+
+			VideoEncodeSrc,
+			VideoEncodeDst,
+			VideoEncodeDpb,
 
 			_AccessCount,
 		};
@@ -98,9 +115,6 @@ namespace AE::Graphics
 		static constexpr uint	ComputeShader				= 1 << 19;
 		static constexpr uint	RayTracingShaders			= 1 << 20;
 
-		// other stages
-		static constexpr uint	CoopVecConvertStage			= 1 << 21;
-
 		StaticAssert( uint(_AccessCount) < Read );
 	};
 
@@ -130,6 +144,7 @@ namespace AE::Graphics
 
 		BlitSrc									= _EResState::BlitSrc | _EResState::Read,
 		BlitDst									= _EResState::BlitDst | _EResState::Write,
+		// TODO: Resolve
 
 		InputColorAttachment					= _EResState::InputColorAttachment | _EResState::Read,		// for fragment or tile shader
 		InputColorAttachment_ReadWrite			= _EResState::InputColorAttachment_RW | _EResState::Write,	// for programmable blending
@@ -164,21 +179,42 @@ namespace AE::Graphics
 		IndexBuffer								= _EResState::IndexBuffer | _EResState::Read,
 		VertexBuffer							= _EResState::VertexBuffer | _EResState::Read,
 
-		// only for BuildRTASContext
+		CoopVecConvert_Read						= _EResState::CoopVecConvert_Read | _EResState::Read,
+		CoopVecConvert_Write					= _EResState::CoopVecConvert_Write | _EResState::Write,
+
+		ICB_Preprocess_Read						= _EResState::ICB_Preprocess_Read | _EResState::Read,
+		ICB_Preprocess_Write					= _EResState::ICB_Preprocess_Write | _EResState::ReadWrite,
+
+		// >>> only for BuildRTASContext
 		CopyRTAS_Read							= _EResState::CopyRTAS_Read | _EResState::Read,				// AS & src buffer
 		CopyRTAS_Write							= _EResState::CopyRTAS_Write | _EResState::Write,			// AS & dst buffer
+
 		BuildRTAS_Read							= _EResState::BuildRTAS_Read | _EResState::Read,
 		BuildRTAS_Write							= _EResState::BuildRTAS_RW | _EResState::Write,
 		BuildRTAS_ReadWrite						= _EResState::BuildRTAS_RW | _EResState::ReadWrite,
 		BuildRTAS_RW							= BuildRTAS_ReadWrite,
 		BuildRTAS_ScratchBuffer					= BuildRTAS_ReadWrite,
 		BuildRTAS_IndirectBuffer				= _EResState::BuildRTAS_IndirectBuffer | _EResState::Read,
+		BuildRTAS_MicromapRead					= _EResState::BuildRTAS_MicromapRead | _EResState::Read,
 
-		ShaderRTAS								= _EResState::ShaderRTAS | _EResState::Read,				// use RTScene in shader, for RT pipeline and ray query
+		BuildMicromap_Read						= _EResState::BuildMicromap_Read | _EResState::Read,
+		BuildMicromap_Write						= _EResState::BuildMicromap_RW | _EResState::ReadWrite,
+		BuildMicromap_ScratchBuffer				= BuildMicromap_Write,
+		// <<< only for BuildRTASContext
+
+		ShaderRTAS								= _EResState::ShaderRTAS           | _EResState::Read,		// use RTScene in shader, for RT pipeline and ray query
 		RTShaderBindingTable					= _EResState::RTShaderBindingTable | _EResState::Read,
 
-		ShadingRateImage						= _EResState::ShadingRateImage | _EResState::Read,
+		ShadingRateImage						= _EResState::ShadingRateImage   | _EResState::Read,
 		FragmentDensityMap						= _EResState::FragmentDensityMap | _EResState::Read,
+
+		VideoDecodeSrc							= _EResState::VideoDecodeSrc | _EResState::Read,
+		VideoDecodeDst							= _EResState::VideoDecodeDst | _EResState::Write,
+		VideoDecodeDpb							= _EResState::VideoDecodeDpb | _EResState::ReadWrite,
+
+		VideoEncodeSrc							= _EResState::VideoEncodeSrc | _EResState::Read,
+		VideoEncodeDst							= _EResState::VideoEncodeDst | _EResState::Write,
+		VideoEncodeDpb							= _EResState::VideoEncodeDpb | _EResState::ReadWrite,
 
 		General									= _EResState::General | _EResState::ReadWrite,				// all stages & all access types
 
@@ -187,9 +223,6 @@ namespace AE::Graphics
 		DSTestBeforeFS							= _EResState::DSTestBeforeFS,			// depth stencil test before fragment shader (best performance)
 		DSTestAfterFS							= _EResState::DSTestAfterFS,			// depth stencil test after fragment shader (low performance)
 		Invalidate								= _EResState::Invalidate,				// only for image
-
-		// non-shader stages
-		CoopVecConvertStage						= _EResState::CoopVecConvertStage,
 
 		// shader bits
 		MeshTaskShader							= _EResState::MeshTaskShader,			// can be executed in compute queue
@@ -203,7 +236,7 @@ namespace AE::Graphics
 		AllGraphicsShaders						= PreRasterizationShaders | PostRasterizationShaders,
 
 		AllShaderStages							= PreRasterizationShaders | PostRasterizationShaders | ComputeShader | RayTracingShaders,
-		AllStages								= AllShaderStages | CoopVecConvertStage,
+		AllStages								= AllShaderStages | DSTestBeforeFS | DSTestAfterFS,
 
 		_InvalidState							= ~0u,
 	};

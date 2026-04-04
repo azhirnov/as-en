@@ -119,6 +119,12 @@ namespace AE::AssetPacker
 		Scripting::ClassBinder<ScriptResourceMeta>	binder{ se };
 		binder.CreateRef();
 
+		binder.Comment( "Object contains only meta-data for other resources:\n"
+						"* image names and coords for atlas\n"
+						"* glyphs for font\n"
+						"* header for texture\n"
+						"This data used for resource preloading and to validate UI." );
+
 		AS_METHOD( binder, ScriptResourceMeta::Store,	"Store",	{"nameInArchive"} );
 	}
 

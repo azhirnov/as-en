@@ -182,29 +182,38 @@ namespace {
 		StaticAssert( MemoryID::MaxIndex()				>= MemObjPool_t::capacity() );
 		StaticAssert( BufferViewID::MaxIndex()			>= BufferViewPool_t::capacity() );
 		StaticAssert( ImageViewID::MaxIndex()			>= ImageViewPool_t::capacity() );
+		StaticAssert( SamplerID::MaxIndex()				>= SamplerPool_t::capacity() );
+
+		StaticAssert( PipelineCacheID::MaxIndex()		>= PipelineCachePool_t::capacity() );
+		StaticAssert( PipelinePackID::MaxIndex()		>= PipelinePackPool_t::capacity() );
 		StaticAssert( DescriptorSetLayoutID::MaxIndex()	>= DSLayoutPool_t::capacity() );
+		StaticAssert( PipelineLayoutID::MaxIndex()		>= PplnLayoutPool_t::capacity() );
+		StaticAssert( DescriptorSetID::MaxIndex()		>= DescSetPool_t::capacity() );
+
+		#ifdef AE_ENABLE_VULKAN
+		StaticAssert( VFramebufferID::MaxIndex()		>= FramebufferPool_t::capacity() );
+		#endif
+
+		StaticAssert( RenderPassID::MaxIndex()			>= RenderPassPool_t::capacity() );
 		StaticAssert( GraphicsPipelineID::MaxIndex()	>= GPipelinePool_t::capacity() );
 		StaticAssert( ComputePipelineID::MaxIndex()		>= CPipelinePool_t::capacity() );
 		StaticAssert( MeshPipelineID::MaxIndex()		>= MPipelinePool_t::capacity() );
 		StaticAssert( RayTracingPipelineID::MaxIndex()	>= RTPipelinePool_t::capacity() );
 		StaticAssert( TilePipelineID::MaxIndex()		>= TPipelinePool_t::capacity() );
-		StaticAssert( DescriptorSetID::MaxIndex()		>= DescSetPool_t::capacity() );
+
 		StaticAssert( RTGeometryID::MaxIndex()			>= RTGeomPool_t::capacity() );
 		StaticAssert( RTSceneID::MaxIndex()				>= RTScenePool_t::capacity() );
-		StaticAssert( PipelineLayoutID::MaxIndex()		>= PplnLayoutPool_t::capacity() );
 		StaticAssert( RTShaderBindingID::MaxIndex()		>= SBTPool_t::capacity() );
-		StaticAssert( SamplerID::MaxIndex()				>= SamplerPool_t::capacity() );
-		StaticAssert( RenderPassID::MaxIndex()			>= RenderPassPool_t::capacity() );
-		StaticAssert( PipelineCacheID::MaxIndex()		>= PipelineCachePool_t::capacity() );
-		StaticAssert( PipelinePackID::MaxIndex()		>= PipelinePackPool_t::capacity() );
+		StaticAssert( RTMicromapID::MaxIndex()			>= RTMicromapPool_t::capacity() );
+
+		StaticAssert( IndirectExecutionSetID::MaxIndex()	>= IndExecSetPool_t::capacity() );
+		StaticAssert( IndirectCommandsLayoutID::MaxIndex()	>= IndCmdLayoutPool_t::capacity() );
+
 		StaticAssert( VideoBufferID::MaxIndex()			>= VideoBufferPool_t::capacity() );
 		StaticAssert( VideoImageID::MaxIndex()			>= VideoImagePool_t::capacity() );
 		StaticAssert( VideoSessionID::MaxIndex()		>= VideoSessionPool_t::capacity() );
-		StaticAssert( IsSame< AllResourceIDs_t::Back::type, MemoryID >);
 
-		#ifdef AE_ENABLE_VULKAN
-		StaticAssert( VFramebufferID::MaxIndex()		>= FramebufferPool_t::capacity() );
-		#endif
+		StaticAssert( IsSame< AllResourceIDs_t::Back::type, MemoryID >);
 
 		_InitReleaseResourceByIDFns();
 	}
@@ -696,6 +705,11 @@ namespace {
 		return _CreateResource<RTSceneID>( ERR_MSG( "failed when creating ray tracing scene (TLAS)", dbgName ), *this, desc, RVRef(allocator), dbgName );
 	}
 
+	Strong<RTMicromapID>  ResourceManager::CreateRTMicromap (const RTMicromapDesc &desc, StringView dbgName, GfxMemAllocatorPtr allocator)__NE___
+	{
+		return _CreateResource<RTMicromapID>( ERR_MSG( "failed when creating micromap", dbgName ), *this, desc, RVRef(allocator), dbgName );
+	}
+
 	Strong<VideoSessionID>  ResourceManager::CreateVideoSession (const VideoSessionDesc &desc, StringView dbgName, GfxMemAllocatorPtr allocator) __NE___
 	{
 		return _CreateResource<VideoSessionID>( ERR_MSG( "failed when creating video session", dbgName ), *this, desc, RVRef(allocator), dbgName );
@@ -800,9 +814,15 @@ namespace {
 	{
 		return VRTPartitionedScene::IsSupported( *this, info );
 	}
+
+	bool  ResourceManager::IsSupported (const RTMicromapInfo &info) C_NE___
+	{
+		return VRTMicromap::IsSupported( *this, info );
+	}
 # else
 	bool  ResourceManager::IsSupported (const RTClusterInfo &)			C_NE___	{ return false; }
 	bool  ResourceManager::IsSupported (const RTPartitionedSceneInfo &)	C_NE___	{ return false; }
+	bool  ResourceManager::IsSupported (const RTMicromapInfo &)			C_NE___	{ return false; }
 # endif
 
 /*
@@ -810,29 +830,35 @@ namespace {
 	GetRTGeometrySizes / GetRTSceneSizes
 =================================================
 */
-	RTASBuildSizes  ResourceManager::GetRTGeometrySizes (const RTGeometryBuild &desc) __NE___
+	RTASBuildSizes  ResourceManager::GetRTGeometrySizes (const RTGeometryBuild &desc) C_NE___
 	{
 		return RTGeometry_t::GetBuildSizes( *this, desc );
 	}
 
-	RTASBuildSizes  ResourceManager::GetRTSceneSizes (const RTSceneBuild &desc) __NE___
+	RTASBuildSizes  ResourceManager::GetRTSceneSizes (const RTSceneBuild &desc) C_NE___
 	{
 		return RTScene_t::GetBuildSizes( *this, desc );
 	}
 
 # ifdef AE_ENABLE_VULKAN
-	RTASBuildSizes  ResourceManager::GetRTClusterSizes (const RTClusterInfo &info) __NE___
+	RTASBuildSizes  ResourceManager::GetRTClusterSizes (const RTClusterInfo &info) C_NE___
 	{
 		return VRTCluster::GetBuildSizes( *this, info );
 	}
 
-	RTASBuildSizes  ResourceManager::GetRTPartitionedSceneSizes (const RTPartitionedSceneInfo &info) __NE___
+	RTASBuildSizes  ResourceManager::GetRTPartitionedSceneSizes (const RTPartitionedSceneInfo &info) C_NE___
 	{
 		return VRTPartitionedScene::GetBuildSizes( *this, info );
 	}
+
+	RTMicromapBuildSizes  ResourceManager::GetRTMicromapSizes (const RTMicromapInfo &info) C_NE___
+	{
+		return VRTMicromap::GetBuildSizes( *this, info );
+	}
 # else
-	RTASBuildSizes  ResourceManager::GetRTClusterSizes (const RTClusterInfo &)						__NE___ { return {}; }
-	RTASBuildSizes  ResourceManager::GetRTPartitionedSceneSizes (const RTPartitionedSceneInfo &)	__NE___ { return {}; }
+	RTASBuildSizes			ResourceManager::GetRTClusterSizes (const RTClusterInfo &)						C_NE___ { return {}; }
+	RTASBuildSizes			ResourceManager::GetRTPartitionedSceneSizes (const RTPartitionedSceneInfo &)	C_NE___ { return {}; }
+	RTMicromapBuildSizes	ResourceManager::GetRTMicromapSizes (const RTMicromapInfo &)					C_NE___	{ return {}; }
 # endif
 
 /*
@@ -840,7 +866,7 @@ namespace {
 	GetShaderGroupStackSize
 =================================================
 */
-	Bytes  ResourceManager::GetShaderGroupStackSize (RayTracingPipelineID pplnId, ArrayView<RayTracingGroupName> names, ERTShaderGroup type) __NE___
+	Bytes  ResourceManager::GetShaderGroupStackSize (RayTracingPipelineID pplnId, ArrayView<RayTracingGroupName> names, ERTShaderGroup type) C_NE___
 	{
 		auto*	ppln = GetResource( pplnId );
 		CHECK_ERR( ppln != null );
@@ -951,12 +977,22 @@ namespace {
 		auto*	layout = GetResource( ppln->LayoutId() );
 		CHECK_ERR( layout != null );
 
-		auto&	pc = layout->GetPushConstants();
-		auto	it = pc.find( pcName );
+		auto&	pc_map	= layout->GetPushConstants();
+		auto	it		= pc_map.find( pcName );
 
 	  #if AE_DBG_GRAPHICS
-		if ( it == pc.end() )
-			RETURN_ERR( "Failed to find push constant '"s << HashToName( pcName ) << "'" );
+		if ( it == pc_map.end() )
+		{
+			String	str = "Failed to find push constant '"s << HashToName( pcName ) << "'.\nAvailable PC:  ";
+
+			for (auto pc : pc_map) {
+				str << "'" << HashToName( pc.first ) << "', ";
+			}
+			str.pop_back();
+			str.pop_back();
+
+			RETURN_ERR( str );
+		}
 
 		if ( typeName != it->second.typeName )
 			RETURN_ERR( "Type mismatch: '"s << HashToName( typeName ) << "' != '" << HashToName( it->second.typeName ) << "'" );
@@ -964,7 +1000,7 @@ namespace {
 		if ( dataSize != Bytes{it->second.size} )
 			RETURN_ERR( "Push constant size mismatch: "s << ToString(dataSize) << " != " << ToString(it->second.size) );
 	  #else
-		CHECK_ERR( it != pc.end() );
+		CHECK_ERR( it != pc_map.end() );
 		CHECK_ERR( typeName == it->second.typeName );
 		CHECK_ERR( dataSize == Bytes{it->second.size} );
 	  #endif
@@ -1094,6 +1130,20 @@ namespace {
 			return true;
 		}
 		return false;
+	}
+//-----------------------------------------------------------------------------
+
+
+/*
+=================================================
+	CreateIndirectCommandsLayout
+=================================================
+*/
+	Strong<IndirectCommandsLayoutID>  ResourceManager::CreateIndirectCommandsLayout (const IndirectCommandsLayoutDesc &desc, StringView dbgName) __NE___
+	{
+		return _CreateResource<IndirectCommandsLayoutID>(
+					ERR_MSG( "failed when creating indirect commands layout", dbgName ),
+					*this, desc, dbgName );
 	}
 //-----------------------------------------------------------------------------
 

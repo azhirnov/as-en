@@ -9,18 +9,18 @@ extern void Test_IntDotProduct (Executor &ex);
 extern void Test_MLPTraining (Executor &ex);
 
 
-int main (const int argc, char* argv[])
+TEST_ENTRY()
 {
 	BEGIN_TEST();
 
 	Executor	ex;
 	CHECK_FATAL( ex.Initialize() );
 
-	Test_CoopMat( ex );
-	Test_CoopVec( ex );
-	Test_CoopVecTraining( ex );
-	Test_IntDotProduct( ex );
-	Test_MLPTraining( ex );
+	RUN_TEST( Test_CoopMat, ex );
+	RUN_TEST( Test_CoopVec, ex );
+	RUN_TEST( Test_CoopVecTraining, ex );
+	RUN_TEST( Test_IntDotProduct, ex );
+	RUN_TEST( Test_MLPTraining, ex );
 
 	ex.Deinitialize();
 

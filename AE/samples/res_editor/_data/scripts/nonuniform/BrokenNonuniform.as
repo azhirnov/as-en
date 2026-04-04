@@ -68,13 +68,13 @@
 			pass.EnableIfEqual( mode, 0 );
 		}{
 			RC<SceneGraphicsPass>	pass = scene1.AddGraphicsPass( "non-uniform(tex) + non-uniform(samp)" );
-			pass.AddPipeline( "*-Samp.as" );
+			pass.AddPipeline( "*-Samp.ppln" );
 			pass.Output( "out_Color",	rt1 );
 			pass.Constant( "NONUNIFORM",	1 );
 			pass.EnableIfEqual( mode, 1 );
 		}{
 			RC<SceneGraphicsPass>	pass = scene1.AddGraphicsPass( "non-uniform( tex + samp )" );
-			pass.AddPipeline( "*-Samp.as" );
+			pass.AddPipeline( "*-Samp.ppln" );
 			pass.Output( "out_Color",	rt2 );
 			pass.EnableIfEqual( mode, 1 );
 		}

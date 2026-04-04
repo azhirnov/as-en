@@ -50,6 +50,8 @@ namespace AE::Networking
 		ND_ uint	Address ()							C_NE___	{ return _address; }
 		ND_ ushort	Port ()								C_NE___	{ return _port; }
 
+		ND_ ulong	ToULong ()							C_NE___	{ return ulong{_address} | (ulong{_port} << 32); }
+
 			void	SetPort (ushort value)				__NE___	{ _port = value; }
 
 		ND_ bool	operator == (const IpAddress &rhs)	C_NE___	{ return (_address == rhs._address) and (_port == rhs._port); }
@@ -58,6 +60,7 @@ namespace AE::Networking
 		ND_ bool	EqualAddress (const IpAddress &rhs)	C_NE___	{ return _address == rhs._address; }
 
 		ND_ String	ToString ()							C_Th___;
+		ND_ String	AddressToString ()					C_Th___;	// without port
 		ND_ String  ToHostName (Bool optIsTCP = True{})	C_Th___;
 
 			void	ToNative (OUT AnyTypeRef addr)		C_NE___;

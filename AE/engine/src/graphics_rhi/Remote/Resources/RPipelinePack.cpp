@@ -251,14 +251,15 @@ namespace AE::Graphics
 	GetGraphicsPipeline
 =================================================
 */
-	GraphicsPipelineID  RPipelinePack::RenderTech::GetGraphicsPipeline (PipelineName::Ref name) C_NE___
+	GraphicsPipelineID  RPipelinePack::RenderTech::GetGraphicsPipeline (PipelineName::Ref name, Bool silent) C_NE___
 	{
 		DRC_SHAREDLOCK( _drCheck );
 
 		auto	it = _pipelines.find( name );
 		if_unlikely( it == _pipelines.end() )
 		{
-			_PrintPipelines( name, PipelineSpecUID::Graphics );
+			if ( silent )
+				_PrintPipelines( name, PipelineSpecUID::Graphics );
 			return Default;
 		}
 
@@ -272,14 +273,15 @@ namespace AE::Graphics
 	GetMeshPipeline
 =================================================
 */
-	MeshPipelineID  RPipelinePack::RenderTech::GetMeshPipeline (PipelineName::Ref name) C_NE___
+	MeshPipelineID  RPipelinePack::RenderTech::GetMeshPipeline (PipelineName::Ref name, Bool silent) C_NE___
 	{
 		DRC_SHAREDLOCK( _drCheck );
 
 		auto	it = _pipelines.find( name );
 		if_unlikely( it == _pipelines.end() )
 		{
-			_PrintPipelines( name, PipelineSpecUID::Mesh );
+			if ( silent )
+				_PrintPipelines( name, PipelineSpecUID::Mesh );
 			return Default;
 		}
 
@@ -293,14 +295,15 @@ namespace AE::Graphics
 	GetTilePipeline
 =================================================
 */
-	TilePipelineID  RPipelinePack::RenderTech::GetTilePipeline (PipelineName::Ref name) C_NE___
+	TilePipelineID  RPipelinePack::RenderTech::GetTilePipeline (PipelineName::Ref name, Bool silent) C_NE___
 	{
 		DRC_SHAREDLOCK( _drCheck );
 
 		auto	it = _pipelines.find( name );
 		if_unlikely( it == _pipelines.end() )
 		{
-			_PrintPipelines( name, PipelineSpecUID::Tile );
+			if ( silent )
+				_PrintPipelines( name, PipelineSpecUID::Tile );
 			return Default;
 		}
 
@@ -314,14 +317,15 @@ namespace AE::Graphics
 	GetComputePipeline
 =================================================
 */
-	ComputePipelineID  RPipelinePack::RenderTech::GetComputePipeline (PipelineName::Ref name) C_NE___
+	ComputePipelineID  RPipelinePack::RenderTech::GetComputePipeline (PipelineName::Ref name, Bool silent) C_NE___
 	{
 		DRC_SHAREDLOCK( _drCheck );
 
 		auto	it = _pipelines.find( name );
 		if_unlikely( it == _pipelines.end() )
 		{
-			_PrintPipelines( name, PipelineSpecUID::Compute );
+			if ( silent )
+				_PrintPipelines( name, PipelineSpecUID::Compute );
 			return Default;
 		}
 
@@ -335,14 +339,15 @@ namespace AE::Graphics
 	GetRayTracingPipeline
 =================================================
 */
-	RayTracingPipelineID  RPipelinePack::RenderTech::GetRayTracingPipeline (PipelineName::Ref name) C_NE___
+	RayTracingPipelineID  RPipelinePack::RenderTech::GetRayTracingPipeline (PipelineName::Ref name, Bool silent) C_NE___
 	{
 		DRC_SHAREDLOCK( _drCheck );
 
 		auto	it = _pipelines.find( name );
 		if_unlikely( it == _pipelines.end() )
 		{
-			_PrintPipelines( name, PipelineSpecUID::RayTracing );
+			if ( silent )
+				_PrintPipelines( name, PipelineSpecUID::RayTracing );
 			return Default;
 		}
 
@@ -382,18 +387,30 @@ namespace AE::Graphics
 	GetRTShaderBinding
 =================================================
 */
-	RTShaderBindingID  RPipelinePack::RenderTech::GetRTShaderBinding (RTShaderBindingName::Ref name) C_NE___
+	RTShaderBindingID  RPipelinePack::RenderTech::GetRTShaderBinding (RTShaderBindingName::Ref name, Bool silent) C_NE___
 	{
 		DRC_SHAREDLOCK( _drCheck );
 
 		auto	it = _rtSbtMap.find( name );
 		if_unlikely( it == _rtSbtMap.end() )
 		{
-			_PrintSBTs( name );
+			if ( silent )
+				_PrintSBTs( name );
 			return Default;
 		}
 
 		return it->second;
+	}
+
+/*
+=================================================
+	GetIndirectExecutionSet
+=================================================
+*/
+	IndirectExecutionSetID  RPipelinePack::RenderTech::GetIndirectExecutionSet (IndirectExecutionSetName::Ref, Bool silent) C_NE___
+	{
+		// TODO
+		return Default;
 	}
 
 /*

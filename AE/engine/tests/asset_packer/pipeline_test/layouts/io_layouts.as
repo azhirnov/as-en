@@ -10,7 +10,7 @@ void ShaderInputOutput ()
 		st.Set( "float2  texCoord;" );
 	}{
 		RC<ShaderStructType>	st = ShaderStructType( "mesh_1.io" );
-		st.Set( "float2  texcoord;" +
+		st.Set( "float2  texcoord;"
 				"float4  color;" );
 	}
 }

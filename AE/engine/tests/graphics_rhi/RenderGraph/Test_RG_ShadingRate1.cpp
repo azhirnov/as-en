@@ -30,7 +30,7 @@ namespace
 		GfxMemAllocatorPtr			gfxAlloc;
 	};
 
-	static constexpr auto&	RTech = RenderTechs::VRSTestRT;
+	static constexpr auto&	RTech = RenderTechs::VRS_RTech;
 
 
 	ND_ static int  ShadingRate (int x, int y)
@@ -86,7 +86,7 @@ namespace
 		typename CtxType::Transfer	tctx{ RenderCoro_Get() };
 
 		tctx.AccumBarriers()
-			.ImageBarrier( t.vrsImg, EResourceState::Invalidate, EResourceState::CopyDst );
+			.ResourceBarrier( t.vrsImg, EResourceState::Invalidate, EResourceState::CopyDst );
 
 		UploadImageDesc	upload;
 		upload.aspectMask	= EImageAspect::Color;
@@ -98,10 +98,10 @@ namespace
 		typename CtxType::Graphics	gfx_ctx{ RenderCoro_Get(), tctx.ReleaseCommandBuffer() };
 
 		gfx_ctx.AccumBarriers()
-				.ImageBarrier( t.img[0], EResourceState::Invalidate, img_state )
-				.ImageBarrier( t.img[1], EResourceState::Invalidate, img_state )
-				.ImageBarrier( t.img[2], EResourceState::Invalidate, img_state )
-				.ImageBarrier( t.vrsImg, EResourceState::CopyDst, EResourceState::ShadingRateImage );
+				.ResourceBarrier( t.img[0], EResourceState::Invalidate, img_state )
+				.ResourceBarrier( t.img[1], EResourceState::Invalidate, img_state )
+				.ResourceBarrier( t.img[2], EResourceState::Invalidate, img_state )
+				.ResourceBarrier( t.vrsImg, EResourceState::CopyDst, EResourceState::ShadingRateImage );
 
 		// per draw
 		{
@@ -167,9 +167,9 @@ namespace
 		// TODO: per pipeline
 
 		gfx_ctx.AccumBarriers()
-				.ImageBarrier( t.img[0], img_state, EResourceState::CopySrc )
-				.ImageBarrier( t.img[1], img_state, EResourceState::CopySrc )
-				.ImageBarrier( t.img[2], img_state, EResourceState::CopySrc );
+				.ResourceBarrier( t.img[0], img_state, EResourceState::CopySrc )
+				.ResourceBarrier( t.img[1], img_state, EResourceState::CopySrc )
+				.ResourceBarrier( t.img[2], img_state, EResourceState::CopySrc );
 
 		RenderCoro_Execute( gfx_ctx );
 	}
@@ -257,6 +257,7 @@ namespace
 		CHECK_ERR( end->Status() == ETaskStatus::Completed );
 
 		CHECK_ERR( rts.WaitAll( c_MaxTimeout ));
+		CHECK_ERR( t.result[0] and t.result[1] and t.result[2] );
 
 		CHECK_ERR( Scheduler().Wait( {t.result}, c_MaxTimeout ));
 		CHECK_ERR( t.result[0]->Status() == ETaskStatus::Completed );
@@ -270,12 +271,12 @@ namespace
 } // namespace
 
 
-bool RGTest::Test_ShadingRate1 ()
+RGTest::ECode  RGTest::Test_ShadingRate1 ()
 {
 	if ( _vrsPipelines == null )
 	{
 		AE_LOGI( TEST_NAME << " - skipped" );
-		return true;
+		return ECode::Skipped;
 	}
 
 	auto	img_cmp1	= _LoadReference( TEST_NAME + "-1" );
@@ -287,8 +288,12 @@ bool RGTest::Test_ShadingRate1 ()
 
 	RG_CHECK( _CompareDumps( TEST_NAME ));
 
-	AE_LOGI( TEST_NAME << " - passed" );
-	return result;
+	if ( result )
+	{
+		AE_LOGI( TEST_NAME << " - passed" );
+		return ECode::Passed;
+	}
+	return ECode::Failed;
 }
 
 #endif // not AE_ENABLE_METAL

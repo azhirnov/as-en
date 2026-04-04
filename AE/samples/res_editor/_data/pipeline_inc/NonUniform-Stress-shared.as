@@ -68,8 +68,8 @@
 		{
 			RC<ShaderStructType>	st = ShaderStructType( "io" );
 			st.Set( EStructLayout::InternalIO,
-					"mediump float4		color;" +
-					"mediump float2		uv;" +
+					"mediump float4		color;"
+					"mediump float2		uv;"
 					"uint				texId;" );
 		}{
 			RC<DescriptorSetLayout>	ds = DescriptorSetLayout( "mtr.ds" );
@@ -93,7 +93,7 @@
 				ds.Define( "BINDLESS_TEX" );
 				ds.CombinedImage(  EShaderStages::Fragment,	"un_Textures",	 ArraySize(tex_count), EImageType::Float_2D, Sampler_LinearRepeat );	// external
 			}else{
-				ds.CombinedImage(  EShaderStages::Fragment,	"un_TextureArr", EImageType::Float_2DArray, Sampler_LinearRepeat );				// external
+				ds.CombinedImage(  EShaderStages::Fragment,	"un_TextureArr", EImageType::Float_2DArray, Sampler_LinearRepeat );						// external
 			}
 
 			ds.Define( "TEX_COUNT="+tex_count );
@@ -112,8 +112,8 @@
 	{
 		uint			obj_id	= gl.InstanceIndex;
 		ObjectTransform	obj		= un_Transform.elements[ obj_id ];
-		float3			pos		= un_Geometry.positions[ gl.VertexIndex ];
-		float2			uv		= un_Geometry.uvs[ gl.VertexIndex ];
+		float3			pos		= un_Geometry.position[ gl.VertexIndex ];
+		float2			uv		= un_Geometry.uv[ gl.VertexIndex ];
 
 		pos *= obj.scale;
 		pos += obj.position;

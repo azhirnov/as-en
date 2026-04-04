@@ -530,11 +530,55 @@ namespace AE::Graphics
 
 /*
 =================================================
-	VideoFormatToPixelFormat / PixelFormatToVideoFormat
+	VideoFormatToPixelFormat
 =================================================
 */
-	ND_ EPixelFormat  VideoFormatToPixelFormat (EVideoFormat fmt, uint planeCount = 0)	__NE___;
-	ND_ EVideoFormat  PixelFormatToVideoFormat (EPixelFormat fmt)						__NE___;
+	struct VideoFormatToPixelFormatResult
+	{
+	// variables
+		EPixelFormat	format 				= Default;						// main format
+		EPixelFormat	altFormat			= Default;
+		EPixelFormat	alpha				= Default;
+		ImageSwizzle	components			= ImageSwizzle::Undefined();	// required swizzle for 'SamplerYcbcrConversionDesc::components'
 
+	// methods
+		VideoFormatToPixelFormatResult () __NE___ {}
+
+		VideoFormatToPixelFormatResult (EPixelFormat mainFmt, EPixelFormat altFmt = Default, ImageSwizzle comp = Default) __NE___ :
+			format{ mainFmt }, altFormat{ altFmt }, components{ comp } {}
+
+		VideoFormatToPixelFormatResult (EPixelFormat mainFmt, EPixelFormat altFmt, EPixelFormat alpha, ImageSwizzle comp = Default) __NE___ :
+			format{ mainFmt }, altFormat{ altFmt }, alpha{ alpha }, components{ comp } {}
+	};
+
+	ND_ VideoFormatToPixelFormatResult  VideoFormatToPixelFormat (EVideoFormat fmt) __NE___;
+
+/*
+=================================================
+	PixelFormatToVideoFormat
+=================================================
+*/
+	struct PixelFormatToVideoFormatResult
+	{
+	// variables
+		// warning: use 'VideoFormatToPixelFormat()' to get component swizzle for some formats
+		FixedArray< EVideoFormat, 7 >	formats;
+
+	// methods
+		PixelFormatToVideoFormatResult () __NE___ {}
+
+		template <typename ...Types>
+		PixelFormatToVideoFormatResult (EVideoFormat fmt, Types ...args) __NE___ : formats{ fmt, args... } {}
+	};
+
+	ND_ PixelFormatToVideoFormatResult  PixelFormatToVideoFormat (EPixelFormat fmt) __NE___;
+
+/*
+=================================================
+	VideoFormatToChromaSubsamplingAndBitDepth
+=================================================
+*/
+	ND_ bool  VideoFormatToChromaSubsamplingAndBitDepth (EVideoFormat, OUT EVideoChromaSubsampling &,
+														 OUT EVideoComponentBitDepth &luma, OUT EVideoComponentBitDepth &chroma) __NE___;
 
 } // AE::Graphics

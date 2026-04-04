@@ -3,6 +3,7 @@
 void MinimalRTech ()
 {
 	RC<RenderTechnique> rtech = RenderTechnique( "MinForward" );
+	rtech.AddFeatureSet( "MinDesktop" );
 
 	{
 		RC<GraphicsPass>	pass = rtech.AddGraphicsPass( "Graphics1" );

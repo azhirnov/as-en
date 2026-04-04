@@ -92,8 +92,8 @@ void  AddSpline (const array<float> &params)
 	RC<Buffer>	spline_params = Buffer();
 	spline_params.UseLayout(
 		"SplineParams",
-		"float4	A;" +
-		"float3	B;" +
+		"float4	A;"
+		"float3	B;"
 		"int	Mode;"
 	);
 	{

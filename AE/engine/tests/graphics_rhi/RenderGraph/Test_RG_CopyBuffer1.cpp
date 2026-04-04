@@ -27,7 +27,7 @@ namespace
 		ctx.CopyBuffer( t.buf_1, t.buf_2, {BufferCopy{ 0_b, 0_b, t.buf_size }});
 
 		ctx.AccumBarriers()
-			.BufferBarrier( t.buf_2, EResourceState::CopyDst, EResourceState::CopySrc );
+			.ResourceBarrier( t.buf_2, EResourceState::CopyDst, EResourceState::CopySrc );
 
 		auto	read_res = ctx.ReadbackBuffer( t.buf_2, ReadbackBufferDesc{}.DataSize( t.buf_size ));
 		CHECK_CE( read_res.IsFullyRead() );
@@ -89,6 +89,7 @@ namespace
 		CHECK_ERR( end->Status() == ETaskStatus::Completed );
 
 		CHECK_ERR( rts.WaitAll( c_MaxTimeout ));
+		CHECK_ERR( t.result );
 
 		CHECK_ERR( Scheduler().Wait( {t.result}, c_MaxTimeout ));
 		CHECK_ERR( t.result->Status() == ETaskStatus::Completed );
@@ -100,7 +101,7 @@ namespace
 } // namespace
 
 
-bool RGTest::Test_CopyBuffer1 ()
+RGTest::ECode  RGTest::Test_CopyBuffer1 ()
 {
 	bool	result = true;
 
@@ -109,6 +110,10 @@ bool RGTest::Test_CopyBuffer1 ()
 
 	RG_CHECK( _CompareDumps( TEST_NAME ));
 
-	AE_LOGI( TEST_NAME << " - passed" );
-	return result;
+	if ( result )
+	{
+		AE_LOGI( TEST_NAME << " - passed" );
+		return ECode::Passed;
+	}
+	return ECode::Failed;
 }

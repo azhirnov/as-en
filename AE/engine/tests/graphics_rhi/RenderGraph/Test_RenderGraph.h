@@ -18,11 +18,18 @@ class RGTest
 {
 // types
 protected:
-	using TestFunc_t	= bool (RGTest::*) ();
+	enum class ECode
+	{
+		Passed,
+		Failed,
+		Skipped,
+	};
+
+	using TestFunc_t	= ECode (RGTest::*) ();
 	using TestQueue_t	= RingBuffer< TestFunc_t >;
 	using FStorage_t	= RC<VFS::IVirtualFileStorage>;
 
-	static constexpr bool	UpdateAllReferences = false;
+	static const bool	c_UpdateAllReferences;
 
 
 // variables
@@ -36,13 +43,18 @@ protected:
 	RenderTechPipelinesPtr		_vrsPipelines;			// fragment shading rate
 	RenderTechPipelinesPtr		_ycbcrPipelines;		// video image, ycbcr
 	RenderTechPipelinesPtr		_mvPipelines;			// multiview, viewport array
+	RenderTechPipelinesPtr		_icbPipelines;			// indirect command buffer (device generated commands)
+	RenderTechPipelinesPtr		_ommPipelines;			// opacity micromap
 
 	TestQueue_t					_tests;
 	uint						_testsPassed		= 0;
 	uint						_testsFailed		= 0;
+	uint						_testsSkipped		= 0;
 
 	FStorage_t					_refImageStorage;
 	Path						_refImagePath;
+
+	ArrayView<const char*>		_consoleArgs;
 
   #if defined(AE_ENABLE_VULKAN)
 	VDeviceInitializer			_device;
@@ -61,7 +73,7 @@ protected:
 
 // methods
 public:
-	RGTest ();
+	RGTest (StringView, ArrayView<const char*>);
 	~RGTest () {}
 
 	bool  Run (FStorage_t assetStorage, FStorage_t refStorage);
@@ -83,55 +95,62 @@ private:
 	ND_ static GraphicsCreateInfo  _GetGraphicsCreateInfo ();
 
 private:
-	bool  Test_Image ();
-	bool  Test_Buffer ();
-	bool  Test_Allocator ();
-	bool  Test_FeatureSets ();
-	bool  Test_FrameCounter ();
-	bool  Test_ImageFormat ();
+	ECode  Test_Image ();
+	ECode  Test_Buffer ();
+	ECode  Test_Allocator ();
+	ECode  Test_FeatureSets ();
+	ECode  Test_FrameCounter ();
+	ECode  Test_ImageFormat ();
 
-	bool  Test_CopyBuffer1 ();
-	bool  Test_CopyBuffer2 ();
-	bool  Test_CopyImage1 ();
-	bool  Test_CopyImage2 ();
-	bool  Test_UploadStream1 ();
-	bool  Test_UploadStream2 ();
+	ECode  Test_CopyBuffer1 ();
+	ECode  Test_CopyBuffer2 ();
+	ECode  Test_CopyImage1 ();
+	ECode  Test_CopyImage2 ();
+	ECode  Test_UploadStream1 ();
+	ECode  Test_UploadStream2 ();
 
-	bool  Test_Compute1 ();
-	bool  Test_Compute2 ();			// with RG
-	bool  Test_AsyncCompute1 ();
-	bool  Test_AsyncCompute2 ();
-	bool  Test_AsyncCompute3 ();
+	ECode  Test_Compute1 ();
+	ECode  Test_Compute2 ();			// with RG
+	ECode  Test_AsyncCompute1 ();
+	ECode  Test_AsyncCompute2 ();
+	ECode  Test_AsyncCompute3 ();
 
-	bool  Test_Draw1 ();
-	bool  Test_Draw2 ();			// vertex buffer
-	bool  Test_Draw3 ();			// push constants
-	bool  Test_Draw4 ();			// with RG & vstream
-	bool  Test_Draw5 ();			// with RG & vstream
-	bool  Test_DrawMesh1 ();
-	bool  Test_DrawMesh2 ();
-	//bool  Test_DrawMultipass1 ();
-	bool  Test_DrawAsync1 ();
+	ECode  Test_Draw1 ();
+	ECode  Test_Draw2 ();			// vertex buffer
+	ECode  Test_Draw3 ();			// push constants
+	ECode  Test_Draw4 ();			// with RG & vstream
+	ECode  Test_Draw5 ();			// with RG & vstream
+	ECode  Test_DrawMesh1 ();
+	ECode  Test_DrawMesh2 ();
+	//ECode  Test_DrawMultipass1 ();
+	ECode  Test_DrawAsync1 ();
 
-	bool  Test_RayQuery1 ();
+	ECode  Test_RayQuery1 ();
 
-	bool  Test_RayTracing1 ();
-	bool  Test_RayTracing2 ();		// indirect build
-	bool  Test_RayTracing3 ();
-	bool  Test_RayTracingCluster1 ();		// CLAS
-	bool  Test_RayTracingPartitioned1 ();	// PTLAS
+	ECode  Test_RayTracing1 ();
+	ECode  Test_RayTracing2 ();				// indirect build
+	ECode  Test_RayTracing3 ();
+	ECode  Test_RayTracingCluster1 ();		// CLAS
+	ECode  Test_RayTracingPartitioned1 ();	// PTLAS
+	ECode  Test_OpacityMicromap1 ();
+	// TODO: AS serialization, compaction
 
-	bool  Test_ShadingRate1 ();
-	bool  Test_Ycbcr1 ();
-	bool  Test_MultiView ();
-	bool  Test_ViewportArray ();
+	ECode  Test_ShadingRate1 ();
+	ECode  Test_Ycbcr1 ();
+	ECode  Test_MultiView ();
+	ECode  Test_ViewportArray ();
 
-	bool  Test_Debugger1 ();		// compute
-	bool  Test_Debugger2 ();		// graphics
-	bool  Test_Debugger3 ();		// mesh
-	bool  Test_Debugger4 ();		// ray tracing
-	bool  Test_Debugger5 ();		// ray query
-	bool  Test_Debugger6 ();		// asserts in compute
+	ECode  Test_IndirectCommandBuffer1 ();
+	ECode  Test_IndirectCommandBuffer2 ();
+
+	ECode  Test_VideoEncoder1 ();
+
+	ECode  Test_Debugger1 ();		// compute
+	ECode  Test_Debugger2 ();		// graphics
+	ECode  Test_Debugger3 ();		// mesh
+	ECode  Test_Debugger4 ();		// ray tracing
+	ECode  Test_Debugger5 ();		// ray query
+	ECode  Test_Debugger6 ();		// asserts in compute
 
 	// TODO:
 	//	MSAA resolve

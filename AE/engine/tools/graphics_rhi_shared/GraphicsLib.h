@@ -117,7 +117,6 @@ namespace AE::GraphicsLib
 		void  SetStencilWriteMask (uint writeMask)																			__Th_OV	{ _ctx->SetStencilWriteMask( writeMask ); }
 		void  SetStencilWriteMask (uint frontWriteMask, uint backWriteMask)													__Th_OV	{ _ctx->SetStencilWriteMask( frontWriteMask, backWriteMask ); }
 		void  SetFragmentShadingRate (EShadingRate rate, EShadingRateCombinerOp primitiveOp, EShadingRateCombinerOp texOp)	__Th_OV	{ _ctx->SetFragmentShadingRate( rate, primitiveOp, texOp ); }
-		void  SetViewportWScaling (ArrayView<packed_float2> scaling)														__Th_OV	{ _ctx->SetViewportWScaling( scaling ); }
 		)
 
 		void  BindIndexBuffer (BufferID buffer, Bytes offset, EIndex indexType)												__Th_OV	{ _ctx->BindIndexBuffer( buffer, offset, indexType ); }
@@ -182,15 +181,18 @@ namespace AE::GraphicsLib
 										  Bytes		countBufferOffset,
 										  uint		maxDrawCount,
 										  Bytes		stride)																	__Th_OV	{ _ctx->DrawMeshTasksIndirectCount( indirectBuffer, indirectBufferOffset, countBuffer, countBufferOffset, maxDrawCount, stride ); }
+
+		void  WriteTimestamp (const IQueryManager::IQuery &q, uint index, EPipelineScope srcScope)							__Th_OV	{ _ctx->WriteTimestamp( q, index, srcScope ); }
 		)
+
+		void  BindInitialPipeline (IndirectExecutionSetID id)																__Th_OV	{ _ctx->BindInitialPipeline( id ); }
+
+		void  ExecuteGeneratedCommands (const ExecuteGeneratedCommandsCmd &cmd)												__Th_OV	{ _ctx->ExecuteGeneratedCommands( cmd ); }
+		void  ExecuteGeneratedCommands (const ExecuteGeneratedCommands2Cmd &cmd)											__Th_OV	{ _ctx->ExecuteGeneratedCommands( cmd ); }
 
 		void  DebugMarker (DebugLabel dbg)																					__Th_OV	{ _ctx->DebugMarker( dbg ); }
 		void  PushDebugGroup (DebugLabel dbg)																				__Th_OV	{ _ctx->PushDebugGroup( dbg ); }
 		void  PopDebugGroup ()																								__Th_OV	{ _ctx->PopDebugGroup(); }
-
-		VULKAN_ONLY(
-		void  WriteTimestamp (const IQueryManager::IQuery &q, uint index, EPipelineScope srcScope)							__Th_OV	{ _ctx->WriteTimestamp( q, index, srcScope ); }
-		)
 
 		void  AttachmentBarrier (AttachmentName::Ref name, EResourceState srcState, EResourceState dstState)				__Th_OV	{ _ctx->AttachmentBarrier( name, srcState, dstState ); }
 		void  CommitBarriers ()																								__Th_OV	{ _ctx->CommitBarriers(); }
@@ -274,8 +276,6 @@ namespace AE::GraphicsLib
 			if constexpr( CountOf<Args...>() > 0 )
 				return ReleaseResources( FwdArg<Args&>( args )... );
 		}
-
-		ND_ virtual IDevice const&  GetDevice ()								__NE___ = 0;
 
 	protected:
 		virtual bool  _DelayedRelease (ulong id, uint type)						__NE___ = 0;

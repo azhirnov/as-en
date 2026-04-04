@@ -3,6 +3,11 @@
 #include "Scripting/ScriptExe.h"
 #include "Core/EditorUI.h"
 #include "Scripting/ScriptBasePass.cpp.h"
+
+#define COMPUTE_PASS	ScriptComputePass
+#include "Scripting/ComputePassShared.cpp.h"
+#undef COMPUTE_PASS
+
 #include "_data/cpp/types.h"
 
 namespace AE::ResEditor
@@ -74,184 +79,6 @@ namespace
 
 /*
 =================================================
-	LocalSize*
-=================================================
-*/
-	void  ScriptComputePass::LocalSize3v (const packed_uint3 &v) __Th___
-	{
-		_localSize = v;
-
-		CHECK_THROW_MSG( All( _localSize > 0u ), "LocalSize() must be > 0" );
-		CHECK_THROW_MSG( _iterations.empty(), "LocalSize() must be used before Dispatch() call" );
-	}
-
-/*
-=================================================
-	DispatchGroups*
-=================================================
-*/
-	void  ScriptComputePass::DispatchGroups3v (const packed_uint3 &groupCount) __Th___
-	{
-		CHECK_THROW_MSG( All( _localSize > 0u ), "LocalSize() must be > 0" );
-		CHECK_THROW_MSG( All( groupCount > 0u ), "'groupCount' must be > 0" );
-
-		auto&	it = _iterations.emplace_back();
-		it.count	= groupCount;
-		it.isGroups	= true;
-	}
-
-	void  ScriptComputePass::DispatchGroupsDS  (const ScriptDynamicDimPtr &ds) __Th___
-	{
-		CHECK_THROW_MSG( All( _localSize > 0u ), "LocalSize() must be > 0" );
-		CHECK_THROW_MSG( ds and ds->Get() );
-
-		auto&	it = _iterations.emplace_back();
-		it.count	= ds->Get();
-		it.isGroups	= true;
-
-		ScriptDynamicDimPtr	ds2;
-		ds2.Attach( ds->Mul3( packed_int3{_localSize} ));
-		_SetDynamicDimension( ds2 );
-	}
-
-	void  ScriptComputePass::DispatchGroups1D (const ScriptDynamicUIntPtr &dyn) __Th___
-	{
-		CHECK_THROW_MSG( All( _localSize > 0u ), "LocalSize() must be > 0" );
-		CHECK_THROW_MSG( dyn );
-
-		auto&	it = _iterations.emplace_back();
-		it.count	= dyn->Get();
-		it.isGroups	= true;
-	}
-
-	void  ScriptComputePass::DispatchGroups2D (const ScriptDynamicUInt2Ptr &dyn) __Th___
-	{
-		CHECK_THROW_MSG( All( _localSize > 0u ), "LocalSize() must be > 0" );
-		CHECK_THROW_MSG( dyn );
-
-		auto&	it = _iterations.emplace_back();
-		it.count	= dyn->Get();
-		it.isGroups	= true;
-	}
-
-	void  ScriptComputePass::DispatchGroups3D (const ScriptDynamicUInt3Ptr &dyn) __Th___
-	{
-		CHECK_THROW_MSG( All( _localSize > 0u ), "LocalSize() must be > 0" );
-		CHECK_THROW_MSG( dyn );
-
-		auto&	it = _iterations.emplace_back();
-		it.count	= dyn->Get();
-		it.isGroups	= true;
-	}
-
-/*
-=================================================
-	DispatchThreads*
-=================================================
-*/
-	void  ScriptComputePass::DispatchThreads3v (const packed_uint3 &threads) __Th___
-	{
-		CHECK_THROW_MSG( All( _localSize > 0u ), "LocalSize() must be > 0" );
-		CHECK_THROW_MSG( All( uint3{threads} >= _localSize ), "'threads' must be >= LocalSize()" );
-
-		auto&	it = _iterations.emplace_back();
-		it.count	= threads;
-		it.isGroups	= false;
-	}
-
-	void  ScriptComputePass::DispatchThreadsDS (const ScriptDynamicDimPtr &ds) __Th___
-	{
-		CHECK_THROW_MSG( All( _localSize > 0u ), "LocalSize() must be > 0" );
-		CHECK_THROW_MSG( ds and ds->Get() );
-
-		auto&	it = _iterations.emplace_back();
-		it.count	= ds->Get();
-		it.isGroups	= false;
-
-		_SetDynamicDimension( ds );
-	}
-
-	void  ScriptComputePass::DispatchThreads1D (const ScriptDynamicUIntPtr &dyn) __Th___
-	{
-		CHECK_THROW_MSG( All( _localSize > 0u ), "LocalSize() must be > 0" );
-		CHECK_THROW_MSG( dyn );
-
-		auto&	it = _iterations.emplace_back();
-		it.count	= dyn->Get();
-		it.isGroups	= false;
-	}
-
-	void  ScriptComputePass::DispatchThreads2D (const ScriptDynamicUInt2Ptr &dyn) __Th___
-	{
-		CHECK_THROW_MSG( All( _localSize > 0u ), "LocalSize() must be > 0" );
-		CHECK_THROW_MSG( dyn );
-
-		auto&	it = _iterations.emplace_back();
-		it.count	= dyn->Get();
-		it.isGroups	= false;
-	}
-
-	void  ScriptComputePass::DispatchThreads3D (const ScriptDynamicUInt3Ptr &dyn) __Th___
-	{
-		CHECK_THROW_MSG( All( _localSize > 0u ), "LocalSize() must be > 0" );
-		CHECK_THROW_MSG( dyn );
-
-		auto&	it = _iterations.emplace_back();
-		it.count	= dyn->Get();
-		it.isGroups	= false;
-	}
-
-/*
-=================================================
-	DispatchGroupsIndirect*
-=================================================
-*/
-	void  ScriptComputePass::DispatchGroupsIndirect1 (const ScriptBufferPtr &ibuf) __Th___
-	{
-		DispatchGroupsIndirect2( ibuf, 0 );
-	}
-
-	void  ScriptComputePass::DispatchGroupsIndirect2 (const ScriptBufferPtr &ibuf, ulong offset) __Th___
-	{
-		CHECK_THROW_MSG( All( _localSize > 0u ), "LocalSize() must be > 0" );
-		CHECK_THROW_MSG( ibuf );
-
-		ibuf->AddUsage( EResourceUsage::IndirectBuffer );
-
-		auto&	it			= _iterations.emplace_back();
-		it.indirect			= ibuf;
-		it.indirectOffset	= Bytes{offset};
-		it.isGroups			= true;
-	}
-
-	void  ScriptComputePass::DispatchGroupsIndirect3 (const ScriptBufferPtr &ibuf, const String &field) __Th___
-	{
-		CHECK_THROW_MSG( All( _localSize > 0u ), "LocalSize() must be > 0" );
-		CHECK_THROW_MSG( ibuf );
-		CHECK_THROW_MSG( not field.empty() );
-
-		ibuf->AddUsage( EResourceUsage::IndirectBuffer );
-
-		auto&	it			= _iterations.emplace_back();
-		it.indirect			= ibuf;
-		it.indirectCmdField	= field;
-		it.isGroups			= true;
-	}
-
-/*
-=================================================
-	_OnAddArg
-=================================================
-*/
-	void  ScriptComputePass::_OnAddArg (INOUT ScriptPassArgs::Argument &arg) C_Th___
-	{
-		CHECK_THROW_MSG( _iterations.empty(), "Arg() must be used before Dispatch() call" );
-
-		arg.state |= EResourceState::ComputeShader;
-	}
-
-/*
-=================================================
 	Bind
 =================================================
 */
@@ -272,8 +99,13 @@ namespace
 		AS_METHOD( binder, ScriptComputePass::LocalSize2v,				"LocalSize",			{} );
 		AS_METHOD( binder, ScriptComputePass::LocalSize3v,				"LocalSize",			{} );
 
-		binder.Comment( "Set subgroup size." );
+		binder.Comment( "Set subgroup size. Must be power of 2." );
 		AS_METHOD( binder, ScriptComputePass::SubgroupSize,				"SubgroupSize",			{} );
+
+		binder.Comment( "Set minimal subgroup size. May not be power of 2.\n"
+						"If device supports subgroup size control then subgroup size set to minimal supported, but not less than required.\n"
+						"Will fail if maximal supported subgroup size < than required size." );
+		AS_METHOD( binder, ScriptComputePass::MinSubgroupSize,			"MinSubgroupSize",		{} );
 
 		binder.Comment( "Execute compute shader with number of the workgroups.\n"
 						"Total number of threads is 'groupCount * localSize'." );
@@ -310,11 +142,11 @@ namespace
 	_CompilePipeline
 =================================================
 */
-	auto  ScriptComputePass::_CompilePipeline (OUT Bytes &ubSize) C_Th___
+	auto  ScriptComputePass::_CompilePipeline () C_Th___
 	{
 		return ScriptExe::ScriptPassApi::ConvertAndLoad(
-					[this, &ubSize] (ScriptEnginePtr) {
-						_CompilePipeline2( OUT ubSize );	// throw
+					[this] (ScriptEnginePtr) {
+						_CompilePipeline2();	// throw
 					},
 					_baseFlags );
 	}
@@ -333,9 +165,8 @@ namespace
 		auto		result		= MakeRC<ComputePass>();
 		auto&		res_mngr	= GraphicsScheduler().GetResourceManager();
 		const auto	max_frames	= GraphicsScheduler().GetMaxFrames();
-		Bytes		ub_size;
 
-		result->_rtech = _CompilePipeline( OUT ub_size );	// throw
+		result->_rtech = _CompilePipeline();	// throw
 
 		EnumSet<IPass::EDebugMode>	dbg_modes;
 
@@ -343,7 +174,7 @@ namespace
 		{{
 			if ( AllBits( _baseFlags, flag ))
 			{
-				auto	id = cp->_rtech.rtech->GetComputePipeline( name );
+				auto	id = cp->_rtech.rtech->GetComputePipeline( name, True{"silent"} );
 				if ( id ) {
 					cp->_pipelines.insert_or_assign( mode, id );
 					dbg_modes.insert( mode );
@@ -369,7 +200,7 @@ namespace
 		result->_localSize	= this->_localSize;
 		result->_iterations.assign( this->_iterations.begin(), this->_iterations.end() );
 
-		result->_ubuffer = _CreateUBuffer( ub_size, "ComputePassUB", EResourceState::UniformRead | EResourceState::ComputeShader );  // throw
+		result->_ubuffer = _CreateUBuffer( SizeOf<ShaderTypes::ComputePassUB>, "ComputePassUB", EResourceState::UniformRead | EResourceState::ComputeShader );  // throw
 
 		// create descriptor set
 		{
@@ -408,7 +239,7 @@ namespace AE::ResEditor
 	_CreateUBType
 =================================================
 */
-	auto  ScriptComputePass::_CreateUBType () __Th___
+	ScriptRCBase  ScriptComputePass::_CreateUBType () __Th___
 	{
 		auto&	obj_storage = *ObjectStorage::Instance();
 		auto	it			= obj_storage.structTypes.find( "ComputePassUB" );
@@ -416,7 +247,7 @@ namespace AE::ResEditor
 		if ( it != obj_storage.structTypes.end() )
 			return it->second;
 
-		ShaderStructTypePtr	st{ new ShaderStructType{"ComputePassUB"}};
+		ShaderStructTypePtr	st = ShaderStructType::Create( "ComputePassUB" );
 		st->Set( EStructLayout::Compatible_Std140, R"#(
 				float		time;			// shader playback time (in seconds)
 				float		timeDelta;		// frame render time (in seconds), max value: 1/30s
@@ -452,7 +283,7 @@ namespace AE::ResEditor
 	_CreatePCType
 =================================================
 */
-	auto  ScriptComputePass::_CreatePCType () __Th___
+	ScriptRCBase  ScriptComputePass::_CreatePCType () __Th___
 	{
 		auto&	obj_storage = *ObjectStorage::Instance();
 		auto	it			= obj_storage.structTypes.find( "ComputePassPC" );
@@ -460,7 +291,7 @@ namespace AE::ResEditor
 		if ( it != obj_storage.structTypes.end() )
 			return it->second;
 
-		ShaderStructTypePtr	st{ new ShaderStructType{"ComputePassPC"}};
+		ShaderStructTypePtr	st = ShaderStructType::Create( "ComputePassPC" );
 		st->Set( EStructLayout::Compatible_Std140, R"#(
 				uint4	wgCount_dispatchIndex;
 			)#");
@@ -476,10 +307,10 @@ namespace AE::ResEditor
 	void  ScriptComputePass::GetShaderTypes (INOUT CppStructsFromShaders &data) __Th___
 	{
 		{
-			auto	st = _CreateUBType();	// throw
+			ShaderStructTypePtr		st = _CreateUBType();	// throw
 			CHECK_THROW( st->ToCPP( INOUT data.cpp, INOUT data.uniqueTypes ));
 		}{
-			auto	st = _CreatePCType();	// throw
+			ShaderStructTypePtr		st = _CreatePCType();	// throw
 			CHECK_THROW( st->ToCPP( INOUT data.cpp, INOUT data.uniqueTypes ));
 		}
 	}
@@ -489,21 +320,20 @@ namespace AE::ResEditor
 	_CompilePipeline2
 =================================================
 */
-	void  ScriptComputePass::_CompilePipeline2 (OUT Bytes &ubSize) C_Th___
+	void  ScriptComputePass::_CompilePipeline2 () C_Th___
 	{
 		_args.ValidateArgs();
 
-		RenderTechniquePtr	rtech{ new RenderTechnique{ "rtech" }};
+		RenderTechniquePtr	rtech = RenderTechnique::Create( "rtech" );
 		{
 			RTComputePassPtr	pass = rtech->AddComputePass2( "Compute" );
 			Unused( pass );
 		}
 
-		const auto				stage	= EShaderStages::Compute;
-		DescriptorSetLayoutPtr	ds_layout{ new DescriptorSetLayout{ "dsl.0" }};
+		const auto				stage		= EShaderStages::Compute;
+		DescriptorSetLayoutPtr	ds_layout	= DescriptorSetLayout::Create( "dsl.0" );
 		{
-			ShaderStructTypePtr	st = _CreateUBType();	// throw
-			ubSize = st->StaticSize();
+			Unused( _CreateUBType() );	// throw
 
 			ds_layout->AddUniformBuffer( stage, "un_PerPass", ArraySize{1}, "ComputePassUB", EResourceState::ShaderUniform, False{} );
 		}
@@ -582,14 +412,14 @@ namespace AE::ResEditor
 	void  ScriptComputePass::_CompilePipeline3 (const String &cs, uint line, const String &pplnName,
 												uint shaderOpts, EPipelineOpt pplnOpt) C_Th___
 	{
-		PipelineLayoutPtr		ppln_layout{ new PipelineLayout{ pplnName + ".pl" }};
+		PipelineLayoutPtr		ppln_layout = PipelineLayout::Create( pplnName + ".pl" );
 		ppln_layout->AddDSLayout2( "ds0", 0, "dsl.0" );
 		ppln_layout->AddPushConst2( "pc", _CreatePCType(), EShader::Compute );
 
 		if ( AnyBits( EShaderOpt(shaderOpts), EShaderOpt::_ShaderTrace_Mask ))
 			ppln_layout->AddDebugDSLayout2( 1, EShaderOpt(shaderOpts) & EShaderOpt::_ShaderTrace_Mask, uint(EShaderStages::Compute) );
 
-		ComputePipelinePtr		ppln_templ{ new ComputePipelineScriptBinding{ pplnName }};
+		ComputePipelinePtr		ppln_templ = ComputePipelineScriptBinding::Create( pplnName );
 		ppln_templ->Disable();
 		ppln_templ->SetLayout2( ppln_layout );
 

@@ -175,6 +175,7 @@ namespace AE::UI
 		explicit RectangleDrawable (Ptr<IAllocator>)								__NE___	{}
 
 		ND_ bool  SetStyle (StyleName::Ref name)									__NE___;
+			void  SetStyleName (StyleName::Ref name)								__NE___	{ _style = name; }
 
 		// IDrawable //
 		void	Draw (const DrawParams &params, Canvas &canvas, DrawContext_t &ctx)	__Th_OV;
@@ -219,6 +220,7 @@ namespace AE::UI
 		explicit ImageDrawable (Ptr<IAllocator>)									__NE___	{}
 
 		ND_ bool  SetStyle (StyleName::Ref name)									__NE___;
+			void  SetStyleName (StyleName::Ref name)								__NE___	{ _style = name; }
 
 		// IDrawable //
 		void	Draw (const DrawParams &params, Canvas &canvas, DrawContext_t &ctx)	__Th_OV;
@@ -253,6 +255,7 @@ namespace AE::UI
 		explicit NinePatchDrawable (Ptr<IAllocator>)								__NE___	{}
 
 		ND_ bool  SetStyle (StyleName::Ref name)									__NE___;
+			void  SetStyleName (StyleName::Ref name)								__NE___	{ _style = name; }
 
 		// IDrawable //
 		void	Draw (const DrawParams &params, Canvas &canvas, DrawContext_t &ctx)	__Th_OV;
@@ -287,6 +290,7 @@ namespace AE::UI
 		explicit TextDrawable (Ptr<IAllocator>)										__NE___	{}
 
 		ND_ bool  SetStyle (StyleName::Ref name)									__NE___;
+			void  SetStyleName (StyleName::Ref name)								__NE___	{ _style = name; }
 
 		// IDrawable //
 		void	Draw (const DrawParams &params, Canvas &canvas, DrawContext_t &ctx)	__Th_OV;

@@ -16,6 +16,7 @@
 
 #include "graphics_rhi/Public/Common.h"
 #include "graphics_rhi/Vulkan/VulkanCheckError.h"
+#include "graphics_rhi/Vulkan/Utils/NextChain.h"
 
 #ifdef AE_RELEASE
 #	define ENABLE_DEBUG_CLEAR	0
@@ -286,7 +287,7 @@ namespace
 		VkResult	result		= emulator.origin_vkEnumerateDeviceExtensionProperties( physicalDevice, pLayerName, INOUT pPropertyCount, OUT pProperties );
 
 		// remove extensions which depends on emulated extensions (only for tests, actually they are not present)
-		#if 1
+		#if 0
 		if ( pProperties != null )
 		{
 			FlatHashSet<StringView>		sync2_deps = {

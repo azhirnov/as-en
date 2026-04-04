@@ -58,9 +58,9 @@
 		{
 			particles.ArrayLayout(
 				"Particle",
-				"	float4	position_size;" +
-				"	float4	velocity_color;" +
-				"	float2	fParams;" +
+				"	float4	position_size;"
+				"	float4	velocity_color;"
+				"	float2	fParams;"
 				"	uint2	iParams;",
 				max_particle_count );
 

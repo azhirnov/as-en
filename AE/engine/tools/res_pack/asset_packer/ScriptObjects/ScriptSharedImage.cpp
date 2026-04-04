@@ -48,11 +48,11 @@ namespace {
 		_Arrange( nameInArchive ); // throw
 
 		for (auto [atlas, i] : WithIndex(_atlases)) {
-			CHECK_THROW( atlas->_CopyPixels( *_image->_imgData, _GetResult( uint(i) | c_AtlasBit )));
+			CHECK_THROW( atlas->_CopyPixels( INOUT *_image->_imgData, _GetResult( uint(i) | c_AtlasBit )));
 		}
 
 		for (auto [font, i] : WithIndex(_fonts)) {
-			CHECK_THROW( font->_CopyPixels( *_image->_imgData, _GetResult( uint(i) | c_FontBit )));
+			CHECK_THROW( font->_CopyPixels( INOUT *_image->_imgData, _GetResult( uint(i) | c_FontBit )));
 		}
 
 		CHECK_THROW( _image->_ConvertImage() );
@@ -72,7 +72,7 @@ namespace {
 		_fonts.clear();
 		_fontMap.clear();
 
-		_image = null;		// stil alive in 'ScriptResourceMeta'
+		_image = null;		// still alive in 'ScriptResourceMeta'
 		_state = EState::Stored;
 	}
 
@@ -118,6 +118,9 @@ namespace {
 	{
 		Scripting::ClassBinder<ScriptSharedImage>	binder{ se };
 		binder.CreateRef();
+
+		binder.Comment( "SharedImage used as pixel storage for Atlas and Font.\n"
+						"This is recuired for UI which uses single texture per pixel format." );
 
 		AS_METHOD( binder, ScriptSharedImage::Store,		"Store",		{"nameInArchive"} );
 		AS_METHOD( binder, ScriptSharedImage::SetFormat,	"Format",		{"newFormat"} );

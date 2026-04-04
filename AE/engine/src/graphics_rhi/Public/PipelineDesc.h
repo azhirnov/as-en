@@ -28,10 +28,9 @@ namespace AE::Graphics
 		RT_NoNullIntersectionShaders	= 1 << 5,
 		RT_SkipTriangles				= 1 << 6,
 		RT_SkipAABBs					= 1 << 7,
-		//RT_AllowMotion
-		//RT_OpacityMicromap
-		//RT_DisplacementMicromap
 		RT_AllowClusterAccelStruct		= 1 << 8,
+		//RT_AllowMotion
+		//RT_DisplacementMicromap
 
 		// cache //
 		//	Pipeline creation will fail if it is not exists in cache.
@@ -45,6 +44,14 @@ namespace AE::Graphics
 		//	May include the final shader assembly, a binary form of the compiled shader,
 		//	or the shader compiler’s internal representation at any number of intermediate compile steps.
 		CaptureInternalRepresentation	= 1 << 11,
+
+		//	Can be used in 'IndirectExecutionSetDesc' and 'IIndirectExecutionSetUpdater'.
+		IndirectBindable				= 1 << 12,
+
+		// compatible with any pipeline type.
+		// for ray tracing pipeline it enable opacity micromaps,
+		// for other pipelines without this flag 'rayQueryMicromapARM' can be used for optimization.
+		OpacityMicromap					= 1 << 13,
 
 		_Last,
 		All								= ((_Last - 1) << 1) - 1,

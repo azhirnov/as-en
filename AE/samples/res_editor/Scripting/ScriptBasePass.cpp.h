@@ -158,27 +158,31 @@ namespace
 			classBinder.Comment( "Add resource to all shaders in the current pass.\n"
 								 "In  - resource is used for read access.\n"
 								 "Out - resource is used for write access.\n" );
-			AS_METHOD_T( classBinder, ScriptBasePass::ArgSceneIn,		"ArgIn",			{"uniformName", "resource"} );
+			AS_METHOD_T( classBinder, ScriptBasePass::ArgSceneIn,			"ArgIn",			{"uniformName", "resource"} );
 
-			AS_METHOD_T( classBinder, ScriptBasePass::ArgBufferIn,		"ArgIn",			{"uniformName", "resource"} );
-			AS_METHOD_T( classBinder, ScriptBasePass::ArgBufferOut,		"ArgOut",			{"uniformName", "resource"} );
-			AS_METHOD_T( classBinder, ScriptBasePass::ArgBufferInOut,	"ArgInOut",			{"uniformName", "resource"} );
+			AS_METHOD_T( classBinder, ScriptBasePass::ArgBufferIn,			"ArgIn",			{"uniformName", "resource"} );
+			AS_METHOD_T( classBinder, ScriptBasePass::ArgBufferOut,			"ArgOut",			{"uniformName", "resource"} );
+			AS_METHOD_T( classBinder, ScriptBasePass::ArgBufferInOut,		"ArgInOut",			{"uniformName", "resource"} );
 
-			AS_METHOD_T( classBinder, ScriptBasePass::ArgImageIn,		"ArgIn",			{"uniformName", "resource"} );
-			AS_METHOD_T( classBinder, ScriptBasePass::ArgImageOut,		"ArgOut",			{"uniformName", "resource"} );
-			AS_METHOD_T( classBinder, ScriptBasePass::ArgImageInOut,	"ArgInOut",			{"uniformName", "resource"} );
+			AS_METHOD_T( classBinder, ScriptBasePass::ArgBufferViewIn,		"ArgIn",			{"uniformName", "resource"} );
+			AS_METHOD_T( classBinder, ScriptBasePass::ArgBufferViewOut,		"ArgOut",			{"uniformName", "resource"} );
+			AS_METHOD_T( classBinder, ScriptBasePass::ArgBufferViewInOut,	"ArgInOut",			{"uniformName", "resource"} );
 
-			AS_METHOD_T( classBinder, ScriptBasePass::ArgTextureIn,		"ArgTex",			{"uniformName", "resource"} );
-			AS_METHOD_T( classBinder, ScriptBasePass::ArgTextureIn2,	"ArgIn",			{"uniformName", "resource", "samplerName"} );
-			AS_METHOD_T( classBinder, ScriptBasePass::ArgTextureArrIn,	"ArgTex",			{"uniformName", "resources"} );
-			AS_METHOD_T( classBinder, ScriptBasePass::ArgTextureArrIn2,	"ArgIn",			{"uniformName", "resources", "samplerName"} );
+			AS_METHOD_T( classBinder, ScriptBasePass::ArgImageIn,			"ArgIn",			{"uniformName", "resource"} );
+			AS_METHOD_T( classBinder, ScriptBasePass::ArgImageOut,			"ArgOut",			{"uniformName", "resource"} );
+			AS_METHOD_T( classBinder, ScriptBasePass::ArgImageInOut,		"ArgInOut",			{"uniformName", "resource"} );
 
-			AS_METHOD_T( classBinder, ScriptBasePass::ArgVideoIn,		"ArgIn",			{"uniformName", "resource", "samplerName"} );
-			AS_METHOD_T( classBinder, ScriptBasePass::ArgController,	"Set",				{"camera"} );
+			AS_METHOD_T( classBinder, ScriptBasePass::ArgTextureIn,			"ArgTex",			{"uniformName", "resource"} );
+			AS_METHOD_T( classBinder, ScriptBasePass::ArgTextureIn2,		"ArgIn",			{"uniformName", "resource", "samplerName"} );
+			AS_METHOD_T( classBinder, ScriptBasePass::ArgTextureArrIn,		"ArgTex",			{"uniformName", "resources"} );
+			AS_METHOD_T( classBinder, ScriptBasePass::ArgTextureArrIn2,		"ArgIn",			{"uniformName", "resources", "samplerName"} );
 
-			AS_METHOD_T( classBinder, ScriptBasePass::ArgImageArrIn,	"ArgIn",			{"uniformName", "resources"} );
-			AS_METHOD_T( classBinder, ScriptBasePass::ArgImageArrOut,	"ArgOut",			{"uniformName", "resources"} );
-			AS_METHOD_T( classBinder, ScriptBasePass::ArgImageArrInOut,	"ArgInOut",			{"uniformName", "resources"} );
+			AS_METHOD_T( classBinder, ScriptBasePass::ArgVideoIn,			"ArgIn",			{"uniformName", "resource", "samplerName"} );
+			AS_METHOD_T( classBinder, ScriptBasePass::ArgController,		"Set",				{"camera"} );
+
+			AS_METHOD_T( classBinder, ScriptBasePass::ArgImageArrIn,		"ArgIn",			{"uniformName", "resources"} );
+			AS_METHOD_T( classBinder, ScriptBasePass::ArgImageArrOut,		"ArgOut",			{"uniformName", "resources"} );
+			AS_METHOD_T( classBinder, ScriptBasePass::ArgImageArrInOut,		"ArgInOut",			{"uniformName", "resources"} );
 		}
 	}
 //-----------------------------------------------------------------------------
@@ -345,7 +349,6 @@ namespace
 		// viewports
 		{
 			classBinder.Comment( "Add viewport. 'rect' defined in unorm coords." );
-			AS_METHOD_T( classBinder, ScriptBaseRenderPass::_AddViewport0, "AddViewport", {"rect", "minDepth", "maxDepth", "scissor", "wScale"} );
 			AS_METHOD_T( classBinder, ScriptBaseRenderPass::_AddViewport1, "AddViewport", {"rect", "minDepth", "maxDepth"} );
 			AS_METHOD_T( classBinder, ScriptBaseRenderPass::_AddViewport2, "AddViewport", {"rect"} );
 			AS_METHOD_T( classBinder, ScriptBaseRenderPass::_AddViewport3, "AddViewport", {"left", "top", "right", "bottom"} );

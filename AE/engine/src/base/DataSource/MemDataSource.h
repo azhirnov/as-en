@@ -48,7 +48,7 @@ namespace AE::Base
 
 		Bytes		ReadBlock (Bytes pos, OUT void* buffer, Bytes size)			__NE_OF;
 
-		ReqAlign	OffsetAlign ()												C_NE_OV	{ return Default; }
+		ReqAlign	DirectAccessAlign ()										C_NE_OV	{ return Default; }
 
 		ND_ ArrayView<ubyte>	GetData ()										C_NE___	{ return ArrayView<ubyte>{ Cast<ubyte>(_dataPtr), usize{_size} }; }
 
@@ -143,7 +143,7 @@ namespace AE::Base
 		Bytes		WriteBlock (Bytes pos, const void* buffer, Bytes size)		__NE_OF;
 		void		Flush ()													__NE_OF	{}
 
-		ReqAlign	OffsetAlign ()												C_NE_OV	{ return Default; }
+		ReqAlign	DirectAccessAlign ()										C_NE_OV	{ return Default; }
 
 	protected:
 		explicit MemRefWDataSource (Bytes maxSize)								__NE___ : _maxSize{maxSize} {}

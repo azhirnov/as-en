@@ -1,7 +1,7 @@
 echo "update 'Utf8Proc'..."
 rmdir /Q /S "..\..\..\..\..\AE-Bin\external\android-clang\Utf8Proc"
 rmdir /Q /S "temp"
-git clone --branch "v2.10.0" "https://github.com/JuliaStrings/utf8proc.git" "temp"
+git clone --branch "v2.11.3" "https://github.com/JuliaStrings/utf8proc.git" "temp"
 copy /Y "temp\CMakeLists.txt" "temp\origin_CMakeLists.txt"
 copy /Y "utf8proc_CMakeLists.txt" "temp\CMakeLists.txt"
 cd "android"

@@ -151,7 +151,7 @@
   #ifdef AE_NV_shader_sm_builtins
 	float3  SMID ()
 	{
-		return Rainbow( DHash11( (float(gl.NV.SMID) / gl.NV.SMCount) * 11.1 )).rgb;
+		return RandomColor( float(gl.NV.SMID) * 11.1 );
 	}
 
 	void  SelectSMID (inout float4 color)
@@ -246,11 +246,11 @@
 		#endif
 
 
-		#if defined(iRegisterCount_0)
+		#if defined(iRegisterCount_0) // 16 reg
 			// nothing
 			out_TriID.r = gl.PrimitiveID;
 
-		#elif defined(iRegisterCount_1)
+		#elif defined(iRegisterCount_1) // 72 reg
 			float3			pos		= GetGlobalCoordSNorm() * 100.f;
 			const float		lac		= 5.0;
 			const float		pers	= 1.0;
@@ -260,7 +260,7 @@
 			out_Color += n * 0.001;
 			out_TriID.r = gl.PrimitiveID;
 
-		#elif defined(iRegisterCount_2)
+		#elif defined(iRegisterCount_2) // 80 reg
 			float3			pos		= GetGlobalCoordSNorm() * 100.f;
 			const float		lac		= 5.0;
 			const float		pers	= 1.0;
@@ -270,7 +270,7 @@
 			out_Color += n * 0.001;
 			out_TriID.r = gl.PrimitiveID;
 
-		#elif defined(iRegisterCount_3)
+		#elif defined(iRegisterCount_3) // 96 reg
 			float3			pos		= GetGlobalCoordSNorm() * 100.f;
 			const float		lac		= 5.0;
 			const float		pers	= 1.0;
@@ -285,7 +285,7 @@
 			out_Color += n * 0.001;
 			out_TriID.r = gl.PrimitiveID;
 
-		#elif defined(iRegisterCount_4)
+		#elif defined(iRegisterCount_4) // 96 reg
 			float3			pos		= GetGlobalCoordSNorm() * 100.f;
 			const float		lac		= 5.0;
 			const float		pers	= 1.0;
@@ -303,7 +303,7 @@
 			out_Color += n * 0.001;
 			out_TriID.r = gl.PrimitiveID;
 
-		#elif defined(iRegisterCount_5)
+		#elif defined(iRegisterCount_5) // 96 reg
 			float3			pos		= GetGlobalCoordSNorm() * 100.f;
 			const float		lac		= 5.0;
 			const float		pers	= 1.0;

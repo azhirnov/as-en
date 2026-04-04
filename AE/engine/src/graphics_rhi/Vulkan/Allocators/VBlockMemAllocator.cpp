@@ -72,6 +72,9 @@ namespace AE::Graphics
 				if ( page.memory == Default )
 					continue;
 
+				if ( page.buffer != Default )
+					dev.vkDestroyBuffer( dev.GetVkDevice(), page.buffer, null );
+
 				if ( page.mapped != null )
 					dev.vkUnmapMemory( dev.GetVkDevice(), page.memory );
 
@@ -177,9 +180,11 @@ namespace AE::Graphics
 	_Allocate
 =================================================
 */
-	inline bool  VBlockMemAllocator::_Allocate (VDevice const& dev, const Bytes memSize, const Bytes memAlign, const uint memBits,
-												const Bool shaderAddress, const Bool isImage, const Bool mapMem, OUT Data &outData) __NE___
+	bool  VBlockMemAllocator::_Allocate (VDevice const& dev, const Bytes memSize, const Bytes memAlign, const uint memBits,
+										 const EFlags flags, OUT Data &outData) __NE___
 	{
+		StaticAssert( uint(EFlags::All) == 0x1F );
+
 		outData = Default;
 
 		CHECK_ERR( memAlign <= _blockSize and memSize <= _blockSize );
@@ -190,7 +195,7 @@ namespace AE::Graphics
 
 			for (uint type_idx : BitIndexIterate( memBits ))
 			{
-				const Key	key{ type_idx, shaderAddress, isImage, mapMem };
+				const Key	key{ type_idx, flags };
 
 				auto	iter = _pageMap.find( key );
 				if ( iter == _pageMap.end() )
@@ -207,7 +212,7 @@ namespace AE::Graphics
 		VAutoreleaseMemory			memory		{dev};
 
 		mem_alloc.sType			 = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
-		mem_alloc.pNext			 = shaderAddress ? &mem_flag : null;
+		mem_alloc.pNext			 = AllBits( flags, EFlags::ShaderAddress ) ? &mem_flag : null;
 		mem_alloc.allocationSize = VkDeviceSize(_PageSize());
 
 		mem_flag.sType			 = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_FLAGS_INFO;
@@ -226,11 +231,19 @@ namespace AE::Graphics
 
 		// map memory
 		void*	mapped_ptr = null;
-		if ( mapMem )
+		if ( AllBits( flags, EFlags::MapMemory ))
+		{
 			VK_CHECK_ERR( dev.vkMapMemory( dev.GetVkDevice(), memory.Get(), 0, mem_alloc.allocationSize, 0, OUT &mapped_ptr ));
+			CHECK_ERR( mapped_ptr != null );
+		}
 
+		// create buffer
+		if ( AllBits( flags, EFlags::CreateBuffer ))
+		{
+			CHECK_ERR( VGfxMemAllocatorUtils::CreateStorageBuffer( dev, Bytes{mem_alloc.allocationSize}, memory.Get(), OUT memory.BufferRef() ));
+		}
 
-		const Key	key{ mem_alloc.memoryTypeIndex, shaderAddress, isImage, mapMem };
+		const Key	key{ mem_alloc.memoryTypeIndex, flags };
 		PageArr*	page_arr;
 		{
 			EXLOCK( _pageMapGuard );
@@ -244,6 +257,7 @@ namespace AE::Graphics
 
 			auto&		page	= page_arr->pages[idx];
 			page.memory			= memory.Release();
+			page.buffer			= memory.ReleaseBuffer();
 			page.mapped			= mapped_ptr;
 			page.memTypeIndex	= mem_alloc.memoryTypeIndex;
 		}
@@ -338,6 +352,7 @@ namespace AE::Graphics
 		auto&	type = mem_props.memoryTypes[ page.memTypeIndex ];
 
 		info.memory		= page.memory;
+		info.buffer		= page.buffer;
 		info.flags		= VkMemoryPropertyFlagBits(type.propertyFlags);
 		info.offset		= _blockSize * mem_data.blockIndex;
 		info.size		= _blockSize;

@@ -199,6 +199,7 @@ namespace
 */
 	void  UIEditorCore::ImGuiDrawTask::_UpdateMain (OUT float2 &wnd_pos)
 	{
+		ImGui::SetNextWindowPos( ImVec2{10.f, 10.f}, ImGuiCond_Once );
 		ImGui::SetNextWindowSizeConstraints( ImVec2{370.f, 400.f}, ImGui::GetIO().DisplaySize );
 
 		const auto	wnd_flags	= ImGuiWindowFlags_NoSavedSettings;
@@ -281,7 +282,7 @@ namespace
 			String	value_str	= ToString(anim_time, 2) << "s";
 
 			if ( ImGui::SliderFloat( "Anim time", INOUT &anim_time, 0.01f, 1.f, value_str.c_str() ))
-				UI::StyleCollection::UnsafeSetter::SetAnimSpeed( *ui_style, 1.f/anim_time );
+				UI::StyleCollection::UnsafeSetter::SetAnimSpeed( *ui_style, 1.f / anim_time );
 		}
 	}
 
@@ -642,7 +643,7 @@ namespace
 		const auto	frame_id = rg.GetFrameId();
 		CHECK_ERRV( rg.BeginFrame() );
 
-		if ( SharedPtr<UIScreen::Ctor> screen_ctor = RVRef(_pendingUIScreen).Extract() )
+		if ( SharedPtr<UIScreen::Ctor> screen_ctor = _pendingUIScreen.Extract() )
 		{
 			if ( _uiScreen )
 				_uiScreen->Deinitialize();
@@ -843,8 +844,9 @@ using namespace AE::UIEditor;
 #include "base/Defines/DetectLicense.inl.h"
 
 
-Unique<IApplication::IAppListener>  AE_OnAppCreated ()
+Unique<IApplication::IAppListener>  AE_OnAppCreated (const int argc, char const* argv[])
 {
+	Unused( argc, argv );
 	StaticLogger::InitDefault();
 
 	AE_LOG_DBG( "License: "s << AE_LICENSE );

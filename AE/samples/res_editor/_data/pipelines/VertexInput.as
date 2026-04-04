@@ -10,10 +10,10 @@ void ASmain ()
 	{
 		RC<ShaderStructType>	st = ShaderStructType( "CubeVertex" );
 		st.Set(	EStructLayout::InternalIO,
-				"packed_short_norm4		Position;" +
-				"packed_short_norm4		Texcoord;" +
-			    "packed_short_norm4		Normal;" +
-				"packed_short_norm4		Tangent;" +
+				"packed_short_norm4		Position;"
+				"packed_short_norm4		Texcoord;"
+			    "packed_short_norm4		Normal;"
+				"packed_short_norm4		Tangent;"
 				"packed_short_norm4		BiTangent;" );
 		st.AddUsage( ShaderStructTypeUsage::VertexLayout );
 
@@ -22,9 +22,9 @@ void ASmain ()
 	}{
 		RC<ShaderStructType>	st = ShaderStructType( "SphericalCubeVertex" );
 		st.Set(	EStructLayout::InternalIO,
-				"packed_short_norm4		Position;" +
-				"packed_short_norm4		Texcoord;" +
-				"packed_short_norm4		Tangent;" +
+				"packed_short_norm4		Position;"
+				"packed_short_norm4		Texcoord;"
+				"packed_short_norm4		Tangent;"
 				"packed_short_norm4		BiTangent;" );
 		st.AddUsage( ShaderStructTypeUsage::VertexLayout );
 

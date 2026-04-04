@@ -14,24 +14,12 @@ namespace AE::ResEditor
 	//
 	class Present final : public IPass
 	{
-	// types
-	private:
-		struct VideoInfo
-		{
-			const float		frameRate	= 60.f;
-			const float		frameTime	= 1.f / frameRate;
-			secondsd		duration;
-			uint			frameCount	= 0;
-		};
-
-
 	// variables
 	private:
 		const Array<RC<Image>>		_src;
 		const RC<DynamicDim>		_dynSize;
 		const RC<DynamicUInt>		_filterMode;
 
-		VideoInfo					_videoInfo;
 		AtomicRC<IVideoEncoder>		_videoEncoder;
 
 
@@ -50,7 +38,7 @@ namespace AE::ResEditor
 		static AsyncCoro  _SaveScreenshot (RC<ResLoader::IntermImage> image, EImageFormat fmt);
 		static AsyncCoro  _ScreenshotTest (RC<ResLoader::IntermImage> image, EImageFormat fmt);
 
-		RC<IVideoEncoder>  _CreateEncoder (float bitrate, EVideoFormat, EVideoCodec, EVideoColorPreset) const;
+		RC<IVideoEncoder>  _CreateEncoder (float bitrate, int frameRate, EVideoFormat, EVideoCodec, EVideoColorPreset) const;
 	};
 
 
@@ -133,6 +121,7 @@ namespace AE::ResEditor
 		};
 
 
+	  #if defined(AE_ENABLE_VULKAN) or defined(AE_ENABLE_REMOTE_GRAPHICS)
 		//
 		// Stencil View
 		//
@@ -151,6 +140,7 @@ namespace AE::ResEditor
 
 			bool  Execute (const Image &src, const Image &copy, SyncPassData &)		C_Th_OV;
 		};
+	  #endif
 
 
 	// variables

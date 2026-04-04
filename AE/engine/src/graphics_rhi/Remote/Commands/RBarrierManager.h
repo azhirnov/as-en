@@ -56,38 +56,42 @@ namespace AE::Graphics::_hidden_
 		ND_ RenderCoroRef				GetRenderTask ()			C_NE___	{ ASSERT( _task );  return _task; }
 
 	  #if AE_DBG_GRAPHICS
-		void  ProfilerBeginContext (RSoftwareCmdBuf &cmdbuf, DebugLabel dbg, IGraphicsProfiler::EContextType type)					C_Th___;
-		void  ProfilerEndContext (RSoftwareCmdBuf &cmdbuf, IGraphicsProfiler::EContextType type)									C_Th___;
+		void  ProfilerBeginContext (RSoftwareCmdBuf &cmdbuf, DebugLabel dbg, IGraphicsProfiler::EContextType type)						C_Th___;
+		void  ProfilerEndContext (RSoftwareCmdBuf &cmdbuf, IGraphicsProfiler::EContextType type)										C_Th___;
 	  #endif
 
-		ND_ bool  BeforeBeginRenderPass (const RenderPassDesc &desc, OUT RPrimaryCmdBufState &primaryState)							__NE___;
+		ND_ bool  BeforeBeginRenderPass (const RenderPassDesc &desc, OUT RPrimaryCmdBufState &primaryState)								__NE___;
 
-		void  MergeBarriers (INOUT RBarrierManager &)																				__NE___;
-		void  ClearBarriers ()																										__NE___;
+		void  MergeBarriers (INOUT RBarrierManager &)																					__NE___;
+		void  ClearBarriers ()																											__NE___;
 
-		void  BufferBarrier (BufferID buffer, EResourceState srcState, EResourceState dstState)										__Th___;
-		void  BufferViewBarrier (BufferViewID view, EResourceState srcState, EResourceState dstState)								__Th___;
+		void  ResourceBarrier (BufferID     id, EResourceState srcState, EResourceState dstState)										__Th___;
+		void  ResourceBarrier (BufferViewID id, EResourceState srcState, EResourceState dstState)										__Th___;
+		void  ResourceBarrier (ImageID      id, EResourceState srcState, EResourceState dstState)										__Th___;
+		void  ResourceBarrier (ImageID      id, EResourceState srcState, EResourceState dstState, const ImageSubresourceRange &subRes)	__Th___;
+		void  ResourceBarrier (ImageViewID  id, EResourceState srcState, EResourceState dstState)										__Th___;
+		void  ResourceBarrier (RTGeometryID id, EResourceState srcState, EResourceState dstState)										__Th___;
+		void  ResourceBarrier (RTSceneID    id, EResourceState srcState, EResourceState dstState)										__Th___;
+		void  ResourceBarrier (RTMicromapID id, EResourceState srcState, EResourceState dstState)										__Th___;
+		void  ResourceBarrier (VideoImageID  id, EResourceState srcState, EResourceState dstState)										__Th___;
+		void  ResourceBarrier (VideoBufferID id, EResourceState srcState, EResourceState dstState)										__Th___;
 
-		void  ImageBarrier (ImageID image, EResourceState srcState, EResourceState dstState)										__Th___;
-		void  ImageBarrier (ImageID image, EResourceState srcState, EResourceState dstState, const ImageSubresourceRange &subRes)	__Th___;
-		void  ImageViewBarrier (ImageViewID view, EResourceState srcState, EResourceState dstState)									__Th___;
+		void  MemoryBarrier (EResourceState srcState, EResourceState dstState)															__Th___;
+		void  MemoryBarrier (EPipelineScope srcScope, EPipelineScope dstScope)															__Th___;
+		void  MemoryBarrier ()																											__Th___;
 
-		void  MemoryBarrier (EResourceState srcState, EResourceState dstState)														__Th___;
-		void  MemoryBarrier (EPipelineScope srcScope, EPipelineScope dstScope)														__Th___;
-		void  MemoryBarrier ()																										__Th___;
+		void  ExecutionBarrier (EResourceState srcState, EResourceState dstState)														__Th___;
+		void  ExecutionBarrier (EPipelineScope srcScope, EPipelineScope dstScope)														__Th___;
+		void  ExecutionBarrier ()																										__Th___;
 
-		void  ExecutionBarrier (EResourceState srcState, EResourceState dstState)													__Th___;
-		void  ExecutionBarrier (EPipelineScope srcScope, EPipelineScope dstScope)													__Th___;
-		void  ExecutionBarrier ()																									__Th___;
+		void  AcquireBufferOwnership (BufferID buffer, EQueueType srcQueue, EResourceState srcState, EResourceState dstState)			__Th___;
+		void  ReleaseBufferOwnership (BufferID buffer, EResourceState srcState, EResourceState dstState, EQueueType dstQueue)			__Th___;
 
-		void  AcquireBufferOwnership (BufferID buffer, EQueueType srcQueue, EResourceState srcState, EResourceState dstState)		__Th___;
-		void  ReleaseBufferOwnership (BufferID buffer, EResourceState srcState, EResourceState dstState, EQueueType dstQueue)		__Th___;
-
-		void  AcquireImageOwnership (ImageID image, EQueueType srcQueue, EResourceState srcState, EResourceState dstState)			__Th___;
-		void  ReleaseImageOwnership (ImageID image, EResourceState srcState, EResourceState dstState, EQueueType dstQueue)			__Th___;
+		void  AcquireImageOwnership (ImageID image, EQueueType srcQueue, EResourceState srcState, EResourceState dstState)				__Th___;
+		void  ReleaseImageOwnership (ImageID image, EResourceState srcState, EResourceState dstState, EQueueType dstQueue)				__Th___;
 
 	private:
-		void  _AddCommand (const RemoteGraphics::Msg::CmdBuf_Bake::BaseCmd &)														__Th___;
+		void  _AddCommand (const RemoteGraphics::Msg::CmdBuf_Bake::BaseCmd &)															__Th___;
 	};
 //-----------------------------------------------------------------------------
 
@@ -108,14 +112,16 @@ namespace AE::Graphics::_hidden_
 		ND_ auto&					_GetBarrierMngr ()																			__NE___ { return _mngr; } \
 		ND_ const auto&				_GetBarrierMngr ()																			C_NE___ { return _mngr; } \
 		\
-		void  BufferBarrier (BufferID buffer, EResourceState srcState, EResourceState dstState)									__Th_OV { return _mngr.BufferBarrier( buffer, srcState, dstState ); } \
-		\
-		void  BufferViewBarrier (BufferViewID view, EResourceState srcState, EResourceState dstState)							__Th_OV { return _mngr.BufferViewBarrier( view, srcState, dstState ); } \
-		\
-		void  ImageBarrier (ImageID id, EResourceState srcState, EResourceState dstState)										__Th_OV { return _mngr.ImageBarrier( id, srcState, dstState ); } \
-		void  ImageBarrier (ImageID id, EResourceState srcState, EResourceState dstState, const ImageSubresourceRange &subRes)	__Th_OV	{ return _mngr.ImageBarrier( id, srcState, dstState, subRes ); } \
-		\
-		void  ImageViewBarrier (ImageViewID view, EResourceState srcState, EResourceState dstState)								__Th_OV { return _mngr.ImageViewBarrier( view, srcState, dstState ); } \
+		void  ResourceBarrier (BufferID     id, EResourceState srcState, EResourceState dstState)								__Th_OV { this->_mngr.ResourceBarrier( id, srcState, dstState ); } \
+		void  ResourceBarrier (BufferViewID id, EResourceState srcState, EResourceState dstState)								__Th_OV { this->_mngr.ResourceBarrier( id, srcState, dstState ); } \
+		void  ResourceBarrier (ImageID      id, EResourceState srcState, EResourceState dstState)								__Th_OV { this->_mngr.ResourceBarrier( id, srcState, dstState ); } \
+		void  ResourceBarrier (ImageViewID  id, EResourceState srcState, EResourceState dstState)								__Th_OV { this->_mngr.ResourceBarrier( id, srcState, dstState ); } \
+		void  ResourceBarrier (RTGeometryID id, EResourceState srcState, EResourceState dstState)								__Th_OV { this->_mngr.ResourceBarrier( id, srcState, dstState ); } \
+		void  ResourceBarrier (RTSceneID    id, EResourceState srcState, EResourceState dstState)								__Th_OV { this->_mngr.ResourceBarrier( id, srcState, dstState ); } \
+		void  ResourceBarrier (RTMicromapID id, EResourceState srcState, EResourceState dstState)								__Th_OV { this->_mngr.ResourceBarrier( id, srcState, dstState ); } \
+		void  ResourceBarrier (VideoImageID  id, EResourceState srcState, EResourceState dstState)								__Th_OV { this->_mngr.ResourceBarrier( id, srcState, dstState ); } \
+		void  ResourceBarrier (VideoBufferID id, EResourceState srcState, EResourceState dstState)								__Th_OV { this->_mngr.ResourceBarrier( id, srcState, dstState ); } \
+		void  ResourceBarrier (ImageID id, EResourceState srcState, EResourceState dstState, const ImageSubresourceRange &subRes)__Th_OV{ this->_mngr.ResourceBarrier( id, srcState, dstState, subRes ); } \
 		\
 		void  MemoryBarrier (EResourceState srcState, EResourceState dstState)													__NE_OV { return _mngr.MemoryBarrier( srcState, dstState ); } \
 		void  MemoryBarrier (EPipelineScope srcScope, EPipelineScope dstScope)													__NE_OV { return _mngr.MemoryBarrier( srcScope, dstScope ); } \

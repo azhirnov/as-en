@@ -11,9 +11,19 @@
 # include <android/native_window_jni.h>
 # include <android/keycodes.h>
 # include <android/sensor.h>
-# include <android_native_app_glue.h>
+//# include <android_native_app_glue.h>
 
 # include <camera/NdkCameraManager.h>
+
+// encoder
+# include <media/NdkMediaCodec.h>
+# include <media/NdkMediaFormat.h>
+# include <media/NdkMediaMuxer.h>
+
+// decoder
+# include <media/NdkMediaExtractor.h>
+# include <media/NdkImageReader.h>
+
 # include "base/Defines/Undef.h"
 
 # include "base/Platforms/AndroidApi26.h"

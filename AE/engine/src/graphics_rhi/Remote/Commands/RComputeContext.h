@@ -17,8 +17,8 @@ namespace AE::Graphics
 	{
 	// types
 	private:
-		using AccumBar		= Graphics::_hidden_::RAccumBarriers< RComputeContext >;
-		using DeferredBar	= Graphics::_hidden_::RAccumDeferredBarriersForCtx< RComputeContext >;
+		using AccumBar		= Graphics::_hidden_::AccumBarriers< RComputeContext >;
+		using DeferredBar	= Graphics::_hidden_::AccumDeferredBarriersForCtx< RComputeContext >;
 		using Validator_t	= Graphics::_hidden_::ComputeContextValidation;
 
 
@@ -43,6 +43,15 @@ namespace AE::Graphics
 
 		void  ConvertCooperativeVectorMatrix (ArrayView<ConvertCoopMatrixCmd>)											__Th_OV	{}	// TODO
 		void  ConvertCooperativeVectorMatrix (ArrayView<ConvertCoopMatrixCmd2>)											__Th_OV	{}
+
+		// indirect commands //
+		void  PreprocessGeneratedCommands (const PreprocessGeneratedCommandsCmd &)										__Th_OV	{}	// TODO
+		void  PreprocessGeneratedCommands (const PreprocessGeneratedCommands2Cmd &)										__Th_OV	{}
+
+		void  BindInitialPipeline (IndirectExecutionSetID)																__Th_OV	{}
+
+		void  ExecuteGeneratedCommands (const ExecuteGeneratedCommandsCmd &)											__Th_OV	{}
+		void  ExecuteGeneratedCommands (const ExecuteGeneratedCommands2Cmd &)											__Th_OV	{}
 
 		ND_ RmCommandBufferID	EndCommandBuffer ()																		__Th___	{ return _EndCommandBuffer( ECtxType::Compute ); }
 		ND_ CmdBuf_t			ReleaseCommandBuffer ()																	__Th___	{ return _ReleaseCommandBuffer( ECtxType::Compute ); }

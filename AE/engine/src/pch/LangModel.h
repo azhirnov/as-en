@@ -3,4 +3,5 @@
 #pragma once
 
 #include "lang_model/Public/LanguageModel.h"
+#include "lang_model/Public/DiffusionModel.h"
 #include "lang_model/Public/Factory.h"

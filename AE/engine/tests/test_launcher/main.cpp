@@ -50,6 +50,13 @@ public:
 			int (*fn) (Args...);
 			if ( lib.GetProcAddr( fnName, OUT fn ))
 			{
+				// set IsUndefDebugger
+				void (*set_dbg)(bool);
+				if ( lib.GetProcAddr( "Android_SetIsUnderDebugger", OUT set_dbg ))
+				{
+					set_dbg( PlatformUtils::IsUnderDebugger() );
+				}
+
 				AE_LOGW( "-- Begin "s << libName );
 				fn( args... );
 				AE_LOGW( "-- End "s << libName );
@@ -63,38 +70,41 @@ public:
 
 	void  _RunTests (IApplication &app) const
 	{
-		auto			asset_storage	= app.OpenStorage( EAppStorage::Builtin );
-		auto			cache_storage	= app.OpenStorage( EAppStorage::ExternalCache );
-		const String	cache_path		= ToString( app.GetStoragePath( EAppStorage::ExternalCache ));
+		auto		asset_storage	= app.OpenStorage( EAppStorage::Builtin );
+		auto		cache_storage	= app.OpenStorage( EAppStorage::ExternalCache );
+		String		cache_path		= ToString( app.GetStoragePath( EAppStorage::ExternalCache ));
+		char const*	argv[]			= { "exe path", "-p", cache_path.c_str() };
+		const int	argc			= int(CountOf( argv ));
 
 		AE_LOGI( ">> Begin tests" );
 		{
-			_LoadAndRun( "libTestsBase.so",				"Tests_Base",			cache_path.c_str() );
-			_LoadAndRun( "libTestsScripting.so",		"Tests_Scripting",		cache_path.c_str() );
-			_LoadAndRun( "libTestsSerializing.so",		"Tests_Serializing",	cache_path.c_str() );
-			_LoadAndRun( "libTestsThreading.so",		"Tests_Threading",		cache_path.c_str() );
-			_LoadAndRun( "libTestsNetworking.so",		"Tests_Networking",		cache_path.c_str() );
-			_LoadAndRun( "libTestsECS.so",				"Tests_ECS",			cache_path.c_str() );
-			_LoadAndRun( "libTestsVFS.so",				"Tests_VFS",			cache_path.c_str() );
-			_LoadAndRun( "libTestsHuLang.so",			"Tests_HuLang",			cache_path.c_str() );
-		//	_LoadAndRun( "libTestsLogic.so",			"Tests_Logic",			cache_path.c_str() );
-			_LoadAndRun( "libTestsGraphicsRHI.so",		"Tests_GraphicsRHI2",	asset_storage.get(), cache_storage.get() );
-			_LoadAndRun( "libTestsGraphics.so",			"Tests_Graphics2",		asset_storage.get(), cache_storage.get() );
+			_LoadAndRun( "libTestsBase.so",				"AEMain",				argc, argv );
+			_LoadAndRun( "libTestsScripting.so",		"AEMain",				argc, argv );
+			_LoadAndRun( "libTestsSerializing.so",		"AEMain",				argc, argv );
+			_LoadAndRun( "libTestsThreading.so",		"AEMain",				argc, argv );
+			_LoadAndRun( "libTestsNetworking.so",		"AEMain",				argc, argv );
+			_LoadAndRun( "libTestsECS.so",				"AEMain",				argc, argv );
+			_LoadAndRun( "libTestsVFS.so",				"AEMain",				argc, argv );
+			_LoadAndRun( "libTestsHuLang.so",			"AEMain",				argc, argv );
+		//	_LoadAndRun( "libTestsLogic.so",			"AEMain",				argc, argv );
+			_LoadAndRun( "libTestsGraphicsRHI.so",		"Tests_GraphicsRHI",	asset_storage.get(), cache_storage.get() );
+			_LoadAndRun( "libTestsGraphics.so",			"Tests_Graphics",		asset_storage.get(), cache_storage.get() );
+			_LoadAndRun( "libTestsVideo.so",			"AEMain",				argc, argv );
 
-			_LoadAndRun( "libTestsAtlasTools.so",		"Tests_AtlasTools",		cache_path.c_str() );
-			_LoadAndRun( "libTestsGeometryTools.so",	"Tests_GeometryTools",	cache_path.c_str() );
+			_LoadAndRun( "libTestsAtlasTools.so",		"AEMain",				argc, argv );
+			_LoadAndRun( "libTestsGeometryTools.so",	"AEMain",				argc, argv );
 
-		//	_LoadAndRun( "libNetworkStressTest.so",		"Tests_NetworkStressTest", cache_path.c_str() );
+		//	_LoadAndRun( "libNetworkStressTest.so",		"AEMain",				argc, argv );
 		}
 		AE_LOGI( "<< Tests complete" );
 
 
 		AE_LOGI( ">> Begin performance tests" );
 		{
-			_LoadAndRun( "libPerfGraphics.so",			"Perf_Graphics2",		asset_storage.get() );
+			_LoadAndRun( "libPerfGraphics.so",			"Perf_Graphics",		asset_storage.get() );
 		  #ifdef AE_RELEASE
-			_LoadAndRun( "libPerfBase.so",				"Perf_Base",			cache_path.c_str() );
-			_LoadAndRun( "libPerfThreading.so",			"Perf_Threading",		cache_path.c_str() );
+			_LoadAndRun( "libPerfBase.so",				"AEMain",				argc, argv );
+			_LoadAndRun( "libPerfThreading.so",			"AEMain",				argc, argv );
 		  #endif
 		}
 		AE_LOGI( "<< Performance tests complete" );
@@ -106,8 +116,9 @@ public:
 	AE_OnAppCreated / AE_OnAppDestroyed
 =================================================
 */
-Unique<IApplication::IAppListener>  AE_OnAppCreated ()
+Unique<IApplication::IAppListener>  AE_OnAppCreated (const int argc, char const* argv[])
 {
+	Unused( argc, argv );
 	AE::Base::StaticLogger::InitDefault();
 
 	return MakeUnique<AppListener>();

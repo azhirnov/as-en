@@ -153,11 +153,7 @@ namespace {
 		CHECK_THROW( _state == EState::Recording );
 		CHECK_THROW_MSG( _fontFile.empty(), "already loaded" );
 
-		Path	path = ObjectStorage::Instance()->GetScriptFolder();
-		path.append( fontFile );
-
-		_fontFile = FileSystem::ToAbsolute( path );
-		CHECK_THROW_MSG( FileSystem::IsFile( _fontFile ));
+		_fontFile = ObjectStorage::Instance()->GetResourcePath( fontFile );  // throw
 	}
 
 /*

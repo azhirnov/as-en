@@ -232,6 +232,10 @@ namespace AE::Base
 */
 	String  UnixUtils::GetComputerName () __NE___
 	{
+		#ifndef HOST_NAME_MAX
+		# define HOST_NAME_MAX  255
+		#endif
+
 		char	hostname [HOST_NAME_MAX];
 		int		result = ::gethostname( OUT hostname, HOST_NAME_MAX );
 

@@ -5,8 +5,6 @@
 
 #pragma once
 
-#include "base/../../GlobalConfig.h"
-
 // mem leak check
 #if defined(AE_COMPILER_MSVC) and defined(AE_ENABLE_MEMLEAK_CHECKS) and defined(_DEBUG)
 #	define _CRTDBG_MAP_ALLOC
@@ -90,3 +88,5 @@
 #ifdef __INTELLISENSE__
 #  define AE_PLATFORM_ANDROID
 #endif
+
+#include "base/../../GlobalConfig.h"

@@ -167,13 +167,13 @@ Compiled resources will be stored in `AE/../AE-Temp` folder. They can be used on
 
 ## Update file paths (optional)
 
-Visual Studio, VSCode, Notepad++ and some other IDEs allows to open file in URL format like a `file://absolute/path/to/a/file.txt`, but it requires absolute paths. Source code may contain links to other source files or docs which is written as URLs.<br/>
+Visual Studio, VSCode, Notepad++ and some other IDEs allows to open file in URL format like a `file:///absolute/path/to/a/file.txt`, but it requires absolute paths. Source code may contain links to other source files or docs which is written as URLs.<br/>
 Use IDE or another tool to replace path `[](https://github.com/azhirnov/as-en/blob/dev/AE/)` to an absolute path like a `file:///C:/Projects/AE/`.
 
 
 ## Setup IDE and environment (optional)
 
-Associate file extensions `.as`, `.glsl` with Visual Studio, Notepad++ or other IDE or text editor. This text editor will be used to open files by links like `file://path`.
+Associate file extensions `.as`, `.glsl` with Visual Studio, Notepad++ or other IDE or text editor. This text editor will be used to open files by links like `file:///path`.
 
 ### Visual Studio
 

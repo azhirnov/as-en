@@ -73,32 +73,22 @@ namespace
 
 /*
 =================================================
-	ConvertString
+	ConvertString2
 =================================================
 */
 	template <typename T>
-	Nd__In BasicString<CharType>  ConvertString (const BasicString<T> &src)
+	Nd__In BasicString<CharType>  ConvertString2 (const BasicString<T> &src)
 	{
-		constexpr bool	conv1 = IsSame< CharType, CharUtf8 > and
-								(IsSame< T, char > or IsSame< T, wchar_t >);
-
-		constexpr bool	conv2 = IsSame< CharType, wchar_t > and
-								(IsSame< T, char > or IsSame< T, wchar_t >);
-
-		StaticAssert( conv1 or conv2 );
-
 		BasicString<CharType>	dst;
-		dst.resize( src.length() );
-
-		for (usize i = 0; i < src.length(); ++i)
-			dst[i] = CharType(src[i]);
-
+		CHECK_THROW( Base::ConvertString( OUT dst, BasicStringView{src} ));
 		return dst;
 	}
 
-	ND_ static BasicString<CharType>  ConvertString (const Path &src)
+	ND_ static BasicString<CharType>  ConvertString2 (const Path &src)
 	{
-		return ConvertString( src.native() );
+		BasicString<CharType>	dst;
+		CHECK_THROW( Base::ConvertString( OUT dst, BasicStringView{src.native()} ));
+		return dst;
 	}
 
 /*
@@ -137,7 +127,7 @@ namespace
 */
 	ND_ static BasicString<CharType>  FindPathAndConvertString (const String &src, StringView msg) __Th___
 	{
-		return ConvertString( FindPath( src, msg ));
+		return ConvertString2( FindPath( src, msg ));
 	}
 
 /*
@@ -262,9 +252,9 @@ namespace
 			}
 			#endif
 
-			const auto	output_pack_name		= ConvertString( FileSystem::ToAbsolute( outputPackName ));
-			const auto	output_cpp_types_file	= ConvertString( _outputCppStructsFile );
-			const auto	output_cpp_names_file	= ConvertString( _outputCppNamesFile );
+			const auto	output_pack_name		= ConvertString2( FileSystem::ToAbsolute( outputPackName ));
+			const auto	output_cpp_types_file	= ConvertString2( _outputCppStructsFile );
+			const auto	output_cpp_names_file	= ConvertString2( _outputCppNamesFile );
 
 			const auto	pipelines				= ConvertArray<PipelineCompiler::PathParams>( _pipelines );
 			const auto	shader_folders			= ConvertArray( _shaderFolders );
@@ -324,9 +314,9 @@ namespace
 	class ScriptInputActions final : public AngelScriptHelper::SimpleRefCounter
 	{
 	private:
-		Array< BasicString<CharType> >	_files;
-		Array< BasicString<CharType> >	_include;
-		Path							_outputCppFile;
+		Array< BasicString<CharType> >			_files;
+		Array< BasicString<CharType> >			_include;
+		Path									_outputCppFile;
 
 		Library									_lib;
 		InputActions::ConvertInputActionsFn_t	_fnConvertInputActions	= null;
@@ -364,10 +354,10 @@ namespace
 
 			CHECK_THROW_MSG( not _files.empty() );
 
-			const auto	output		= ConvertString( FileSystem::ToAbsolute( outputName ));
+			const auto	output		= ConvertString2( FileSystem::ToAbsolute( outputName ));
 			const auto	files		= ConvertArray( _files );
 			const auto	include		= ConvertArray( _include );
-			const auto	output_cpp	= ConvertString( _outputCppFile );
+			const auto	output_cpp	= ConvertString2( _outputCppFile );
 
 			InputActionsInfo	info	= {};
 			info.inFiles				= files.data();
@@ -434,7 +424,7 @@ namespace
 			FileSystem::DeleteFile( path );
 			FileSystem::CreateDirectories( path.parent_path() );
 
-			_tempFile = ConvertString( FileSystem::ToAbsolute( path ));
+			_tempFile = ConvertString2( FileSystem::ToAbsolute( path ));
 		}
 
 		void  ToArchive (const String &outputName) __Th___
@@ -453,15 +443,22 @@ namespace
 
 			CHECK_THROW_MSG( not _files.empty() );
 
-			const auto	output		= ConvertString( FileSystem::ToAbsolute( outputName ));
+			const auto	output		= ConvertString2( FileSystem::ToAbsolute( outputName ));
 			const auto	files		= ConvertArray<AssetPacker::PathParams>( _files );
 			const auto	include		= ConvertArray( _include );
+
+			Array<const CharType*>	res_dirs;
+			for (auto& path : s_SearchDirs) {
+				res_dirs.push_back( path.c_str() );
+			}
 
 			AssetInfo	info			= {};
 			info.inFiles				= files.data();
 			info.inFileCount			= files.size();
 			info.inIncludeFolders		= include.data();
 			info.inIncludeFolderCount	= include.size();
+			info.inResourceFolders		= res_dirs.data();
+			info.inResourceFolderCount	= res_dirs.size();
 			info.tempFile				= _tempFile.c_str();
 			info.outputArchive			= output.c_str();
 
@@ -571,6 +568,7 @@ namespace
 =================================================
 	GetSharedFeatureSetPath
 	GetSharedShadersPath
+	GetSharedPipelinesPath
 	GetCanvasVerticesPath
 	GetUIBindingsPath
 	GetOutputDir
@@ -580,6 +578,7 @@ namespace
 */
 	static String	GetSharedFeatureSetPath ()	{ return AE_SHARED_DATA "/feature_set"; }
 	static String	GetSharedShadersPath ()		{ return AE_SHARED_DATA "/shaders"; }
+	static String	GetSharedPipelinesPath ()	{ return AE_SHARED_DATA "/pipelines"; }
 	static String	GetCanvasVerticesPath ()	{ return AE_CANVAS_VERTS; }
 	static String	GetUIBindingsPath ()		{ return AE_UI_BINDINGS; }
 
@@ -630,6 +629,7 @@ namespace
 
 		AS_GLOBAL_FN( se, GetSharedFeatureSetPath,	"GetSharedFeatureSetPath"	);
 		AS_GLOBAL_FN( se, GetSharedShadersPath,		"GetSharedShadersPath"		);
+		AS_GLOBAL_FN( se, GetSharedPipelinesPath,	"GetSharedPipelinesPath"	);
 		AS_GLOBAL_FN( se, GetCanvasVerticesPath,	"GetCanvasVerticesPath"		);
 		AS_GLOBAL_FN( se, GetUIBindingsPath,		"GetUIBindingsPath"			);
 		AS_GLOBAL_FN( se, GetOutputDir,				"GetOutputDir"				);
@@ -746,7 +746,7 @@ namespace
 	{
 		{
 			String	str = "OfflinePacker args: \n";
-			str << "-i \""s << ToString(respackScript) << "\" -o \"" << ToString(outputDir) << "\"\n";
+			str << "-i \"" << ToString(respackScript) << "\" -o \"" << ToString(outputDir) << "\"\n";
 			for (auto& dir : s_SearchDirs) {
 				str << " -d \"" << ToString(dir) << "\"\n";
 			}
@@ -760,7 +760,7 @@ namespace
 		FileSystem::CreateDirectories( outputDir );
 		CHECK_ERR( FileSystem::IsDirectory( outputDir ));
 
-		_s_OutputDir = ToString(outputDir);
+		_s_OutputDir = ToString( outputDir );
 		CHECK_ERR( FileSystem::Equal( outputDir, Path{_s_OutputDir} ));	// if path has unicode
 		_s_OutputDir << '/';
 
@@ -803,10 +803,10 @@ namespace
 */
 #ifndef AE_OFFLINE_PACKER_LIB
 
-	int main (int argc, char* argv[])
+	int main (int argc, char const* argv[])
 	{
 		AE::Base::StaticLogger::LoggerScope log{};
-		log.checkMemLeaks = false;	// don't check for memleak because of false possitive in 'SpirvToMsl'
+		log.checkMemLeaks = false;	// don't check for memleak because of false positive in 'SpirvToMsl'
 
 		Path	input_script;
 		Path	output_dir		= FileSystem::CurrentPath();
@@ -818,6 +818,7 @@ namespace
 		{
 			input_script 	= "";	// -i
 			output_dir 		= "";	// -o
+			s_SearchDirs.push_back( AE_DATA_FOLDER );	// -d
 		}
 		#else
 			for (int i = 1; i+1 < argc; i += 2)

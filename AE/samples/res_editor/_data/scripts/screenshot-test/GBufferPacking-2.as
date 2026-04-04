@@ -9,7 +9,7 @@
 	void ASmain ()
 	{
 		// initialize
-		RC<Image>	rt = Image( EPixelFormat::RGBA16F, SurfaceSize() );		rt.Name( "RT" );
+		RC<Image>	rt = Image( EPixelFormat::RGBA8_UNorm, SurfaceSize() );		rt.Name( "RT" );
 
 		// render loop
 		{
@@ -57,6 +57,9 @@
 			out_Color = float4(0.2);
 			return;
 		}
+
+		col.rgb += col.a;
+		col.a = 1.0;
 
 		out_Color = col * scale;
 	}

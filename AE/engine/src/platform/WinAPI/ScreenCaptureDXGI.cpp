@@ -39,6 +39,7 @@ namespace AE::App
 	ScreenCaptureDXGI::~ScreenCaptureDXGI () __NE___
 	{
 		CHECK( _dxDevice == null );
+		CHECK( not _looping.load() );
 	}
 
 /*
@@ -89,10 +90,9 @@ namespace AE::App
 			get_debug_interface( 0, __uuidof(IDXGIDebug1),		OUT &_dxDebug );
 			get_debug_interface( 0, __uuidof(IDXGIInfoQueue),	OUT &_dxDebugQueue );
 
-			decltype(&DXGI_DEBUG_ALL)	dxgiDebugAll;
-			CHECK( _dxgiLib.GetVarAddr( "DXGI_DEBUG_ALL", OUT dxgiDebugAll ));
+			static constexpr GUID  AE_DXGI_DEBUG_ALL = { 0xe48ae283, 0xda80, 0x490b, { 0x87, 0xe6, 0x43, 0xe9, 0xa9, 0xcf, 0xda, 0x08 } };
 
-			if ( _dxDebug and _dxDebugQueue and  dxgiDebugAll )
+			if ( _dxDebug and _dxDebugQueue )
 			{
 				Cast<IDXGIDebug1>(_dxDebug)->EnableLeakTrackingForThread();
 
@@ -106,10 +106,10 @@ namespace AE::App
 				dxgi_filter.DenyList.pSeverityList	= deny_severities;
 
 				auto*	dbg_queue = Cast<IDXGIInfoQueue>(_dxDebugQueue);
-				dbg_queue->PushRetrievalFilter( *dxgiDebugAll, &dxgi_filter );
-				dbg_queue->PushStorageFilter(   *dxgiDebugAll, &dxgi_filter );
-				dbg_queue->SetBreakOnSeverity(  *dxgiDebugAll, DXGI_INFO_QUEUE_MESSAGE_SEVERITY_CORRUPTION,	true );
-				dbg_queue->SetBreakOnSeverity(  *dxgiDebugAll, DXGI_INFO_QUEUE_MESSAGE_SEVERITY_ERROR,		true );
+				dbg_queue->PushRetrievalFilter( AE_DXGI_DEBUG_ALL, &dxgi_filter );
+				dbg_queue->PushStorageFilter(   AE_DXGI_DEBUG_ALL, &dxgi_filter );
+				dbg_queue->SetBreakOnSeverity(  AE_DXGI_DEBUG_ALL, DXGI_INFO_QUEUE_MESSAGE_SEVERITY_CORRUPTION,	true );
+				dbg_queue->SetBreakOnSeverity(  AE_DXGI_DEBUG_ALL, DXGI_INFO_QUEUE_MESSAGE_SEVERITY_ERROR,		true );
 			}
 		}
 	  #endif
@@ -163,7 +163,7 @@ namespace AE::App
 
 		if ( not desktop_attached )
 		{
-			WIN_CHECK( "SetThreadDesktop" );
+			WIN_CHECK_DEV( "SetThreadDesktop: " );
 			return false;
 		}
 		return true;
@@ -449,6 +449,7 @@ namespace AE::App
 		}
 	  #endif
 
+		_dxgiLib.Unload();
 		_dx11Lib.Unload();
 	}
 
@@ -497,8 +498,15 @@ namespace AE::App
 		_dxThread = StdThread{ [this, &init, &ok] ()
 		{
 			ok = _InitDX11();
-			ok = ok and _OpenDesktopInThread();
+			Unused( _OpenDesktopInThread() );	// may fail if already attached
 			ok = ok and _InitDuplication();
+
+			if ( not ok )
+			{
+				_DestroyStagingImages();
+				_Destroy();
+			}
+
 			init.Signal();
 
 			if ( not ok )
@@ -508,6 +516,10 @@ namespace AE::App
 		}};
 
 		init.Wait();
+
+		if ( not ok )
+			Finish();
+
 		return ok;
 	}
 
@@ -518,7 +530,7 @@ namespace AE::App
 */
 	bool  ScreenCaptureDXGI_HostAccess::_FindAdapter (void*, OUT void**) __NE___
 	{
-		// keed default
+		// keep default
 		return true;
 	}
 

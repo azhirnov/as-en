@@ -17,13 +17,15 @@ void ASmain ()
 		{
 			RC<PipelineCompiler>	ppln = PipelineCompiler();
 
+			ppln.PipelineIncludeDir( GetSharedPipelinesPath() );
 			ppln.AddPipelineFolderRecursive( GetSharedFeatureSetPath() );
 			ppln.AddPipeline( "config_" + suffix[i] + ".as" );
 			ppln.AddPipeline( GetCanvasVerticesPath() );
 			ppln.AddPipelineFolder( "pipelines" );
 
-			ppln.AddShaderFolder( "shaders" );
 			ppln.ShaderIncludeDir( GetSharedShadersPath() );
+			ppln.ShaderIncludeDir( GetSharedPipelinesPath() );
+			//ppln.AddShaderFolder( "shaders" );
 
 			ppln.SetOutputCPPFile( "cpp/" + suffix[i] + "_types.h",  "cpp/" + suffix[i] + "_names.h",  EReflectionFlags::All );
 			ppln.AddNameMapping();

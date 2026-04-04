@@ -1,0 +1,34 @@
+
+cmake_minimum_required( VERSION 3.22 FATAL_ERROR )
+
+project( "stable-diffusion-main" LANGUAGES CXX )
+
+#set( AE_EXTERNAL_PATH "${CMAKE_CURRENT_SOURCE_DIR}/../../.." )
+#include( "${AE_EXTERNAL_PATH}/config.cmake" )
+
+set( CPU_TYPE		"0"  	CACHE STRING 	"CPU type with assotiated feature set" )
+set( ENABLE_VULKAN	OFF		CACHE BOOL 		"enable Vulkan backend" )
+
+set( GGML_ACCELERATE 		ON  CACHE BOOL "" FORCE )
+set( GGML_CPU		 		ON  CACHE BOOL "" FORCE )
+set( GGML_OPENMP			ON  CACHE BOOL "" FORCE )
+set( GGML_BACKEND_DL		ON  CACHE BOOL "" FORCE )
+set( GGML_BUILD_EXAMPLES	OFF CACHE BOOL "" FORCE )
+set( GGML_BUILD_TESTS		OFF CACHE BOOL "" FORCE )
+set( GGML_NATIVE			OFF CACHE BOOL "" FORCE )
+set( GGML_STATIC			OFF CACHE BOOL "" FORCE )
+
+set( SD_BUILD_EXAMPLES			OFF CACHE BOOL "" FORCE )
+set( SD_BUILD_SHARED_LIBS		ON  CACHE BOOL "" FORCE )
+set( SD_BUILD_SHARED_GGML_LIB	OFF CACHE BOOL "" FORCE )
+
+# Vulkan
+if (FALSE) #${ENABLE_VULKAN})
+	set( GGML_VULKAN				ON  CACHE BOOL "" FORCE )
+	set( GGML_VULKAN_CHECK_RESULTS	OFF CACHE BOOL "" FORCE )	# failed to compile
+	set( GGML_VULKAN_RUN_TESTS		OFF CACHE BOOL "" FORCE )
+	set( SD_VULKAN					ON  CACHE BOOL "" FORCE )
+	message( STATUS "<<<< build GGML backend: Vulkan GPU" )
+endif()
+
+include( "origin_CMakeLists.txt" )

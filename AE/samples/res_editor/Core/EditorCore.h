@@ -72,6 +72,8 @@ namespace AE::ResEditor
 		// other
 		mutable ScreenshotPrefix_t	screenshotPrefix;
 
+		EWindowMode		windowMode	= EWindowMode::Resizable;
+
 
 		ResEditorAppConfig ()									= default;
 		ResEditorAppConfig (ResEditorAppConfig &&)				= default;

@@ -7,7 +7,7 @@ if (TARGET "LangModel")
 
 	source_group( TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${SOURCES} )
 	set_property( TARGET "Tests.LangModel" PROPERTY FOLDER "Engine/Tests" )
-	target_link_libraries( "Tests.LangModel" PUBLIC "LangModel" )
+	target_link_libraries( "Tests.LangModel" PUBLIC "LangModel" "GraphicsRHI" "ResourceLoaders" )
 
 	target_include_directories( "Tests.LangModel" PUBLIC ".." )	# from '_experimental' to 'tests' folder
 

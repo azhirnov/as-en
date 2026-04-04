@@ -112,6 +112,33 @@ namespace AE::Graphics
 
 /*
 =================================================
+	Create
+=================================================
+*/
+	bool  VImageView::Create (ResourceManager &resMngr, const VulkanImageViewDesc2 &desc, ImageID imageId, StringView dbgName) __NE___
+	{
+		DRC_EXLOCK( _drCheck );
+		CHECK_ERR( _imageView == Default );
+		CHECK_ERR( desc.viewHandle != Default );
+
+		const VImage*	image = resMngr.GetResource( imageId, True{"incRef"} );
+		CHECK_ERR( image != null );
+
+		_imageId = Strong<ImageID>{imageId};
+
+		_desc			= desc;
+		_imageView		= desc.viewHandle;
+		_canBeDestroyed	= desc.canBeDestroyed;
+
+		auto&	dev = resMngr.GetDevice();
+		dev.SetObjectName( _imageView, dbgName, VK_OBJECT_TYPE_IMAGE_VIEW );
+
+		GFX_DBG_ONLY( _debugName = dbgName; )
+		return true;
+	}
+
+/*
+=================================================
 	Destroy
 =================================================
 */

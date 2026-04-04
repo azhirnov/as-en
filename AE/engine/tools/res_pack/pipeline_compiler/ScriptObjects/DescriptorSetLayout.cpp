@@ -13,7 +13,7 @@ namespace
 		EShaderStages::Mesh | EShaderStages::MeshTask;
 
 	static DescriptorSetLayout*  DescriptorSetLayout_Ctor (const String &name) {
-		return DescriptorSetLayoutPtr{ new DescriptorSetLayout{ name }}.Detach();
+		return DescriptorSetLayout::Create( name ).Detach();
 	}
 
 /*
@@ -201,18 +201,24 @@ namespace
 	constructor
 =================================================
 */
-	DescriptorSetLayout::DescriptorSetLayout (const String &name) __Th___ :
+	DescriptorSetLayout::DescriptorSetLayout (const String &name) __NE___ :
 		_features{ ObjectStorage::Instance()->GetDefaultFeatureSets() },
 		_name{ name }
-	{
-		auto&	storage = *ObjectStorage::Instance();
+	{}
 
-		storage.AddName< DSLayoutName >( _name );
-		CHECK_THROW_MSG( storage.dsLayouts.emplace( _name, DescriptorSetLayoutPtr{this} ).second,
+	DescriptorSetLayoutPtr  DescriptorSetLayout::Create (const String &name) __Th___
+	{
+		DescriptorSetLayoutPtr	result	{ new DescriptorSetLayout{ name }};
+		auto&					storage = *ObjectStorage::Instance();
+
+		storage.AddName< DSLayoutName >( result->_name );
+		CHECK_THROW_MSG( storage.dsLayouts.emplace( result->_name, result ).second,
 			"DescriptorSetLayout with name '"s << name << "' is already exists." );
 
-		_dsLayout.name	= DSLayoutName{_name};
-		_dsLayout.usage	= storage.defaultDescSetUsage;
+		result->_dsLayout.name	= DSLayoutName{result->_name};
+		result->_dsLayout.usage	= storage.defaultDescSetUsage;
+
+		return result;
 	}
 
 /*
@@ -317,7 +323,7 @@ namespace
 				case EPixelFormat::R64U :			return "r64ui";
 				case EPixelFormat::R64I :			return "r64i";
 			}
-			CHECK_THROW_MSG( false, "unsupported pixel format" );
+			CHECK_THROW_MSG( false, "unsupported pixel format for storage image: "s << ToString(fmt) );
 		}};
 
 		CHECK_THROW_MSG( not _dsLayout.uniforms.empty() );
@@ -1452,7 +1458,7 @@ namespace
 	void  DescriptorSetLayout::Bind (const ScriptEnginePtr &se) __Th___
 	{
 		ClassBinder<DescriptorSetLayout>	binder{ se };
-		binder.CreateRef();
+		binder.CreateRef( 0, False{} );
 
 		binder.Comment( "Create descriptor set layout.\n"
 						"Name may be used in C++ code to create descriptor set." );
@@ -1880,6 +1886,19 @@ namespace
 
 /*
 =================================================
+	_ValidateShaderSample
+=================================================
+*/
+	void  DescriptorSetLayout::_ValidateShaderSample (INOUT EResourceState &state, const EShaderStages stages) C_Th___
+	{
+		bool	is_ds = AnyEqual( ToEResState(state), _EResState::DepthStencilTest_ShaderSample, _EResState::DepthTest_DepthSample_StencilRW );
+		CHECK_THROW_MSG( ToEResState(state) == _EResState::ShaderSample or is_ds );
+
+		state |= EResourceState_FromShaders( stages );
+	}
+
+/*
+=================================================
 	_AddSRGB
 =================================================
 */
@@ -1913,6 +1932,7 @@ namespace
 		un.buffer.typeName				= ShaderStructName{"dbg_ShaderTraceStorage"};
 
 		CHECK( EResourceState_Validate( un.buffer.state ));
+		TestFeature_Supported( GetFeatures(), un.buffer.state );  // throw
 
 		_dsLayout.uniforms.emplace_back( UniformName{name}, un );
 	}
@@ -2507,6 +2527,7 @@ namespace
 
 		state |= EResourceState_FromShaders( stages );
 		CHECK_THROW_MSG( EResourceState_Validate( state ));
+		TestFeature_Supported( GetFeatures(), state );  // throw
 
 		_CheckUniformName( name );
 		_CheckArraySize( arraySize.value );
@@ -2555,10 +2576,12 @@ namespace
 */
 	void  DescriptorSetLayout::AddStorageBuffer (EShaderStages stages, const String &name, const ArraySize &arraySize, const String &typeName, EAccessType access, EResourceState state, Bool dynamic) __Th___
 	{
+		CHECK_THROW_MSG( AnyEqual( ToEResState(state), _EResState::ShaderStorage_Read, _EResState::ShaderStorage_Write, _EResState::ShaderStorage_RW ));
 		CHECK_THROW_MSG( stages != Default );
 
 		state |= EResourceState_FromShaders( stages );
 		CHECK_THROW_MSG( EResourceState_Validate( state ));
+		TestFeature_Supported( GetFeatures(), state );  // throw
 
 		_CheckStateForStorage( state );
 		_CheckUniformName( name );
@@ -2603,6 +2626,7 @@ namespace
 
 		state |= EResourceState_FromShaders( stages );
 		CHECK_THROW_MSG( EResourceState_Validate( state ));
+		TestFeature_Supported( GetFeatures(), state );  // throw
 
 		_CheckUniformName( name );
 		_CheckArraySize( arraySize.value );
@@ -2627,12 +2651,14 @@ namespace
 */
 	void  DescriptorSetLayout::AddStorageTexelBuffer (EShaderStages stages, const String &name, const ArraySize &arraySize, EImageType type, EPixelFormat format, EAccessType access, EResourceState state) __Th___
 	{
+		CHECK_THROW_MSG( AnyEqual( ToEResState(state), _EResState::ShaderStorage_Read, _EResState::ShaderStorage_Write, _EResState::ShaderStorage_RW ));
 		CHECK_THROW_MSG( stages != Default );
 		CHECK_THROW_MSG( (type & EImageType::_DimMask) == EImageType::Buffer );
 		CHECK_THROW_MSG( (type & EImageType::_ValMask) != Default );
 
 		state |= EResourceState_FromShaders( stages );
 		CHECK_THROW_MSG( EResourceState_Validate( state ));
+		TestFeature_Supported( GetFeatures(), state );  // throw
 
 		_CheckStateForStorage( state );
 		_CheckUniformName( name );
@@ -2664,11 +2690,13 @@ namespace
 */
 	void  DescriptorSetLayout::AddStorageImage (EShaderStages stages, const String &name, const ArraySize &arraySize, EImageType type, EPixelFormat format, EAccessType access, EResourceState state) __Th___
 	{
+		CHECK_THROW_MSG( AnyEqual( ToEResState(state), _EResState::ShaderStorage_Read, _EResState::ShaderStorage_Write, _EResState::ShaderStorage_RW ));
 		CHECK_THROW_MSG( stages != Default );
 		CHECK_THROW_MSG( (type & EImageType::_DimMask) != Default );
 
 		state |= EResourceState_FromShaders( stages );
 		CHECK_THROW_MSG( EResourceState_Validate( state ));
+		TestFeature_Supported( GetFeatures(), state );  // throw
 
 		_CheckStateForStorage( state );
 		_CheckUniformName( name );
@@ -2708,13 +2736,13 @@ namespace
 */
 	void  DescriptorSetLayout::AddSampledImage (EShaderStages stages, const String &name, const ArraySize &arraySize, EImageType type, EResourceState state) __Th___
 	{
-		CHECK_THROW_MSG( ToEResState(state) == _EResState::ShaderSample );
 		CHECK_THROW_MSG( stages != Default );
 		CHECK_THROW_MSG( (type & EImageType::_DimMask) != Default );
 		CHECK_THROW_MSG( (type & EImageType::_ValMask) != Default );
+		_ValidateShaderSample( INOUT state, stages );  // throw
 
-		state |= EResourceState_FromShaders( stages );
 		CHECK_THROW_MSG( EResourceState_Validate( state ));
+		TestFeature_Supported( GetFeatures(), state );  // throw
 
 		_CheckUniformName( name );
 		_CheckArraySize( arraySize.value );
@@ -2740,13 +2768,13 @@ namespace
 */
 	void  DescriptorSetLayout::AddCombinedImage (EShaderStages stages, const String &name, const ArraySize &arraySize, EImageType type, EResourceState state) __Th___
 	{
-		CHECK_THROW_MSG( ToEResState(state) == _EResState::ShaderSample );
 		CHECK_THROW_MSG( stages != Default );
 		CHECK_THROW_MSG( (type & EImageType::_DimMask) != Default );
 		CHECK_THROW_MSG( (type & EImageType::_ValMask) != Default );
+		_ValidateShaderSample( INOUT state, stages );  // throw
 
-		state |= EResourceState_FromShaders( stages );
 		CHECK_THROW_MSG( EResourceState_Validate( state ));
+		TestFeature_Supported( GetFeatures(), state );  // throw
 
 		_CheckUniformName( name );
 		_CheckArraySize( arraySize.value );
@@ -2784,13 +2812,13 @@ namespace
 	void  DescriptorSetLayout::AddCombinedImage_ImmutableSampler (EShaderStages stages, const String &name, EImageType type, EResourceState state,
 																  const ArraySize &arraySize, ArrayView<String> samplerNames) __Th___
 	{
-		CHECK_THROW_MSG( ToEResState(state) == _EResState::ShaderSample );
 		CHECK_THROW_MSG( stages != Default );
 		CHECK_THROW_MSG( (type & EImageType::_DimMask) != Default );
 		CHECK_THROW_MSG( (type & EImageType::_ValMask) != Default );
+		_ValidateShaderSample( INOUT state, stages );  // throw
 
-		state |= EResourceState_FromShaders( stages );
 		CHECK_THROW_MSG( EResourceState_Validate( state ));
+		TestFeature_Supported( GetFeatures(), state );  // throw
 
 		const uint	array_size = Max( uint(samplerNames.size()), arraySize.value );
 
@@ -2859,6 +2887,7 @@ namespace
 
 		state |= EResourceState_FromShaders( stages );
 		CHECK_THROW_MSG( EResourceState_Validate( state ));
+		TestFeature_Supported( GetFeatures(), state );  // throw
 
 		_CheckUniformName( name );
 

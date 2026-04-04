@@ -47,6 +47,9 @@ namespace AE::Graphics
 		struct BufferWithOffsetAndStride : BufferWithOffset
 		{
 			Bytes			stride;
+
+			BufferWithOffsetAndStride ()										__NE___	{}
+			BufferWithOffsetAndStride (BufferID id, Bytes off, Bytes stride)	__NE___ : BufferWithOffset{ id, off }, stride{stride} {}
 		};
 
 		struct TrianglesInfo
@@ -57,6 +60,7 @@ namespace AE::Graphics
 			EVertexType		vertexFormat		= Default;
 			EIndex			indexType			= Default;		// optional
 			bool			allowTransforms		= false;
+			uint			micromapIndex		= UMax;			// index in 'micromaps' array, require 'opacityMicromap' feature
 		};
 
 		struct TrianglesData
@@ -86,14 +90,19 @@ namespace AE::Graphics
 			Bytes			stride;
 		};
 
+		struct MicromapInfo;
+
 		using Triangles		= TupleArrayView< TrianglesInfo,	TrianglesData	>;
 		using AABBs			= TupleArrayView< AABBsInfo,		AABBsData		>;
+		using Micromaps		= ArrayView< MicromapInfo >;
 		using ScratchBuffer	= BufferWithOffset;
+		using Self			= RTGeometryBuild;
 
 
 	// variables
 		Triangles		triangles;
 		AABBs			aabbs;
+		Micromaps		micromaps;
 		ERTASOptions	options		= Default;
 		ScratchBuffer	scratch;				// requires EBufferUsage::ASBuild_Scratch,	access: EResourceState::BuildRTAS_ScratchBuffer
 
@@ -113,7 +122,7 @@ namespace AE::Graphics
 			RTGeometryBuild{ trianglesInfo, Default, aabbsInfo, Default, opt }
 		{}
 
-		RTGeometryBuild&  SetScratchBuffer (BufferID id, Bytes offset = 0_b) __NE___
+		Self&  SetScratchBuffer (BufferID id, Bytes offset = 0_b) __NE___
 		{
 			ASSERT( id );
 			scratch.id		= id;
@@ -121,7 +130,12 @@ namespace AE::Graphics
 			return *this;
 		}
 
-		ND_ usize  GeometryCount ()		C_NE___	{ return triangles.size() + aabbs.size(); }
+		Self&  SetTriangles (ArrayView<TrianglesInfo> info, ArrayView<TrianglesData> data = {})	__NE___ { triangles	= Triangles{ info, data };	return *this; }
+		Self&  SetAABBs     (ArrayView<AABBsInfo>     info, ArrayView<AABBsData>     data = {})	__NE___	{ aabbs		= AABBs{ info, data };		return *this; }
+		Self&  SetMicromaps (ArrayView<MicromapInfo>  info)										__NE___	{ micromaps = info;   return *this; }
+		Self&  SetOptions   (ERTASOptions value)												__NE___	{ options   = value;  return *this; }
+
+		ND_ usize  GeometryCount ()																C_NE___	{ return triangles.size() + aabbs.size(); }
 	};
 
 
@@ -134,11 +148,11 @@ namespace AE::Graphics
 		Bytes			size;		// same as RTASBuildSizes::size
 		ERTASOptions	options		= Default;
 
-		RTGeometryDesc ()									__NE___ {}
-		RTGeometryDesc (Bytes size, ERTASOptions opt)		__NE___ : size{size}, options{opt} {}
+		RTGeometryDesc ()												__NE___ {}
+		RTGeometryDesc (Bytes size, ERTASOptions opt)					__NE___ : size{size}, options{opt} {}
 
-		ND_ bool  operator == (const RTGeometryDesc &rhs)	__NE___	{ return (size == rhs.size) and (options == rhs.options); }
-		ND_ bool  IsExclusiveSharing ()						C_NE___	{ return false; }
+		ND_		bool		 operator == (const RTGeometryDesc &rhs)	__NE___	{ return (size == rhs.size) and (options == rhs.options); }
+		NdCx__	static bool  IsExclusiveSharing ()						__NE___	{ return true; }
 	};
 //-----------------------------------------------------------------------------
 
@@ -272,11 +286,11 @@ namespace AE::Graphics
 
 
 	// methods
-		RTSceneDesc ()									__NE___	{}
-		RTSceneDesc (Bytes size, ERTASOptions opt)		__NE___	: size{size}, options{opt} {}
+		RTSceneDesc ()												__NE___	{}
+		RTSceneDesc (Bytes size, ERTASOptions opt)					__NE___	: size{size}, options{opt} {}
 
-		ND_ bool  operator == (const RTSceneDesc &rhs)	__NE___	{ return (size == rhs.size) and (options == rhs.options); }
-		ND_ bool  IsExclusiveSharing ()					C_NE___	{ return false; }
+		ND_		bool		 operator == (const RTSceneDesc &rhs)	__NE___	{ return (size == rhs.size) and (options == rhs.options); }
+		NdCx__	static bool  IsExclusiveSharing ()					__NE___	{ return true; }
 	};
 //-----------------------------------------------------------------------------
 
@@ -698,6 +712,138 @@ namespace AE::Graphics
 
 
 
+	//
+	// Ray Tracing Micromap description
+	//
+	struct RTMicromapDesc
+	{
+	// variables
+		Bytes				size;
+		EMicromapType		type	= Default;
+
+	// methods
+		RTMicromapDesc ()												__NE___	{}
+		RTMicromapDesc (Bytes size, EMicromapType type)					__NE___	: size{size}, type{type} {}
+
+		ND_		bool		 operator == (const RTMicromapDesc &rhs)	__NE___	{ return (size == rhs.size) and (type == rhs.type); }
+		NdCx__	static bool  IsExclusiveSharing ()						__NE___	{ return true; }
+	};
+
+
+
+	//
+	// Ray Tracing Micromap Info
+	//
+	struct RTMicromapInfo
+	{
+	// types
+		union Format
+		{
+			EOpacityMicromapFormat			opacity			= Default;
+			EDisplacementMicromapFormat		displacement;
+		};
+		StaticAssert( sizeof(Format) == 2 );
+
+		struct Usage
+		{
+			uint		triangleCount		= 0;
+			uint		subdivisionLevel	= 0;	// level0: 1 tri, level1: 4 tris, level2: 16 tris, level3: 64 tris ...
+			Format		format;
+			ushort		_padding			= 0;
+		};
+		StaticAssert( sizeof(Usage) == 12 );
+
+		using UsageArr_t	= ArrayView< Usage >;
+
+
+	// variables
+		EMicromapType			type			= Default;
+		EBuildMicromapFlags		buildFlags		= Default;
+		UsageArr_t				usage;						// define total count of triangles with combination of 'subdivisionLevel' and 'format'.
+
+
+	// methods
+		RTMicromapInfo ()	__NE___ {}
+	};
+
+
+
+	//
+	// Ray Tracing Micromap Build command
+	//
+	struct RTMicromapBuild : RTMicromapInfo
+	{
+	// types
+		struct Triangle
+		{
+			Bytes32u		dataOffset;			// offset in 'data' buffer
+			ushort			subdivisionLevel;
+			Format			format;
+		};
+		StaticAssert( sizeof(Triangle) == 8 );
+
+		using Self						= RTMicromapBuild;
+		using BufferWithOffset			= RTGeometryBuild::BufferWithOffset;
+		using BufferWithOffsetAndStride	= RTGeometryBuild::BufferWithOffsetAndStride;
+
+
+	// variables
+		BufferWithOffset			data;				// contains 1/2-bit data per micro triangle,
+														// requires EBufferUsage::MMBuild_ReadOnly, access: EResourceState::BuildMicromap_Read.
+		BufferWithOffsetAndStride	triangleArray;		// contains 'Triangle[]', array size defined in 'usage',
+														// requires EBufferUsage::MMBuild_ReadOnly, access: EResourceState::BuildMicromap_Read.
+		BufferWithOffset			scratch;			// requires EBufferUsage::MMBuild_Scratch,	access: EResourceState::BuildMicromap_ScratchBuffer
+
+
+	// methods
+		RTMicromapBuild ()																			__NE___ {}
+		RTMicromapBuild (const RTMicromapInfo &other)												__NE___ : RTMicromapInfo{other} {}
+		RTMicromapBuild (const RTMicromapBuild &)													__NE___ = default;
+
+		Self&  SetScratchBuffer (BufferID id, Bytes offset = 0_b)									__NE___	{ ASSERT( id );  scratch		= BufferWithOffset{ id, offset };					return *this; }
+		Self&  SetData (BufferID id, Bytes offset = 0_b)											__NE___	{ ASSERT( id );  data			= BufferWithOffset{ id, offset };					return *this; }
+		Self&  SetTriangleArray (BufferID id, Bytes offset = 0_b, Bytes stride = SizeOf<Triangle>)	__NE___	{ ASSERT( id );  triangleArray	= BufferWithOffsetAndStride{ id, offset, stride };	return *this; }
+
+		Self&  SetUsage (UsageArr_t value)															__NE___	{ usage = value;  return *this; }
+	};
+
+
+	//
+	// Ray Tracing Micromap Build Sizes
+	//
+	struct RTMicromapBuildSizes
+	{
+		Bytes		micromapSize;
+		Bytes		buildScratchSize;
+		bool		discardable			= false;	// indicates whether or not the micromap object may be destroyed after an acceleration structure build or update.
+	};
+//-----------------------------------------------------------------------------
+
+
+
+	struct RTGeometryBuild::MicromapInfo
+	{
+	// types
+		using Usage			= RTMicromapInfo::Usage;
+		using UsageArr_t	= RTMicromapInfo::UsageArr_t;
+
+	// variables
+		uint			baseTriangle		= 0;
+		Bytes16u		indexStride;
+		EIndex			indexType			= Default;
+		UsageArr_t		usage;
+		BufferID		indexBuffer;			// If undefined then used triangle index from geometry.
+												// If defined: for each triangle defined by 'TrianglesData::indexData', BLAS build fetches 'indexBuffer' using 'indexType' and 'indexStride'.
+												// Index can be one of 'EOpacityMicromapSpecialIndex' for special case.
+												// access: EResourceState::BuildRTAS_Read.
+		RTMicromapID	micromapId;				// If undefined, then every index in 'indexBuffer' must be 'EOpacityMicromapSpecialIndex'.
+												// access: EResourceState::BuildRTAS_Read.
+		Bytes			indexBufferOffset;
+	};
+//-----------------------------------------------------------------------------
+
+
+
 /*
 =================================================
 	SetInputType
@@ -737,6 +883,10 @@ namespace AE::Base
 	template <> struct TTriviallySerializable< Graphics::RTGeometryBuild::AABBsInfo		> : CT_True {};
 	template <> struct TTriviallySerializable< Graphics::RTGeometryBuild::AABBsData		> : CT_True {};
 	template <> struct TTriviallySerializable< Graphics::RTGeometryBuild::ScratchBuffer	> : CT_True {};
+	template <> struct TTriviallySerializable< Graphics::RTGeometryBuild::MicromapInfo	> : CT_True {};
 
 	template <> struct TTriviallySerializable< Graphics::RTSceneBuild::InstanceBuffer	> : CT_True {};
+
+	template <> struct TTriviallySerializable< Graphics::RTMicromapInfo::Usage	>		: CT_True {};
+	template <> struct TTriviallySerializable< Graphics::RTMicromapBuild::Triangle	>	: CT_True {};
 }

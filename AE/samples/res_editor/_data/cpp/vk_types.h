@@ -1,4 +1,4 @@
-//1d6e1909
+//aea51dcf
 #ifndef CameraData_DEFINED
 #	define CameraData_DEFINED
 	// size: 400, align: 16
@@ -166,45 +166,6 @@
 	StaticAssert( offsetof(ComputePassPC, wgCount_dispatchIndex) == 0 );
 	StaticAssert( sizeof(ComputePassPC) == 16 );
 
-#ifndef ComputeMipUB_DEFINED
-#	define ComputeMipUB_DEFINED
-	// size: 704, align: 16
-	struct ComputeMipUB
-	{
-		static constexpr auto   TypeName = ShaderStructName{HashVal32{0x62b2bd2du}};
-
-		float                       time;
-		float                       timeDelta;
-		uint                        frame;
-		uint                        passFrameId;
-		uint                        seed;
-		float4                      mouse;
-		float2                      customKeys;
-		float                       pixPerMm;
-		float                       mmPerPix;
-		StaticArray< float4, 8 >    floatSliders;
-		StaticArray< int4, 8 >      intSliders;
-		StaticArray< float4, 8 >    colors;
-		StaticArray< float4, 8 >    floatConst;
-		StaticArray< int4, 8 >      intConst;
-	};
-#endif
-	StaticAssert( offsetof(ComputeMipUB, time) == 0 );
-	StaticAssert( offsetof(ComputeMipUB, timeDelta) == 4 );
-	StaticAssert( offsetof(ComputeMipUB, frame) == 8 );
-	StaticAssert( offsetof(ComputeMipUB, passFrameId) == 12 );
-	StaticAssert( offsetof(ComputeMipUB, seed) == 16 );
-	StaticAssert( offsetof(ComputeMipUB, mouse) == 32 );
-	StaticAssert( offsetof(ComputeMipUB, customKeys) == 48 );
-	StaticAssert( offsetof(ComputeMipUB, pixPerMm) == 56 );
-	StaticAssert( offsetof(ComputeMipUB, mmPerPix) == 60 );
-	StaticAssert( offsetof(ComputeMipUB, floatSliders) == 64 );
-	StaticAssert( offsetof(ComputeMipUB, intSliders) == 192 );
-	StaticAssert( offsetof(ComputeMipUB, colors) == 320 );
-	StaticAssert( offsetof(ComputeMipUB, floatConst) == 448 );
-	StaticAssert( offsetof(ComputeMipUB, intConst) == 576 );
-	StaticAssert( sizeof(ComputeMipUB) == 704 );
-
 #ifndef ComputeMipPC_DEFINED
 #	define ComputeMipPC_DEFINED
 	// size: 16, align: 8 (16)
@@ -219,101 +180,6 @@
 	StaticAssert( offsetof(ComputeMipPC, invResolution) == 0 );
 	StaticAssert( offsetof(ComputeMipPC, resolution) == 8 );
 	StaticAssert( sizeof(ComputeMipPC) == 16 );
-
-#ifndef ComputeMipUB_DEFINED
-#	define ComputeMipUB_DEFINED
-	// size: 704, align: 16
-	struct ComputeMipUB
-	{
-		static constexpr auto   TypeName = ShaderStructName{HashVal32{0x62b2bd2du}};
-
-		float                       time;
-		float                       timeDelta;
-		uint                        frame;
-		uint                        passFrameId;
-		uint                        seed;
-		float4                      mouse;
-		float2                      customKeys;
-		float                       pixPerMm;
-		float                       mmPerPix;
-		StaticArray< float4, 8 >    floatSliders;
-		StaticArray< int4, 8 >      intSliders;
-		StaticArray< float4, 8 >    colors;
-		StaticArray< float4, 8 >    floatConst;
-		StaticArray< int4, 8 >      intConst;
-	};
-#endif
-	StaticAssert( offsetof(ComputeMipUB, time) == 0 );
-	StaticAssert( offsetof(ComputeMipUB, timeDelta) == 4 );
-	StaticAssert( offsetof(ComputeMipUB, frame) == 8 );
-	StaticAssert( offsetof(ComputeMipUB, passFrameId) == 12 );
-	StaticAssert( offsetof(ComputeMipUB, seed) == 16 );
-	StaticAssert( offsetof(ComputeMipUB, mouse) == 32 );
-	StaticAssert( offsetof(ComputeMipUB, customKeys) == 48 );
-	StaticAssert( offsetof(ComputeMipUB, pixPerMm) == 56 );
-	StaticAssert( offsetof(ComputeMipUB, mmPerPix) == 60 );
-	StaticAssert( offsetof(ComputeMipUB, floatSliders) == 64 );
-	StaticAssert( offsetof(ComputeMipUB, intSliders) == 192 );
-	StaticAssert( offsetof(ComputeMipUB, colors) == 320 );
-	StaticAssert( offsetof(ComputeMipUB, floatConst) == 448 );
-	StaticAssert( offsetof(ComputeMipUB, intConst) == 576 );
-	StaticAssert( sizeof(ComputeMipUB) == 704 );
-
-#ifndef ComputeMipPC_DEFINED
-#	define ComputeMipPC_DEFINED
-	// size: 16, align: 8 (16)
-	struct ComputeMipPC
-	{
-		static constexpr auto   TypeName = ShaderStructName{HashVal32{0x68c279feu}};
-
-		float2  invResolution;
-		uint2   resolution;
-	};
-#endif
-	StaticAssert( offsetof(ComputeMipPC, invResolution) == 0 );
-	StaticAssert( offsetof(ComputeMipPC, resolution) == 8 );
-	StaticAssert( sizeof(ComputeMipPC) == 16 );
-
-#ifndef RayTracingPassUB_DEFINED
-#	define RayTracingPassUB_DEFINED
-	// size: 1104, align: 16
-	struct RayTracingPassUB
-	{
-		static constexpr auto   TypeName = ShaderStructName{HashVal32{0x1539319au}};
-
-		float                       time;
-		float                       timeDelta;
-		uint                        frame;
-		uint                        passFrameId;
-		uint                        seed;
-		float4                      mouse;
-		float2                      customKeys;
-		float                       pixPerMm;
-		float                       mmPerPix;
-		CameraData                  camera;
-		StaticArray< float4, 8 >    floatSliders;
-		StaticArray< int4, 8 >      intSliders;
-		StaticArray< float4, 8 >    colors;
-		StaticArray< float4, 8 >    floatConst;
-		StaticArray< int4, 8 >      intConst;
-	};
-#endif
-	StaticAssert( offsetof(RayTracingPassUB, time) == 0 );
-	StaticAssert( offsetof(RayTracingPassUB, timeDelta) == 4 );
-	StaticAssert( offsetof(RayTracingPassUB, frame) == 8 );
-	StaticAssert( offsetof(RayTracingPassUB, passFrameId) == 12 );
-	StaticAssert( offsetof(RayTracingPassUB, seed) == 16 );
-	StaticAssert( offsetof(RayTracingPassUB, mouse) == 32 );
-	StaticAssert( offsetof(RayTracingPassUB, customKeys) == 48 );
-	StaticAssert( offsetof(RayTracingPassUB, pixPerMm) == 56 );
-	StaticAssert( offsetof(RayTracingPassUB, mmPerPix) == 60 );
-	StaticAssert( offsetof(RayTracingPassUB, camera) == 64 );
-	StaticAssert( offsetof(RayTracingPassUB, floatSliders) == 464 );
-	StaticAssert( offsetof(RayTracingPassUB, intSliders) == 592 );
-	StaticAssert( offsetof(RayTracingPassUB, colors) == 720 );
-	StaticAssert( offsetof(RayTracingPassUB, floatConst) == 848 );
-	StaticAssert( offsetof(RayTracingPassUB, intConst) == 976 );
-	StaticAssert( sizeof(RayTracingPassUB) == 1104 );
 
 #ifndef SceneGraphicsPassUB_DEFINED
 #	define SceneGraphicsPassUB_DEFINED
@@ -357,43 +223,6 @@
 	StaticAssert( offsetof(SceneGraphicsPassUB, floatConst) == 848 );
 	StaticAssert( offsetof(SceneGraphicsPassUB, intConst) == 976 );
 	StaticAssert( sizeof(SceneGraphicsPassUB) == 1104 );
-
-#ifndef SceneRayTracingPassUB_DEFINED
-#	define SceneRayTracingPassUB_DEFINED
-	// size: 1072, align: 16
-	struct SceneRayTracingPassUB
-	{
-		static constexpr auto   TypeName = ShaderStructName{HashVal32{0xd09ba9b0u}};
-
-		float                       time;
-		float                       timeDelta;
-		uint                        frame;
-		uint                        seed;
-		float2                      customKeys;
-		float                       pixPerMm;
-		float                       mmPerPix;
-		CameraData                  camera;
-		StaticArray< float4, 8 >    floatSliders;
-		StaticArray< int4, 8 >      intSliders;
-		StaticArray< float4, 8 >    colors;
-		StaticArray< float4, 8 >    floatConst;
-		StaticArray< int4, 8 >      intConst;
-	};
-#endif
-	StaticAssert( offsetof(SceneRayTracingPassUB, time) == 0 );
-	StaticAssert( offsetof(SceneRayTracingPassUB, timeDelta) == 4 );
-	StaticAssert( offsetof(SceneRayTracingPassUB, frame) == 8 );
-	StaticAssert( offsetof(SceneRayTracingPassUB, seed) == 12 );
-	StaticAssert( offsetof(SceneRayTracingPassUB, customKeys) == 16 );
-	StaticAssert( offsetof(SceneRayTracingPassUB, pixPerMm) == 24 );
-	StaticAssert( offsetof(SceneRayTracingPassUB, mmPerPix) == 28 );
-	StaticAssert( offsetof(SceneRayTracingPassUB, camera) == 32 );
-	StaticAssert( offsetof(SceneRayTracingPassUB, floatSliders) == 432 );
-	StaticAssert( offsetof(SceneRayTracingPassUB, intSliders) == 560 );
-	StaticAssert( offsetof(SceneRayTracingPassUB, colors) == 688 );
-	StaticAssert( offsetof(SceneRayTracingPassUB, floatConst) == 816 );
-	StaticAssert( offsetof(SceneRayTracingPassUB, intConst) == 944 );
-	StaticAssert( sizeof(SceneRayTracingPassUB) == 1072 );
 
 #ifndef SphericalCubeMaterialUB_DEFINED
 #	define SphericalCubeMaterialUB_DEFINED

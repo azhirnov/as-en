@@ -1,7 +1,9 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 /*
 	For TBR architecture.
-	Visualize tile size depending on register count.
+
+	For NV shows warp count per tile depending on register count.
+	For Intel shows warp size (simd8 - simd32) depending on register count.
 */
 #ifdef __INTELLISENSE__
 # 	include <res_editor.as>
@@ -19,15 +21,13 @@
 		RC<Image>			low_res_id		= Image( EPixelFormat::R16U,		low_res.Dimension() );
 		RC<Image>			rt				= Image( EPixelFormat::RGBA8_UNorm, SurfaceSize() );
 		RC<Scene>			scene			= Scene();
-		RC<Scene>			scene_inst		= Scene();
 		RC<DynamicUInt>		grid_size		= DynamicUInt();
-		RC<DynamicUInt>		draw_tile		= DynamicUInt();
 		RC<DynamicUInt>		draw_mode		= DynamicUInt();
-		RC<DynamicUInt>		instancing		= DynamicUInt();
 		RC<DynamicUInt>		tile_size_pot	= DynamicUInt();
 		RC<DynamicUInt>		tile_size		= tile_size_pot.Exp2();
 		RC<DynamicUInt>		reg_cnt			= DynamicUInt();
 		RC<Buffer>			out_buf			= Buffer();
+		const uint			max_reg_cnt		= 5;
 
 		out_buf.UseLayout(
 			"OutBuffer",
@@ -47,7 +47,7 @@
 			scene.Add( geometry );
 		}
 
-		Slider( reg_cnt,		"RegisterCount",	0,		5 );
+		Slider( reg_cnt,		"RegisterCount",	0,		max_reg_cnt );
 		Slider( draw_mode,		"Mode",				0,		4,		2 );
 		Slider( grid_size,		"GridSize",			2,		64,		17 );
 		Slider( tile_size_pot,	"TileSize",			2,		7,		4 );
@@ -67,73 +67,20 @@
 		// render loop
 		ClearBuffer( out_buf, 0 );
 
+		for (int r = 0; r <= max_reg_cnt; ++r)
 		{
 			RC<SceneGraphicsPass>	pass = scene.AddGraphicsPass( "draw" );
 			pass.AddPipeline( "perf/TileSize.as" );	// [src](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/pipelines/perf/TileSize.as)
-			pass.Output(	"out_Color",		low_res,	RGBA32f(0.0) );
-			pass.Output(	"out_TriID",		low_res_id,	RGBA32u(0) );
-			pass.Constant(	"iRegisterCount_0",	0 );		// used as macros
-			pass.Constant(	"iOutput_0",		0 );		// used as macros
-			pass.Constant(	"iGridSize",		grid_size );
-			pass.Constant(	"iDrawMode",		draw_mode );
-			pass.Constant(	"iDstDim",			rt.Dimension() );
-			pass.EnableIfEqual( reg_cnt, 0 );
-		}{
-			RC<SceneGraphicsPass>	pass = scene.AddGraphicsPass( "draw" );
-			pass.AddPipeline( "perf/TileSize.as" );	// [src](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/pipelines/perf/TileSize.as)
-			pass.Output(	"out_Color",		low_res,	RGBA32f(0.0) );
-			pass.Output(	"out_TriID",		low_res_id,	RGBA32u(0) );
-			pass.Constant(	"iRegisterCount_1",	0 );
-			pass.Constant(	"iOutput_0",		0 );
-			pass.Constant(	"iGridSize",		grid_size );
-			pass.Constant(	"iDrawMode",		draw_mode );
-			pass.Constant(	"iDstDim",			rt.Dimension() );
-			pass.EnableIfEqual( reg_cnt, 1 );
-		}{
-			RC<SceneGraphicsPass>	pass = scene.AddGraphicsPass( "draw" );
-			pass.AddPipeline( "perf/TileSize.as" );	// [src](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/pipelines/perf/TileSize.as)
-			pass.Output(	"out_Color",		low_res,	RGBA32f(0.0) );
-			pass.Output(	"out_TriID",		low_res_id,	RGBA32u(0) );
-			pass.Constant(	"iRegisterCount_2",	0 );
-			pass.Constant(	"iOutput_0",		0 );
-			pass.Constant(	"iGridSize",		grid_size );
-			pass.Constant(	"iDrawMode",		draw_mode );
-			pass.Constant(	"iDstDim",			rt.Dimension() );
-			pass.EnableIfEqual( reg_cnt, 2 );
-		}{
-			RC<SceneGraphicsPass>	pass = scene.AddGraphicsPass( "draw" );
-			pass.AddPipeline( "perf/TileSize.as" );	// [src](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/pipelines/perf/TileSize.as)
-			pass.Output(	"out_Color",		low_res,	RGBA32f(0.0) );
-			pass.Output(	"out_TriID",		low_res_id,	RGBA32u(0) );
-			pass.Constant(	"iRegisterCount_3",	0 );
-			pass.Constant(	"iOutput_0",		0 );
-			pass.Constant(	"iGridSize",		grid_size );
-			pass.Constant(	"iDrawMode",		draw_mode );
-			pass.Constant(	"iDstDim",			rt.Dimension() );
-			pass.EnableIfEqual( reg_cnt, 3 );
-		}{
-			RC<SceneGraphicsPass>	pass = scene.AddGraphicsPass( "draw" );
-			pass.AddPipeline( "perf/TileSize.as" );	// [src](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/pipelines/perf/TileSize.as)
-			pass.Output(	"out_Color",		low_res,	RGBA32f(0.0) );
-			pass.Output(	"out_TriID",		low_res_id,	RGBA32u(0) );
-			pass.Constant(	"iRegisterCount_4",	0 );
-			pass.Constant(	"iOutput_0",		0 );
-			pass.Constant(	"iGridSize",		grid_size );
-			pass.Constant(	"iDrawMode",		draw_mode );
-			pass.Constant(	"iDstDim",			rt.Dimension() );
-			pass.EnableIfEqual( reg_cnt, 4 );
-		}{
-			RC<SceneGraphicsPass>	pass = scene.AddGraphicsPass( "draw" );
-			pass.AddPipeline( "perf/TileSize.as" );	// [src](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/pipelines/perf/TileSize.as)
-			pass.Output(	"out_Color",		low_res,	RGBA32f(0.0) );
-			pass.Output(	"out_TriID",		low_res_id,	RGBA32u(0) );
-			pass.Constant(	"iRegisterCount_5",	0 );
-			pass.Constant(	"iOutput_0",		0 );
-			pass.Constant(	"iGridSize",		grid_size );
-			pass.Constant(	"iDrawMode",		draw_mode );
-			pass.Constant(	"iDstDim",			rt.Dimension() );
-			pass.EnableIfEqual( reg_cnt, 5 );
-		}{
+			pass.Output(	"out_Color",			low_res,	RGBA32f(0.0) );
+			pass.Output(	"out_TriID",			low_res_id,	RGBA32u(0) );
+			pass.Constant(	"iRegisterCount_"+r,	0 );		// used as macros
+			pass.Constant(	"iOutput_0",			0 );		// used as macros
+			pass.Constant(	"iGridSize",			grid_size );
+			pass.Constant(	"iDrawMode",			draw_mode );
+			pass.Constant(	"iDstDim",				rt.Dimension() );
+			pass.EnableIfEqual( reg_cnt, r );
+		}
+		{
 			RC<Postprocess>			pass = Postprocess();
 			pass.Output(	"out_Color",	rt,			RGBA32f(0.0) );
 			pass.ArgIn(		"un_LowRes",	low_res,	Sampler_NearestClamp );

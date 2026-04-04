@@ -120,14 +120,15 @@ namespace AE::ResEditor
 
 	private:
 		ND_ static RenderCoro	_SyncPasses (PassArr_t updatePasses, PassArr_t passes, IPass::Debugger, IPass::UpdatePassData) __Th___;
-		ND_ static RenderCoro	_ResizeRes (Array<RC<IResource>>)				__Th___;
-		ND_ RenderCoro			_ReadShaderTrace (bool shaderAsserts)			__Th___;
+		ND_ static RenderCoro	_ResizeRes (Array<RC<IResource>>)					__Th___;
+		ND_ static RenderCoro	_ReadShaderTrace (RC<Renderer>, bool shaderAsserts)	__Th___;
 
 		ND_ AsyncTask			_Export (ArrayView<AsyncTask> deps);
 		ND_ static RenderCoro	_ExportPasses (PassArr_t, RC<Renderer>, IPass::UpdatePassData)	__Th___;
 
 		void  _PrintDbgTrace (const Array<String> &) const;
 		void  _UpdateDynSliders ();
+		void  _UpdateStats ();
 	};
 
 

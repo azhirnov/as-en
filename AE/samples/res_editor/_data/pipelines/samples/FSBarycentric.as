@@ -64,7 +64,7 @@
 	void Main ()
 	{
 		const uint	idx	= gl.VertexIndex;
-		gl.Position		= LocalPosToClipSpace( un_Geometry.positions[idx] );
+		gl.Position		= LocalPosToClipSpace( un_Geometry.position[idx] );
 	}
 
 #endif
@@ -88,6 +88,7 @@
 
 	# endif
 	#else
+		// TODO FSBarycentricWireframeCompat
 	#	error not supported
 	#endif
 

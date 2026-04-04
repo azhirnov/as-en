@@ -88,8 +88,6 @@ Total ALUs = EU * warp_size/2
 
 * RGBA8_UNorm texture with random access [[9](../GPU_Benchmarks.md#9-Texture-cache)]
 	- Measured cache size: 64K, 4M
-	- RT dim: 1960x1200
-	- 8 texels per pixel, 4 texels for linear filter, 2.35MPix, 4bpp, 300 MB read per frame.
 
 	| size (B) | dimension (px) | approx bandwidth (GB/s) | comments |
 	|---|---|---|---|

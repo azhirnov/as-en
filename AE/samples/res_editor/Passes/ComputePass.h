@@ -20,12 +20,6 @@ namespace AE::ResEditor
 	private:
 		using PipelineMap_t		= FixedMap< EDebugMode, ComputePipelineID, uint(EDebugMode::_Count) >;
 
-		struct DynamicData
-		{
-			uint	frame		= 0;
-			uint	prevFrame	= UMax;
-		};
-
 	public:
 		using IterationCount_t	= Union< uint3, RC<DynamicDim>, RC<DynamicUInt>, RC<DynamicUInt2>, RC<DynamicUInt3> >;
 
@@ -54,7 +48,6 @@ namespace AE::ResEditor
 		PushConstantIndex		_pcIndex;
 
 		Strong<BufferID>		_ubuffer;
-		mutable DynamicData		_dynData;		// used only in 'Upload()'
 
 		ResourceArray			_resources;
 		Iterations_t			_iterations;

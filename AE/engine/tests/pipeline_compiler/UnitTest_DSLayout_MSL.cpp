@@ -10,18 +10,18 @@ namespace
 		if ( once )
 		{
 			once = false;
-			ShaderStructTypePtr	st{ new ShaderStructType{ "ubuf" }};
+			ShaderStructTypePtr	st = ShaderStructType::Create( "ubuf" );
 			st->Set( EStructLayout::Compatible_Std140,
 					 "uvec4 u;"
 					 "ivec4 i;" );
 
-			ScriptSamplerPtr	samp{ new ScriptSampler{ "DefSampler" }};
+			ScriptSamplerPtr	samp = ScriptSampler::Create( "DefSampler" );
 			samp->SetFilter( EFilter::Linear, EFilter::Linear, EMipmapFilter::Nearest );
 			samp->SetAddressMode( EAddressMode::ClampToEdge, EAddressMode::Repeat, EAddressMode::MirrorRepeat );
 			samp->SetAnisotropy( 8.f );
 		}
 
-		DescriptorSetLayoutPtr	dsl{ new DescriptorSetLayout{ dsName }};
+		DescriptorSetLayoutPtr	dsl = DescriptorSetLayout::Create( dsName );
 		dsl->SetUsage( usage );
 		dsl->AddUniformBuffer( EShaderStages::Vertex, "constBuf", ArraySize{1}, "ubuf", EResourceState::ShaderUniform, False{} );
 		dsl->AddStorageBuffer( EShaderStages::Vertex | EShaderStages::Fragment, "storageBuf", ArraySize{2}, "ubuf", EAccessType::Coherent, EResourceState::ShaderStorage_RW, False{} );
@@ -146,7 +146,7 @@ extern void  UnitTest_DSLayout_MSL ()
 	obj.spirvCompiler->SetDefaultResourceLimits();
 	ObjectStorage::SetInstance( &obj );
 
-	ScriptFeatureSetPtr	fs {new ScriptFeatureSet{ "DefaultFS" }};
+	ScriptFeatureSetPtr	fs = ScriptFeatureSet::Create( "DefaultFS" );
 	fs->fs.Init( FeatureSet::EFeature::RequireTrue );
 	fs->fs.storageImageFormats.insert( EPixelFormat::RGBA8_UNorm );
 	fs->fs.perPipeline.maxUniformBuffers = 8;

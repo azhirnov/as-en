@@ -52,8 +52,8 @@
 		{
 			storage.ArrayLayout(
 				"IntrsPoint",
-				"	float	depth;" +
-				"	uint	objId;" +
+				"	float	depth;"
+				"	uint	objId;"
 				"	uint	next;",
 				64 << 20 );
 
@@ -63,22 +63,19 @@
 
 		// create sphere
 		{
-			RC<Buffer>				sphere		= Buffer();
-			RC<UnifiedGeometry>		geometry	= UnifiedGeometry();
+			RC<Mesh>	mesh = Mesh();
+			mesh.SetAttributes( EAttribute::Position );
+			mesh.AddSphere( 3 );
 
-			array<float3>	positions;
-			array<uint>		indices;
-			GetSphere( 3, OUT positions, OUT indices );
-
-			sphere.FloatArray( "positions",	positions );
-			sphere.UIntArray(  "indices",	indices );
+			RC<Buffer>	sphere = mesh.ToBuffer();
 			sphere.LayoutName( "GeometrySBlock" );
 
 			UnifiedGeometry_DrawIndexed	cmd;
-			cmd.indexCount		= indices.size();
+			cmd.indexCount		= mesh.IndexCount();
 			cmd.instanceCount	= instance_count;
 			cmd.IndexBuffer( sphere, "indices" );
 
+			RC<UnifiedGeometry>		geometry = UnifiedGeometry();
 			geometry.Draw( cmd );
 			geometry.ArgIn(		"un_Geometry",	sphere );
 			geometry.ArgIn(		"un_DrawTasks",	drawtasks );

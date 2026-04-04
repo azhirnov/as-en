@@ -42,7 +42,7 @@ namespace AE::App
 
 		Bytes		ReadSeq (OUT void* buffer, Bytes size)	__NE_OV;
 
-		ReqAlign	OffsetAlign ()							C_NE_OV	{ return Default; }
+		ReqAlign	DirectAccessAlign ()					C_NE_OV	{ return Default; }
 	};
 
 
@@ -74,7 +74,7 @@ namespace AE::App
 
 		Bytes		ReadBlock (Bytes, OUT void *, Bytes)	__NE_OV;
 
-		ReqAlign	OffsetAlign ()							C_NE_OV	{ return Default; }
+		ReqAlign	DirectAccessAlign ()					C_NE_OV	{ return Default; }
 	};
 
 

@@ -168,7 +168,7 @@ namespace AE::PipelineCompiler
 */
 	String  ObjectStorage::GetShaderExtensionsGLSL (INOUT Version2 &spirvVer, const EShaderStages stage, bool hasDebugInfo, ArrayView<ScriptFeatureSetPtr> features) __Th___
 	{
-		StaticAssert( Graphics::FeatureSet::GetFeatureCount() == 272 );
+		StaticAssert( Graphics::FeatureSet::GetFeatureCount() == 277 );
 
 		ASSERT( IsSingleBitSet( stage ));
 
@@ -518,19 +518,23 @@ namespace AE::PipelineCompiler
 		}
 
 		// ray tracing
+		bool	rt_enabled = false;
 		{
 			FeatureSetCounter	rt_supported;
 			FeatureSetCounter	prim_cull_supported;
-			for (auto& ptr : features) {
+
+			for (auto& ptr : features)
+			{
 				rt_supported		.Add( ptr->fs.rayTracingPipeline );
 				prim_cull_supported	.Add( ptr->fs.rayTraversalPrimitiveCulling );
 			}
 			if ( AnyBits( stage, EShaderStages::AllRayTracing ) and rt_supported.IsTrue() )
 			{
+				rt_enabled = true;
 				CHECK_THROW_MSG(( spirvVer >= Version2{1,4} ));
 				ext << "#extension GL_EXT_ray_tracing                              : require\n";
 
-				if ( prim_cull_supported.IsTrue() ) {
+				if ( prim_cull_supported.IsTrue() ){
 					ext << "#extension GL_EXT_ray_flags_primitive_culling              : require\n";
 					def << "#define AE_ray_flags_primitive_culling 1\n";
 				}
@@ -538,6 +542,7 @@ namespace AE::PipelineCompiler
 		}
 
 		// ray query
+		bool	rq_enabled = false;
 		if ( spirvVer >= Version2{1,4} )
 		{
 			FeatureSetCounter	rq_supported;
@@ -550,8 +555,36 @@ namespace AE::PipelineCompiler
 			}
 
 			if ( rq_supported.IsTrue() and AnyBits( rq_stages, stage )) {
+				rq_enabled = true;
 				ext << "#extension GL_EXT_ray_query                                : require\n";
 				def << "#define AE_ray_query 1\n";
+			}
+		}
+
+		// opacity micromap
+		if ( rt_enabled or rq_enabled )
+		{
+			FeatureSetCounter	opacity_micromap;
+			uint				maxOpacity2StateSubdivisionLevel	= 0xFFFF;
+			uint				maxOpacity4StateSubdivisionLevel	= 0xFFFF;
+
+			for (auto& ptr : features)
+			{
+				opacity_micromap.Add( ptr->fs.opacityMicromap );
+
+				if ( ptr->fs.opacityMicromap == FeatureSet::EFeature::RequireTrue )
+				{
+					maxOpacity2StateSubdivisionLevel = Min( maxOpacity2StateSubdivisionLevel, ptr->fs.maxOpacity2StateSubdivisionLevel );
+					maxOpacity4StateSubdivisionLevel = Min( maxOpacity4StateSubdivisionLevel, ptr->fs.maxOpacity4StateSubdivisionLevel );
+				}
+			}
+			if ( opacity_micromap.IsTrue() )
+			{
+				CHECK_THROW_MSG( maxOpacity2StateSubdivisionLevel != 0 and maxOpacity4StateSubdivisionLevel != 0 );
+				ext << "#extension GL_EXT_opacity_micromap                         : require\n";
+				def << "#define AE_opacity_micromap 1\n"
+					<< "#define AE_opacity_micromap_maxOpacity2StateSubdivisionLevel " << ToString( maxOpacity2StateSubdivisionLevel ) << "\n"
+					<< "#define AE_opacity_micromap_maxOpacity4StateSubdivisionLevel " << ToString( maxOpacity4StateSubdivisionLevel ) << "\n";
 			}
 		}
 

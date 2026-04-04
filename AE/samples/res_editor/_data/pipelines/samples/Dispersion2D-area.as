@@ -11,7 +11,7 @@
 		{
 			RC<ShaderStructType>	st = ShaderStructType( "vs-gs.io" );
 			st.Set( EStructLayout::InternalIO,
-					"uint		coneIdx;" +
+					"uint		coneIdx;"
 					"uint		rayIdx;" );
 		}{
 			RC<ShaderStructType>	st = ShaderStructType( "gs-fs.io" );

@@ -88,7 +88,9 @@ namespace AE::Graphics
 
 		_batchId		= res->batchId;
 		_tlSemaphore	= res->semaphoreId;
-		CHECK_ERR( _batchId );
+		_tlSemaphoreVal.store( res->semaphoreVal );
+
+		CHECK_ERR( _batchId and _tlSemaphore );
 
 		CHECK_ERR( _status.Set( EStatus::Destroyed, EStatus::Initial ));
 		return true;

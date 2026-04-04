@@ -59,7 +59,7 @@ void  CreatePipeline (const array<string> &passNames)
 	// pipeline layout
 	{
 		RC<ShaderStructType>	st = ShaderStructType( "imgui.ub" );
-		st.Set( "float2		scale;" +
+		st.Set( "float2		scale;"
 				"float2		translate;" );
 
 		RC<DescriptorSetLayout>	ds = DescriptorSetLayout( "imgui.ds" );
@@ -77,9 +77,9 @@ void  CreatePipeline (const array<string> &passNames)
 	{
 		RC<ShaderStructType>	st = ShaderStructType( "imgui_vertex" );
 		st.Set(	EStructLayout::InternalIO,
-				"packed_float2		Position;"	+
-				"packed_float2		UV;"		+
-				"packed_ubyte_norm4	Color;"		);
+				"packed_float2		Position;"
+				"packed_float2		UV;"
+				"packed_ubyte_norm4	Color;" );
 
 		RC<VertexBufferInput>	vb = VertexBufferInput( "VB_imgui_vertex" );
 		vb.Add( "Vertex",	"imgui_vertex" );

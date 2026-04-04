@@ -2,14 +2,24 @@
 
 if (TARGET "Video")
 	file( GLOB_RECURSE SOURCES "*.h" "*.cpp" )
-	add_executable( "Tests.Video" ${SOURCES} )
-	set_target_properties( "Tests.Video" PROPERTIES SUFFIX "${AE_EXECUTABLE_SUFFIX}" )
+
+	if (ANDROID)
+		set( TEST_NAME "TestsVideo" )
+		add_library( ${TEST_NAME} SHARED ${SOURCES} )
+	elseif (APPLE)
+		set( TEST_NAME "Tests.Video" )
+		add_executable( ${TEST_NAME} MACOSX_BUNDLE ${SOURCES} )
+	else()
+		set( TEST_NAME "Tests.Video" )
+		add_executable( ${TEST_NAME} ${SOURCES} )
+		set_target_properties( ${TEST_NAME} PROPERTIES SUFFIX "${AE_EXECUTABLE_SUFFIX}" )
+	endif()
 
 	source_group( TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${SOURCES} )
-	set_property( TARGET "Tests.Video" PROPERTY FOLDER "Engine/Tests" )
-	target_link_libraries( "Tests.Video" PUBLIC "Video" )
+	set_property( TARGET ${TEST_NAME} PROPERTY FOLDER "Engine/Tests" )
+	target_link_libraries( ${TEST_NAME} PUBLIC "Video" )
 
-	UseEnginePCH2( "Tests.Video" )
+	UseEnginePCH2( ${TEST_NAME} )
 
-	add_test( NAME "Tests.Video" COMMAND "Tests.Video" )
+	add_test( NAME ${TEST_NAME} COMMAND ${TEST_NAME} )
 endif()

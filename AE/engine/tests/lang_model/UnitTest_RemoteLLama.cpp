@@ -113,6 +113,29 @@ namespace
 			AE_LOGI( "LLM response tokens: "s << ToString( listener->tokens ));
 			AE_LOGI( "LLM response:\n"s << ToString( listener->response ));
 		}
+
+		ctx = null;
+		AE_LOGI( "Create new context" );
+		{
+			LLama::ContextParams	params;
+			params.contextSize		= 8 << 10;
+			params.sampler.minP		= LLama::Sampler_MinP{};
+
+			ctx = model->CreateContext( params );
+			TEST( ctx );
+		}
+
+		AE_LOGI( "Generate response" );
+		{
+			auto	listener = MakeRC<ResponseListener>();
+
+			TEST( ctx->Generate( u8"What you can do?", listener ));
+
+			TEST( not listener->response.empty() );
+
+			AE_LOGI( "LLM response tokens: "s << ToString( listener->tokens ));
+			AE_LOGI( "LLM response:\n"s << ToString( listener->response ));
+		}
 		TEST_PASSED();
 	}
 

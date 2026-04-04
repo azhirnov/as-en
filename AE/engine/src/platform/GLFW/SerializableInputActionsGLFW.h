@@ -154,6 +154,32 @@ namespace AE::App
 			/* other */\
 			_visitor_( RawChar,		c_RawCharType,	"RawChar",		c_RawCharType  )\
 
+			// float
+		#define AE_GLFW_GAMEPAD_AXIS( _visitor_ )\
+			_visitor_( Gamepad_AxisLeftX,			0,		"GP_AxisLeftX",			GLFW_GAMEPAD_AXIS_LEFT_X		)\
+			_visitor_( Gamepad_AxisLeftY,			1,		"GP_AxisLeftY",			GLFW_GAMEPAD_AXIS_LEFT_Y		)\
+			_visitor_( Gamepad_AxisRightX,			2,		"GP_AxisRightX",		GLFW_GAMEPAD_AXIS_RIGHT_X		)\
+			_visitor_( Gamepad_AxisRightY,			3,		"GP_AxisRightY",		GLFW_GAMEPAD_AXIS_RIGHT_Y		)\
+			_visitor_( Gamepad_AxisLeftTrigger,		4,		"GP_AxisLeftTrigger",	GLFW_GAMEPAD_AXIS_LEFT_TRIGGER	)\
+			_visitor_( Gamepad_AxisRightTrigger,	5,		"GP_AxisRightTrigger",	GLFW_GAMEPAD_AXIS_RIGHT_TRIGGER	)\
+
+		#define AE_GLFW_GAMEPAD_BUTTON( _visitor_ )\
+			_visitor_( Gamepad_A,				0,		"GP_A",				GLFW_GAMEPAD_BUTTON_A				)\
+			_visitor_( Gamepad_B,				1,		"GP_B",				GLFW_GAMEPAD_BUTTON_B				)\
+			_visitor_( Gamepad_X,				2,		"GP_X",				GLFW_GAMEPAD_BUTTON_X				)\
+			_visitor_( Gamepad_Y,				3,		"GP_Y",				GLFW_GAMEPAD_BUTTON_Y				)\
+			_visitor_( Gamepad_LeftBumper,		4,		"GP_LeftBumper",	GLFW_GAMEPAD_BUTTON_LEFT_BUMPER		)\
+			_visitor_( Gamepad_RightBumper,		5,		"GP_RightBumper",	GLFW_GAMEPAD_BUTTON_RIGHT_BUMPER	)\
+			_visitor_( Gamepad_Back,			6,		"GP_Back",			GLFW_GAMEPAD_BUTTON_BACK			)/* or Select */\
+			_visitor_( Gamepad_Start,			7,		"GP_Start",			GLFW_GAMEPAD_BUTTON_START			)\
+			_visitor_( Gamepad_Guide,			8,		"GP_Guide",			GLFW_GAMEPAD_BUTTON_GUIDE			)\
+			_visitor_( Gamepad_LeftThumb,		9,		"GP_LeftThumb",		GLFW_GAMEPAD_BUTTON_LEFT_THUMB		)\
+			_visitor_( Gamepad_RightThumb,		10,		"GP_RightThumb",	GLFW_GAMEPAD_BUTTON_RIGHT_THUMB		)\
+			_visitor_( Gamepad_DpadUp,			11,		"GP_DpadUp",		GLFW_GAMEPAD_BUTTON_DPAD_UP			)\
+			_visitor_( Gamepad_DpadRight,		12,		"GP_DpadRight",		GLFW_GAMEPAD_BUTTON_DPAD_RIGHT		)\
+			_visitor_( Gamepad_DpadDown,		13,		"GP_DpadDown",		GLFW_GAMEPAD_BUTTON_DPAD_DOWN		)\
+			_visitor_( Gamepad_DpadLeft,		14,		"GP_DpadLeft",		GLFW_GAMEPAD_BUTTON_DPAD_LEFT		)\
+
 		enum class ESensorType : int
 		{
 			#define AE_ANDROID_SERNSORS_VISITOR( _type_, _bitIndex_, ... )	Android_ ## _type_ = _bitIndex_,
@@ -176,10 +202,25 @@ namespace AE::App
 			MouseRight			= MouseBtn2,
 			MouseMiddle			= MouseBtn3,
 
-			KeyBegin			= 32,				// GLFW_KEY_SPACE
-			KeyEnd				= 348,				// GLFW_KEY_LAST
+			KeyBegin			= Key_Space,		// GLFW_KEY_SPACE
+			KeyEnd				= Key_Menu,			// GLFW_KEY_LAST
 
-			MultiTouch			= KeyEnd + 10,		// float2 (scale, rotate)
+			GamepadAxisBegin	= KeyEnd + 2,
+
+			#define AE_GLFW_GAMEPAD_AXIS_VISITOR( _key_, _code_, _name_, _glfw_code_ )		_key_ = uint(GamepadAxisBegin) + _code_,
+			AE_GLFW_GAMEPAD_AXIS( AE_GLFW_GAMEPAD_AXIS_VISITOR )
+			#undef AE_GLFW_GAMEPAD_AXIS_VISITOR
+
+			GamepadAxisEnd		= Gamepad_AxisRightTrigger,
+			GamepadButtonBegin	= GamepadAxisEnd + 2,
+
+			#define AE_GLFW_GAMEPAD_BUTTON_VISITOR( _key_, _code_, _name_, _glfw_code_ )		_key_ = uint(GamepadButtonBegin) + _code_,
+			AE_GLFW_GAMEPAD_BUTTON( AE_GLFW_GAMEPAD_BUTTON_VISITOR )
+			#undef AE_GLFW_GAMEPAD_BUTTON_VISITOR
+
+			GamepadButtonEnd	= Gamepad_DpadLeft,
+
+			MultiTouch			= GamepadButtonEnd + 2,	// float2 (scale, rotate)
 			Cursor2DBegin,
 			MouseWheel			= Cursor2DBegin,	// float2 (delta)
 			CursorPos,								// float2 (absolute in pixels)
@@ -281,8 +322,9 @@ namespace AE::App
 =================================================
 */
 	__CxIn bool  SerializableInputActionsGLFW::_IsKey (EInputType type) __NE___ {
-		return	((type >= EInputType::MouseBegin) and (type <= EInputType::MouseEnd)) or
-				((type >= EInputType::KeyBegin)   and (type <= EInputType::KeyEnd));
+		return	(type >= EInputType::MouseBegin			and type <= EInputType::MouseEnd)		or
+				(type >= EInputType::KeyBegin			and type <= EInputType::KeyEnd)			or
+				(type >= EInputType::GamepadButtonBegin	and type <= EInputType::GamepadButtonEnd);
 	}
 
 	__CxIn bool  SerializableInputActionsGLFW::_IsKeyOrTouch (EInputType type) __NE___ {
@@ -290,11 +332,11 @@ namespace AE::App
 	}
 
 	__CxIn bool  SerializableInputActionsGLFW::_IsVec1D (EInputType type) __NE___ {
-		return _IsSensor1f( type );
+		return	_IsSensor1f( type );
 	}
 
 	__CxIn bool  SerializableInputActionsGLFW::_IsVec2D (EInputType type) __NE___ {
-		return	((type >= EInputType::Cursor2DBegin) and (type <= EInputType::Cursor2DEnd))	or
+		return	(type >= EInputType::Cursor2DBegin and type <= EInputType::Cursor2DEnd)	or
 				(type == EInputType::MultiTouch);
 	}
 
@@ -303,15 +345,15 @@ namespace AE::App
 	}
 
 	__CxIn bool  SerializableInputActionsGLFW::_IsSensor1f (EInputType type) __NE___ {
-		return (type >= EInputType::Sensors1fBegin) and (type <= EInputType::Sensors1fEnd);
+		return (type >= EInputType::Sensors1fBegin and type <= EInputType::Sensors1fEnd);
 	}
 
 	__CxIn bool  SerializableInputActionsGLFW::_IsSensor3f (EInputType type) __NE___ {
-		return (type >= EInputType::Sensors3fBegin) and (type <= EInputType::Sensors3fEnd);
+		return (type >= EInputType::Sensors3fBegin and type <= EInputType::Sensors3fEnd);
 	}
 
 	__CxIn bool  SerializableInputActionsGLFW::_IsSensor4f (EInputType type) __NE___ {
-		return (type >= EInputType::Sensors4fBegin) and (type <= EInputType::Sensors4fEnd);
+		return (type >= EInputType::Sensors4fBegin and type <= EInputType::Sensors4fEnd);
 	}
 
 } // AE::App

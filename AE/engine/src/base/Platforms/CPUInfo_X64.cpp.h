@@ -516,6 +516,7 @@ namespace
 			feats.AVX512_DQ			= HasBit< 17 >( cpui[1] );
 			feats.AVX512_IFMA		= HasBit< 21 >( cpui[1] );
 		//	feats.AVX512_ER			= HasBit< 27 >( cpui[1] );
+			feats.AVX512_CD			= HasBit< 28 >( cpui[1] );
 			feats.AVX512_BW			= HasBit< 30 >( cpui[1] );
 			feats.AVX512_VL			= HasBit< 31 >( cpui[1] );
 

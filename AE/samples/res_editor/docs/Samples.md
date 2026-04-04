@@ -174,6 +174,8 @@ Spherical cube to fix cubemap distortion
 ![](img/Dispersion2DLayered.jpg)
 
 * [glTF scene tracing](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/scripts/ray-trace/RT-Model.as)
+* [Opacity Micromap](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/scripts/ray-trace/test-OpacityMicromap-1.as)<br/>
+![](img/OpacityMicromap.jpg)
 
 **Tests**
 * [Triangles with transformation](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/scripts/ray-trace/test-RayTracing-1.as)

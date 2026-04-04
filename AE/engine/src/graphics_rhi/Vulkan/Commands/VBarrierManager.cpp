@@ -6,6 +6,7 @@
 # include "graphics_rhi/Vulkan/Commands/VBaseIndirectContext.h"
 # include "graphics_rhi/Vulkan/VRenderTaskScheduler.h"
 # include "graphics_rhi/Vulkan/VEnumCast.h"
+# include "graphics_rhi/Vulkan/VResourceManager.h"
 # include "graphics_rhi/Vulkan/Commands/VBarrierManagerUtils.cpp.h"
 
 namespace AE::Graphics::_hidden_
@@ -38,6 +39,31 @@ namespace AE::Graphics::_hidden_
 
 /*
 =================================================
+	Get*
+=================================================
+*/
+	VDevice const&  VBarrierManager::GetDevice () C_NE___
+	{
+		return RefCast<VDevice>( _resMngr.GetDevice() );
+	}
+
+	VStagingBufferManager&  VBarrierManager::GetStagingManager () C_NE___
+	{
+		return _resMngr.GetStagingManager();
+	}
+
+	ResourceManager&  VBarrierManager::GetResourceManager () C_NE___
+	{
+		return RefCast<ResourceManager>( _resMngr );
+	}
+
+	VQueryManager&  VBarrierManager::GetQueryManager () C_NE___
+	{
+		return RefCast<VQueryManager>( _resMngr.GetQueryManager() );
+	}
+
+/*
+=================================================
 	_Add***Barrier
 =================================================
 */
@@ -66,17 +92,21 @@ namespace AE::Graphics::_hidden_
 
 /*
 =================================================
-	_Fill***Barrier2
+	_FillMemoryBarrier2
 =================================================
 */
 	template <typename B>
 	void  VBarrierManager::_FillMemoryBarrier2 (EResourceState srcState, EResourceState dstState,
 												VkPipelineStageFlagBits2 srcSupportedStages, VkAccessFlagBits2 srcSupportedAccess,
 												VkPipelineStageFlagBits2 dstSupportedStages, VkAccessFlagBits2 dstSupportedAccess,
-												INOUT B& barrier) __NE___
+												bool isAcquireRelease, INOUT B& barrier) __NE___
 	{
 		EResourceState_ToStageAccess( srcState, OUT barrier.srcStageMask, OUT barrier.srcAccessMask );
 		EResourceState_ToStageAccess( dstState, OUT barrier.dstStageMask, OUT barrier.dstAccessMask );
+
+		DbgCheckBarrier( srcState, dstState, srcSupportedStages, srcSupportedAccess, dstSupportedStages, dstSupportedAccess, isAcquireRelease, barrier );
+
+		// TODO: set MEMORY_READ | MEMORY_WRITE
 
 		barrier.srcStageMask	&= srcSupportedStages;
 		barrier.dstStageMask	&= dstSupportedStages;
@@ -87,27 +117,21 @@ namespace AE::Graphics::_hidden_
 		barrier.dstStageMask	|= (barrier.dstStageMask == 0 ? VK_PIPELINE_STAGE_2_ALL_COMMANDS_BIT : 0);	// same as VK_PIPELINE_STAGE_2_TOP_OF_PIPE_BIT
 	}
 
-	template <typename B>
-	void  VBarrierManager::_FillBufferBarrier2 (EResourceState srcState, EResourceState dstState,
-												VkPipelineStageFlagBits2 srcSupportedStages, VkAccessFlagBits2 srcSupportedAccess,
-												VkPipelineStageFlagBits2 dstSupportedStages, VkAccessFlagBits2 dstSupportedAccess,
-												INOUT B& barrier) __NE___
-	{
-		_FillMemoryBarrier2( srcState, dstState, srcSupportedStages, srcSupportedAccess, dstSupportedStages, dstSupportedAccess, INOUT barrier );
-		barrier.srcQueueFamilyIndex	= VK_QUEUE_FAMILY_IGNORED;
-		barrier.dstQueueFamilyIndex	= VK_QUEUE_FAMILY_IGNORED;
-	}
-
+/*
+=================================================
+	_FillImageBarrier2
+=================================================
+*/
 	template <typename B>
 	void  VBarrierManager::_FillImageBarrier2 (EResourceState srcState, EResourceState dstState,
 											   VkPipelineStageFlagBits2 srcSupportedStages, VkAccessFlagBits2 srcSupportedAccess,
 											   VkPipelineStageFlagBits2 dstSupportedStages, VkAccessFlagBits2 dstSupportedAccess,
-											   INOUT B& barrier) __NE___
+											   bool isAcquireRelease, INOUT B& barrier) __NE___
 	{
 		EResourceState_ToSrcStageAccessLayout( srcState, OUT barrier.srcStageMask, OUT barrier.srcAccessMask, OUT barrier.oldLayout );
 		EResourceState_ToDstStageAccessLayout( dstState, OUT barrier.dstStageMask, OUT barrier.dstAccessMask, OUT barrier.newLayout );
-		barrier.srcQueueFamilyIndex	= VK_QUEUE_FAMILY_IGNORED;
-		barrier.dstQueueFamilyIndex	= VK_QUEUE_FAMILY_IGNORED;
+
+		DbgCheckBarrier( srcState, dstState, srcSupportedStages, srcSupportedAccess, dstSupportedStages, dstSupportedAccess, isAcquireRelease, barrier );
 
 		// transition 'Unknown' -> '...' must be in the same stage
 		if ( barrier.srcStageMask == 0 )
@@ -136,21 +160,23 @@ namespace AE::Graphics::_hidden_
 	template <typename B>
 	void  VBarrierManager::_FillMemoryBarrier (EResourceState srcState, EResourceState dstState, INOUT B& barrier) C_NE___
 	{
-		return _FillMemoryBarrier2( srcState, dstState, _supportedStages, _supportedAccess, _supportedStages, _supportedAccess, INOUT barrier );
+		_FillMemoryBarrier2( srcState, dstState, _supportedStages, _supportedAccess, _supportedStages, _supportedAccess, false, INOUT barrier );
 	}
 
 	template <typename B>
 	void  VBarrierManager::_FillBufferBarrier (EResourceState srcState, EResourceState dstState, INOUT B& barrier) C_NE___
 	{
-		_FillMemoryBarrier( srcState, dstState, INOUT barrier );
 		barrier.srcQueueFamilyIndex	= VK_QUEUE_FAMILY_IGNORED;
 		barrier.dstQueueFamilyIndex	= VK_QUEUE_FAMILY_IGNORED;
+		_FillMemoryBarrier( srcState, dstState, INOUT barrier );
 	}
 
 	template <typename B>
 	void  VBarrierManager::_FillImageBarrier (EResourceState srcState, EResourceState dstState, INOUT B& barrier) C_NE___
 	{
-		return _FillImageBarrier2( srcState, dstState, _supportedStages, _supportedAccess, _supportedStages, _supportedAccess, INOUT barrier );
+		barrier.srcQueueFamilyIndex	= VK_QUEUE_FAMILY_IGNORED;
+		barrier.dstQueueFamilyIndex	= VK_QUEUE_FAMILY_IGNORED;
+		_FillImageBarrier2( srcState, dstState, _supportedStages, _supportedAccess, _supportedStages, _supportedAccess, false, INOUT barrier );
 	}
 
 /*
@@ -170,19 +196,26 @@ namespace AE::Graphics::_hidden_
 
 /*
 =================================================
-	BufferBarrier
+	ResourceBarrier (BufferID)
 =================================================
 */
-	void  VBarrierManager::BufferBarrier (BufferID bufferId, EResourceState srcState, EResourceState dstState) __NE___
+	void  VBarrierManager::ResourceBarrier (BufferID bufferId, EResourceState srcState, EResourceState dstState) __NE___
 	{
-		auto*	buf = _resMngr.GetResource( bufferId );
+		auto*	buf = GetResourceManager().GetResource( bufferId );
 		CHECK_ERRV( buf != null );
 
 		BufferBarrier( buf->Handle(), srcState, dstState );
 	}
 
-	void  VBarrierManager::BufferBarrier (VkBuffer buffer, EResourceState srcState, EResourceState dstState) __NE___
+/*
+=================================================
+	BufferBarrier
+=================================================
+*/
+	void  VBarrierManager::BufferBarrier (VkBuffer buffer, EResourceState srcState, EResourceState dstState, Bytes offset, Bytes size) __NE___
 	{
+		ASSERT( buffer != Default );
+
 		VkBufferMemoryBarrier2	barrier;
 		barrier.sType	= VK_STRUCTURE_TYPE_BUFFER_MEMORY_BARRIER_2;
 		barrier.pNext	= null;
@@ -194,20 +227,26 @@ namespace AE::Graphics::_hidden_
 		DbgValidateBarrier( srcState, dstState, barrier );
 
 		_AddMemoryBarrier( barrier );
-		//_AddBufferBarrier( barrier );
+		//_AddBufferBarrier( barrier );		// TODO
+		// TODO: offset, size
+	}
+
+	void  VBarrierManager::BufferBarrier (VkBuffer buffer, EResourceState srcState, EResourceState dstState) __NE___
+	{
+		BufferBarrier( buffer, srcState, dstState, 0_b, Bytes{VK_WHOLE_SIZE} );
 	}
 
 /*
 =================================================
-	BufferViewBarrier
+	ResourceBarrier (BufferViewID)
 =================================================
 */
-	void  VBarrierManager::BufferViewBarrier (BufferViewID viewId, EResourceState srcState, EResourceState dstState) __NE___
+	void  VBarrierManager::ResourceBarrier (BufferViewID viewId, EResourceState srcState, EResourceState dstState) __NE___
 	{
-		auto*	view	= _resMngr.GetResource( viewId );
+		auto*	view	= GetResourceManager().GetResource( viewId );
 		CHECK_ERRV( view != null );
 
-		auto*	buffer	= _resMngr.GetResource( view->BufferId() );
+		auto*	buffer	= GetResourceManager().GetResource( view->BufferId() );
 		CHECK_ERRV( buffer != null );
 
 		BufferBarrier( buffer->Handle(), srcState, dstState );
@@ -215,20 +254,20 @@ namespace AE::Graphics::_hidden_
 
 /*
 =================================================
-	ImageBarrier
+	ResourceBarrier
 =================================================
 */
-	void  VBarrierManager::ImageBarrier (ImageID imageId, EResourceState srcState, EResourceState dstState) __NE___
+	void  VBarrierManager::ResourceBarrier (ImageID imageId, EResourceState srcState, EResourceState dstState) __NE___
 	{
-		auto*	img = _resMngr.GetResource( imageId );
+		auto*	img = GetResourceManager().GetResource( imageId );
 		CHECK_ERRV( img != null );
 
 		ImageBarrier( img->Handle(), srcState, dstState, img->AspectMask() );
 	}
 
-	void  VBarrierManager::ImageBarrier (ImageID imageId, EResourceState srcState, EResourceState dstState, const ImageSubresourceRange &subRes) __NE___
+	void  VBarrierManager::ResourceBarrier (ImageID imageId, EResourceState srcState, EResourceState dstState, const ImageSubresourceRange &subRes) __NE___
 	{
-		auto*	img = _resMngr.GetResource( imageId );
+		auto*	img = GetResourceManager().GetResource( imageId );
 		CHECK_ERRV( img != null );
 
 		const ImageDesc&	desc = img->Description();
@@ -247,6 +286,11 @@ namespace AE::Graphics::_hidden_
 		ImageBarrier( img->Handle(), srcState, dstState, sub_res );
 	}
 
+/*
+=================================================
+	ImageBarrier
+=================================================
+*/
 	void  VBarrierManager::ImageBarrier (VkImage image, EResourceState srcState, EResourceState dstState, VkImageAspectFlags aspectMask) __NE___
 	{
 		VkImageMemoryBarrier2	barrier;
@@ -282,17 +326,17 @@ namespace AE::Graphics::_hidden_
 
 /*
 =================================================
-	ImageViewBarrier
+	ResourceBarrier (ImageViewID)
 =================================================
 */
-	void  VBarrierManager::ImageViewBarrier (ImageViewID viewId, EResourceState srcState, EResourceState dstState) __NE___
+	void  VBarrierManager::ResourceBarrier (ImageViewID viewId, EResourceState srcState, EResourceState dstState) __NE___
 	{
-		auto*	view	= _resMngr.GetResource( viewId );
+		auto*	view	= GetResourceManager().GetResource( viewId );
 		CHECK_ERRV( view != null );
 
 		auto&	desc	= view->Description();
 
-		auto*	image	= _resMngr.GetResource( view->ImageId() );
+		auto*	image	= GetResourceManager().GetResource( view->ImageId() );
 		CHECK_ERRV( image != null );
 
 		VkImageSubresourceRange	subres;
@@ -303,6 +347,77 @@ namespace AE::Graphics::_hidden_
 		subres.layerCount		= desc.layerCount;
 
 		ImageBarrier( image->Handle(), srcState, dstState, subres );
+	}
+
+/*
+=================================================
+	ResourceBarrier (RTGeometryID)
+=================================================
+*/
+	void  VBarrierManager::ResourceBarrier (RTGeometryID id, EResourceState srcState, EResourceState dstState) __NE___
+	{
+		auto*	geom	= GetResourceManager().GetResource( id );
+		CHECK_ERRV( geom != null );
+
+		auto	subbuf	= geom->GetBufferStorage();
+
+		BufferBarrier( subbuf.buffer, srcState, dstState, subbuf.offset, subbuf.size );
+	}
+
+/*
+=================================================
+	ResourceBarrier (RTSceneID)
+=================================================
+*/
+	void  VBarrierManager::ResourceBarrier (RTSceneID id, EResourceState srcState, EResourceState dstState) __NE___
+	{
+		auto*	scene	= GetResourceManager().GetResource( id );
+		CHECK_ERRV( scene != null );
+
+		auto	subbuf	= scene->GetBufferStorage();
+
+		BufferBarrier( subbuf.buffer, srcState, dstState, subbuf.offset, subbuf.size );
+	}
+
+/*
+=================================================
+	ResourceBarrier (RTMicromapID)
+=================================================
+*/
+	void  VBarrierManager::ResourceBarrier (RTMicromapID id, EResourceState srcState, EResourceState dstState) __NE___
+	{
+		auto*	micromap	= GetResourceManager().GetResource( id );
+		CHECK_ERRV( micromap != null );
+
+		auto	subbuf		= micromap->GetBufferStorage();
+
+		BufferBarrier( subbuf.buffer, srcState, dstState, subbuf.offset, subbuf.size );
+	}
+
+/*
+=================================================
+	ResourceBarrier (VideoImageID)
+=================================================
+*/
+	void  VBarrierManager::ResourceBarrier (VideoImageID id, EResourceState srcState, EResourceState dstState) __NE___
+	{
+		auto*	vi	= GetResourceManager().GetResource( id );
+		CHECK_ERRV( vi != null );
+
+		ImageBarrier( vi->GetImageHandle(), srcState, dstState, vi->AspectMask() );
+	}
+
+/*
+=================================================
+	ResourceBarrier (VideoBufferID)
+=================================================
+*/
+	void  VBarrierManager::ResourceBarrier (VideoBufferID id, EResourceState srcState, EResourceState dstState) __NE___
+	{
+		auto*	vb	= GetResourceManager().GetResource( id );
+		CHECK_ERRV( vb != null );
+
+		BufferBarrier( vb->Handle(), srcState, dstState );
 	}
 
 /*
@@ -405,7 +520,7 @@ namespace AE::Graphics::_hidden_
 */
 	void  VBarrierManager::AcquireBufferOwnership (BufferID bufferId, EQueueType srcQueue, EResourceState srcState, EResourceState dstState) __NE___
 	{
-		auto*	buf = _resMngr.GetResource( bufferId );
+		auto*	buf = GetResourceManager().GetResource( bufferId );
 		CHECK_ERRV( buf != null );
 		ASSERT( buf->IsExclusiveSharing() );
 
@@ -414,20 +529,23 @@ namespace AE::Graphics::_hidden_
 
 	void  VBarrierManager::AcquireBufferOwnership (VkBuffer buffer, EQueueType srcQueue, EResourceState srcState, EResourceState dstState) __NE___
 	{
+		ASSERT( buffer != Default );
+
 		VkBufferMemoryBarrier2	barrier;
 		barrier.sType	= VK_STRUCTURE_TYPE_BUFFER_MEMORY_BARRIER_2;
 		barrier.pNext	= null;
 		barrier.buffer	= buffer;
 		barrier.offset	= 0;
 		barrier.size	= VK_WHOLE_SIZE;
+		// TODO: VK_DEPENDENCY_QUEUE_FAMILY_OWNERSHIP_TRANSFER_USE_ALL_STAGES_BIT_KHR
 
 		const auto&	dev			= GetDevice();
 		const auto	src_queue	= dev.GetQueue( srcQueue );
 		const auto	dst_queue	= dev.GetQueue( GetQueueType() );
 		const auto	stages		= src_queue->supportedStages & dst_queue->supportedStages;
 
-		_FillBufferBarrier2( srcState, dstState, stages, src_queue->supportedAccess, stages, dst_queue->supportedAccess, INOUT barrier );
 		_FillOwnershipTransfer( src_queue, dst_queue, INOUT barrier );
+		_FillMemoryBarrier2( srcState, dstState, stages, src_queue->supportedAccess, stages, dst_queue->supportedAccess, true, INOUT barrier );
 
 		DbgValidateBarrier( srcState, dstState, barrier );
 		_AddBufferBarrier( barrier );
@@ -440,7 +558,7 @@ namespace AE::Graphics::_hidden_
 */
 	void  VBarrierManager::ReleaseBufferOwnership (BufferID bufferId, EResourceState srcState, EResourceState dstState, EQueueType dstQueue) __NE___
 	{
-		auto*	buf = _resMngr.GetResource( bufferId );
+		auto*	buf = GetResourceManager().GetResource( bufferId );
 		CHECK_ERRV( buf != null );
 		ASSERT( buf->IsExclusiveSharing() );
 
@@ -449,20 +567,27 @@ namespace AE::Graphics::_hidden_
 
 	void  VBarrierManager::ReleaseBufferOwnership (VkBuffer buffer, EResourceState srcState, EResourceState dstState, EQueueType dstQueue) __NE___
 	{
+		ASSERT( buffer != Default );
+
 		VkBufferMemoryBarrier2	barrier;
 		barrier.sType	= VK_STRUCTURE_TYPE_BUFFER_MEMORY_BARRIER_2;
 		barrier.pNext	= null;
 		barrier.buffer	= buffer;
 		barrier.offset	= 0;
 		barrier.size	= VK_WHOLE_SIZE;
+		// TODO: VK_DEPENDENCY_QUEUE_FAMILY_OWNERSHIP_TRANSFER_USE_ALL_STAGES_BIT_KHR
 
 		const auto&	dev			= GetDevice();
 		const auto	src_queue	= dev.GetQueue( GetQueueType() );
 		const auto	dst_queue	= dev.GetQueue( dstQueue );
 		const auto	stages		= src_queue->supportedStages & dst_queue->supportedStages;
 
-		_FillBufferBarrier2( srcState, dstState, stages, src_queue->supportedAccess, stages, dst_queue->supportedAccess, INOUT barrier );
+		// from docs:
+		// "The destination access mask is ignored for such a barrier, such that no visibility operation is executed"
+		// TODO: 'dst_queue->supportedAccess' can be 0
+
 		_FillOwnershipTransfer( src_queue, dst_queue, INOUT barrier );
+		_FillMemoryBarrier2( srcState, dstState, stages, src_queue->supportedAccess, stages, dst_queue->supportedAccess, true, INOUT barrier );
 
 		DbgValidateBarrier( srcState, dstState, barrier );
 		_AddBufferBarrier( barrier );
@@ -475,7 +600,7 @@ namespace AE::Graphics::_hidden_
 */
 	void  VBarrierManager::AcquireImageOwnership (ImageID imageId, EQueueType srcQueue, EResourceState srcState, EResourceState dstState) __NE___
 	{
-		auto*	img = _resMngr.GetResource( imageId );
+		auto*	img = GetResourceManager().GetResource( imageId );
 		CHECK_ERRV( img != null );
 		ASSERT( img->IsExclusiveSharing() );
 
@@ -489,14 +614,15 @@ namespace AE::Graphics::_hidden_
 		barrier.pNext				= null;
 		barrier.image				= image;
 		barrier.subresourceRange	= { aspectMask, 0, VK_REMAINING_MIP_LEVELS, 0, VK_REMAINING_ARRAY_LAYERS };
+		// TODO: VK_DEPENDENCY_QUEUE_FAMILY_OWNERSHIP_TRANSFER_USE_ALL_STAGES_BIT_KHR
 
 		const auto&	dev			= GetDevice();
 		const auto	src_queue	= dev.GetQueue( srcQueue );
 		const auto	dst_queue	= dev.GetQueue( GetQueueType() );
 		const auto	stages		= src_queue->supportedStages & dst_queue->supportedStages;
 
-		_FillImageBarrier2( srcState, dstState, stages, src_queue->supportedAccess, stages, dst_queue->supportedAccess, INOUT barrier );
 		_FillOwnershipTransfer( src_queue, dst_queue, INOUT barrier );
+		_FillImageBarrier2( srcState, dstState, stages, src_queue->supportedAccess, stages, dst_queue->supportedAccess, true, INOUT barrier );
 
 		DbgValidateBarrier( srcState, dstState, barrier );
 		_AddImageBarrier( barrier );
@@ -509,7 +635,7 @@ namespace AE::Graphics::_hidden_
 */
 	void  VBarrierManager::ReleaseImageOwnership (ImageID imageId, EResourceState srcState, EResourceState dstState, EQueueType dstQueue) __NE___
 	{
-		auto*	img = _resMngr.GetResource( imageId );
+		auto*	img = GetResourceManager().GetResource( imageId );
 		CHECK_ERRV( img != null );
 		ASSERT( img->IsExclusiveSharing() );
 
@@ -523,14 +649,19 @@ namespace AE::Graphics::_hidden_
 		barrier.pNext				= null;
 		barrier.image				= image;
 		barrier.subresourceRange	= { aspectMask, 0, VK_REMAINING_MIP_LEVELS, 0, VK_REMAINING_ARRAY_LAYERS };
+		// TODO: VK_DEPENDENCY_QUEUE_FAMILY_OWNERSHIP_TRANSFER_USE_ALL_STAGES_BIT_KHR
 
 		const auto&	dev			= GetDevice();
 		const auto	src_queue	= dev.GetQueue( GetQueueType() );
 		const auto	dst_queue	= dev.GetQueue( dstQueue );
 		const auto	stages		= src_queue->supportedStages & dst_queue->supportedStages;
 
-		_FillImageBarrier2( srcState, dstState, stages, src_queue->supportedAccess, stages, dst_queue->supportedAccess, INOUT barrier );
+		// from docs:
+		// "The destination access mask is ignored for such a barrier, such that no visibility operation is executed"
+		// TODO: 'dst_queue->supportedAccess' can be 0
+
 		_FillOwnershipTransfer( src_queue, dst_queue, INOUT barrier );
+		_FillImageBarrier2( srcState, dstState, stages, src_queue->supportedAccess, stages, dst_queue->supportedAccess, true, INOUT barrier );
 
 		DbgValidateBarrier( srcState, dstState, barrier );
 		_AddImageBarrier( barrier );
@@ -590,7 +721,7 @@ namespace AE::Graphics::_hidden_
 						const bool	is_valid	= NoBits( dst_state, EResourceState::Invalidate );
 
 						if ( req_barrier and is_valid )
-							ImageBarrier( fb_images[ idx ], att.initial, dst_state );
+							ResourceBarrier( fb_images[ idx ], att.initial, dst_state );
 
 						const auto	src_state	 = att_states[ idx ].final;
 						const bool	req_barrier2 = EResourceState_RequireImageBarrier( src_state, att.final, Bool{att.relaxedStateTransition} );
@@ -618,7 +749,7 @@ namespace AE::Graphics::_hidden_
 		GFX_DBG_ONLY(
 			auto&	res_mngr = GetResourceManager();
 			CHECK( res_mngr.IsAlive( primaryState._rpId ));
-			CHECK( res_mngr.IsAlive( primaryState._rpId ));
+			CHECK( res_mngr.IsAlive( primaryState._fbId ));
 		)
 
 		// state transition
@@ -629,7 +760,7 @@ namespace AE::Graphics::_hidden_
 			for (usize i = 0; i < fb_images.size(); ++i)
 			{
 				if ( finalStates[i] != Default )
-					ImageBarrier( fb_images[i], att_states[i].final, finalStates[i] );
+					ResourceBarrier( fb_images[i], att_states[i].final, finalStates[i] );
 			}
 		}
 	}

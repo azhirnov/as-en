@@ -246,7 +246,7 @@ namespace AE::Base
 			CHECK_ERR_MSG( feats.AVX512F,	"AE_SIMD_AVX=30 requires AVX512F feature" );
 		#endif
 		#if (AE_SIMD_AVX >= 31)
-		//	CHECK_ERR_MSG( feats.AVX512_CD,		"AE_SIMD_AVX=31 requires AVX512_CD feature" );
+			CHECK_ERR_MSG( feats.AVX512_CD,		"AE_SIMD_AVX=31 requires AVX512_CD feature" );
 			CHECK_ERR_MSG( feats.AVX512_VL,		"AE_SIMD_AVX=31 requires AVX512_VL feature" );
 			CHECK_ERR_MSG( feats.AVX512_DQ,		"AE_SIMD_AVX=31 requires AVX512_DQ feature" );
 			CHECK_ERR_MSG( feats.AVX512_BW,		"AE_SIMD_AVX=31 requires AVX512_BW feature" );

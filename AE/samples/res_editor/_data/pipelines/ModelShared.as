@@ -18,6 +18,9 @@ void  ASmain ()
 	if ( fs.hasMeshShader() )
 		InitMeshPipelineLayout();
 
+	if ( fs.hasRayQuery() )
+		InitRayTracingPipelineLayout( true );
+
 	if ( fs.hasRayTracingPipeline() )
-		InitRayTracingPipelineLayout();
+		InitRayTracingPipelineLayout( false );
 }

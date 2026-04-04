@@ -11,9 +11,9 @@ static constexpr uint  c_MaxRenderThreads = 3;
 	Test_DrawTests
 =================================================
 */
-extern void Test_DrawTests (RC<VFS::IVirtualFileStorage> assetStorage, RC<VFS::IVirtualFileStorage> refStorage)
+extern void Test_DrawTests (RC<VFS::IVirtualFileStorage> assetStorage, RC<VFS::IVirtualFileStorage> refStorage, StringView testName)
 {
-	DrawTestCore	test;
+	DrawTestCore	test {testName};
 	CHECK_FATAL( test.Run( assetStorage, refStorage ));
 
 	TEST_PASSED();
@@ -24,11 +24,18 @@ extern void Test_DrawTests (RC<VFS::IVirtualFileStorage> assetStorage, RC<VFS::I
 	constructor
 =================================================
 */
-DrawTestCore::DrawTestCore () :
+DrawTestCore::DrawTestCore (StringView testName) :
 	_uploadMngr{ MakeRC<ResourceUploadManager>() },
 	_device{ True{"enable info log"}, False{"disable allocator stats"} }
 {
-	_tests.emplace_back( &DrawTestCore::Test_Canvas_Rect );
+	#undef RUN_TEST
+	#define RUN_TEST( _name_ )\
+		if ( testName.empty() or testName == AE_TOSTRING(_name_) )\
+			_tests.emplace_back( &DrawTestCore::_name_ );
+
+	RUN_TEST( Test_Canvas_Rect );
+
+	#undef RUN_TEST
 }
 
 /*

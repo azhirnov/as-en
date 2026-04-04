@@ -83,7 +83,7 @@ namespace
 =================================================
 */
 	static CompatibleRenderPassDesc*  CompatibleRenderPassDesc_Ctor (const String &name) __Th___ {
-		return CompatibleRenderPassDescPtr{new CompatibleRenderPassDesc{ name }}.Detach();
+		return CompatibleRenderPassDesc::Create( name ).Detach();
 	}
 
 /*
@@ -478,6 +478,7 @@ namespace
 		auto&	storage	= *ObjectStorage::Instance();
 		storage.AddName<SubpassName>( subpassName );
 
+		TestFeature_Supported( _compat->GetFeatures(), state );  // throw
 		CHECK_THROW_MSG( EResourceState_Validate( state ),
 			"in subpass '"s << subpassName << "' state (" << Base::ToString(state) << ") is not valid" );
 
@@ -578,17 +579,19 @@ namespace
 					}
 					case EAttachment::Depth :
 					{
-						const EResourceState	ds_stages = state & (EResourceState::DSTestBeforeFS | EResourceState::DSTestAfterFS);
+						const EResourceState	ds_stages	= state & (EResourceState::DSTestBeforeFS | EResourceState::DSTestAfterFS);
+						const bool				shader_read	= AnyEqual( access, _EResState::DepthStencilTest_ShaderSample, _EResState::DepthTest_DepthSample_StencilRW );
 
 						CHECK_THROW_MSG( access == _EResState::DepthStencilTest				or
 										 access == _EResState::DepthStencilAttachment_RW	or
 										 access == _EResState::DepthTest_StencilRW			or
 										 access == _EResState::DepthRW_StencilTest			or
+										 shader_read										or
 										 is_general,
 							String{msg} << "allow all combinations of 'DepthStencilAttachment' states or 'General' state" );
 						CHECK_THROW_MSG( ds_stages != Default,
 							String{msg} << "requires DSTestBeforeFS or DSTestAfterFS stages" );
-						CHECK_THROW_MSG( shaders == Default,
+						CHECK_THROW_MSG( shader_read or shaders == Default,
 							String{msg} << "must not contain shader stages" );
 						break;
 					}
@@ -658,6 +661,8 @@ namespace
 
 		CHECK( EResourceState_Validate( initialState ));
 		CHECK( EResourceState_Validate( finalState ));
+		TestFeature_Supported( _compat->GetFeatures(), initialState );	// throw
+		TestFeature_Supported( _compat->GetFeatures(), finalState );	// throw
 
 		auto&	storage	= *ObjectStorage::Instance();
 
@@ -785,6 +790,7 @@ namespace
 			}
 
 			CHECK( EResourceState_Validate( new_state ));
+			TestFeature_Supported( _compat->GetFeatures(), new_state );  // throw
 
 			rt_states.push_back( new_state );
 			prev_sp = sp.name;
@@ -1217,20 +1223,22 @@ namespace
 
 /*
 =================================================
-	constructor
+	Create
 =================================================
 */
-	CompatibleRenderPassDesc::CompatibleRenderPassDesc () :
-		CompatibleRenderPassDesc{ "<unknown>" }
-	{}
-
-	CompatibleRenderPassDesc::CompatibleRenderPassDesc (const String &name) __Th___ :
-		_name{ CompatRenderPassName{name} },
-		_features{ ObjectStorage::Instance()->GetDefaultFeatureSets() }
+	CompatibleRenderPassDescPtr  CompatibleRenderPassDesc::Create (const String &name) __Th___
 	{
-		ObjectStorage::Instance()->AddName<CompatRenderPassName>( name );
-		CHECK_THROW_MSG( ObjectStorage::Instance()->compatibleRPs.emplace( _name, CompatibleRenderPassDescPtr{this} ).second,
+		auto&						storage	= *ObjectStorage::Instance();
+		CompatibleRenderPassDescPtr	result	{ new CompatibleRenderPassDesc{} };
+
+		result->_name		= CompatRenderPassName{name};
+		result->_features	= storage.GetDefaultFeatureSets();
+
+		storage.AddName<CompatRenderPassName>( name );
+		CHECK_THROW_MSG( storage.compatibleRPs.emplace( result->_name, result ).second,
 			"CompatibleRenderPass with name '"s << name << "' is already defined" );
+
+		return result;
 	}
 
 /*
@@ -1757,7 +1765,7 @@ namespace
 		// compatible render pass
 		{
 			ClassBinder<CompatibleRenderPassDesc>	binder{ se };
-			binder.CreateRef();
+			binder.CreateRef( 0, False{} );
 
 			binder.Comment( "Create compatible render pass.\n"
 							"Name may be used in C++ code to create graphics/mesh/tile pipeline." );

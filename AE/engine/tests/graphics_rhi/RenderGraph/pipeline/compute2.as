@@ -28,6 +28,6 @@ void ASmain ()
 	// specialization
 	{
 		RC<ComputePipelineSpec>		spec = ppln.AddSpecialization( "async_comp1.compute" );
-		spec.AddToRenderTech( "AsyncCompTestRT", "Compute_1" );
+		spec.AddToRenderTech( "AsyncComp.RTech", "Compute_1" );
 	}
 }

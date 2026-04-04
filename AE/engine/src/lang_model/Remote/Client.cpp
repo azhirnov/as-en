@@ -58,16 +58,17 @@ namespace AE::LangModel
 				CHECK_ERR( _channel.Send( msg ));
 				break;
 			}
+			case EImplementation::StableDiffusion :
 			case EImplementation::_Count :
 			default :
 				RETURN_ERR( "not implemented" );
 		}
 		switch_end
 
-		auto	resp = _WaitFor< Msg::LangModelCreateContext_Resp >();
+		auto	resp	= _WaitFor< Msg::LangModelCreateContext_Resp >();
 		CHECK_ERR( resp );
 
-		auto	result = MakeRC<LangModelContextClient>();
+		auto	result	= MakeRC<LangModelContextClient>();
 
 		result->_modelRC = GetRC<LangModelClient>();
 		result->_uid	 = resp->uid;
@@ -115,9 +116,10 @@ namespace AE::LangModel
 				if ( not msg )
 					continue;
 
-				const auto	type = msg->GetTypeId();
+				const auto	type		= msg->GetTypeId();
+				const auto	req_type	= TypeIdOf<M>();
 
-				if ( type == TypeIdOf<M>() )
+				if ( type == req_type )
 					return Cast<M>( RVRef(msg) );
 				else
 				if ( type == TypeIdOf< Msg::LangModel_Log >() )
@@ -127,7 +129,7 @@ namespace AE::LangModel
 				}
 				else
 				{
-					RETURN_ERR( "unexpected message" );
+					RETURN_ERR( "unexpected message: "s << type.Name() );
 				}
 			}
 		}
@@ -227,6 +229,9 @@ namespace AE::LangModel
 			msg.uid	= _uid;
 
 			CHECK( _modelRC->_channel.Send( msg ));
+
+			auto	resp = _modelRC->_WaitFor< Msg::LangModelContext_Resp >();
+			if ( resp ) CHECK( resp->uid == _uid );
 		}
 	}
 
@@ -341,7 +346,7 @@ namespace AE::LangModel
 				}
 				else
 				{
-					RETURN_ERR( "unexpected message" );
+					RETURN_ERR( "unexpected message: "s << type.Name() );
 				}
 			}
 		}

@@ -47,7 +47,7 @@ namespace AE::PipelineCompiler
 		Includes_t					_includes;
 		EStateBits					_states		= Default;
 		Optional<PipelineTemplUID>	_pipelineUID;
-		Array<ScriptFeatureSetPtr>	_features;
+		Array<ScriptFeatureSetPtr>	_features;					// Used to validate pipeline template. Specialization will use RenderTech features too.
 		EShaderStages				_stages		= Default;
 		bool						_isPrepared	= false;
 
@@ -62,8 +62,6 @@ namespace AE::PipelineCompiler
 
 	// methods
 	public:
-		explicit BasePipelineTmpl (const String &name)		__Th___;
-
 		ND_ PipelineLayoutPtr				GetLayout ()	C_Th___;
 		ND_ bool							HasLayout ()	const	{ return bool(_layoutPtr); }
 
@@ -77,6 +75,9 @@ namespace AE::PipelineCompiler
 		void  Enable ();
 
 	protected:
+		explicit BasePipelineTmpl (const String &name)																						__NE___;
+		void  _Init ()																														__Th___;
+
 		void  _CompileShader (INOUT CompiledShaderPtr &outShader, const ScriptShaderPtr &inShader,
 							  const ShaderStructTypePtr &shaderInput, const ShaderStructTypePtr &shaderOutput,
 							  const Optional<FragOutput_t> &fragOut = NullOptional, const VertexBufferInputPtr &vbInput = Default)			__Th___;
@@ -124,20 +125,24 @@ namespace AE::PipelineCompiler
 
 		Array<RenderTechniquePtr>	_linkedRTechs;
 
+		mutable Array<ScriptFeatureSetPtr>	_cachedFeatures;	// base features + rtech
+		mutable uint						_cachedLinkedRTs = 0;
+
 
 	// methods
 	public:
 		BasePipelineSpec () {}
 		BasePipelineSpec (BasePipelineTmpl* tmpl, const String &name) __Th___;
 
-		ND_ const BasePipelineTmpl*			GetBase ()		const	{ return _tmpl; }
-		ND_ PipelineName const&				Name ()			const	{ return _name; }
-		ND_ StringView						NameStr ()		const	{ return _nameStr; }
-		ND_ PipelineSpecUID					UID ()			const	{ return _uid.value_or( Default ); }
-		ND_ bool							IsBuilded ()	const	{ return _uid.has_value(); }
-		ND_ ArrayView<RenderTechniquePtr>	GetRTechs ()	const	{ return _linkedRTechs; }
-		ND_ ArrayView<ScriptFeatureSetPtr>  GetFeatures ()	const	{ return _tmpl->GetFeatures(); }
-		ND_ bool							IsEnabled ()	const	{ return _enabled; }
+		ND_ const BasePipelineTmpl*			GetBase ()			const	{ return _tmpl; }
+		ND_ PipelineName const&				Name ()				const	{ return _name; }
+		ND_ StringView						NameStr ()			const	{ return _nameStr; }
+		ND_ PipelineSpecUID					UID ()				const	{ return _uid.value_or( Default ); }
+		ND_ bool							IsBuilded ()		const	{ return _uid.has_value(); }
+		ND_ ArrayView<RenderTechniquePtr>	GetRTechs ()		const	{ return _linkedRTechs; }
+		ND_ ArrayView<ScriptFeatureSetPtr>	GetAllFeatures ()	const	{ _UpdateFeatures();  return _cachedFeatures; }
+		ND_ bool							IsEnabled ()		const	{ return _enabled; }
+		ND_ EPipelineOpt					Options ()			const	{ return _options; }
 
 		void  Disable ();
 		void  Enable ();
@@ -149,6 +154,8 @@ namespace AE::PipelineCompiler
 		void  _SetOptions (EPipelineOpt value)																			__Th___;
 
 		void  _OnBuild (PipelineSpecUID uid)																			__NE___;
+
+		void  _UpdateFeatures ()																						C_NE___;
 
 		static void  _ValidateRenderState (EPipelineDynamicState dynamicState, INOUT RenderState &state,
 										   ArrayView<ScriptFeatureSetPtr> features)										__Th___;

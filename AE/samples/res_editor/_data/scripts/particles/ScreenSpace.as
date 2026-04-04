@@ -32,9 +32,9 @@
 
 		particles.ArrayLayout(
 			"Particle",
-			"	float4	position_size;" +
-			"	float4	velocity_color;" +
-			"	float	startTime;" +
+			"	float4	position_size;"
+			"	float4	velocity_color;"
+			"	float	startTime;"
 			"	uint	numCollisions;",
 			max_particle_count * local_size );
 
@@ -93,13 +93,11 @@
 
 		// create scene with AABBs
 		{
-			array<float3>	positions, normals;
-			array<uint>		indices;
-			GetCube( OUT positions, OUT normals, OUT indices );
+			RC<Mesh>	mesh = Mesh();
+			mesh.SetAttributes( EAttribute::Position );
+			mesh.AddCube();
 
-			RC<Buffer>		geom_data = Buffer();
-			geom_data.FloatArray( "positions",	positions );
-			geom_data.UIntArray(  "indices",	indices );
+			RC<Buffer>		geom_data = mesh.ToBuffer();
 			geom_data.LayoutName( "GeometryData" );
 
 			RC<UnifiedGeometry>		geometry = UnifiedGeometry();
@@ -107,7 +105,7 @@
 			geometry.ArgIn( "un_Transform",	obj_buf );
 
 			UnifiedGeometry_DrawIndexed	cmd;
-			cmd.indexCount	= indices.size();
+			cmd.indexCount	= mesh.IndexCount();
 			cmd.IndexBuffer( geom_data, "indices" );
 			cmd.instanceCount = inst_count;
 			geometry.Draw( cmd );

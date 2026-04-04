@@ -1,16 +1,19 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 	
 #define AE_ROUTER_IPv4				(Networking::IpAddress::FromServiceUDP( "192.168.0.1", "8080" ))
-#define AE_ROUTER_IPv6				(Networking::IpAddress6::FromServiceUDP( "TODO", "" ))
-#define AE_ROUTER_IPv6_APPLE		(Networking::IpAddress6::FromServiceUDP( "TODO%en0", "80" ))
+#ifdef AE_PLATFORM_APPLE
+# define AE_ROUTER_IPv6				(Networking::IpAddress6::FromServiceUDP( "TODO%en0", "80" ))
+#else
+# define AE_ROUTER_IPv6				(Networking::IpAddress6::FromServiceUDP( "TODO", "" ))
+#endif
 
 #define AE_GOOGLE_DNS_IPv4			(Networking::IpAddress::FromServiceUDP( "8.8.8.8", "53" ))
 #define AE_GOOGLE_DNS_IPv6			(Networking::IpAddress6::FromServiceUDP( "2001:4860:4860::8888", "53" ))
 
 
 // Remove Graphics
-#define AE_RMG_IPv4					(Networking::IpAddress::FromServiceTCP( "TODO", "0" ))
 #define AE_RMG_PORT					3000
+#define AE_RMG_IPv4					(Networking::IpAddress::FromHostPortTCP( "TODO", AE_RMG_PORT ))
 
 
 // cicd
@@ -36,6 +39,10 @@
 // Android Remote Control
 #define AE_ANDREMCTRL_SERVER_PORT	3005
 #define AE_ANDREMCTRL_SERVER_IPv4	(Networking::IpAddress::FromHostPortTCP( "TODO", AE_ANDREMCTRL_SERVER_PORT ))
+
+
+// Android Launcher
+#define AE_ANDLAUNCHER_UDP_CLIENT_PORT	3010
 
 
 // for tests

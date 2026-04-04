@@ -21,6 +21,11 @@ namespace AE::ResEditor
 					CHECK_THROW( res );
 					resources.Add( UniformName{arg.name}, res, arg.state );
 				},
+				[&] (ScriptBufferViewPtr buf) {
+					auto	res = buf->ToResource();
+					CHECK_THROW( res );
+					resources.Add( UniformName{arg.name}, res, arg.state );
+				},
 				[&] (ScriptImagePtr tex) {
 					auto	res = tex->ToResource();
 					CHECK_THROW( res );
@@ -70,6 +75,7 @@ namespace AE::ResEditor
 		{
 			Visit( arg.res,
 				[]  (ScriptBufferPtr buf)				{ buf->AddLayoutReflection();  CHECK_THROW_MSG( buf->ToResource() ); },
+				[]  (ScriptBufferViewPtr buf)			{ CHECK_THROW_MSG( buf->ToResource() ); },
 				[]  (ScriptImagePtr tex)				{ CHECK_THROW_MSG( tex->ToResource() ); },
 				[&] (ScriptVideoImagePtr video)			{ video->Validate( arg.samplerName ); },
 				[]  (ScriptRTScenePtr scene)			{ CHECK_THROW_MSG( scene->ToResource() ); },
@@ -135,6 +141,37 @@ namespace AE::ResEditor
 		arg.res		= buf;
 
 		switch ( usage ) {
+			case EResourceUsage::ComputeRead :	arg.state |= EResourceState::ShaderStorage_Read;	break;
+			case EResourceUsage::ComputeWrite :	arg.state |= EResourceState::ShaderStorage_Write;	break;
+			case EResourceUsage::ComputeRW :	arg.state |= EResourceState::ShaderStorage_RW;		break;
+			default :							CHECK_MSG( false, "unsupported usage" );
+		}
+		if ( _onAddArg )
+			_onAddArg( arg );
+	}
+
+/*
+=================================================
+	ArgBufferViewIn***
+=================================================
+*/
+	void  ScriptPassArgs::ArgBufferViewIn (const String &name, const ScriptBufferViewPtr &buf)		__Th___	{ _AddArg( name, buf, EResourceUsage::Sampled ); }
+	void  ScriptPassArgs::ArgBufferViewOut (const String &name, const ScriptBufferViewPtr &buf)		__Th___	{ _AddArg( name, buf, EResourceUsage::ComputeWrite ); }
+	void  ScriptPassArgs::ArgBufferViewInOut (const String &name, const ScriptBufferViewPtr &buf)	__Th___	{ _AddArg( name, buf, EResourceUsage::ComputeRW ); }
+
+	void  ScriptPassArgs::_AddArg (const String &name, const ScriptBufferViewPtr &buf, EResourceUsage usage) __Th___
+	{
+		CHECK_THROW_MSG( buf );
+		buf->AddUsage( usage );
+
+		CHECK_THROW_MSG( _uniqueNames.insert( name ).second, "uniform '"s << name << "' is already exists" );
+
+		Argument&	arg = _args.emplace_back();
+		arg.name	= name;
+		arg.res		= buf;
+
+		switch ( usage ) {
+			case EResourceUsage::Sampled :		arg.state |= EResourceState::ShaderSample;			break;	// uniform texel buffer
 			case EResourceUsage::ComputeRead :	arg.state |= EResourceState::ShaderStorage_Read;	break;
 			case EResourceUsage::ComputeWrite :	arg.state |= EResourceState::ShaderStorage_Write;	break;
 			case EResourceUsage::ComputeRW :	arg.state |= EResourceState::ShaderStorage_RW;		break;

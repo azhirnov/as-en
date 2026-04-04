@@ -111,7 +111,7 @@
 			case 8 :
 			{
 				float3	dir		= Ray_DualParaboloid( uv );
-				float2	uv2		= RayInverse_DualParaboloid( dir );
+				float2	uv2		= RayInverse_DualParaboloid2D( dir );
 				col.rg = Abs(uv2 - uv) * scale;
 				break;
 			}

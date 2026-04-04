@@ -69,7 +69,7 @@
 	void Main ()
 	{
 		const uint	idx	= gl.VertexIndex;
-		gl.Position		= float4( un_Geometry.positions[idx], 1.f );
+		gl.Position		= float4( un_Geometry.position[idx], 1.f );
 	}
 
 #endif
@@ -114,12 +114,14 @@
 						float4(1.0, 0.0, 0.0, 1.0));
 
 		// wireframe
+		#ifdef AE_fragment_shader_barycentric
 		{
 			const float		thickness	= 1.5;	// pixels
 			const float		falloff		= 6.0;	// pixels
 
 			out_Color *= FSBarycentricWireframe( thickness, falloff ).x;
 		}
+		#endif
 
 		// normals
 		if ( iDbgNormals == 1 )

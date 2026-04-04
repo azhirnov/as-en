@@ -266,26 +266,26 @@ namespace
 		// can not link with static library, so use dynamic
 		#ifdef AE_PLATFORM_WINDOWS
 		# ifdef AE_CFG_DEBUG
-			Unused( _lib.Load( libPath / "slangd.dll" ));
+			Unused( _lib.Load( libPath / "slang-compilerd.dll" ));
 		# endif
 			if ( not _lib )
-				Unused( _lib.Load( libPath / "slang.dll" ));
+				Unused( _lib.Load( libPath / "slang-compiler.dll" ));
 		#endif
 
 		#ifdef AE_PLATFORM_LINUX
 		# ifdef AE_CFG_DEBUG
-			Unused( _lib.Load( libPath / "libslangd.so" ));
+			Unused( _lib.Load( libPath / "libslang-compilerd.so" ));
 		# endif
 			if ( not _lib )
-				Unused( _lib.Load( libPath / "libslang.so" ));
+				Unused( _lib.Load( libPath / "libslang-compiler.so" ));
 		#endif
 
 		#ifdef AE_PLATFORM_APPLE
 		# ifdef AE_CFG_DEBUG
-			Unused( _lib.Load( libPath / "slangd.dylib" ));
+			Unused( _lib.Load( libPath / "slang-compilerd.dylib" ));
 		# endif
 			if ( not _lib )
-				Unused( _lib.Load( libPath / "slang.dylib" ));
+				Unused( _lib.Load( libPath / "slang-compiler.dylib" ));
 		#endif
 
 		if ( not _lib )
@@ -1183,9 +1183,9 @@ extern "C"
 
 namespace AE::PipelineCompiler
 {
-	SLangCompiler::SLangCompiler (ArrayView<Path>)				__NE___	{}
-	SLangCompiler::~SLangCompiler ()							__NE___	{}
-	bool  SLangCompiler::Compile (const Input &, OUT Output &)	__NE___	{ return false; }
+	SLangCompiler::SLangCompiler (ArrayView<Path>, Path libPath)	__NE___	{}
+	SLangCompiler::~SLangCompiler ()								__NE___	{}
+	bool  SLangCompiler::Compile (const Input &, OUT Output &)		__NE___	{ return false; }
 
 } // AE::PipelineCompiler
 

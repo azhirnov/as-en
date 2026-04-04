@@ -690,6 +690,22 @@ namespace AE::PipelineCompiler
 						//tmp << "\t\t\t} ppln;\n";
 					}
 
+					if ( not pass->GetExecutionSets().empty() )
+					{
+						tmp << "\n\t\t\t// indirect execution sets\n";
+						tmp << "\n\t\t\tstatic constexpr struct _ICB {\n";
+
+						for (auto& es : pass->GetExecutionSets())
+						{
+							auto	name_str	= es->NameStr();
+							auto	name_hash	= es->Name();
+
+							tmp << "\t\t\t\tstatic constexpr ExecutionSetName_t  " << ValidateName(name_str) << " {Hash_t{0x"
+								<< ToString<16>( uint{name_hash} ) << "u}};  // '" << name_str << "'\n";
+						}
+						tmp << "\t\t\t} execSet;\n";
+					}
+
 					tmp << "\t\t} " << ValidateName(pass->Name()) << " = {};\n";
 				}
 
@@ -718,6 +734,7 @@ namespace AE::PipelineCompiler
 					<< "\tusing PipelineName_t        = AE::Graphics::PipelineName;\n"
 					<< "\tusing RTShaderBindingName_t = AE::Graphics::RTShaderBindingName;\n"
 					<< "\tusing DSLayoutName_t        = AE::Graphics::DSLayoutName;\n"
+					<< "\tusing ExecutionSetName_t    = AE::Graphics::IndirectExecutionSetName;\n"
 					<< tmp
 					<< "}\n";
 			}
@@ -729,6 +746,18 @@ namespace AE::PipelineCompiler
 
 		AE_LOGI( "Store C++ RP & RTech names to '"s << ToString(filename) << "'" );
 		return true;
+	}
+
+/*
+=================================================
+	SaveShaderHeader
+=================================================
+*/
+	bool  ObjectStorage::SaveShaderHeader (const Path &filename) const
+	{
+		// TODO: save IndirectExecutionSet's
+
+		return false;
 	}
 
 /*
@@ -979,6 +1008,7 @@ namespace {
 		CompatibleRenderPassDesc::Bind( se );
 		ScriptSampler::Bind( se );
 		RayTracingShaderBinding::Bind( se );
+		IndirectExecutionSet::Bind( se );
 
 		AS_GLOBAL_FN( se, Cfg_IsShaderTraceSupported,	"IsShaderTraceSupported",	{} );
 		AS_GLOBAL_FN( se, Cfg_IsMetalCompilerSupported,	"IsMetalCompilerSupported",	{} );

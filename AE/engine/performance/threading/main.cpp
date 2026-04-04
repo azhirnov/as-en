@@ -14,38 +14,24 @@ extern void  PerfTest_Raw_Atomic ();
 extern void  PerfTest_Raw_ThreadWakeUp ();
 
 
-#ifdef AE_PLATFORM_ANDROID
-extern "C" AE_DLL_EXPORT int Perf_Threading (const char* path)
-#else
-int main (const int argc, char* argv[])
-#endif
+TEST_ENTRY()
 {
-  #ifdef AE_RELEASE
 	BEGIN_TEST();
 
 	CHECK( PlatformUtils::SetSystemSleepState( ESystemSleepState::DontSleep_AllowTurnDisplayOff ));
 
-	PerfTest_AsyncFile( curr );
-	PerfTest_AsyncMutex();
-	PerfTest_TaskSystemCoro();
+	RUN_TEST( PerfTest_AsyncFile, curr );
+	RUN_TEST( PerfTest_AsyncMutex );
+	RUN_TEST( PerfTest_TaskSystemCoro );
 
-	PerfTest_TaskOrder1();
-	PerfTest_TaskOrder2();
+	RUN_TEST( PerfTest_TaskOrder1 );
+	RUN_TEST( PerfTest_TaskOrder2 );
 
-	//PerfTest_MtAllocator();
+	//RUN_TEST( PerfTest_MtAllocator );
 
-	//PerfTest_Raw_ThreadWakeUp();
-	//PerfTest_Raw_Atomic();
+	//RUN_TEST( PerfTest_Raw_ThreadWakeUp );
+	//RUN_TEST( PerfTest_Raw_Atomic );
 
 	AE_LOGI( "PerformanceTests.Threading finished" );
-
-  #else
-  # ifdef AE_PLATFORM_ANDROID
-	Unused( path );
-  # else
-	Unused( argc, argv );
-  # endif
-  #endif
-
 	return 0;
 }

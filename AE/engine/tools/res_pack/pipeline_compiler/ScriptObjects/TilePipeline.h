@@ -6,6 +6,10 @@
 
 namespace AE::PipelineCompiler
 {
+	using TilePipelineSpecPtr	= ScriptRC< struct TilePipelineSpecScriptBinding >;
+	using TilePipelinePtr		= ScriptRC< struct TilePipelineScriptBinding >;
+
+
 
 	//
 	// Tile Pipeline Specialization
@@ -19,7 +23,6 @@ namespace AE::PipelineCompiler
 
 	// methods
 	public:
-		TilePipelineSpecScriptBinding () {}
 		TilePipelineSpecScriptBinding (TilePipelineScriptBinding* base, const String &name) __Th___;
 
 		void  SetSpecValueU (const String &name, uint  value)			__Th___	{ return BasePipelineSpec::_SetSpecValue( INOUT desc.specialization, name, value ); }
@@ -41,7 +44,6 @@ namespace AE::PipelineCompiler
 
 		static void  Bind (const ScriptEnginePtr &se)					__Th___;
 	};
-	using TilePipelineSpecPtr = ScriptRC< TilePipelineSpecScriptBinding >;
 
 
 
@@ -63,8 +65,7 @@ namespace AE::PipelineCompiler
 
 	// methods
 	public:
-		TilePipelineScriptBinding ();
-		explicit TilePipelineScriptBinding (const String &name)						__Th___;
+		ND_ static TilePipelinePtr  Create (const String &name)						__Th___;
 
 		void  SetShader (const ScriptShaderPtr &shader)								__Th___;
 
@@ -82,9 +83,11 @@ namespace AE::PipelineCompiler
 		static void  Bind (const ScriptEnginePtr &se)								__Th___;
 
 	private:
+		explicit TilePipelineScriptBinding (const String &name)						__NE___	: BasePipelineTmpl{name} {}
+
+		void  _Init ()																__Th___;
 		void  _Prepare ()															__Th___;
 	};
-	using TilePipelinePtr = ScriptRC< TilePipelineScriptBinding >;
 
 
 } // AE::PipelineCompiler

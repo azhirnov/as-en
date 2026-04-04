@@ -2,10 +2,8 @@
 
 #pragma once
 
-#if defined(AE_PLATFORM_MACOS) or defined(AE_PLATFORM_IOS)
-
-# include "base/ObjC/NS.h"
-# include "graphics_rhi/Public/IDs.h"
+#include "base/ObjC/NS.h"
+#include "graphics_rhi/Public/IDs.h"
 
 namespace AE::Graphics
 {
@@ -282,5 +280,3 @@ namespace AE::Graphics
 
 
 } // AE::Graphics
-
-#endif // AE_PLATFORM_MACOS or AE_PLATFORM_IOS

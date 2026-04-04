@@ -17,34 +17,30 @@ extern void PerfTest_CacheSize ();
 extern void PerfTest_Compression ();
 
 
-#ifdef AE_PLATFORM_ANDROID
-extern "C" AE_DLL_EXPORT int Perf_Base (const char* path)
-#else
-int main (const int argc, char* argv[])
-#endif
+TEST_ENTRY()
 {
   #ifdef AE_RELEASE
 	BEGIN_TEST();
-	
+
 	Unused( PlatformUtils::SetSystemSleepState( ESystemSleepState::DisplayAlwaysOn ));
 
-	//PerfTest_HashSet();
-	//PerfTest_HashMap();
+	RUN_TEST( PerfTest_HashSet );
+	RUN_TEST( PerfTest_HashMap );
 
-	//PerfTest_MinSleepTime();
-	//PerfTest_Utf8();
-	PerfTest_FindSubString();
-	//PerfTest_LogicOp();
+	RUN_TEST( PerfTest_MinSleepTime );
+	RUN_TEST( PerfTest_Utf8 );
+	RUN_TEST( PerfTest_FindSubString );
+	RUN_TEST( PerfTest_LogicOp );
 
-	//PerfTest_SIMD();
-	//PerfTest_SIMD2();
-	//PerfTest_SIMD3();
-	//PerfTest_VertSIMD();
+	RUN_TEST( PerfTest_SIMD );
+	RUN_TEST( PerfTest_SIMD2 );
+	RUN_TEST( PerfTest_SIMD3 );
+	RUN_TEST( PerfTest_VertSIMD );
 
-	//PerfTest_MemCopy();
-	//PerfTest_CacheSize();
+	RUN_TEST( PerfTest_MemCopy );
+	RUN_TEST( PerfTest_CacheSize );
 
-	//PerfTest_Compression();
+	RUN_TEST( PerfTest_Compression );
 
 	AE_LOGI( "PerformanceTests.Base finished" );
 

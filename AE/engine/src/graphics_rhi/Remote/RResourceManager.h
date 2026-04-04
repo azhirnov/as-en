@@ -27,8 +27,11 @@
 # include "graphics_rhi/Remote/Resources/RSampler.h"
 # include "graphics_rhi/Remote/Resources/RRTGeometry.h"
 # include "graphics_rhi/Remote/Resources/RRTScene.h"
+# include "graphics_rhi/Remote/Resources/RRTMicromap.h"
 # include "graphics_rhi/Remote/Resources/RMemoryObject.h"
 # include "graphics_rhi/Remote/Resources/RRTShaderBindingTable.h"
+# include "graphics_rhi/Remote/Resources/RIndirectExecutionSet.h"
+# include "graphics_rhi/Remote/Resources/RIndirectCommandsLayout.h"
 
 # include "graphics_rhi/Remote/Resources/RStagingBufferManager.h"
 # include "graphics_rhi/Remote/Resources/RQueryManager.h"

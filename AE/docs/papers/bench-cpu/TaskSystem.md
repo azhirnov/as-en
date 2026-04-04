@@ -4,7 +4,7 @@
 
 # AMD Ryzen 3900X
 
-24 threads?
+24 threads
 
 ## W=4 H=4
 
@@ -65,4 +65,28 @@ Total time: 0.81 s, final jobs: 40960, task time: 77.08 us, overhead: 2.68 %
 Total time: 0.72 s, final jobs: 40960, task time: 68.23 us, overhead: 2.49 %
 Total time: 0.74 s, final jobs: 40960, task time: 70.23 us, overhead: 2.86 %
 Total time: 0.70 s, final jobs: 40960, task time: 66.26 us, overhead: 3.29 %
+```
+
+
+# Realme 8i
+
+8 threads (2P + 6E)
+
+## W=4 H=4
+
+```
+Total time: 1.41 s, final jobs: 349524, task time: 16.97 us, overhead: 47.48 %
+Total time: 1.41 s, final jobs: 349524, task time: 19.38 us, overhead: 39.92 %
+Total time: 1.43 s, final jobs: 349524, task time: 19.76 us, overhead: 39.76 %
+Total time: 1.98 s, final jobs: 349524, task time: 27.37 us, overhead: 39.53 %
+------------------------
+Total time: 1.48 s, final jobs: 349524, task time: 20.11 us, overhead: 40.84 %
+Total time: 1.42 s, final jobs: 349524, task time: 19.95 us, overhead: 38.42 %
+Total time: 1.43 s, final jobs: 349524, task time: 19.18 us, overhead: 41.50 %
+Total time: 3.15 s, final jobs: 349524, task time: 44.12 us, overhead: 38.78 %
+------------------------
+Total time: 0.55 s, final jobs: 163840, task time: 19.98 us, overhead: 26.11 %
+Total time: 1.34 s, final jobs: 163840, task time: 49.99 us, overhead: 23.54 %
+Total time: 0.57 s, final jobs: 163840, task time: 17.54 us, overhead: 36.52 %
+Total time: 0.56 s, final jobs: 163839, task time: 21.26 us, overhead: 22.13 %
 ```

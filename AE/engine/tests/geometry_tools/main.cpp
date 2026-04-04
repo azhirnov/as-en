@@ -6,16 +6,12 @@ extern void UnitTest_SphericalCubeMath ();
 extern void UnitTest_Triangulation ();
 
 
-#ifdef AE_PLATFORM_ANDROID
-extern "C" AE_DLL_EXPORT int Tests_GeometryTools (const char* path)
-#else
-int main (const int argc, char* argv[])
-#endif
+TEST_ENTRY()
 {
 	BEGIN_TEST();
 
-	UnitTest_SphericalCubeMath();
-	UnitTest_Triangulation();
+	RUN_TEST( UnitTest_SphericalCubeMath );
+	RUN_TEST( UnitTest_Triangulation );
 
 	AE_LOGI( "Tests.GeometryTools finished" );
 	return 0;

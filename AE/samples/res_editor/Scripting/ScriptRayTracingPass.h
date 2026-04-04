@@ -99,6 +99,7 @@ namespace AE::ResEditor
 	// variables
 	private:
 		uint						_maxRayTypes		= 0;
+		EPipelineOpt				_options			= Default;
 
 		_NamedShader				_rayGen;
 		Array<_NamedShader>			_missShaders;
@@ -159,15 +160,13 @@ namespace AE::ResEditor
 
 
 	private:
-		ND_ auto  _CompilePipeline (OUT Bytes &ubSize)											C_Th___;
-			void  _CompilePipeline2 (OUT Bytes &ubSize)											C_Th___;
+		ND_ auto  _CompilePipeline ()															C_Th___;
+			void  _CompilePipeline2 ()															C_Th___;
 			void  _CompilePipeline3 (const String &header, const String &pplnName,
 									 uint shaderOpts, EPipelineOpt pplnOpt)						C_Th___;
 
-		ND_ static auto  _CreateUBType ()														__Th___;
-
 	// ScriptBasePass //
-		void  _OnAddArg (INOUT ScriptPassArgs::Argument &arg)									C_Th_OV;
+		void  _OnAddArg (INOUT ScriptPassArgs::Argument &arg)									__Th_OV;
 	};
 
 

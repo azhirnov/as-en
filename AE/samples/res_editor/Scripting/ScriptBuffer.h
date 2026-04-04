@@ -48,21 +48,20 @@ namespace AE::ResEditor
 
 	// variables
 	private:
-		const VFS::FileName		_filename;
-		BufferLayout			_layout;
-		BufferDesc				_desc;
-		BufferViewDesc			_viewDesc;
-		EBufferType				_type			= Default;
-		EResourceUsage			_resUsage		= Default;
-		uint					_texbufType		= 0;		// EImageType
-		String					_dbgName;
+		const VFS::FileName			_filename;
+		BufferLayout				_layout;
+		BufferDesc					_desc;
+		EBufferType					_type			= Default;
+		EResourceUsage				_resUsage		= Default;
+		String						_dbgName;
 
-		ScriptDynamicUIntPtr	_inDynCount;	// array size depends on this dynamic variable
-		ScriptDynamicUIntPtr	_outDynCount;	// dynamic variable updated to the actual size of array
-		uint					_staticCount	= 0;
+		ScriptDynamicUIntPtr		_inDynCount;	// array size depends on this dynamic variable
+		ScriptDynamicUIntPtr		_outDynCount;	// dynamic variable updated to the actual size of array
+		uint						_staticCount	= 0;
 
-		RC<Buffer>				_resource;
-		Array<ScriptBufferPtr>	_refBuffers;				// if this buffer uses device address for another buffer, they must be in 'ShaderAddress' state
+		RC<Buffer>					_resource;
+		Array<ScriptBufferPtr>		_refBuffers;				// if this buffer uses device address for another buffer, they must be in 'ShaderAddress' state
+		Array<ScriptBufferViewPtr>	_views;
 
 
 	// methods
@@ -96,10 +95,8 @@ namespace AE::ResEditor
 		ND_ StringView		GetName ()															C_NE___	{ return _dbgName; }
 		ND_ bool			HasLayout ()														C_NE___	{ return not _layout.typeName.empty(); }
 		ND_ String			GetTypeName ()														C_NE___;
-		ND_ uint			TexelBufferType ()													C_NE___	{ ASSERT( not HasLayout() );  return _texbufType; }
 		ND_ bool			IsDynamicSize ()													C_NE___	{ return _inDynCount != null; }
 		ND_ ulong			GetDeviceAddress ()													__Th___;
-	//	ND_ EPixelFormat	GetViewFormat ()													C_Th___;	// TODO
 		ND_ bool			WithHistory ()														C_NE___	{ return AllBits( _resUsage, EResourceUsage::WithHistory ); }
 
 		ND_ ScriptDynamicUInt*		ArraySize ()												C_Th___;
@@ -111,6 +108,7 @@ namespace AE::ResEditor
 		ND_ StringView		GetFieldStructName (const String &name)								__Th___;
 		ND_ AnyTypeCRef		GetField (const String &name)										__Th___;	// PipelineCompiler::ShaderStructType::Field
 
+		ScriptBufferView*	CreateView1 (EPixelFormat format)									__Th___;
 
 		void  AddReference (const ScriptBufferPtr &buf)											__Th___;
 
@@ -154,10 +152,15 @@ namespace AE::ResEditor
 
 		uint  ULong1  (const String &name, ulong x)												__Th___;
 
-		uint  Float1Array (const String &name, const ScriptArray<float> &arr)					__Th___;
-		uint  Float2Array (const String &name, const ScriptArray<packed_float2> &arr)			__Th___;
-		uint  Float3Array (const String &name, const ScriptArray<packed_float3> &arr)			__Th___;
-		uint  Float4Array (const String &name, const ScriptArray<packed_float4> &arr)			__Th___;
+		uint  Float1Array (const String &name, const ScriptArray<float> &arr)					__Th___	{ return Float1Array2( name, ArrayView<float>{arr} ); }
+		uint  Float2Array (const String &name, const ScriptArray<packed_float2> &arr)			__Th___	{ return Float2Array2( name, Array<packed_float2>{arr} ); }
+		uint  Float3Array (const String &name, const ScriptArray<packed_float3> &arr)			__Th___	{ return Float3Array2( name, Array<packed_float3>{arr} ); }
+		uint  Float4Array (const String &name, const ScriptArray<packed_float4> &arr)			__Th___	{ return Float4Array2( name, Array<packed_float4>{arr} ); }
+
+		uint  Float1Array2 (StringView name, ArrayView<float> arr)								__Th___;
+		uint  Float2Array2 (StringView name, ArrayView<packed_float2> arr)						__Th___;
+		uint  Float3Array2 (StringView name, ArrayView<packed_float3> arr)						__Th___;
+		uint  Float4Array2 (StringView name, ArrayView<packed_float4> arr)						__Th___;
 
 		uint  Float2x2Array (const String &name, const ScriptArray<packed_float2x2> &m)			__Th___;
 		uint  Float2x3Array (const String &name, const ScriptArray<packed_float2x3> &m)			__Th___;
@@ -169,17 +172,29 @@ namespace AE::ResEditor
 		uint  Float4x3Array (const String &name, const ScriptArray<packed_float4x3> &m)			__Th___;
 		uint  Float4x4Array (const String &name, const ScriptArray<packed_float4x4> &m)			__Th___;
 
-		uint  Int1Array (const String &name, const ScriptArray<int> &arr)						__Th___;
-		uint  Int2Array (const String &name, const ScriptArray<packed_int2> &arr)				__Th___;
-		uint  Int3Array (const String &name, const ScriptArray<packed_int3> &arr)				__Th___;
-		uint  Int4Array (const String &name, const ScriptArray<packed_int4> &arr)				__Th___;
+		uint  Int1Array (const String &name, const ScriptArray<int> &arr)						__Th___	{ return Int1Array2( name, ArrayView<int>{arr} ); }
+		uint  Int2Array (const String &name, const ScriptArray<packed_int2> &arr)				__Th___	{ return Int2Array2( name, Array<packed_int2>{arr} ); }
+		uint  Int3Array (const String &name, const ScriptArray<packed_int3> &arr)				__Th___	{ return Int3Array2( name, Array<packed_int3>{arr} ); }
+		uint  Int4Array (const String &name, const ScriptArray<packed_int4> &arr)				__Th___	{ return Int4Array2( name, Array<packed_int4>{arr} ); }
 
-		uint  UInt1Array (const String &name, const ScriptArray<uint> &arr)						__Th___;
-		uint  UInt2Array (const String &name, const ScriptArray<packed_uint2> &arr)				__Th___;
-		uint  UInt3Array (const String &name, const ScriptArray<packed_uint3> &arr)				__Th___;
-		uint  UInt4Array (const String &name, const ScriptArray<packed_uint4> &arr)				__Th___;
+		uint  Int1Array2 (StringView name, ArrayView<int> arr)									__Th___;
+		uint  Int2Array2 (StringView name, ArrayView<packed_int2> arr)							__Th___;
+		uint  Int3Array2 (StringView name, ArrayView<packed_int3> arr)							__Th___;
+		uint  Int4Array2 (StringView name, ArrayView<packed_int4> arr)							__Th___;
 
-		uint  ULong1Array (const String &name, const ScriptArray<ulong> &arr)					__Th___;
+		uint  UInt1Array (const String &name, const ScriptArray<uint> &arr)						__Th___	{ return UInt1Array2( name, ArrayView<uint>{arr} ); }
+		uint  UInt2Array (const String &name, const ScriptArray<packed_uint2> &arr)				__Th___	{ return UInt2Array2( name, Array<packed_uint2>{arr} ); }
+		uint  UInt3Array (const String &name, const ScriptArray<packed_uint3> &arr)				__Th___	{ return UInt3Array2( name, Array<packed_uint3>{arr} ); }
+		uint  UInt4Array (const String &name, const ScriptArray<packed_uint4> &arr)				__Th___	{ return UInt4Array2( name, Array<packed_uint4>{arr} ); }
+
+		uint  UInt1Array2 (StringView name, ArrayView<uint> arr)								__Th___;
+		uint  UInt2Array2 (StringView name, ArrayView<packed_uint2> arr)						__Th___;
+		uint  UInt3Array2 (StringView name, ArrayView<packed_uint3> arr)						__Th___;
+		uint  UInt4Array2 (StringView name, ArrayView<packed_uint4> arr)						__Th___;
+
+		uint  ULong1Array (const String &name, const ScriptArray<ulong> &arr)					__Th___	{ return ULong1Array2( name, ArrayView<ulong>{arr} ); }
+
+		uint  ULong1Array2 (StringView name, ArrayView<ulong> arr)								__Th___;
 
 
 		static void  Bind (const ScriptEnginePtr &se)											__Th___;

@@ -32,7 +32,7 @@ namespace
 	}
 
 	static ShaderStructType*  ShaderStructType_Ctor (const String &name) {
-		return ShaderStructTypePtr{ new ShaderStructType{ name }}.Detach();
+		return ShaderStructType::Create( name ).Detach();
 	}
 
 	ND_ static String  ValidateTypeName (const String &name)
@@ -322,6 +322,7 @@ namespace
 		const auto	ReadNameAndArray = [&tokens] (Array<StringView>::iterator &it, INOUT Field &field) __Th___
 		{{
 			field.name = String{*it};
+			field.arraySizeChain.clear();
 
 			for (auto c : field.name) {
 				if_unlikely( not ( ((c >= 'a') and (c <= 'z')) or ((c >= 'A') and (c <= 'Z')) or ((c >= '0') and (c <= '9')) or (c == '_') ))
@@ -336,17 +337,23 @@ namespace
 				return;
 			}
 
-			if ( *it == "[" )
+			field.arraySize = 1;
+			for (;;)
 			{
+				if ( *it != "[" )
+					break;
+
 				++it;
 				CHECK_THROW_MSG( it != tokens.end(), "failed to parse ShaderStructType" );
 
-				// dynamic array
+				// dynamic array: []
 				if ( *it == "]" )
 				{
 					field.arraySize = UMax;
+					field.arraySizeChain.push_back( UMax );
 					++it;
-					CHECK_THROW_MSG( it == tokens.end(), "failed to parse ShaderStructType" );
+					CHECK_THROW_MSG( it == tokens.end(), "failed to parse ShaderStructType: dynamic array must be the last field" );
+					CHECK_THROW_MSG( field.arraySizeChain.size() == 1, "failed to parse ShaderStructType: dynamic array can not be combined with static arrays" );
 					return;
 				}
 
@@ -355,15 +362,19 @@ namespace
 						CHECK_THROW_MSG( false, "invalid array size: '"s << *it << "'" );
 				}
 
-				field.arraySize = StringToUInt( *it );
-				ASSERT( field.arraySize != 0 and field.arraySize != UMax );
+				uint	count = StringToUInt( *it );
+				CHECK_THROW_MSG( count != 0 and count != UMax );
+
+				field.arraySize *= count;
+				field.arraySizeChain.push_back( count );
 
 				++it;
 				CHECK_THROW_MSG( it != tokens.end(), "failed to parse ShaderStructType" );
 				CHECK_THROW_MSG( *it == "]", "failed to parse ShaderStructType" );
 				++it;
-				CHECK_THROW_MSG( it == tokens.end(), "failed to parse ShaderStructType" );
-				return;
+
+				if ( it == tokens.end() )
+					return;
 			}
 
 			CHECK_THROW_MSG( false, "can't parse token: '"s << *it << "'" );
@@ -1342,7 +1353,7 @@ namespace {
 
 				_ValidateOffsets( data, field.offset );
 
-				const uint	arr_size = field.IsStaticArray() ? field.arraySize : 1;
+				const ulong	arr_size = field.IsStaticArray() ? field.arraySize : 1;
 
 				data.mslOffset	+= ptr_size * arr_size;
 				data.hlslOffset	+= ptr_size * arr_size;
@@ -1375,7 +1386,8 @@ namespace {
 
 				if ( not field.IsDynamicArray() )
 				{
-					const uint	arr_size = field.IsStaticArray() ? field.arraySize : 1;
+					const ulong	arr_size = field.IsStaticArray() ? field.arraySize : 1;
+
 					data.mslOffset	+= AlignUp( data2.mslOffset  - data.mslOffset,  st_align ) * arr_size;
 					data.hlslOffset	+= AlignUp( data2.hlslOffset - data.hlslOffset, st_align ) * arr_size;
 					data.glslOffset	+= AlignUp( data2.glslOffset - data.glslOffset, st_align ) * arr_size;
@@ -1613,14 +1625,21 @@ namespace {
 	constructor
 =================================================
 */
-	ShaderStructType::ShaderStructType (const String &name) __Th___ :
+	ShaderStructType::ShaderStructType (const String &name) __NE___ :
 		_originName{ name },
 		_typeName{ ValidateTypeName( name )},
 		_features{ ObjectStorage::Instance()->GetDefaultFeatureSets() }
+	{}
+
+	ShaderStructTypePtr  ShaderStructType::Create (const String &name) __Th___
 	{
+		ShaderStructTypePtr	result{ new ShaderStructType{ name }};
+
 		ObjectStorage::Instance()->AddName<ShaderStructName>( name );
-		CHECK_THROW_MSG( ObjectStorage::Instance()->structTypes.emplace( name, ShaderStructTypePtr{this} ).second,
+		CHECK_THROW_MSG( ObjectStorage::Instance()->structTypes.emplace( name, result ).second,
 			"StructureType with name '"s << name << "' is already defined" );
+
+		return result;
 	}
 
 /*
@@ -2318,8 +2337,16 @@ namespace {
 					part2 << field.name;
 			}
 
-			part2
-				<< (field.IsDynamicArray() ? " []"s : (field.IsStaticArray() ? (" ["s << ToString(field.arraySize) << "]") : ""s)) << ";";
+			if ( field.IsDynamicArray() )
+				part2 << " []";
+			else
+			if ( field.IsStaticArray() )
+			{
+				part2 << ' ';
+				for (auto size : field.arraySizeChain)
+					part2 << '[' << ToString(size) << ']';
+			}
+			part2 << ';';
 
 			if ( withOffsets ){
 				if ( not field.IsDynamicArray() )
@@ -2668,8 +2695,15 @@ namespace {
 			if ( field.IsDynamicArray() )
 				part0 << "*";
 
-			part1 << field.name
-				<< (field.IsStaticArray() ? (" ["s << ToString( field.arraySize ) << "]") : ""s) << ";";
+			part1 << field.name;
+
+			if ( field.IsStaticArray() )
+			{
+				part1 << ' ';
+				for (auto size : field.arraySizeChain)
+					part1 << '[' << ToString(size) << ']';
+			}
+			part1 << ';';
 
 			part2 << "// offset: " << ToString(usize( field.offset ))
 				<< ", align: " << ToString(usize( field.align ))
@@ -2832,7 +2866,7 @@ namespace {
 			is_dyn_arr = field.IsDynamicArray();
 			part0 << (is_dyn_arr ? "\t//\t" : "\t\t");
 
-			if ( field.IsStaticArray() )
+			if ( field.IsStaticArray() and field.arraySizeChain.size() == 1 )
 				part0 << "StaticArray< ";
 
 			if ( field.IsDeviceAddress() )
@@ -2852,14 +2886,20 @@ namespace {
 				RETURN_ERR( "unknown field type" );
 			}
 
-			if ( field.IsStaticArray() )
+			if ( field.IsStaticArray() and field.arraySizeChain.size() == 1 )
 				part0 << ", " << ToString( field.arraySize ) << " >  ";
 
 			part1 << field.name;
 
 			if ( is_dyn_arr )
 				part1 << " []";
-
+			else
+			if ( field.IsStaticArray() and field.arraySizeChain.size() > 1 )
+			{
+				part1 << ' ';
+				for (auto size : field.arraySizeChain)
+					part1 << '[' << ToString(size) << ']';
+			}
 			part1 << ';';
 
 			if ( (field.IsScalar() or field.IsVec()) and (field.type >= EValueType::Int8_Norm and field.type <= EValueType::UInt16_Norm) )
@@ -3135,8 +3175,11 @@ namespace {
 			}
 
 			if ( field.IsStaticArray() )
-				part1 << " [" << ToString( field.arraySize ) << ']';
-
+			{
+				part1 << ' ';
+				for (auto size : field.arraySizeChain)
+					part1 << '[' << ToString(size) << ']';
+			}
 			part1 << ';';
 
 			part2 << "// offset: " << ToString(usize( field.offset ))
@@ -3710,7 +3753,7 @@ namespace {
 		}
 		{
 			ClassBinder<ShaderStructType>	binder{ se };
-			binder.CreateRef();
+			binder.CreateRef( 0, False{} );
 
 			binder.Comment( "Create structure type.\n"
 							"Name is used as typename for uniform/storage/vertex buffer or as shader in/out block." );

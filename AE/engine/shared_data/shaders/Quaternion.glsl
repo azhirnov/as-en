@@ -26,8 +26,6 @@ ND_ Quat	QFromSpherical (const float2 phiTheta);
 ND_ Quat	QFromEuler (float yaw, float pitch, float roll);
 ND_ Quat	QFromEuler (const float3 yawPitchRoll);
 
-ND_ Quat	QFromMat (const float3x3 mat);
-
 ND_ Quat	QFrom2Normals (const float3 from, const float3 to);
 
 ND_ Quat	QNormalize (const Quat q);

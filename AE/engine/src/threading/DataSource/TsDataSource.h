@@ -32,7 +32,7 @@ namespace AE::Threading
 		ESourceType	GetSourceType ()									C_NE_OV	{ EXLOCK( _guard );  return _dataSource->GetSourceType() | ESourceType::ThreadSafe; }
 
 		Bytes		Size ()												C_NE_OV	{ EXLOCK( _guard );  return _dataSource->Size(); }
-		ReqAlign	OffsetAlign ()										C_NE_OV	{ EXLOCK( _guard );  return _dataSource->OffsetAlign(); }
+		ReqAlign	DirectAccessAlign ()								C_NE_OV	{ EXLOCK( _guard );  return _dataSource->DirectAccessAlign(); }
 
 		Bytes		ReadBlock (Bytes pos, OUT void* buffer, Bytes size) __NE_OV
 		{
@@ -67,7 +67,7 @@ namespace AE::Threading
 		bool		IsOpen ()												C_NE_OV	{ EXLOCK( _guard );  return _dataSource->IsOpen(); }
 		ESourceType	GetSourceType ()										C_NE_OV	{ EXLOCK( _guard );  return _dataSource->GetSourceType() | ESourceType::ThreadSafe; }
 
-		ReqAlign	OffsetAlign ()											C_NE_OV	{ EXLOCK( _guard );  return _dataSource->OffsetAlign(); }
+		ReqAlign	DirectAccessAlign ()									C_NE_OV	{ EXLOCK( _guard );  return _dataSource->DirectAccessAlign(); }
 
 		Bytes		WriteBlock (Bytes pos, const void* buffer, Bytes size)	__NE_OV
 		{

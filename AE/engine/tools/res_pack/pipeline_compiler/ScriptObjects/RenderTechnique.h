@@ -11,6 +11,11 @@ namespace AE::PipelineCompiler
 {
 	struct RenderTechnique;
 
+	using IndirectExecutionSetPtr	= ScriptRC< struct IndirectExecutionSet >;
+	using RTGraphicsPassPtr			= ScriptRC< struct RTGraphicsPass >;
+	using RTComputePassPtr			= ScriptRC< struct RTComputePass >;
+
+
 
 	enum class EMutableRenderState : uint
 	{
@@ -29,7 +34,9 @@ namespace AE::PipelineCompiler
 
 	// types
 	private:
-		using PipelineRefs_t = FlatHashSet< BasePipelineSpecPtr >;
+		using PipelineRefs_t	= FlatHashSet< BasePipelineSpecPtr >;
+		using PipelineMap_t		= FlatHashMap< StringView, BasePipelineSpecPtr >;
+		using ExecSetRefs_t		= FlatHashSet< IndirectExecutionSetPtr >;
 
 
 	// variables
@@ -40,24 +47,34 @@ namespace AE::PipelineCompiler
 		RenderTechnique*		_rtech		= null;
 		DescriptorSetLayoutPtr	_dsLayout;
 		PipelineRefs_t			_pipelineRefs;
+		PipelineMap_t			_pipelineMap;
+		ExecSetRefs_t			_execSetRefs;
 
 
 	// methods
 	public:
-		RTBasePass () {}
-		RTBasePass (RenderTechnique* rtech, const String &name, usize passIdx)	__Th___;
-
 		ND_ StringView				Name ()										const	{ return _name; }
 		ND_ usize					PassIndex ()								const	{ return _passIndex; }
+		ND_ RenderTechniquePtr		RenTech ()									const	{ return RenderTechniquePtr{_rtech}; }
 
 		ND_ PipelineRefs_t const&	GetPipelines ()								const	{ return _pipelineRefs; }
+		ND_ PipelineMap_t const&	GetPipelineMap ()							const	{ return _pipelineMap; }
+		ND_ ExecSetRefs_t const&	GetExecutionSets ()							const	{ return _execSetRefs; }
 		ND_ DescriptorSetLayoutPtr	GetDSLayout ()								const	{ return _dsLayout; }
 
 		virtual void  AddPipeline (const BasePipelineSpecPtr &ptr)				__Th___;
+		virtual void  AddExecSet (const IndirectExecutionSetPtr &ptr)			__Th___;
 
 	protected:
+		RTBasePass (RenderTechnique* rtech, const String &name, usize passIdx)	__NE___;
+
+		void  _Init ()															__Th___;
+
 		void  _SetDSLayout1 (const String &typeName)							__Th___;
 		void  _SetDSLayout2 (const DescriptorSetLayoutPtr &dsl)					__Th___;
+
+		ND_ virtual bool  _Build (INOUT uint &pplnSpecCount,
+								  INOUT ExecSetRefs_t &uniqueExecSets)			__NE___;
 	};
 	using RTBasePassPtr = ScriptRC< RTBasePass >;
 
@@ -80,8 +97,7 @@ namespace AE::PipelineCompiler
 
 	// methods
 	public:
-		RTGraphicsPass () {}
-		RTGraphicsPass (RenderTechnique* rtech, const String &name, usize passIdx) __Th___ : RTBasePass{ rtech, name, passIdx } {}
+		ND_ static RTGraphicsPassPtr  Create (RenderTechnique* rtech, const String &name, usize passIdx) __Th___;
 
 		void  SetRenderPass (const String &rp, const String &subpass)	__Th___;
 
@@ -102,8 +118,10 @@ namespace AE::PipelineCompiler
 		ND_ CompatibleRenderPassDescPtr	GetCompatRenderPass ()			C_NE___;
 
 		static void  Bind (const ScriptEnginePtr &se)					__Th___;
+
+	private:
+		RTGraphicsPass (RenderTechnique* rtech, const String &name, usize passIdx) __Th___ : RTBasePass{ rtech, name, passIdx } {}
 	};
-	using RTGraphicsPassPtr = ScriptRC< RTGraphicsPass >;
 
 
 
@@ -120,8 +138,7 @@ namespace AE::PipelineCompiler
 
 	// methods
 	public:
-		RTComputePass () {}
-		RTComputePass (RenderTechnique* rtech, const String &name, usize passIdx) __Th___ : RTBasePass{ rtech, name, passIdx } {}
+		ND_ static RTComputePassPtr  Create (RenderTechnique* rtech, const String &name, usize passIdx) __Th___;
 
 		void  SetDSLayout1 (const String &typeName)				__Th___	{ return _SetDSLayout1( typeName ); }
 		void  SetDSLayout2 (const DescriptorSetLayoutPtr &dsl)	__Th___	{ return _SetDSLayout2( dsl ); }
@@ -129,8 +146,10 @@ namespace AE::PipelineCompiler
 		void  AddPipeline (const BasePipelineSpecPtr &ptr)		__Th_OV;
 
 		static void  Bind (const ScriptEnginePtr &se)			__Th___;
+
+	private:
+		RTComputePass (RenderTechnique* rtech, const String &name, usize passIdx) __NE___ : RTBasePass{ rtech, name, passIdx } {}
 	};
-	using RTComputePassPtr = ScriptRC< RTComputePass >;
 
 
 
@@ -161,8 +180,7 @@ namespace AE::PipelineCompiler
 
 	// methods
 	public:
-		RenderTechnique () {}
-		explicit RenderTechnique (const String &name)					__Th___;
+		ND_ static RenderTechniquePtr  Create (const String &name)		__Th___;
 
 			void				AddFeatureSet (const String &name)		__Th___;
 
@@ -184,11 +202,16 @@ namespace AE::PipelineCompiler
 		ND_ PassArray_t const&	GetPasses ()							const	{ return _passes; }
 		ND_ SBTArray_t const&	GetSBTs ()								const	{ return _rtSBTs; }
 
+		ND_ ArrayView<ScriptFeatureSetPtr>  GetFeatures ()				const	{ return _features; }
+
 		ND_ bool				Build ()								__NE___;
 		ND_ bool				HasUID ()								const	{ return _uid.has_value(); }
 		ND_ StringView			Name ()									const	{ return _name; }
 
 		static void  Bind (const ScriptEnginePtr &se)					__Th___;
+
+	private:
+		explicit RenderTechnique (const String &name)					__NE___;
 	};
 
 

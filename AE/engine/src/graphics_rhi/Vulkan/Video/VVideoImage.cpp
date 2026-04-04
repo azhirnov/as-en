@@ -33,7 +33,7 @@ namespace AE::Graphics
 		CHECK_ERR( _view  == Default );
 		CHECK_ERR( allocator );
 
-		if ( desc.profile.IsDefined() )
+		if ( not desc.profiles.empty() )
 			return _CreateForVideo( resMngr, desc, RVRef(allocator), dbgName );
 		else
 			return _CreateForYcbcr( resMngr, desc, RVRef(allocator), dbgName );
@@ -46,50 +46,51 @@ namespace AE::Graphics
 */
 	bool  VVideoImage::_CreateForVideo (ResourceManager &resMngr, const VideoImageDesc &desc, GfxMemAllocatorPtr allocator, StringView dbgName) __NE___
 	{
-		ASSERT( desc.profile.IsDefined() );
+		ASSERT( not desc.profiles.empty() );
 		CHECK_ERR( desc.videoUsage != Default );
 
 		_desc = desc;
 
-		VkImageCreateInfo		image_ci	= {};
 		VkImageViewCreateInfo	view_ci		= {};
+		ValidationParams		params;
 
 		auto&	dev = resMngr.GetDevice();
-		CHECK_ERR( Validate( dev, INOUT _desc, OUT image_ci, OUT view_ci, OUT _pictureAccessGranularity ));
+		CHECK_ERR( Validate( dev, INOUT _desc, OUT view_ci, OUT params ));
+		_pictureAccessGranularity = params.pictureAccessGranularity;
 
 		ASSERT( _desc.options	 == desc.options );
 		ASSERT( _desc.usage		 == desc.usage );
 		ASSERT( _desc.videoUsage == desc.videoUsage );
-		ASSERT( AllBits( image_ci.flags, VK_IMAGE_CREATE_DISJOINT_BIT ) == RangeU{ 1u, 3u }.Contains( EPixelFormat_PlaneCount( _desc.format )) );
 
 		GRES_CHECK( IsSupported( resMngr, _desc ));
 
 		// create image
 		{
-			VkVideoProfileListInfoKHR	prof_list	 = {};
-			VkVideoProfileInfoKHR		profile_info = {};
-
-			CHECK_ERR( ConvertVideoProfile( _desc.profile, OUT profile_info ));
-
-			const bool	opt_tiling	= AnyBits( _desc.memType, EMemoryType::DeviceLocal );
+			VkImageCreateInfo				image_ci		= {};
+			VkVideoProfileListInfoKHR		prof_list		= {};
+			VkVideoProfileInfoKHR			profile_info	= {};
+			InPlaceLinearAllocator<1024>	alloc;
+			const bool						opt_tiling		= AnyBits( _desc.memType, EMemoryType::DeviceLocal );
 
 			prof_list.sType			= VK_STRUCTURE_TYPE_VIDEO_PROFILE_LIST_INFO_KHR;
-			prof_list.profileCount	= 1;
+			prof_list.profileCount	= uint(_desc.profiles.size());
 			prof_list.pProfiles		= &profile_info;
+
+			CHECK_ERR( ConvertProfiles( dev, _desc.profiles, alloc, OUT prof_list.pProfiles ));
 
 			image_ci.sType			= VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
 			image_ci.pNext			= &prof_list;
-			//image_ci.flags		- set in Validate()
-			//image_ci.imageType	- set in Validate()
-			//image_ci.format		- set in Validate()
+			image_ci.flags			= VEnumCast( _desc.options );
+			image_ci.imageType		= VK_IMAGE_TYPE_2D;
+			image_ci.format			= view_ci.format;
 			image_ci.extent.width	= _desc.dimension.x;
 			image_ci.extent.height	= _desc.dimension.y;
 			image_ci.extent.depth	= 1;
 			image_ci.mipLevels		= 1;
-			image_ci.arrayLayers	= _desc.arrayLayers.Get();
+			image_ci.arrayLayers	= _desc.arrayLayers.Get();		// TODO: VK_EXT_ycbcr_image_arrays
 			image_ci.samples		= VK_SAMPLE_COUNT_1_BIT;
-			//image_ci.tiling		- set in Validate()
-			//image_ci.usage		- set in Validate()
+			image_ci.tiling			= opt_tiling ? VK_IMAGE_TILING_OPTIMAL : VK_IMAGE_TILING_LINEAR;
+			image_ci.usage			= VEnumCast( _desc.usage, _desc.memType ) | VEnumCast( _desc.videoUsage );
 			image_ci.initialLayout	= (opt_tiling ? VK_IMAGE_LAYOUT_UNDEFINED : VK_IMAGE_LAYOUT_PREINITIALIZED);
 
 			VQueueFamilyIndices_t	queue_family_indices;
@@ -112,42 +113,54 @@ namespace AE::Graphics
 				image_ci.queueFamilyIndexCount	= 0;
 			}
 
+			ASSERT( image_ci.format == image_ci.format );
 			VK_CHECK_ERR( dev.vkCreateImage( dev.GetVkDevice(), &image_ci, null, OUT &_image ));
 
-
-			VulkanImageDesc			vk_desc;
-			vk_desc.image			= _image;
-			vk_desc.imageType		= image_ci.imageType;
-			vk_desc.flags			= VkImageCreateFlagBits(image_ci.flags);
-			vk_desc.usage			= VkImageUsageFlagBits(image_ci.usage);
-			vk_desc.format			= image_ci.format;
-			vk_desc.samples			= image_ci.samples;
-			vk_desc.tiling			= image_ci.tiling;
-			vk_desc.dimension		= uint3{ _desc.dimension, 1u };
-			vk_desc.arrayLayers		= image_ci.arrayLayers;
-			vk_desc.mipLevels		= image_ci.mipLevels;
+			VulkanImageDesc2		vk_desc;
+			vk_desc.imageHandle		= _image;
+			vk_desc.dimension		= ImageDim_t{ _desc.dimension, ushort{1} };
+			vk_desc.arrayLayers		= _desc.arrayLayers;
+			vk_desc.imageDim		= EImageDim_2D;
+			vk_desc.mipLevels		= 1_mipmap;
+			vk_desc.format			= _desc.format;
+			vk_desc.samples			= 1_samples;
+			vk_desc.options			= _desc.options;
+			vk_desc.usage			= _desc.usage;
+			vk_desc.memType			= _desc.memType;
 			vk_desc.queues			= _desc.queues;
-			vk_desc.memFlags		= VEnumCast( _desc.memType );
 			vk_desc.canBeDestroyed	= false;
-			vk_desc.allocMemory		= false;
 
-			_imageId = resMngr.CreateImage( vk_desc, dbgName );
-			CHECK_ERR( _imageId );
+			if ( AllBits( _desc.options, EImageOpt::SeparatePlanes ))
+			{
+				vk_desc.allocMemory = false;
 
-			CHECK_ERR( allocator->AllocForVideoImage( _image, _desc, OUT _memStorages ));
-			_memAllocator = RVRef(allocator);
+				_imageId = resMngr.CreateImage( vk_desc, dbgName );
+				CHECK_ERR( _imageId );
+
+				CHECK_ERR( allocator->AllocForVideoImage( _image, _desc, OUT _memStorages ));
+				_memAllocator = RVRef(allocator);
+			}
+			else
+			{
+				vk_desc.allocMemory = true;
+
+				_imageId = resMngr.CreateImage( vk_desc, dbgName, RVRef(allocator) );
+				CHECK_ERR( _imageId );
+			}
 		}
 
 		VkSamplerYcbcrConversion	ycbcr_conv = Default;
 		{
-			auto	samp_id	= resMngr.GetSampler( Default, _desc.ycbcrConversion );		// TODO
+			auto	samp_id	= resMngr.GetSampler( _desc.ycbcrConvPack, _desc.ycbcrConversion );
+			CHECK_ERR( samp_id );
+
 			auto*	samp	= resMngr.GetResource( samp_id, True{"incRef"}, True{"quiet"} );
-			if ( samp != null )
-			{
-				_ycbcrSampler	= Strong<SamplerID>{ samp_id };
-				ycbcr_conv		= samp->YcbcrConversion();
-				CHECK_ERR( ycbcr_conv != Default );
-			}
+			CHECK_ERR( samp != null );
+
+			_ycbcrSampler	= Strong<SamplerID>{ samp_id };
+			ycbcr_conv		= samp->YcbcrConversion();
+			CHECK_ERR( ycbcr_conv != Default );
+			CHECK_ERR( view_ci.format == samp->YcbcrFormat() );
 		}
 
 		// create view
@@ -172,13 +185,12 @@ namespace AE::Graphics
 
 			VK_CHECK_ERR( dev.vkCreateImageView( dev.GetVkDevice(), &view_ci, null, OUT &_view ));
 
-			VulkanImageViewDesc			vk_desc;
-			vk_desc.view				= _view;
-			vk_desc.flags				= VkImageViewCreateFlagBits(view_ci.flags);
-			vk_desc.viewType			= view_ci.viewType;
-			vk_desc.format				= view_ci.format;
-			vk_desc.components			= view_ci.components;
-			vk_desc.subresourceRange	= view_ci.subresourceRange;
+			VulkanImageViewDesc2		vk_desc;
+			vk_desc.viewHandle			= _view;
+			vk_desc.viewType			= EImage_2D;
+			vk_desc.format				= _desc.format;
+			vk_desc.aspectMask			= EImageAspect::Color;
+			vk_desc.options				= Default;
 			vk_desc.canBeDestroyed		= false;
 
 			_viewId = resMngr.CreateImageView( vk_desc, _imageId, dbgName );
@@ -196,18 +208,16 @@ namespace AE::Graphics
 */
 	bool  VVideoImage::_CreateForYcbcr (ResourceManager &resMngr, const VideoImageDesc &desc, GfxMemAllocatorPtr allocator, StringView dbgName) __NE___
 	{
-		ASSERT( not desc.profile.IsDefined() );
-		CHECK_ERR( desc.videoUsage == Default );
-
-		_desc = desc;
-		_desc.profile = Default;
+		ASSERT( desc.profiles.empty() );
+		CHECK_ERR( desc.videoUsage == Default );	// for videoUsage must define video profile
 
 		auto&	dev = resMngr.GetDevice();
 
-		VkImageCreateInfo		image_ci		= {};
-		VkImageViewCreateInfo	view_ci			= {};
-		const uint				plane_count		= EPixelFormat_PlaneCount( _desc.format );
-		const bool				is_multiplane	= (plane_count > 0 and plane_count <= 3);
+		_desc = desc;
+		_desc.profiles.clear();
+
+		VkImageCreateInfo		image_ci	= {};
+		VkImageViewCreateInfo	view_ci		= {};
 
 		GRES_CHECK( IsSupported( resMngr, _desc ));
 
@@ -216,14 +226,14 @@ namespace AE::Graphics
 			const bool	opt_tiling	= AnyBits( _desc.memType, EMemoryType::DeviceLocal );
 
 			image_ci.sType			= VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
-			image_ci.flags			= VEnumCast( _desc.options ) | (is_multiplane ? VK_IMAGE_CREATE_DISJOINT_BIT : Zero);	// TODO: check VK_FORMAT_FEATURE_DISJOINT_BIT
+			image_ci.flags			= VEnumCast( _desc.options );
 			image_ci.imageType		= VK_IMAGE_TYPE_2D;
 			image_ci.format			= VEnumCast( _desc.format );
 			image_ci.extent.width	= _desc.dimension.x;
 			image_ci.extent.height	= _desc.dimension.y;
 			image_ci.extent.depth	= 1;
 			image_ci.mipLevels		= 1;
-			image_ci.arrayLayers	= _desc.arrayLayers.Get();
+			image_ci.arrayLayers	= _desc.arrayLayers.Get();	// TODO: VK_EXT_ycbcr_image_arrays
 			image_ci.samples		= VK_SAMPLE_COUNT_1_BIT;
 			image_ci.tiling			= opt_tiling ? VK_IMAGE_TILING_OPTIMAL : VK_IMAGE_TILING_LINEAR;
 			image_ci.usage			= VEnumCast( _desc.usage, _desc.memType ) | VEnumCast( _desc.videoUsage );
@@ -252,35 +262,37 @@ namespace AE::Graphics
 			VK_CHECK_ERR( dev.vkCreateImage( dev.GetVkDevice(), &image_ci, null, OUT &_image ));
 
 
-			VulkanImageDesc			vk_desc;
-			vk_desc.image			= _image;
-			vk_desc.imageType		= image_ci.imageType;
-			vk_desc.flags			= VkImageCreateFlagBits(image_ci.flags);
-			vk_desc.usage			= VkImageUsageFlagBits(image_ci.usage);
-			vk_desc.format			= image_ci.format;
-			vk_desc.samples			= image_ci.samples;
-			vk_desc.tiling			= image_ci.tiling;
-			vk_desc.dimension		= uint3{ _desc.dimension, 1u };
-			vk_desc.arrayLayers		= image_ci.arrayLayers;
-			vk_desc.mipLevels		= image_ci.mipLevels;
+			VulkanImageDesc2		vk_desc;
+			vk_desc.imageHandle		= _image;
+			vk_desc.dimension		= ImageDim_t{ _desc.dimension, ushort{1} };
+			vk_desc.arrayLayers		= _desc.arrayLayers;
+			vk_desc.imageDim		= EImageDim_2D;
+			vk_desc.mipLevels		= 1_mipmap;
+			vk_desc.format			= _desc.format;
+			vk_desc.samples			= 1_samples;
+			vk_desc.options			= _desc.options;
+			vk_desc.usage			= _desc.usage;
+			vk_desc.memType			= _desc.memType;
 			vk_desc.queues			= _desc.queues;
-			vk_desc.memFlags		= VEnumCast( _desc.memType );
-			vk_desc.aspectMask		= VK_IMAGE_ASPECT_COLOR_BIT;
 			vk_desc.canBeDestroyed	= false;
-			vk_desc.allocMemory		= false;
 
-			if ( is_multiplane )
+			if ( AllBits( _desc.options, EImageOpt::SeparatePlanes ))
 			{
-				vk_desc.aspectMask = Zero;
-				for (uint i = 0; i < plane_count; ++i)
-					vk_desc.aspectMask |= VkImageAspectFlagBits(VK_IMAGE_ASPECT_PLANE_0_BIT << i);
+				vk_desc.allocMemory = false;
+
+				_imageId = resMngr.CreateImage( vk_desc, dbgName );
+				CHECK_ERR( _imageId );
+
+				CHECK_ERR( allocator->AllocForVideoImage( _image, _desc, OUT _memStorages ));
+				_memAllocator = RVRef(allocator);
 			}
+			else
+			{
+				vk_desc.allocMemory = true;
 
-			_imageId = resMngr.CreateImage( vk_desc, dbgName );
-			CHECK_ERR( _imageId );
-
-			CHECK_ERR( allocator->AllocForVideoImage( _image, _desc, OUT _memStorages ));
-			_memAllocator = RVRef(allocator);
+				_imageId = resMngr.CreateImage( vk_desc, dbgName, RVRef(allocator) );
+				CHECK_ERR( _imageId );
+			}
 		}
 
 		VkSamplerYcbcrConversion	ycbcr_conv = Default;
@@ -290,6 +302,7 @@ namespace AE::Graphics
 			CHECK_ERR( samp_id );
 
 			auto*	samp	= resMngr.GetResource( samp_id, True{"incRef"}, True{"quiet"} );
+			CHECK_ERR( samp != null );
 
 			_ycbcrSampler	= Strong<SamplerID>{ samp_id };
 			ycbcr_conv		= samp->YcbcrConversion();
@@ -319,13 +332,12 @@ namespace AE::Graphics
 
 			VK_CHECK_ERR( dev.vkCreateImageView( dev.GetVkDevice(), &view_ci, null, OUT &_view ));
 
-			VulkanImageViewDesc			vk_desc;
-			vk_desc.view				= _view;
-			vk_desc.flags				= VkImageViewCreateFlagBits(view_ci.flags);
-			vk_desc.viewType			= view_ci.viewType;
-			vk_desc.format				= view_ci.format;
-			vk_desc.components			= view_ci.components;
-			vk_desc.subresourceRange	= view_ci.subresourceRange;
+			VulkanImageViewDesc2		vk_desc;
+			vk_desc.viewHandle			= _view;
+			vk_desc.viewType			= EImage_2D;
+			vk_desc.format				= _desc.format;
+			vk_desc.aspectMask			= EImageAspect::Color;
+			vk_desc.options				= Default;
 			vk_desc.canBeDestroyed		= false;
 
 			_viewId = resMngr.CreateImageView( vk_desc, _imageId, dbgName );
@@ -382,31 +394,33 @@ namespace AE::Graphics
 */
 namespace
 {
-	ND_ static bool  _ValidatePixFormatInVideoFormatProperties (ArrayView<VkVideoFormatPropertiesKHR> vformats, INOUT VideoImageDesc &desc,
-																OUT VkImageCreateInfo &imageCI, OUT VkImageViewCreateInfo &viewCI)
+	ND_ static bool  _ValidatePixFormatInVideoFormatProperties (ArrayView<VkVideoFormatPropertiesKHR> vformats, INOUT VideoImageDesc &desc, OUT VkImageViewCreateInfo &viewCI)
 	{
 		if ( vformats.empty() )
 			return false;
 
 		const bool	req_opt_tiling	= AnyBits( desc.memType, EMemoryType::DeviceLocal );
-		const auto	InitImageCI		= [&desc, &imageCI, &viewCI] (const VkVideoFormatPropertiesKHR &vf)
+		const auto	ValidateDesc	= [&] (const VkVideoFormatPropertiesKHR &vf) -> bool
 		{{
-			imageCI.format		= vf.format;
-			imageCI.flags		= vf.imageCreateFlags;
-			imageCI.imageType	= vf.imageType;
-			imageCI.tiling		= vf.imageTiling;
-			imageCI.usage		= vf.imageUsageFlags;
+			EImageUsage			supported_usage;
+			EVideoImageUsage	supported_video_usage;
+			EMemoryType			supported_mem_type;
+			EImageOpt			supported_options		= AEEnumCast( VkImageCreateFlagBits(vf.imageCreateFlags) );
+
+			CHECK_ERR( AEEnumCast( VkImageUsageFlagBits(vf.imageUsageFlags), OUT supported_usage, OUT supported_mem_type, OUT supported_video_usage ));
+
+			desc.memType		&= supported_mem_type;
+			desc.usage			&= supported_usage;
+			desc.videoUsage		&= supported_video_usage;
+			desc.options		&= supported_options;
+
+			//desc.options		|= (AllBits( vf.imageCreateFlags, VK_IMAGE_CREATE_DISJOINT_BIT ) ? EImageOpt::SeparatePlanes : Zero)
 
 			viewCI.format		= vf.format;
 			viewCI.components	= vf.componentMapping;
 
-			EMemoryType	mem_type = Default;
-			AEEnumCast( VkImageUsageFlagBits(vf.imageUsageFlags), OUT desc.usage, OUT mem_type, OUT desc.videoUsage );
-
-			desc.options	= AEEnumCast( VkImageCreateFlagBits( vf.imageCreateFlags ));
-			desc.memType	&= (vf.imageTiling == VK_IMAGE_TILING_OPTIMAL ? EMemoryType::UnifiedCached : EMemoryType::HostCachedCoherent);
-
 			// TODO: EPixelFormat_DimGranularity
+			return true;
 		}};
 
 		if ( desc.format == Default )
@@ -419,8 +433,7 @@ namespace
 							 vf.imageType	== VK_IMAGE_TYPE_2D	)
 				{
 					desc.format = AEEnumCast( vf.format );
-					InitImageCI( vf );
-					return true;
+					return ValidateDesc( vf );
 				}
 			}
 			return false;
@@ -437,8 +450,7 @@ namespace
 							 req_opt_tiling	== opt_tiling		and
 							 vf.imageType	== VK_IMAGE_TYPE_2D	)
 				{
-					InitImageCI( vf );
-					return true;
+					return ValidateDesc( vf );
 				}
 			}
 			return false;
@@ -452,72 +464,90 @@ namespace
 */
 	bool  VVideoImage::Validate (const VDevice &dev, INOUT VideoImageDesc &desc) __NE___
 	{
-		VkImageCreateInfo		temp1;
 		VkImageViewCreateInfo	temp2;
-		ushort2					temp3;
-		return Validate( dev, INOUT desc, OUT temp1, OUT temp2, OUT temp3 );
+		ValidationParams		temp3;
+		return Validate( dev, INOUT desc, OUT temp2, OUT temp3 );
 	}
 
-	bool  VVideoImage::Validate (const VDevice &dev, INOUT VideoImageDesc &desc, OUT VkImageCreateInfo &imageCI,
-								 OUT VkImageViewCreateInfo &viewCI, OUT ushort2 &pictureAccessGranularity) __NE___
+	bool  VVideoImage::Validate (const VDevice &dev, INOUT VideoImageDesc &desc, OUT VkImageViewCreateInfo &viewCI, OUT ValidationParams &params) __NE___
 	{
-		return WithVideoProfile( dev, desc.profile,
-				[&] (const VkVideoProfileInfoKHR &profileInfo, const VkVideoCapabilitiesKHR &capabilities) -> bool
-				{
-					if ( All( desc.dimension == ImageDim2_t{0} ))
-						desc.dimension = CheckCast{uint2{ capabilities.minCodedExtent.width, capabilities.minCodedExtent.height }};
+		VkPhysicalDeviceVideoFormatInfoKHR	vinfo = {};
+		InPlaceLinearAllocator<1024>		alloc;
+		uint2								min_extent{~0u}, max_extent{0}, granularity{1};
 
-					if ( All( desc.dimension == UMax ))
-						desc.dimension = CheckCast{uint2{ capabilities.maxCodedExtent.width, capabilities.maxCodedExtent.height }};
+		// get capabilities per profile
+		for (auto& prof : desc.profiles)
+		{
+			VkVideoProfileInfoKHR	profile_info;
+			VkVideoCapabilitiesKHR	capabilities;
 
-					CHECK_ERR( All( desc.Dimension2() >= uint2{capabilities.minCodedExtent.width, capabilities.minCodedExtent.height} ));
-					CHECK_ERR( All( desc.Dimension2() <= uint2{capabilities.maxCodedExtent.width, capabilities.maxCodedExtent.height} ));
+			if_unlikely( not GetProfileWithCapabilities( dev, prof, alloc, OUT profile_info, OUT capabilities ))
+				return false;
 
-					pictureAccessGranularity = ushort2{ uint2{ capabilities.pictureAccessGranularity.width, capabilities.pictureAccessGranularity.height }};
+			min_extent	= Min( min_extent, uint2{ capabilities.minCodedExtent.width, capabilities.minCodedExtent.height });
+			max_extent	= Max( max_extent, uint2{ capabilities.maxCodedExtent.width, capabilities.maxCodedExtent.height });
+			granularity	= AlignUp( granularity, uint2{ capabilities.pictureAccessGranularity.width, capabilities.pictureAccessGranularity.height });
 
-					VkPhysicalDeviceVideoFormatInfoKHR	vinfo		= {};
-					VkVideoProfileListInfoKHR			prof_list	= {};
+			alloc.Discard();
 
-					vinfo.sType				= VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VIDEO_FORMAT_INFO_KHR;
-					vinfo.pNext				= &prof_list;
+			StaticAssert( uint(EVideoCodecMode::_Count) == 2 );
 
-					prof_list.sType			= VK_STRUCTURE_TYPE_VIDEO_PROFILE_LIST_INFO_KHR;
-					prof_list.profileCount	= 1;
-					prof_list.pProfiles		= &profileInfo;
+			if ( prof.mode == EVideoCodecMode::Decode )
+			{
+				if ( AllBits( desc.videoUsage, EVideoImageUsage::DecodeDst ))
+					vinfo.imageUsage |= VK_IMAGE_USAGE_VIDEO_DECODE_DST_BIT_KHR;	// decode output picture
 
-					StaticAssert( uint(EVideoCodecMode::_Count) == 2 );
+				if ( AllBits( desc.videoUsage, EVideoImageUsage::DecodeDpb ))
+					vinfo.imageUsage |= VK_IMAGE_USAGE_VIDEO_DECODE_DPB_BIT_KHR;	// decode output picture and reconstructed picture
+			}
+			else
+			if ( prof.mode == EVideoCodecMode::Encode )
+			{
+				if ( AllBits( desc.videoUsage, EVideoImageUsage::EncodeSrc ))
+					vinfo.imageUsage |= VK_IMAGE_USAGE_VIDEO_ENCODE_SRC_BIT_KHR;	// encode input picture
 
-					if ( desc.profile.mode == EVideoCodecMode::Decode )
-					{
-						if ( AllBits( desc.videoUsage, EVideoImageUsage::DecodeDst ))
-							vinfo.imageUsage |= VK_IMAGE_USAGE_VIDEO_DECODE_DST_BIT_KHR;	// decode output picture
+				if ( AllBits( desc.videoUsage, EVideoImageUsage::EncodeDpb ))
+					vinfo.imageUsage |= VK_IMAGE_USAGE_VIDEO_ENCODE_DPB_BIT_KHR;	// encode input picture and reconstructed picture
+			}
+			else
+				RETURN_ERR( "unknown video codec mode" );
+		}
 
-						if ( AllBits( desc.videoUsage, EVideoImageUsage::DecodeDpb ))
-							vinfo.imageUsage |= VK_IMAGE_USAGE_VIDEO_DECODE_DPB_BIT_KHR;	// decode output picture and reconstructed picture
-					}
-					else
-					if ( desc.profile.mode == EVideoCodecMode::Encode )
-					{
-						if ( AllBits( desc.videoUsage, EVideoImageUsage::EncodeSrc ))
-							vinfo.imageUsage |= VK_IMAGE_USAGE_VIDEO_ENCODE_SRC_BIT_KHR;	// encode input picture
+		// validate extent
+		{
+			if ( All( desc.dimension == ImageDim2_t{0} ))
+				desc.dimension = CheckCast{min_extent};
 
-						if ( AllBits( desc.videoUsage, EVideoImageUsage::EncodeDpb ))
-							vinfo.imageUsage |= VK_IMAGE_USAGE_VIDEO_ENCODE_DPB_BIT_KHR;	// encode input picture and reconstructed picture
-					}
-					else
-						RETURN_ERR( "unknown video codec mode" );
+			if ( All( desc.dimension == UMax ))
+				desc.dimension = CheckCast{max_extent};
 
-					CHECK_ERR( vinfo.imageUsage != 0 );
+			CHECK_ERR( All( desc.Dimension2() >= min_extent ));
+			CHECK_ERR( All( desc.Dimension2() <= max_extent ));
+			CHECK_ERR( All(IsMultipleOf( desc.Dimension2(), granularity )));
 
-					StaticArray< VkVideoFormatPropertiesKHR, 16 >	vformats	= {};
-					uint											count		= uint(vformats.size());
-					for (auto& vf : vformats) { vf.sType = VK_STRUCTURE_TYPE_VIDEO_FORMAT_PROPERTIES_KHR; }
+			params.pictureAccessGranularity = ushort2{granularity};
+		}
 
-					VK_CHECK_ERR( vkGetPhysicalDeviceVideoFormatPropertiesKHR( dev.GetVkPhysicalDevice(), &vinfo, INOUT &count, OUT vformats.data() ));
-					CHECK_ERR( _ValidatePixFormatInVideoFormatProperties( ArrayView{ vformats.data(), count }, INOUT desc, OUT imageCI, OUT viewCI ));
+		// validate format & flags
+		VkVideoProfileListInfoKHR			prof_list	= {};
 
-					return true;
-				});
+		prof_list.sType			= VK_STRUCTURE_TYPE_VIDEO_PROFILE_LIST_INFO_KHR;
+		prof_list.profileCount	= uint(desc.profiles.size());
+
+		vinfo.sType				= VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VIDEO_FORMAT_INFO_KHR;
+		vinfo.pNext				= &prof_list;
+
+		CHECK_ERR( ConvertProfiles( dev, desc.profiles, alloc, OUT prof_list.pProfiles ));
+		CHECK_ERR( vinfo.imageUsage != 0 );
+
+		StaticArray< VkVideoFormatPropertiesKHR, 16 >	vformats	= {};
+		uint											count		= uint(vformats.size());
+		for (auto& vf : vformats) { vf.sType = VK_STRUCTURE_TYPE_VIDEO_FORMAT_PROPERTIES_KHR; }
+
+		VK_CHECK_ERR( vkGetPhysicalDeviceVideoFormatPropertiesKHR( dev.GetVkPhysicalDevice(), &vinfo, INOUT &count, OUT vformats.data() ));
+		CHECK_ERR( _ValidatePixFormatInVideoFormatProperties( ArrayView{ vformats.data(), count }, INOUT desc, OUT viewCI ));
+
+		return true;
 	}
 
 /*
@@ -529,11 +559,17 @@ namespace
 	{
 		const auto&		dev				= resMngr.GetDevice();
 		const uint2		dim_granularity = EPixelFormat_DimGranularity( desc.format );
+		const bool		opt_tiling		= AnyBits( desc.memType, EMemoryType::DeviceLocal );
+		//const uint	plane_count		= EPixelFormat_PlaneCount( desc.format );
+		//const bool	is_multiplane	= (plane_count > 0 and plane_count <= 3);
 		bool			result			= true;
 
 		result &= dev.GetVExtensions().samplerYcbcrConversion;
 
 		result &= All( IsMultipleOf( desc.Dimension2(), dim_granularity ));
+
+		//result &= (AllBits( desc.options, EImageOpt::SeparatePlanes ) == is_multiplane);
+		result &= VImage::CheckFormatFeatures( resMngr, VEnumCast( desc.format ), desc.usage, desc.options, opt_tiling );
 
 		return result;
 	}

@@ -57,7 +57,7 @@ void GraphicsLayout ()
 	}
 	{
 		RC<ShaderStructType>	pc1 = ShaderStructType( "PushConst1" );
-		pc1.Set( "float2	scale;" +
+		pc1.Set( "float2	scale;"
 				 "float2	bias;" );
 
 		RC<ShaderStructType>	pc2 = ShaderStructType( "PushConst2" );
@@ -100,7 +100,7 @@ void ComputeLayout ()
 		ds.AddFeatureSet( "MinRecursiveRayTracing" );
 
 		RC<ShaderStructType>		st = ShaderStructType( "BufferRef" );
-		st.Set( "float3		Position;" +
+		st.Set( "float3		Position;"
 				"float2		Texcoord;" );
 		ds.UniformBuffer( EShaderStages::Compute, "bufferRef", "BufferRef" );
 

@@ -52,7 +52,7 @@ namespace
 	_OnAddArg
 =================================================
 */
-	void  ScriptComputeMip::_OnAddArg (INOUT ScriptPassArgs::Argument &arg) C_Th___
+	void  ScriptComputeMip::_OnAddArg (INOUT ScriptPassArgs::Argument &arg) __Th___
 	{
 		arg.state |= EResourceState::ComputeShader;
 	}
@@ -116,6 +116,8 @@ namespace
 		binder.AddFactoryCtor( &ScriptComputeMip_Ctor2,	{"shaderPath"} );
 		binder.AddFactoryCtor( &ScriptComputeMip_Ctor3,	{"shaderPath", "defines"} );
 
+		binder.Comment( "Add image which first mip used as input and other mips used as output for mipmap generation." );
+
 		binder.AddGenericMethod< void (const String &, const String &, const ScriptImagePtr &)					>( &ScriptComputeMip::_Variable, "Variable", {"inName", "outName", "image"} );
 		binder.AddGenericMethod< void (const String &, const String &, const ScriptImagePtr &, const String &)	>( &ScriptComputeMip::_Variable, "Variable", {"inName", "outName", "image", "sampler"} );
 
@@ -128,11 +130,11 @@ namespace
 	_CompilePipeline
 =================================================
 */
-	auto  ScriptComputeMip::_CompilePipeline (OUT Bytes &ubSize) C_Th___
+	auto  ScriptComputeMip::_CompilePipeline () C_Th___
 	{
 		return ScriptExe::ScriptPassApi::ConvertAndLoad(
-					[this, &ubSize] (ScriptEnginePtr) {
-						_CompilePipeline2( OUT ubSize );	// throw
+					[this] (ScriptEnginePtr) {
+						_CompilePipeline2();	// throw
 					},
 					_baseFlags );
 	}
@@ -150,9 +152,8 @@ namespace
 		auto		result		= MakeRC<ComputeMip>();
 		auto&		res_mngr	= GraphicsScheduler().GetResourceManager();
 		const auto	max_frames	= GraphicsScheduler().GetMaxFrames();
-		Bytes		ub_size;
 
-		result->_rtech = _CompilePipeline( OUT ub_size );	// throw
+		result->_rtech = _CompilePipeline();	// throw
 
 		EnumSet<IPass::EDebugMode>	dbg_modes;
 
@@ -160,7 +161,7 @@ namespace
 		{{
 			if ( AllBits( _baseFlags, flag ))
 			{
-				auto	id = cp->_rtech.rtech->GetComputePipeline( name );
+				auto	id = cp->_rtech.rtech->GetComputePipeline( name, True{"silent"} );
 				if ( id ) {
 					cp->_pipelines.insert_or_assign( mode, id );
 					dbg_modes.insert( mode );
@@ -176,7 +177,7 @@ namespace
 
 		auto	ppln = result->_pipelines.find( IPass::EDebugMode::Unknown )->second;
 
-		result->_ubuffer = _CreateUBuffer( ub_size, "ComputeMipUB", EResourceState::UniformRead | EResourceState::ComputeShader );  // throw
+		result->_ubuffer = _CreateUBuffer( SizeOf<ShaderTypes::ComputePassUB>, "ComputePassUB", EResourceState::UniformRead | EResourceState::ComputeShader );  // throw
 
 		// create descriptor set
 		{
@@ -226,51 +227,10 @@ namespace AE::ResEditor
 
 /*
 =================================================
-	_CreateUBType
-=================================================
-*/
-	auto  ScriptComputeMip::_CreateUBType () __Th___
-	{
-		auto&	obj_storage = *ObjectStorage::Instance();
-		auto	it			= obj_storage.structTypes.find( "ComputeMipUB" );
-
-		if ( it != obj_storage.structTypes.end() )
-			return it->second;
-
-		ShaderStructTypePtr	st{ new ShaderStructType{"ComputeMipUB"}};
-		st->Set( EStructLayout::Compatible_Std140, R"#(
-				float		time;			// shader playback time (in seconds)
-				float		timeDelta;		// frame render time (in seconds), max value: 1/30s
-				uint		frame;			// shader playback frame, global frame counter
-				uint		passFrameId;	// current pass frame index
-				uint		seed;			// unique value, updated on each shader reloading
-				float4		mouse;			// mouse unorm coords. xy: current (if MRB down), zw: click
-				float2		customKeys;
-				float		pixPerMm;		// pix / mm
-				float		mmPerPix;		// mm / pix
-
-				// sliders //
-				float4		floatSliders [8];
-				int4		intSliders [8];
-				float4		colors [8];
-
-				// constants //
-				float4		floatConst [8];
-				int4		intConst [8];
-			)#");
-
-		StaticAssert( UIInteraction::MaxSlidersPerType == 8 );
-		StaticAssert( IPass::Constants::MaxCount == 8 );
-		StaticAssert( IPass::CustomKeys_t{}.max_size() == 2 );
-		return st;
-	}
-
-/*
-=================================================
 	_CreatePCType
 =================================================
 */
-	auto  ScriptComputeMip::_CreatePCType () __Th___
+	ScriptRCBase  ScriptComputeMip::_CreatePCType () __Th___
 	{
 		auto&	obj_storage = *ObjectStorage::Instance();
 		auto	it			= obj_storage.structTypes.find( "ComputeMipPC" );
@@ -278,7 +238,7 @@ namespace AE::ResEditor
 		if ( it != obj_storage.structTypes.end() )
 			return it->second;
 
-		ShaderStructTypePtr	st{ new ShaderStructType{"ComputeMipPC"}};
+		ShaderStructTypePtr	st = ShaderStructType::Create( "ComputeMipPC" );
 		st->Set( EStructLayout::Compatible_Std140, R"#(
 				float2	invResolution;
 				uint2	resolution;
@@ -294,13 +254,10 @@ namespace AE::ResEditor
 */
 	void  ScriptComputeMip::GetShaderTypes (INOUT CppStructsFromShaders &data) __Th___
 	{
-		{
-			auto	st = _CreateUBType();	// throw
-			CHECK_THROW( st->ToCPP( INOUT data.cpp, INOUT data.uniqueTypes ));
-		}{
-			auto	st = _CreatePCType();	// throw
-			CHECK_THROW( st->ToCPP( INOUT data.cpp, INOUT data.uniqueTypes ));
-		}
+		// reuse ScriptComputePass
+
+		ShaderStructTypePtr	st = _CreatePCType();	// throw
+		CHECK_THROW( st->ToCPP( INOUT data.cpp, INOUT data.uniqueTypes ));
 	}
 
 /*
@@ -308,11 +265,11 @@ namespace AE::ResEditor
 	_CompilePipeline2
 =================================================
 */
-	void  ScriptComputeMip::_CompilePipeline2 (OUT Bytes &ubSize) C_Th___
+	void  ScriptComputeMip::_CompilePipeline2 () C_Th___
 	{
 		_args.ValidateArgs();
 
-		RenderTechniquePtr	rtech{ new RenderTechnique{ "rtech" }};
+		RenderTechniquePtr	rtech = RenderTechnique::Create( "rtech" );
 		{
 			RTComputePassPtr	pass = rtech->AddComputePass2( "Compute" );
 			Unused( pass );
@@ -320,15 +277,14 @@ namespace AE::ResEditor
 
 		const auto	stage = EShaderStages::Compute;
 		{
-			DescriptorSetLayoutPtr	ds_layout{ new DescriptorSetLayout{ "dsl.0" }};
+			DescriptorSetLayoutPtr	ds_layout = DescriptorSetLayout::Create( "dsl.0" );
 
-			ShaderStructTypePtr	st = _CreateUBType();	// throw
-			ubSize = st->StaticSize();
+			Unused( ScriptComputePass::_CreateUBType() );	// throw
 
-			ds_layout->AddUniformBuffer( stage, "un_PerPass", ArraySize{1}, "ComputeMipUB", EResourceState::ShaderUniform, False{} );
+			ds_layout->AddUniformBuffer( stage, "un_PerPass", ArraySize{1}, "ComputePassUB", EResourceState::ShaderUniform, False{} );
 			_args.ArgsToDescSet( stage, ds_layout, ArraySize{1} );  // throw
 		}{
-			DescriptorSetLayoutPtr	ds_layout{ new DescriptorSetLayout{ "dsl.1" }};
+			DescriptorSetLayoutPtr	ds_layout = DescriptorSetLayout::Create( "dsl.1" );
 
 			for (auto& var : _variables)
 			{
@@ -414,7 +370,7 @@ namespace AE::ResEditor
 	void  ScriptComputeMip::_CompilePipeline3 (const String &cs, uint line, const String &pplnName,
 												uint shaderOpts, EPipelineOpt pplnOpt) C_Th___
 	{
-		PipelineLayoutPtr		ppln_layout{ new PipelineLayout{ pplnName + ".pl" }};
+		PipelineLayoutPtr		ppln_layout = PipelineLayout::Create( pplnName + ".pl" );
 		ppln_layout->AddDSLayout2( "ds0", 0, "dsl.0" );
 		ppln_layout->AddDSLayout2( "ds1", 1, "dsl.1" );
 
@@ -429,7 +385,7 @@ namespace AE::ResEditor
 		if ( AnyBits( EShaderOpt(shaderOpts), EShaderOpt::_ShaderTrace_Mask ))
 			ppln_layout->AddDebugDSLayout2( 2, EShaderOpt(shaderOpts) & EShaderOpt::_ShaderTrace_Mask, uint(EShaderStages::Compute) );
 
-		ComputePipelinePtr		ppln_templ{ new ComputePipelineScriptBinding{ pplnName }};
+		ComputePipelinePtr		ppln_templ = ComputePipelineScriptBinding::Create( pplnName );
 		ppln_templ->Disable();
 		ppln_templ->SetLayout2( ppln_layout );
 

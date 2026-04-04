@@ -1130,7 +1130,7 @@ namespace
 		}
 		cmd << '\'';  // end of 'New-NetFirewallRule'
 
-		return WindowsProcess::Execute( cmd );
+		return WindowsProcess::Execute( cmd, WindowsProcess::EFlags::UsePowerShell | WindowsProcess::EFlags::NoWindow );
 	}
 
 /*
@@ -1241,6 +1241,11 @@ namespace
 		CHECK_ERR( ConvertString( OUT path, url ));
 
 		return _OpenURL( path.c_str() );
+	}
+
+	bool  WindowsUtils::OpenURL (const Path &url) __NE___
+	{
+		return _OpenURL( url.native().c_str() );
 	}
 
 /*

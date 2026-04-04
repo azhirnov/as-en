@@ -11,7 +11,7 @@
 		{
 			RC<ShaderStructType>	st = ShaderStructType( "io" );
 			st.Set( EStructLayout::InternalIO,
-					"float4		color;" +
+					"float4		color;"
 					"float4		worldPos;" );
 		}{
 			RC<DescriptorSetLayout>	ds = DescriptorSetLayout( "mtr.ds" );
@@ -97,7 +97,7 @@
 													 dir );					// new direction
 
 		const uint		idx			= gl.VertexIndex;
-		const float3	vert_pos	= cone.origin + QMul( rot, (un_Geometry.positions[idx] * float3(radius, radius, height)).xzy );
+		const float3	vert_pos	= cone.origin + QMul( rot, (un_Geometry.position[idx] * float3(radius, radius, height)).xzy );
 		const float4	world_pos	= float4( vert_pos, 1.0 );
 		float4			color		= float4(1.0, 0.2, 0.3, 1.0);
 

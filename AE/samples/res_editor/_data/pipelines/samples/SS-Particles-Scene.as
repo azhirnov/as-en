@@ -11,7 +11,7 @@
 		{
 			RC<ShaderStructType>	st = ShaderStructType( "io" );
 			st.Set( EStructLayout::InternalIO,
-					"mediump float3		color;" +
+					"mediump float3		color;"
 					"float3				worldPos;" );
 		}{
 			RC<DescriptorSetLayout>	ds = DescriptorSetLayout( "mtr.ds" );
@@ -69,7 +69,7 @@
 		float3	offset	= un_Transform.position[ gl.InstanceIndex ];
 		float3	scale	= un_Transform.scale[ gl.InstanceIndex ];
 		float3	color	= un_Transform.color[ gl.InstanceIndex ];
-		float3	pos		= un_Geometry.positions[ gl.VertexIndex ];
+		float3	pos		= un_Geometry.position[ gl.VertexIndex ];
 
 		pos *= scale;
 		pos += offset;

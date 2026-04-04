@@ -59,7 +59,7 @@ namespace AE::Graphics
 		VALIDATE_GCTX( PushConstant( idx, size, typeName ));
 
 		Msg::CmdBuf_Bake::RayTracing_PushConstantCmd  cmd;
-		cmd.pcIndex_offset	= idx.bufferId;
+		cmd.pcIndex_offset	= idx.metalBufferId;
 		cmd.pcIndex_stage	= idx.stage;
 		cmd.data			= ArrayView<ubyte>{ Cast<ubyte>(values), usize{size} };
 		cmd.typeName		= typeName;

@@ -11,7 +11,7 @@
 		{
 			RC<ShaderStructType>	st = ShaderStructType( "vs-gs.io" );
 			st.Set( EStructLayout::InternalIO,
-					"float3		normal;" +
+					"float3		normal;"
 					"int		face;" );
 		}{
 			RC<ShaderStructType>	st = ShaderStructType( "gs-fs.io" );
@@ -71,8 +71,8 @@
 	void Main ()
 	{
 		const uint		idx		= gl.VertexIndex;
-		const float2	coord	= un_Geometry.positions[idx].xy;
-		const int		face	= int(un_Geometry.positions[idx].z);
+		const float2	coord	= un_Geometry.position[idx].xy;
+		const int		face	= int(un_Geometry.position[idx].z);
 
 		if ( iProjInFS == 0 )
 		{

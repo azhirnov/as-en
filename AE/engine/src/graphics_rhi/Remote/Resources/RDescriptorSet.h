@@ -3,7 +3,6 @@
 #pragma once
 
 #ifdef AE_ENABLE_REMOTE_GRAPHICS
-
 # include "graphics_rhi/Public/DescriptorSet.h"
 # include "graphics_rhi/Public/ResourceManager.h"
 # include "graphics_rhi/Remote/Resources/RDescriptorSetLayout.h"

@@ -71,13 +71,17 @@ namespace
 } // namespace
 
 
-bool RGTest::Test_Allocator ()
+RGTest::ECode  RGTest::Test_Allocator ()
 {
 	bool	result = true;
 
 	RG_CHECK( TestAllocators() );
 	RG_CHECK( TestCustomAllocators() );
 
-	AE_LOGI( TEST_NAME << " - passed" );
-	return result;
+	if ( result )
+	{
+		AE_LOGI( TEST_NAME << " - passed" );
+		return ECode::Passed;
+	}
+	return ECode::Failed;
 }

@@ -25,12 +25,6 @@ namespace AE::ResEditor
 		using MipChainDS_t		= Array< Strong<DescriptorSetID> >;
 		using MipChainGroups_t	= Array< uint2 >;
 
-		struct DynamicData
-		{
-			uint	frame		= 0;
-			uint	prevFrame	= UMax;
-		};
-
 		struct Variable
 		{
 			RC<Image>					image;
@@ -60,7 +54,6 @@ namespace AE::ResEditor
 		PushConstantIndex		_pcIndex;
 
 		Strong<BufferID>		_ubuffer;
-		mutable DynamicData		_dynData;		// used only in 'Upload()'
 
 		ResourceArray			_resources;
 

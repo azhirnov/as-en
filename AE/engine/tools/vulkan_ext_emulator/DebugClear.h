@@ -10,6 +10,7 @@
 		using RPAttachmentBits_t	= BitSet< GraphicsConfig::MaxAttachments >;
 		using AttachmentLayouts_t	= StaticArray< VkImageLayout, GraphicsConfig::MaxAttachments >;
 		using FBAttachments_t		= StaticArray< VkImageView, GraphicsConfig::MaxAttachments >;
+		using AspectMasks_t			= StaticArray< VkImageAspectFlagBits, GraphicsConfig::MaxAttachments >;
 
 		struct RPSubpass
 		{
@@ -36,6 +37,7 @@
 
 			RPSubpasses_t			subpasses		{};
 			AttachmentLayouts_t		finalLayouts	{};
+			AspectMasks_t			aspectMasks		{};
 
 			VkPipelineStageFlags2	dstStageMask	= Default;
 			VkAccessFlags2			dstAccessMask	= Default;
@@ -478,6 +480,7 @@
 			dst = pCreateInfo->pAttachments[i];
 
 			rp_info.finalLayouts[i] = dst.finalLayout;
+			rp_info.aspectMasks[i]	= Zero;
 
 			bool	skip = false;
 
@@ -522,6 +525,11 @@
 				dst.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
 				(is_depth ? rp_info.storeOps.depth : rp_info.storeOps.color).set( i );
 			}
+
+			rp_info.aspectMasks[i] = is_depth and is_stencil	? VkImageAspectFlagBits(VK_IMAGE_ASPECT_DEPTH_BIT | VK_IMAGE_ASPECT_STENCIL_BIT) :
+									 is_depth					? VK_IMAGE_ASPECT_DEPTH_BIT :
+									 is_stencil					? VK_IMAGE_ASPECT_STENCIL_BIT :
+																  VK_IMAGE_ASPECT_COLOR_BIT;
 		}
 
 		// The contents of an attachment within the render area become undefined at the start of a subpass S if all of the following conditions are true:
@@ -585,11 +593,11 @@
 			// "If any element of pAttachments is used as a fragment shading rate attachment, the loadOp for that attachment must not be VK_ATTACHMENT_LOAD_OP_CLEAR".
 			// FSR attachment can be LOAD_OP_DONT_CARE in compatible render pass, DebugClear tool replace it to LOAD_OP_CLEAR which triggers error, so replace it by LOAD_OP_DONT_CARE.
 
-			for (auto* next = Cast<VkBaseInStructure>(sp.pNext); next != null; next = next->pNext)
+			for (auto& ext : VNextRange{ sp })
 			{
-				if ( next->sType == VK_STRUCTURE_TYPE_FRAGMENT_SHADING_RATE_ATTACHMENT_INFO_KHR )
+				if ( ext.Type() == VK_STRUCTURE_TYPE_FRAGMENT_SHADING_RATE_ATTACHMENT_INFO_KHR )
 				{
-					const auto&		fsr	= *Cast<VkFragmentShadingRateAttachmentInfoKHR>(next);
+					const auto&		fsr	= ext.As<VkFragmentShadingRateAttachmentInfoKHR>();
 					if ( fsr.pFragmentShadingRateAttachment != null and fsr.pFragmentShadingRateAttachment->attachment < rp_ci.attachmentCount )
 					{
 						auto&	fsr_att = attachments[ fsr.pFragmentShadingRateAttachment->attachment ];
@@ -608,11 +616,11 @@
 			if ( dep.dstSubpass != VK_SUBPASS_EXTERNAL )
 				continue;
 
-			for (auto* next = Cast<VkBaseInStructure>(dep.pNext); next != null; next = next->pNext)
+			for (auto& ext : VNextRange{ dep })
 			{
-				if ( next->sType == VK_STRUCTURE_TYPE_MEMORY_BARRIER_2 )
+				if ( ext.Type() == VK_STRUCTURE_TYPE_MEMORY_BARRIER_2 )
 				{
-					const auto&		bar	= *Cast<VkMemoryBarrier2>(next);
+					const auto&		bar		= ext.As<VkMemoryBarrier2>();
 					rp_info.dstStageMask	|= bar.dstStageMask;
 					rp_info.dstAccessMask	|= bar.dstAccessMask;
 					break;
@@ -855,17 +863,20 @@
 		{
 			if_likely( rp_info.storeOps.color.test( i ))
 			{
-				clear_imgs.emplace_back( fb_info.attachments[i], rp_info.finalLayouts[i], VK_IMAGE_ASPECT_COLOR_BIT );
+				ASSERT( rp_info.aspectMasks[i] == VK_IMAGE_ASPECT_COLOR_BIT );
+				clear_imgs.emplace_back( fb_info.attachments[i], rp_info.finalLayouts[i], rp_info.aspectMasks[i] );
 			}
 			else
 			if ( rp_info.storeOps.depth.test( i ))
 			{
-				clear_imgs.emplace_back( fb_info.attachments[i], rp_info.finalLayouts[i], VK_IMAGE_ASPECT_DEPTH_BIT );
+				ASSERT( AnyBits( rp_info.aspectMasks[i], VK_IMAGE_ASPECT_DEPTH_BIT ));
+				clear_imgs.emplace_back( fb_info.attachments[i], rp_info.finalLayouts[i], rp_info.aspectMasks[i] );
 			}
 			else
 			if ( rp_info.storeOps.stencil.test( i ))
 			{
-				clear_imgs.emplace_back( fb_info.attachments[i], rp_info.finalLayouts[i], VK_IMAGE_ASPECT_STENCIL_BIT );
+				ASSERT( AnyBits( rp_info.aspectMasks[i], VK_IMAGE_ASPECT_STENCIL_BIT ));
+				clear_imgs.emplace_back( fb_info.attachments[i], rp_info.finalLayouts[i], rp_info.aspectMasks[i] );
 			}
 		}
 

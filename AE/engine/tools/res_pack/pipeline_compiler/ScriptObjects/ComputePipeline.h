@@ -6,6 +6,10 @@
 
 namespace AE::PipelineCompiler
 {
+	using ComputePipelineSpecPtr	= ScriptRC< struct ComputePipelineSpecScriptBinding >;
+	using ComputePipelinePtr		= ScriptRC< struct ComputePipelineScriptBinding >;
+
+
 
 	//
 	// Compute Pipeline Specialization
@@ -19,7 +23,6 @@ namespace AE::PipelineCompiler
 
 	// methods
 	public:
-		ComputePipelineSpecScriptBinding () {}
 		ComputePipelineSpecScriptBinding (ComputePipelineScriptBinding* base, const String &name) __Th___;
 
 		void  SetSpecValueU (const String &name, uint  value)			__Th___	{ return BasePipelineSpec::_SetSpecValue( INOUT desc.specialization, name, value ); }
@@ -45,7 +48,6 @@ namespace AE::PipelineCompiler
 
 		static void  Bind (const ScriptEnginePtr &se)					__Th___;
 	};
-	using ComputePipelineSpecPtr = ScriptRC< ComputePipelineSpecScriptBinding >;
 
 
 
@@ -67,28 +69,28 @@ namespace AE::PipelineCompiler
 
 	// methods
 	public:
-		ComputePipelineScriptBinding ();
-		explicit ComputePipelineScriptBinding (const String &name) __Th___;
+		ND_ static ComputePipelinePtr  Create (const String &name)	__Th___;
 
-		void  SetShader (const ScriptShaderPtr &shader)		__Th___;
+		void  SetShader (const ScriptShaderPtr &shader)				__Th___;
 
-		void  SetLayout (const String &name)				__Th___	{ BasePipelineTmpl::_SetLayout( name ); }
-		void  SetLayout2 (const PipelineLayoutPtr &pl)		__Th___	{ BasePipelineTmpl::_SetLayout( pl ); }
-		void  Define (const String &value)					__Th___	{ BasePipelineTmpl::_Define( value ); }
-		void  AddFeatureSet (const String &name)			__Th___	{ BasePipelineTmpl::_AddFeatureSet( name ); }
+		void  SetLayout (const String &name)						__Th___	{ BasePipelineTmpl::_SetLayout( name ); }
+		void  SetLayout2 (const PipelineLayoutPtr &pl)				__Th___	{ BasePipelineTmpl::_SetLayout( pl ); }
+		void  Define (const String &value)							__Th___	{ BasePipelineTmpl::_Define( value ); }
+		void  AddFeatureSet (const String &name)					__Th___	{ BasePipelineTmpl::_AddFeatureSet( name ); }
 
 		ComputePipelineSpecScriptBinding*	AddSpecialization (const String &name)	__Th___;
 		ComputePipelineSpecPtr				AddSpecialization2 (const String &name)	__Th___;
 
-		ND_ bool	Build ()								__NE___;
-		ND_ usize	SpecCount ()							C_NE___	{ return _pplnSpec.size(); }
+		ND_ bool	Build ()										__NE___;
+		ND_ usize	SpecCount ()									C_NE___	{ return _pplnSpec.size(); }
 
-		static void  Bind (const ScriptEnginePtr &se)		__Th___;
+		static void  Bind (const ScriptEnginePtr &se)				__Th___;
 
 	private:
-		void  _Prepare ()									__Th___;
-	};
-	using ComputePipelinePtr = ScriptRC< ComputePipelineScriptBinding >;
+		explicit ComputePipelineScriptBinding (const String &name)	__NE___	: BasePipelineTmpl{name} {}
 
+		void  _Init ()												__Th___;
+		void  _Prepare ()											__Th___;
+	};
 
 } // AE::PipelineCompiler

@@ -5,7 +5,7 @@ void ASmain ()
 {
 	RC<ShaderStructType>	st = ShaderStructType( "Vertex_multiview" );
 	st.Set( EStructLayout::InternalIO,
-			"packed_float2		Position;" +
+			"packed_float2		Position;"
 			"packed_ubyte_norm4	Color;" );
 
 	RC<VertexBufferInput>	vb = VertexBufferInput( "multiview.vb" );

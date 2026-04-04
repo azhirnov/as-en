@@ -25,7 +25,7 @@ namespace AE::Threading
 		ESourceType	GetSourceType ()										C_NE_OV	{ return _ds->GetSourceType() & ~(ESourceType::Async | ESourceType::Buffered); }
 		Bytes		Size ()													C_NE_OV	{ return _ds->Size(); }
 		Bytes		ReadBlock (Bytes pos, OUT void* buffer, Bytes size)		__NE_OV;
-		ReqAlign	OffsetAlign ()											C_NE_OV	{ return _ds->OffsetAlign(); }
+		ReqAlign	DirectAccessAlign ()									C_NE_OV	{ return _ds->DirectAccessAlign(); }
 	};
 
 
@@ -48,7 +48,7 @@ namespace AE::Threading
 		ESourceType	GetSourceType ()										C_NE_OV	{ return _ds->GetSourceType() & ~(ESourceType::Async | ESourceType::Buffered); }
 		Bytes		WriteBlock (Bytes pos, const void* buffer, Bytes size)	__NE_OV;
 		void		Flush ()												__NE_OV	{}
-		ReqAlign	OffsetAlign ()											C_NE_OV	{ return _ds->OffsetAlign(); }
+		ReqAlign	DirectAccessAlign ()									C_NE_OV	{ return _ds->DirectAccessAlign(); }
 	};
 //-----------------------------------------------------------------------------
 
@@ -65,17 +65,17 @@ namespace AE::Threading
 
 	// methods
 	public:
-		explicit SyncRStream (RC<AsyncRStream> stream)							__NE___	: _stream{RVRef(stream)} {}
+		explicit SyncRStream (RC<AsyncRStream> stream)						__NE___	: _stream{RVRef(stream)} {}
 
 		// RStream //
-		bool		IsOpen ()													C_NE_OV	{ return _stream and _stream->IsOpen(); }
-		ESourceType	GetSourceType ()											C_NE_OV	{ return _stream->GetSourceType() & ~(ESourceType::Async | ESourceType::Buffered); }
-		PosAndSize	PositionAndSize ()											C_NE_OV	{ return _stream->PositionAndSize(); }
+		bool		IsOpen ()												C_NE_OV	{ return _stream and _stream->IsOpen(); }
+		ESourceType	GetSourceType ()										C_NE_OV	{ return _stream->GetSourceType() & ~(ESourceType::Async | ESourceType::Buffered); }
+		PosAndSize	PositionAndSize ()										C_NE_OV	{ return _stream->PositionAndSize(); }
 
-		bool		SeekFwd (Bytes)												__NE_OV	{ return false; }
-		Bytes		ReadSeq (OUT void* buffer, Bytes size)						__NE_OV;
-		bool		SeekSet (Bytes)												__NE_OV	{ return false; }
-		ReqAlign	OffsetAlign ()												C_NE_OV	{ return _stream->OffsetAlign(); }
+		bool		SeekFwd (Bytes)											__NE_OV	{ return false; }
+		Bytes		ReadSeq (OUT void* buffer, Bytes size)					__NE_OV;
+		bool		SeekSet (Bytes)											__NE_OV	{ return false; }
+		ReqAlign	DirectAccessAlign ()									C_NE_OV	{ return _stream->DirectAccessAlign(); }
 	};
 
 
@@ -91,17 +91,18 @@ namespace AE::Threading
 
 	// methods
 	public:
-		explicit SyncWStream (RC<AsyncWStream> stream)							__NE___ : _stream{RVRef(stream)} {}
+		explicit SyncWStream (RC<AsyncWStream> stream)						__NE___ : _stream{RVRef(stream)} {}
 
 		// WStream //
-		bool		IsOpen ()													C_NE_OV	{ return _stream and _stream->IsOpen(); }
-		ESourceType	GetSourceType ()											C_NE_OV	{ return _stream->GetSourceType() & ~(ESourceType::Async | ESourceType::Buffered); }
+		bool		IsOpen ()												C_NE_OV	{ return _stream and _stream->IsOpen(); }
+		ESourceType	GetSourceType ()										C_NE_OV	{ return _stream->GetSourceType() & ~(ESourceType::Async | ESourceType::Buffered); }
 
-		Bytes		Position ()													C_NE_OV	{ return _stream->Position(); }
-		bool		SeekFwd (Bytes)												__NE_OV	{ return false; }
-		Bytes		WriteSeq (const void* buffer, Bytes size)					__NE_OV;
-		void		Flush ()													__NE_OV	{}
-		ReqAlign	OffsetAlign ()												C_NE_OV	{ return _stream->OffsetAlign(); }
+		Bytes		Position ()												C_NE_OV	{ return _stream->Position(); }
+		bool		SeekFwd (Bytes)											__NE_OV	{ return false; }
+		bool		UpdateAt (Bytes)										__NE_OV	{ return false; }
+		Bytes		WriteSeq (const void* buffer, Bytes size)				__NE_OV;
+		void		Flush ()												__NE_OV	{}
+		ReqAlign	DirectAccessAlign ()									C_NE_OV	{ return _stream->DirectAccessAlign(); }
 	};
 //-----------------------------------------------------------------------------
 
@@ -129,7 +130,7 @@ namespace AE::Threading
 		bool		SeekFwd (Bytes offset)											__NE_OV;
 		Bytes		ReadSeq (OUT void* buffer, Bytes size)							__NE_OV;
 		bool		SeekSet (Bytes newPos)											__NE_OV;
-		ReqAlign	OffsetAlign ()													C_NE_OV	{ return _ds->OffsetAlign(); }
+		ReqAlign	DirectAccessAlign ()											C_NE_OV	{ return _ds->DirectAccessAlign(); }
 	};
 
 
@@ -154,9 +155,10 @@ namespace AE::Threading
 
 		Bytes		Position ()														C_NE_OV	{ return _pos.load(); }
 		bool		SeekFwd (Bytes offset)											__NE_OV;
+		bool		UpdateAt (Bytes pos)											__NE_OV;
 		Bytes		WriteSeq (const void* buffer, Bytes size)						__NE_OV;
 		void		Flush ()														__NE_OV	{}
-		ReqAlign	OffsetAlign ()													C_NE_OV	{ return _ds->OffsetAlign(); }
+		ReqAlign	DirectAccessAlign ()											C_NE_OV	{ return _ds->DirectAccessAlign(); }
 	};
 //-----------------------------------------------------------------------------
 
@@ -196,6 +198,17 @@ namespace AE::Threading
 	inline bool  SyncWStreamOnAsyncDS::SeekFwd (Bytes offset) __NE___
 	{
 		_pos.fetch_add( offset );
+		return true;
+	}
+
+/*
+=================================================
+	UpdateAt
+=================================================
+*/
+	inline bool  SyncWStreamOnAsyncDS::UpdateAt (Bytes pos) __NE___
+	{
+		_pos.store( pos );
 		return true;
 	}
 

@@ -4,6 +4,7 @@
 
 #include "Scripting/ScriptCommon.h"
 #include "Scripting/ScriptBuffer.h"
+#include "Scripting/ScriptBufferView.h"
 #include "Scripting/ScriptImage.h"
 #include "Scripting/ScriptVideoImage.h"
 #include "Scripting/ScriptRTScene.h"
@@ -20,8 +21,8 @@ namespace AE::ResEditor
 	{
 	// types
 	public:
-		using ResourceUnion_t = Union< NullUnion, ScriptBufferPtr, ScriptImagePtr, ScriptVideoImagePtr, ScriptRTScenePtr,
-									   Array<ScriptImagePtr> >;
+		using ResourceUnion_t = Union< NullUnion, ScriptBufferPtr, ScriptBufferViewPtr, ScriptImagePtr,
+									   ScriptVideoImagePtr, ScriptRTScenePtr, Array<ScriptImagePtr> >;
 
 		struct Argument
 		{
@@ -46,12 +47,17 @@ namespace AE::ResEditor
 
 		ND_ bool				Empty ()																	C_NE___	{ return _args.empty(); }
 		ND_ Arguments_t const&	Args ()																		C_NE___	{ return _args; }
+		ND_ Arguments_t&		Args ()																		__NE___	{ return _args; }
 
 		void  ArgSceneIn (const String &name, const ScriptRTScenePtr &scene)								__Th___;
 
 		void  ArgBufferIn (const String &name, const ScriptBufferPtr &buf)									__Th___;
 		void  ArgBufferOut (const String &name, const ScriptBufferPtr &buf)									__Th___;
 		void  ArgBufferInOut (const String &name, const ScriptBufferPtr &buf)								__Th___;
+
+		void  ArgBufferViewIn (const String &name, const ScriptBufferViewPtr &buf)							__Th___;
+		void  ArgBufferViewOut (const String &name, const ScriptBufferViewPtr &buf)							__Th___;
+		void  ArgBufferViewInOut (const String &name, const ScriptBufferViewPtr &buf)						__Th___;
 
 		void  ArgImageIn (const String &name, const ScriptImagePtr &img)									__Th___;
 		void  ArgImageOut (const String &name, const ScriptImagePtr &img)									__Th___;
@@ -79,6 +85,7 @@ namespace AE::ResEditor
 
 	private:
 		void  _AddArg (const String &name, const ScriptBufferPtr &buf, EResourceUsage usage)				__Th___;
+		void  _AddArg (const String &name, const ScriptBufferViewPtr &buf, EResourceUsage usage)			__Th___;
 		void  _AddArg (const String &name, const ScriptImagePtr &img, EResourceUsage usage)					__Th___;
 		void  _AddArg (const String &name, Array<ScriptImagePtr> arr, EResourceUsage usage)					__Th___;
 
@@ -102,16 +109,17 @@ namespace AE::ResEditor
 		{
 			Visit( arg.res,
 				[&] (ScriptBufferPtr buf) {
-					if ( buf->HasLayout() ){
-						dsLayout->AddStorageBuffer( stages, arg.name, arraySize, buf->GetTypeName(), Default, arg.state, False{} );
-					}else{
-					// TODO
-					//	dsLayout->AddStorageTexelBuffer( stages, arg.name, arraySize, EImageType(buf->TexelBufferType()),
-					//									 buf->GetViewFormat(), Default, arg.state );
-					}
+					CHECK_THROW( buf->HasLayout() );
+					dsLayout->AddStorageBuffer( stages, arg.name, arraySize, buf->GetTypeName(), Default, arg.state, False{} );
+				},
+				[&] (ScriptBufferViewPtr buf) {
+					if ( AllBits( arg.state, EResourceState::ShaderSample ))
+						dsLayout->AddUniformTexelBuffer( stages, arg.name, arraySize, buf->TexelBufferType(), arg.state );
+					else
+						dsLayout->AddStorageTexelBuffer( stages, arg.name, arraySize, buf->TexelBufferType(), buf->Format(), Default, arg.state );
 				},
 				[&] (ScriptImagePtr tex) {
-					const auto	type = EImageType(tex->ImageType());
+					const auto	type = tex->ImageType();
 					if ( not arg.samplerName.empty() )
 						dsLayout->AddCombinedImage_ImmutableSampler( stages, arg.name, type, arg.state, arg.samplerName );
 					else
@@ -122,14 +130,14 @@ namespace AE::ResEditor
 				},
 				[&] (ScriptVideoImagePtr video) {
 					String	sampler = (video->HasYcbcrSampler() ? video->GetSamplerName() : arg.samplerName);
-					dsLayout->AddCombinedImage_ImmutableSampler( stages, arg.name, EImageType(video->ImageType()), arg.state, sampler );
+					dsLayout->AddCombinedImage_ImmutableSampler( stages, arg.name, video->ImageType(), arg.state, sampler );
 				},
 				[&] (ScriptRTScenePtr) {
 					dsLayout->AddRayTracingScene( stages, arg.name, arraySize );
 				},
 				[&] (const Array<ScriptImagePtr> &arr)
 				{
-					const auto	type = EImageType(arr[0]->ImageType());
+					const auto	type = arr[0]->ImageType();
 					if ( not arg.samplerName.empty() )
 					{
 						Array<String>	samplers;  samplers.resize( arr.size(), arg.samplerName );

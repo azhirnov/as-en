@@ -638,6 +638,19 @@ namespace {
 
 /*
 =================================================
+	Deserialize (SerializableIndirectExecutionSet)
+=================================================
+*/
+	bool  SerializableIndirectExecutionSet::Deserialize (Serializing::Deserializer &des) __NE___
+	{
+		return des( OUT pipeType, OUT pipelines );
+	}
+//-----------------------------------------------------------------------------
+
+
+
+/*
+=================================================
 	Deserialize (SerializableRenderTechnique)
 =================================================
 */
@@ -648,7 +661,7 @@ namespace {
 
 	bool  SerializableRenderTechnique::Deserialize (Serializing::Deserializer& des) __NE___
 	{
-		return des( OUT name, OUT features, OUT passes, OUT pipelines, OUT rtSBTs );
+		return des( OUT name, OUT features, OUT passes, OUT pipelines, OUT rtSBTs, OUT execSets );
 	}
 //-----------------------------------------------------------------------------
 
@@ -847,6 +860,8 @@ namespace {
 	bool  SerializableRayTracingPipelineSpec::Serialize (Serializing::Serializer &)	C_NE___ { return false; }
 
 	bool  SerializableRTShaderBindingTable::Serialize (Serializing::Serializer &)	C_NE___ { return false; }
+
+	bool  SerializableIndirectExecutionSet::Serialize (Serializing::Serializer &)	C_NE___ { return false; }
 
 	bool  SerializableRenderTechnique::Pass::Serialize (Serializing::Serializer &)	C_NE___ { return false; }
 
@@ -1558,6 +1573,17 @@ namespace {
 
 		str << "\n  ----------------------";
 		return str;
+	}
+
+/*
+=================================================
+	ToString (SerializableIndirectExecutionSet)
+=================================================
+*/
+	String  SerializableIndirectExecutionSet::ToString (const HashToName &nameMap) const
+	{
+		// TODO
+		return "";
 	}
 
 /*

@@ -67,7 +67,7 @@
 		{
 			RC<ShaderStructType>	st = ShaderStructType( "io" );
 			st.Set( EStructLayout::InternalIO,
-					"mediump float4		color;" +
+					"mediump float4		color;"
 					"mediump float3		worldPos;" );
 		}{
 			RC<DescriptorSetLayout>	ds = DescriptorSetLayout( "mtr.ds" );
@@ -93,7 +93,7 @@
 	void Main ()
 	{
 		ObjectTransform	obj	= un_Transform.elements[ gl.InstanceIndex ];
-		float3			pos = un_Geometry.positions[ gl.VertexIndex ];
+		float3			pos = un_Geometry.position[ gl.VertexIndex ];
 
 		pos *= obj.scale;
 		pos += obj.position;
@@ -135,7 +135,7 @@
 
 		if ( view_space.z - obj.scale > un_PerPass.camera.clipPlanes.x )
 		{
-			aabb = Sphere_FastProject( Sphere_Create( view_space, obj.scale ), un_PerPass.camera.proj[0][0], un_PerPass.camera.proj[1][1] );
+			aabb = Sphere_FastProject( Sphere_Create( view_space, obj.scale ), un_PerPass.camera.proj[0][0], un_PerPass.camera.proj[1][1] ).v;
 
 			// padding for AA border
 			const float	padding = 2.0;

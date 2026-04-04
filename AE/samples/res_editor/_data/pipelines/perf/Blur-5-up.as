@@ -11,10 +11,10 @@
 		{
 			RC<ShaderStructType>	st = ShaderStructType( "io" );
 			st.Set( EStructLayout::InternalIO,
-					"mediump float2		uv;"s  +
-					"mediump float4		uv01;" +
-					"mediump float4		uv23;" +
-					"mediump float4		uv45;" +
+					"mediump float2		uv;"
+					"mediump float4		uv01;"
+					"mediump float4		uv23;"
+					"mediump float4		uv45;"
 					"mediump float4		uv67;" );
 		}{
 			RC<DescriptorSetLayout>	ds = DescriptorSetLayout( "mtr.ds" );

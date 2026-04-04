@@ -22,4 +22,8 @@ void Main ()
 
 	gl_Position	= vec4( g_Positions[gl_VertexIndex], 0.0, 1.0 );
 	v_Color		= g_Colors[gl_VertexIndex];
+
+	#ifdef PER_INSTANCE_OFFSET
+		gl_Position.x += (float(gl_InstanceIndex) - 1.5) * 0.5;		// [1..2] --> [-0.25, +0.25]
+	#endif
 }

@@ -59,17 +59,28 @@ Result of `Rainbow( gl_SubgroupInvocationID / gl_SubgroupSize )` in compute shad
 ### Register count
 
 * SM supports limited number of registers, but must run multiple warps to hide memory latency.
-* Left image - on low register count only one SM used per tile, it increase concurrency - 70 SM will fill 16x16 pixels (17.9K pixels).
-* Middle image - on high register count 4 SMs used per tile, so it 4 times decrease concurrency.
-* Right image - warp occupancy is same for any register count, so tile size is not changed.
+* Warp occupancy is same for any register count, so tile size is not changed. [[17](../GPU_Benchmarks.md#17-tile-size)]<br/>
+  ![](img/hw-tile-size/nv-blackwell.png)
 
-test source: [[17](../GPU_Benchmarks.md#17-tile-size)]
-![](img/hw-tile-size/nv-blackwell.png)
+SM ID in 2x2 tiles with different register count:
+* On low register count only one SM used per tile, it increase concurrency - 70 SM will fill 16x16 pixels (17.9K pixels).
+* On high register count 4 SMs used per tile, so it 4 times decrease concurrency.
+* Left image - on fullscreen triangle used exactly one SM per tile, but for 2 triangles per tile second SM steal work from first SM.
+* Right image - same for high register count, now it's 5 SM per tile.
+
+![](img/hw-tile-size/nv-blackwell-smid-16r.png)
+![](img/hw-tile-size/nv-blackwell-smid-96r.png)
+
+Number of SM per warp depends on triangle size because it adds quad overdraw with inactive threads in warp.
+*Black line - triangle border*
+
+![](img/hw-tile-size/nv-blackwell-smid-2.png)
+![](img/hw-tile-size/nv-blackwell-smid-3.png)
 
 ### Merged instances
 
 Instances are merged in VS and FS. [[17](../GPU_Benchmarks.md#17-tile-size)]<br/>
-Dark blue - single instance; light blue - single instance in FS, multiple in VS; red - multiple instances in FS; orange - multiple instances in FS and VS.
+*Dark blue - single instance; light blue - single instance in FS, multiple in VS; red - multiple instances in FS; orange - multiple instances in FS and VS.*
 
 ![](img/merge-inst/nv-blackwell.png)
 
@@ -127,3 +138,29 @@ Dark blue - single instance; light blue - single instance in FS, multiple in VS;
 	| Max(x,0) |  |  |  |  |  |  | inf |  |
 	| Max(0,x) |  |  |  |  |  |  | inf |  |
 	| Normalize(x) |  |  |  |  |  |  | nan | nan |
+
+## Texture cache
+
+* RGBA8_UNorm texture with random access [[9](../GPU_Benchmarks.md#9-Texture-cache)]
+	- Measured cache size: 128K, 64M (48M)
+
+	| size (B) | dimension (px) | approx bandwidth (GB/s) | comments |
+	|---|---|---|---|
+	|   1K |  16x16  | 6'284 |
+	|   2K |  32x16  | 5'761 |
+	|   4K |  32x32  | 5'170 |
+	|   8K |  64x32  | 4'830 |
+	|  16K |  64x64  | 4'660 |
+	|  32K | 128x64  | 4'560 |
+	|  64K | 128x128 | 3'370 |
+	| 128K | 256x128 |   600 | L1 from specs |
+	| 256K | 256x256 |   540 |
+	| 512K | 512x256 |   505 |
+	|   1M | 512x512 |   501 |
+	|   2M |  1Kx512 |   500 |
+	|   4M |  1Kx1K  |   499 |
+	|   8M |  2Kx1K  |   498 |
+	|  16M |  2Kx2K  |   497 |
+	|  32M |  2Kx4K  |   497 |
+	|  64M |  4Kx4K  |   304 | L2 from specs 48MB |
+	| 128M |  8Kx4K  |   156 |

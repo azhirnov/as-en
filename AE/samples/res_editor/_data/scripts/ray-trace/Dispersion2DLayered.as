@@ -45,12 +45,12 @@
 			array<uint>		indices;
 			TriangulateAndExtrude( contour, 0.1f, OUT positions, OUT indices );
 
-			uint	pos_off	= triangles.FloatArray(	"positions",	positions );
+			uint	pos_off	= triangles.FloatArray(	"position",		positions );
 			uint	idx_off	= triangles.UIntArray(	"indices",		indices );
 
 			geom.AddIndexedTriangles( triangles, triangles );
 
-			rtrace_scene.AddInstance( geom, RTInstanceTransform( float3(0.f, 0.f, 0.f), float3(ToRad(-90.f), 0.f, 0.f) ));
+			rtrace_scene.AddInstance( geom, Transform().RotateX(ToRad(-90.f)) );
 			ior_per_obj.push_back(float2( 1.5f, 1.4f ));
 
 			position_addr	.push_back( triangles.DeviceAddress() + pos_off );
@@ -67,12 +67,12 @@
 			array<uint>		indices;
 			TriangulateAndExtrude( contour, 0.1f, OUT positions, OUT indices );
 
-			uint	pos_off	= triangles.FloatArray(	"positions",	positions );
+			uint	pos_off	= triangles.FloatArray(	"position",	positions );
 			uint	idx_off	= triangles.UIntArray(	"indices",		indices );
 
 			geom.AddIndexedTriangles( triangles, triangles );
 
-			rtrace_scene.AddInstance( geom, RTInstanceTransform( float3(0.f, 0.f, 0.f), float3(ToRad(-90.f), 0.f, 0.f) ));
+			rtrace_scene.AddInstance( geom, Transform().RotateX(ToRad(-90.f)) );
 			ior_per_obj.push_back(float2( 1.7f, 1.6f ));
 
 			position_addr	.push_back( triangles.DeviceAddress() + pos_off );
@@ -84,7 +84,7 @@
 		{
 			Assert( position_addr.size() == indices_addr.size() );
 
-			geom_data.ULongArray(	"positions",	position_addr );
+			geom_data.ULongArray(	"position",		position_addr );
 			geom_data.ULongArray(	"indices",		indices_addr );
 		}
 
@@ -110,16 +110,16 @@
 				// dynamic part:
 				//   LightCone elements []
 				"LightCone",
-				"	float2	origin0;" +
-				"	float2	origin1;" +
-				"	float2	dir0;" +
-				"	float2	dir1;" +
-				"	float2	energy;" +
-				"	float	wavelength;" +
+				"	float2	origin0;"
+				"	float2	origin1;"
+				"	float2	dir0;"
+				"	float2	dir1;"
+				"	float2	energy;"
+				"	float	wavelength;"
 				"	float	ior;",
 				// static part:
-				"uint	coneCount;" +	// atomic
-				"uint	rayCount;" +	// atomic
+				"uint	coneCount;"		// atomic
+				"uint	rayCount;"		// atomic
 				"uint2	rayToCone [" + (ray_storage_size / max_ray_depth) + "];",	// [0] - index in 'elements', [1] - count
 				ray_storage_size );
 
@@ -329,7 +329,7 @@
 
 	layout(location=0) gl::CallableDataIn Payload  payload;
 
-	layout(std430, buffer_reference) buffer readonly PositionsRef	{ float3	positions []; };
+	layout(std430, buffer_reference) buffer readonly PositionsRef	{ float3	position []; };
 	layout(std430, buffer_reference) buffer readonly IndicesRef		{ uint		indices	[]; };
 
 	struct HitParams
@@ -406,12 +406,12 @@
 
 		if ( hit.mtrId >= 0 )
 		{
-			PositionsRef	pos_addr	= PositionsRef( un_Geometry.positions[ hit.mtrId ]);
+			PositionsRef	pos_addr	= PositionsRef( un_Geometry.position[ hit.mtrId ]);
 			IndicesRef		idx_addr	= IndicesRef( un_Geometry.indices[ hit.mtrId ]);
 			const uint		idx			= prim_id * 3;
-			float2			obj_norm	= ToV2( ComputeNormal( pos_addr.positions[ idx_addr.indices[ idx+0 ]],
-															   pos_addr.positions[ idx_addr.indices[ idx+1 ]],
-															   pos_addr.positions[ idx_addr.indices[ idx+2 ]] )
+			float2			obj_norm	= ToV2( ComputeNormal( pos_addr.position[ idx_addr.indices[ idx+0 ]],
+															   pos_addr.position[ idx_addr.indices[ idx+1 ]],
+															   pos_addr.position[ idx_addr.indices[ idx+2 ]] )
 												* normal_mat );
 			hit.normal		= Normalize( hit.frontFace ? obj_norm : -obj_norm );
 			return true;

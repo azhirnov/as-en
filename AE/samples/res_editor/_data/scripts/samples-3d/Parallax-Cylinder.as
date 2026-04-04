@@ -33,35 +33,22 @@
 
 		// create cube
 		{
-			RC<Buffer>				geom_data	= Buffer();
-			RC<UnifiedGeometry>		geometry	= UnifiedGeometry();
+			const uint	segments = 32;
+			RC<Mesh>	mesh	 = Mesh();
+			mesh.SetAttributes( EAttribute::Position | EAttribute::Texcoord2D | EAttribute::TBN );
+			mesh.AddTube( segments );
+			mesh.ScaleUV( float2(6.28f, 0.5f) * 2.f );
+			mesh.AddCylinderEnds( segments );
 
-			array<float3>	positions;
-			array<float3>	normals;
-			array<float3>	tangents;
-			array<float3>	bitangents;
-			array<float2>	texcoords;
-			array<uint>		indices;
-			GetCylinder( 32, /*outer*/false, OUT positions, OUT normals, OUT tangents, OUT bitangents, OUT texcoords, OUT indices );
-
-			const float2	uv_scale = float2(6.28f, 0.5f) * 2.f;
-			for (uint i = 0; i < texcoords.size(); ++i) {
-				texcoords[i] *= uv_scale;
-			}
-
-			geom_data.FloatArray(	"positions",	positions );
-			geom_data.FloatArray(	"texcoords",	texcoords );
-			geom_data.FloatArray(	"normals",		normals );
-			geom_data.FloatArray(	"tangents",		tangents );
-			geom_data.FloatArray(	"bitangents",	bitangents );
-			geom_data.UIntArray(	"indices",		indices );
-			geom_data.Float(		"lightDir",		Normalize(float3( 0.f, -1.f, 0.f )) );
+			RC<Buffer>	geom_data = mesh.ToBuffer();
+			geom_data.Float( "lightDir",	Normalize(float3( 0.f, -1.f, 0.f )) );
 			geom_data.LayoutName( "GeometrySBlock" );
 
 			UnifiedGeometry_DrawIndexed	cmd;
-			cmd.indexCount = indices.size();
+			cmd.indexCount = mesh.IndexCount();
 			cmd.IndexBuffer( geom_data, "indices" );
 
+			RC<UnifiedGeometry>		geometry = UnifiedGeometry();
 			geometry.Draw( cmd );
 			geometry.ArgIn(	"un_Geometry",			geom_data );
 			geometry.ArgIn(	"un_ColorMap",			color_map,	Sampler_LinearMipmapRepeat );

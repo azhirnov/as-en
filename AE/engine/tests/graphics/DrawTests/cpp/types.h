@@ -12,7 +12,7 @@ namespace AE::ShaderTypes
 	# include "vk_types.h"
 
 	#elif defined(AE_ENABLE_METAL)
-	# include "mac_types.h"
+	# include "mtl_types.h"
 
 	#else
 	# error not implemented
@@ -27,7 +27,7 @@ namespace AE
 	# include "vk_names.h"
 
 	#elif defined(AE_ENABLE_METAL)
-	# include "mac_names.h"
+	# include "mtl_names.h"
 
 	#else
 	# error not implemented

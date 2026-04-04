@@ -1,12 +1,12 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 /*
-	https://developer.android.com/training/articles/perf-jni
+	https://developer.android.com/ndk/guides/jni-tips
 */
 
 #pragma once
 
 #ifdef AE_PLATFORM_ANDROID
-# include "platform/Public/Common.h"
+# include "base/Common.h"
 
 namespace AE::Java
 {
@@ -228,6 +228,8 @@ namespace AE::Java
 		ND_ const char *	c_str ()									C_NE___	{ return _data; }
 		ND_ usize			length ()									C_NE___	{ return _length; }
 		ND_ usize			size ()										C_NE___	{ return _length; }
+
+		ND_ jstring			Detach ()									__NE___	{ jstring res = _jstr;  _jstr = null;  return res; }
 
 		ND_ operator StringView ()										C_NE___	{ return StringView{ c_str(), length() }; }
 		ND_ explicit operator String ()									C_Th___	{ return String{ c_str(), length() }; }

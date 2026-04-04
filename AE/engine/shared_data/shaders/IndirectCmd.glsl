@@ -17,6 +17,7 @@ struct DispatchIndirectCommand
 	uint	groupCountZ;
 };
 #endif
+#define DispatchIndirectCommand_SizeOf  12
 
 ND_ DispatchIndirectCommand  DispatchIndirectCommand_Create (uint groupCountX, uint groupCountY, uint groupCountZ)
 {
@@ -47,6 +48,7 @@ struct DrawIndirectCommand
 	uint	firstInstance;
 };
 #endif
+#define DrawIndirectCommand_SizeOf  16
 
 ND_ DrawIndirectCommand  DrawIndirectCommand_Create (uint	vertexCount,
 													 uint	instanceCount,
@@ -76,6 +78,7 @@ struct DrawIndexedIndirectCommand
 	uint	firstInstance;
 };
 #endif
+#define DrawIndexedIndirectCommand_SizeOf  20
 
 ND_ DrawIndexedIndirectCommand  DrawIndexedIndirectCommand_Create (uint	indexCount,
 																   uint	instanceCount,
@@ -105,6 +108,7 @@ struct DrawMeshTasksIndirectCommand
 	uint	taskCountZ;
 };
 #endif
+#define DrawMeshTasksIndirectCommand_SizeOf  12
 
 ND_ DrawMeshTasksIndirectCommand  DrawMeshTasksIndirectCommand_Create (uint taskCountX, uint taskCountY, uint taskCountZ)
 {
@@ -134,6 +138,7 @@ struct TraceRayIndirectCommand
 	uint	depth;
 };
 #endif
+#define TraceRayIndirectCommand_SizeOf  12
 
 ND_ TraceRayIndirectCommand  TraceRayIndirectCommand_Create (uint width, uint height, uint depth)
 {
@@ -199,5 +204,166 @@ ND_ TraceRayIndirectCommand  TraceRayIndirectCommand_Create (const uint3 dim)
 		result.depth								= 1;
 		return result;
 	}*/
+#endif
+#define TraceRayIndirectCommand2_SizeOf  104
+//-----------------------------------------------------------------------------
+
+
+#ifndef ASBuildIndirectCommand_defined
+struct ASBuildIndirectCommand
+{
+	// Triangles count, AABBs count, Instances count
+	uint		primitiveCount;
+
+	uint		primitiveOffset;
+	uint		firstVertex;
+	uint		transformOffset;
+};
+#endif
+#define ASBuildIndirectCommand_SizeOf  16
+
+ND_ ASBuildIndirectCommand  ASBuildIndirectCommand_Create (uint primitiveCount, uint primitiveOffset, uint firstVertex, uint transformOffset)
+{
+	ASBuildIndirectCommand	result;
+	result.primitiveCount	= primitiveCount;
+	result.primitiveOffset	= primitiveOffset;
+	result.firstVertex		= firstVertex;
+	result.transformOffset	= transformOffset;
+	return result;
+}
+
+ND_ ASBuildIndirectCommand  ASBuildIndirectCommand_Create (uint primitiveCount)
+{
+	ASBuildIndirectCommand	result;
+	result.primitiveCount	= primitiveCount;
+	result.primitiveOffset	= 0;
+	result.firstVertex		= 0;
+	result.transformOffset	= 0;
+	return result;
+}
+//-----------------------------------------------------------------------------
+
+
+// VkIndexType
+#define VK_INDEX_TYPE_UINT16	0
+#define VK_INDEX_TYPE_UINT32	1
+//#define VK_INDEX_TYPE_UINT8		1000265000	// TODO: add to feature set
+
+#ifndef BindIndexBufferIndirectCommand_defined
+struct BindIndexBufferIndirectCommand
+{
+	gl::DeviceAddress	bufferAddress;		// 'EResourceState::IndexBuffer', must be aligned to index size
+	uint				bufferSize;			// index buffer size
+	uint				indexType;			// 'VkIndexType'
+};
+#endif
+#define BindIndexBufferIndirectCommand_SizeOf  16
+
+ND_ BindIndexBufferIndirectCommand  BindIndexBufferIndirectCommand_Create (gl::DeviceAddress bufferAddress, uint bufferSize, uint indexType)
+{
+	BindIndexBufferIndirectCommand	result;
+	result.bufferAddress	= bufferAddress;
+	result.bufferSize		= bufferSize;
+	result.indexType		= indexType;
+	return result;
+}
+//-----------------------------------------------------------------------------
+
+
+#ifndef BindVertexBufferIndirectCommand_defined
+struct BindVertexBufferIndirectCommand
+{
+	gl::DeviceAddress	bufferAddress;		// 'EResourceState::VertexBuffer'
+	uint				bufferSize;			// vertex buffer size
+	uint				stride;				// vertex size with padding
+};
+#endif
+#define BindVertexBufferIndirectCommand_SizeOf  16
+
+ND_ BindVertexBufferIndirectCommand  BindVertexBufferIndirectCommand_Create (gl::DeviceAddress bufferAddress, uint bufferSize, uint stride)
+{
+	BindVertexBufferIndirectCommand		result;
+	result.bufferAddress	= bufferAddress;
+	result.bufferSize		= bufferSize;
+	result.stride			= stride;
+	return result;
+}
+//-----------------------------------------------------------------------------
+
+
+#ifndef DrawIndirectCountIndirectCommand_defined
+struct DrawIndirectCountIndirectCommand
+{
+	// buffer layout:
+	//	[uint]   [uint]   [uint]  -- drawCmdCount [commandCount]
+	//	| stride | stride |
+
+	gl::DeviceAddress	bufferAddress;		// 'EResourceState::IndirectBuffer'
+	uint				stride;				// stride for the command arguments
+	uint				commandCount;		// number of commands to execute
+};
+#endif
+#define DrawIndirectCountIndirectCommand_SizeOf  16
+
+ND_ DrawIndirectCountIndirectCommand  DrawIndirectCountIndirectCommand_Create (gl::DeviceAddress bufferAddress, uint stride, uint commandCount)
+{
+	DrawIndirectCountIndirectCommand	result;
+	result.bufferAddress	= bufferAddress;
+	result.stride			= stride;
+	result.commandCount		= commandCount;
+	return result;
+}
+//-----------------------------------------------------------------------------
+
+
+#ifdef AE_opacity_micromap
+	#ifdef __cplusplus
+		#define AE_opacity_micromap_maxOpacity2StateSubdivisionLevel	12
+		#define AE_opacity_micromap_maxOpacity4StateSubdivisionLevel	12
+
+		enum class EOpacityMicromapFormat
+		{
+			TwoState,
+			FourState,
+		};
+
+		enum class EOpacityMicromapSpecialIndex : int
+		{
+			FullyTransparent,						// entire triangle is fully transparent
+			FullyOpaque,							// entire triangle is fully opaque
+			FullyUnknownTransparent,				// ???
+			FullyUnknownOpaque,						// ???
+			ClusterGeometryDisableOpacityMicromap,	// opacity value will be picked from 'baseGeometryIndexAndGeometryFlags'
+		};
+
+	#else
+		#define EOpacityMicromapFormat				uint
+		#define EOpacityMicromapFormat_TwoState		(1)
+		#define EOpacityMicromapFormat_FourState	(2)
+
+		#define EOpacityMicromapSpecialIndex										int
+		#define EOpacityMicromapSpecialIndex_FullyTransparent						(-1)
+		#define EOpacityMicromapSpecialIndex_FullyOpaque							(-2)
+		#define EOpacityMicromapSpecialIndex_FullyUnknownTransparent				(-3)
+		#define EOpacityMicromapSpecialIndex_FullyUnknownOpaque						(-4)
+		#define EOpacityMicromapSpecialIndex_ClusterGeometryDisableOpacityMicromap	(-5)
+	#endif
+
+	#ifndef MicromapTriangle_defined
+	struct MicromapTriangle
+	{
+		uint	dataOffset;
+		uint	subdivisionLevel_format;	// 2x ushort
+	};
+	#endif
+	#define MicromapTriangle_SizeOf		8
+
+	ND_ MicromapTriangle  MicromapTriangle_Create (uint dataOffset, uint subdivisionLevel, EOpacityMicromapFormat format)
+	{
+		MicromapTriangle	result;
+		result.dataOffset				= dataOffset;
+		result.subdivisionLevel_format	= (subdivisionLevel & 0xFFFF) | (format << 16);
+		return result;
+	}
 #endif
 //-----------------------------------------------------------------------------

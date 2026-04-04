@@ -30,7 +30,7 @@ namespace AE::Threading
 		ReadRequestPtr	ReadSeq (Bytes size)										__NE_OV;
 		bool			CancelAllRequests ()										__NE_OV	{ return _ds->CancelAllRequests(); }
 
-		ReqAlign		OffsetAlign ()												C_NE_OV	{ return _ds->OffsetAlign(); }
+		ReqAlign		DirectAccessAlign ()										C_NE_OV	{ return _ds->DirectAccessAlign(); }
 	};
 //-----------------------------------------------------------------------------
 
@@ -59,7 +59,7 @@ namespace AE::Threading
 		WriteRequestPtr	WriteSeq (const void* data, Bytes dataSize, RC<> mem)		__NE_OV;
 		bool			CancelAllRequests ()										__NE_OV	{ return _ds->CancelAllRequests(); }
 
-		ReqAlign		OffsetAlign ()												C_NE_OV	{ return _ds->OffsetAlign(); }
+		ReqAlign		DirectAccessAlign ()										C_NE_OV	{ return _ds->DirectAccessAlign(); }
 	};
 //-----------------------------------------------------------------------------
 

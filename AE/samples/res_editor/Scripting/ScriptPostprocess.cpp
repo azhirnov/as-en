@@ -4,6 +4,7 @@
 #include "Passes/Postprocess.h"
 #include "Core/EditorUI.h"
 #include "Scripting/ScriptBasePass.cpp.h"
+#include "_data/cpp/types.h"
 
 namespace AE::ResEditor
 {
@@ -65,7 +66,7 @@ namespace
 	_OnAddArg
 =================================================
 */
-	void  ScriptPostprocess::_OnAddArg (INOUT ScriptPassArgs::Argument &arg) C_Th___
+	void  ScriptPostprocess::_OnAddArg (INOUT ScriptPassArgs::Argument &arg) __Th___
 	{
 		arg.state |= EResourceState::FragmentShader;
 	}
@@ -146,11 +147,11 @@ namespace
 	_CompilePipeline
 =================================================
 */
-	auto  ScriptPostprocess::_CompilePipeline (OUT Bytes &ubSize) C_Th___
+	auto  ScriptPostprocess::_CompilePipeline () C_Th___
 	{
 		return ScriptExe::ScriptPassApi::ConvertAndLoad(
-					[this, &ubSize] (ScriptEnginePtr) {
-						_CompilePipeline2( OUT ubSize );	// throw
+					[this] (ScriptEnginePtr) {
+						_CompilePipeline2();	// throw
 					},
 					_baseFlags );
 	}
@@ -165,9 +166,8 @@ namespace
 		auto		result		= MakeRC<Postprocess>();
 		auto&		res_mngr	= GraphicsScheduler().GetResourceManager();
 		const auto	max_frames	= GraphicsScheduler().GetMaxFrames();
-		Bytes		ub_size;
 
-		result->_rtech = _CompilePipeline( OUT ub_size ); // throw
+		result->_rtech = _CompilePipeline(); // throw
 
 		EnumSet<IPass::EDebugMode>	dbg_modes;
 
@@ -175,7 +175,7 @@ namespace
 		{{
 			if ( AllBits( _baseFlags, flag ))
 			{
-				auto	id = pp->_rtech.rtech->GetGraphicsPipeline( name );
+				auto	id = pp->_rtech.rtech->GetGraphicsPipeline( name, True{"silent"} );
 				if ( id ) {
 					pp->_pipelines.insert_or_assign( mode, id );
 					dbg_modes.insert( mode );
@@ -198,7 +198,7 @@ namespace
 		}
 		#endif
 
-		result->_ubuffer = _CreateUBuffer( ub_size, "PostprocessPassUB", EResourceState::UniformRead | EResourceState::FragmentShader );  // throw
+		result->_ubuffer = _CreateUBuffer( SizeOf<ShaderTypes::PostprocessPassUB>, "PostprocessPassUB", EResourceState::UniformRead | EResourceState::FragmentShader );  // throw
 
 		// create descriptor set
 		{
@@ -309,7 +309,7 @@ namespace AE::ResEditor
 		if ( it != obj_storage.structTypes.end() )
 			return it->second;
 
-		ShaderStructTypePtr	st{ new ShaderStructType{"PostprocessPassUB"}};
+		ShaderStructTypePtr	st = ShaderStructType::Create( "PostprocessPassUB" );
 		st->Set( EStructLayout::Compatible_Std140, R"#(
 				float3		resolution;				// viewport resolution (in pixels)
 				float		time;					// shader playback time (in seconds)
@@ -364,7 +364,7 @@ namespace AE::ResEditor
 	_CompilePipeline2
 =================================================
 */
-	void  ScriptPostprocess::_CompilePipeline2 (OUT Bytes &ubSize) C_Th___
+	void  ScriptPostprocess::_CompilePipeline2 () C_Th___
 	{
 		const String	subpass = "main";
 
@@ -380,7 +380,7 @@ namespace AE::ResEditor
 		}
 
 
-		CompatibleRenderPassDescPtr		compat_rp{ new CompatibleRenderPassDesc{ "compat.rp" }};
+		CompatibleRenderPassDescPtr		compat_rp = CompatibleRenderPassDesc::Create( "compat.rp" );
 		compat_rp->AddSubpass( subpass );
 		{
 			for (auto [out, i] : WithIndex(_output))
@@ -464,18 +464,17 @@ namespace AE::ResEditor
 		}
 
 
-		RenderTechniquePtr	rtech{ new RenderTechnique{ "rtech" }};
+		RenderTechniquePtr	rtech = RenderTechnique::Create( "rtech" );
 		{
 			RTGraphicsPassPtr	pass = rtech->AddGraphicsPass2( subpass );
 			pass->SetRenderPass( "rp", subpass );
 		}
 
 
-		const auto				stage	= EShaderStages::Fragment;
-		DescriptorSetLayoutPtr	ds_layout{ new DescriptorSetLayout{ "dsl.0" }};
+		const auto				stage		= EShaderStages::Fragment;
+		DescriptorSetLayoutPtr	ds_layout	= DescriptorSetLayout::Create( "dsl.0" );
 		{
-			ShaderStructTypePtr	st = _CreateUBType();	// throw
-			ubSize = st->StaticSize();
+			Unused( _CreateUBType() );	// throw
 
 			ds_layout->AddUniformBuffer( stage, "un_PerPass", ArraySize{1}, "PostprocessPassUB", EResourceState::ShaderUniform, False{} );
 
@@ -707,13 +706,13 @@ void Main ()
 	void  ScriptPostprocess::_CompilePipeline3 (const String &subpass, const String &vs, const String &fs, uint fsLine,
 												const String &pplnName, uint shaderOpts, EPipelineOpt pplnOpt) C_Th___
 	{
-		PipelineLayoutPtr		ppln_layout{ new PipelineLayout{ pplnName + ".pl" }};
+		PipelineLayoutPtr		ppln_layout = PipelineLayout::Create( pplnName + ".pl" );
 		ppln_layout->AddDSLayout2( "ds0", 0, "dsl.0" );
 
 		if ( AnyBits( EShaderOpt(shaderOpts), EShaderOpt::_ShaderTrace_Mask ))
 			ppln_layout->AddDebugDSLayout2( 1, EShaderOpt(shaderOpts) & EShaderOpt::_ShaderTrace_Mask, uint(EShaderStages::Fragment) );
 
-		GraphicsPipelinePtr		ppln_templ{ new GraphicsPipelineScriptBinding{ pplnName }};
+		GraphicsPipelinePtr		ppln_templ = GraphicsPipelineScriptBinding::Create( pplnName );
 		ppln_templ->Disable();
 		ppln_templ->SetFragmentOutputFromRenderPass( "compat.rp", subpass );
 		ppln_templ->SetLayout2( ppln_layout );

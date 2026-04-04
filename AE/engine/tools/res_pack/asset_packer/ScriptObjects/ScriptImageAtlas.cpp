@@ -57,15 +57,9 @@ namespace {
 	{
 		CHECK_THROW( _state == EState::Recording );
 
-		Path	path = ObjectStorage::Instance()->GetScriptFolder();
-		path.append( filename );
-
-		CHECK_THROW_MSG( FileSystem::IsFile( path ),
-			"file '"s << filename << "' is not exists" );
+		const Path	path = ObjectStorage::Instance()->GetResourcePath( filename );  // throw
 
 		ObjectStorage::Instance()->AddName<ImageInAtlasName>( imageName );
-
-		path = FileSystem::ToAbsolute( path );
 
 		auto [img_it, img_inserted] = _uniqueImages.emplace( path, uint(_imageFiles.size()) );
 
@@ -382,7 +376,10 @@ namespace {
 		AS_METHOD( binder, ScriptImageAtlas::Add2,			"Add",			{"imageNameInAtlas", "filename", "regionInSrcImage"} );
 		AS_METHOD( binder, ScriptImageAtlas::Store,			"Store",		{"nameInArchive"} );
 		AS_METHOD( binder, ScriptImageAtlas::StoreData,		"StoreData",	{"nameInArchive"} );
+
+		binder.Comment( "Add resource to meta data with specified name." );
 		AS_METHOD( binder, ScriptImageAtlas::PutMeta,		"PutMeta",		{"metaFile", "nameInMeta"} );
+
 		AS_METHOD( binder, ScriptImageAtlas::PutData,		"PutData",		{"image"} );
 		AS_METHOD( binder, ScriptImageAtlas::SetPadding,	"Padding",		{"paddingInPixels"} );
 		AS_METHOD( binder, ScriptImageAtlas::SetFormat,		"Format",		{"newFormat"} );

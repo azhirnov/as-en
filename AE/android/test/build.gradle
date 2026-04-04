@@ -1,11 +1,11 @@
 apply plugin: 'com.android.application'
 
 android {
-	namespace  'AE.test'
+	namespace  'ae.test'
 	compileSdk 34
 
 	defaultConfig {
-		applicationId 		'AE.Test'
+		applicationId 		'ae.test'
 		minSdkVersion 		24 // 24+ for vulkan
 		targetSdkVersion 	34
 
@@ -55,6 +55,7 @@ android {
 						   'lib/**/libTestsThreading.so',	'lib/**/libTestsNetworking.so',		'lib/**/libTestsSerializing.so',
 						   'lib/**/libTestsPlatform.so',	'lib/**/libTestsGraphicsRHI.so',	'lib/**/libTestsGraphics.so',
 						   'lib/**/libTestsECS.so',			'lib/**/libTestsVFS.so',			'lib/**/libTestsHuLang.so',
+						   'lib/**/libTestsVideo.so',
 						   'lib/**/libTestsAtlasTools.so',	'lib/**/libTestsGeometryTools.so',
 						   'lib/**/libPerfBase.so',			'lib/**/libPerfThreading.so',		'lib/**/libPerfGraphics.so',
 						   'lib/**/libNetworkStressTest.so' ]

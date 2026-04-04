@@ -73,9 +73,11 @@ namespace AE::ResEditor
 			// restart
 			_frameId = frameId;
 
+			Path	abs_path;
 			_currPath = _filePath;
-			CHECK_ERR( GetVFS().CreateUniqueFile( OUT _fname, INOUT _currPath, VFS::StorageName{"export"} ));
+			CHECK_ERR( GetVFS().CreateUniqueFile( OUT _fname, INOUT _currPath, VFS::StorageName{"export"}, OUT &abs_path ));
 
+			_absPath = ToString( abs_path );
 			_complete.store( false );
 
 			if ( _parser )
@@ -102,7 +104,11 @@ namespace AE::ResEditor
 						self->_parser( *read_result, *stream );  // throw
 						stream->Flush();
 
-						AE_LOGI( "Buffer exported to '"s << ToString(self->_currPath) << "'" );
+						if ( self->_absPath.empty() ){
+							AE_LOGI( "Buffer exported to '"s << ToString(self->_currPath) << "'" );
+						}else{
+							AE_LOGI( "Buffer exported to '"s << ToString(self->_currPath) << "'", SourceLoc(self->_absPath, 0) );
+						}
 
 						self->_complete.store( true );
 					});

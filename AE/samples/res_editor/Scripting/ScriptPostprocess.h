@@ -55,8 +55,8 @@ namespace AE::ResEditor
 
 
 	private:
-		ND_ auto  _CompilePipeline (OUT Bytes &ubSize)													C_Th___;
-			void  _CompilePipeline2 (OUT Bytes &ubSize)													C_Th___;
+		ND_ auto  _CompilePipeline ()																	C_Th___;
+			void  _CompilePipeline2 ()																	C_Th___;
 			void  _CompilePipeline3 (const String &subpass, const String &vs, const String &fs,
 									 uint fsLine, const String &pplnName, uint shaderOpts,
 									 EPipelineOpt pplnOpt)												C_Th___;
@@ -66,7 +66,7 @@ namespace AE::ResEditor
 		void  _SetDynamicDimension2 (const ScriptDynamicDimPtr &value)									__Th___	{ ScriptBasePass::_SetDynamicDimension( value ); }
 
 	// ScriptBasePass //
-		void  _OnAddArg (INOUT ScriptPassArgs::Argument &arg)											C_Th_OV;
+		void  _OnAddArg (INOUT ScriptPassArgs::Argument &arg)											__Th_OV;
 	};
 
 

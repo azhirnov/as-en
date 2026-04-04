@@ -8,7 +8,7 @@ namespace AE::PipelineCompiler
 namespace
 {
 	static ScriptVertexBufferInput*  ScriptVertexBufferInput_Ctor (const String &name) {
-		return VertexBufferInputPtr{ new ScriptVertexBufferInput{ name }}.Detach();
+		return ScriptVertexBufferInput::Create( name ).Detach();
 	}
 
 	static void  VB_SameAttribs (const String &lhs, const String &rhs) __Th___
@@ -36,12 +36,19 @@ namespace
 	constructor
 =================================================
 */
-	ScriptVertexBufferInput::ScriptVertexBufferInput (const String &name) :
+	ScriptVertexBufferInput::ScriptVertexBufferInput (const String &name) __NE___ :
 		_features{ ObjectStorage::Instance()->GetDefaultFeatureSets() },
 		_name{ name }
+	{}
+
+	VertexBufferInputPtr  ScriptVertexBufferInput::Create (const String &name) __Th___
 	{
+		VertexBufferInputPtr	result {new ScriptVertexBufferInput{ name }};
+
 		auto&	map = ObjectStorage::Instance()->vbInputMap;
-		CHECK_THROW_MSG( map.emplace( name, VertexBufferInputPtr{this} ).second );
+		CHECK_THROW_MSG( map.emplace( name, result ).second );
+
+		return result;
 	}
 
 /*
@@ -229,7 +236,7 @@ namespace
 		}
 		{
 			ClassBinder<ScriptVertexBufferInput>	binder{ se };
-			binder.CreateRef();
+			binder.CreateRef( 0, False{} );
 
 			binder.Comment( "Create vertex buffer.\n"
 							"Name is used as typename for vertex data." );

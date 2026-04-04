@@ -4,14 +4,12 @@
 #include "base/Algorithms/StringUtils.h"
 #include "base/FileSystem/FileSystem.h"
 
-#undef null
 #include <CoreFoundation/CFBase.h>
 #include <Foundation/NSString.h>
 #include <Foundation/NSError.h>
 #include <Foundation/NSArray.h>
 #include <Foundation/NSData.h>
 #include <Foundation/NSURL.h>
-#define null	nullptr
 
 #if __has_feature(objc_arc)
 #	error "ARC is not supported"

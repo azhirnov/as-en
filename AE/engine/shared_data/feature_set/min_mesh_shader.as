@@ -30,6 +30,7 @@ void ASmain ()
 	//	Win-NV-RTX3000-1.4.328
 	//	Win-NV-RTX4000-1.4.328
 	//	Win-NV-RTX5000-1.4.319
+	//	Adreno-730-1.4.295
 	//	Apple9
 	//	Apple8
 	//	Apple8_Mac
@@ -73,8 +74,7 @@ void ASmain ()
 		EShaderStages::Compute
 	));
 	fset.subgroupQuadStages(EShaderStages(
-		EShaderStages::MeshPipeStages | 
-		EShaderStages::Vertex | 
+		EShaderStages::Fragment | 
 		EShaderStages::Compute
 	));
 	fset.minSubgroupSize (4);
@@ -87,9 +87,7 @@ void ASmain ()
 	fset.shaderInt64 (True);
 	fset.shaderFloat16 (True);
 	fset.storageBuffer16BitAccess (True);
-	fset.uniformAndStorageBuffer16BitAccess (True);
 	fset.storageBuffer8BitAccess (True);
-	fset.uniformAndStorageBuffer8BitAccess (True);
 	fset.uniformBufferStandardLayout (True);
 	fset.scalarBlockLayout (True);
 	fset.bufferDeviceAddress (True);
@@ -142,7 +140,7 @@ void ASmain ()
 	fset.perStage_maxStorageImages (1000000);
 	fset.perStage_maxUniformBuffers (1000000);
 	fset.perStage_maxTotalResources (1000000);
-	fset.maxDescriptorSets (8);
+	fset.maxDescriptorSets (7);
 	fset.maxTexelOffset (7);
 	fset.maxTexelGatherOffset (7);
 	fset.maxFragmentOutputAttachments (8);
@@ -173,7 +171,7 @@ void ASmain ()
 	fset.maxPreferredMeshWorkGroupInvocations (16);
 	fset.computeShader (True);
 	fset.vertexDivisor (True);
-	fset.maxVertexAttribDivisor (0xfffffff);
+	fset.maxVertexAttribDivisor (0xffff);
 	fset.maxVertexAttributes (29);
 	fset.maxVertexBuffers (31);
 	fset.AddVertexFormats({

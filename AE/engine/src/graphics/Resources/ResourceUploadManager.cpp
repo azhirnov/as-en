@@ -286,7 +286,7 @@ namespace {
 		}
 
 		for (auto& item : queue) {
-			ctx.ImageBarrier( item.imageId, item.initialState, item.finalState );
+			ctx.ResourceBarrier( item.imageId, item.initialState, item.finalState );
 		}
 		queue.clear();
 
@@ -432,7 +432,7 @@ namespace {
 
 		if_unlikely( _curState != EResourceState::CopyDst )
 		{
-			ctx.ImageBarrier( _info.img.id, _curState, EResourceState::CopyDst );
+			ctx.ResourceBarrier( _info.img.id, _curState, EResourceState::CopyDst );
 			ctx.CommitBarriers();
 			_curState = EResourceState::CopyDst;
 		}
@@ -481,7 +481,7 @@ namespace {
 			if_unlikely( upload.mipLevel == UMax )
 			{
 				if ( _curState != _finalState )
-					ctx.ImageBarrier( _info.img.id, _curState, _finalState );
+					ctx.ResourceBarrier( _info.img.id, _curState, _finalState );
 
 				return EUploadRes::Complete;
 			}
@@ -496,7 +496,7 @@ namespace {
 		if ( AllBits( _flags, EUploadFlags::UsedWhileUploading ) and
 			 _curState != _finalState )
 		{
-			ctx.ImageBarrier( _info.img.id, _curState, _finalState );
+			ctx.ResourceBarrier( _info.img.id, _curState, _finalState );
 			_curState = _finalState;
 		}
 
@@ -570,7 +570,7 @@ namespace {
 				ASSERT( upload.offset == _info.buf.size );
 
 				if ( _curState != _finalState )
-					ctx.MemoryBarrier( _curState, _finalState );
+					ctx.MemoryBarrier( _curState, _finalState );	// TODO: ResourceBarrier
 
 				return EUploadRes::Complete;
 			}

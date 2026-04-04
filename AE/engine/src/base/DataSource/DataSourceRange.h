@@ -51,7 +51,7 @@ namespace AE::Base
 
 		Bytes		ReadBlock (Bytes, OUT void*, Bytes) __NE_OV;
 
-		ReqAlign	OffsetAlign ()						C_NE_OV	{ return _dataSource->OffsetAlign(); }
+		ReqAlign	DirectAccessAlign ()				C_NE_OV	{ return _dataSource->DirectAccessAlign(); }
 	};
 
 
@@ -102,7 +102,7 @@ namespace AE::Base
 
 		void		Flush ()								__NE_OV	{ ASSERT( IsOpen() );  return _dataSource->Flush(); }
 
-		ReqAlign	OffsetAlign ()							C_NE_OV	{ return _dataSource->OffsetAlign(); }
+		ReqAlign	DirectAccessAlign ()					C_NE_OV	{ return _dataSource->DirectAccessAlign(); }
 	};
 //-----------------------------------------------------------------------------
 

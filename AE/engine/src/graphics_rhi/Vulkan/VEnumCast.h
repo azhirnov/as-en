@@ -3,8 +3,8 @@
 #pragma once
 
 #ifdef AE_ENABLE_VULKAN
-# include "graphics_rhi/Public/ResourceEnums.h"
 # include "graphics_rhi/Public/RenderStateEnums.h"
+# include "graphics_rhi/Public/ResourceEnums.h"
 # include "graphics_rhi/Public/ShaderEnums.h"
 # include "graphics_rhi/Public/EResourceState.h"
 # include "graphics_rhi/Public/MultiSamples.h"
@@ -15,12 +15,16 @@
 # include "graphics_rhi/Public/VideoEnums.h"
 # include "graphics_rhi/Public/SamplerDesc.h"
 # include "graphics_rhi/Public/CommandBufferTypes.h"
+# include "graphics_rhi/Public/IndirectCommandBuffer.h"
+
 # include "graphics_rhi/Private/EnumUtils.h"
 # include "graphics_rhi/Private/PixelFormatDefines.h"
 # include "graphics_rhi/Vulkan/VCommon.h"
 
 namespace AE::Graphics
 {
+	void  AEEnumCast (VkFlags value) __NE___;
+	void  AEEnumCast (VkFlags64 value) __NE___;
 
 /*
 =================================================
@@ -268,7 +272,6 @@ namespace AE::Graphics
 
 			case EPipelineDynamicState::RTStackSize :			return VK_DYNAMIC_STATE_RAY_TRACING_PIPELINE_STACK_SIZE_KHR;
 			case EPipelineDynamicState::FragmentShadingRate :	return VK_DYNAMIC_STATE_FRAGMENT_SHADING_RATE_KHR;
-			case EPipelineDynamicState::ViewportWScaling :		return VK_DYNAMIC_STATE_VIEWPORT_W_SCALING_NV;
 
 			// TODO:
 			//	VK_DYNAMIC_STATE_SAMPLE_LOCATIONS_EXT
@@ -389,6 +392,7 @@ namespace AE::Graphics
 				case EImageOpt::SampleLocationsCompatible :		flags |= VK_IMAGE_CREATE_SAMPLE_LOCATIONS_COMPATIBLE_DEPTH_BIT_EXT;					break;
 
 				case EImageOpt::Subsampled :					flags |= VK_IMAGE_CREATE_SUBSAMPLED_BIT_EXT;				break;
+				case EImageOpt::SeparatePlanes :				flags |= VK_IMAGE_CREATE_DISJOINT_BIT_KHR;					break;
 
 				case EImageOpt::BlitSrc :
 				case EImageOpt::BlitDst :
@@ -589,28 +593,30 @@ namespace AE::Graphics
 	VEnumCast (EBufferUsage)
 =================================================
 */
-	Nd__In VkBufferUsageFlagBits  VEnumCast (EBufferUsage values) __NE___
+	Nd__In VkBufferUsageFlagBits2  VEnumCast (EBufferUsage values) __NE___
 	{
-		VkBufferUsageFlagBits	result = Zero;
+		VkBufferUsageFlagBits2	result = Zero;
 
 		for (auto t : BitfieldIterate( values ))
 		{
 			switch_enum( t )
 			{
-				case EBufferUsage::TransferSrc :		result |= VK_BUFFER_USAGE_TRANSFER_SRC_BIT;					break;
-				case EBufferUsage::TransferDst :		result |= VK_BUFFER_USAGE_TRANSFER_DST_BIT;					break;
-				case EBufferUsage::UniformTexel :		result |= VK_BUFFER_USAGE_UNIFORM_TEXEL_BUFFER_BIT;			break;
-				case EBufferUsage::StorageTexel :		result |= VK_BUFFER_USAGE_STORAGE_TEXEL_BUFFER_BIT;			break;
-				case EBufferUsage::Uniform :			result |= VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT;				break;
-				case EBufferUsage::Storage :			result |= VK_BUFFER_USAGE_STORAGE_BUFFER_BIT;				break;
-				case EBufferUsage::Index :				result |= VK_BUFFER_USAGE_INDEX_BUFFER_BIT;					break;
-				case EBufferUsage::Vertex :				result |= VK_BUFFER_USAGE_VERTEX_BUFFER_BIT;				break;
-				case EBufferUsage::Indirect :			result |= VK_BUFFER_USAGE_INDIRECT_BUFFER_BIT;				break;
-				case EBufferUsage::ShaderAddress :		result |= VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT;		break;
-				case EBufferUsage::ShaderBindingTable :	result |= VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT | VK_BUFFER_USAGE_SHADER_BINDING_TABLE_BIT_KHR;							break;
-				case EBufferUsage::ASBuild_ReadOnly :	result |= VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT | VK_BUFFER_USAGE_ACCELERATION_STRUCTURE_BUILD_INPUT_READ_ONLY_BIT_KHR;	break;
-				case EBufferUsage::ASBuild_Scratch :	result |= VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT | VK_BUFFER_USAGE_STORAGE_BUFFER_BIT;									break;
-				case EBufferUsage::RTAS_Storage :		result |= VK_BUFFER_USAGE_ACCELERATION_STRUCTURE_STORAGE_BIT_KHR;	break;
+				case EBufferUsage::TransferSrc :		result |= VK_BUFFER_USAGE_2_TRANSFER_SRC_BIT;				break;
+				case EBufferUsage::TransferDst :		result |= VK_BUFFER_USAGE_2_TRANSFER_DST_BIT;				break;
+				case EBufferUsage::UniformTexel :		result |= VK_BUFFER_USAGE_2_UNIFORM_TEXEL_BUFFER_BIT;		break;
+				case EBufferUsage::StorageTexel :		result |= VK_BUFFER_USAGE_2_STORAGE_TEXEL_BUFFER_BIT;		break;
+				case EBufferUsage::Uniform :			result |= VK_BUFFER_USAGE_2_UNIFORM_BUFFER_BIT;				break;
+				case EBufferUsage::Storage :			result |= VK_BUFFER_USAGE_2_STORAGE_BUFFER_BIT;				break;
+				case EBufferUsage::Index :				result |= VK_BUFFER_USAGE_2_INDEX_BUFFER_BIT;				break;
+				case EBufferUsage::Vertex :				result |= VK_BUFFER_USAGE_2_VERTEX_BUFFER_BIT;				break;
+				case EBufferUsage::Indirect :			result |= VK_BUFFER_USAGE_2_INDIRECT_BUFFER_BIT;			break;
+				case EBufferUsage::ShaderAddress :		result |= VK_BUFFER_USAGE_2_SHADER_DEVICE_ADDRESS_BIT;		break;
+				case EBufferUsage::ShaderBindingTable :	result |= VK_BUFFER_USAGE_2_SHADER_BINDING_TABLE_BIT_KHR;	break;
+				case EBufferUsage::ASBuild_ReadOnly :	result |= VK_BUFFER_USAGE_2_ACCELERATION_STRUCTURE_BUILD_INPUT_READ_ONLY_BIT_KHR;	break;
+				case EBufferUsage::ASBuild_Scratch :	result |= VK_BUFFER_USAGE_2_STORAGE_BUFFER_BIT;				break;
+				case EBufferUsage::RTAS_Storage :		result |= VK_BUFFER_USAGE_2_ACCELERATION_STRUCTURE_STORAGE_BIT_KHR;	break;
+				case EBufferUsage::ICB_Preprocess :		result |= VK_BUFFER_USAGE_2_PREPROCESS_BUFFER_BIT_EXT;		break;
+				case EBufferUsage::MMBuild_ReadOnly :	result |= VK_BUFFER_USAGE_2_MICROMAP_BUILD_INPUT_READ_ONLY_BIT_EXT; break;
 
 				case EBufferUsage::_Last :
 				case EBufferUsage::Transfer :
@@ -620,6 +626,10 @@ namespace AE::Graphics
 			}
 			switch_end
 		}
+
+		if ( AnyBits( values, EBufferUsage_RequireDevAddress ))
+			result |= VK_BUFFER_USAGE_2_SHADER_DEVICE_ADDRESS_BIT;
+
 		return result;
 	}
 
@@ -762,16 +772,14 @@ namespace AE::Graphics
 */
 	Nd__In VkFormat  VEnumCast (EPixelFormat value) __NE___
 	{
-		#define FMT_BUILDER( _engineFmt_, _vkFormat_ )\
-			case EPixelFormat::_engineFmt_ : return _vkFormat_;
+		#define FMT_BUILDER( _engineFmt_, _vkFormat_ )	_vkFormat_,
 
-		switch_enum( value )
-		{
+		static constexpr VkFormat	c_formats[] = {
 			AE_PRIVATE_VKPIXELFORMATS( FMT_BUILDER )
-			case EPixelFormat::SwapchainColor :
-			case EPixelFormat::Unknown :		break;
-		}
-		switch_end
+		};
+
+		if ( value < EPixelFormat::_Count )
+			return c_formats[ uint(value) ];
 
 		#undef FMT_BUILDER
 		RETURN_ERR( "invalid pixel format", VK_FORMAT_MAX_ENUM );
@@ -821,7 +829,7 @@ namespace AE::Graphics
 	AEEnumCast (VkImageUsageFlagBits)
 =================================================
 */
-	inline void  AEEnumCast (VkImageUsageFlagBits usage, OUT EImageUsage& outUsage, OUT EMemoryType& outMemType, OUT EVideoImageUsage &outVideoUsage) __NE___
+	Nd__In bool  AEEnumCast (VkImageUsageFlagBits usage, OUT EImageUsage& outUsage, OUT EMemoryType& outMemType, OUT EVideoImageUsage &outVideoUsage) __NE___
 	{
 		outUsage		= Default;
 		outVideoUsage	= Default;
@@ -852,6 +860,8 @@ namespace AE::Graphics
 				case VK_IMAGE_USAGE_VIDEO_ENCODE_DPB_BIT_KHR :		outVideoUsage |= EVideoImageUsage::EncodeDpb;		break;
 				case VK_IMAGE_USAGE_VIDEO_ENCODE_DST_BIT_KHR :		outVideoUsage |= EVideoImageUsage::EncodeDst;		break;
 				case VK_IMAGE_USAGE_VIDEO_ENCODE_SRC_BIT_KHR :		outVideoUsage |= EVideoImageUsage::EncodeSrc;		break;
+				case VK_IMAGE_USAGE_VIDEO_ENCODE_QUANTIZATION_DELTA_MAP_BIT_KHR :
+				case VK_IMAGE_USAGE_VIDEO_ENCODE_EMPHASIS_MAP_BIT_KHR :
 
 				case VK_IMAGE_USAGE_INVOCATION_MASK_BIT_HUAWEI:
 				case VK_IMAGE_USAGE_ATTACHMENT_FEEDBACK_LOOP_BIT_EXT :
@@ -859,20 +869,19 @@ namespace AE::Graphics
 				case VK_IMAGE_USAGE_SAMPLE_BLOCK_MATCH_BIT_QCOM :
 				case VK_IMAGE_USAGE_FLAG_BITS_MAX_ENUM :
 				case VK_IMAGE_USAGE_HOST_TRANSFER_BIT_EXT :
-				case VK_IMAGE_USAGE_VIDEO_ENCODE_QUANTIZATION_DELTA_MAP_BIT_KHR :
-				case VK_IMAGE_USAGE_VIDEO_ENCODE_EMPHASIS_MAP_BIT_KHR :
 				case VK_IMAGE_USAGE_TENSOR_ALIASING_BIT_ARM :
 				case VK_IMAGE_USAGE_TILE_MEMORY_BIT_QCOM :
-				default_unlikely :									RETURN_ERRV( "not supported" );
+				default_unlikely :									RETURN_ERR( "not supported" );
 			}
 			switch_end
 		}
+		return true;
 	}
 
 	inline void  AEEnumCast (VkImageUsageFlagBits usage, OUT EImageUsage& outUsage, OUT EMemoryType& outMemType) __NE___
 	{
 		EVideoImageUsage	vusage;
-		AEEnumCast( usage, OUT outUsage, OUT outMemType, OUT vusage );
+		Unused( AEEnumCast( usage, OUT outUsage, OUT outMemType, OUT vusage ));
 	}
 
 /*
@@ -898,7 +907,7 @@ namespace AE::Graphics
 	{
 		EImageOpt	result = Zero;
 
-		StaticAssert( uint(EImageOpt::All) == 0x7FFFF );
+		StaticAssert( uint(EImageOpt::All) == 0xFFFFF );
 		for (auto t : BitfieldIterate( values ))
 		{
 			switch_enum( t )
@@ -939,49 +948,41 @@ namespace AE::Graphics
 	AEEnumCast (VkBufferUsageFlagBits)
 =================================================
 */
-	Nd__In EBufferUsage  AEEnumCast (VkBufferUsageFlagBits values) __NE___
+	inline bool  AEEnumCast (VkBufferUsageFlagBits2 values, OUT EBufferUsage &outUsage, OUT EVideoBufferUsage &outVideoUsage) __NE___
 	{
-		EBufferUsage	result = Default;
+		outUsage		= Default;
+		outVideoUsage	= Default;
 
-		StaticAssert( uint(EBufferUsage::All) == 0x3FFF );
+		StaticAssert( uint(EBufferUsage::All) == 0xFFFF );
 		for (auto t : BitfieldIterate( values ))
 		{
-			switch_enum( VkBufferUsageFlagBits(t) )
+			switch ( t )
 			{
-				case VK_BUFFER_USAGE_TRANSFER_SRC_BIT :				result |= EBufferUsage::TransferSrc;	break;
-				case VK_BUFFER_USAGE_TRANSFER_DST_BIT :				result |= EBufferUsage::TransferDst;	break;
-				case VK_BUFFER_USAGE_UNIFORM_TEXEL_BUFFER_BIT :		result |= EBufferUsage::UniformTexel;	break;
-				case VK_BUFFER_USAGE_STORAGE_TEXEL_BUFFER_BIT :		result |= EBufferUsage::StorageTexel;	break;
-				case VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT :			result |= EBufferUsage::Uniform;		break;
-				case VK_BUFFER_USAGE_STORAGE_BUFFER_BIT :			result |= EBufferUsage::Storage;		break;
-				case VK_BUFFER_USAGE_INDEX_BUFFER_BIT :				result |= EBufferUsage::Index;			break;
-				case VK_BUFFER_USAGE_VERTEX_BUFFER_BIT :			result |= EBufferUsage::Vertex;			break;
-				case VK_BUFFER_USAGE_INDIRECT_BUFFER_BIT :			result |= EBufferUsage::Indirect;		break;
-				case VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT:		result |= EBufferUsage::ShaderAddress | EBufferUsage::ASBuild_Scratch;	break;
-				case VK_BUFFER_USAGE_SHADER_BINDING_TABLE_BIT_KHR :	result |= EBufferUsage::ShaderBindingTable;								break;
-				case VK_BUFFER_USAGE_ACCELERATION_STRUCTURE_BUILD_INPUT_READ_ONLY_BIT_KHR :	result |= EBufferUsage::ASBuild_ReadOnly;		break;
-				case VK_BUFFER_USAGE_ACCELERATION_STRUCTURE_STORAGE_BIT_KHR :				result |= EBufferUsage::RTAS_Storage;			break;
+				case VK_BUFFER_USAGE_2_TRANSFER_SRC_BIT :				outUsage |= EBufferUsage::TransferSrc;	break;
+				case VK_BUFFER_USAGE_2_TRANSFER_DST_BIT :				outUsage |= EBufferUsage::TransferDst;	break;
+				case VK_BUFFER_USAGE_2_UNIFORM_TEXEL_BUFFER_BIT :		outUsage |= EBufferUsage::UniformTexel;	break;
+				case VK_BUFFER_USAGE_2_STORAGE_TEXEL_BUFFER_BIT :		outUsage |= EBufferUsage::StorageTexel;	break;
+				case VK_BUFFER_USAGE_2_UNIFORM_BUFFER_BIT :				outUsage |= EBufferUsage::Uniform;		break;
+				case VK_BUFFER_USAGE_2_STORAGE_BUFFER_BIT :				outUsage |= EBufferUsage::Storage;		break;
+				case VK_BUFFER_USAGE_2_INDEX_BUFFER_BIT :				outUsage |= EBufferUsage::Index;		break;
+				case VK_BUFFER_USAGE_2_VERTEX_BUFFER_BIT :				outUsage |= EBufferUsage::Vertex;		break;
+				case VK_BUFFER_USAGE_2_INDIRECT_BUFFER_BIT :			outUsage |= EBufferUsage::Indirect;		break;
+				case VK_BUFFER_USAGE_2_PREPROCESS_BUFFER_BIT_EXT :		outUsage |= EBufferUsage::ICB_Preprocess;	break;
+				case VK_BUFFER_USAGE_2_SHADER_DEVICE_ADDRESS_BIT:		outUsage |= EBufferUsage::ShaderAddress | EBufferUsage::ASBuild_Scratch;	break;
+				case VK_BUFFER_USAGE_2_SHADER_BINDING_TABLE_BIT_KHR :	outUsage |= EBufferUsage::ShaderBindingTable;								break;
+				case VK_BUFFER_USAGE_2_ACCELERATION_STRUCTURE_BUILD_INPUT_READ_ONLY_BIT_KHR :	outUsage |= EBufferUsage::ASBuild_ReadOnly;			break;
+				case VK_BUFFER_USAGE_2_ACCELERATION_STRUCTURE_STORAGE_BIT_KHR :					outUsage |= EBufferUsage::RTAS_Storage;				break;
+				case VK_BUFFER_USAGE_2_MICROMAP_BUILD_INPUT_READ_ONLY_BIT_EXT :					outUsage |= EBufferUsage::MMBuild_ReadOnly;			break;
 
-				case VK_BUFFER_USAGE_CONDITIONAL_RENDERING_BIT_EXT :
-				case VK_BUFFER_USAGE_TRANSFORM_FEEDBACK_BUFFER_BIT_EXT :
-				case VK_BUFFER_USAGE_TRANSFORM_FEEDBACK_COUNTER_BUFFER_BIT_EXT :
-				case VK_BUFFER_USAGE_VIDEO_DECODE_DST_BIT_KHR :
-				case VK_BUFFER_USAGE_VIDEO_DECODE_SRC_BIT_KHR :
-				case VK_BUFFER_USAGE_VIDEO_ENCODE_DST_BIT_KHR :
-				case VK_BUFFER_USAGE_VIDEO_ENCODE_SRC_BIT_KHR :
-				case VK_BUFFER_USAGE_MICROMAP_BUILD_INPUT_READ_ONLY_BIT_EXT :
-				case VK_BUFFER_USAGE_MICROMAP_STORAGE_BIT_EXT :
-				case VK_BUFFER_USAGE_SAMPLER_DESCRIPTOR_BUFFER_BIT_EXT :
-				case VK_BUFFER_USAGE_RESOURCE_DESCRIPTOR_BUFFER_BIT_EXT :
-				case VK_BUFFER_USAGE_PUSH_DESCRIPTORS_DESCRIPTOR_BUFFER_BIT_EXT :
-				case VK_BUFFER_USAGE_FLAG_BITS_MAX_ENUM :
-				case VK_BUFFER_USAGE_EXECUTION_GRAPH_SCRATCH_BIT_AMDX :
-				case VK_BUFFER_USAGE_TILE_MEMORY_BIT_QCOM :
-				default_unlikely :									RETURN_ERR( "invalid buffer usage" );
+				case VK_BUFFER_USAGE_2_VIDEO_DECODE_SRC_BIT_KHR :		outVideoUsage |= EVideoBufferUsage::DecodeSrc;	break;
+				case VK_BUFFER_USAGE_2_VIDEO_DECODE_DST_BIT_KHR :		outVideoUsage |= EVideoBufferUsage::DecodeDst;	break;
+				case VK_BUFFER_USAGE_2_VIDEO_ENCODE_DST_BIT_KHR :		outVideoUsage |= EVideoBufferUsage::EncodeDst;	break;
+				case VK_BUFFER_USAGE_2_VIDEO_ENCODE_SRC_BIT_KHR :		outVideoUsage |= EVideoBufferUsage::EncodeSrc;	break;
+
+				default_unlikely :										RETURN_ERR( "invalid buffer usage" );
 			}
-			switch_end
 		}
-		return result;
+		return true;
 	}
 
 /*
@@ -1098,26 +1099,28 @@ namespace AE::Graphics
 	VEnumCast (EPipelineOpt)
 =================================================
 */
-	Nd__In VkPipelineCreateFlagBits  VEnumCast (EPipelineOpt values) __NE___
+	Nd__In VkPipelineCreateFlagBits2  VEnumCast (EPipelineOpt values) __NE___
 	{
-		VkPipelineCreateFlagBits	result = VK_PIPELINE_CREATE_DISABLE_OPTIMIZATION_BIT;
+		VkPipelineCreateFlagBits2	result = VK_PIPELINE_CREATE_2_DISABLE_OPTIMIZATION_BIT;
 
 		for (auto t : BitfieldIterate( values ))
 		{
 			switch_enum( t )
 			{
-				case EPipelineOpt::Optimize :						result &= ~VK_PIPELINE_CREATE_DISABLE_OPTIMIZATION_BIT;							break;
-				case EPipelineOpt::CS_DispatchBase :				result |= VK_PIPELINE_CREATE_DISPATCH_BASE_BIT;									break;
-				case EPipelineOpt::RT_NoNullAnyHitShaders :			result |= VK_PIPELINE_CREATE_RAY_TRACING_NO_NULL_ANY_HIT_SHADERS_BIT_KHR;		break;
-				case EPipelineOpt::RT_NoNullClosestHitShaders :		result |= VK_PIPELINE_CREATE_RAY_TRACING_NO_NULL_CLOSEST_HIT_SHADERS_BIT_KHR;	break;
-				case EPipelineOpt::RT_NoNullMissShaders :			result |= VK_PIPELINE_CREATE_RAY_TRACING_NO_NULL_MISS_SHADERS_BIT_KHR;			break;
-				case EPipelineOpt::RT_NoNullIntersectionShaders :	result |= VK_PIPELINE_CREATE_RAY_TRACING_NO_NULL_INTERSECTION_SHADERS_BIT_KHR;	break;
-				case EPipelineOpt::RT_SkipTriangles :				result |= VK_PIPELINE_CREATE_RAY_TRACING_SKIP_TRIANGLES_BIT_KHR;				break;
-				case EPipelineOpt::RT_SkipAABBs :					result |= VK_PIPELINE_CREATE_RAY_TRACING_SKIP_AABBS_BIT_KHR;					break;
+				case EPipelineOpt::Optimize :						result &= ~VK_PIPELINE_CREATE_2_DISABLE_OPTIMIZATION_BIT;							break;
+				case EPipelineOpt::CS_DispatchBase :				result |= VK_PIPELINE_CREATE_2_DISPATCH_BASE_BIT;									break;
+				case EPipelineOpt::RT_NoNullAnyHitShaders :			result |= VK_PIPELINE_CREATE_2_RAY_TRACING_NO_NULL_ANY_HIT_SHADERS_BIT_KHR;			break;
+				case EPipelineOpt::RT_NoNullClosestHitShaders :		result |= VK_PIPELINE_CREATE_2_RAY_TRACING_NO_NULL_CLOSEST_HIT_SHADERS_BIT_KHR;		break;
+				case EPipelineOpt::RT_NoNullMissShaders :			result |= VK_PIPELINE_CREATE_2_RAY_TRACING_NO_NULL_MISS_SHADERS_BIT_KHR;			break;
+				case EPipelineOpt::RT_NoNullIntersectionShaders :	result |= VK_PIPELINE_CREATE_2_RAY_TRACING_NO_NULL_INTERSECTION_SHADERS_BIT_KHR;	break;
+				case EPipelineOpt::RT_SkipTriangles :				result |= VK_PIPELINE_CREATE_2_RAY_TRACING_SKIP_TRIANGLES_BIT_KHR;					break;
+				case EPipelineOpt::RT_SkipAABBs :					result |= VK_PIPELINE_CREATE_2_RAY_TRACING_SKIP_AABBS_BIT_KHR;						break;
 				case EPipelineOpt::RT_AllowClusterAccelStruct :		break;	// ignore
-				case EPipelineOpt::DontCompile :					result |= VK_PIPELINE_CREATE_FAIL_ON_PIPELINE_COMPILE_REQUIRED_BIT;				break;
-				case EPipelineOpt::CaptureStatistics :				result |= VK_PIPELINE_CREATE_CAPTURE_STATISTICS_BIT_KHR;						break;
-				case EPipelineOpt::CaptureInternalRepresentation :	result |= VK_PIPELINE_CREATE_CAPTURE_INTERNAL_REPRESENTATIONS_BIT_KHR;			break;
+				case EPipelineOpt::DontCompile :					result |= VK_PIPELINE_CREATE_2_FAIL_ON_PIPELINE_COMPILE_REQUIRED_BIT;				break;
+				case EPipelineOpt::CaptureStatistics :				result |= VK_PIPELINE_CREATE_2_CAPTURE_STATISTICS_BIT_KHR;							break;
+				case EPipelineOpt::CaptureInternalRepresentation :	result |= VK_PIPELINE_CREATE_2_CAPTURE_INTERNAL_REPRESENTATIONS_BIT_KHR;			break;
+				case EPipelineOpt::IndirectBindable :				result |= VK_PIPELINE_CREATE_2_INDIRECT_BINDABLE_BIT_EXT;							break;
+				case EPipelineOpt::OpacityMicromap :				break;	// ignore
 
 				case EPipelineOpt::_Last :
 				case EPipelineOpt::All :
@@ -1138,21 +1141,28 @@ namespace AE::Graphics
 	{
 		VkBuildAccelerationStructureFlagBitsKHR		result = Zero;
 
-		for (auto t : BitfieldIterate( values ))
+		for (auto opt : BitfieldIterate( values ))
 		{
-			switch_enum( t )
+			switch_enum( opt )
 			{
-				case ERTASOptions::AllowUpdate :		result |= VK_BUILD_ACCELERATION_STRUCTURE_ALLOW_UPDATE_BIT_KHR;			break;
-				case ERTASOptions::AllowCompaction :	result |= VK_BUILD_ACCELERATION_STRUCTURE_ALLOW_COMPACTION_BIT_KHR;		break;
-				case ERTASOptions::PreferFastTrace :	result |= VK_BUILD_ACCELERATION_STRUCTURE_PREFER_FAST_TRACE_BIT_KHR;	break;
-				case ERTASOptions::PreferFastBuild :	result |= VK_BUILD_ACCELERATION_STRUCTURE_PREFER_FAST_BUILD_BIT_KHR;	break;
-				case ERTASOptions::LowMemory :			result |= VK_BUILD_ACCELERATION_STRUCTURE_LOW_MEMORY_BIT_KHR;			break;
-				case ERTASOptions::AllowDataAccess :	result |= VK_BUILD_ACCELERATION_STRUCTURE_ALLOW_DATA_ACCESS_KHR;		break;
+				case ERTASOptions::AllowUpdate :					result |= VK_BUILD_ACCELERATION_STRUCTURE_ALLOW_UPDATE_BIT_KHR;			break;
+				case ERTASOptions::AllowCompaction :				result |= VK_BUILD_ACCELERATION_STRUCTURE_ALLOW_COMPACTION_BIT_KHR;		break;
+				case ERTASOptions::PreferFastTrace :				result |= VK_BUILD_ACCELERATION_STRUCTURE_PREFER_FAST_TRACE_BIT_KHR;	break;
+				case ERTASOptions::PreferFastBuild :				result |= VK_BUILD_ACCELERATION_STRUCTURE_PREFER_FAST_BUILD_BIT_KHR;	break;
+				case ERTASOptions::LowMemory :						result |= VK_BUILD_ACCELERATION_STRUCTURE_LOW_MEMORY_BIT_KHR;			break;
+				case ERTASOptions::AllowDataAccess :				result |= VK_BUILD_ACCELERATION_STRUCTURE_ALLOW_DATA_ACCESS_BIT_KHR;	break;
+
+				case ERTASOptions::AllowDisableOpacityMicromaps :	result |= VK_BUILD_ACCELERATION_STRUCTURE_ALLOW_DISABLE_OPACITY_MICROMAPS_BIT_EXT;		break;
+				case ERTASOptions::AllowOpacityMicromapDataUpdate :	result |= VK_BUILD_ACCELERATION_STRUCTURE_ALLOW_OPACITY_MICROMAP_DATA_UPDATE_BIT_EXT;	break;
+				case ERTASOptions::AllowOpacityMicromapUpdate :		result |= VK_BUILD_ACCELERATION_STRUCTURE_ALLOW_OPACITY_MICROMAP_UPDATE_BIT_EXT;		break;
+				case ERTASOptions::AllowClusterOpacityMicromap :	result |= VK_BUILD_ACCELERATION_STRUCTURE_ALLOW_CLUSTER_OPACITY_MICROMAPS_BIT_NV;		break;
+
+				case ERTASOptions::AllowDisplacementMicromapUpdate:	result |= VK_BUILD_ACCELERATION_STRUCTURE_ALLOW_DISPLACEMENT_MICROMAP_UPDATE_BIT_NV;	break;
 
 				case ERTASOptions::_Last :
 				case ERTASOptions::All :
 				case ERTASOptions::Unknown :
-				default_unlikely :						RETURN_ERR( "unknown RTAS options", Zero );
+				default_unlikely :									RETURN_ERR( "unknown RTAS options", Zero );
 			}
 			switch_end
 		}
@@ -1200,6 +1210,18 @@ namespace AE::Graphics
 		}
 		switch_end
 		RETURN_ERR( "unknown RT AS copy mode", VK_COPY_ACCELERATION_STRUCTURE_MODE_MAX_ENUM_KHR );
+	}
+
+	Nd__In VkCopyMicromapModeEXT  VEnumCast (ERTASCopyMode value, VkCopyMicromapModeEXT) __NE___
+	{
+		switch_enum( value )
+		{
+			case ERTASCopyMode::Clone :		return VK_COPY_MICROMAP_MODE_CLONE_EXT;
+			case ERTASCopyMode::Compaction:	return VK_COPY_MICROMAP_MODE_COMPACT_EXT;
+			case ERTASCopyMode::_Count :	break;
+		}
+		switch_end
+		RETURN_ERR( "unknown MM copy mode", VK_COPY_MICROMAP_MODE_MAX_ENUM_EXT );
 	}
 
 /*
@@ -1455,6 +1477,8 @@ namespace AE::Graphics
 			case EQueryType::AccelStructCompactedSize :		return VK_QUERY_TYPE_ACCELERATION_STRUCTURE_COMPACTED_SIZE_KHR;
 			case EQueryType::AccelStructSize :				return VK_QUERY_TYPE_ACCELERATION_STRUCTURE_SIZE_KHR;				// require 'VK_KHR_ray_tracing_maintenance1'
 			case EQueryType::AccelStructSerializationSize :	return VK_QUERY_TYPE_ACCELERATION_STRUCTURE_SERIALIZATION_SIZE_KHR;
+			case EQueryType::MicromapCompactedSize :		return VK_QUERY_TYPE_MICROMAP_COMPACTED_SIZE_EXT;
+			case EQueryType::MicromapSerializationSize :	return VK_QUERY_TYPE_MICROMAP_SERIALIZATION_SIZE_EXT;
 			// TODO: VK_QUERY_TYPE_ACCELERATION_STRUCTURE_SERIALIZATION_BOTTOM_LEVEL_POINTERS_KHR				// require 'VK_KHR_ray_tracing_maintenance1'
 
 			case EQueryType::Unknown :						break;
@@ -1477,13 +1501,13 @@ namespace AE::Graphics
 				{
 					case EVideoCodec::H264 :	return VK_VIDEO_CODEC_OPERATION_DECODE_H264_BIT_KHR;
 					case EVideoCodec::H265 :	return VK_VIDEO_CODEC_OPERATION_DECODE_H265_BIT_KHR;
+					case EVideoCodec::VP9 :		return VK_VIDEO_CODEC_OPERATION_DECODE_VP9_BIT_KHR;
+					case EVideoCodec::AV1 :		return VK_VIDEO_CODEC_OPERATION_DECODE_AV1_BIT_KHR;
 
 					case EVideoCodec::H266 :
 					case EVideoCodec::MPEG4 :
 					case EVideoCodec::WEBP :
 					case EVideoCodec::VP8 :
-					case EVideoCodec::VP9 :
-					case EVideoCodec::AV1 :
 					case EVideoCodec::Unknown :
 					default_unlikely :
 						RETURN_ERR( "unsupported EVideoCodec for Decode mode", VK_VIDEO_CODEC_OPERATION_NONE_KHR );
@@ -1495,13 +1519,13 @@ namespace AE::Graphics
 				{
 					case EVideoCodec::H264 :	return VK_VIDEO_CODEC_OPERATION_ENCODE_H264_BIT_KHR;
 					case EVideoCodec::H265 :	return VK_VIDEO_CODEC_OPERATION_ENCODE_H265_BIT_KHR;
+					case EVideoCodec::AV1 :		return VK_VIDEO_CODEC_OPERATION_ENCODE_AV1_BIT_KHR;
 
 					case EVideoCodec::H266 :
 					case EVideoCodec::MPEG4 :
 					case EVideoCodec::WEBP :
 					case EVideoCodec::VP8 :
 					case EVideoCodec::VP9 :
-					case EVideoCodec::AV1 :
 					case EVideoCodec::Unknown :
 					default_unlikely :
 						RETURN_ERR( "unsupported EVideoCodec for Encode mode", VK_VIDEO_CODEC_OPERATION_NONE_KHR );
@@ -1528,7 +1552,7 @@ namespace AE::Graphics
 			case EVideoChromaSubsampling::_420 :		return VK_VIDEO_CHROMA_SUBSAMPLING_420_BIT_KHR;
 			case EVideoChromaSubsampling::_422 :		return VK_VIDEO_CHROMA_SUBSAMPLING_422_BIT_KHR;
 			case EVideoChromaSubsampling::_444 :		return VK_VIDEO_CHROMA_SUBSAMPLING_444_BIT_KHR;
-			case EVideoChromaSubsampling::Unknown :
+			case EVideoChromaSubsampling::Unknown :		// VK_VIDEO_CHROMA_SUBSAMPLING_INVALID_KHR ?
 			default_unlikely :
 				RETURN_ERR( "unsupported EVideoChromaSubsampling", VK_VIDEO_CHROMA_SUBSAMPLING_INVALID_KHR );
 		}
@@ -1537,18 +1561,20 @@ namespace AE::Graphics
 
 /*
 =================================================
-	VEnumCast_VideoComponentBitDepth
+	VEnumCast
 =================================================
 */
-	Nd__In VkVideoComponentBitDepthFlagBitsKHR  VEnumCast_VideoComponentBitDepth (uint value)
+	Nd__In VkVideoComponentBitDepthFlagBitsKHR  VEnumCast (EVideoComponentBitDepth value)
 	{
 		switch ( value )
 		{
-			case 8 :	return VK_VIDEO_COMPONENT_BIT_DEPTH_8_BIT_KHR;
-			case 10 :	return VK_VIDEO_COMPONENT_BIT_DEPTH_10_BIT_KHR;
-			case 12 :	return VK_VIDEO_COMPONENT_BIT_DEPTH_12_BIT_KHR;
+			case EVideoComponentBitDepth::_8 :		return VK_VIDEO_COMPONENT_BIT_DEPTH_8_BIT_KHR;
+			case EVideoComponentBitDepth::_10 :		return VK_VIDEO_COMPONENT_BIT_DEPTH_10_BIT_KHR;
+			case EVideoComponentBitDepth::_12 :		return VK_VIDEO_COMPONENT_BIT_DEPTH_12_BIT_KHR;
+			case EVideoComponentBitDepth::Unknown :
+			default_unlikely :
+				RETURN_ERR( "unsupported VideoComponentBitDepth", VK_VIDEO_COMPONENT_BIT_DEPTH_INVALID_KHR );
 		}
-		RETURN_ERR( "unsupported VideoComponentBitDepth", VK_VIDEO_COMPONENT_BIT_DEPTH_INVALID_KHR );
 	}
 
 /*
@@ -1613,19 +1639,19 @@ namespace AE::Graphics
 	VEnumCast (EVideoBufferUsage)
 =================================================
 */
-	Nd__In VkBufferUsageFlagBits  VEnumCast (EVideoBufferUsage usage)
+	Nd__In VkBufferUsageFlagBits2  VEnumCast (EVideoBufferUsage usage)
 	{
-		VkBufferUsageFlagBits	flags = Zero;
+		VkBufferUsageFlagBits2	flags = Zero;
 
 		for (auto t : BitfieldIterate( usage ))
 		{
 			switch_enum( t )
 			{
-				case EVideoBufferUsage::DecodeSrc :		flags |= VK_BUFFER_USAGE_VIDEO_DECODE_SRC_BIT_KHR;	break;
-				case EVideoBufferUsage::DecodeDst :		flags |= VK_BUFFER_USAGE_VIDEO_DECODE_DST_BIT_KHR;	break;
+				case EVideoBufferUsage::DecodeSrc :		flags |= VK_BUFFER_USAGE_2_VIDEO_DECODE_SRC_BIT_KHR;	break;
+				case EVideoBufferUsage::DecodeDst :		flags |= VK_BUFFER_USAGE_2_VIDEO_DECODE_DST_BIT_KHR;	break;
 
-				case EVideoBufferUsage::EncodeSrc :		flags |= VK_BUFFER_USAGE_VIDEO_ENCODE_SRC_BIT_KHR;	break;
-				case EVideoBufferUsage::EncodeDst :		flags |= VK_BUFFER_USAGE_VIDEO_ENCODE_DST_BIT_KHR;	break;
+				case EVideoBufferUsage::EncodeSrc :		flags |= VK_BUFFER_USAGE_2_VIDEO_ENCODE_SRC_BIT_KHR;	break;
+				case EVideoBufferUsage::EncodeDst :		flags |= VK_BUFFER_USAGE_2_VIDEO_ENCODE_DST_BIT_KHR;	break;
 
 				case EVideoBufferUsage::_Last :
 				case EVideoBufferUsage::All :
@@ -2054,6 +2080,145 @@ namespace AE::Graphics
 		}
 		switch_end
 		RETURN_ERR( "unknown conservative rasterization mode", VK_CONSERVATIVE_RASTERIZATION_MODE_MAX_ENUM_EXT );
+	}
+
+/*
+=================================================
+	VEnumCast (EIndirectCommandsLayoutUsage)
+=================================================
+*/
+	Nd__In VkIndirectCommandsLayoutUsageFlagBitsEXT  VEnumCast (EIndirectCommandsLayoutUsage bits) __NE___
+	{
+		VkIndirectCommandsLayoutUsageFlagBitsEXT	result = Zero;
+		for (auto t : BitfieldIterate( bits ))
+		{
+			switch_enum( t )
+			{
+				case EIndirectCommandsLayoutUsage::ExplicitPreprocess :		result |= VK_INDIRECT_COMMANDS_LAYOUT_USAGE_EXPLICIT_PREPROCESS_BIT_EXT;	break;
+				case EIndirectCommandsLayoutUsage::UnorderedSequences :		result |= VK_INDIRECT_COMMANDS_LAYOUT_USAGE_UNORDERED_SEQUENCES_BIT_EXT;	break;
+				case EIndirectCommandsLayoutUsage::Unknown :
+				default :													RETURN_ERR( "unknown indirect commands layout usage", Zero );
+			}
+			switch_end
+		}
+		return result;
+	}
+
+/*
+=================================================
+	VEnumCast (EIndirectCommandsInputMode)
+=================================================
+*/
+	Nd__In VkIndirectCommandsInputModeFlagBitsEXT  VEnumCast (EIndirectCommandsInputMode value) __NE___
+	{
+		switch_enum( value )
+		{
+			case EIndirectCommandsInputMode::VulkanIndexBuffer :	return VK_INDIRECT_COMMANDS_INPUT_MODE_VULKAN_INDEX_BUFFER_EXT;
+			case EIndirectCommandsInputMode::DXGI_IndexBuffer :		return VK_INDIRECT_COMMANDS_INPUT_MODE_DXGI_INDEX_BUFFER_EXT;
+			case EIndirectCommandsInputMode::Unknown :				break;
+		}
+		switch_end
+		RETURN_ERR( "unknown indirect commands input mode", VK_INDIRECT_COMMANDS_INPUT_MODE_FLAG_BITS_MAX_ENUM_EXT );
+	}
+
+/*
+=================================================
+	VEnumCast (VkMicromapTypeEXT)
+=================================================
+*/
+	Nd__In VkMicromapTypeEXT  VEnumCast (EMicromapType value) __NE___
+	{
+		switch_enum( value )
+		{
+			case EMicromapType::Opacity :		return VK_MICROMAP_TYPE_OPACITY_MICROMAP_EXT;
+			case EMicromapType::Displacement :	return VK_MICROMAP_TYPE_DISPLACEMENT_MICROMAP_NV;
+			case EMicromapType::Unknown :		break;
+		}
+		switch_end
+		RETURN_ERR( "unknown micromap type", VK_MICROMAP_TYPE_MAX_ENUM_EXT );
+	}
+
+/*
+=================================================
+	VEnumCast (EBuildMicromapFlags)
+=================================================
+*/
+	Nd__In VkBuildMicromapFlagBitsEXT  VEnumCast (EBuildMicromapFlags bits) __NE___
+	{
+		VkBuildMicromapFlagBitsEXT	result = Zero;
+		for (auto t : BitfieldIterate( bits ))
+		{
+			switch_enum( t )
+			{
+				case EBuildMicromapFlags::PreferFastTrace :	result |= VK_BUILD_MICROMAP_PREFER_FAST_TRACE_BIT_EXT;	break;
+				case EBuildMicromapFlags::PreferFastBuild :	result |= VK_BUILD_MICROMAP_PREFER_FAST_BUILD_BIT_EXT;	break;
+				case EBuildMicromapFlags::AllowCompaction :	result |= VK_BUILD_MICROMAP_ALLOW_COMPACTION_BIT_EXT;	break;
+
+				case EBuildMicromapFlags::_Last :
+				case EBuildMicromapFlags::All :
+				case EBuildMicromapFlags::Unknown :
+				default :									RETURN_ERR( "unknown build micromap flag", Zero );
+			}
+			switch_end
+		}
+		return result;
+	}
+
+/*
+=================================================
+	VEnumCast (VideoH264::EPictureType)
+=================================================
+*/
+	Nd__In StdVideoH264PictureType  VEnumCast (VideoH264::EPictureType type) __NE___
+	{
+		switch_enum( type )
+		{
+			case VideoH264::EPictureType::P :			return STD_VIDEO_H264_PICTURE_TYPE_P;
+			case VideoH264::EPictureType::B :			return STD_VIDEO_H264_PICTURE_TYPE_B;
+			case VideoH264::EPictureType::I :			return STD_VIDEO_H264_PICTURE_TYPE_I;
+			case VideoH264::EPictureType::IDR :			return STD_VIDEO_H264_PICTURE_TYPE_IDR;
+			case VideoH264::EPictureType::Unknown :		break;
+		}
+		switch_end
+		RETURN_ERR( "unknown H264 picture type", STD_VIDEO_H264_PICTURE_TYPE_INVALID );
+	}
+
+/*
+=================================================
+	VEnumCast (VideoH265::EPictureType)
+=================================================
+*/
+	Nd__In StdVideoH265PictureType  VEnumCast (VideoH265::EPictureType type) __NE___
+	{
+		switch_enum( type )
+		{
+			case VideoH265::EPictureType::P :			return STD_VIDEO_H265_PICTURE_TYPE_P;
+			case VideoH265::EPictureType::B :			return STD_VIDEO_H265_PICTURE_TYPE_B;
+			case VideoH265::EPictureType::I :			return STD_VIDEO_H265_PICTURE_TYPE_I;
+			case VideoH265::EPictureType::IDR :			return STD_VIDEO_H265_PICTURE_TYPE_IDR;
+			case VideoH265::EPictureType::Unknown :		break;
+		}
+		switch_end
+		RETURN_ERR( "unknown H265 picture type", STD_VIDEO_H265_PICTURE_TYPE_INVALID );
+	}
+
+/*
+=================================================
+	VEnumCast (AV1::EPictureType)
+=================================================
+*/
+	Nd__In StdVideoAV1FrameType  VEnumCast (VideoAV1::EFrameType type) __NE___
+	{
+		switch_enum( type )
+		{
+			case VideoAV1::EFrameType::Key :		return STD_VIDEO_AV1_FRAME_TYPE_KEY;
+			case VideoAV1::EFrameType::Inter :		return STD_VIDEO_AV1_FRAME_TYPE_INTER;
+			case VideoAV1::EFrameType::IntraOnly :	return STD_VIDEO_AV1_FRAME_TYPE_INTRA_ONLY;
+			case VideoAV1::EFrameType::Switch :		return STD_VIDEO_AV1_FRAME_TYPE_SWITCH;
+			case VideoAV1::EFrameType::Unknown :	break;
+		}
+		switch_end
+		RETURN_ERR( "unknown AV1 picture type", STD_VIDEO_AV1_FRAME_TYPE_INVALID );
 	}
 
 

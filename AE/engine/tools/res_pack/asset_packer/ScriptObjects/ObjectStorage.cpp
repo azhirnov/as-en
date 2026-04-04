@@ -287,6 +287,35 @@ namespace AE::AssetPacker
 
 /*
 =================================================
+	SetResourceFolders
+=================================================
+*/
+	void  ObjectStorage::SetResourceFolders (Array<Path> folders)
+	{
+		CHECK( _resFolders.empty() );
+		CHECK( not folders.empty() );
+
+		_resFolders = RVRef(folders);
+	}
+
+/*
+=================================================
+	GetResourcePath
+=================================================
+*/
+	Path  ObjectStorage::GetResourcePath (const Path &inPath) C_Th___
+	{
+		for (auto& folder : _resFolders)
+		{
+			Path	path = folder / inPath;
+			if ( FileSystem::IsFile( path ))
+				return FileSystem::ToAbsolute( path );
+		}
+		CHECK_THROW_MSG( false, "can't find file '"s << ToString(inPath) << "' in resource folders." );
+	}
+
+/*
+=================================================
 	Bind
 =================================================
 */

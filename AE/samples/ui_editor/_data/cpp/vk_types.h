@@ -5,8 +5,8 @@
 	{
 		static constexpr auto   TypeName = ShaderStructName{HashVal32{0x594166a8u}};
 
-		packed_ushort4  UV_Scale;
-		packed_ubyte4  Color;
+		packed_ushort4  UV_Scale;  // normalized
+		packed_ubyte4   Color;     // normalized
 	};
 #endif
 	StaticAssert( offsetof(VB_UVs2_SCs1_Col8, UV_Scale) == 0 );
@@ -49,7 +49,7 @@
 		static constexpr auto   TypeName = ShaderStructName{HashVal32{0xf5d3da88u}};
 
 		packed_float2  UV;
-		packed_ubyte4  Color;
+		packed_ubyte4  Color;  // normalized
 	};
 #endif
 	StaticAssert( offsetof(VB_UVf2_Col8, UV) == 0 );
@@ -65,9 +65,9 @@
 
 		float2  rotation0;
 		float2  rotation1;
-		float  sdfScale;
-		float  sdfBias;
-		float  pxRange;
+		float   sdfScale;
+		float   sdfBias;
+		float   pxRange;
 		float4  bgColor;
 	};
 #endif

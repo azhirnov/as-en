@@ -29,8 +29,11 @@
 # include "graphics_rhi/Vulkan/Resources/VRTScene.h"
 # include "graphics_rhi/Vulkan/Resources/VRTCluster.h"
 # include "graphics_rhi/Vulkan/Resources/VRTPartitionedScene.h"
-# include "graphics_rhi/Vulkan/Resources/VMemoryObject.h"
+# include "graphics_rhi/Vulkan/Resources/VRTMicromap.h"
 # include "graphics_rhi/Vulkan/Resources/VRTShaderBindingTable.h"
+# include "graphics_rhi/Vulkan/Resources/VIndirectExecutionSet.h"
+# include "graphics_rhi/Vulkan/Resources/VIndirectCommandsLayout.h"
+# include "graphics_rhi/Vulkan/Resources/VMemoryObject.h"
 
 # include "graphics_rhi/Vulkan/Resources/VStagingBufferManager.h"
 # include "graphics_rhi/Vulkan/Resources/VQueryManager.h"

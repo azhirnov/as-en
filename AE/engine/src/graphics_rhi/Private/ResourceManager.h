@@ -61,6 +61,9 @@ namespace AE::Graphics
 		using VideoBuffer_t			= AE_PRIVATE_UNITE_RAW( SUFFIX, VideoBuffer				);
 		using VideoImage_t			= AE_PRIVATE_UNITE_RAW( SUFFIX, VideoImage				);
 		using VideoSession_t		= AE_PRIVATE_UNITE_RAW( SUFFIX, VideoSession			);
+		using IndExecutionSet_t		= AE_PRIVATE_UNITE_RAW( SUFFIX, IndirectExecutionSet	);
+		using IndCommandsLayout_t	= AE_PRIVATE_UNITE_RAW( SUFFIX, IndirectCommandsLayout	);
+		using RTMicromap_t			= AE_PRIVATE_UNITE_RAW( SUFFIX, RTMicromap	);
 
 		using MemObjPool_t			= PoolTmpl< AE_PRIVATE_UNITE_RAW( SUFFIX, MemoryObject		),		MemoryID,					MaxMemoryObjs,	64 >;
 		using BufferPool_t			= PoolTmpl< Buffer_t,												BufferID,					MaxBuffers,		32 >;
@@ -85,6 +88,9 @@ namespace AE::Graphics
 		using VideoBufferPool_t		= PoolTmpl< VideoBuffer_t,											VideoBufferID,				MaxBuffers,		32 >;
 		using VideoImagePool_t		= PoolTmpl< VideoImage_t,											VideoImageID,				MaxImages,		32 >;
 		using VideoSessionPool_t	= PoolTmpl< VideoSession_t,											VideoSessionID,				1u << 8,		32 >;
+		using IndExecSetPool_t		= PoolTmpl< IndExecutionSet_t,										IndirectExecutionSetID,		1u << 8,		32 >;
+		using IndCmdLayoutPool_t	= PoolTmpl< IndCommandsLayout_t,									IndirectCommandsLayoutID,	1u << 8,		32 >;
+		using RTMicromapPool_t		= PoolTmpl< RTMicromap_t,											RTMicromapID,				1u << 8,		32 >;
 
 	  #ifdef AE_ENABLE_VULKAN
 		using FramebufferPool_t		= StPoolTmpl< VFramebuffer,											VFramebufferID,				512 >;
@@ -99,7 +105,8 @@ namespace AE::Graphics
 												VFramebufferID,	// Can be added to release list to decrease reference counter
 											  #endif
 												RenderPassID, GraphicsPipelineID, ComputePipelineID, MeshPipelineID, RayTracingPipelineID, TilePipelineID,
-												RTGeometryID, RTSceneID, RTShaderBindingID,
+												RTGeometryID, RTSceneID, RTShaderBindingID, RTMicromapID,
+												IndirectExecutionSetID, IndirectCommandsLayoutID,
 												VideoBufferID, VideoImageID, VideoSessionID,
 												MemoryID		// must be in the end
 											>;
@@ -198,6 +205,7 @@ namespace AE::Graphics
 			RTGeomPool_t			rtGeom;
 			RTScenePool_t			rtScene;
 			SBTPool_t				rtSBT;
+			RTMicromapPool_t		rtMicromap;
 
 			RenderPassPool_t		renderPass;
 
@@ -210,6 +218,9 @@ namespace AE::Graphics
 			VideoBufferPool_t		vbuffers;
 			VideoImagePool_t		vimages;
 			VideoSessionPool_t		vsessions;
+
+			IndExecSetPool_t		indExecSets;
+			IndCmdLayoutPool_t		indCmdLayouts;
 
 			MemObjPool_t			memObjs;
 		}						_resPool;
@@ -269,6 +280,7 @@ namespace AE::Graphics
 		ND_ bool					IsSupported (const RTSceneBuild &build)																			C_NE_OV;
 		ND_ bool					IsSupported (const RTClusterInfo &info)																			C_NE_OV;
 		ND_ bool					IsSupported (const RTPartitionedSceneInfo &info)																C_NE_OV;
+		ND_ bool					IsSupported (const RTMicromapInfo &info)																		C_NE_OV;
 
 		ND_ Strong<ComputePipelineID>	CreatePipeline (const ComputePipeline_t::CreateInfo    &ci)													__NE___;
 		ND_ Strong<GraphicsPipelineID>	CreatePipeline (const GraphicsPipeline_t::CreateInfo   &ci)													__NE___;
@@ -296,12 +308,14 @@ namespace AE::Graphics
 
 		ND_ Strong<RTGeometryID>	CreateRTGeometry (const RTGeometryDesc &desc, StringView dbgName = Default, GfxMemAllocatorPtr allocator = null)__NE_OV;
 		ND_ Strong<RTSceneID>		CreateRTScene (const RTSceneDesc &desc, StringView dbgName = Default, GfxMemAllocatorPtr allocator = null)		__NE_OV;
+		ND_ Strong<RTMicromapID>	CreateRTMicromap (const RTMicromapDesc &desc, StringView dbgName = Default, GfxMemAllocatorPtr allocator = null)__NE_OV;
 
-		ND_ Bytes					GetShaderGroupStackSize (RayTracingPipelineID ppln, ArrayView<RayTracingGroupName> names, ERTShaderGroup type)	__NE_OV;
-		ND_ RTASBuildSizes			GetRTGeometrySizes (const RTGeometryBuild &desc)																__NE_OV;
-		ND_ RTASBuildSizes			GetRTSceneSizes (const RTSceneBuild &desc)																		__NE_OV;
-		ND_ RTASBuildSizes			GetRTClusterSizes (const RTClusterInfo &info)																	__NE_OV;
-		ND_ RTASBuildSizes			GetRTPartitionedSceneSizes (const RTPartitionedSceneInfo &info)													__NE_OV;
+		ND_ Bytes					GetShaderGroupStackSize (RayTracingPipelineID ppln, ArrayView<RayTracingGroupName> names, ERTShaderGroup type)	C_NE_OV;
+		ND_ RTASBuildSizes			GetRTGeometrySizes (const RTGeometryBuild &desc)																C_NE_OV;
+		ND_ RTASBuildSizes			GetRTSceneSizes (const RTSceneBuild &desc)																		C_NE_OV;
+		ND_ RTASBuildSizes			GetRTClusterSizes (const RTClusterInfo &info)																	C_NE_OV;
+		ND_ RTASBuildSizes			GetRTPartitionedSceneSizes (const RTPartitionedSceneInfo &info)													C_NE_OV;
+		ND_ RTMicromapBuildSizes	GetRTMicromapSizes (const RTMicromapInfo &info)																	C_NE_OV;
 
 		ND_ DeviceAddress			GetDeviceAddress (BufferID		id)																				C_NE_OV;
 		ND_ DeviceAddress			GetDeviceAddress (RTGeometryID	id)																				C_NE_OV;
@@ -349,6 +363,10 @@ namespace AE::Graphics
 
 		ND_ Strong<PipelineCacheID>		CreatePipelineCache (RC<RStream> data = null, StringView dbgName = Default)									__NE_OV;
 		ND_	bool						SerializePipelineCache (PipelineCacheID id, RC<WStream> dst)												C_NE_OV;
+
+		ND_ Strong<IndirectCommandsLayoutID>  CreateIndirectCommandsLayout (const IndirectCommandsLayoutDesc &desc, StringView dbgName = Default)	__NE_OV;
+		ND_ SizeAndAlign					  GetPreprocessingBufferSize (const GeneratedCommandsMemoryRequirementsDesc &)							__NE_OV;
+		ND_ RC<IPreprocessingStateCommandPool>	CreatePreprocessingStateCommandPool (EQueueType)													__NE_OV;
 
 		ND_ Strong<VideoSessionID>		CreateVideoSession (const VideoSessionDesc &desc, StringView dbgName = Default, GfxMemAllocatorPtr allocator = null)__NE_OV;
 		ND_ Strong<VideoBufferID>		CreateVideoBuffer (const VideoBufferDesc &desc, StringView dbgName = Default, GfxMemAllocatorPtr allocator = null)	__NE_OV;
@@ -443,17 +461,17 @@ namespace AE::Graphics
 			void  AddHashToName (const PipelineCompiler::HashToName &value)								__NE___;
 		#endif
 
-		ND_ Device_t const&			GetDevice ()														C_NE___	{ return _device; }
+		ND_ Device_t const&			GetDevice ()														C_NE_OV	{ return _device; }
 		ND_ StagingBufferManager_t&	GetStagingManager ()												__NE___	{ return _stagingMngr; }
-		ND_ QueryManager_t&			GetQueryManager ()													__NE___	{ return _queryMngr; }
+		ND_ QueryManager_t&			GetQueryManager ()													__NE_OV	{ return _queryMngr; }
 
 		ND_ StagingBufferStat		GetStagingBufferFrameStat (FrameUID frameId)						C_NE_OV	{ return _stagingMngr.GetFrameStat( frameId ); }
 
 		// memory allocators
-		ND_ GfxMemAllocatorPtr		CreateLinearGfxMemAllocator (Bytes pageSize = 0_b)					C_NE_OV;
+		ND_ GfxMemAllocatorPtr		CreateLinearGfxMemAllocator (Bytes pageSize = 0_b, Bytes padding = 0_b) C_NE_OV;
 		ND_ GfxMemAllocatorPtr		CreateBlockGfxMemAllocator (Bytes blockSize, Bytes pageSize)		C_NE_OV;
 		ND_ GfxMemAllocatorPtr		CreateUnifiedGfxMemAllocator (Bytes pageSize = 0_b)					C_NE_OV;
-		ND_ GfxMemAllocatorPtr		CreateLargeSizeGfxMemAllocator ()									C_NE_OV	{ return _largeMemAlloc; }
+		ND_ GfxMemAllocatorPtr		CreateLargeSizeGfxMemAllocator ()									C_NE_OV	{ return _largeMemAlloc; }	// don't create, use single instance
 		ND_ GfxMemAllocatorPtr		GetDefaultGfxMemAllocator ()										C_NE_OV	{ return _defaultMemAlloc; }
 
 		// descriptor allocators
@@ -524,6 +542,9 @@ namespace AE::Graphics
 		ND_ auto&		_GetResourcePool (const VideoBufferID &)				__NE___	{ return _resPool.vbuffers; }
 		ND_ auto&		_GetResourcePool (const VideoImageID &)					__NE___	{ return _resPool.vimages; }
 		ND_ auto&		_GetResourcePool (const VideoSessionID &)				__NE___	{ return _resPool.vsessions; }
+		ND_ auto&		_GetResourcePool (const IndirectExecutionSetID &)		__NE___	{ return _resPool.indExecSets; }
+		ND_ auto&		_GetResourcePool (const IndirectCommandsLayoutID &)		__NE___	{ return _resPool.indCmdLayouts; }
+		ND_ auto&		_GetResourcePool (const RTMicromapID &)					__NE___	{ return _resPool.rtMicromap; }
 
 		template <typename ID>
 		ND_ const auto&  _GetResourceCPool (const ID &id)						C_NE___	{ return const_cast< RemoveAllQualifiers<decltype(*this)> &>(*this)._GetResourcePool( id ); }
@@ -551,6 +572,9 @@ namespace AE::Graphics
 		ND_ StringView	_GetResourcePoolName (const VideoBufferID &)			__NE___	{ return "videoBuffers"; }
 		ND_ StringView	_GetResourcePoolName (const VideoImageID &)				__NE___	{ return "videoImages"; }
 		ND_ StringView	_GetResourcePoolName (const VideoSessionID &)			__NE___	{ return "videoSessions"; }
+		ND_ StringView	_GetResourcePoolName (const IndirectExecutionSetID &)	__NE___	{ return "indirectExecutionSets"; }
+		ND_ StringView	_GetResourcePoolName (const IndirectCommandsLayoutID &)	__NE___	{ return "indirectCommandsLayouts"; }
+		ND_ StringView  _GetResourcePoolName (const RTMicromapID &)				__NE___	{ return "rtMicromap"; }
 
 		template <typename ID>	ND_ bool   _Assign (OUT ID &id)					__NE___;
 		template <typename ID>		void   _Unassign (ID id)					__NE___;
@@ -578,8 +602,12 @@ namespace AE::Graphics
 
 	// methods
 	public:
+		ND_ Strong<ImageID>			CreateImage (const VulkanImageDesc2 &desc, StringView dbgName = Default, GfxMemAllocatorPtr allocator = null)	__NE___;
+		ND_ Strong<ImageViewID>		CreateImageView (const VulkanImageViewDesc2 &desc, ImageID image, StringView dbgName = Default)					__NE___;
+
 		ND_ Strong<MemoryID>		CreateMemoryObj (VkBuffer buffer, const BufferDesc &desc, GfxMemAllocatorPtr allocator, StringView dbgName)	__NE___;
 		ND_ Strong<MemoryID>		CreateMemoryObj (VkImage image, const ImageDesc &desc, GfxMemAllocatorPtr allocator, StringView dbgName)	__NE___;
+		ND_ Strong<MemoryID>		CreateMemoryObj (Bytes size, VkBufferUsageFlagBits2 usage, GfxMemAllocatorPtr, StringView dbgName)			__NE___;
 
 		ND_ Strong<PipelineCacheID>	LoadPipelineCache (RC<RStream> stream)													__NE___;
 
@@ -591,6 +619,8 @@ namespace AE::Graphics
 													  RenderPassID compatId, StringView dbgName = Default)					__NE___;
 		ND_ VFramebufferID			CreateFramebuffer (const RenderPassDesc &desc)											__NE___;
 			void					RemoveFramebufferCache (VFramebuffer::CachePtr_t iter)									__NE___;	// call from VFramebuffer
+
+		ND_ Strong<IndirectExecutionSetID>    CreateIndirectExecutionSet (const VIndirectExecutionSet::CreateInfo &desc)	__NE___;
 
 			void					DelayedRelease (VkSwapchainKHR handle)													__NE___	{ _DelayedReleaseResource2( handle ); }
 
@@ -629,6 +659,8 @@ namespace AE::Graphics
 	public:
 		ND_ Strong<SamplerID>		CreateSampler (RmSamplerID)																__NE___;
 		ND_ Strong<RenderPassID>	CreateRenderPass (const RRenderPass::CreateInfo &)										__NE___;
+
+		ND_ Strong<IndirectExecutionSetID>    CreateIndirectExecutionSet (const RIndirectExecutionSet::CreateInfo &desc)	__NE___;
 
 	private:
 		ND_ bool					_ForceReleaseResources ()																__NE___;

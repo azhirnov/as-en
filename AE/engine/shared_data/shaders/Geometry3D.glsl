@@ -9,7 +9,9 @@
 
 #include "Math.glsl"
 #include "SafeMath.glsl"
+
 #include "AABB.glsl"
+#include "Cone.glsl"
 #include "Sphere.glsl"
 
 
@@ -78,6 +80,7 @@ ND_ float4		Plane_From2Normals (const float3 n0, const float3 n1, const float3 o
 
 
 ND_ Sphere		AABB_ToOuterSphere (const AABB box);
+ND_ AABB		Cone_ToBoundingBox (const Cone c);
 //-----------------------------------------------------------------------------
 
 
@@ -380,4 +383,25 @@ float4  Plane_From2Normals (const float3 n0, const float3 n1, const float3 origi
 Sphere  AABB_ToOuterSphere (const AABB box)
 {
 	return Sphere_Create( AABB_Center( box ), AABB_OuterRadius( box ));
+}
+
+/*
+=================================================
+	Cone_ToBoundingBox
+=================================================
+*/
+AABB  Cone_ToBoundingBox (const Cone cone)
+{
+	float	h	= cone.height;
+	float	r	= Cone_BaseRadius( cone );
+	float3	a	= cone.origin;
+	float3	d	= cone.dir;
+
+	float3	c	= a + d * h;
+	float3	e	= r * Sqrt( 1.0 - d * d );
+
+	AABB	res;
+	res.min	= Min( a, c - e );
+	res.max	= Max( a, c + e );
+	return	res;
 }

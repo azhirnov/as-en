@@ -108,9 +108,9 @@
 			{
 				RC<ShaderStructType>	st = ShaderStructType( "io" );
 				st.Set( EStructLayout::InternalIO,
-						"mediump float4		color;" +
-						"mediump float3		worldPos;" +
-						"mediump float2		uv;" +
+						"mediump float4		color;"
+						"mediump float3		worldPos;"
+						"mediump float2		uv;"
 						"uint				objId;" );
 			}{
 				const uint	tex_count = 8*4;
@@ -157,8 +157,8 @@
 		#endif
 
 		ObjectTransform	obj	= un_Transform.elements[ obj_id ];
-		float3			pos = un_Geometry.positions[ gl.VertexIndex ];
-		float2			uv  = un_Geometry.uvs[ gl.VertexIndex ];
+		float3			pos = un_Geometry.position[ gl.VertexIndex ];
+		float2			uv  = un_Geometry.uv[ gl.VertexIndex ];
 
 		pos *= obj.scale;
 		pos += obj.position;
@@ -221,7 +221,7 @@
 	#ifdef VIS_BUF1_2
 		float3  LocalPosToWorldSpace (ObjectTransform obj, uint vertId)
 		{
-			float3	pos = un_Geometry.positions[ vertId ];
+			float3	pos = un_Geometry.position[ vertId ];
 			pos *= obj.scale;
 			pos += obj.position;
 			pos -= un_PerPass.camera.pos;
@@ -298,7 +298,7 @@
 															ToSNorm( gl.FragCoord.xy * un_PerPass.invResolution.xy ),
 															2.0 * un_PerPass.invResolution.xy );
 
-			GradientInterpolationResults uv_res = Interpolate2DWithDeriv( deriv, un_Geometry.uvs[idx.x], un_Geometry.uvs[idx.y], un_Geometry.uvs[idx.z] );
+			GradientInterpolationResults uv_res = Interpolate2DWithDeriv( deriv, un_Geometry.uv[idx.x], un_Geometry.uv[idx.y], un_Geometry.uv[idx.z] );
 
 			DerivativesOutput	wp_deriv	= Cal3DDeriv( deriv, wpos0, wpos1, wpos2 );
 			const float3		norm		= Normalize( Cross( wp_deriv.db_dx, wp_deriv.db_dy ));	// ComputeNormalInWS_dxdy
@@ -317,7 +317,7 @@
 			const uint			texId		= primId_objId.y % TEX_COUNT;
 			const uint3			idx			= uint3( un_Geometry.indices[primId], un_Geometry.indices[primId+1], un_Geometry.indices[primId+2] );
 			const float3		bary		= SubpassLoad( VisBuf2 ).rgb;
-			const float2		uv			= BaryLerp( un_Geometry.uvs[idx.x], un_Geometry.uvs[idx.y], un_Geometry.uvs[idx.z], bary );
+			const float2		uv			= BaryLerp( un_Geometry.uv[idx.x], un_Geometry.uv[idx.y], un_Geometry.uv[idx.z], bary );
 											// TODO: dFdx(uv), dFdy(uv)
 			const float4		color		= unpackUnorm4x8( obj.color );
 			const float3		norm		= Normalize(iLight);	// TODO

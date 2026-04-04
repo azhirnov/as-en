@@ -18,35 +18,35 @@ extern void Test_ImageCompression ();
 extern void Test_UI ();
 
 
-int main (const int argc, char* argv[])
+TEST_ENTRY()
 {
 	BEGIN_TEST();
 
-	Test_FeatureSetPack();
+	RUN_TEST( Test_FeatureSetPack );
 	FileSystem::SetCurrentPath( curr );
 
-	Test_SamplerPack();
+	RUN_TEST( Test_SamplerPack );
 	FileSystem::SetCurrentPath( curr );
 
-	Test_RenderPassPack();
+	RUN_TEST( Test_RenderPassPack );
 	FileSystem::SetCurrentPath( curr );
 
-	Test_PipelinePack();
+	RUN_TEST( Test_PipelinePack );
 	FileSystem::SetCurrentPath( curr );
 
-	Test_InputActions();
+	RUN_TEST( Test_InputActions );
 	FileSystem::SetCurrentPath( curr );
 
-	Test_ImageAtlasPack();
+	RUN_TEST( Test_ImageAtlasPack );
 	FileSystem::SetCurrentPath( curr );
 
-	Test_RasterFontPack();
+	RUN_TEST( Test_RasterFontPack );
 	FileSystem::SetCurrentPath( curr );
 
-	Test_UI();
+	RUN_TEST( Test_UI );
 	FileSystem::SetCurrentPath( curr );
 
-	Test_ImageCompression();
+	RUN_TEST( Test_ImageCompression );
 	FileSystem::SetCurrentPath( curr );
 
 	AE_LOGI( "Tests.AssetPacker finished" );

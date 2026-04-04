@@ -105,6 +105,7 @@ namespace AE::Base
 
 		ND_ static bool		OpenURL (U8StringView url)										__NE___;
 		ND_ static bool		OpenURL (StringView url)										__NE___;
+		ND_ static bool		OpenURL (const Path &url)										__NE___;
 
 
 		// OS //

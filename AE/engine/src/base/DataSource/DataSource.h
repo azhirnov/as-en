@@ -44,7 +44,7 @@ namespace AE::Base
 			Buffered			= 1 << 0,		// allow fast stream or allow mapping to memory
 			ThreadSafe			= 1 << 1,		// read/write op is thread safe
 			SequentialAccess	= 1 << 2,		// allow ReadSeq() and SeekFwd()
-			RandomAccess		= 1 << 3,		// allow ReadBlock() and SeekSet()
+			RandomAccess		= 1 << 3,		// allow ReadBlock(), SeekSet() and UpdateAt()
 			FixedSize			= 1 << 4,		// total size is known, not supported for compressed stream
 			ReadAccess			= 1 << 5,
 			WriteAccess			= 1 << 6,
@@ -66,17 +66,17 @@ namespace AE::Base
 
 	// methods
 	protected:
-		IDataSource ()									__NE___ {}
+		IDataSource ()										__NE___ {}
 
 
 	// interface
 	public:
-		ND_ virtual bool			IsOpen ()			C_NE___ = 0;
-		ND_ virtual ESourceType		GetSourceType ()	C_NE___ = 0;
+		ND_ virtual bool			IsOpen ()				C_NE___ = 0;
+		ND_ virtual ESourceType		GetSourceType ()		C_NE___ = 0;
 
-		ND_ bool					IsThreadSafe ()		C_NE___	{ return AllBits( GetSourceType(), ESourceType::ThreadSafe ); }
+		ND_ bool					IsThreadSafe ()			C_NE___	{ return AllBits( GetSourceType(), ESourceType::ThreadSafe ); }
 
-		ND_ virtual ReqAlign		OffsetAlign ()		C_NE___	= 0;
+		ND_ virtual ReqAlign		DirectAccessAlign ()	C_NE___	= 0;
 	};
 
 

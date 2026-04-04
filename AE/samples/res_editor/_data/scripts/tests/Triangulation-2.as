@@ -39,7 +39,7 @@
 			array<uint>		indices;
 			TriangulateAndExtrude( contour_verts, contour_idcs, 1.f, OUT positions, OUT indices );
 
-			geom_data.FloatArray(	"positions",	positions );
+			geom_data.FloatArray(	"position",		positions );
 			geom_data.UIntArray(	"indices",		indices );
 			geom_data.LayoutName( "GeometrySBlock" );
 

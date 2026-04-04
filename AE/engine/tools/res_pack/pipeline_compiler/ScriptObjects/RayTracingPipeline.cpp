@@ -8,7 +8,7 @@ namespace AE::PipelineCompiler
 namespace
 {
 	static RayTracingPipelineScriptBinding*  RayTracingPipelineScriptBinding_Ctor (const String &name) {
-		return RayTracingPipelinePtr{ new RayTracingPipelineScriptBinding{ name }}.Detach();
+		return RayTracingPipelineScriptBinding::Create( name ).Detach();
 	}
 
 } // namespace
@@ -18,17 +18,27 @@ namespace
 
 /*
 =================================================
-	constructor
+	_Init
 =================================================
 */
-	RayTracingPipelineScriptBinding::RayTracingPipelineScriptBinding () :
-		RayTracingPipelineScriptBinding{ "<unknown>" }
-	{}
-
-	RayTracingPipelineScriptBinding::RayTracingPipelineScriptBinding (const String &name) __Th___ : BasePipelineTmpl{name}
+	void  RayTracingPipelineScriptBinding::_Init () __Th___
 	{
+		BasePipelineTmpl::_Init();  // throw
+
 		CHECK_THROW_MSG( ObjectStorage::Instance()->rtpipelines.emplace( _name, RayTracingPipelinePtr{this} ).second,
-			"RayTracingPipeline with name '"s << name << "' is already defined" );
+			"RayTracingPipeline with name '"s << _nameStr << "' is already defined" );
+	}
+
+/*
+=================================================
+	Create
+=================================================
+*/
+	RayTracingPipelinePtr  RayTracingPipelineScriptBinding::Create (const String &name) __Th___
+	{
+		RayTracingPipelinePtr	result{ new RayTracingPipelineScriptBinding{ name }};
+		result->_Init();  // throw
+		return result;
 	}
 
 /*
@@ -415,7 +425,7 @@ namespace
 	void  RayTracingPipelineScriptBinding::Bind (const ScriptEnginePtr &se) __Th___
 	{
 		ClassBinder<RayTracingPipelineScriptBinding>	binder{ se };
-		binder.CreateRef();
+		binder.CreateRef( 0, False{} );
 
 		binder.Comment( "Create pipeline template.\n"
 						"Name is used in C++ code to create pipeline." );
@@ -540,7 +550,7 @@ namespace
 	void  RayTracingPipelineSpecScriptBinding::Bind (const ScriptEnginePtr &se) __Th___
 	{
 		ClassBinder<RayTracingPipelineSpecScriptBinding>	binder{ se };
-		binder.CreateRef();
+		binder.CreateRef( 0, False{} );
 
 		binder.Comment( "Set specialization value.\n"
 						"Specialization constant must be previously defined in shader by 'Shader::AddSpec()'." );

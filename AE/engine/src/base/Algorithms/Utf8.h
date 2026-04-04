@@ -229,8 +229,8 @@ namespace _hidden_
 # include "base/Algorithms/Cast.h"
 # include "utf8proc.h"
 
-# if UTF8PROC_VERSION_MAJOR != 2 or UTF8PROC_VERSION_MINOR != 10
-#	pragma message( "required Utf8Proc 2.10" )
+# if UTF8PROC_VERSION_MAJOR != 2 or UTF8PROC_VERSION_MINOR != 11
+#	pragma message( "required Utf8Proc 2.11" )
 # endif
 
 namespace AE::Base

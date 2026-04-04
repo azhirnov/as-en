@@ -61,7 +61,9 @@ namespace AE::VFS
 		ND_ virtual bool  Open (OUT RC<AsyncWDataSource> &ds, FileName::Ref name)							C_NE___ { Unused( ds, name );		return false; }
 
 		ND_ virtual bool  CreateFile (OUT FileName &name, const Path &path)									C_NE___ { Unused( name, path );		return false; }
-		ND_ virtual bool  CreateUniqueFile (OUT FileName &name, INOUT Path &path)							C_NE___ { Unused( name, path );		return false; }
+		ND_ virtual bool  CreateUniqueFile (OUT   FileName	&name,
+											INOUT Path		&nameTemplate,
+											OUT   Path*		absolutePath = null)							C_NE___ { Unused( name, nameTemplate, absolutePath ); return false; }
 
 		ND_ virtual bool  Exists (FileName::Ref name)														C_NE___ = 0;
 		ND_ virtual bool  Exists (FileGroupName::Ref name)													C_NE___ = 0;
@@ -154,14 +156,15 @@ namespace AE::VFS
 							  const Path		&path,
 							  StorageName::Ref	storage)										C_NE___;
 
-		// Find unused name like a 'path' in VFS Storage with name 'storage' and write hash of file name to the 'name'.
-		// Actual file name will be written to 'path', path can be used to open file only for DiskStorage,
-		// for NetworkStorage it may be path in another device, so use only 'GetVFS().Open( name )'.
+		// Find unused name like a 'nameTemplate' in VFS Storage with name 'storage' and write hash of file name to the 'name'.
+		// Actual file name will be written to 'nameTemplate', but you should open file only by 'name'.
+		// For DiskStorage 'absolutePath' will be replaced by full path.
 		// Returns 'true' if unused name found.
 		//
 		ND_ bool  CreateUniqueFile (OUT FileName		&name,
-									INOUT Path			&path,
-									StorageName::Ref	storage)								C_NE___;
+									INOUT Path			&nameTemplate,
+									StorageName::Ref	storage,
+									OUT Path*			absolutePath = null)					C_NE___;
 
 
 		ND_ bool  Exists (FileName::Ref name)													C_NE___;

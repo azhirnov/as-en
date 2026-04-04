@@ -20,6 +20,8 @@
 
 	void ASmain ()
 	{
+		Assert( GPUVendor() != EGPUVendor::Intel, "may crash during pipeline creation" );
+
 		RC<Image>			rt					= Image( EPixelFormat::RGBA8_UNorm, SurfaceSize() );	rt.Name( "RT-Color" );
 
 		array<RC<Scene>>	scenes;
@@ -58,9 +60,9 @@
 		{
 			particles.ArrayLayout(
 				"Particle",
-				"	half4	position_size;" +
-				"	half4	velocity_param;" +
-				"	half2	fParams;" +
+				"	half4	position_size;"
+				"	half4	velocity_param;"
+				"	half2	fParams;"
 				"	uint	color;",
 				max_particle_count );
 

@@ -6,6 +6,11 @@
 
 namespace AE::Base
 {
+	template <typename T>
+	struct YUVColor;
+	struct HSVColor;
+
+
 
 	//
 	// RGBA Color
@@ -39,7 +44,8 @@ namespace AE::Base
 		template <typename B>
 		__Cx__ explicit RGBAColor (const RGBAColor<B> &other)					__NE___;
 
-		explicit RGBAColor (struct HSVColor const& hsv, T alpha = MaxValue())	__NE___;
+		explicit RGBAColor (HSVColor const& hsv, T alpha = MaxValue())			__NE___;
+		explicit RGBAColor (YUVColor<T> const& yuv, T alpha = MaxValue())		__NE___;
 
 		template <typename B, glm::qualifier Q>
 		explicit RGBAColor (const TVec<B,4,Q> &v)								__NE___ : r{v.x}, g{v.y}, b{v.z}, a{v.w} {}
@@ -109,21 +115,9 @@ namespace AE::Base
 
 	// methods
 		__Cx__ HSVColor ()													__NE___ : h{0.0f}, s{0.0f}, v{0.0f} {}
-
 		__Cx__ explicit HSVColor (float h, float s = 1.0f, float v = 1.0f)	__NE___ : h{h}, s{s}, v{v} {}
 
-		explicit HSVColor (const RGBA32f &c)								__NE___
-		{
-			// from http://lolengine.net/blog/2013/07/27/rgb-to-hsv-in-glsl
-			float4 K = float4( 0.0f, -1.0f / 3.0f, 2.0f / 3.0f, -1.0f );
-			float4 p = c.g < c.b ? float4(c.b, c.g, K.w, K.z) : float4(c.g, c.b, K.x, K.y);
-			float4 q = c.r < p.x ? float4(p.x, p.y, p.w, c.r) : float4(c.r, p.y, p.z, p.x);
-			float  d = q.x - Min(q.w, q.y);
-			float  e = 1.0e-10f;
-			h = Abs(q.z + (q.w - q.y) / (6.0f * d + e));
-			s = d / (q.x + e);
-			v = q.x;
-		}
+		explicit HSVColor (const RGBA32f &c)								__NE___;
 
 		NdCx__ bool  operator == (const HSVColor &rhs)						C_NE___	{ return (h == rhs.h) and (s == rhs.s) and (v == rhs.v); }
 		NdCx__ bool  operator != (const HSVColor &rhs)						C_NE___ { return not (*this == rhs); }
@@ -139,6 +133,56 @@ namespace AE::Base
 		ND_ float &			operator [] (usize i)							__NE___	{ ASSERT( i < size() );  return data()[i]; }
 		ND_ float const&	operator [] (usize i)							C_NE___	{ ASSERT( i < size() );  return data()[i]; }
 	};
+
+
+
+	//
+	// YUV Color
+	//
+
+	template <typename T>
+	struct YUVColor
+	{
+	// types
+		using Self			= YUVColor<T>;
+		using value_type	= T;
+
+	// variables
+		T	y, u, v;
+
+	// methods
+		__Cx__ YUVColor ()													__NE___ : y{T{0}}, u{T{0}}, v{T{0}} {}
+		__Cx__ YUVColor (T y, T u, T v)										__NE___ : y{y}, u{u}, v{v} {}
+
+		__Cx__ explicit YUVColor (T val)									__NE___ : y{val}, u{val}, v{val} {}
+		__Cx__ explicit YUVColor (const RGBAColor<T> &rgba)					__NE___;
+
+		template <typename B>
+		__Cx__ explicit YUVColor (const YUVColor<B> &other)					__NE___;
+
+		template <typename B, glm::qualifier Q>
+		explicit YUVColor (const TVec<B,3,Q> &vec)							__NE___ : y{vec.x}, u{vec.y}, v{vec.z} {}
+
+		NdCx__ bool  operator == (const YUVColor<T> &rhs)					C_NE___ { return (y == rhs.y) and (u == rhs.u) and (v == rhs.v); }
+		NdCx__ bool  operator != (const YUVColor<T> &rhs)					C_NE___ { return not (*this == rhs); }
+
+		template <glm::qualifier Q>
+		ND_ operator TVec<T,3,Q> ()											C_NE___	{ return {y,u,v}; }
+
+		NdCx__ static T		MaxValue ()										__NE___	{ if constexpr( IsFloatPoint<T> ) return T(1.0); else return Base::MaxValue<T>(); }
+		NdCx__ static usize	size ()											__NE___	{ return 3; }
+
+		ND_ T *			data ()												__NE___	{ return std::addressof(y); }
+		ND_ T const *	data ()												C_NE___	{ return std::addressof(y); }
+
+		ND_ T &			operator [] (usize i)								__NE___	{ ASSERT( i < size() );  return data()[i]; }
+		ND_ T const&	operator [] (usize i)								C_NE___	{ ASSERT( i < size() );  return data()[i]; }
+	};
+
+	using YUV32f	= YUVColor< float >;
+	using YUV8u		= YUVColor< ubyte >;
+//-----------------------------------------------------------------------------
+
 
 
 /*
@@ -169,6 +213,15 @@ namespace AE::Base
 		r{ float(other.r) / 0xFFFFFFFFu }, g{ float(other.g) / 0xFFFFFFFFu },
 		b{ float(other.b) / 0xFFFFFFFFu }, a{ float(other.a) / 0xFFFFFFFFu }
 	{}
+
+	template <>
+	inline RGBAColor<float>::RGBAColor (YUV32f const& yuv, float alpha) __NE___
+	{
+		g = yuv.y - 0.3457f * yuv.u - 0.7145f * yuv.v;
+		r = yuv.y + 1.7729f * yuv.u;
+		b = yuv.y + 1.4041f * yuv.v;
+		a = alpha;
+	}
 
 /*
 =================================================
@@ -368,6 +421,87 @@ namespace AE::Base
 
 /*
 =================================================
+	HSVColor
+=================================================
+*/
+	inline HSVColor::HSVColor (const RGBA32f &c) __NE___
+	{
+		// from http://lolengine.net/blog/2013/07/27/rgb-to-hsv-in-glsl
+		float4 K = float4( 0.0f, -1.0f / 3.0f, 2.0f / 3.0f, -1.0f );
+		float4 p = c.g < c.b ? float4(c.b, c.g, K.w, K.z) : float4(c.g, c.b, K.x, K.y);
+		float4 q = c.r < p.x ? float4(p.x, p.y, p.w, c.r) : float4(c.r, p.y, p.z, p.x);
+		float  d = q.x - Min(q.w, q.y);
+		float  e = 1.0e-10f;
+		h = Abs(q.z + (q.w - q.y) / (6.0f * d + e));
+		s = d / (q.x + e);
+		v = q.x;
+	}
+//-----------------------------------------------------------------------------
+
+
+
+/*
+=================================================
+	YUV32f
+=================================================
+*/
+	template <> template <>
+	__CxIn YUVColor<float>::YUVColor (const YUVColor<ubyte> &other) __NE___ :
+		y{ float(other.y) / 255.0f }, u{ float(other.u) / 255.0f },
+		v{ float(other.v) / 255.0f }
+	{}
+
+	template <>
+	__CxIn YUVColor<float>::YUVColor (const RGBAColor<float> &rgba) __NE___
+	{
+		y =  0.2989f * rgba.b + 0.5866f * rgba.g + 0.1145f * rgba.r;
+		u = -0.1687f * rgba.b - 0.3313f * rgba.g + 0.5000f * rgba.r;
+		v =  0.5000f * rgba.b - 0.4184f * rgba.g - 0.0816f * rgba.r;
+	}
+
+/*
+=================================================
+	color utils (YUV32f)
+=================================================
+*/
+	Nd__In YUV32f  Lerp (const YUV32f &a, const YUV32f &b, float factor) __NE___
+	{
+		return YUV32f{ Lerp( a.y, b.y, factor ), Lerp( a.u, b.u, factor ), Lerp( a.v, b.v, factor )};
+	}
+//-----------------------------------------------------------------------------
+
+
+
+/*
+=================================================
+	YUV8u
+=================================================
+*/
+	template <> template <>
+	__CxIn YUVColor<ubyte>::YUVColor (const YUVColor<float> &other) __NE___ :
+		y{ ubyte(other.y * 255.0f) }, u{ ubyte(other.u * 255.0f) }, v{ ubyte(other.v * 255.0f) }
+	{}
+
+	template <>
+	__CxIn YUVColor<ubyte>::YUVColor (const RGBAColor<ubyte> &rgba) __NE___ :
+		YUVColor{ YUV32f{RGBA32f{rgba}} }
+	{}
+
+/*
+=================================================
+	color utils (YUV8u)
+=================================================
+*/
+	Nd__In YUV8u  Lerp (const YUV8u &a, const YUV8u &b, float factor) __NE___
+	{
+		return YUV8u{Lerp( YUV32f{a}, YUV32f{b}, factor )};
+	}
+//-----------------------------------------------------------------------------
+
+
+
+/*
+=================================================
 	Rainbow / RainbowWrap
 =================================================
 */
@@ -437,6 +571,23 @@ namespace AE::Base
 	Nd__In bool3  Equal (const HSVColor &lhs, const HSVColor &rhs, const Percent err) __NE___
 	{
 		return bool3{ Equal( lhs.h, rhs.h, err ), Equal( lhs.s, rhs.s, err ), Equal( lhs.v, rhs.v, err )};
+	}
+
+/*
+=================================================
+	Equal (YUVColor)
+=================================================
+*/
+	template <typename T>
+	ND_ bool3  Equal (const YUVColor<T> &lhs, const YUVColor<T> &rhs, const T err = Epsilon<T>()) __NE___
+	{
+		return bool3{ Equal( lhs.y, rhs.y, err ), Equal( lhs.u, rhs.u, err ), Equal( lhs.v, rhs.v, err )};
+	}
+
+	template <typename T>
+	ND_ bool3  Equal (const YUVColor<T> &lhs, const YUVColor<T> &rhs, const Percent err) __NE___
+	{
+		return bool3{ Equal( lhs.y, rhs.y, err ), Equal( lhs.u, rhs.u, err ), Equal( lhs.v, rhs.v, err )};
 	}
 
 /*

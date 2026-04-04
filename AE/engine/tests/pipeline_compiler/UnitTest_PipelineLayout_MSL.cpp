@@ -6,17 +6,17 @@ namespace
 {
 	static void  PipelineLayout_Test1 ()
 	{
-		ShaderStructTypePtr	st{ new ShaderStructType{ "ubuf" }};
+		ShaderStructTypePtr	st = ShaderStructType::Create( "ubuf" );
 		st->Set( EStructLayout::Compatible_Std140,
 				 "uvec4 u;"
 				 "ivec4 i;" );
 
-		ScriptSamplerPtr	samp{ new ScriptSampler{ "DefSampler" }};
+		ScriptSamplerPtr	samp = ScriptSampler::Create( "DefSampler" );
 		samp->SetFilter( EFilter::Linear, EFilter::Linear, EMipmapFilter::Nearest );
 		samp->SetAddressMode( EAddressMode::ClampToEdge, EAddressMode::Repeat, EAddressMode::MirrorRepeat );
 		samp->SetAnisotropy( 8.f );
 
-		DescriptorSetLayoutPtr	dsl0{ new DescriptorSetLayout{ "PerDraw" }};
+		DescriptorSetLayoutPtr	dsl0 = DescriptorSetLayout::Create( "PerDraw" );
 		dsl0->AddUniformBuffer( EShaderStages::Vertex, "constBuf", ArraySize{1}, "ubuf", EResourceState::ShaderUniform, False{} );
 		dsl0->AddUniformBuffer( EShaderStages::Vertex, "constBuf2", ArraySize{1}, "ubuf", EResourceState::ShaderUniform, True{"dynamic"} );
 		dsl0->AddStorageBuffer( EShaderStages::Vertex | EShaderStages::Fragment, "storageBuf", ArraySize{2}, "ubuf", EAccessType::Coherent, EResourceState::ShaderStorage_RW, False{} );
@@ -28,15 +28,15 @@ namespace
 		dsl0->AddCombinedImage_ImmutableSampler( EShaderStages::Fragment, "sampledTex2", EImageType::Float | EImageType::Dim3D, EResourceState::ShaderSample, {"DefSampler"s} );
 		dsl0->AddImmutableSampler( EShaderStages::Fragment, "imtblSampler", "DefSampler" );
 
-		DescriptorSetLayoutPtr	dsl1{ new DescriptorSetLayout{ "Material" }};
+		DescriptorSetLayoutPtr	dsl1 = DescriptorSetLayout::Create( "Material" );
 		dsl1->AddSampledImage( EShaderStages::Fragment, "diffuseTex", ArraySize{1}, EImageType::Float | EImageType::Dim2DArray, EResourceState::ShaderSample );
 		dsl1->AddSampledImage( EShaderStages::Fragment, "noiseTex", ArraySize{1}, EImageType::Float | EImageType::Dim3D, EResourceState::ShaderSample );
 
-		DescriptorSetLayoutPtr	dsl2{ new DescriptorSetLayout{ "PerPass" }};
+		DescriptorSetLayoutPtr	dsl2 = DescriptorSetLayout::Create( "PerPass" );
 	//	dsl2->AddSubpassInput( EShaderStages::Fragment, "inputTex", 0, EImageType::Float | EImageType::Dim2DMS, EResourceState::InputColorAttachment );		// TODO
 		dsl2->AddRayTracingScene( EShaderStages::Fragment, "rtScene", ArraySize{1} );
 
-		PipelineLayoutPtr	ppln_layout{ new PipelineLayout{ "Layout1" }};
+		PipelineLayoutPtr	ppln_layout = PipelineLayout::Create( "Layout1" );
 		ppln_layout->AddDSLayout( 0, "PerDraw" );
 		ppln_layout->AddDSLayout( 2, "Material" );
 		ppln_layout->AddDSLayout( 3, "PerPass" );
@@ -114,7 +114,7 @@ extern void  UnitTest_PipelineLayout_MSL ()
 	obj.spirvCompiler->SetDefaultResourceLimits();
 	ObjectStorage::SetInstance( &obj );
 
-	ScriptFeatureSetPtr	fs {new ScriptFeatureSet{ "DefaultFS" }};
+	ScriptFeatureSetPtr	fs = ScriptFeatureSet::Create( "DefaultFS" );
 	fs->fs.Init( FeatureSet::EFeature::RequireTrue );
 	fs->fs.storageImageFormats.insert( EPixelFormat::RGBA8_UNorm );
 	fs->fs.storageImageFormats.insert( EPixelFormat::RGBA32F );

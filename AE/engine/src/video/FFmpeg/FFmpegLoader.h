@@ -17,7 +17,6 @@
 extern "C"
 {
 #  include "libavcodec/avcodec.h"
-#  include "libavcodec/avfft.h"
 
 #  include "libavdevice/avdevice.h"
 
@@ -68,13 +67,16 @@ namespace AE::Video
 		_builder_( avcodec_receive_frame			)\
 		_builder_( avcodec_get_hw_config			)\
 		_builder_( avcodec_find_encoder				)\
+		_builder_( avcodec_get_supported_config		)\
+		_builder_( avcodec_flush_buffers			)\
+		_builder_( avcodec_get_hw_frames_parameters	)\
+		_builder_( av_codec_iterate					)\
+		_builder_( av_codec_is_decoder				)\
+		_builder_( av_codec_is_encoder				)\
 		_builder_( av_packet_unref					)\
 		_builder_( av_packet_alloc					)\
 		_builder_( av_packet_free					)\
-		_builder_( av_packet_rescale_ts				)\
-		_builder_( av_codec_iterate					)\
-		_builder_( av_codec_is_decoder				)\
-		_builder_( av_codec_is_encoder				)
+		_builder_( av_packet_rescale_ts				)
 
 
 #	define AE_FFMPEG_AVFORMAT_FUNCS( _builder_ )\
@@ -115,6 +117,7 @@ namespace AE::Video
 		_builder_( av_frame_unref					)\
 		_builder_( av_frame_make_writable			)\
 		_builder_( av_free							)\
+		_builder_( av_freep							)\
 		_builder_( av_malloc						)\
 		_builder_( av_calloc						)\
 		_builder_( av_rescale_q						)\
@@ -122,7 +125,19 @@ namespace AE::Video
 		_builder_( av_log_set_flags					)\
 		_builder_( av_log_set_level					)\
 		_builder_( av_log_set_callback				)\
-		_builder_( av_chroma_location_enum_to_pos	)
+		_builder_( av_chroma_location_enum_to_pos	)\
+		_builder_( av_buffer_ref					)\
+		_builder_( av_buffer_unref					)\
+		_builder_( av_hwdevice_ctx_alloc			)\
+		_builder_( av_hwdevice_ctx_create			)\
+		_builder_( av_hwdevice_ctx_init				)\
+		_builder_( av_hwdevice_get_type_name		)\
+		_builder_( av_hwframe_ctx_alloc				)\
+		_builder_( av_hwframe_ctx_init				)\
+
+//		_builder_( av_vk_get_optional_instance_extensions	)\
+//		_builder_( av_vk_get_optional_device_extensions		)
+
 
 #	define AE_FFMPEG_SWSCALE_FUNCS( _builder_ )\
 		_builder_( swscale_version					)\

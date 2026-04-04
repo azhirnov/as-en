@@ -11,11 +11,29 @@ namespace AE::App
 
 	static constexpr auto	c_RawCharType = SerializableInputActions::c_RawCharType;
 
-	#define AE_GLFW_KEY_CODES_VISITOR( _key_, _code_, _name_, _glfw_code_ ) \
-		StaticAssert( uint(SerializableInputActionsGLFW::EInputType::_key_) == uint(_glfw_code_) );
-
+	#define AE_GLFW_KEY_CODES_VISITOR( _key_, _code_, _name_, _glfw_code_ )													\
+		StaticAssert( uint(SerializableInputActionsGLFW::EInputType::_key_) == uint(_glfw_code_) );							\
+		StaticAssert( _code_ == uint(_glfw_code_) );																		\
+		StaticAssert( SerializableInputActionsGLFW::EInputType::_key_ <= SerializableInputActionsGLFW::EInputType::KeyEnd or\
+					  uint(SerializableInputActionsGLFW::EInputType::_key_) == c_RawCharType );
 	AE_GLFW_KEY_CODES( AE_GLFW_KEY_CODES_VISITOR )
 	#undef AE_GLFW_KEY_CODES_VISITOR
+
+	#define AE_GLFW_GAMEPAD_AXIS_VISITOR( _key_, _code_, _name_, _glfw_code_ )																							\
+		StaticAssert( uint(SerializableInputActionsGLFW::EInputType::_key_) - uint(SerializableInputActionsGLFW::EInputType::GamepadAxisBegin) == uint(_glfw_code_) );	\
+		StaticAssert( _code_ == uint(_glfw_code_) );																													\
+		StaticAssert( SerializableInputActionsGLFW::EInputType::_key_ >= SerializableInputActionsGLFW::EInputType::GamepadAxisBegin );									\
+		StaticAssert( SerializableInputActionsGLFW::EInputType::_key_ <= SerializableInputActionsGLFW::EInputType::GamepadAxisEnd );
+	AE_GLFW_GAMEPAD_AXIS( AE_GLFW_GAMEPAD_AXIS_VISITOR )
+	#undef AE_GLFW_GAMEPAD_AXIS_VISITOR
+
+	#define AE_GLFW_GAMEPAD_BUTTON_VISITOR( _key_, _code_, _name_, _glfw_code_ )																						\
+		StaticAssert( uint(SerializableInputActionsGLFW::EInputType::_key_) - uint(SerializableInputActionsGLFW::EInputType::GamepadButtonBegin) == uint(_glfw_code_) );\
+		StaticAssert( _code_ == uint(_glfw_code_) );																													\
+		StaticAssert( SerializableInputActionsGLFW::EInputType::_key_ >= SerializableInputActionsGLFW::EInputType::GamepadButtonBegin );								\
+		StaticAssert( SerializableInputActionsGLFW::EInputType::_key_ <= SerializableInputActionsGLFW::EInputType::GamepadButtonEnd );
+	AE_GLFW_GAMEPAD_BUTTON( AE_GLFW_GAMEPAD_BUTTON_VISITOR )
+	#undef AE_GLFW_GAMEPAD_BUTTON_VISITOR
 
 # endif
 
@@ -28,11 +46,19 @@ namespace AE::App
 	{
 		switch_enum( EInputType(value) )
 		{
-			#define AE_GLFW_KEY_CODES_VISITOR( _key_, _code_, _name_, ... )	case EInputType::_key_ : return _name_;
+			#define AE_GLFW_KEY_CODES_VISITOR( _key_, _code_, _name_, ... )			case EInputType::_key_ : return _name_;
 			AE_GLFW_KEY_CODES( AE_GLFW_KEY_CODES_VISITOR )
 			#undef AE_GLFW_KEY_CODES_VISITOR
 
-			#define AE_ANDROID_SERNSORS_VISITOR( _type_, ... )				case EInputType::_type_ : return AE_TOSTRING( _type_ );
+			#define AE_GLFW_GAMEPAD_AXIS_VISITOR( _key_, _code_, _name_, ... )		case EInputType::_key_ : return _name_;
+			AE_GLFW_GAMEPAD_AXIS( AE_GLFW_GAMEPAD_AXIS_VISITOR )
+			#undef AE_GLFW_GAMEPAD_AXIS_VISITOR
+
+			#define AE_GLFW_GAMEPAD_BUTTON_VISITOR( _key_, _code_, _name_, ... )	case EInputType::_key_ : return _name_;
+			AE_GLFW_GAMEPAD_BUTTON( AE_GLFW_GAMEPAD_BUTTON_VISITOR )
+			#undef AE_GLFW_GAMEPAD_BUTTON_VISITOR
+
+			#define AE_ANDROID_SERNSORS_VISITOR( _type_, ... )						case EInputType::_type_ : return AE_TOSTRING( _type_ );
 			AE_ANDROID_SERNSORS( AE_ANDROID_SERNSORS_VISITOR )
 			#undef AE_ANDROID_SERNSORS_VISITOR
 

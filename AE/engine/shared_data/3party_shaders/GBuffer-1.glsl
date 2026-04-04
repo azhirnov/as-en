@@ -299,11 +299,6 @@ uint  EncodeQuat32 (const Quat q)
 	return res;
 }
 
-uint  EncodeQuat32 (const float3x3 tbn)
-{
-	return EncodeQuat32( QFromMat( tbn ));
-}
-
 Quat  DecodeQuat32 (const uint u)
 {
 	const float		rmin	= -float_InvSqrtOf2;

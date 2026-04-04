@@ -123,10 +123,13 @@ namespace AE::ResEditor
 
 			if ( i == 0 ) _BeginTimeQuery( ctx );
 
-			_resources.SetStates( ctx, Default );
-			ctx.ResourceState( _ubuffer, EResourceState::UniformRead | EResourceState::ComputeShader );
-			if ( cnt > 1 ) ctx.MemoryBarrier( EPipelineScope::All, EPipelineScope::All );	// disable overlapping, only for profiling!
-			ctx.CommitBarriers();
+			// state transition
+			{
+				_resources.SetStates( ctx, Default );
+				ctx.ResourceState( _ubuffer, EResourceState::UniformRead | EResourceState::ComputeShader );
+				if ( cnt > 1 ) ctx.MemoryBarrier( EPipelineScope::All, EPipelineScope::All );	// disable overlapping, only for profiling!
+				ctx.CommitBarriers();
+			}
 
 			ctx.BindPipeline( ppln );
 			ctx.BindDescriptorSet( _dsIndex, ds );
@@ -177,27 +180,8 @@ namespace AE::ResEditor
 		// update uniform buffer
 		{
 			ShaderTypes::ComputePassUB	ub_data;
-			ub_data.time		= pd.totalTime.count();
-			ub_data.timeDelta	= pd.frameTime.count();
-			ub_data.frame		= pd.frameId;
-			ub_data.passFrameId	= _dynData.frame;
-			ub_data.seed		= pd.seed;
-			ub_data.mouse		= float4{ pd.unormCursorPos.x, pd.unormCursorPos.y, float(pd.pressed), 0.f };
-			ub_data.customKeys	= float2{ pd.customKeys[0], pd.customKeys[1] };
-			ub_data.pixPerMm	= pd.pixPerMm;
-			ub_data.mmPerPix	= pd.mmPerPix;
+			_UpdateComputeUB( INOUT ub_data, pd );
 
-			if ( _controller )
-				_controller->CopyTo( OUT ub_data.camera );
-
-			_CopySliders( OUT ub_data.floatSliders, OUT ub_data.intSliders, OUT ub_data.colors );
-			_CopyConstants( _shConst, OUT ub_data.floatConst, OUT ub_data.intConst );
-
-			if ( _dynData.prevFrame != pd.frameId )
-			{
-				++_dynData.frame;
-				_dynData.prevFrame = pd.frameId;
-			}
 			CHECK_ERR( ctx.UploadBuffer( _ubuffer, 0_b, Sizeof(ub_data), &ub_data ));
 		}
 

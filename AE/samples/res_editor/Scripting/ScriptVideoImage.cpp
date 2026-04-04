@@ -27,7 +27,7 @@ namespace
 */
 	ScriptVideoImage::ScriptVideoImage (EPixelFormat format, const String &filename) __Th___ :
 		_format{ format },
-		_imageType{uint( EImageType::Dim2D | EImageType::Float )},
+		_imageType{ EImageType::Dim2D | EImageType::Float },
 		_videoFile{ filename }
 	{
 		CHECK_THROW_MSG( GetVFS().Exists( _videoFile ),
@@ -235,11 +235,13 @@ namespace
 				case EResourceUsage::VertexInput :
 				case EResourceUsage::IndirectBuffer :
 				case EResourceUsage::ASBuild :
+				case EResourceUsage::MMBuild :
 				case EResourceUsage::WithHistory :
 				case EResourceUsage::InputAttachment :
 				case EResourceUsage::FragDensityMap :
 				case EResourceUsage::FragShadingRate :
 				case EResourceUsage::SubsampledAttachment :
+				case EResourceUsage::TexelStorage :
 				default :								RETURN_ERR( "unsupported usage" );
 			}
 			switch_end
@@ -353,9 +355,9 @@ namespace
 			}
 			CHECK_THROW_MSG( false, "can't find unique name for sampler" );
 		}};
-		const String	name = GetUniqueName();
 
-		ScriptSamplerPtr	sampler {new ScriptSampler{ name }};
+		const String		name	= GetUniqueName();
+		ScriptSamplerPtr	sampler	= ScriptSampler::Create( name );
 
 		sampler->SetDesc( src_samp->Desc() );
 		sampler->SetYcbcrDesc( GetYcbcrDesc() );

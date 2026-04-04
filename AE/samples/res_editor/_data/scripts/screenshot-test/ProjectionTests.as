@@ -66,7 +66,7 @@
 		const float		y_max	= 32.0;
 		const int		i		= int(uv.y * y_max);
 		const float		z		= Lerp( un_CBuf.zRange.x, un_CBuf.zRange.y, x );
-		const float4	vp		= float4( 0.0, 0.0, un_PerPass.resolution.xy );
+		const Rect		vp		= Rect_Create( float2(0.0), un_PerPass.resolution.xy );
 		const float4	pos		= float4( 0.0, 0.0, z, 1.0 );
 
 		float			y		= float_nan;

@@ -61,6 +61,27 @@ namespace AE::Graphics
 
 /*
 =================================================
+	Create
+=================================================
+*/
+	bool  VMemoryObject::Create (Bytes storageSize, VkBufferUsageFlagBits2 usage, GfxMemAllocatorPtr allocator, StringView dbgName)__NE___
+	{
+		DRC_EXLOCK( _drCheck );
+		CHECK_ERR( _memAllocator == null );
+		CHECK_ERR( allocator != null );
+
+		CHECK_ERR( allocator->AllocStorage( storageSize, usage, OUT _storage ));
+
+		_memAllocator = RVRef(allocator);
+
+		GFX_DBG_ONLY( _debugName = dbgName );
+		Unused( dbgName );
+
+		return true;
+	}
+
+/*
+=================================================
 	Destroy
 =================================================
 */

@@ -5,7 +5,6 @@
 #ifdef AE_ENABLE_REMOTE_GRAPHICS
 # include "graphics_rhi/Remote/Commands/RBaseContext.h"
 # include "graphics_rhi/Remote/Commands/RAccumBarriers.h"
-# include "graphics_rhi/Remote/REnumCast.h"
 # include "graphics_rhi/Remote/Commands/RDrawBarrierManager.h"
 
 namespace AE::Graphics
@@ -21,7 +20,7 @@ namespace AE::Graphics
 
 	// types
 	private:
-		using AccumBar		= Graphics::_hidden_::RAccumDrawBarriers< RDrawContext >;
+		using AccumBar		= Graphics::_hidden_::AccumDrawBarriers< RDrawContext >;
 		using Validator_t	= Graphics::_hidden_::DrawContextValidation;
 	public:
 		using DrawCoroRef	= _Coro_::DrawTaskImpl::UserApi;
@@ -67,7 +66,6 @@ namespace AE::Graphics
 		void  SetBlendConstants (const RGBA32f &color)																		__Th_OV;
 		void  SetDepthBounds (float minDepthBounds, float maxDepthBounds)													__Th_OV;
 		void  SetFragmentShadingRate (EShadingRate, EShadingRateCombinerOp primitiveOp, EShadingRateCombinerOp textureOp)	__Th_OV;
-		void  SetViewportWScaling (ArrayView<packed_float2> scaling)														__Th_OV;
 
 		// draw commands
 		void  BindIndexBuffer (BufferID buffer, Bytes offset, EIndex indexType)												__Th_OV;
@@ -179,6 +177,12 @@ namespace AE::Graphics
 
 		// tile shader
 		void  DispatchTile ()																								__Th_OV;
+
+		// indirect commands //
+		void  BindInitialPipeline (IndirectExecutionSetID)																	__Th_OV	{}
+
+		void  ExecuteGeneratedCommands (const ExecuteGeneratedCommandsCmd &)												__Th_OV	{}
+		void  ExecuteGeneratedCommands (const ExecuteGeneratedCommands2Cmd &)												__Th_OV	{}
 
 		void  DebugMarker (DebugLabel dbg)																					__Th_OV	{ _DebugMarker( dbg ); }
 		void  PushDebugGroup (DebugLabel dbg)																				__Th_OV	{ _PushDebugGroup( dbg ); }

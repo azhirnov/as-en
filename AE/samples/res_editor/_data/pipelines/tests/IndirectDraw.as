@@ -64,7 +64,7 @@
 	void Main ()
 	{
 		const uint		idx	= gl.VertexIndex;
-		const float4	pos	= LocalPosToWorldSpace( un_Geometry.positions[idx] );
+		const float4	pos	= LocalPosToWorldSpace( un_Geometry.position[idx] );
 
 		gl.Position		= WorldPosToClipSpace( pos );
 		Out.worldPos	= pos.xyz;

@@ -21,12 +21,6 @@ namespace AE::ResEditor
 	protected:
 		using PipelineMap_t	= FixedMap< EDebugMode, GraphicsPipelineID, uint(EDebugMode::_Count) >;
 
-		struct DynamicData
-		{
-			uint	frame		= 0;
-			uint	prevFrame	= UMax;
-		};
-
 
 	// variables
 	protected:
@@ -40,7 +34,6 @@ namespace AE::ResEditor
 		DescSetBinding			_dsIndex;
 
 		Strong<BufferID>		_ubuffer;
-		mutable DynamicData		_dynData;		// used only in 'Upload()'
 
 		ResourceArray			_resources;
 		RenderTargets_t			_renderTargets;

@@ -36,6 +36,8 @@ namespace AE
 	#	define TXT( _text_ )	(u8"" _text_)
 	#endif
 
+	inline constexpr std::nullptr_t  null {};
+
 	namespace Base {}
 }
 

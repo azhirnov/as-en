@@ -563,7 +563,12 @@ namespace
 					return file.IsOpen() and file.Read( file.RemainingSize(), OUT s );
 				}
 			}
-			RETURN_ERR( "failed to find included file: '"s << fname << "'" );
+
+			String	msg = "failed to find included file: '"s << fname << "'\nspecified include dirs:";
+			for (auto& dir : includeDirs) {
+				msg << "\n  '" << ToString( dir ) << "'";
+			}
+			RETURN_ERR( msg );
 		}};
 
 		TRY{
@@ -571,7 +576,9 @@ namespace
 
 			dst.clear();
 			CHECK_ERR( _Preprocessor( str, OUT dst, OUT file_and_pos, defines ));
-			CHECK_ERR( file_and_pos.empty() or not includeDirs.empty() );
+
+			if ( not file_and_pos.empty() )
+				CHECK_ERR( not includeDirs.empty() );
 
 			usize	offset = 0;
 			for (auto& [fname, pos] : file_and_pos)

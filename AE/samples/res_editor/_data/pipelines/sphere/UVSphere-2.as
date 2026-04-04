@@ -59,10 +59,10 @@
 		}{
 			RC<ShaderStructType>	st = ShaderStructType( "gs-fs.io" );
 			st.Set( EStructLayout::InternalIO,
-					"float4		color;" +
-					"float2		uv;" +
-					"float3		tangent;" +
-					"float3		bitangent;" +
+					"float4		color;"
+					"float2		uv;"
+					"float3		tangent;"
+					"float3		bitangent;"
 					"float3		center;" );
 		}{
 			RC<DescriptorSetLayout>	ds = DescriptorSetLayout( "mtr.ds" );
@@ -224,7 +224,7 @@
 				out_Color = float4(In.uv, 0.0, 1.0);	break;
 
 			case 3 :
-				out_Color = float4(FSBarycentricWireframe( 1.0, 1.0 ).x);	break;
+				out_Color = float4(FSBarycentricWireframeCompat( In.uv, 1.0, 1.0 ).x);	break;
 		}
 	}
 

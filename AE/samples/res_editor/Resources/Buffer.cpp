@@ -1,6 +1,7 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
 #include "Resources/Buffer.h"
+#include "Resources/BufferView.h"
 #include "Core/RenderGraph.h"
 #include "Passes/Renderer.h"
 
@@ -46,7 +47,8 @@ namespace
 					RC<DynamicUInt>		outDynCount,
 					StringView			dbgName,
 					EBufferFlags		flags,
-					Array<RC<Buffer>>	refBuffers) __NE___ :
+					Array<RC<Buffer>>	refBuffers,
+					Array<RC<BufferView>> views) __NE___ :
 		IResource{ renderer },
 		_typeName{ typeName },
 		_staticSize{ staticSize },
@@ -57,7 +59,8 @@ namespace
 		_loadOp{ RVRef(loadOp) },
 		_flags{ flags },
 		_dbgName{ dbgName },
-		_refBuffers{ RVRef(refBuffers) }
+		_refBuffers{ RVRef(refBuffers) },
+		_views{ RVRef(views) }
 	{
 		for (usize i = 0; i < ids.size(); ++i) {
 			Unused( _ids[i].Attach( RVRef(ids[i]) ));
@@ -134,10 +137,11 @@ namespace
 								RC<DynamicUInt>		outDynCount,
 								StringView			dbgName,
 								EBufferFlags		flags,
-								Array<RC<Buffer>>	refBuffers)	__Th___
+								Array<RC<Buffer>>	refBuffers,
+								Array<RC<BufferView>> refViews)	__Th___
 	{
 		RC<Buffer>	res{ new Buffer{ RVRef(ids), desc, staticSize, elemSize, RVRef(loadOp), typeName, renderer,
-									 RVRef(inDynCount), RVRef(outDynCount), dbgName, flags, RVRef(refBuffers) }};
+									 RVRef(inDynCount), RVRef(outDynCount), dbgName, flags, RVRef(refBuffers), RVRef(refViews) }};
 		res->_Init();
 		return res;
 	}
@@ -211,7 +215,7 @@ namespace
 		uint	count = uint(ArraySize());
 
 		if_likely( not _inDynCount->IsChanged( INOUT count ) or count == 0 )
-			return false;
+			return true;
 
 		BufferDesc	desc = _requiredBufDesc;
 		desc.size = _staticSize + Max( count, 1u ) * _elemSize;
@@ -238,6 +242,10 @@ namespace
 			for (usize i = 0; i < _ids.size(); ++i) {
 				_address[i] = BitCast<ulong>(res_mngr.GetResourcesOrThrow( _ids[i].Get() ).GetDeviceAddress());
 			}
+		}
+
+		for (auto& view : _views) {
+			view->_OnBufferResized( buf.Get(), desc.size );
 		}
 
 		if ( _loadOp.clear )

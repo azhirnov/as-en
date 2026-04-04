@@ -23,7 +23,7 @@ namespace AE::Base
 			RandomAccess	= 1 << 0,	// access is intended to be random.
 			SequentialScan	= 1 << 1,	// access is intended to be sequential from beginning to end.
 			Win_NoBuffering	= 1 << 2,	// file or device is being opened with no system caching for data reads and writes,
-										// read/write size must be multiple of 'OffsetAlign()'.
+										// read/write size must be multiple of 'DirectAccessAlign()'.
 			Direct			= Win_NoBuffering,
 
 			Unknown			= 0,
@@ -76,7 +76,7 @@ namespace AE::Base
 
 		Bytes		ReadSeq (OUT void*, Bytes)											__NE_OV;
 
-		ReqAlign	OffsetAlign ()														C_NE_OV	{ return _align; }
+		ReqAlign	DirectAccessAlign ()												C_NE_OV	{ return _align; }
 
 	private:
 		ND_ Bytes  _Position ()															C_NE___;
@@ -94,7 +94,7 @@ namespace AE::Base
 		enum class EMode : uint
 		{
 			Win_NoBuffering	= 1 << 0,	// file or device is being opened with no system caching for data reads and writes,
-										// read/write size must be multiple of 'OffsetAlign()'.
+										// read/write size must be multiple of 'DirectAccessAlign()'.
 			Win_NoCaching	= 1 << 1,	// write operations will not go through any intermediate cache, they will go directly to disk.
 			Direct			= Win_NoBuffering | Win_NoCaching,
 
@@ -149,12 +149,13 @@ namespace AE::Base
 		ESourceType	GetSourceType ()													C_NE_OV;
 
 		bool		SeekFwd (Bytes offset)												__NE_OV;
+		bool		UpdateAt (Bytes pos)												__NE_OV;
 		Bytes		Reserve (Bytes additionalSize)										__NE_OV;
 
 		Bytes		WriteSeq (const void*, Bytes)										__NE_OV;
 		void		Flush ()															__NE_OV;
 
-		ReqAlign	OffsetAlign ()														C_NE_OV	{ return _align; }
+		ReqAlign	DirectAccessAlign ()												C_NE_OV	{ return _align; }
 	};
 //-----------------------------------------------------------------------------
 
@@ -212,7 +213,7 @@ namespace AE::Base
 
 		Bytes		ReadBlock (Bytes, OUT void*, Bytes)										__NE_OV;
 
-		ReqAlign	OffsetAlign ()															C_NE_OV	{ return _align; }
+		ReqAlign	DirectAccessAlign ()													C_NE_OV	{ return _align; }
 	};
 
 
@@ -271,7 +272,7 @@ namespace AE::Base
 		Bytes		WriteBlock (Bytes, const void*, Bytes)									__NE_OV;
 		void		Flush ()																__NE_OV;
 
-		ReqAlign	OffsetAlign ()															C_NE_OV	{ return _align; }
+		ReqAlign	DirectAccessAlign ()													C_NE_OV	{ return _align; }
 	};
 
 

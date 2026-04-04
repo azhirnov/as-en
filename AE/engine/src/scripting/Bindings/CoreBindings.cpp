@@ -109,6 +109,7 @@ namespace
 			ClassBinder<VecSwizzle>	binder{ se };
 			binder.CreateClassValue();
 
+			binder.Comment( "Supported swizzle: 0XYZW-+, where '+' means +1 and '-' means -1." );
 			binder.AddConstructor( &Ctor, {"swizzle"} );
 		}
 	};

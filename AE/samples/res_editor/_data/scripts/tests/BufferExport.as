@@ -15,9 +15,9 @@
 		{
 			buf.ArrayLayout(
 				"RayPath",
-				"	uint	count;" +
-				"	float2	pointArr [" + 8 + "];" +
-				"	float	wavelengthArr [" + 8 + "];" +
+				"	uint	count;"
+				"	float2	pointArr [" + 8 + "];"
+				"	float	wavelengthArr [" + 8 + "];"
 				"	float	energyArr [" + 8 + "];",
 				64 );
 		}

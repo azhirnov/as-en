@@ -1,4 +1,4 @@
-//f60471aa
+//b290b6c3
 #pragma once
 #include <vector>
 #include <string>
@@ -24,40 +24,40 @@ using array = std::vector<T>;
 
 using namespace std::string_literals;
 
-struct float2;
-struct float3;
-struct GLFW_ActionBindings;
-struct WinAPI_BindingsMode;
-struct OpenVR_ActionBindings;
-struct GLFW_BindingsMode;
-struct ushort4;
-struct short2;
-struct short3;
-struct sbyte4;
-struct sbyte3;
-struct uint4;
-struct float4;
-struct uint3;
-struct uint2;
-struct VecSwizzle;
 struct Android_ActionBindings;
-struct OpenVR_BindingsMode;
-struct ushort3;
-struct sbyte2;
-struct ActionInfo;
-struct Android_BindingsMode;
-struct ushort2;
-struct short4;
-struct bool4;
+struct VecSwizzle;
+struct int4;
 struct int3;
 struct bool2;
 struct bool3;
 struct int2;
-struct int4;
+struct bool4;
+struct short4;
+struct ushort3;
+struct sbyte2;
+struct ActionInfo;
+struct ushort2;
+struct Android_BindingsMode;
+struct OpenVR_BindingsMode;
 struct ubyte3;
 struct ubyte2;
-struct WinAPI_ActionBindings;
 struct ubyte4;
+struct WinAPI_ActionBindings;
+struct float2;
+struct float3;
+struct OpenVR_ActionBindings;
+struct WinAPI_BindingsMode;
+struct GLFW_ActionBindings;
+struct sbyte4;
+struct sbyte3;
+struct ushort4;
+struct short2;
+struct short3;
+struct GLFW_BindingsMode;
+struct uint2;
+struct uint3;
+struct float4;
+struct uint4;
 
 enum class EGestureState : uint8
 {
@@ -222,6 +222,7 @@ enum class GLFW_Input : uint16
 	MouseBtn6,
 	MouseBtn7,
 	MouseBtn8,
+	RawChar,
 	Accelerometer,
 	MagneticField,
 	GeoLocation,
@@ -236,6 +237,27 @@ enum class GLFW_Input : uint16
 	AirTemperature,
 	GameRotationVector,
 	Pose6DOF,
+	GP_AxisLeftX,
+	GP_AxisLeftY,
+	GP_AxisRightX,
+	GP_AxisRightY,
+	GP_AxisLeftTrigger,
+	GP_AxisRightTrigger,
+	GP_A,
+	GP_B,
+	GP_X,
+	GP_Y,
+	GP_LeftBumper,
+	GP_RightBumper,
+	GP_Back,
+	GP_Start,
+	GP_Guide,
+	GP_LeftThumb,
+	GP_RightThumb,
+	GP_DpadUp,
+	GP_DpadRight,
+	GP_DpadDown,
+	GP_DpadLeft,
 	MultiTouch,
 	MouseWheel,
 	CursorPos,
@@ -409,6 +431,7 @@ enum class WinAPI_Input : uint16
 	KP_PageDown,
 	KP_Insert,
 	KP_Delete,
+	RawChar,
 	MouseBtn0,
 	MouseBtn1,
 	MouseBtn2,
@@ -1767,6 +1790,8 @@ struct VecSwizzle
 	VecSwizzle ();
 	VecSwizzle (const VecSwizzle&);
 	VecSwizzle&  operator = (const VecSwizzle&);
+
+	// Supported swizzle: 0XYZW-+, where '+' means +1 and '-' means -1.
 	VecSwizzle (const string & swizzle);
 };
 
@@ -1842,39 +1867,9 @@ struct OpenVR_ActionBindings
 };
 
 template <>
-struct RC<GLFW_ActionBindings> : GLFW_ActionBindings
-{
-	RC (const GLFW_ActionBindings &);
-};
-
-template <>
-struct RC<WinAPI_BindingsMode> : WinAPI_BindingsMode
-{
-	RC (const WinAPI_BindingsMode &);
-};
-
-template <>
-struct RC<OpenVR_ActionBindings> : OpenVR_ActionBindings
-{
-	RC (const OpenVR_ActionBindings &);
-};
-
-template <>
-struct RC<GLFW_BindingsMode> : GLFW_BindingsMode
-{
-	RC (const GLFW_BindingsMode &);
-};
-
-template <>
 struct RC<Android_ActionBindings> : Android_ActionBindings
 {
 	RC (const Android_ActionBindings &);
-};
-
-template <>
-struct RC<OpenVR_BindingsMode> : OpenVR_BindingsMode
-{
-	RC (const OpenVR_BindingsMode &);
 };
 
 template <>
@@ -1884,8 +1879,38 @@ struct RC<Android_BindingsMode> : Android_BindingsMode
 };
 
 template <>
+struct RC<OpenVR_BindingsMode> : OpenVR_BindingsMode
+{
+	RC (const OpenVR_BindingsMode &);
+};
+
+template <>
 struct RC<WinAPI_ActionBindings> : WinAPI_ActionBindings
 {
 	RC (const WinAPI_ActionBindings &);
+};
+
+template <>
+struct RC<OpenVR_ActionBindings> : OpenVR_ActionBindings
+{
+	RC (const OpenVR_ActionBindings &);
+};
+
+template <>
+struct RC<WinAPI_BindingsMode> : WinAPI_BindingsMode
+{
+	RC (const WinAPI_BindingsMode &);
+};
+
+template <>
+struct RC<GLFW_ActionBindings> : GLFW_ActionBindings
+{
+	RC (const GLFW_ActionBindings &);
+};
+
+template <>
+struct RC<GLFW_BindingsMode> : GLFW_BindingsMode
+{
+	RC (const GLFW_BindingsMode &);
 };
 

@@ -3,6 +3,7 @@
 #ifdef AE_ENABLE_VULKAN
 # include "graphics_rhi/Vulkan/Video/VVideoBuffer.h"
 # include "graphics_rhi/Vulkan/VResourceManager.h"
+# include "graphics_rhi/Vulkan/Utils/NextChain.h"
 # include "graphics_rhi/Vulkan/Video/VVideoUtils.cpp.h"
 
 namespace AE::Graphics
@@ -29,6 +30,8 @@ namespace AE::Graphics
 		DRC_EXLOCK( _drCheck );
 		CHECK_ERR( _buffer == Default );
 		CHECK_ERR( _bufferId == Default );
+		CHECK_ERR( desc.videoUsage != Default );
+		CHECK_ERR( not desc.profiles.empty() );
 		CHECK_ERR( allocator );
 
 		_desc = desc;
@@ -36,31 +39,48 @@ namespace AE::Graphics
 
 		auto&	dev = resMngr.GetDevice();
 
-		VkBufferCreateInfo			buffer_ci	 = {};
-		VkVideoProfileListInfoKHR	prof_list	 = {};
-		VkVideoProfileInfoKHR		profile_info = {};
+		InPlaceLinearAllocator<1024>	alloc;
+		{
+			VkVideoProfileInfoKHR	profile_info;
+			VkVideoCapabilitiesKHR	capabilities;
+			VkDeviceSize			min_bitstream_buffer_offset_alignment	= UMax;
+			VkDeviceSize			min_bitstream_buffer_size_alignment		= UMax;
 
-		CHECK_ERR( WithVideoProfile( dev, _desc.profile,
-			[this, &profile_info] (const VkVideoProfileInfoKHR &profileInfo, const VkVideoCapabilitiesKHR &capabilities) -> bool
+			// get capabilities per profile
+			for (auto& prof : _desc.profiles)
 			{
-				profile_info	= profileInfo;
-				_minOffsetAlign	= POTBytes{ capabilities.minBitstreamBufferOffsetAlignment };
-				_minSizeAlign	= POTBytes{ capabilities.minBitstreamBufferSizeAlignment };
+				if_unlikely( not GetProfileWithCapabilities( dev, prof, alloc, OUT profile_info, OUT capabilities ))
+					return false;
 
-				_desc.size		= AlignUp( _desc.size, _minSizeAlign );
+				min_bitstream_buffer_offset_alignment	= Min( min_bitstream_buffer_offset_alignment, capabilities.minBitstreamBufferOffsetAlignment );
+				min_bitstream_buffer_size_alignment		= Min( min_bitstream_buffer_size_alignment, capabilities.minBitstreamBufferSizeAlignment );
 
-				return true;
-			}));
+				alloc.Discard();
+			}
+
+			_minOffsetAlign	= POTBytes{ min_bitstream_buffer_offset_alignment };
+			_minSizeAlign	= POTBytes{ min_bitstream_buffer_size_alignment };
+			_desc.size		= AlignUp( _desc.size, _minSizeAlign );
+		}
+
+		VkBufferCreateInfo					buffer_ci	 = {};
+		VkVideoProfileListInfoKHR			prof_list	 = {};
+		VkBufferUsageFlags2CreateInfoKHR	flags2_ci	 = {};
+		VNextChain							p_next		 {buffer_ci};
 
 		prof_list.sType			= VK_STRUCTURE_TYPE_VIDEO_PROFILE_LIST_INFO_KHR;
-		prof_list.profileCount	= 1;
-		prof_list.pProfiles		= &profile_info;
+		prof_list.profileCount	= uint(_desc.profiles.size());
+		p_next.Add( prof_list );
 
-		buffer_ci.sType	= VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
-		buffer_ci.pNext	= &prof_list;
-		buffer_ci.flags	= 0;
-		buffer_ci.usage	= VEnumCast( _desc.usage ) | VEnumCast( _desc.videoUsage );
-		buffer_ci.size	= VkDeviceSize( _desc.size );
+		CHECK_ERR( ConvertProfiles( dev, _desc.profiles, alloc, OUT prof_list.pProfiles ));
+
+		flags2_ci.sType		= VK_STRUCTURE_TYPE_BUFFER_USAGE_FLAGS_2_CREATE_INFO;
+		flags2_ci.usage		= VEnumCast( _desc.usage ) | VEnumCast( _desc.videoUsage );
+
+		buffer_ci.sType		= VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
+		buffer_ci.flags		= 0;
+		buffer_ci.usage		= VkBufferUsageFlags( flags2_ci.usage );
+		buffer_ci.size		= VkDeviceSize( _desc.size );
 
 		if_unlikely( EMemoryType_IsNonCoherent( desc.memType ))
 			buffer_ci.size = AlignUp( buffer_ci.size, dev.GetDeviceProperties().res.minNonCoherentAtomSize );
@@ -85,6 +105,13 @@ namespace AE::Graphics
 			buffer_ci.queueFamilyIndexCount	= 0;
 		}
 
+		if ( dev.GetVExtensions().maintenance5 ){
+			p_next.Add( flags2_ci );
+		}else{
+			CHECK_ERR_MSG( flags2_ci.usage == buffer_ci.usage,
+				"Some buffer usage flags requires 'maintenance5' extension" );
+		}
+
 		VK_CHECK_ERR( dev.vkCreateBuffer( dev.GetVkDevice(), &buffer_ci, null, OUT &_buffer ));
 
 		VulkanBufferDesc		vk_desc;
@@ -96,11 +123,11 @@ namespace AE::Graphics
 		vk_desc.canBeDestroyed	= false;
 		vk_desc.allocMemory		= true;
 
-		_bufferId = resMngr.CreateBuffer( vk_desc, dbgName );
+		_bufferId = resMngr.CreateBuffer( vk_desc, dbgName, RVRef(allocator) );
 		CHECK_ERR( _bufferId );
 
 		GFX_DBG_ONLY( _debugName = dbgName; )
-		return false;
+		return true;
 	}
 
 /*

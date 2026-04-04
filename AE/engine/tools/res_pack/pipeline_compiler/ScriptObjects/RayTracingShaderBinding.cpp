@@ -13,7 +13,7 @@ namespace AE::PipelineCompiler
 namespace
 {
 	static RayTracingShaderBinding*  RayTracingShaderBinding_Ctor (const RayTracingPipelineSpecPtr &ptr, const String &name) {
-		return RayTracingShaderBindingPtr{ new RayTracingShaderBinding{ ptr, name }}.Detach();
+		return RayTracingShaderBinding::Create( ptr, name ).Detach();
 	}
 
 	static void  InstanceIndex_Ctor (OUT void* mem, uint value) {
@@ -37,23 +37,29 @@ namespace
 	constructor
 =================================================
 */
-	RayTracingShaderBinding::RayTracingShaderBinding () :
-		RayTracingShaderBinding{ Default, "<unknown>" }
-	{}
-
-	RayTracingShaderBinding::RayTracingShaderBinding (const RayTracingPipelineSpecPtr &ptr, const String &name) __Th___ :
+	RayTracingShaderBinding::RayTracingShaderBinding (const RayTracingPipelineSpecPtr &ptr, const String &name) __NE___ :
 		_spec{ptr},
 		_name{name}
+	{}
+
+	RayTracingShaderBindingPtr  RayTracingShaderBinding::Create (const RayTracingPipelineSpecPtr &ptr, const String &name) __Th___
 	{
-		CHECK_THROW_MSG( _spec );
-		CHECK_THROW_MSG( ObjectStorage::Instance()->rtShaderBindings.emplace( _name, RayTracingShaderBindingPtr{this} ).second,
+		auto&						storage	= *ObjectStorage::Instance();
+		RayTracingShaderBindingPtr	result	{ new RayTracingShaderBinding{ ptr, name }};
+
+		CHECK_THROW_MSG( ptr,
+			"RayTracingPipeline specialization must not be null" );
+
+		CHECK_THROW_MSG( storage.rtShaderBindings.emplace( result->_name, result ).second,
 			"RayTracingShaderBinding with name '"s << name << "' is already defined" );
 
-		ObjectStorage::Instance()->AddName<RTShaderBindingName>( _name );
+		storage.AddName<RTShaderBindingName>( result->_name );
 
-		for (auto& rtech : _spec->GetRTechs()) {
-			rtech->AddSBT( RayTracingShaderBindingPtr{this} );
+		for (auto& rtech : result->_spec->GetRTechs()) {
+			rtech->AddSBT( result );
 		}
+
+		return result;
 	}
 
 /*
@@ -77,7 +83,7 @@ namespace
 			binder.AddConstructor( &CallableIndex_Ctor, {} );
 		}{
 			ClassBinder<RayTracingShaderBinding>	binder{ se };
-			binder.CreateRef();
+			binder.CreateRef( 0, False{} );
 
 			binder.Comment( "Create ray tracing shader binding for ray tracing pipeline.\n"
 							"Name is used in C++ code to get ray tracing shader binding." );

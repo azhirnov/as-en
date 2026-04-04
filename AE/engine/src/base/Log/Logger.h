@@ -18,7 +18,6 @@ namespace AE::Base
 	public:
 		EResult  Process (const MessageInfo &info) __Th_OV;
 	};
-
 #endif
 
 
@@ -51,8 +50,9 @@ namespace AE::Base
 
 		EResult  Process (const MessageInfo &info)	__Th_OV;
 	};
+#endif
 
-#else
+
 
 	//
 	// Console Log output
@@ -66,7 +66,6 @@ namespace AE::Base
 		EResult  Process (const MessageInfo &info) __Th_OV;
 	};
 
-#endif
 
 
 #if defined(AE_PLATFORM_WINDOWS) or defined(AE_PLATFORM_APPLE) or defined(AE_PLATFORM_LINUX)
@@ -94,7 +93,6 @@ namespace AE::Base
 	private:
 		EResult  _ProcessImpl (const String &caption, String &msg, ELevel level) __Th___;
 	};
-
 #endif
 
 
@@ -116,7 +114,6 @@ namespace AE::Base
 
 		EResult  Process (const MessageInfo &info)						__Th_OV;
 	};
-
 #endif
 
 

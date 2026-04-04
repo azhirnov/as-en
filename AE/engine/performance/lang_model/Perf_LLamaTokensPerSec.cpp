@@ -4,8 +4,14 @@
 
 namespace
 {
-	static Bytes	g_RAM		= 64_GiB;
-	static Bytes	g_VRAM		= 16_GiB;
+#ifdef AE_PLATFORM_WINDOWS
+	static Bytes	g_RAM		= 64_GiB;	// TODO: auto-detect
+	static Bytes	g_VRAM		= 8_GiB;
+#endif
+#ifdef AE_PLATFORM_LINUX
+	static Bytes	g_RAM		= 28_GiB;
+	static Bytes	g_VRAM		= 14_GiB;
+#endif
 
 	using Clock_t		= std::chrono::high_resolution_clock;
 	using TimePoint_t	= Clock_t::time_point;
@@ -16,7 +22,7 @@ namespace
 		Path				modelPath;
 		uint				ctxSize;
 		uint				gpuLayers;
-		LLama::EBackend		backend;
+		EBackend		backend;
 	};
 
 	struct PerfTestResult
@@ -32,6 +38,7 @@ namespace
 		float				expectedWords		= -1.f;
 		float				unexpectedWords		= -1.f;
 		Bytes				modelSize;
+		Bytes				usedRAM;
 	};
 	using PerfTestRequest = Pair< PerfTestInput, PerfTestResult >;
 
@@ -44,6 +51,8 @@ namespace
 		uint		inTokens		= 0;
 		TimePoint_t	firstToken;
 		bool 		hasErrors		= false;
+
+		Bytes		maxRAM;
 
 		ResponseListener () __NE___ {}
 
@@ -60,6 +69,10 @@ namespace
 		{
 			response = completeResponse;
 			CHECK( outTokens == tokenCount );
+
+			PerformanceStat::MemoryCounters	mem;
+			Unused( PerformanceStat::GetPerfCounters( null, null, OUT &mem ));
+			maxRAM = mem.peakUsage;
 		}
 
 		void  OnError (ErrorCode) __NE_OV
@@ -87,13 +100,15 @@ namespace
 			<< ToString( out.timeToFirstToken ) << " | "
 			<< ToString( out.responseGeneration ) << " | ";
 
-		if ( in.backend != LLama::EBackend::CPU )
+		if ( in.backend != EBackend::CPU )
 			str << ToString(Min( in.gpuLayers, out.maxLayers )) << " / " << ToString( out.maxLayers );
 		else
 			str << "0 / " << ToString( out.maxLayers );
 
 		str	<< " | "
-			<< ToString( double(out.totalTokens) / secondsd{out.responseGeneration}.count(), 2 ) << " | ";
+			<< ToString( double(out.totalTokens) / secondsd{out.responseGeneration}.count(), 2 ) << " | "
+			<< " | "
+			<< ToString( out.usedRAM );
 
 		if ( out.expectedWords >= 0.f or out.unexpectedWords >= 0.f )
 			str << '+' << ToString( out.expectedWords, 1 ) << " / -" << ToString( out.unexpectedWords, 1 );
@@ -109,8 +124,8 @@ namespace
 	{
 		String	str;
 
-		str << "\n| model | backend | model size |ctx size | tokens | load (s) | create ctx (s) | time to first token (s) | gen time (s) | GPU layers | tok/sec | correct |"
-			<< "\n|-------|---------|------------|---------|--------|----------|----------------|-------------------------|--------------|------------|---------|---------|";
+		str << "\n| model | backend | model size |ctx size | tokens | load (s) | create ctx (s) | time to first token (s) | gen time (s) | GPU layers | tok/sec | max RAM | correct |"
+			<< "\n|-------|---------|------------|---------|--------|----------|----------------|-------------------------|--------------|------------|---------|---------|---------|";
 
 		for (auto& [in, out] : results)
 		{
@@ -212,6 +227,7 @@ namespace
 			result.responseGeneration	= Clock_t::now() - begin;
 			result.totalTokens			= listener->outTokens;
 			result.hasErrors			= listener->hasErrors;
+			result.usedRAM				= listener->maxRAM;
 
 			if ( ok								and
 				 (not expected.empty()		or
@@ -259,7 +275,7 @@ namespace
 		if ( model_size > g_RAM )
 			return;
 
-		if ( in.backend == LLama::EBackend::CPU )
+		if ( in.backend == EBackend::CPU )
 		{
 			LLamaPerf_RunTest( in, OUT result, systemMsg, prompt, dstFolder, expected, unexpected );
 			return;
@@ -279,9 +295,9 @@ namespace
 
 		PerfTestRequest		requests[] =
 		{
-			{PerfTestInput{ model_1,	8 << 10,	0,		LLama::EBackend::CPU	}, PerfTestResult{}},
-			{PerfTestInput{ model_1,	8 << 10,	999,	LLama::EBackend::CUDA	}, PerfTestResult{}},
-			{PerfTestInput{ model_1,	8 << 10,	999,	LLama::EBackend::Vulkan	}, PerfTestResult{}},
+			{PerfTestInput{ model_1,	8 << 10,	0,		EBackend::CPU		}, PerfTestResult{}},
+			{PerfTestInput{ model_1,	8 << 10,	999,	EBackend::CUDA		}, PerfTestResult{}},
+			{PerfTestInput{ model_1,	8 << 10,	999,	EBackend::Vulkan	}, PerfTestResult{}},
 		};
 		const Path	dst_folder = Path{OUTPUT_FOLDER} / AE_FUNCTION_NAME;
 
@@ -313,9 +329,9 @@ namespace
 		Array<PerfTestRequest>	requests;
 		const PerfTestInput		request_types[] =
 		{
-		//	PerfTestInput{ "",	c_ContextSize,	0,				LLama::EBackend::CPU		},
-		//	PerfTestInput{ "",	c_ContextSize,	c_GPULayers,	LLama::EBackend::CUDA	},
-			PerfTestInput{ "",	c_ContextSize,	c_GPULayers,	LLama::EBackend::Vulkan	},
+		//	PerfTestInput{ "",	c_ContextSize,	0,				EBackend::CPU		},
+		//	PerfTestInput{ "",	c_ContextSize,	c_GPULayers,	EBackend::CUDA	},
+			PerfTestInput{ "",	c_ContextSize,	c_GPULayers,	EBackend::Vulkan	},
 		};
 
 		//FileSystem::DeleteDirectory( dstFolder );
@@ -538,7 +554,7 @@ public half4 groundtruth(half x, half y)
 	{
 		U8String	str;
 		{
-			FileRStream		file{ Path{TEST_SRC_FOLDER} / "../../decs/papers/GeometryCulling-ru.md" };
+			FileRStream		file{ Path{TEST_SRC_FOLDER} / "../../papers/graphics/GeometryCulling-ru.md" };
 			CHECK_ERRV( file.IsOpen() );
 			CHECK_ERRV( file.Read( file.RemainingSize(), OUT str ));
 
@@ -563,7 +579,7 @@ public half4 groundtruth(half x, half y)
 	{
 		LLamaPerf_RunTest2(
 			Path{OUTPUT_FOLDER} / AE_FUNCTION_NAME,
-			u8"Write optimized radix sort on glsl using only subgroup operations.\n"
+			u8"Write optimized radix sort on glsl for vulkan using only subgroup operations.\n"
 			u8"Minimize access to shared memory.\n"
 			u8"Don't use loops in single lane like `if (gl_SubgroupInvocationID == 0) { for each lane... }`.\n"
 		);
@@ -572,10 +588,43 @@ public half4 groundtruth(half x, half y)
 	}
 
 
-	// TODO:
-	// - generics in slang
-	// - C++ refactoring
-	// - explain shader (clouds?)
+	static void  LLamaPerf_Test13 ()
+	{
+		LLamaPerf_RunTest2(
+			Path{OUTPUT_FOLDER} / AE_FUNCTION_NAME,
+			u8R"(
+This shader place boxes as buildings to create simple streets.
+Write new shader which add only street lights:
+* must be 2 lines per street
+* put them near to buildings, not in the center of street
+* must be spot lights with position, direction, angle, height, attenuation
+* use DHash to randomize direction, angle
+```glsl
+		ObjectTransform		obj;
+		const uint			idx				= GetGlobalIndex();
+		const uint			street_cnt		= 4;
+		const uint			street_idx		= idx % street_cnt;
+		const uint			building_idx	= idx / street_cnt;
+		const float2		uv				= float2( street_idx, building_idx ) / float2( street_cnt, 1 );
+
+		obj.position.x	= (ToSNorm( uv.x ) + 0.25) * 20.0;
+		obj.position.y	= GROUND_Y;
+		obj.position.z	= uv.y - 5.0;
+
+		obj.scale.x		= 0.5 + DHash12( uv.yx * 111.0 ) * 1.0;
+		obj.scale.y		= 0.8 + DHash12( uv * 444.0 ) * 5.0;
+		obj.scale.z		= 2.0;
+
+		obj.position.y	-= obj.scale.y;
+		obj.position.z	*= obj.scale.z * 2.0;
+
+		obj.color		= packUnorm4x8( float4( DHash32( uv * 333.0 ), 1.0 ));
+
+		un_Objects.elements[idx] = obj;
+```
+)"
+		);
+	}
 //-----------------------------------------------------------------------------
 }
 
@@ -594,4 +643,5 @@ extern void Perf_LLamaTokensPerSecond ()
 	LLamaPerf_Test10();
 	LLamaPerf_Test11();
 	LLamaPerf_Test12();
+	LLamaPerf_Test13();
 }

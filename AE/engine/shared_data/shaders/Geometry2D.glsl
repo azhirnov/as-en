@@ -113,6 +113,9 @@ ND_ float		Rect_Bottom (const Rect rect);
 ND_ float2		Rect_LeftTop (const Rect rect);			// min
 ND_ float2		Rect_RightBottom (const Rect rect);		// max
 
+ND_ float2		Rect_Min (const Rect rect)														{ return Rect_LeftTop( rect ); }
+ND_ float2		Rect_Max (const Rect rect)														{ return Rect_RightBottom( rect ); }
+
 ND_ bool		Rect_IsEmpty (const Rect rect);
 ND_ bool		Rect_IsInvalid (const Rect rect);
 
@@ -139,6 +142,9 @@ ND_ bool		Rect_Intersects (const Rect rect, const Line2d line);
 ND_ Rect		Rect_Intersection (const Rect lhs, const Rect rhs);
 ND_ float2		Rect_Intersection (const float2 rayDir);
 ND_ float2		Rect_Intersection (const Rect rect, const float2 rayDir, const float2 rayOrigin);
+
+ND_ Rect		ToUNorm (const Rect rect)														{ return Rect_FromMinMax( ToUNorm( rect.v )); }
+ND_ Rect		ToSNorm (const Rect rect)														{ return Rect_FromMinMax( ToSNorm( rect.v )); }
 
 ND_ float2		Rect_Lerp (const Rect rect, const float2 uv)									{ return Lerp( rect.v.xy, rect.v.zw, uv ); }
 

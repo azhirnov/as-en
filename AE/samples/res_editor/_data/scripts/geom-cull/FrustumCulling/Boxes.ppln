@@ -11,7 +11,7 @@
 		{
 			RC<ShaderStructType>	st = ShaderStructType( "io" );
 			st.Set( EStructLayout::InternalIO,
-					"float4		color;" +
+					"float4		color;"
 					"float4		worldPos;" );
 		}{
 			RC<DescriptorSetLayout>	ds = DescriptorSetLayout( "mtr.ds" );
@@ -88,7 +88,7 @@
 		const bool		is_visible	= un_DrawTasks.isVisible[ gl.InstanceIndex ] != 0;
 
 		const uint		idx			= gl.VertexIndex;
-		const float3	vert_pos	= box_pos + (un_Geometry.positions[idx] * scale);
+		const float3	vert_pos	= box_pos + (un_Geometry.position[idx] * scale);
 		const float4	world_pos	= LocalPosToWorldSpace( vert_pos );
 		float4			color		= float4(1.0, 0.2, 0.2, 1.0);
 

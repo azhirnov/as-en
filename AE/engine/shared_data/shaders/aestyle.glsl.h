@@ -1294,7 +1294,7 @@ public:
 
 
 	// in
-	const 	float4	FragCoord						= {};
+	const 	float4	FragCoord						= {};	// include viewport offset
 	const 	bool	FrontFacing						= {};
 	const 	bool	HelperInvocation				= {};
 	const	int		Layer							= {};
@@ -1414,6 +1414,11 @@ public:
 	  #ifdef AE_ray_flags_primitive_culling
 		SkipTriangles,				// Do not intersect with any triangle geometries.
 		SkipAABB,					// Do not intersect with any aabb geometries.
+	  #endif
+
+		// GL_EXT_opacity_micromap
+	  #ifdef AE_opacity_micromap
+		ForceOpacityMicromap2State,
 	  #endif
 	};
   #endif
@@ -1611,6 +1616,7 @@ public:
   #ifdef AE_RTAS_BUILD
 	enum class GeometryInstanceFlags : uint
 	{
+		None,
 		TriangleCullDisable,
 		TriangleFrontCCW,
 		ForceOpaque,
@@ -1901,6 +1907,25 @@ public:
 
 	// GLSL_EXT_debug_printf
 	void  Printf (const char*, ...);
+
+	struct {
+	  // returns a 64-bit value representing a real-time clock that is globally coherent by all invocations on the GPU.
+	  #ifdef AE_shader_realtime_clock
+		ND_ U64pack		Device2 ();
+	  # if AE_ENABLE_LONG_TYPE
+		ND_ ulong		Device ();
+	  # endif
+	  #endif
+
+	  // time is guaranteed to be dynamically uniform across a single sub-group
+	  #ifdef AE_shader_clock
+		ND_ U64pack		Subgroup2 ();
+	  # if AE_ENABLE_LONG_TYPE
+		ND_ ulong		Subgroup ();
+	  # endif
+	  #endif
+
+	} clock;
 
 } gl;
 

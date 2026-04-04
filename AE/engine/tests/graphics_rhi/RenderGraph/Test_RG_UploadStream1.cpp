@@ -15,7 +15,7 @@ namespace
 		Atomic<uint>				counter		{0};
 	};
 
-	static constexpr Bytes	upload_limit = 1_MiB;
+	static constexpr Bytes	c_UploadLimit = 1_MiB;
 
 
 	static RenderCoro  US1_UploadStreamTask (US1_TestData& t)
@@ -34,7 +34,7 @@ namespace
 
 		const auto	stat = GraphicsScheduler().GetResourceManager().GetStagingBufferFrameStat( ctx.GetFrameId() );
 		CHECK( stat.dynamicWrite > 0 );
-		CHECK( stat.dynamicWrite <= upload_limit );
+		CHECK( stat.dynamicWrite <= c_UploadLimit );
 	}
 
 
@@ -47,7 +47,7 @@ namespace
 			auto&	rts = GraphicsScheduler();
 
 			BeginFrameConfig	cfg;
-			cfg.stagingBufferPerFrameLimits.write = upload_limit;
+			cfg.stagingBufferPerFrameLimits.write = c_UploadLimit;
 
 			CHECK_CE( rts.WaitNextFrame( c_ThreadArr, c_MaxTimeout ));
 			CHECK_CE( rts.BeginFrame( cfg ));
@@ -86,7 +86,7 @@ namespace
 		CHECK_ERR( rts.WaitAll( c_MaxTimeout ));
 
 		CHECK_ERR( t.stream.IsCompleted() );
-		CHECK_ERR( t.counter.load() >= uint(t.buf_size / upload_limit) );
+		CHECK_ERR( t.counter.load() >= uint(t.buf_size / c_UploadLimit) );
 
 		return true;
 	}
@@ -94,7 +94,7 @@ namespace
 } // namespace
 
 
-bool RGTest::Test_UploadStream1 ()
+RGTest::ECode  RGTest::Test_UploadStream1 ()
 {
 	bool	result = true;
 
@@ -102,6 +102,10 @@ bool RGTest::Test_UploadStream1 ()
 
 	RG_CHECK( _CompareDumps( TEST_NAME ));
 
-	AE_LOGI( TEST_NAME << " - passed" );
-	return result;
+	if ( result )
+	{
+		AE_LOGI( TEST_NAME << " - passed" );
+		return ECode::Passed;
+	}
+	return ECode::Failed;
 }

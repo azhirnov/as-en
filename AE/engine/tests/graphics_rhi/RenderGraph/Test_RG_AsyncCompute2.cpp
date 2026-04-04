@@ -45,7 +45,7 @@ namespace
 		GfxMemAllocatorPtr				gfxAlloc;
 	};
 
-	static constexpr auto&	RTech = RenderTechs::AsyncCompTestRT;
+	static constexpr auto&	RTech = RenderTechs::AsyncComp_RTech;
 
 
 	template <typename CtxTypes>
@@ -153,9 +153,13 @@ namespace
 
 				auto	initial = batch_gfx->DeferredBarriers();
 				if ( t.frameIdx.load() < 2 )
-					initial.ImageBarrier( t.image[fi], EResourceState::Invalidate, img_gfx_state );
-				else
+				{
+					// invalidate image[0] and image[1] in first 2 frames
+					initial.ResourceBarrier( t.image[fi], EResourceState::Invalidate, img_gfx_state );
+				}else{
+					// in 3rd frame sync with AsyncCompute queue
 					initial.AcquireImageOwnership( t.image[fi], EQueueType::AsyncCompute, img_comp_state, img_gfx_state );
+				}
 
 				auto	final = batch_gfx->DeferredBarriers();
 				final.ReleaseImageOwnership( t.image[fi], img_gfx_state, img_comp_state, EQueueType::AsyncCompute );
@@ -208,8 +212,8 @@ namespace
 			auto	initial = batch->DeferredBarriers();
 			initial	.AcquireImageOwnership( t.image[0], EQueueType::AsyncCompute, img_comp_state, img_gfx_state )
 					.AcquireImageOwnership( t.image[1], EQueueType::AsyncCompute, img_comp_state, img_gfx_state )
-					.ImageBarrier( t.image[0], img_gfx_state, EResourceState::CopySrc )
-					.ImageBarrier( t.image[1], img_gfx_state, EResourceState::CopySrc );
+					.ResourceBarrier( t.image[0], img_gfx_state, EResourceState::CopySrc )
+					.ResourceBarrier( t.image[1], img_gfx_state, EResourceState::CopySrc );
 
 			auto	final = batch->DeferredBarriers();
 			final.MemoryBarrier( EResourceState::CopyDst, EResourceState::Host_Read );
@@ -286,6 +290,7 @@ namespace
 		CHECK_ERR( rts.WaitAll( c_MaxTimeout ));
 
 		CHECK_ERR( t.frameIdx.load() == 4 );
+		CHECK_ERR( t.result[0] and t.result[1] );
 
 		CHECK_ERR( Scheduler().Wait( List{ t.result[0], t.result[1] }, c_MaxTimeout ));
 		CHECK_ERR( t.result[0]->Status() == ETaskStatus::Completed );
@@ -299,12 +304,12 @@ namespace
 } // namespace
 
 
-bool RGTest::Test_AsyncCompute2 ()
+RGTest::ECode  RGTest::Test_AsyncCompute2 ()
 {
 	if ( not AllBits( GraphicsScheduler().GetDevice().GetAvailableQueues(), EQueueMask::Graphics | EQueueMask::AsyncCompute ))
 	{
 		AE_LOGI( TEST_NAME << " - skipped" );
-		return true;
+		return ECode::Skipped;
 	}
 
 	auto	img_cmp = _LoadReference( TEST_NAME );
@@ -315,6 +320,10 @@ bool RGTest::Test_AsyncCompute2 ()
 
 	RG_CHECK( _CompareDumps( TEST_NAME ));
 
-	AE_LOGI( TEST_NAME << " - passed" );
-	return result;
+	if ( result )
+	{
+		AE_LOGI( TEST_NAME << " - passed" );
+		return ECode::Passed;
+	}
+	return ECode::Failed;
 }

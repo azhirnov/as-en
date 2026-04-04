@@ -1,14 +1,10 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
-#ifdef AE_PLATFORM_ANDROID
+#if 0 //def AE_PLATFORM_ANDROID
 # include "platform/Android/GameAppAndroid.h"
 # include "graphics_rhi/Vulkan/VSwapchain.h"
 # include "platform/Android/FileSystemAndroid.h"
 # include "platform/OpenXR/VRSessionOpenXR.h"
-
-namespace AE::Base {
-	extern bool  Android_IsUnderDebugger;
-}
 
 namespace AE::App
 {
@@ -378,13 +374,17 @@ namespace {
 */
 void  android_main (android_app* app)
 {
+	using namespace AE;
 	using namespace AE::App;
 	using namespace AE::Java;
 
 	JavaEnv::SetVM( app->activity->vm );
 	JavaEnv  env;
 
-	s_GameApp.reset( new GameAppAndroid{ AE_OnAppCreated() });
+	const int	argc	= 1;
+	const char*	argv[]	= { "" };
+
+	s_GameApp.reset( new GameAppAndroid{ AE_OnAppCreated( argc, argv )});
 	AE_LOGI( "Started native application" );
 
 	app->userData = s_GameApp.get();

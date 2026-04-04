@@ -19,18 +19,12 @@
 		RC<Buffer>		his_buf				= Buffer();
 		RC<Buffer>		id_buf				= Buffer();
 		RC<FeatureSet>	fs					= GetFeatureSet();
-		const bool		has_sg_size_ctrl	= fs.hasSubgroupSizeControl();
-		const uint		min_subgroup		= has_sg_size_ctrl ? fs.getMinSubgroupSize() : GetSubgroupSize();
-		const uint		max_subgroup		= has_sg_size_ctrl ? fs.getMaxSubgroupSize() : GetSubgroupSize();
 		const uint		local_size			= 16; //GetSubgroupSize();
-		const uint		sg_size				= Clamp( local_size, min_subgroup, max_subgroup );
-
-		Assert( local_size <= max_subgroup );
 
 		const uint		local_size_bits		= HighBitIndex( local_size );
 		const uint		col_count			= local_size;
 		const uint		col_height			= local_size;
-		RC<DynamicUInt>	his_size			= col_count;
+		const uint		his_size			= col_count;
 
 		id_buf.ArrayLayout(
 			"IdBuffer",
@@ -41,7 +35,7 @@
 			"HistogramBuffer",
 			"	uint		count;"s +
 			"	uint		errors;",
-			his_size.Mul(2) );
+			his_size*2 );
 
 		// render loop
 		{
@@ -58,7 +52,7 @@
 			pass.Constant(	"iColHeight",		col_height );
 			pass.LocalSize( col_count );
 			pass.DispatchGroups( 1 );
-			if ( has_sg_size_ctrl ) pass.SubgroupSize( sg_size );		// fix for Intel
+			pass.MinSubgroupSize( local_size );
 		}{
 			RC<Postprocess>		pass = Postprocess();
 			pass.ArgIn(		"un_Histogram",		his_buf );

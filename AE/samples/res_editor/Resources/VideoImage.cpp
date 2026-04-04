@@ -298,7 +298,9 @@ namespace AE::ResEditor
 		uint	result = 0;
 
 		// get next video frame
-		if ( FrameInfo info;  _decoder->GetVideoFrame( INOUT _imageMemView[idx], OUT info ))
+		FrameInfo	info;
+		auto		err = _decoder->GetVideoFrame( INOUT _imageMemView[idx], OUT info );
+		if ( err == Video::EResult::OK )
 		{
 			_frameTimes[idx] = info.timestamp;
 

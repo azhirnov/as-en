@@ -20,8 +20,9 @@
 		RC<Image>		rt			= Image( EPixelFormat::RGBA8_UNorm, SurfaceSize() );	rt.Name( "RT" );
 		RC<RTScene>		scene		= RTScene();
 		RC<RTGeometry>	geom		= RTGeometry();
-		RC<Buffer>		triangles	= Buffer();
-		const uint		grid_size	= 64;
+		RC<Buffer>		triangles;
+		const uint		grid_lod	= 5;
+		const uint		grid_size	= 1 << (grid_lod+1);	// see 'Mesh::AddGrid()' comment
 		RC<FPVCamera>	camera		= FPVCamera();
 
 		// setup camera
@@ -37,23 +38,15 @@
 
 		// create geometry
 		{
-			array<float3>	positions;
-			array<uint>		indices;
-			GetGrid( grid_size, OUT positions, OUT indices );
+			RC<Mesh>	mesh = Mesh();
+			mesh.SetAttributes( EAttribute::Position | EAttribute::Normal );
+			mesh.AddGrid( grid_lod );
 
-			for (uint i = 0; i < positions.size(); ++i) {
-				positions[i].x = ToSNorm( positions[i].x );
-				positions[i].y = ToSNorm( positions[i].y );
-			}
+			@triangles = mesh.ToBuffer();
+			triangles.Uint(  "gridSize",		grid_size );
+			triangles.Float( "invGridSize",		1.f / float(grid_size) );
 
-			triangles.Uint(			"gridSize",		grid_size );
-			triangles.Float(		"invGridSize",	1.f / float(grid_size) );
-			triangles.FloatArray(	"positions",	positions );
-			triangles.FloatArray(	"normals",		positions );
-			triangles.UIntArray(	"indices",		indices );
-
-			geom.AddIndexedTriangles( triangles, triangles );
-
+			geom.AddIndexedTriangles( mesh );
 			scene.AddInstance( geom, float3(0.f, 0.f, 2.f), RTInstanceCustomIndex(0) );
 		}
 
@@ -114,8 +107,8 @@
 		const int	idx		= GetGlobalIndex();
 		float2		snorm	= GetGlobalCoordSNorm().xy;
 
-		un_Triangles.positions[idx]	= GetPosition( snorm );
-		un_Triangles.normals[idx]	= GetNormal( snorm );
+		un_Triangles.position[idx]	= GetPosition( snorm );
+		un_Triangles.normal[idx]	= GetNormal( snorm );
 
 		if ( idx == 0 )
 		{
@@ -139,9 +132,9 @@
 
 	ND_ float4  HitShader (const float2 barycentric, const uint primitiveId)
 	{
-		float3	n0		= un_Triangles.normals[ un_Triangles.indices[ primitiveId * 3 + 0 ]];
-		float3	n1		= un_Triangles.normals[ un_Triangles.indices[ primitiveId * 3 + 1 ]];
-		float3	n2		= un_Triangles.normals[ un_Triangles.indices[ primitiveId * 3 + 2 ]];
+		float3	n0		= un_Triangles.normal[ un_Triangles.indices[ primitiveId * 3 + 0 ]];
+		float3	n1		= un_Triangles.normal[ un_Triangles.indices[ primitiveId * 3 + 1 ]];
+		float3	n2		= un_Triangles.normal[ un_Triangles.indices[ primitiveId * 3 + 2 ]];
 		float3	norm	= BaryLerp( n0, n1, n2, barycentric );
 		return float4( ToUNorm(norm), 1.f );
 	}

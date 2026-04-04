@@ -70,7 +70,7 @@ namespace
 } // namespace
 
 
-bool RGTest::Test_FrameCounter ()
+RGTest::ECode  RGTest::Test_FrameCounter ()
 {
 	bool	result = true;
 
@@ -78,6 +78,10 @@ bool RGTest::Test_FrameCounter ()
 
 	RG_CHECK( _CompareDumps( TEST_NAME ));
 
-	AE_LOGI( TEST_NAME << " - passed" );
-	return result;
+	if ( result )
+	{
+		AE_LOGI( TEST_NAME << " - passed" );
+		return ECode::Passed;
+	}
+	return ECode::Failed;
 }

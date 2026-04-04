@@ -44,16 +44,6 @@ if (TARGET "Graphics")
 		add_dependencies( "PACK_RES" "Tests.Graphics.PackRes" )
 	endif()
 
-	if (${AE_CI_BUILD_TEST})
-		target_compile_definitions( ${TEST_NAME} PRIVATE AE_REF_IMG_PATH="tests_graphics_ref" )
-	elseif (ANDROID)
-		target_compile_definitions( ${TEST_NAME} PRIVATE AE_REF_IMG_PATH="tests_graphics_ref_" )
-	else()
-		target_compile_definitions( ${TEST_NAME} PRIVATE
-			AE_REF_IMG_PATH="${AE_DATA_FOLDER}/tests/graphics/"
-			AE_RES_PACK_FOLDER="${AE_TEMP_FOLDER}/engine/graphics/" )
-	endif()
-
 	UseEnginePCH2( ${TEST_NAME} )
 
 	add_test( NAME ${TEST_NAME} COMMAND ${TEST_NAME} )

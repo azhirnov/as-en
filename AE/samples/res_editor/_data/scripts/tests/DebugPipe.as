@@ -45,23 +45,20 @@
 
 		// create geometry
 		{
-			RC<UnifiedGeometry>		geometry	= UnifiedGeometry();
-			RC<Buffer>				geom_data	= Buffer();
+			RC<Mesh>	mesh = Mesh();
+			mesh.SetAttributes( EAttribute::Position );
+			mesh.AddSphere( 4 );
 
-			array<float3>	positions;
-			array<uint>		indices;
-			GetSphere( 3, OUT positions, OUT indices );
-
-			geom_data.FloatArray( "positions",	positions );
-			geom_data.UIntArray(  "indices",	indices );
+			RC<Buffer>	geom_data = mesh.ToBuffer();
 			geom_data.LayoutName( "GeometrySBlock" );
 
 			UnifiedGeometry_DrawIndexed	cmd;
-			cmd.indexCount		= indices.size();
+			cmd.indexCount		= mesh.IndexCount();
 			cmd.IndexBuffer(	geom_data,	"indices" );
 			cmd.instanceCount	= 2;
-			geometry.Draw( cmd );
 
+			RC<UnifiedGeometry>		geometry = UnifiedGeometry();
+			geometry.Draw( cmd );
 			geometry.ArgIn(	"un_Geometry",	geom_data );
 
 			scene.Add( geometry );

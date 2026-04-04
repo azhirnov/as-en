@@ -16,8 +16,6 @@
 		ScriptPresent (const ScriptImagePtr &rt, const ImageLayer &layer, const MipmapLevel &mipmap, RC<DynamicDim> dynSize) :
 			rt{rt}, layer{layer}, mipmap{mipmap}, dynSize{dynSize} {}
 
-		void		_OnAddArg (INOUT ScriptPassArgs::Argument &) C_Th_OV {}
-
 		RC<IPass>	ToPass () __Th_OV;
 	};
 
@@ -64,8 +62,6 @@
 		ScriptDbgView (const ScriptImagePtr &rt, const ImageLayer &layer, const MipmapLevel &mipmap, DebugView::EFlags flags, uint idx) :
 			rt{rt}, layer{layer}, mipmap{mipmap}, flags{flags}, index{idx} {}
 
-		void		_OnAddArg (INOUT ScriptPassArgs::Argument &) C_Th_OV {}
-
 		RC<IPass>	ToPass () __Th_OV
 		{
 			return MakeRCTh<ResEditor::DebugView>( rt->ToResource(), index, flags, layer, mipmap,
@@ -86,8 +82,6 @@
 
 	public:
 		ScriptGenMipmaps (const ScriptImagePtr &rt) : rt{rt} {}
-
-		void		_OnAddArg (INOUT ScriptPassArgs::Argument &) C_Th_OV {}
 
 		RC<IPass>	ToPass () __Th_OV
 		{
@@ -128,8 +122,6 @@
 	public:
 		ScriptReadBufferValue (ScriptBufferPtr buf, const String &field, AnyDynVecOrScalar_t dst, PipelineCompiler::EValueType type, uint count) :
 			buffer{buf}, fieldName{field}, dst{RVRef(dst)}, type{type}, rows{ubyte(count)} {}
-
-		void		_OnAddArg (INOUT ScriptPassArgs::Argument &) C_Th_OV {}
 
 		RC<IPass>	ToPass () __Th_OV
 		{
@@ -210,8 +202,6 @@
 		ScriptCompressImage (const ScriptImagePtr &src, const ScriptImagePtr &dst, EPixelFormat dstFormat) :
 			src{src}, dst{dst}, dstFormat{dstFormat} {}
 
-		void		_OnAddArg (INOUT ScriptPassArgs::Argument &) C_Th_OV {}
-
 		RC<IPass>	ToPass () __Th_OV
 		{
 			return MakeRCTh<ResEditor::ImageCompressionPass>( src->ToResource(), dst->ToResource(), dstFormat, "CompressImage" );
@@ -233,8 +223,6 @@
 	public:
 		ScriptCopyImage (const ScriptImagePtr &src, const ScriptImagePtr &dst) :
 			src{src}, dst{dst} {}
-
-		void		_OnAddArg (INOUT ScriptPassArgs::Argument &) C_Th_OV {}
 
 		RC<IPass>	ToPass () __Th_OV
 		{
@@ -258,7 +246,6 @@
 		ScriptCopyImage2 (const ScriptImagePtr &src, const ScriptImagePtr &dst) :
 			src{src}, dst{dst} {}
 
-		void		_OnAddArg (INOUT ScriptPassArgs::Argument &)	C_Th_OV {}
 		RC<IPass>	ToPass ()										__Th_OV;
 
 	private:
@@ -282,12 +269,12 @@
 
 	void  ScriptExe::ScriptCopyImage2::_CompilePipeline2 () C_Th___
 	{
-		RenderTechniquePtr	rtech{ new RenderTechnique{ "rtech" }};
+		RenderTechniquePtr	rtech = RenderTechnique::Create( "rtech" );
 		{
 			RTComputePassPtr	pass = rtech->AddComputePass2( "Compute" );
 			Unused( pass );
 		}{
-			DescriptorSetLayoutPtr	ds_layout{ new DescriptorSetLayout{ "dsl.0" }};
+			DescriptorSetLayoutPtr	ds_layout = DescriptorSetLayout::Create( "dsl.0" );
 			ds_layout->AddCombinedImage_ImmutableSampler( EShaderStages::Compute, "un_InImage", EImageType(src->ImageType()), EResourceState::ShaderSample, "NearestClamp"s );
 			ds_layout->AddStorageImage( EShaderStages::Compute, "un_OutImage", ArraySize{1}, EImageType(dst->ImageType()), dst->PixelFormat(), EAccessType::Restrict, EResourceState::ShaderStorage_Write );
 		}
@@ -305,10 +292,10 @@
 			)#";
 		}
 
-		PipelineLayoutPtr		ppln_layout{ new PipelineLayout{ "copyimage.pl" }};
+		PipelineLayoutPtr		ppln_layout = PipelineLayout::Create( "copyimage.pl" );
 		ppln_layout->AddDSLayout2( "ds0", 0, "dsl.0" );
 
-		ComputePipelinePtr		ppln_templ{ new ComputePipelineScriptBinding{ "copyimage" }};
+		ComputePipelinePtr		ppln_templ = ComputePipelineScriptBinding::Create( "copyimage" );
 		ppln_templ->Disable();
 		ppln_templ->SetLayout2( ppln_layout );
 
@@ -366,8 +353,6 @@
 		ScriptBlitImage (const ScriptImagePtr &src, const ScriptImagePtr &dst) :
 			src{src}, dst{dst} {}
 
-		void		_OnAddArg (INOUT ScriptPassArgs::Argument &) C_Th_OV {}
-
 		RC<IPass>	ToPass () __Th_OV
 		{
 			return MakeRCTh<ResEditor::BlitImagePass>( src->ToResource(), dst->ToResource(), "BlitImage" );
@@ -390,8 +375,6 @@
 		ScriptResolveImage (const ScriptImagePtr &src, const ScriptImagePtr &dst) :
 			src{src}, dst{dst} {}
 
-		void		_OnAddArg (INOUT ScriptPassArgs::Argument &) C_Th_OV {}
-
 		RC<IPass>	ToPass () __Th_OV
 		{
 			return MakeRCTh<ResEditor::ResolveImagePass>( src->ToResource(), dst->ToResource(), "ResolveImage" );
@@ -413,8 +396,6 @@
 	public:
 		ScriptClearImage (const ScriptImagePtr &image, ClearImagePass::ClearValue_t value) :
 			image{image}, value{value} {}
-
-		void		_OnAddArg (INOUT ScriptPassArgs::Argument &) C_Th_OV {}
 
 		RC<IPass>	ToPass () __Th_OV
 		{
@@ -442,8 +423,6 @@
 
 		ScriptClearBuffer (const ScriptBufferPtr &buffer, Bytes offset, Bytes size, uint value) :
 			buffer{buffer}, offset{offset}, size{size}, value{value} {}
-
-		void		_OnAddArg (INOUT ScriptPassArgs::Argument &) C_Th_OV {}
 
 		RC<IPass>	ToPass () __Th_OV
 		{
@@ -497,8 +476,6 @@
 			_dstType{dstType}, _dstBuffer{dstBuffer}, _dstOffset{dstOffset}, _dstSize{dstSize}, _dstStride{dstStride}, _dstLayout{dstLayout}
 		{}
 
-		void		_OnAddArg (INOUT ScriptPassArgs::Argument &) C_Th_OV {}
-
 		RC<IPass>	ToPass () __Th_OV
 		{
 			RC<Buffer>	src_buf;
@@ -544,8 +521,6 @@
 			}
 		}
 
-		void		_OnAddArg (INOUT ScriptPassArgs::Argument &) C_Th_OV {}
-
 		RC<IPass>	ToPass () __Th_OV
 		{
 			return MakeRCTh<ResEditor::ResetUnusedTimersPass>( _arr );
@@ -567,8 +542,6 @@
 	public:
 		ScriptExportImage (const ScriptImagePtr &image, const String &prefix) :
 			image{image}, prefix{prefix} {}
-
-		void		_OnAddArg (INOUT ScriptPassArgs::Argument &) C_Th_OV {}
 
 		RC<IPass>	ToPass () __Th_OV
 		{
@@ -605,8 +578,6 @@
 
 		ScriptExportBuffer (const ScriptBufferPtr &buffer, const String &prefix, Bytes offset, Bytes size, EMode mode) :
 			buffer{buffer}, prefix{prefix}, offset{offset}, size{size}, mode{mode} {}
-
-		void		_OnAddArg (INOUT ScriptPassArgs::Argument &) C_Th_OV {}
 
 		RC<IPass>	ToPass () __Th_OV;
 	};
@@ -929,8 +900,6 @@
 			_indirect{ indirect }
 		{}
 
-		void		_OnAddArg (INOUT ScriptPassArgs::Argument &) C_Th_OV {}
-
 		RC<IPass>	ToPass () __Th_OV;
 	};
 
@@ -974,8 +943,6 @@
 			_indirect{ indirect }
 		{}
 
-		void		_OnAddArg (INOUT ScriptPassArgs::Argument &) C_Th_OV {}
-
 		RC<IPass>	ToPass () __Th_OV;
 	};
 
@@ -1003,6 +970,44 @@
 
 
 	//
+	// Build Ray Tracing Micromap Pass
+	//
+	class ScriptExe::ScriptBuildRTMicromap final : public ScriptBasePass
+	{
+	private:
+		ScriptRTMicromapPtr		_dstMicromap;
+
+
+	public:
+		ScriptBuildRTMicromap (ScriptRTMicromapPtr	dstMicromap) :
+			_dstMicromap{ dstMicromap }
+		{}
+
+		RC<IPass>	ToPass () __Th_OV;
+	};
+
+/*
+=================================================
+	ScriptBuildRTMicromap::ToPass
+=================================================
+*/
+	RC<IPass>  ScriptExe::ScriptBuildRTMicromap::ToPass () __Th___
+	{
+		CHECK_THROW( s_scriptExe != null );
+
+		RC<RTMicromap>		dst_micromap;
+		s_scriptExe->_RunWithPipelineCompiler(
+			[&] () {
+				dst_micromap = _dstMicromap->ToResource();
+			});
+
+		return MakeRCTh<ResEditor::BuildRTMicromap>( dst_micromap, "BuildRTMicromap" );
+	}
+//-----------------------------------------------------------------------------
+
+
+
+	//
 	// Pass Group
 	//
 	class ScriptExe::ScriptPassGroup final : public ScriptBasePass
@@ -1019,7 +1024,6 @@
 		{}
 
 			void  Add (ScriptBasePassPtr pass)							{ _passes.push_back( RVRef(pass) ); }
-			void  _OnAddArg (INOUT ScriptPassArgs::Argument &)	C_Th_OV	{}
 
 		ND_ ArrayView<ScriptBasePassPtr>	GetPasses ()		const	{ return _passes; }
 		ND_ RC<IPass>						ToPass ()			__Th_OV;

@@ -70,8 +70,8 @@ namespace AE::Graphics
 		profile_info.sType						= VK_STRUCTURE_TYPE_VIDEO_PROFILE_INFO_KHR;
 		profile_info.videoCodecOperation		= VEnumCast( _desc.profile.mode, _desc.profile.codec );
 		profile_info.chromaSubsampling			= VEnumCast( _desc.profile.chromaSubsampling );
-		profile_info.lumaBitDepth				= VEnumCast_VideoComponentBitDepth( _desc.profile.lumaBitDepth );
-		profile_info.chromaBitDepth				= VEnumCast_VideoComponentBitDepth( _desc.profile.chromaBitDepth );
+		profile_info.lumaBitDepth				= VEnumCast( _desc.profile.lumaBitDepth );
+		profile_info.chromaBitDepth				= VEnumCast( _desc.profile.chromaBitDepth );
 
 		session_ci.sType						= VK_STRUCTURE_TYPE_VIDEO_SESSION_CREATE_INFO_KHR;
 		session_ci.queueFamilyIndex				= uint(queue->familyIndex);
@@ -79,7 +79,7 @@ namespace AE::Graphics
 		session_ci.pVideoProfile				= &profile_info;
 		session_ci.pictureFormat				= VEnumCast( _desc.pictureFormat );
 		session_ci.maxCodedExtent				= { _desc.maxCodedExtent.x, _desc.maxCodedExtent.y };
-		session_ci.referencePictureFormat		= VEnumCast( _desc.referencePictureFormat );
+		session_ci.referencePictureFormat		= _desc.referencePictureFormat == Default ? VK_FORMAT_UNDEFINED : VEnumCast( _desc.referencePictureFormat );
 		session_ci.maxDpbSlots					= _desc.maxDpbSlots;
 		session_ci.maxActiveReferencePictures	= _desc.maxActiveReferencePictures;
 
@@ -107,13 +107,20 @@ namespace AE::Graphics
 				params_ci.pNext							= decode_h264_params;
 
 				decode_h264_profile->sType				= VK_STRUCTURE_TYPE_VIDEO_DECODE_H264_PROFILE_INFO_KHR;
-				decode_h264_profile->stdProfileIdc		= STD_VIDEO_H264_PROFILE_IDC_MAIN;
-				decode_h264_profile->pictureLayout		= VK_VIDEO_DECODE_H264_PICTURE_LAYOUT_INTERLACED_INTERLEAVED_LINES_BIT_KHR;
 
 				decode_h264_params->sType				= VK_STRUCTURE_TYPE_VIDEO_DECODE_H264_SESSION_PARAMETERS_CREATE_INFO_KHR;
 				decode_h264_params->pParametersAddInfo	= decode_h264_params_add;
 
 				decode_h264_params_add->sType			= VK_STRUCTURE_TYPE_VIDEO_DECODE_H264_SESSION_PARAMETERS_ADD_INFO_KHR;
+
+				if ( auto* spec = UnionGet<VideoProfile::Decode_H264>( _desc.profile.spec ))
+				{
+					decode_h264_profile->stdProfileIdc	= VEnumCast( spec->stdProfileIdc );
+					decode_h264_profile->pictureLayout	= VEnumCast( spec->pictureLayout );
+				}else{
+					decode_h264_profile->stdProfileIdc	= STD_VIDEO_H264_PROFILE_IDC_MAIN;
+					decode_h264_profile->pictureLayout	= VK_VIDEO_DECODE_H264_PICTURE_LAYOUT_INTERLACED_INTERLEAVED_LINES_BIT_KHR;
+				}
 				break;
 			}
 
@@ -137,12 +144,18 @@ namespace AE::Graphics
 				params_ci.pNext							= decode_h265_params;
 
 				decode_h265_profile->sType				= VK_STRUCTURE_TYPE_VIDEO_DECODE_H265_PROFILE_INFO_KHR;
-				decode_h265_profile->stdProfileIdc		= STD_VIDEO_H265_PROFILE_IDC_MAIN;
 
 				decode_h265_params->sType				= VK_STRUCTURE_TYPE_VIDEO_DECODE_H265_SESSION_PARAMETERS_CREATE_INFO_KHR;
 				decode_h265_params->pParametersAddInfo	= decode_h265_params_add;
 
 				decode_h265_params_add->sType			= VK_STRUCTURE_TYPE_VIDEO_DECODE_H265_SESSION_PARAMETERS_ADD_INFO_KHR;
+
+				if ( auto* spec = UnionGet< VideoProfile::Decode_H265 >( _desc.profile.spec ))
+				{
+					decode_h265_profile->stdProfileIdc	= VEnumCast( spec->stdProfileIdc );
+				}else{
+					decode_h265_profile->stdProfileIdc	= STD_VIDEO_H265_PROFILE_IDC_MAIN;
+				}
 				break;
 			}
 
@@ -166,12 +179,18 @@ namespace AE::Graphics
 				params_ci.pNext							= encode_h264_params;
 
 				encode_h264_profile->sType				= VK_STRUCTURE_TYPE_VIDEO_ENCODE_H264_PROFILE_INFO_KHR;
-				encode_h264_profile->stdProfileIdc		= STD_VIDEO_H264_PROFILE_IDC_MAIN;
 
 				encode_h264_params->sType				= VK_STRUCTURE_TYPE_VIDEO_ENCODE_H264_SESSION_PARAMETERS_CREATE_INFO_KHR;
 				encode_h264_params->pParametersAddInfo	= encode_h264_params_add;
 
 				encode_h264_params_add->sType			= VK_STRUCTURE_TYPE_VIDEO_ENCODE_H264_SESSION_PARAMETERS_ADD_INFO_KHR;
+
+				if ( auto* spec = UnionGet< VideoProfile::Encode_H264 >( _desc.profile.spec ))
+				{
+					encode_h264_profile->stdProfileIdc	= VEnumCast( spec->stdProfileIdc );
+				}else{
+					encode_h264_profile->stdProfileIdc	= STD_VIDEO_H264_PROFILE_IDC_MAIN;
+				}
 				break;
 			}
 
@@ -187,6 +206,9 @@ namespace AE::Graphics
 							encode_h265_params_add	!= null	and
 							encode_h265_stdhdr		!= null	);
 
+				auto*	src_spec = UnionGet< VideoProfile::Encode_H265 >( _desc.profile.spec );
+				CHECK_ERR( src_spec != null );
+
 				CopyCString( OUT encode_h265_stdhdr->extensionName, VK_STD_VULKAN_VIDEO_CODEC_H265_ENCODE_EXTENSION_NAME );
 				encode_h265_stdhdr->specVersion			= VK_STD_VULKAN_VIDEO_CODEC_H265_ENCODE_SPEC_VERSION;
 
@@ -195,21 +217,44 @@ namespace AE::Graphics
 				params_ci.pNext							= encode_h265_params;
 
 				encode_h265_profile->sType				= VK_STRUCTURE_TYPE_VIDEO_ENCODE_H265_PROFILE_INFO_KHR;
-				encode_h265_profile->stdProfileIdc		= STD_VIDEO_H265_PROFILE_IDC_MAIN;
 
 				encode_h265_params->sType				= VK_STRUCTURE_TYPE_VIDEO_ENCODE_H265_SESSION_PARAMETERS_CREATE_INFO_KHR;
 				encode_h265_params->pParametersAddInfo	= encode_h265_params_add;
 
 				encode_h265_params_add->sType			= VK_STRUCTURE_TYPE_VIDEO_ENCODE_H265_SESSION_PARAMETERS_ADD_INFO_KHR;
+
+				if ( auto* spec = UnionGet<VideoProfile::Encode_H265>( _desc.profile.spec ))
+				{
+					encode_h265_profile->stdProfileIdc	= VEnumCast( spec->stdProfileIdc );
+				}else{
+					encode_h265_profile->stdProfileIdc	= STD_VIDEO_H265_PROFILE_IDC_MAIN;
+				}
 				break;
 			}
 
 			case VK_VIDEO_CODEC_OPERATION_DECODE_AV1_BIT_KHR :
+			{
+				auto*	src_spec = UnionGet< VideoProfile::Decode_AV1 >( _desc.profile.spec );
+				CHECK_ERR( src_spec != null );
+
+				break;
+			}
+
 			case VK_VIDEO_CODEC_OPERATION_ENCODE_AV1_BIT_KHR :
-				// TODO
+			{
+				auto*	src_spec = UnionGet< VideoProfile::Encode_AV1 >( _desc.profile.spec );
+				CHECK_ERR( src_spec != null );
+
+				break;
+			}
 
 			case VK_VIDEO_CODEC_OPERATION_DECODE_VP9_BIT_KHR :
-				// TODO
+			{
+				auto*	src_spec = UnionGet< VideoProfile::Decode_VP9 >( _desc.profile.spec );
+				CHECK_ERR( src_spec != null );
+
+				break;
+			}
 
 			case VK_VIDEO_CODEC_OPERATION_NONE_KHR :
 			case VK_VIDEO_CODEC_OPERATION_FLAG_BITS_MAX_ENUM_KHR :
@@ -333,161 +378,165 @@ namespace
 */
 	bool  VVideoSession::Validate (const VDevice &dev, INOUT VideoSessionDesc &desc) __NE___
 	{
-		return WithVideoProfile( dev, desc.profile,
-				[&dev, &desc] (const VkVideoProfileInfoKHR &profileInfo, const VkVideoCapabilitiesKHR &capabilities) -> bool
-				{
-					desc.maxDpbSlots				= Min( desc.maxDpbSlots, capabilities.maxDpbSlots );
-					desc.maxActiveReferencePictures	= Min( desc.maxActiveReferencePictures, capabilities.maxActiveReferencePictures );
+		VkVideoProfileInfoKHR			profile_info;
+		VkVideoCapabilitiesKHR			capabilities;
+		InPlaceLinearAllocator<1024>	alloc;
 
-					if ( All( desc.maxCodedExtent == uint2{0} )) {
-						desc.maxCodedExtent.x		= capabilities.minCodedExtent.width;
-						desc.maxCodedExtent.y		= capabilities.minCodedExtent.height;
-					}
-					if ( All( desc.maxCodedExtent == UMax )) {
-						desc.maxCodedExtent.x		= capabilities.maxCodedExtent.width;
-						desc.maxCodedExtent.y		= capabilities.maxCodedExtent.height;
-					}
-					CHECK_ERR( All( desc.maxCodedExtent >= uint2{capabilities.minCodedExtent.width, capabilities.minCodedExtent.height} ));
-					CHECK_ERR( All( desc.maxCodedExtent <= uint2{capabilities.maxCodedExtent.width, capabilities.maxCodedExtent.height} ));
+		if_unlikely( not GetProfileWithCapabilities( dev, desc.profile, alloc, OUT profile_info, OUT capabilities ))
+			return false;
 
-					// TODO: minBitstreamBufferOffsetAlignment, minBitstreamBufferSizeAlignment
+		desc.maxDpbSlots				= Min( desc.maxDpbSlots, capabilities.maxDpbSlots );
+		desc.maxActiveReferencePictures	= Min( desc.maxActiveReferencePictures, capabilities.maxActiveReferencePictures );
 
-					StaticAssert( uint(EVideoCodecMode::_Count) == 2 );
+		if ( All( desc.maxCodedExtent == uint2{0} )) {
+			desc.maxCodedExtent.x		= capabilities.minCodedExtent.width;
+			desc.maxCodedExtent.y		= capabilities.minCodedExtent.height;
+		}
+		if ( All( desc.maxCodedExtent == UMax )) {
+			desc.maxCodedExtent.x		= capabilities.maxCodedExtent.width;
+			desc.maxCodedExtent.y		= capabilities.maxCodedExtent.height;
+		}
+		CHECK_ERR( All( desc.maxCodedExtent >= uint2{capabilities.minCodedExtent.width, capabilities.minCodedExtent.height} ));
+		CHECK_ERR( All( desc.maxCodedExtent <= uint2{capabilities.maxCodedExtent.width, capabilities.maxCodedExtent.height} ));
 
-					if ( desc.profile.mode == EVideoCodecMode::Decode )
-					{
-						VkPhysicalDeviceVideoFormatInfoKHR	vinfo		= {};
-						VkVideoProfileListInfoKHR			prof_list	= {};
+		// TODO: minBitstreamBufferOffsetAlignment, minBitstreamBufferSizeAlignment
 
-						vinfo.sType				= VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VIDEO_FORMAT_INFO_KHR;
-						vinfo.pNext				= &prof_list;
-						vinfo.imageUsage		= VK_IMAGE_USAGE_VIDEO_DECODE_DST_BIT_KHR;	// decode output picture
+		StaticAssert( uint(EVideoCodecMode::_Count) == 2 );
 
-						prof_list.sType			= VK_STRUCTURE_TYPE_VIDEO_PROFILE_LIST_INFO_KHR;
-						prof_list.profileCount	= 1;
-						prof_list.pProfiles		= &profileInfo;
+		if ( desc.profile.mode == EVideoCodecMode::Decode )
+		{
+			VkPhysicalDeviceVideoFormatInfoKHR	vinfo		= {};
+			VkVideoProfileListInfoKHR			prof_list	= {};
 
-						StaticArray< VkVideoFormatPropertiesKHR, 16 >	vformats	= {};
-						uint											count		= uint(vformats.size());
-						for (auto& vf : vformats) { vf.sType = VK_STRUCTURE_TYPE_VIDEO_FORMAT_PROPERTIES_KHR; }
+			vinfo.sType				= VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VIDEO_FORMAT_INFO_KHR;
+			vinfo.pNext				= &prof_list;
+			vinfo.imageUsage		= VK_IMAGE_USAGE_VIDEO_DECODE_DST_BIT_KHR;	// decode output picture
 
-						VK_CHECK_ERR( vkGetPhysicalDeviceVideoFormatPropertiesKHR( dev.GetVkPhysicalDevice(), &vinfo, INOUT &count, OUT vformats.data() ));
-						CHECK_ERR( _FindPixFormatInVideoFormatProperties( INOUT desc.pictureFormat, ArrayView{ vformats.data(), count }, "pictureFormat" ));
+			prof_list.sType			= VK_STRUCTURE_TYPE_VIDEO_PROFILE_LIST_INFO_KHR;
+			prof_list.profileCount	= 1;
+			prof_list.pProfiles		= &profile_info;
 
-						if ( desc.maxActiveReferencePictures > 0 )
-						{
-							vinfo.imageUsage = VK_IMAGE_USAGE_VIDEO_DECODE_DPB_BIT_KHR;	// decode output picture and reconstructed picture
+			StaticArray< VkVideoFormatPropertiesKHR, 16 >	vformats	= {};
+			uint											count		= uint(vformats.size());
+			for (auto& vf : vformats) { vf.sType = VK_STRUCTURE_TYPE_VIDEO_FORMAT_PROPERTIES_KHR; }
 
-							count = uint(vformats.size());
-							VK_CHECK_ERR( vkGetPhysicalDeviceVideoFormatPropertiesKHR( dev.GetVkPhysicalDevice(), &vinfo, INOUT &count, OUT vformats.data() ));
-							CHECK_ERR( _FindPixFormatInVideoFormatProperties( INOUT desc.referencePictureFormat, ArrayView{ vformats.data(), count }, "referencePictureFormat" ));
-						}
-					}
-					else
-					if ( desc.profile.mode == EVideoCodecMode::Encode )
-					{
-						VkPhysicalDeviceVideoFormatInfoKHR	vinfo		= {};
-						VkVideoProfileListInfoKHR			prof_list	= {};
+			VK_CHECK_ERR( vkGetPhysicalDeviceVideoFormatPropertiesKHR( dev.GetVkPhysicalDevice(), &vinfo, INOUT &count, OUT vformats.data() ));
+			CHECK_ERR( _FindPixFormatInVideoFormatProperties( INOUT desc.pictureFormat, ArrayView{ vformats.data(), count }, "pictureFormat" ));
 
-						vinfo.sType				= VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VIDEO_FORMAT_INFO_KHR;
-						vinfo.pNext				= &prof_list;
-						vinfo.imageUsage		= VK_IMAGE_USAGE_VIDEO_ENCODE_SRC_BIT_KHR;	// encode input picture
+			if ( desc.maxActiveReferencePictures > 0 )
+			{
+				vinfo.imageUsage = VK_IMAGE_USAGE_VIDEO_DECODE_DPB_BIT_KHR;	// decode output picture and reconstructed picture
 
-						prof_list.sType			= VK_STRUCTURE_TYPE_VIDEO_PROFILE_LIST_INFO_KHR;
-						prof_list.profileCount	= 1;
-						prof_list.pProfiles		= &profileInfo;
+				count = uint(vformats.size());
+				VK_CHECK_ERR( vkGetPhysicalDeviceVideoFormatPropertiesKHR( dev.GetVkPhysicalDevice(), &vinfo, INOUT &count, OUT vformats.data() ));
+				CHECK_ERR( _FindPixFormatInVideoFormatProperties( INOUT desc.referencePictureFormat, ArrayView{ vformats.data(), count }, "referencePictureFormat" ));
+			}
+		}
+		else
+		if ( desc.profile.mode == EVideoCodecMode::Encode )
+		{
+			VkPhysicalDeviceVideoFormatInfoKHR	vinfo		= {};
+			VkVideoProfileListInfoKHR			prof_list	= {};
 
-						StaticArray< VkVideoFormatPropertiesKHR, 16 >	vformats	= {};
-						uint											count		= uint(vformats.size());
-						for (auto& vf : vformats) { vf.sType = VK_STRUCTURE_TYPE_VIDEO_FORMAT_PROPERTIES_KHR; }
+			vinfo.sType				= VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VIDEO_FORMAT_INFO_KHR;
+			vinfo.pNext				= &prof_list;
+			vinfo.imageUsage		= VK_IMAGE_USAGE_VIDEO_ENCODE_SRC_BIT_KHR;	// encode input picture
 
-						VK_CHECK_ERR( vkGetPhysicalDeviceVideoFormatPropertiesKHR( dev.GetVkPhysicalDevice(), &vinfo, INOUT &count, OUT vformats.data() ));
-						CHECK_ERR( _FindPixFormatInVideoFormatProperties( INOUT desc.pictureFormat, ArrayView{ vformats.data(), count }, "pictureFormat" ));
+			prof_list.sType			= VK_STRUCTURE_TYPE_VIDEO_PROFILE_LIST_INFO_KHR;
+			prof_list.profileCount	= 1;
+			prof_list.pProfiles		= &profile_info;
 
-						if ( desc.maxActiveReferencePictures > 0 )
-						{
-							vinfo.imageUsage = VK_IMAGE_USAGE_VIDEO_ENCODE_DPB_BIT_KHR;	// encode input picture and reconstructed picture
+			StaticArray< VkVideoFormatPropertiesKHR, 16 >	vformats	= {};
+			uint											count		= uint(vformats.size());
+			for (auto& vf : vformats) { vf.sType = VK_STRUCTURE_TYPE_VIDEO_FORMAT_PROPERTIES_KHR; }
 
-							count = uint(vformats.size());
-							VK_CHECK_ERR( vkGetPhysicalDeviceVideoFormatPropertiesKHR( dev.GetVkPhysicalDevice(), &vinfo, INOUT &count, OUT vformats.data() ));
-							CHECK_ERR( _FindPixFormatInVideoFormatProperties( INOUT desc.referencePictureFormat, ArrayView{ vformats.data(), count }, "referencePictureFormat" ));
-						}
-					}
-					else
-						RETURN_ERR( "unknown video codec mode" );
+			VK_CHECK_ERR( vkGetPhysicalDeviceVideoFormatPropertiesKHR( dev.GetVkPhysicalDevice(), &vinfo, INOUT &count, OUT vformats.data() ));
+			CHECK_ERR( _FindPixFormatInVideoFormatProperties( INOUT desc.pictureFormat, ArrayView{ vformats.data(), count }, "pictureFormat" ));
 
-					switch_enum( profileInfo.videoCodecOperation )
-					{
-						// decode h264
-						case VK_VIDEO_CODEC_OPERATION_DECODE_H264_BIT_KHR :
-						{
-							auto*	decode_cap		= Cast<VkVideoDecodeCapabilitiesKHR>( capabilities.pNext );
-							auto*	decode_cap_h264	= Cast<VkVideoDecodeH264CapabilitiesKHR>( decode_cap->pNext );
+			if ( desc.maxActiveReferencePictures > 0 )
+			{
+				vinfo.imageUsage = VK_IMAGE_USAGE_VIDEO_ENCODE_DPB_BIT_KHR;	// encode input picture and reconstructed picture
 
-							CHECK_ERR(	decode_cap->sType		== VK_STRUCTURE_TYPE_VIDEO_DECODE_CAPABILITIES_KHR		and
-										decode_cap_h264->sType	== VK_STRUCTURE_TYPE_VIDEO_DECODE_H264_CAPABILITIES_KHR	);
-							CHECK_ERR( capabilities.stdHeaderVersion.specVersion >= VK_STD_VULKAN_VIDEO_CODEC_H264_DECODE_SPEC_VERSION );
+				count = uint(vformats.size());
+				VK_CHECK_ERR( vkGetPhysicalDeviceVideoFormatPropertiesKHR( dev.GetVkPhysicalDevice(), &vinfo, INOUT &count, OUT vformats.data() ));
+				CHECK_ERR( _FindPixFormatInVideoFormatProperties( INOUT desc.referencePictureFormat, ArrayView{ vformats.data(), count }, "referencePictureFormat" ));
+			}
+		}
+		else
+			RETURN_ERR( "unknown video codec mode" );
 
-							// TODO
-							break;
-						}
 
-						// decode h265
-						case VK_VIDEO_CODEC_OPERATION_DECODE_H265_BIT_KHR :
-						{
-							auto*	decode_cap		= Cast<VkVideoDecodeCapabilitiesKHR>( capabilities.pNext );
-							auto*	decode_cap_h265	= Cast<VkVideoDecodeH265CapabilitiesKHR>( decode_cap->pNext );
+		switch_enum( profile_info.videoCodecOperation )
+		{
+			// decode h264
+			case VK_VIDEO_CODEC_OPERATION_DECODE_H264_BIT_KHR :
+			{
+				auto*	decode_cap		= Cast<VkVideoDecodeCapabilitiesKHR>( capabilities.pNext );
+				auto*	decode_cap_h264	= Cast<VkVideoDecodeH264CapabilitiesKHR>( decode_cap->pNext );
 
-							CHECK_ERR(	decode_cap->sType		== VK_STRUCTURE_TYPE_VIDEO_DECODE_CAPABILITIES_KHR		and
-										decode_cap_h265->sType	== VK_STRUCTURE_TYPE_VIDEO_DECODE_H265_CAPABILITIES_KHR	);
-							CHECK_ERR( capabilities.stdHeaderVersion.specVersion >= VK_STD_VULKAN_VIDEO_CODEC_H265_DECODE_SPEC_VERSION );
+				CHECK_ERR(	decode_cap->sType		== VK_STRUCTURE_TYPE_VIDEO_DECODE_CAPABILITIES_KHR		and
+							decode_cap_h264->sType	== VK_STRUCTURE_TYPE_VIDEO_DECODE_H264_CAPABILITIES_KHR	);
+				CHECK_ERR( capabilities.stdHeaderVersion.specVersion >= VK_STD_VULKAN_VIDEO_CODEC_H264_DECODE_SPEC_VERSION );
 
-							// TODO
-							break;
-						}
+				// TODO
+				break;
+			}
 
-						// encode h264
-						case VK_VIDEO_CODEC_OPERATION_ENCODE_H264_BIT_KHR :
-						{
-							auto*	encode_cap		= Cast<VkVideoEncodeCapabilitiesKHR>( capabilities.pNext );
-							auto*	encode_cap_h264	= Cast<VkVideoEncodeH264CapabilitiesKHR>( encode_cap->pNext );
+			// decode h265
+			case VK_VIDEO_CODEC_OPERATION_DECODE_H265_BIT_KHR :
+			{
+				auto*	decode_cap		= Cast<VkVideoDecodeCapabilitiesKHR>( capabilities.pNext );
+				auto*	decode_cap_h265	= Cast<VkVideoDecodeH265CapabilitiesKHR>( decode_cap->pNext );
 
-							CHECK_ERR(	encode_cap->sType		== VK_STRUCTURE_TYPE_VIDEO_ENCODE_CAPABILITIES_KHR		and
-										encode_cap_h264->sType	== VK_STRUCTURE_TYPE_VIDEO_ENCODE_H264_CAPABILITIES_KHR	);
-							CHECK_ERR( capabilities.stdHeaderVersion.specVersion >= VK_STD_VULKAN_VIDEO_CODEC_H264_ENCODE_SPEC_VERSION );
+				CHECK_ERR(	decode_cap->sType		== VK_STRUCTURE_TYPE_VIDEO_DECODE_CAPABILITIES_KHR		and
+							decode_cap_h265->sType	== VK_STRUCTURE_TYPE_VIDEO_DECODE_H265_CAPABILITIES_KHR	);
+				CHECK_ERR( capabilities.stdHeaderVersion.specVersion >= VK_STD_VULKAN_VIDEO_CODEC_H265_DECODE_SPEC_VERSION );
 
-							// TODO
-							break;
-						}
+				// TODO
+				break;
+			}
 
-						// encode h265
-						case VK_VIDEO_CODEC_OPERATION_ENCODE_H265_BIT_KHR :
-						{
-							auto*	encode_cap		= Cast<VkVideoEncodeCapabilitiesKHR>( capabilities.pNext );
-							auto*	encode_cap_h265	= Cast<VkVideoEncodeH265CapabilitiesKHR>( encode_cap->pNext );
+			// encode h264
+			case VK_VIDEO_CODEC_OPERATION_ENCODE_H264_BIT_KHR :
+			{
+				auto*	encode_cap		= Cast<VkVideoEncodeCapabilitiesKHR>( capabilities.pNext );
+				auto*	encode_cap_h264	= Cast<VkVideoEncodeH264CapabilitiesKHR>( encode_cap->pNext );
 
-							CHECK_ERR(	encode_cap->sType		== VK_STRUCTURE_TYPE_VIDEO_ENCODE_CAPABILITIES_KHR		and
-										encode_cap_h265->sType	== VK_STRUCTURE_TYPE_VIDEO_ENCODE_H265_CAPABILITIES_KHR	);
-							CHECK_ERR( capabilities.stdHeaderVersion.specVersion >= VK_STD_VULKAN_VIDEO_CODEC_H265_ENCODE_SPEC_VERSION );
+				CHECK_ERR(	encode_cap->sType		== VK_STRUCTURE_TYPE_VIDEO_ENCODE_CAPABILITIES_KHR		and
+							encode_cap_h264->sType	== VK_STRUCTURE_TYPE_VIDEO_ENCODE_H264_CAPABILITIES_KHR	);
+				CHECK_ERR( capabilities.stdHeaderVersion.specVersion >= VK_STD_VULKAN_VIDEO_CODEC_H264_ENCODE_SPEC_VERSION );
 
-							// TODO
-							break;
-						}
+				// TODO
+				break;
+			}
 
-						case VK_VIDEO_CODEC_OPERATION_DECODE_AV1_BIT_KHR :
-						case VK_VIDEO_CODEC_OPERATION_ENCODE_AV1_BIT_KHR :
-							// TODO
+			// encode h265
+			case VK_VIDEO_CODEC_OPERATION_ENCODE_H265_BIT_KHR :
+			{
+				auto*	encode_cap		= Cast<VkVideoEncodeCapabilitiesKHR>( capabilities.pNext );
+				auto*	encode_cap_h265	= Cast<VkVideoEncodeH265CapabilitiesKHR>( encode_cap->pNext );
 
-						case VK_VIDEO_CODEC_OPERATION_DECODE_VP9_BIT_KHR :
-							// TODO
+				CHECK_ERR(	encode_cap->sType		== VK_STRUCTURE_TYPE_VIDEO_ENCODE_CAPABILITIES_KHR		and
+							encode_cap_h265->sType	== VK_STRUCTURE_TYPE_VIDEO_ENCODE_H265_CAPABILITIES_KHR	);
+				CHECK_ERR( capabilities.stdHeaderVersion.specVersion >= VK_STD_VULKAN_VIDEO_CODEC_H265_ENCODE_SPEC_VERSION );
 
-						case VK_VIDEO_CODEC_OPERATION_NONE_KHR :
-						case VK_VIDEO_CODEC_OPERATION_FLAG_BITS_MAX_ENUM_KHR :
-							break;
-					}
-					switch_end
-					return true;
-				});
+				// TODO
+				break;
+			}
+
+			case VK_VIDEO_CODEC_OPERATION_DECODE_AV1_BIT_KHR :
+			case VK_VIDEO_CODEC_OPERATION_ENCODE_AV1_BIT_KHR :
+				// TODO
+
+			case VK_VIDEO_CODEC_OPERATION_DECODE_VP9_BIT_KHR :
+				// TODO
+
+			case VK_VIDEO_CODEC_OPERATION_NONE_KHR :
+			case VK_VIDEO_CODEC_OPERATION_FLAG_BITS_MAX_ENUM_KHR :
+				break;
+		}
+		switch_end
+		return true;
 	}
 
 /*

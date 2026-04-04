@@ -57,7 +57,7 @@ namespace AE::ResEditor
 
 				if ( capture.video )
 				{
-					encoder = _CreateEncoder( capture.bitrate, capture.videoFormat, capture.videoCodec, capture.colorPreset );
+					encoder = _CreateEncoder( capture.bitrate, capture.frameRate, capture.videoFormat, capture.videoCodec, capture.colorPreset );
 
 					if ( encoder )
 						_videoEncoder.store( RVRef(encoder) );
@@ -160,20 +160,6 @@ namespace AE::ResEditor
 
 				capture_wr->screenshot		= false;
 				capture_wr->testScreenshot	= false;
-			}
-
-			if ( capture.video )
-			{
-				auto&		vi		= self->_videoInfo;
-				auto		dt		= Min( GraphicsScheduler().GetFrameTimeDelta(), secondsf{vi.frameTime} );
-				secondsd	exp_dur	{vi.frameTime * (vi.frameCount+1)};
-
-				vi.duration += dt;
-
-				if ( exp_dur < vi.duration )
-					vi.frameCount ++;
-				else
-					capture.video = false;
 			}
 
 			if ( capture.screenshot or capture.testScreenshot or capture.video )
@@ -319,7 +305,7 @@ namespace AE::ResEditor
 	_CreateEncoder
 =================================================
 */
-	RC<IVideoEncoder>  Present::_CreateEncoder (float bitrate, EVideoFormat videoFormat, EVideoCodec videoCodec, EVideoColorPreset preset) const
+	RC<IVideoEncoder>  Present::_CreateEncoder (float bitrate, int frameRate, EVideoFormat videoFormat, EVideoCodec videoCodec, EVideoColorPreset preset) const
 	{
 		using namespace AE::Video;
 		CHECK_ERR( _src.size() == 1 );
@@ -335,8 +321,8 @@ namespace AE::ResEditor
 		cfg.colorPreset		= preset;
 		cfg.filter			= Video::EFilter::Bilinear;
 		cfg.quality			= 0.9f;
-		cfg.framerate		= FractionalI{ int(_videoInfo.frameRate) };
-		cfg.bitrate			= Bitrate{ ulong(double(bitrate) * 1024.0) * 1024 };	// TODO
+		cfg.framerate		= FractionalI{ frameRate };
+		cfg.bitrate			= Bitrate{ulong( double(bitrate) * 1024.0 * 1024.0 )};	// TODO
 		cfg.hwAccelerated	= EHwAcceleration::Optional;
 		cfg.targetCPU		= CpuArchInfo::Get().cpu.vendor;
 
@@ -564,9 +550,13 @@ namespace AE::ResEditor
 				_pass.reset( new LinearDepth{ *_src, *_copy, renderer->GetController() });			// throw
 				break;
 
+		  #if defined(AE_ENABLE_VULKAN) or defined(AE_ENABLE_REMOTE_GRAPHICS)
 			case EFlags::Stencil :
 				_pass.reset( new StencilView{ *_src, *_copy });			// throw
 				break;
+		  #else
+			case EFlags::Stencil :
+		  #endif
 
 			case EFlags::_Count :
 			default :
@@ -823,6 +813,7 @@ namespace AE::ResEditor
 
 
 
+#if defined(AE_ENABLE_VULKAN) or defined(AE_ENABLE_REMOTE_GRAPHICS)
 /*
 =================================================
 	StencilView ctor
@@ -901,6 +892,8 @@ namespace AE::ResEditor
 		pd.cmdbuf = ctx.ReleaseCommandBuffer();
 		return true;
 	}
+
+#endif // AE_ENABLE_VULKAN or AE_ENABLE_REMOTE_GRAPHICS
 //-----------------------------------------------------------------------------
 
 
@@ -1200,7 +1193,11 @@ namespace AE::ResEditor
 		copy.dstSubres	= { _aspect, dst_desc.baseMipmap, dst_desc.baseLayer, dst_desc.layerCount };
 		copy.extent		= src_desc.Dimension();
 
+	  #if defined(AE_ENABLE_VULKAN) or defined(AE_ENABLE_REMOTE_GRAPHICS)
 		ctx.ResolveImage( _srcImage->GetImageId(), _dstImage->GetImageId(), {copy} );
+	  #else
+		CHECK_MSG( false, "ResolveImage is not supported" );
+	  #endif
 
 		pd.cmdbuf = ctx.ReleaseCommandBuffer();
 		return true;
@@ -1233,6 +1230,7 @@ namespace AE::ResEditor
 		if_unlikely( not _IsEnabled() )
 			return true;
 
+	#if defined(AE_ENABLE_VULKAN) or defined(AE_ENABLE_REMOTE_GRAPHICS)
 		DirectCtx::Transfer		ctx{ pd.rtask, RVRef(pd.cmdbuf), DebugLabel{"ClearImage", HtmlColor::Blue} };
 		ImageSubresourceRange	range{ EImageAspect::Color, 0_mipmap, UMax, 0_layer, UMax };
 		ImageID					id = _image->GetImageId();
@@ -1244,6 +1242,9 @@ namespace AE::ResEditor
 		);
 
 		pd.cmdbuf = ctx.ReleaseCommandBuffer();
+	#else
+		CHECK_MSG( false, "ClearColorImage is not supported" );
+	#endif
 		return true;
 	}
 
@@ -1324,6 +1325,8 @@ namespace AE::ResEditor
 //-----------------------------------------------------------------------------
 
 
+
+#if defined(AE_ENABLE_VULKAN) or defined(AE_ENABLE_REMOTE_GRAPHICS)
 /*
 =================================================
 	constructor
@@ -1397,6 +1400,7 @@ namespace AE::ResEditor
 		pd.cmdbuf = ctx.ReleaseCommandBuffer();
 		return true;
 	}
+#endif
 //-----------------------------------------------------------------------------
 
 

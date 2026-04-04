@@ -316,12 +316,12 @@ namespace {
 			return _base->Resize( ctx );
 
 		if ( not _inDynSize )
-			return false;
+			return true;
 
 		ImageDesc	desc = GetImageDesc();
 
 		if ( not _inDynSize->IsChanged_NonZero( INOUT desc.dimension ))
-			return false;
+			return true;
 
 		ImageViewDesc	view = GetViewDesc();
 

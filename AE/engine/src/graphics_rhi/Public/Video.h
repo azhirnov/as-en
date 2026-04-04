@@ -2,8 +2,8 @@
 
 #pragma once
 
-#include "graphics_rhi/Public/ResourceEnums.h"
 #include "graphics_rhi/Public/VideoEnums.h"
+#include "graphics_rhi/Public/ResourceEnums.h"
 #include "graphics_rhi/Public/Queue.h"
 #include "graphics_rhi/Public/ImageLayer.h"
 #include "graphics_rhi/Public/SamplerDesc.h"
@@ -41,18 +41,32 @@ namespace AE::Graphics
 			EStdVideoH265ProfileIdc			stdProfileIdc	= Default;
 		};
 
+		struct Decode_AV1
+		{
+		};
+
+		struct Encode_AV1
+		{
+		};
+
+		struct Decode_VP9
+		{
+		};
+
 		using Specialization_t	= Union< NullUnion,
 										 Decode_H264, Encode_H264,
-										 Decode_H265, Encode_H265
+										 Decode_H265, Encode_H265,
+										 Decode_AV1,  Encode_AV1,
+										 Decode_VP9
 										>;
 
 	// variables
-		EVideoCodecMode			mode				= Default;
-		EVideoCodec				codec				= Default;
-		EVideoChromaSubsampling	chromaSubsampling	= Default;					// Vulkan: bitset, Android - ?, MacOS - ?
-		ubyte					lumaBitDepth		= 0;		// 8, 10, 12	// Vulkan: bitset, Android - ?, MacOS - ?
-		ubyte					chromaBitDepth		= 0;		// 8, 10, 12	// Vulkan: bitset, Android - ?, MacOS - ?
-		Specialization_t		spec;
+		EVideoCodecMode				mode				= Default;
+		EVideoCodec					codec				= Default;
+		EVideoChromaSubsampling		chromaSubsampling	= Default;		// Vulkan: bitset, Android - ?, MacOS - ?
+		EVideoComponentBitDepth		lumaBitDepth		= Default;		// Vulkan: bitset, Android - ?, MacOS - ?
+		EVideoComponentBitDepth		chromaBitDepth		= Default;		// Vulkan: bitset, Android - ?, MacOS - ?
+		Specialization_t			spec;
 
 
 	// methods
@@ -61,6 +75,8 @@ namespace AE::Graphics
 		ND_ bool	IsDefined ()	C_NE___;
 	};
 
+	using VideoProfileList = FixedArray< VideoProfile, 4 >;
+
 
 
 	//
@@ -68,11 +84,11 @@ namespace AE::Graphics
 	//
 	struct VideoSessionDesc
 	{
+		uint2					maxCodedExtent				{~0u};			// 0 - min, UMax - max
 		EQueueType				queue						= Default;		// VideoEncode or VideoDecode
 		EPixelFormat			pictureFormat				= Default;
 		VideoProfile			profile;
 		EMemoryType				memType						= EMemoryType::DeviceLocal;
-		uint2					maxCodedExtent				{~0u};			// 0 - min, UMax - max
 
 		// DPB
 		EPixelFormat			referencePictureFormat		= Default;
@@ -97,7 +113,7 @@ namespace AE::Graphics
 		EVideoBufferUsage		videoUsage		= Default;
 		EMemoryType				memType			= EMemoryType::DeviceLocal;
 		EQueueMask				queues			= Default;
-		VideoProfile			profile;
+		VideoProfileList		profiles;
 
 
 	// methods
@@ -119,15 +135,15 @@ namespace AE::Graphics
 	// variables
 		VideoImageDim_t			dimension;					// 0 - min, UMax - max
 		ImageLayer				arrayLayers		= 1_layer;
-		EPixelFormat			format			= Default;
-		EImageOpt				options			= Default;
 		EImageUsage				usage			= Default;
+		EPixelFormat			format			= Default;	// keep default to auto-detect
 		EVideoImageUsage		videoUsage		= Default;
 		EMemoryType				memType			= EMemoryType::DeviceLocal;
 		EQueueMask				queues			= Default;
+		EImageOpt				options			= Default;
 		SamplerName				ycbcrConversion;
 		PipelinePackID			ycbcrConvPack;				// pipeline pack where 'ycbcrConversion' sampler is stored
-		VideoProfile			profile;
+		VideoProfileList		profiles;
 
 
 	// methods

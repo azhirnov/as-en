@@ -31,7 +31,7 @@ Content:
 	- Terrain (*in progress*)
 	- Models/Scenes (loaded using Assimp).
 * Compatible with shadertoy (use `Postprocess()` with `Shadertoy` or `ShadertoyVR` flags).
-* Supports modern features like a hardware ray tracing and mesh shading.
+* Supports modern features like a hardware ray tracing, mesh shading, neural shader.
 * Supports async streaming (async file and partially uploading in single graphics queue, async transfer queue is not used).
 * Video encoder and decoder (using ffmpeg).
 * Screenshot capture (dds, png, jpeg and other).
@@ -45,6 +45,7 @@ Content:
 * Windows x64
 * Linux x64
 * MacOS arm64
+* Android in progress
 * Remote rendering on any platform
 
 

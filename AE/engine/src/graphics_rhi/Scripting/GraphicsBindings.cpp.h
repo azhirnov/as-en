@@ -382,7 +382,6 @@ namespace
 			BIND( BlendConstants )
 			BIND( RTStackSize )
 			BIND( FragmentShadingRate )
-			BIND( ViewportWScaling )
 			#undef BIND
 			default : break;
 		}
@@ -956,9 +955,11 @@ namespace
 			BIND( RT_SkipTriangles )
 			BIND( RT_SkipAABBs )
 			BIND( RT_AllowClusterAccelStruct )
+			BIND( OpacityMicromap )
 			BIND2( DontCompile, "Pipeline creation will fail if it is not exists in cache." )
 			BIND2( CaptureStatistics, "When a pipeline is created, its state and shaders are compiled into zero or more device-specific executables,\nwhich are used when executing commands against that pipeline." )
 			BIND2( CaptureInternalRepresentation, "May include the final shader assembly, a binary form of the compiled shader,\nor the shader compiler’s internal representation at any number of intermediate compile steps." )
+			BIND( IndirectBindable )
 			#undef BIND
 			#undef BIND2
 			default :
@@ -1110,6 +1111,8 @@ namespace
 			BIND( TriangleFrontCCW )
 			BIND( ForceOpaque )
 			BIND( ForceNonOpaque )
+			BIND( DisableOpacityMicromaps )
+			BIND( ForceOpacityMicromap2State )
 			#undef BIND
 			default :
 				binder.AddValue( "TriangleCullBack",	ERTInstanceOpt::TriangleCullBack	);
@@ -1190,6 +1193,7 @@ namespace
 			BIND( FragmentPplnStore )
 			BIND( LossyRTCompression )
 			BIND( ExtendedUsage )
+			BIND( SeparatePlanes )
 			BIND( Subsampled )
 			#undef BIND
 			default :
@@ -1230,11 +1234,14 @@ namespace
 			BIND( ShaderBindingTable )
 			BIND( ASBuild_ReadOnly )
 			BIND( ASBuild_Scratch )
+			BIND( MMBuild_ReadOnly )
 			BIND( RTAS_Storage )
+			BIND( ICB_Preprocess )
 			#undef BIND
 			default :
-				binder.AddValue( "All",			EBufferUsage::All		);
-				binder.AddValue( "Transfer",	EBufferUsage::Transfer	);
+				binder.AddValue( "All",				EBufferUsage::All		);
+				binder.AddValue( "Transfer",		EBufferUsage::Transfer	);
+				binder.AddValue( "MMBuild_Scratch",	EBufferUsage::MMBuild_Scratch	);
 				break;
 		}
 		switch_end
@@ -1515,6 +1522,48 @@ namespace
 
 /*
 =================================================
+	Bind_EMicromapType
+=================================================
+*/
+	static void  Bind_EMicromapType (const ScriptEnginePtr &se) __Th___
+	{
+		EnumBinder<EMicromapType>	binder{ se };
+		binder.Create();
+
+		switch_enum( EMicromapType::_Count )
+		{
+			case EMicromapType::_Count :
+			#define BIND( _name_ )		case EMicromapType::_name_ :	binder.AddValue( AE_TOSTRING(_name_), EMicromapType::_name_ );
+			BIND( Opacity )
+			BIND( Displacement )
+			#undef BIND
+		}
+		switch_end
+	}
+
+/*
+=================================================
+	Bind_EOpacityMicromapFormat
+=================================================
+*/
+	static void  Bind_EOpacityMicromapFormat (const ScriptEnginePtr &se) __Th___
+	{
+		EnumBinder<EOpacityMicromapFormat>	binder{ se };
+		binder.Create();
+
+		switch_enum( EOpacityMicromapFormat::Unknown )
+		{
+			case EOpacityMicromapFormat::Unknown :
+			#define BIND( _name_ )		case EOpacityMicromapFormat::_name_ :	binder.AddValue( AE_TOSTRING(_name_), EOpacityMicromapFormat::_name_ );
+			BIND( TwoState )
+			BIND( FourState )
+			#undef BIND
+		}
+		switch_end
+	}
+
+/*
+=================================================
 	Bind_EResourceState
 =================================================
 */
@@ -1564,6 +1613,9 @@ namespace
 			BIND( BuildRTAS_Write )
 			BIND( BuildRTAS_RW )
 			BIND( BuildRTAS_IndirectBuffer )
+			BIND( BuildRTAS_MicromapRead )
+			BIND( BuildMicromap_Read )
+			BIND( BuildMicromap_Write )
 			BIND( ShaderRTAS )
 			BIND( RTShaderBindingTable )
 			BIND( DSTestBeforeFS )
@@ -1580,8 +1632,17 @@ namespace
 			BIND( RayTracingShaders )
 			BIND( AllGraphicsShaders )
 			BIND( AllShaderStages )
+			BIND( CoopVecConvert_Read )
+			BIND( CoopVecConvert_Write )
+			BIND( ICB_Preprocess_Read )
+			BIND( ICB_Preprocess_Write )
+			BIND( VideoDecodeSrc )
+			BIND( VideoDecodeDst )
+			BIND( VideoDecodeDpb )
+			BIND( VideoEncodeSrc )
+			BIND( VideoEncodeDst )
+			BIND( VideoEncodeDpb )
 			BIND( AllStages )
-			BIND( CoopVecConvertStage )
 			#undef BIND
 			// helpers:
 			default :
@@ -1762,8 +1823,8 @@ namespace
 		binder.CreateClassValue();
 		AS_METHOD( binder, RenderState_ColorBuffersState_SetColorBuffer,	"SetColorBuffer",	{"index", "cb"} );
 		AS_METHOD( binder, RenderState_ColorBuffersState_GetColorBuffer,	"GetColorBuffer",	{"index"} );
-		binder.AddProperty( &RenderState::ColorBuffersState::logicOp,				"logicOp" );
-		binder.AddProperty( &RenderState::ColorBuffersState::blendColor,			"blendColor" );
+		binder.AddProperty( &RenderState::ColorBuffersState::logicOp,		"logicOp" );
+		binder.AddProperty( &RenderState::ColorBuffersState::blendColor,	"blendColor" );
 	}
 
 /*
@@ -1852,9 +1913,9 @@ namespace
 		ClassBinder<RenderState::StencilBufferState>	binder{ se };
 		binder.CreateClassValue();
 
-		binder.AddProperty( &RenderState::StencilBufferState::front,	"front" );
-		binder.AddProperty( &RenderState::StencilBufferState::back,		"back" );
-		binder.AddProperty( &RenderState::StencilBufferState::enabled,	"enabled" );
+		binder.AddProperty( &RenderState::StencilBufferState::front,		"front" );
+		binder.AddProperty( &RenderState::StencilBufferState::back,			"back" );
+		binder.AddProperty( &RenderState::StencilBufferState::enabled,		"enabled" );
 
 		binder.Comment( "Stencil test compare operator.\n"
 						"if '(stencilAttachment & CompareMask) [CompareOp] (Reference & CompareMask)' then sample passed stencil test." );
@@ -2048,6 +2109,8 @@ namespace
 		Bind_ECoopMatrixCfg( se );
 		Bind_ECoopVecCfg( se );
 		Bind_EConservativeRasterizationMode( se );
+		Bind_EMicromapType( se );
+		Bind_EOpacityMicromapFormat( se );
 	}
 
 /*

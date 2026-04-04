@@ -5,6 +5,7 @@
 #ifdef AE_ENABLE_REMOTE_GRAPHICS
 # include "graphics_rhi/Public/CommandBufferTypes.h"
 # include "graphics_rhi/Public/ResourceManager.h"
+# include "graphics_rhi/Private/StagingBufferShared.h"
 # include "graphics_rhi/Remote/RDevice.h"
 
 namespace AE::Graphics
@@ -14,47 +15,9 @@ namespace AE::Graphics
 	// Staging Buffer Manager
 	//
 
-	class RStagingBufferManager final
+	class RStagingBufferManager final : public StagingBufferShared
 	{
 	// types
-	public:
-		struct StagingBufferResult
-		{
-			RmBufferID		bufferHandle;
-			Bytes			bufferOffset;
-			Bytes			size;
-			RmDevicePtr		devicePtr	= Default;
-
-			StagingBufferResult ()	__NE___ {}
-		};
-		using BufferRanges_t = FixedArray< StagingBufferResult, BufferMemView::Count >;
-
-
-		struct StagingImageResult : StagingBufferResult
-		{
-			// additional params are required to copy between staging buffer and image
-			uint3			imageOffset;
-			uint3			imageDim;
-			Bytes			bufferSlicePitch;
-
-			StagingImageResult ()	__NE___ {}
-		};
-		using ImageRanges_t = FixedArray< StagingImageResult, ImageMemView::Count >;
-
-
-		struct StagingImageResultRanges
-		{
-			ImageRanges_t	buffers;
-			uint			bufferRowLength		= 0;		// in pixels, for BufferImageCopy::bufferRowLength
-			POTValue		planeScaleY;
-			EPixelFormat	format				= Default;	// used for multiplanar image, otherwise equal to image desc
-			Bytes			dataRowPitch;
-			Bytes			dataSlicePitch;
-			uint3			regionDim;						// validated dimension of current image mip level minus offset
-		};
-
-		using FrameStat_t = IResourceManager::StagingBufferStat;
-
 	private:
 		static constexpr Bytes	_ReadbackBlockSize = 64_MiB;
 

@@ -132,8 +132,8 @@ namespace
 					image_level.mipmap		= MipmapLevel{ uint(mm) };
 					image_level.layer		= ImageLayer{ uint(layer2) };
 					image_level.rowPitch	= Bytes{ktxTexture_GetRowPitch( ktx_tex, mm )};
-					image_level.slicePitch	= image_level.rowPitch * mip_dim.y;
-					const Bytes  mip_size	= image_level.slicePitch * mip_dim.z;
+					image_level.slicePitch	= image_level.rowPitch * block_dim.y;
+					const Bytes  mip_size	= image_level.slicePitch * block_dim.z;
 
 					CHECK_ERR( image_level.SetPixelData( SharedMem::Create( allocator, mip_size )));
 
@@ -182,9 +182,9 @@ namespace
 			image_level.mipmap		= MipmapLevel{ miplevel };
 			image_level.layer		= ImageLayer{ firstLayer };
 			image_level.rowPitch	= Bytes{ktxTexture_GetRowPitch( ktx_tex, miplevel )};
-			image_level.slicePitch	= image_level.rowPitch * mipDim.y;
+			image_level.slicePitch	= image_level.rowPitch * block_dim.y;
 
-			const Bytes	mip_size	= image_level.slicePitch * mipDim.z;
+			const Bytes	mip_size	= image_level.slicePitch * block_dim.z;
 			const usize	layer_count = Max( usize(Bytes{pixels.size()} / mip_size), 1u );
 			Bytes		offset;
 

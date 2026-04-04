@@ -15,7 +15,7 @@ namespace AE::ResEditor
 	class ScriptComputePass final : public ScriptBasePass
 	{
 	// types
-	private:
+	public:
 		using IterationCount_t	= ComputePass::IterationCount_t;
 
 		struct Iteration
@@ -53,6 +53,7 @@ namespace AE::ResEditor
 		void  LocalSize3v (const packed_uint3 &v)														__Th___;
 
 		void  SubgroupSize (uint value)																	__Th___	{ _subgroupSize = value; }
+		void  MinSubgroupSize (uint value)																__Th___;
 
 		void  DispatchGroups1  (uint groupCountX)														__Th___	{ return DispatchGroups3v({ groupCountX, 1u, 1u }); }
 		void  DispatchGroups2  (uint groupCountX, uint groupCountY)										__Th___	{ return DispatchGroups3v({ groupCountX, groupCountY, 1u }); }
@@ -81,6 +82,10 @@ namespace AE::ResEditor
 		static void  Bind (const ScriptEnginePtr &se)													__Th___;
 		static void  GetShaderTypes (INOUT CppStructsFromShaders &)										__Th___;
 
+		// returns 'ShaderStructTypePtr'
+		ND_ static ScriptRCBase  _CreateUBType ()														__Th___;
+		ND_ static ScriptRCBase  _CreatePCType ()														__Th___;
+
 	// ScriptBasePass //
 
 		// Returns non-null pass or throw exception.
@@ -88,16 +93,13 @@ namespace AE::ResEditor
 
 
 	private:
-		ND_ auto  _CompilePipeline (OUT Bytes &ubSize)													C_Th___;
-			void  _CompilePipeline2 (OUT Bytes &ubSize)													C_Th___;
+		ND_ auto  _CompilePipeline ()																	C_Th___;
+			void  _CompilePipeline2 ()																	C_Th___;
 			void  _CompilePipeline3 (const String &cs, uint line, const String &pplnName,
 									 uint shaderOpts, EPipelineOpt pplnOpt)								C_Th___;
 
-		ND_ static auto  _CreateUBType ()																__Th___;
-		ND_ static auto  _CreatePCType ()																__Th___;
-
 	// ScriptBasePass //
-		void  _OnAddArg (INOUT ScriptPassArgs::Argument &arg)											C_Th_OV;
+		void  _OnAddArg (INOUT ScriptPassArgs::Argument &arg)											__Th_OV;
 	};
 
 

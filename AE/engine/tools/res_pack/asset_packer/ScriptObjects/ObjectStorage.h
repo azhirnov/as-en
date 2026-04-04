@@ -61,6 +61,8 @@ namespace AE::AssetPacker
 
 		Path						_currentPath;	// for script
 
+		Array<Path>					_resFolders;
+
 		HashToNameMap_t				_hashToName;
 		NamedID_HashCollisionCheck	_hashCollisionCheck;
 
@@ -73,6 +75,8 @@ namespace AE::AssetPacker
 		ND_ Path const&			GetScriptFolder ()														const	{ return _currentPath; }
 			void				SetScriptFolder (const Path &path)												{ _currentPath = path; }
 
+			void	SetResourceFolders (Array<Path> folders);
+		ND_ Path	GetResourcePath (const Path &path)													C_Th___;
 
 		// for UI validation //
 			void				AddAtlas (RC<ImageAtlasInfo> info)										__Th___;

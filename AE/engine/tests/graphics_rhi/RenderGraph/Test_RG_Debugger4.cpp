@@ -42,10 +42,10 @@ namespace
 		RTGeometryBuild::TrianglesData	triangleData;
 	};
 
-	static constexpr auto&	RTech = RenderTechs::RayTracingTestRT;
+	static constexpr auto&	RTech = RenderTechs::RayTracing_RTech;
 
-	static const float3	buffer_vertices []	= { { 0.25f, 0.25f, 0.0f }, { 0.75f, 0.25f, 0.0f }, { 0.50f, 0.75f, 0.0f } };
-	static const uint	buffer_indices []	= { 0, 1, 2 };
+	static const float3	c_BufferVertices []	= { { 0.25f, 0.25f, 0.0f }, { 0.75f, 0.25f, 0.0f }, { 0.50f, 0.75f, 0.0f } };
+	static const uint	c_BufferIndices []	= { 0, 1, 2 };
 
 
 	template <typename CtxTypes>
@@ -60,8 +60,8 @@ namespace
 		scene_build.SetScratchBuffer( t.scratch );
 		scene_build.SetInstanceData( t.instances );
 
-		CHECK_CE( copy_ctx.UploadBuffer( t.vb, 0_b, Sizeof(buffer_vertices), buffer_vertices, EStagingHeapType::Static ));
-		CHECK_CE( copy_ctx.UploadBuffer( t.ib, 0_b, Sizeof(buffer_indices),  buffer_indices,  EStagingHeapType::Static ));
+		CHECK_CE( copy_ctx.UploadBuffer( t.vb, 0_b, Sizeof(c_BufferVertices), c_BufferVertices, EStagingHeapType::Static ));
+		CHECK_CE( copy_ctx.UploadBuffer( t.ib, 0_b, Sizeof(c_BufferIndices),  c_BufferIndices,  EStagingHeapType::Static ));
 
 		switch_enum( copy_ctx.GetDevice().GetGraphicsAPI() )
 		{
@@ -125,7 +125,7 @@ namespace
 
 		rt_ctx.AccumBarriers()
 			.MemoryBarrier( EResourceState::BuildRTAS_Write, EResourceState::ShaderRTAS | EResourceState::RayTracingShaders )
-			.ImageBarrier( t.img, EResourceState::Invalidate, img_state );
+			.ResourceBarrier( t.img, EResourceState::Invalidate, img_state );
 
 		rt_ctx.BindPipeline( t.ppln );
 		rt_ctx.BindDescriptorSet( t.ds_index, t.ds );
@@ -133,7 +133,7 @@ namespace
 		rt_ctx.TraceRays( t.viewSize, t.sbt );
 
 		rt_ctx.AccumBarriers()
-			.ImageBarrier( t.img, img_state, EResourceState::CopySrc );
+			.ResourceBarrier( t.img, img_state, EResourceState::CopySrc );
 
 		RenderCoro_Execute( rt_ctx );
 	}
@@ -216,8 +216,8 @@ no source
 30. color = payload;
 
 //> imageStore(): void
-//  gl_LaunchIDEXT: uint3 {612, 124, 0} | {0x264, 0x7c, 0x0}
 //  color: float4 {0.412000, 0.796000, 1.000000, 1.000000}
+//  gl_LaunchIDEXT: uint3 {612, 124, 0} | {0x264, 0x7c, 0x0}
 31. 		imageStore( un_OutImage, ivec2(gl_LaunchIDEXT), color );
 
 )";
@@ -251,8 +251,8 @@ no source
 30. color = payload;
 
 //> imageStore(): void
-//  gl_LaunchIDEXT: uint3 {370, 326, 0} | {0x172, 0x146, 0x0}
 //  color: float4 {0.367917, 0.220417, 0.411667, 1.000000}
+//  gl_LaunchIDEXT: uint3 {370, 326, 0} | {0x172, 0x146, 0x0}
 31. 		imageStore( un_OutImage, ivec2(gl_LaunchIDEXT), color );
 
 )";
@@ -296,11 +296,11 @@ no source
 		t.view = res_mngr.CreateImageView( ImageViewDesc{}, t.img, "ImageView" );
 		CHECK_ERR( t.view );
 
-		t.vb = res_mngr.CreateBuffer( BufferDesc{ Sizeof(buffer_vertices), EBufferUsage::ASBuild_ReadOnly | EBufferUsage::Transfer },
+		t.vb = res_mngr.CreateBuffer( BufferDesc{ Sizeof(c_BufferVertices), EBufferUsage::ASBuild_ReadOnly | EBufferUsage::Transfer },
 									  "RTAS vertex buffer", t.gfxAlloc );
 		CHECK_ERR( t.vb );
 
-		t.ib = res_mngr.CreateBuffer( BufferDesc{ Sizeof(buffer_indices), EBufferUsage::ASBuild_ReadOnly | EBufferUsage::Transfer },
+		t.ib = res_mngr.CreateBuffer( BufferDesc{ Sizeof(c_BufferIndices), EBufferUsage::ASBuild_ReadOnly | EBufferUsage::Transfer },
 									  "RTAS index buffer", t.gfxAlloc );
 		CHECK_ERR( t.ib );
 
@@ -308,15 +308,15 @@ no source
 											 "RTAS instance buffer", t.gfxAlloc );
 		CHECK_ERR( t.instances );
 
-		t.triangleInfo.maxPrimitives	= uint(CountOf( buffer_indices )) / 3;
-		t.triangleInfo.maxVertex		= uint(CountOf( buffer_vertices ));
+		t.triangleInfo.maxPrimitives	= uint(CountOf( c_BufferIndices )) / 3;
+		t.triangleInfo.maxVertex		= uint(CountOf( c_BufferVertices ));
 		t.triangleInfo.vertexFormat		= EVertexType::Float3;
 		t.triangleInfo.indexType		= EIndex::UInt;
 		t.triangleInfo.allowTransforms	= false;
 
 		t.triangleData.vertexData		= t.vb;
 		t.triangleData.indexData		= t.ib;
-		t.triangleData.vertexStride		= Sizeof(buffer_vertices[0]);
+		t.triangleData.vertexStride		= Sizeof(c_BufferVertices[0]);
 
 		auto	geom_sizes = res_mngr.GetRTGeometrySizes( RTGeometryBuild{ ArrayView<RTGeometryBuild::TrianglesInfo>{ &t.triangleInfo, 1 }, Default, Default, Default, Default });
 		t.rtGeom = res_mngr.CreateRTGeometry( RTGeometryDesc{ geom_sizes.rtasSize, Default }, "RT geometry", t.gfxAlloc );
@@ -368,6 +368,7 @@ no source
 		CHECK_ERR( end->Status() == ETaskStatus::Completed );
 
 		CHECK_ERR( rts.WaitAll( c_MaxTimeout ));
+		CHECK_ERR( t.result );
 
 		CHECK_ERR( Scheduler().Wait( {t.result}, c_MaxTimeout ));
 		CHECK_ERR( t.result->Status() == ETaskStatus::Completed );
@@ -379,19 +380,19 @@ no source
 } // namespace
 
 
-bool RGTest::Test_Debugger4 ()
+RGTest::ECode  RGTest::Test_Debugger4 ()
 {
 	if ( _dbgPipelines == null or _rtPipelines == null )
 	{
 		AE_LOGI( TEST_NAME << " - skipped" );
-		return true;
+		return ECode::Skipped;
 	}
 
   #ifdef AE_ENABLE_VULKAN
 	if ( GraphicsScheduler().GetFeatureSet().vendorIds.include.contains( EGPUVendor::Mesa ))
 	{
 		AE_LOGI( TEST_NAME << " - skipped" );
-		return true;	// bug in lavapipe
+		return ECode::Skipped;	// bug in lavapipe
 	}
   #endif
 
@@ -402,8 +403,12 @@ bool RGTest::Test_Debugger4 ()
 
 	RG_CHECK( _CompareDumps( TEST_NAME ));
 
-	AE_LOGI( TEST_NAME << " - passed" );
-	return result;
+	if ( result )
+	{
+		AE_LOGI( TEST_NAME << " - passed" );
+		return ECode::Passed;
+	}
+	return ECode::Failed;
 }
 
 #endif // AE_TEST_SHADER_DEBUGGER

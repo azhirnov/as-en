@@ -1,11 +1,14 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+/*
+	fonts searched in path specified by '-d' console argument
+*/
 #include <asset_packer.as>
 
 void ASmain ()
 {
 	RC<RasterFont>	font = RasterFont();
 
-	font.Load( "Roboto-Regular.ttf" );
+	font.Load( "fonts/Roboto-Regular.ttf" );
 	font.AddCharset_Ascii();
 	font.AddCharset_Rus();
 

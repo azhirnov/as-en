@@ -37,6 +37,7 @@ void DeclRenderTech ()
 	}
 	{
 		RC<RenderTechnique> rtech = RenderTechnique( "DesktopCanvasDrawTest" );
+		rtech.AddFeatureSet( "MinDesktop" );
 
 		RC<GraphicsPass>	pass = rtech.AddGraphicsPass( "Draw_1" );
 		pass.SetRenderPass( "DrawTest.Draw_1", /*subpass*/"Main" );

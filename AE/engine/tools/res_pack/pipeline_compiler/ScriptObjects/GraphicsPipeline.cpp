@@ -8,7 +8,7 @@ namespace AE::PipelineCompiler
 namespace
 {
 	static GraphicsPipelineScriptBinding*  GraphicsPipelineScriptBinding_Ctor (const String &name) {
-		return GraphicsPipelinePtr{ new GraphicsPipelineScriptBinding{ name }}.Detach();
+		return GraphicsPipelineScriptBinding::Create( name ).Detach();
 	}
 
 } // namespace
@@ -18,18 +18,28 @@ namespace
 
 /*
 =================================================
-	constructor
+	_Init
 =================================================
 */
-	GraphicsPipelineScriptBinding::GraphicsPipelineScriptBinding (const String &name) __Th___ : BasePipelineTmpl{name}
+	void  GraphicsPipelineScriptBinding::_Init () __Th___
 	{
+		BasePipelineTmpl::_Init();  // throw
+
 		CHECK_THROW_MSG( ObjectStorage::Instance()->gpipelines.emplace( _name, GraphicsPipelinePtr{this} ).second,
-			"GraphicsPipeline with name '"s << name << "' is already defined" );
+			"GraphicsPipeline with name '"s << _nameStr << "' is already defined" );
 	}
 
-	GraphicsPipelineScriptBinding::GraphicsPipelineScriptBinding () :
-		GraphicsPipelineScriptBinding{ "<unknown>" }
-	{}
+/*
+=================================================
+	Create
+=================================================
+*/
+	GraphicsPipelinePtr  GraphicsPipelineScriptBinding::Create (const String &name) __Th___
+	{
+		GraphicsPipelinePtr	result{ new GraphicsPipelineScriptBinding{ name }};
+		result->_Init();  // throw
+		return result;
+	}
 
 /*
 =================================================
@@ -423,7 +433,7 @@ namespace
 	void  GraphicsPipelineScriptBinding::Bind (const ScriptEnginePtr &se) __Th___
 	{
 		ClassBinder<GraphicsPipelineScriptBinding>	binder{ se };
-		binder.CreateRef();
+		binder.CreateRef( 0, False{} );
 
 		binder.Comment( "Create pipeline template.\n"
 						"Name is used in C++ code to create pipeline." );
@@ -561,8 +571,8 @@ namespace
 		CHECK_THROW_MSG( state.inputAssembly.topology < EPrimitive::_Count );
 
 		renderState = state;
-		_ValidateRenderState( desc.dynamicState, INOUT renderState, GetFeatures() );
-		_ValidateRenderPass( renderState, desc.renderPass, desc.subpass, GetFeatures() );
+		_ValidateRenderState( desc.dynamicState, INOUT renderState, GetAllFeatures() );
+		_ValidateRenderPass( renderState, desc.renderPass, desc.subpass, GetAllFeatures() );
 
 		CHECK_THROW_MSG( _CheckTopology() );
 
@@ -724,7 +734,7 @@ namespace
 	void  GraphicsPipelineSpecScriptBinding::Bind (const ScriptEnginePtr &se) __Th___
 	{
 		ClassBinder<GraphicsPipelineSpecScriptBinding>	binder{ se };
-		binder.CreateRef();
+		binder.CreateRef( 0, False{} );
 
 		binder.Comment( "Set specialization value.\n"
 						"Specialization constant must be previously defined in shader by 'Shader::AddSpec()'." );

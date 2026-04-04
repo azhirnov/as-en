@@ -14,6 +14,8 @@ namespace
 /*
 =================================================
 	Convert
+----
+	TODO: use ConvertString
 =================================================
 */
 	template <typename T, typename Alloc>

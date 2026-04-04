@@ -5,7 +5,7 @@ void ASmain ()
 {
 	RC<ShaderStructType>	st = ShaderStructType( "Vertex_draw2" );
 	st.Set( EStructLayout::InternalIO,
-			"packed_float2		Position;" +
+			"packed_float2		Position;"
 			"packed_ubyte_norm4	Color;" );
 
 	RC<VertexBufferInput>	vb = VertexBufferInput( "draw2.vb" );
@@ -30,7 +30,7 @@ void ASmain ()
 	// specialization
 	{
 		RC<GraphicsPipelineSpec>	spec = ppln.AddSpecialization( "draw2" );
-		spec.AddToRenderTech( "DrawTestRT", "Draw_1" );
+		spec.AddToRenderTech( "DrawTest.RTech", "Draw_1" );
 
 		RenderState	rs;
 		rs.inputAssembly.topology = EPrimitive::TriangleList;
@@ -40,7 +40,7 @@ void ASmain ()
 
 	{
 		RC<GraphicsPipelineSpec>	spec = ppln.AddSpecialization( "draw4-1" );
-		spec.AddToRenderTech( "DrawTestRT", "Test4-1" );
+		spec.AddToRenderTech( "DrawTest.RTech", "Test4-1" );
 
 		RenderState	rs;
 		rs.inputAssembly.topology = EPrimitive::TriangleStrip;
@@ -49,7 +49,7 @@ void ASmain ()
 	}
 	{
 		RC<GraphicsPipelineSpec>	spec = ppln.AddSpecialization( "draw4-2" );
-		spec.AddToRenderTech( "DrawTestRT", "Test4-2" );
+		spec.AddToRenderTech( "DrawTest.RTech", "Test4-2" );
 
 		RenderState	rs;
 		rs.inputAssembly.topology = EPrimitive::TriangleStrip;

@@ -9,7 +9,7 @@ using namespace AE::Base;
 extern bool  ConvertAEImage (RDataSource &src, WDataSource &dst);
 
 
-int main (const int argc, char* argv[])
+int main (const int argc, char const* argv[])
 {
 	Unused( argc, argv );
 	StaticLogger::LoggerScope log{};

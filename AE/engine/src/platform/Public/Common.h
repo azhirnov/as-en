@@ -50,19 +50,22 @@ namespace AE::App
 	// Used to identify different gamepads and to send feedback actions (vibrations, ...).
 	enum class ControllerID : ushort
 	{
-		Default		= 0,
-		Invalid		= 0xFFFF,
+		Default			= 0,
+		Invalid			= 0xFFFF,
 
-		_First		= 1,
-		_VRFirst	= 1 << 14,
+		_First			= 1,
+		_GamepadFirst	= 1 << 12,
+		_VRFirst		= 1 << 14,
 
 	  // default IDs:
-		Mouse		= _First,
+		Mouse			= _First,
 		Keyboard,
 		Touchscreen,
 		Sensor,
 
-		VR_HMD		= _VRFirst,
+		Gamepad			= _GamepadFirst,
+
+		VR_HMD			= _VRFirst,
 		VR_LeftHand,
 		VR_RightHand,
 	};
@@ -81,6 +84,7 @@ namespace AE::App
 	{
 		static constexpr uint	MaxMonitors		= 4;
 		static constexpr uint	MaxWindows		= 4;
+		static constexpr uint	MaxJoysticks	= 16;
 	};
 
 } // AE::App

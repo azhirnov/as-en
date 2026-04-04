@@ -276,9 +276,9 @@ namespace {
 			CHECK_ERR( res->Start( config ));
 			return res;
 		}
-	  #endif
-
+	  #else
 		return Default;
+	  #endif
 
 	#else
 		// TODO
@@ -337,15 +337,18 @@ namespace {
 	Run
 =================================================
 */
-	int  ApplicationGLFW::Run (Unique<IAppListener> listener) __NE___
+	int  ApplicationGLFW::Run (Unique<IAppListener> listener, bool useX11) __NE___
 	{
 		int	res = 0;
 		{
 			// Choose X11 or Wayland
 			#ifdef AE_PLATFORM_LINUX
+			if ( useX11 )
 				glfwInitHint( GLFW_PLATFORM, GLFW_PLATFORM_X11 );
-			//	glfwInitHint( GLFW_PLATFORM, GLFW_PLATFORM_WAYLAND );
+			else
+				glfwInitHint( GLFW_PLATFORM, GLFW_PLATFORM_WAYLAND );
 			#endif
+			Unused( useX11 );
 
 			CHECK_ERR( glfwInit() == GLFW_TRUE, -1 );
 
@@ -370,19 +373,39 @@ using namespace AE::Base;
 */
 extern int  AE_AppEntry ()
 {
-	return App::ApplicationGLFW::Run( AE_OnAppCreated() );
+	return App::ApplicationGLFW::Run( AE_OnAppCreated( __argc, const_cast<char const**>(__argv) ));
 }
 
-extern int  main (const int, char* argv[])
+/*
+=================================================
+	main
+=================================================
+*/
+extern int  main (const int argc, char const* argv[])
 {
   #ifdef AE_PLATFORM_APPLE
 	FileSystem::SetCurrentPath( Path{argv[0]}.parent_path().parent_path().parent_path().parent_path() );
   #else
 	FileSystem::SetCurrentPath( Path{argv[0]}.parent_path() );
   #endif
-	return App::ApplicationGLFW::Run( AE_OnAppCreated() );
+
+  #ifdef AE_PLATFORM_LINUX
+	bool	use_x11	= Parser::HasCommandLineArg( ArrayView{ argv, usize(Max( arggc, 0 ))}, "-x11" );
+	bool	use_wl	= Parser::HasCommandLineArg( ArrayView{ argv, usize(Max( arggc, 0 ))}, "-wayland" );
+			use_x11	= use_x11 and not use_wl;
+  #else
+	bool	use_x11	= false;
+	Unused( argc );
+  #endif
+
+	return App::ApplicationGLFW::Run( AE_OnAppCreated( argc, argv ), use_x11 );
 }
 
+/*
+=================================================
+	WinMain
+=================================================
+*/
 # ifdef AE_PLATFORM_WINDOWS
 extern int  WinMain (HINSTANCE	hInstance,
 					 HINSTANCE	hPrevInstance,
@@ -391,7 +414,10 @@ extern int  WinMain (HINSTANCE	hInstance,
 {
 	Unused( hInstance, hPrevInstance, lpCmdLine, nShowCmd );
 
-	return App::ApplicationGLFW::Run( AE_OnAppCreated() );
+	if ( __argc > 0 )
+		FileSystem::SetCurrentPath( Path{__argv[0]}.parent_path() );
+
+	return App::ApplicationGLFW::Run( AE_OnAppCreated( __argc, const_cast<char const**>(__argv) ));
 }
 # endif
 

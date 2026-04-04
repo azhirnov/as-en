@@ -17,8 +17,8 @@ namespace AE::Graphics
 		return	(mode				!= Default) and
 				(codec				!= Default) and
 				(chromaSubsampling	!= Default) and
-				(lumaBitDepth		!= 0)		and
-				(chromaBitDepth		!= 0)		and
+				(lumaBitDepth		!= Default)	and
+				(chromaBitDepth		!= Default)	and
 				not IsNullUnion( spec );
 	}
 //-----------------------------------------------------------------------------

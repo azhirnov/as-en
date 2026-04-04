@@ -61,7 +61,7 @@ namespace {
 		NonNull( app );
 		DRC_EXLOCK( app->_drCheck );
 
-		ASSERT( app->_windows.size() == app->_andWindows.size() );
+		ASSERT_Eq( app->_windows.size(), app->_andWindows.size() );
 
 		for (auto& [id, wnd] : app->_andWindows)
 		{

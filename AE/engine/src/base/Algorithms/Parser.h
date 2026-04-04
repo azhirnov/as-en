@@ -53,6 +53,7 @@ namespace AE::Base
 		ND_ static String TabsToSpaces (StringView src, uint tabSize = 4)								__Th___;
 			static void   TabsToSpaces (OUT String &dst, StringView src, uint tabSize = 4)				__Th___;
 
+		ND_ static bool  IsWhiteSpace (char c)															__NE___	{ return c == ' ' or c == '\t'; }
 		ND_ static bool  IsWhiteSpacesOnly (StringView str)												__NE___;
 			static void  SkipWhiteSpaces (INOUT StringView &str)										__NE___;
 
@@ -61,6 +62,12 @@ namespace AE::Base
 		ND_	static bool  ParseCSV (StringView str,
 									OUT HashMap<StringView, uint> &columnNames,
 									OUT Array<Array<StringView>> &rows)									__NE___;
+
+		ND_ static String  GetCommandLineArg (ArrayView<const char*> args,
+											  StringView argName, String defaultStr = Default)			__NE___;
+		ND_ static bool	   HasCommandLineArg (ArrayView<const char*> args, StringView argName)			__NE___;
+		ND_ static Path    GetCommandLinePath (ArrayView<const char*> args,
+											   StringView argName, Path defaultPath = Default)			__NE___;
 
 		static constexpr struct _CPPHelper
 		{

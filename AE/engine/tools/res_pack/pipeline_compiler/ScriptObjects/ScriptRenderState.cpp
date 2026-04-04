@@ -8,7 +8,7 @@ namespace AE::PipelineCompiler
 namespace
 {
 	static ScriptRenderState*  ScriptRenderState_Ctor (const String &name) {
-		return RenderStatePtr{ new ScriptRenderState{ name }}.Detach();
+		return ScriptRenderState::Create( name ).Detach();
 	}
 
 } // namespace
@@ -18,12 +18,19 @@ namespace
 	constructor
 =================================================
 */
-	ScriptRenderState::ScriptRenderState (const String &name) :
+	ScriptRenderState::ScriptRenderState (const String &name) __NE___ :
 		_name{ name }
+	{}
+
+	RenderStatePtr  ScriptRenderState::Create (const String &name) __Th___
 	{
+		RenderStatePtr	result {new ScriptRenderState{ name }};
+
 		auto&	map = ObjectStorage::Instance()->renderStatesMap;
-		CHECK_THROW_MSG( map.emplace( name, RenderStatePtr{this} ).second,
+		CHECK_THROW_MSG( map.emplace( name, result ).second,
 			"RenderState with name '"s << name << "' is already defined" );
+
+		return result;
 	}
 
 /*
@@ -34,7 +41,7 @@ namespace
 	void  ScriptRenderState::Bind (const ScriptEnginePtr &se) __Th___
 	{
 		ClassBinder<ScriptRenderState>	binder{ se };
-		binder.CreateRef();
+		binder.CreateRef( 0, False{} );
 
 		binder.Comment( "Create render state.\n"
 						"Name is used only in script." );

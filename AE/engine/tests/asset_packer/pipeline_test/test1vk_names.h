@@ -7,6 +7,7 @@ namespace RenderTechs
 	using PipelineName_t        = AE::Graphics::PipelineName;
 	using RTShaderBindingName_t = AE::Graphics::RTShaderBindingName;
 	using DSLayoutName_t        = AE::Graphics::DSLayoutName;
+	using ExecutionSetName_t    = AE::Graphics::IndirectExecutionSetName;
 
 	static constexpr struct _MeshForward
 	{
@@ -150,7 +151,6 @@ namespace RenderTechs
 			// pipelines
 			static constexpr PipelineName_t  compute_1_def {Hash_t{0x12d3ec14u}};  // 'compute_1.def'
 			static constexpr PipelineName_t  compute_2_def {Hash_t{0x557396c4u}};  // 'compute_2.def'
-			static constexpr PipelineName_t  compute_3_def {Hash_t{0x6813bf74u}};  // 'compute_3.def'
 		} Compute1 = {};
 	} MinForward;
 
@@ -184,6 +184,7 @@ namespace RenderTechs
 			constexpr operator RenderTechPassName_t () const { return RenderTechPassName_t{Hash_t{0x2590222au}};}  // 'Trace1'
 
 			// pipelines
+			static constexpr PipelineName_t  compute_3_def {Hash_t{0x6813bf74u}};  // 'compute_3.def'
 			static constexpr PipelineName_t  raytracing_1_def {Hash_t{0xbb76cca4u}};  // 'raytracing_1.def'
 		} Trace1 = {};
 

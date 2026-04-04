@@ -103,9 +103,6 @@ namespace AE::Graphics
 		VkFrameBoundaryEXT	frame_boundary = {};
 		frame_boundary.sType	= VK_STRUCTURE_TYPE_FRAME_BOUNDARY_EXT;
 		frame_boundary.frameID	= ulong(_frameId.load().Unique());
-
-		VkFrameBoundaryEXT	frame_boundary_end = frame_boundary;
-		frame_boundary_end.flags = VK_FRAME_BOUNDARY_FRAME_END_BIT_EXT;
 	  #endif
 
 		for (auto& batch : pending)
@@ -142,10 +139,8 @@ namespace AE::Graphics
 		  #ifdef AE_DEBUG
 			if ( dev.GetVExtensions().frameBoundary )
 			{
-				if ( AllBits( batch->_flags, CmdBatchDesc::EFlags::FrameEnd ))
-					next.Add( frame_boundary_end );
-				else
-					next.Add( frame_boundary );
+				frame_boundary.flags = AllBits( batch->_flags, CmdBatchDesc::EFlags::FrameEnd ) ? VK_FRAME_BOUNDARY_FRAME_END_BIT_EXT : 0;
+				next.Add( frame_boundary );
 			}
 		  #endif
 		}
@@ -194,9 +189,6 @@ namespace AE::Graphics
 		VkFrameBoundaryEXT	frame_boundary = {};
 		frame_boundary.sType	= VK_STRUCTURE_TYPE_FRAME_BOUNDARY_EXT;
 		frame_boundary.frameID	= ulong(_frameId.load().Unique());
-
-		VkFrameBoundaryEXT	frame_boundary_end = frame_boundary;
-		frame_boundary_end.flags = VK_FRAME_BOUNDARY_FRAME_END_BIT_EXT;
 	  #endif
 
 		for (auto& batch : pending)
@@ -234,10 +226,8 @@ namespace AE::Graphics
 		  #ifdef AE_DEBUG
 			if ( dev.GetVExtensions().frameBoundary )
 			{
-				if ( AllBits( batch->_flags, CmdBatchDesc::EFlags::FrameEnd ))
-					next.Add( frame_boundary_end );
-				else
-					next.Add( frame_boundary );
+				frame_boundary.flags = AllBits( batch->_flags, CmdBatchDesc::EFlags::FrameEnd ) ? VK_FRAME_BOUNDARY_FRAME_END_BIT_EXT : 0;
+				next.Add( frame_boundary );
 			}
 		  #endif
 		}

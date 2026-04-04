@@ -59,10 +59,14 @@ void ASmain ()
 	//	Adreno-660-1.1.128
 	//	Adreno-660-1.1.276
 	//	Adreno-660-1.1.295
+	//	Adreno-730-1.4.295
 	//	Adreno-740-1.3.128
 	//	Adreno-740-1.3.295
 	//	Adreno-830-1.3.284
 	//	Adreno-830-1.4.295
+	//	AdrenoX1-45-Win-1.3.295
+	//	AdrenoX1-85-Linux-1.4.305
+	//	AdrenoX1-85-Win-1.3.295
 	//	Apple-A12-1.3.313
 	//	Apple-A13-1.4.323
 	//	Apple-A14-1.4.323
@@ -75,6 +79,8 @@ void ASmain ()
 	//	Maleoon910-1.2.309
 	//	Maleoon920-1.3.275
 	//	Maleoon920-1.3.309
+	//	Maleoon935-1.3.309
+	//	Mali-G1U-1.3.305
 	//	Mali-G52-1.1.191
 	//	Mali-G52-1.3.278
 	//	Mali-G52.1.1.149

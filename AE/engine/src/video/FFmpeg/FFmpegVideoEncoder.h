@@ -21,8 +21,8 @@ namespace AE::Video
 
 		FFmpegFnTable			_ffmpeg;
 
-		AVOutputFormat const*	_format				= null;
-		AVFormatContext *		_formatCtx			= null;
+		AVOutputFormat const*	_outputFormat		= null;
+		AVFormatContext *		_outputCtx			= null;
 
 		AVStream *				_videoStream		= null;
 		AVFrame *				_videoFrame			= null;
@@ -33,17 +33,22 @@ namespace AE::Video
 		SwsContext *			_swsCtx				= null;
 
 		AVIOContext *			_ioCtx				= null;		// wrapper for file stream
-		RC<WStream>				_tempStream;
 		RC<WStream>				_dstStream;
+		Bytes					_dstStreamBeginPos;
 
 		AVPacket *				_videoPacket		= null;
+
+		// HW device
+		AVCodecHWConfig const*	_codecHwCfg			= null;
+		AVBufferRef *			_hwDeviceCtx		= null;
+		AVBufferRef *			_hwFrameCtx			= null;
+		LinearAllocator<>		_hwAlloc;
 
 		slong					_frameCounter		= 0;
 
 		String					_tempFile;
 		String					_videoFile;
 
-		bool					_remuxRequired		= false;
 		bool					_encodingStarted	= false;
 		bool					_hasBFrames			= false;
 
@@ -57,7 +62,7 @@ namespace AE::Video
 
 		// IVideoEncoder //
 		bool  Begin (const Config &cfg, const Path &filename)				__NE_OV;
-		bool  Begin (const Config &cfg, RC<WStream> temp, RC<WStream> dst)	__NE_OV;
+		bool  Begin (const Config &cfg, RC<WStream> dst)					__NE_OV;
 
 		bool  AddFrame (const ImageMemView &view, Bool endOnError)			__NE_OV;
 		bool  AddFrame (const ImageMemViewArr &view, Bool endOnError)		__NE_OV;
@@ -71,23 +76,27 @@ namespace AE::Video
 
 
 	private:
+		ND_ bool  _RemuxRequired ()											C_NE___	{ return AllBits( _config.flags, EEncoderFlags::Remux ); }
+
 		ND_ bool  _CreateCodec ()											__NE___;
 		ND_ bool  _CreateCodec2 ()											__NE___;
 			void  _Destroy ()												__NE___;
 
 			void  _ValidateResolution ()									__NE___;
 
-		ND_ bool  _CreateStream (const AVCodec* codec, const char* videoFormat,
-								 Bool remuxRequired, Bool hasBFrames)		__NE___;
+		ND_ bool  _CreateStream (const AVCodec* codec, const char* outputFormat,
+								 Bool hasBFrames)							__NE___;
 			void  _DestroyStream ()											__NE___;
 
 			void  _ValidatePixelFormat (OUT AVPixelFormat &)				C_NE___;
-			void  _SetOptions (INOUT AVDictionary **dict)					C_NE___;
+			void  _SetCodecOptions (INOUT AVDictionary **dict)				C_NE___;
+			void  _SetMuxOptions (INOUT AVDictionary **dict)				C_NE___;
 
 		ND_ bool  _Remux ()													__NE___;
 		ND_ bool  _RemuxImpl (AVFormatContext* &ifmtCtx,
 							  AVFormatContext* &ofmtCtx,
 							  int* &streamMapping)							__NE___;
+
 		ND_ bool  _Finish ()												__NE___;
 		ND_ bool  _End ()													__NE___;
 
@@ -104,7 +113,16 @@ namespace AE::Video
 
 		ND_ static Bitrate  _CalcBitrate (const Config &cfg)				__NE___;
 
-		static int  _IOWritePacket (void* opaque, ubyte* buf, int buf_size)	__NE___;
+		static int    _IOWritePacket (void*, const ubyte*, int)				__NE___;
+		static slong  _IOSeek (void*, slong, int)							__NE___;
+
+	  #ifdef AE_ENABLE_VULKAN
+		ND_ bool  _CreateVulkanCtx (AVCodecHWConfig const*)					__NE___;
+			void  _DestroyVulkanCtx ()										__NE___;
+
+		static void  _LockVkQueue (AVHWDeviceContext*, uint, uint)			__NE___;
+		static void  _UnlockVkQueue (AVHWDeviceContext*, uint, uint)		__NE___;
+	  #endif
 	};
 
 

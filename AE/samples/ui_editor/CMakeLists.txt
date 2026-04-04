@@ -43,6 +43,7 @@ if ((TARGET "Scripting") AND (TARGET "AssetPacker") AND (NOT AE_ENABLE_REMOTE_GR
 		AE_CANVAS_VERTS="${MAIN_SOURCE_DIR}/engine/src/graphics/Canvas/VertexTypes.as"
 		AE_SHARED_DATA="${AE_ENGINE_SHARED_DATA}"
 		AE_LIBRARY_FOLDER="${MAIN_BINARY_DIR}"
+		AE_DATA_FOLDER="${AE_DATA_FOLDER}/ui_editor"
 	)
 	#----------------------------------------------------------
 

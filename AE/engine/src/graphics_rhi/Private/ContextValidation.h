@@ -4,6 +4,7 @@
 
 #include "graphics_rhi/Public/CommandBuffer.h"
 #include "graphics_rhi/Public/FeatureSet.h"
+#include "graphics_rhi/Public/IndirectCommandBuffer.h"
 #include "graphics_rhi/Private/Defines.h"
 
 #if AE_VALIDATE_GCTX
@@ -145,6 +146,20 @@ namespace AE::Graphics::_hidden_
 
 		static void  DispatchIndirect (const BufferDesc &indirectBufferDesc, Bytes offset)										__Th___;
 
+		static void  PreprocessGeneratedCommands (const PreprocessGeneratedCommandsCmd &,
+												  EIndirectCommandsLayoutUsage cmdLayoutUsage)									__Th___;
+		static void  PreprocessGeneratedCommands (const PreprocessGeneratedCommands2Cmd &,
+												  const BufferDesc &preprocessBufferDesc,
+												  const BufferDesc &indirectBufferDesc,
+												  const BufferDesc &sequenceCountBufferDesc)									__Th___;
+
+		static void  ExecuteGeneratedCommands (const ExecuteGeneratedCommandsCmd &,
+											   EIndirectCommandsLayoutUsage cmdLayoutUsage)										__Th___;
+		static void  ExecuteGeneratedCommands (const ExecuteGeneratedCommands2Cmd &,
+											   const BufferDesc &preprocessBufferDesc,
+											   const BufferDesc &indirectBufferDesc,
+											   const BufferDesc &sequenceCountBufferDesc)										__Th___;
+
 	#ifdef AE_ENABLE_VULKAN
 		static void  Dispatch (VkPipelineLayout, const uint3 &groupCount)														__Th___;
 		static void  DispatchBase (VkPipelineLayout, const uint3 &baseGroup, const uint3 &groupCount)							__Th___;
@@ -218,6 +233,13 @@ namespace AE::Graphics::_hidden_
 												 Bytes				stride)														__Th___;
 		static void  DrawMeshTasksIndirectCount (uint maxDrawCount, Bytes stride)												__Th___;
 
+		static void  ExecuteGeneratedCommands (const ExecuteGeneratedCommandsCmd &,
+											   EIndirectCommandsLayoutUsage cmdLayoutUsage)										__Th___;
+		static void  ExecuteGeneratedCommands (const ExecuteGeneratedCommands2Cmd &,
+											   const BufferDesc &preprocessBufferDesc,
+											   const BufferDesc &indirectBufferDesc,
+											   const BufferDesc &sequenceCountBufferDesc)										__Th___;
+
 		static void  SetDepthBias (EPipelineDynamicState dynState, float depthBiasClamp)										__Th___;
 		static void  SetDepthBounds (EPipelineDynamicState dynState)															__Th___;
 		static void  SetStencilCompareMask (EPipelineDynamicState dynState)														__Th___;
@@ -225,7 +247,6 @@ namespace AE::Graphics::_hidden_
 		static void  SetStencilReference (EPipelineDynamicState dynState)														__Th___;
 		static void  SetBlendConstants (EPipelineDynamicState dynState)															__Th___;
 		static void  SetFragmentShadingRate (EPipelineDynamicState, EShadingRate, EShadingRateCombinerOp, EShadingRateCombinerOp) __Th___;
-		static void  SetViewportWScaling (EPipelineDynamicState, ArrayView<packed_float2> scaling)								__Th___;
 
 
 	#ifdef AE_ENABLE_VULKAN
@@ -365,6 +386,19 @@ namespace AE::Graphics::_hidden_
 		static void  TraceRaysIndirect (const BufferDesc &indirectBufferDesc, Bytes indirectBufferOffset)						__Th___;
 		static void  TraceRaysIndirect2 (const BufferDesc &indirectBufferDesc, Bytes indirectBufferOffset)						__Th___;
 
+		static void  PreprocessGeneratedCommands (const PreprocessGeneratedCommandsCmd &,
+												  EIndirectCommandsLayoutUsage cmdLayoutUsage)									__Th___;
+		static void  PreprocessGeneratedCommands (const PreprocessGeneratedCommands2Cmd &,
+												  const BufferDesc &preprocessBufferDesc,
+												  const BufferDesc &indirectBufferDesc,
+												  const BufferDesc &sequenceCountBufferDesc)									__Th___;
+
+		static void  ExecuteGeneratedCommands (const ExecuteGeneratedCommandsCmd &,
+											   EIndirectCommandsLayoutUsage cmdLayoutUsage)										__Th___;
+		static void  ExecuteGeneratedCommands (const ExecuteGeneratedCommands2Cmd &,
+											   const BufferDesc &preprocessBufferDesc,
+											   const BufferDesc &indirectBufferDesc,
+											   const BufferDesc &sequenceCountBufferDesc)										__Th___;
 
 	#ifdef AE_ENABLE_VULKAN
 		static void  BindDescriptorSet (VkPipelineLayout, DescSetBinding index, VkDescriptorSet ds)								__Th___;

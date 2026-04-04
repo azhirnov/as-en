@@ -25,7 +25,7 @@ namespace AE::ResEditor
 	private:
 		EResourceUsage				_resUsage		= Default;
 		EPixelFormat				_format			= Default;
-		uint						_imageType		= 0;		// EImageType
+		EImageType					_imageType		= Default;
 		uint2						_dim;
 		VFS::FileName				_videoFile;
 		String						_dbgName;
@@ -62,7 +62,7 @@ namespace AE::ResEditor
 		void  Ycbcr_ForceExplicitReconstruction (bool value)			__Th___;
 
 		ND_ ScriptDynamicDim*	Dimension ()							__Th___;
-		ND_ uint				ImageType ()							C_NE___	{ return _imageType; }
+		ND_ EImageType			ImageType ()							C_NE___	{ return _imageType; }
 		ND_ bool				HasYcbcrSampler ()						C_NE___	{ return _ycbcrDesc != Default; }
 		ND_ auto const&			GetYcbcrDesc ()							C_NE___	{ return _ycbcrDesc; }
 		ND_ String const&		GetSamplerName ()						C_NE___	{ return _ycbcrSampName; }

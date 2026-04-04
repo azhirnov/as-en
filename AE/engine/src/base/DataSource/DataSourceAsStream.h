@@ -57,7 +57,7 @@ namespace AE::Base
 
 		Bytes		ReadSeq (OUT void* buffer, Bytes size)	__NE_OV;
 
-		ReqAlign	OffsetAlign ()							C_NE_OV	{ return _dataSource->OffsetAlign(); }
+		ReqAlign	DirectAccessAlign ()					C_NE_OV	{ return _dataSource->DirectAccessAlign(); }
 	};
 //-----------------------------------------------------------------------------
 

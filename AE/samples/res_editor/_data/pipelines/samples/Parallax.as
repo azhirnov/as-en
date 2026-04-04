@@ -14,10 +14,10 @@
 		{
 			RC<ShaderStructType>	st = ShaderStructType( "io" );
 			st.Set( EStructLayout::InternalIO,
-					"float2		texcoord;" +
-					"float3		worldPos;" +
-					"float3		normal;" +
-					"float3		tangent;" +
+					"float2		texcoord;"
+					"float3		worldPos;"
+					"float3		normal;"
+					"float3		tangent;"
 					"float3		bitangent;" );
 		}{
 			RC<DescriptorSetLayout>	ds = DescriptorSetLayout( "mtr.ds" );
@@ -75,14 +75,14 @@
 	void Main ()
 	{
 		const uint		idx	= gl.VertexIndex;
-		const float4	pos	= LocalPosToWorldSpace( un_Geometry.positions[idx] );
+		const float4	pos	= LocalPosToWorldSpace( un_Geometry.position[idx] );
 
 		gl.Position		= WorldPosToClipSpace( pos );
-		Out.texcoord	= un_Geometry.texcoords[idx];
+		Out.texcoord	= un_Geometry.uv[idx];
 		Out.worldPos	= pos.xyz;
-		Out.normal		= LocalVecToWorldSpace( un_Geometry.normals[idx] );
-		Out.tangent		= LocalVecToWorldSpace( un_Geometry.tangents[idx] );
-		Out.bitangent	= LocalVecToWorldSpace( un_Geometry.bitangents[idx] );
+		Out.normal		= LocalVecToWorldSpace( un_Geometry.normal[idx] );
+		Out.tangent		= LocalVecToWorldSpace( un_Geometry.tangent[idx] );
+		Out.bitangent	= LocalVecToWorldSpace( un_Geometry.bitangent[idx] );
 	}
 
 #endif

@@ -30,7 +30,7 @@ namespace AE::Graphics
 		NOTHROW_ERR(
 			_sbtAllocator = desc.sbtAllocator;
 
-			return _Create( resMngr, desc, selfId );
+			return _Create( resMngr, desc, selfId );  // throw
 		)
 	}
 
@@ -397,6 +397,86 @@ namespace AE::Graphics
 		return id;
 	}
 
+/*
+=================================================
+	_CreateIndirectExecutionSet
+=================================================
+*/
+	IndirectExecutionSetID  VPipelinePack::RenderTech::_CreateIndirectExecutionSet (ResourceManager											 &resMngr,
+																					const PipelineCompiler::SerializableIndirectExecutionSet &desc,
+																					StringView												 dbgName) __NE___
+	{
+		using namespace PipelineCompiler;
+
+		Array<VkPipeline>	vk_pipelines;
+		NOTHROW_ERR( vk_pipelines.resize( desc.pipelines.size() ));
+
+		VIndirectExecutionSet::InitialState	initial;
+		const auto	SetInitial = [&initial] (auto* pipe, PipelineName::Ref name)
+		{{
+			initial.bindPoint	 = pipe->BindPoint();
+			initial.pipeline	 = pipe->Handle();
+			initial.layout		 = pipe->Layout();
+			initial.dynamicState = pipe->DynamicState();
+			initial.pplnName	 = name;
+		}};
+
+		switch ( desc.pipeType )
+		{
+			case PipelineSpecUID::Graphics :
+			{
+				for (usize i = 0; i < desc.pipelines.size(); ++i)
+				{
+					auto	id   = GetGraphicsPipeline( PipelineName{desc.pipelines[i]} );
+					auto*	pipe = resMngr.GetResource( id );
+					CHECK_ERR( pipe != null );
+					vk_pipelines[i] = pipe->Handle();
+					if_unlikely( i == 0 ) SetInitial( pipe, PipelineName{desc.pipelines[i]} );
+				}
+				break;
+			}
+			case PipelineSpecUID::Mesh :
+			{
+				for (usize i = 0; i < desc.pipelines.size(); ++i)
+				{
+					auto	id   = GetMeshPipeline( PipelineName{desc.pipelines[i]} );
+					auto*	pipe = resMngr.GetResource( id );
+					CHECK_ERR( pipe != null );
+					vk_pipelines[i] = pipe->Handle();
+					if_unlikely( i == 0 ) SetInitial( pipe, PipelineName{desc.pipelines[i]} );
+				}
+				break;
+			}
+			case PipelineSpecUID::Compute :
+			{
+				for (usize i = 0; i < desc.pipelines.size(); ++i)
+				{
+					auto	id   = GetComputePipeline( PipelineName{desc.pipelines[i]} );
+					auto*	pipe = resMngr.GetResource( id );
+					CHECK_ERR( pipe != null );
+					vk_pipelines[i] = pipe->Handle();
+					if_unlikely( i == 0 ) SetInitial( pipe, PipelineName{desc.pipelines[i]} );
+				}
+				break;
+			}
+			case PipelineSpecUID::RayTracing :
+			{
+				for (usize i = 0; i < desc.pipelines.size(); ++i)
+				{
+					auto	id   = GetRayTracingPipeline( PipelineName{desc.pipelines[i]} );
+					auto*	pipe = resMngr.GetResource( id );
+					CHECK_ERR( pipe != null );
+					vk_pipelines[i] = pipe->Handle();
+					if_unlikely( i == 0 ) SetInitial( pipe, PipelineName{desc.pipelines[i]} );
+				}
+				break;
+			}
+			default :
+				RETURN_ERR( "unsupported pipeline type" );
+		}
+
+		return resMngr.CreateIndirectExecutionSet( VIndirectExecutionSet::CreateInfo{ vk_pipelines, initial, dbgName }).Release();
+	}
 
 } // AE::Graphics
 

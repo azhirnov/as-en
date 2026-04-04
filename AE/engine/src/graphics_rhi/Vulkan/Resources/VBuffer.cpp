@@ -5,6 +5,7 @@
 # include "graphics_rhi/Vulkan/Resources/VBuffer.h"
 # include "graphics_rhi/Vulkan/VResourceManager.h"
 # include "graphics_rhi/Vulkan/VEnumCast.h"
+# include "graphics_rhi/Vulkan/Utils/NextChain.h"
 
 namespace AE::Graphics
 {
@@ -40,15 +41,24 @@ namespace AE::Graphics
 
 		auto&	dev = resMngr.GetDevice();
 
+		VkBufferUsageFlags2CreateInfoKHR	flags2_ci = {};
+		flags2_ci.sType	= VK_STRUCTURE_TYPE_BUFFER_USAGE_FLAGS_2_CREATE_INFO;
+		flags2_ci.usage	= VEnumCast( _desc.usage );
+
 		// create buffer
 		VkBufferCreateInfo	info = {};
+		VNextChain			p_next {info};
 		info.sType	= VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
-		info.pNext	= null;
 		info.flags	= 0;
-		info.usage	= VEnumCast( _desc.usage );
-		info.size	= VkDeviceSize( _desc.size );
+		info.usage	= VkBufferUsageFlags( flags2_ci.usage );
+		info.size	= VkDeviceSize{ _desc.size };
 
-		// TODO: VkBufferUsageFlags2CreateInfoKHR (VK_KHR_maintenance5)
+		if ( dev.GetVExtensions().maintenance5 ){
+			p_next.Add( flags2_ci );
+		}else{
+			CHECK_ERR_MSG( flags2_ci.usage == info.usage,
+				"Some buffer usage flags requires 'maintenance5' extension" );
+		}
 
 		if_unlikely( EMemoryType_IsNonCoherent( desc.memType ))
 			info.size = AlignUp( info.size, dev.GetDeviceProperties().res.minNonCoherentAtomSize );
@@ -100,11 +110,14 @@ namespace AE::Graphics
 		CHECK_ERR( desc.usage != Zero );
 		ASSERT( desc.memFlags != Zero );
 
+		EVideoBufferUsage	vb_usage;
+
 		_buffer			= desc.buffer;
 		_desc.size		= desc.size;
-		_desc.usage		= AEEnumCast( desc.usage );
 		_desc.memType	= AEEnumCast( desc.memFlags, not desc.canBeDestroyed );
 		_desc.queues	= desc.queues;
+
+		CHECK( AEEnumCast( desc.usage, OUT _desc.usage, OUT vb_usage ));
 
 		if ( AnyBits( _desc.usage, EBufferUsage_RequireDeviceLocal ))
 			GRES_CHECK( AllBits( _desc.memType, EMemoryType::DeviceLocal ));	// specified memory type is not valid
@@ -223,7 +236,7 @@ namespace AE::Graphics
 */
 	bool  VBuffer::IsSupported (const ResourceManager &resMngr, const BufferDesc &desc, const BufferViewDesc &view) __NE___
 	{
-		StaticAssert( uint(EBufferUsage::All) == 0x3FFF );
+		StaticAssert( uint(EBufferUsage::All) == 0xFFFF );
 		StaticAssert( uint(EBufferOpt::All) == 0x1F );
 
 		if_unlikely( not BufferView_IsSupported( resMngr, desc, view ))
@@ -314,13 +327,18 @@ namespace AE::Graphics
 					align = Max( align, rt_props.shaderGroupBaseAlignment, rt_props.shaderGroupHandleAlignment );
 					break;
 
-				case EBufferUsage::RTAS_Storage :	// TODO
+				case EBufferUsage::MMBuild_ReadOnly :
+					align = Max( align, 256_b );	// from specs
 					break;
 
-				case EBufferUsage::TransferSrc :		break;
-				case EBufferUsage::TransferDst :		break;
-				case EBufferUsage::Index :				break;
-				case EBufferUsage::Vertex :				break;
+				case EBufferUsage::RTAS_Storage :
+				case EBufferUsage::ICB_Preprocess :
+					break;								// TODO ?
+
+				case EBufferUsage::TransferSrc :
+				case EBufferUsage::TransferDst :
+				case EBufferUsage::Index :
+				case EBufferUsage::Vertex :
 				case EBufferUsage::Indirect :			break;
 
 				case EBufferUsage::_Last :

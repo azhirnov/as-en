@@ -11,7 +11,7 @@ namespace AE::PipelineCompiler
 namespace
 {
 	static ScriptSampler*  SamplerDesc_Ctor (const String &name) {
-		return ScriptSamplerPtr{new ScriptSampler{ name }}.Detach();
+		return ScriptSampler::Create( name ).Detach();
 	}
 }
 
@@ -20,27 +20,30 @@ namespace
 	constructor
 =================================================
 */
-	ScriptSampler::ScriptSampler () :
-		ScriptSampler{"<unknown>"}
-	{}
-
-	ScriptSampler::ScriptSampler (const String &name) __Th___ :
+	ScriptSampler::ScriptSampler (const String &name) __NE___ :
 		_name{ SamplerName{name} },
 		_nameStr{ name },
 		_features{ ObjectStorage::Instance()->GetDefaultFeatureSets() }
-	{
-		auto&	storage = *ObjectStorage::Instance();
-		storage.AddName<SamplerName>( name );
-		CHECK_THROW_MSG( storage.samplerMap.emplace( name, storage.samplerRefs.size() ).second,
-			"Sampler with name '"s << name << "' is already defined" );
-		storage.samplerRefs.push_back( ScriptSamplerPtr{this} );
-	}
+	{}
 
 	ScriptSampler::ScriptSampler (ScriptSampler &&other) __NE___ :
 		_name{ other._name },
 		_desc{ other._desc },
 		_features{ RVRef(other._features) }
 	{}
+
+	ScriptSamplerPtr  ScriptSampler::Create (const String &name) __Th___
+	{
+		ScriptSamplerPtr	result	{new ScriptSampler{ name }};
+		auto&				storage	= *ObjectStorage::Instance();
+
+		storage.AddName<SamplerName>( name );
+		CHECK_THROW_MSG( storage.samplerMap.emplace( name, storage.samplerRefs.size() ).second,
+			"Sampler with name '"s << name << "' is already defined" );
+		storage.samplerRefs.push_back( result );
+
+		return result;
+	}
 
 /*
 =================================================
@@ -267,7 +270,7 @@ namespace
 
 		if ( AnyBits( _desc.options, ESamplerOpt::Subsampled | ESamplerOpt::SubsampledCoarseReconstruction ))
 		{
-			TEST_FEATURE_MSG( GetFeatures(), fragmentDensityMap, "but required for sampler with 'Subsampled' or 'SubsampledCoarseReconstruction' flags" );
+			TEST_FEATURE_MSG( GetFeatures(), fragmentDensityMap, ", but required for sampler with 'Subsampled' or 'SubsampledCoarseReconstruction' flags" );
 		}
 	}
 
@@ -418,7 +421,7 @@ namespace
 		// bind sampler
 		{
 			ClassBinder<ScriptSampler>	binder{ se };
-			binder.CreateRef();
+			binder.CreateRef( 0, False{} );
 
 			binder.Comment( "Create sampler.\n"
 							"Name is used as typename for immutable samplers or to get sampler in C++ code." );

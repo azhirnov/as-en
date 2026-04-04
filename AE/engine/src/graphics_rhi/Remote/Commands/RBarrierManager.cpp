@@ -147,10 +147,10 @@ namespace AE::Graphics::_hidden_
 
 /*
 =================================================
-	***Barrier
+	ResourceBarrier
 =================================================
 */
-	void  RBarrierManager::BufferBarrier (BufferID bufferId, EResourceState srcState, EResourceState dstState) __Th___
+	void  RBarrierManager::ResourceBarrier (BufferID bufferId, EResourceState srcState, EResourceState dstState) __Th___
 	{
 		auto&	buf = _resMngr.GetResourcesOrThrow( bufferId );
 
@@ -158,10 +158,10 @@ namespace AE::Graphics::_hidden_
 		cmd.buffer		= buf.Handle();
 		cmd.srcState	= srcState;
 		cmd.dstState	= dstState;
-		_AddCommand( cmd );
+		_AddCommand( cmd );  // throw
 	}
 
-	void  RBarrierManager::BufferViewBarrier (BufferViewID viewId, EResourceState srcState, EResourceState dstState) __Th___
+	void  RBarrierManager::ResourceBarrier (BufferViewID viewId, EResourceState srcState, EResourceState dstState) __Th___
 	{
 		auto&	view = _resMngr.GetResourcesOrThrow( viewId );
 
@@ -169,10 +169,10 @@ namespace AE::Graphics::_hidden_
 		cmd.bufferView	= view.Handle();
 		cmd.srcState	= srcState;
 		cmd.dstState	= dstState;
-		_AddCommand( cmd );
+		_AddCommand( cmd );  // throw
 	}
 
-	void  RBarrierManager::ImageBarrier (ImageID imageId, EResourceState srcState, EResourceState dstState) __Th___
+	void  RBarrierManager::ResourceBarrier (ImageID imageId, EResourceState srcState, EResourceState dstState) __Th___
 	{
 		auto&	image = _resMngr.GetResourcesOrThrow( imageId );
 
@@ -180,10 +180,10 @@ namespace AE::Graphics::_hidden_
 		cmd.image		= image.Handle();
 		cmd.srcState	= srcState;
 		cmd.dstState	= dstState;
-		_AddCommand( cmd );
+		_AddCommand( cmd );  // throw
 	}
 
-	void  RBarrierManager::ImageBarrier (ImageID imageId, EResourceState srcState, EResourceState dstState, const ImageSubresourceRange &subRes) __Th___
+	void  RBarrierManager::ResourceBarrier (ImageID imageId, EResourceState srcState, EResourceState dstState, const ImageSubresourceRange &subRes) __Th___
 	{
 		auto&	image = _resMngr.GetResourcesOrThrow( imageId );
 
@@ -192,10 +192,10 @@ namespace AE::Graphics::_hidden_
 		cmd.srcState	= srcState;
 		cmd.dstState	= dstState;
 		cmd.subRes		= subRes;
-		_AddCommand( cmd );
+		_AddCommand( cmd );  // throw
 	}
 
-	void  RBarrierManager::ImageViewBarrier (ImageViewID viewId, EResourceState srcState, EResourceState dstState) __Th___
+	void  RBarrierManager::ResourceBarrier (ImageViewID viewId, EResourceState srcState, EResourceState dstState) __Th___
 	{
 		auto&	view = _resMngr.GetResourcesOrThrow( viewId );
 
@@ -203,7 +203,57 @@ namespace AE::Graphics::_hidden_
 		cmd.imageView	= view.Handle();
 		cmd.srcState	= srcState;
 		cmd.dstState	= dstState;
-		_AddCommand( cmd );
+		_AddCommand( cmd );  // throw
+	}
+
+	void  RBarrierManager::ResourceBarrier (RTGeometryID id, EResourceState srcState, EResourceState dstState) __Th___
+	{
+		auto&	geom = _resMngr.GetResourcesOrThrow( id );
+
+		Msg::CmdBuf_Bake::RTGeometryBarrierCmd  cmd;
+		cmd.geomId		= geom.Handle();
+		cmd.srcState	= srcState;
+		cmd.dstState	= dstState;
+		_AddCommand( cmd );  // throw
+	}
+
+	void  RBarrierManager::ResourceBarrier (RTSceneID id, EResourceState srcState, EResourceState dstState) __Th___
+	{
+		auto&	scene = _resMngr.GetResourcesOrThrow( id );
+
+		Msg::CmdBuf_Bake::RTSceneBarrierCmd  cmd;
+		cmd.sceneId		= scene.Handle();
+		cmd.srcState	= srcState;
+		cmd.dstState	= dstState;
+		_AddCommand( cmd );  // throw
+	}
+
+	void  RBarrierManager::ResourceBarrier (RTMicromapID id, EResourceState srcState, EResourceState dstState) __Th___
+	{
+		auto&	micromap = _resMngr.GetResourcesOrThrow( id );
+
+		Msg::CmdBuf_Bake::RTMicromapBarrierCmd  cmd;
+		cmd.micromapId	= micromap.Handle();
+		cmd.srcState	= srcState;
+		cmd.dstState	= dstState;
+		_AddCommand( cmd );  // throw
+	}
+
+	void  RBarrierManager::ResourceBarrier (VideoBufferID id, EResourceState srcState, EResourceState dstState) __Th___
+	{
+		auto&	buffer = _resMngr.GetResourcesOrThrow( id );
+		ResourceBarrier( buffer.BufferId(), srcState, dstState );
+	}
+
+	void  RBarrierManager::ResourceBarrier (VideoImageID id, EResourceState srcState, EResourceState dstState) __Th___
+	{
+		auto&	image = _resMngr.GetResourcesOrThrow( id );
+
+		Msg::CmdBuf_Bake::VideoImageBarrierCmd  cmd;
+		cmd.imageId		= image.Handle();
+		cmd.srcState	= srcState;
+		cmd.dstState	= dstState;
+		_AddCommand( cmd );  // throw
 	}
 
 	void  RBarrierManager::MemoryBarrier (EResourceState srcState, EResourceState dstState) __Th___
@@ -211,7 +261,7 @@ namespace AE::Graphics::_hidden_
 		Msg::CmdBuf_Bake::MemoryBarrierCmd  cmd;
 		cmd.srcState	= srcState;
 		cmd.dstState	= dstState;
-		_AddCommand( cmd );
+		_AddCommand( cmd );  // throw
 	}
 
 	void  RBarrierManager::MemoryBarrier (EPipelineScope srcScope, EPipelineScope dstScope) __Th___
@@ -219,13 +269,13 @@ namespace AE::Graphics::_hidden_
 		Msg::CmdBuf_Bake::MemoryBarrier2Cmd  cmd;
 		cmd.srcScope	= srcScope;
 		cmd.dstScope	= dstScope;
-		_AddCommand( cmd );
+		_AddCommand( cmd );  // throw
 	}
 
 	void  RBarrierManager::MemoryBarrier () __Th___
 	{
 		Msg::CmdBuf_Bake::MemoryBarrier3Cmd  cmd;
-		_AddCommand( cmd );
+		_AddCommand( cmd );  // throw
 	}
 
 	void  RBarrierManager::ExecutionBarrier (EResourceState srcState, EResourceState dstState) __Th___
@@ -233,7 +283,7 @@ namespace AE::Graphics::_hidden_
 		Msg::CmdBuf_Bake::ExecutionBarrierCmd  cmd;
 		cmd.srcState	= srcState;
 		cmd.dstState	= dstState;
-		_AddCommand( cmd );
+		_AddCommand( cmd );  // throw
 	}
 
 	void  RBarrierManager::ExecutionBarrier (EPipelineScope srcScope, EPipelineScope dstScope) __Th___
@@ -241,13 +291,13 @@ namespace AE::Graphics::_hidden_
 		Msg::CmdBuf_Bake::ExecutionBarrier2Cmd  cmd;
 		cmd.srcScope	= srcScope;
 		cmd.dstScope	= dstScope;
-		_AddCommand( cmd );
+		_AddCommand( cmd );  // throw
 	}
 
 	void  RBarrierManager::ExecutionBarrier () __Th___
 	{
 		Msg::CmdBuf_Bake::ExecutionBarrier3Cmd  cmd;
-		_AddCommand( cmd );
+		_AddCommand( cmd );  // throw
 	}
 
 	void  RBarrierManager::AcquireBufferOwnership (BufferID bufferId, EQueueType srcQueue, EResourceState srcState, EResourceState dstState) __Th___
@@ -259,7 +309,7 @@ namespace AE::Graphics::_hidden_
 		cmd.srcQueue	= srcQueue;
 		cmd.srcState	= srcState;
 		cmd.dstState	= dstState;
-		_AddCommand( cmd );
+		_AddCommand( cmd );  // throw
 	}
 
 	void  RBarrierManager::ReleaseBufferOwnership (BufferID bufferId, EResourceState srcState, EResourceState dstState, EQueueType dstQueue) __Th___
@@ -271,7 +321,7 @@ namespace AE::Graphics::_hidden_
 		cmd.srcState	= srcState;
 		cmd.dstState	= dstState;
 		cmd.dstQueue	= dstQueue;
-		_AddCommand( cmd );
+		_AddCommand( cmd );  // throw
 	}
 
 	void  RBarrierManager::AcquireImageOwnership (ImageID imageId, EQueueType srcQueue, EResourceState srcState, EResourceState dstState) __Th___
@@ -283,7 +333,7 @@ namespace AE::Graphics::_hidden_
 		cmd.srcQueue	= srcQueue;
 		cmd.srcState	= srcState;
 		cmd.dstState	= dstState;
-		_AddCommand( cmd );
+		_AddCommand( cmd );  // throw
 	}
 
 	void  RBarrierManager::ReleaseImageOwnership (ImageID imageId, EResourceState srcState, EResourceState dstState, EQueueType dstQueue) __Th___
@@ -295,7 +345,7 @@ namespace AE::Graphics::_hidden_
 		cmd.srcState	= srcState;
 		cmd.dstState	= dstState;
 		cmd.dstQueue	= dstQueue;
-		_AddCommand( cmd );
+		_AddCommand( cmd );  // throw
 	}
 
 

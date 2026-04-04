@@ -6,6 +6,8 @@
 
 namespace AE::PipelineCompiler
 {
+	using RenderStatePtr = ScriptRC< struct ScriptRenderState >;
+
 
 	//
 	// Render State
@@ -18,17 +20,19 @@ namespace AE::PipelineCompiler
 		const String	_name;
 		RenderState		_state;
 
+
 	// methods
 	public:
-		ScriptRenderState () {}
-		ScriptRenderState (const String &name);
+		ND_ static RenderStatePtr  Create (const String &name)	__Th___;
 
-		ND_ RenderState const&	Get ()					const	{ return _state; }
-		ND_ StringView			Name ()					const	{ return _name; }
+		ND_ RenderState const&	Get ()							C_NE___	{ return _state; }
+		ND_ StringView			Name ()							C_NE___	{ return _name; }
 
-		static void  Bind (const ScriptEnginePtr &se)	__Th___;
+		static void  Bind (const ScriptEnginePtr &se)			__Th___;
+
+	private:
+		ScriptRenderState (const String &name)					__NE___;
 	};
-	using RenderStatePtr = ScriptRC< ScriptRenderState >;
 
 
 	// TODO: optional render state ?

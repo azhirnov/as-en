@@ -59,6 +59,9 @@
 /shared/Utf8Proc/build
 /shared/Utf8Proc/temp
 
+/shared/ffmpeg/build
+/shared/ffmpeg/temp
+
 /shared/glslang/build
 /shared/glslang/temp
 
@@ -86,6 +89,9 @@
 /shared/slang/build
 /shared/slang/temp
 
+/shared/stable-diffusion/build
+/shared/stable-diffusion/temp
+
 /shared/zstd/.gradle
 /shared/zstd/build
 /shared/zstd/temp
@@ -101,7 +107,4 @@
 
 /windows/OpenVR/build
 /windows/OpenVR/temp
-
-/windows/ffmpeg/build
-/windows/ffmpeg/temp
 

@@ -24,7 +24,7 @@
 			array<float2>	positions	= { float2(0.f, -0.5f), float2(0.5f, 0.5f), float2(-0.5f, 0.5f) };
 			array<uint>		indices		= { 0, 1, 2 };
 
-			triangles.FloatArray(	"positions",	positions );
+			triangles.FloatArray(	"position",		positions );
 			triangles.UIntArray(	"indices",		indices );
 
 		//	geom.AddTriangles( triangles );
@@ -32,7 +32,7 @@
 
 			scene.AddInstance( geom, float3(-0.5f, 0.00f, 0.0f), RTInstanceCustomIndex(0) );
 			scene.AddInstance( geom, float3( 0.5f, 0.00f, 0.0f), RTInstanceCustomIndex(1) );
-			scene.AddInstance( geom, RTInstanceTransform( float3(0.f), float3(0.f, 0.f, ToRad(180.f)), 1.f ), RTInstanceCustomIndex(2) );
+			scene.AddInstance( geom, Transform().RotateZ(ToRad(180.f)), RTInstanceCustomIndex(2) );
 		}
 
 		// render loop

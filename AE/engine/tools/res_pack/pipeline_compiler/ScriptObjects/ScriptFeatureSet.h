@@ -26,7 +26,7 @@ namespace AE::PipelineCompiler
 	{
 	// variables
 	public:
-		FeatureSet		fs;
+		FeatureSet							fs;
 	private:
 		const String						_name;
 		const FeatureSetName::Optimized_t	_hash;
@@ -35,7 +35,7 @@ namespace AE::PipelineCompiler
 	// methods
 	public:
 		ScriptFeatureSet () {}
-		explicit ScriptFeatureSet (const String &name)		__Th___;
+		ND_ static ScriptFeatureSetPtr  Create (const String &name)	__Th___;
 
 		static void  Bind (const ScriptEnginePtr &se)		__Th___;
 
@@ -50,6 +50,9 @@ namespace AE::PipelineCompiler
 		static void  Minimize (INOUT Array<ScriptFeatureSetPtr> &feats);
 
 		ND_ static String  GetNames (ArrayView<ScriptFeatureSetPtr>);
+
+	private:
+		explicit ScriptFeatureSet (const String &name)		__NE___;
 	};
 
 } // AE::PipelineCompiler
@@ -136,6 +139,24 @@ namespace AE::PipelineCompiler
 				"maximum allowed value (" << ToString(max_value) << ")" <<
 				ScriptFeatureSet::GetNames( features ));
 		}
+	}
+
+/*
+=================================================
+	TestFeature_Supported
+=================================================
+*/
+	inline void  TestFeature_Supported (ArrayView<ScriptFeatureSetPtr> features, const EResourceState state) __Th___
+	{
+		CHECK_THROW_MSG( not features.empty(), "empty FeatureSet array" );
+
+		bool	supported = false;
+		for (auto& feat : features) {
+			supported |= feat->fs.IsSupported( state );
+		}
+
+		CHECK_THROW_MSG( supported,
+			"Resource state ("s << ToString( state ) << ") is not supported" << ScriptFeatureSet::GetNames( features ));
 	}
 
 /*

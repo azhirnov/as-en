@@ -487,6 +487,7 @@ namespace AE::App
 			glfwSetWindowPos( _window, window_pos.x, window_pos.y );
 
 		_input.SetMonitor( GetSurfaceSize(), GetMonitor() );
+		_input.InitJoystick();
 
 		glfwSetWindowUserPointer( _window, this );
 		glfwSetFramebufferSizeCallback( _window, &_GLFW_ResizeCallback );
@@ -611,7 +612,7 @@ namespace AE::App
 */
 	void  WindowGLFW::_GLFW_KeyCallback (GLFWwindow* wnd, int key, int, int action, int) __NE___
 	{
-		if_likely( (action == GLFW_PRESS) or (action == GLFW_RELEASE) )
+		if_likely( key <= GLFW_KEY_LAST and (action == GLFW_PRESS or action == GLFW_RELEASE) )
 		{
 			auto*	self = Cast<WindowGLFW>( glfwGetWindowUserPointer( wnd ));
 			DRC_EXLOCK( self->_drCheck );
@@ -630,7 +631,7 @@ namespace AE::App
 */
 	void  WindowGLFW::_GLFW_MouseButtonCallback (GLFWwindow* wnd, int button, int action, int) __NE___
 	{
-		if_likely( (action == GLFW_PRESS) or (action == GLFW_RELEASE) )
+		if_likely( button <= GLFW_MOUSE_BUTTON_LAST and (action == GLFW_PRESS or action == GLFW_RELEASE) )
 		{
 			auto*	self = Cast<WindowGLFW>( glfwGetWindowUserPointer( wnd ));
 			DRC_EXLOCK( self->_drCheck );

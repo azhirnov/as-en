@@ -67,7 +67,7 @@ namespace AE::Base
 		static bool  SetCurrentPath (const Path &p)						__NE___;
 
 		// Returns current path
-		ND_ static Path  CurrentPath ()									__Th___;
+		ND_ static Path  CurrentPath ()									__NE___;
 
 		// Returns 'true' if path refers to a file.
 		ND_ static bool  IsFile (const Path &p)							__NE___;
@@ -91,19 +91,19 @@ namespace AE::Base
 		static bool  SetLastWriteTime (const Path &p, Time_t t)			__NE___;
 
 		// Returns absolute path.
-		ND_ static Path  ToAbsolute (const Path &p)						__Th___;
+		ND_ static Path  ToAbsolute (const Path &p)						__NE___;
 
 		// Returns relative path.
-		ND_ static Path  ToRelative (const Path &p, const Path &base)	__Th___;
+		ND_ static Path  ToRelative (const Path &p, const Path &base)	__NE___;
 
 		// Returns path without /../
-		ND_ static Path  Normalize (const Path &p)						__Th___;
+		ND_ static Path  Normalize (const Path &p)						__NE___;
 
 		// Enumerate all files in directory.
-		ND_ static auto  Enum (const Path &p)							__Th___;
+		ND_ static auto  Enum (const Path &p)							__NE___;
 
 		// Enumerate all files in directory and its subdirectories.
-		ND_ static auto  EnumRecursive (const Path &p)					__Th___;
+		ND_ static auto  EnumRecursive (const Path &p)					__NE___;
 
 		// Copy file. Returns 'false' if failed.
 		// Will override existing file.
@@ -126,7 +126,7 @@ namespace AE::Base
 		static bool  GetSpace (const Path &path, OUT Bytes &total, OUT Bytes &available) __NE___;
 
 		// Replace unsupported symbols.
-		// Returns 'true' if name is not modified.
+		// Returns 'true' if name is modified.
 		template <typename T>
 		static bool  ValidateFileName (INOUT BasicString<T> &name)		__NE___;
 
@@ -160,14 +160,14 @@ namespace AE::Base
 
 		// Will rewrite existing file, but if file in use will try name with '-number' suffix.
 		template <typename FileType, typename ModeType>
-		ND_ static RC<FileType>  OpenUnusedFile (INOUT Path &p, ModeType mode, uint maxAttempts = 100)						__Th___;
+		ND_ static RC<FileType>  OpenUnusedFile (INOUT Path &p, ModeType mode, uint maxAttempts = 100)						__NE___;
 
 
 	// platform dependent
 	public:
 	  #ifdef AE_PLATFORM_WINDOWS
 		// Returns path like a 'C:\Windows'
-		ND_ static Path  GetWindowsPath ()								__Th___;
+		ND_ static Path  GetWindowsPath ()								__NE___;
 	  #endif
 
 	private:
@@ -203,7 +203,7 @@ namespace AE::Base
 		ND_ DirectoryEntry const&	operator *  ()				C_NE___;
 		ND_ DirectoryEntry const*	operator -> ()				C_NE___;
 
-			DirectoryIter &			operator ++ ()				__Th___;
+			DirectoryIter &			operator ++ ()				__NE___;
 
 		ND_ bool  operator == (const DirectoryIter &rhs)		C_NE___	{ return _it == rhs._it; }
 		ND_ bool  operator != (const DirectoryIter &rhs)		C_NE___	{ return _it != rhs._it; }
@@ -234,7 +234,7 @@ namespace AE::Base
 		ND_ DirectoryEntry const&	operator *  ()									C_NE___;
 		ND_ DirectoryEntry const*	operator -> ()									C_NE___;
 
-			RecursiveDirectoryIter&	operator ++ ()									__Th___;
+			RecursiveDirectoryIter&	operator ++ ()									__NE___;
 
 		ND_ bool  operator == (const RecursiveDirectoryIter &rhs)					C_NE___	{ return _it == rhs._it; }
 		ND_ bool  operator != (const RecursiveDirectoryIter &rhs)					C_NE___	{ return _it != rhs._it; }
@@ -260,7 +260,7 @@ namespace AE::Base
 		DirectoryEntry (const DirectoryEntry &)						= default;
 		DirectoryEntry (DirectoryEntry &&)					__NE___ = default;
 
-		DirectoryEntry&  operator = (const DirectoryEntry &)__Th___	= default;
+		DirectoryEntry&  operator = (const DirectoryEntry &)__NE___	= default;
 		DirectoryEntry&	 operator = (DirectoryEntry &&)		__NE___	= default;
 
 		operator const Path & ()							C_NE___	{ return _entry.path(); }
@@ -294,14 +294,14 @@ namespace AE::Base
 		uint		line	= 0;
 
 		PathAndLine ()									__NE___	{}
-		explicit PathAndLine (Path path, uint line = 0)	__Th___	: path{RVRef(path)}, line{line} {}
-		explicit PathAndLine (const SourceLoc &loc)		__Th___ : path{loc.FileName()}, line{loc.Line()} {}
-		explicit PathAndLine (const SourceLocCopy &loc)	__Th___ : path{loc.FileName()}, line{loc.Line()} {}
+		explicit PathAndLine (Path path, uint line = 0)	__NE___	: path{RVRef(path)}, line{line} {}
+		explicit PathAndLine (const SourceLoc &loc)		__NE___ : path{loc.FileName()}, line{loc.Line()} {}
+		explicit PathAndLine (const SourceLocCopy &loc)	__NE___ : path{loc.FileName()}, line{loc.Line()} {}
 
-		PathAndLine (const PathAndLine &)				__Th___ = default;
+		PathAndLine (const PathAndLine &)				__NE___ = default;
 		PathAndLine (PathAndLine &&)					__NE___	= default;
 
-		PathAndLine&  operator = (const PathAndLine &)	__Th___	= default;
+		PathAndLine&  operator = (const PathAndLine &)	__NE___	= default;
 		PathAndLine&  operator = (PathAndLine &&)		__NE___	= default;
 	};
 //-----------------------------------------------------------------------------
@@ -333,7 +333,7 @@ namespace AE::Base
 	Nd__In FileSystem::DirectoryIter  begin (FileSystem::DirectoryIter it)						__NE___ { return it; }
 	Nd__In FileSystem::DirectoryIter  end   (FileSystem::DirectoryIter)							__NE___ { return {}; }
 
-	inline FileSystem::DirectoryIter&  FileSystem::DirectoryIter::operator ++ () __Th___
+	inline FileSystem::DirectoryIter&  FileSystem::DirectoryIter::operator ++ ()				__NE___
 	{
 		std::error_code ec;
 		_it.increment( OUT ec );	// throw 'std::bad_alloc'
@@ -349,7 +349,7 @@ namespace AE::Base
 	Nd__In FileSystem::RecursiveDirectoryIter  begin (FileSystem::RecursiveDirectoryIter it)	__NE___ { return it; }
 	Nd__In FileSystem::RecursiveDirectoryIter  end   (FileSystem::RecursiveDirectoryIter)		__NE___ { return {}; }
 
-	inline FileSystem::RecursiveDirectoryIter&  FileSystem::RecursiveDirectoryIter::operator ++ () __Th___
+	inline FileSystem::RecursiveDirectoryIter&  FileSystem::RecursiveDirectoryIter::operator ++ () __NE___
 	{
 		std::error_code ec;
 		_it.increment( OUT ec );	// throw 'std::bad_alloc'
@@ -446,13 +446,13 @@ namespace AE::Base
 		return std::filesystem::is_empty( p, OUT ec );
 	}
 
-	inline Path  FileSystem::CurrentPath () __Th___
+	inline Path  FileSystem::CurrentPath () __NE___
 	{
 		std::error_code	ec;
 		return std::filesystem::current_path( OUT ec );
 	}
 
-	inline Path  FileSystem::ToAbsolute (const Path &p) __Th___
+	inline Path  FileSystem::ToAbsolute (const Path &p) __NE___
 	{
 		if ( p.empty() )
 			return CurrentPath();
@@ -461,26 +461,26 @@ namespace AE::Base
 		return std::filesystem::absolute( p, OUT ec ).lexically_normal();
 	}
 
-	inline Path  FileSystem::ToRelative (const Path &p, const Path &base) __Th___
+	inline Path  FileSystem::ToRelative (const Path &p, const Path &base) __NE___
 	{
 		std::error_code	ec;
 		return std::filesystem::relative( p, base, OUT ec );
 	}
 
-	inline Path  FileSystem::Normalize (const Path &p) __Th___
+	inline Path  FileSystem::Normalize (const Path &p) __NE___
 	{
 		return p.lexically_normal();
 	}
 
 
-	inline auto  FileSystem::Enum (const Path &p) __Th___
+	inline auto  FileSystem::Enum (const Path &p) __NE___
 	{
 		ASSERT( not p.empty() );	// use "." instead
 		std::error_code	ec;
 		return DirectoryIter{ std::filesystem::directory_iterator{ p, std::filesystem::directory_options::skip_permission_denied, OUT ec }};
 	}
 
-	inline auto  FileSystem::EnumRecursive (const Path &p) __Th___
+	inline auto  FileSystem::EnumRecursive (const Path &p) __NE___
 	{
 		ASSERT( not p.empty() );	// use "." instead
 		std::error_code	ec;
@@ -542,7 +542,7 @@ namespace AE::Base
 	template <typename T>
 	bool  FileSystem::ValidateFileName (INOUT BasicString<T> &name) __NE___
 	{
-		bool	res = true;
+		bool	res = false;
 		for (usize i = 0; i < name.size(); ++i)
 		{
 			T&	c = name[i];
@@ -551,13 +551,13 @@ namespace AE::Base
 			if ( (c == T('/')) or (c == T('\\')) or (c == T('?')) or (c == T('%')) or (c == T('*')) or
 				 (c == T('|')) or (c == T(':'))  or (c == T('"')) or (c == T('<')) or (c == T('>')) )
 			{
-				res = false;
+				res = true;
 				c = T('_');
 			}
 		  #elif defined(AE_PLATFORM_UNIX_BASED)
 			if ( (c == T('/')) )
 			{
-				res = false;
+				res = true;
 				c = T('_');
 			}
 		  #else
@@ -579,7 +579,7 @@ namespace AE::Base
 	}
 
 	template <typename FileType, typename ModeType>
-	RC<FileType>  FileSystem::OpenUnusedFile (INOUT Path &path, ModeType mode, uint maxAttempts) __Th___
+	RC<FileType>  FileSystem::OpenUnusedFile (INOUT Path &path, ModeType mode, uint maxAttempts) __NE___
 	{
 		const String	ext		= path.extension().string();
 		const Path		name	= path.stem();

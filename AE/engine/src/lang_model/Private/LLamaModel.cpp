@@ -73,7 +73,10 @@ namespace vk
 		OutOfDeviceMemoryError( std::string const & message ) : SystemError( make_error_code( Result::eErrorOutOfDeviceMemory ), message ) {}
 		OutOfDeviceMemoryError( char const * message ) : SystemError( make_error_code( Result::eErrorOutOfDeviceMemory ), message ) {}
 	};
-}
+
+} // vk
+//-----------------------------------------------------------------------------
+
 
 namespace AE::LangModel
 {
@@ -191,6 +194,8 @@ namespace AE::LangModel
 			{
 				ctx_params.n_threads		= int(Clamp( params.threadCount, 1u, max_cpu_cores ));
 				ctx_params.n_threads_batch	= ctx_params.n_threads;
+
+				// TODO: use SetProcessAffinity
 			}
 
 			if ( params.maxSequences != 0 )
@@ -344,26 +349,26 @@ namespace AE::LangModel
 			}
 		}
 
-		if ( not _loadedGPU and params.backend != LLama::EBackend::CPU )
+		if ( not _loadedGPU and params.backend != EBackend::CPU )
 		{
 			auto	type = params.backend;
-			if ( type == LLama::EBackend::Auto )
+			if ( type == EBackend::Auto )
 			{
 			#ifdef AE_PLATRORM_APPLE
-				type = LLama::EBackend::Metal;
+				type = EBackend::Metal;
 			#else
-				type = LLama::EBackend::Vulkan;
+				type = EBackend::Vulkan;
 			#endif
 			}
 
 			switch_enum( type )
 			{
-				case LLama::EBackend::Vulkan :	_loadedGPU |= LoadBackend( "ggml-vulkan" );	break;
-				case LLama::EBackend::CUDA :	_loadedGPU |= LoadBackend( "ggml-cuda" );	break;
-				case LLama::EBackend::Metal :	_loadedGPU |= LoadBackend( "ggml-metal" );	break;
-				case LLama::EBackend::CPU :
-				case LLama::EBackend::_Count :
-				case LLama::EBackend::Auto :	break;
+				case EBackend::Vulkan :	_loadedGPU |= LoadBackend( "ggml-vulkan" );	break;
+				case EBackend::CUDA :	_loadedGPU |= LoadBackend( "ggml-cuda" );	break;
+				case EBackend::Metal :	_loadedGPU |= LoadBackend( "ggml-metal" );	break;
+				case EBackend::CPU :
+				case EBackend::_Count :
+				case EBackend::Auto :	break;
 			}
 			switch_end
 		}

@@ -9,6 +9,10 @@
 #include "graphics_rhi/Public/ResourceEnums.h"
 #include "graphics_rhi/Public/Queue.h"
 
+#ifdef AE_ENABLE_VULKAN
+# include "graphics_rhi/Vulkan/VulkanLoader.h"
+#endif
+
 namespace AE::Graphics
 {
 
@@ -129,6 +133,25 @@ namespace AE::Graphics
 		ImageViewDesc&  SetExtUsage (EImageUsage value)					__NE___	{ extUsage	= value;				return *this; }
 	};
 
+
+
+#ifdef AE_ENABLE_VULKAN
+
+	struct VulkanImageDesc2 : ImageDesc
+	{
+		VkImage					imageHandle			= Default;
+		VkImageAspectFlagBits	aspectMask			= Zero;
+		bool					canBeDestroyed		= false;
+		bool					allocMemory			= false;
+	};
+
+	struct VulkanImageViewDesc2 : ImageViewDesc
+	{
+		VkImageView				viewHandle			= Default;
+		bool					canBeDestroyed		= false;
+	};
+
+#endif
 
 } // AE::Graphics
 

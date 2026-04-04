@@ -27,8 +27,6 @@ namespace AE::Graphics
 		virtual	void  SetStencilWriteMask (uint frontWriteMask, uint backWriteMask)													__Th___ = 0;
 		//	requires: EPipelineDynamicState::FragmentShadingRate
 		virtual	void  SetFragmentShadingRate (EShadingRate, EShadingRateCombinerOp primitiveOp, EShadingRateCombinerOp textureOp)	__Th___ = 0;
-		//	requires: EPipelineDynamicState::ViewportWScaling
-		virtual void  SetViewportWScaling (ArrayView<packed_float2> scaling)														__Th___ = 0;
 
 
 	// draw commands //
@@ -117,10 +115,15 @@ namespace AE::Graphics
 	public:
 
 		//  requires 'cooperativeVector' feature
-		//		srcAddress: EResourceState::ShaderAddress_Read  | CoopVecConvertStage
-		//		dstAddress: EResourceState::ShaderAddress_Write | CoopVecConvertStage
+		//		srcAddress: EResourceState::CoopVecConvert_Read
+		//		dstAddress: EResourceState::CoopVecConvert_Write
 		virtual void  ConvertCooperativeVectorMatrix (ArrayView<ConvertCoopMatrixCmd>)									__Th___ = 0;
 		virtual void  ConvertCooperativeVectorMatrix (ArrayView<ConvertCoopMatrixCmd2>)									__Th___ = 0;
+
+
+	// indirect commands //
+		virtual void  PreprocessGeneratedCommands (const PreprocessGeneratedCommandsCmd &)								__Th___ = 0;
+		virtual void  PreprocessGeneratedCommands (const PreprocessGeneratedCommands2Cmd &)								__Th___ = 0;
 
 
 	// for debugging //
@@ -163,6 +166,11 @@ namespace AE::Graphics
 		virtual	void  TraceRaysIndirectAddress2 (DeviceAddress address)													__Th___ = 0;
 
 
+	// indirect commands //
+		virtual void  PreprocessGeneratedCommands (const PreprocessGeneratedCommandsCmd &)								__Th___ = 0;
+		virtual void  PreprocessGeneratedCommands (const PreprocessGeneratedCommands2Cmd &)								__Th___ = 0;
+
+
 	// for debugging //
 		virtual void  WriteTimestamp (const IQueryManager::IQuery &, uint index, EPipelineScope srcScope)				__Th___ = 0;
 	};
@@ -177,6 +185,11 @@ namespace AE::Graphics
 	{
 	// interface
 	public:
+		using IASBuildContext::Build;
+		using IASBuildContext::Copy;
+		using IASBuildContext::WriteProperty;
+		using IASBuildContext::ReadProperty;
+
 
 	// Vulkan: AS build stage - batch commands for parallel execution
 
@@ -220,6 +233,33 @@ namespace AE::Graphics
 		virtual	void  DeserializeFromMemory (BufferID src, Bytes srcOffset, RTSceneID dst)								__Th___ = 0;
 
 
+	// Vulkan: Micromap build stage - batch commands for parallel execution
+
+		//		dst: EResourceState::BuildMicromap_Write
+		//		all buffers in cmd: EResourceState::BuildMicromap_Read
+		virtual void  Build (const RTMicromapBuild &cmd, RTMicromapID dst)												__Th___	= 0;
+
+		// If used ERTASCopyMode::Compaction 'dst' must have at least 'size = ReadCompactedSize( dst )'.
+		//		src: EResourceState::BuildMicromap_Read
+		//		dst: EResourceState::BuildMicromap_Write
+		virtual void  Copy (RTMicromapID src, RTMicromapID dst, ERTASCopyMode mode = ERTASCopyMode::Clone)				__Th___	= 0;
+
+		//		src: EResourceState::BuildMicromap_Read
+		//		dst: EResourceState::BuildMicromap_Write
+		virtual void  SerializeToMemory (RTMicromapID src, DeviceAddress dst)											__Th___ = 0;
+		virtual	void  SerializeToMemory (RTMicromapID src, BufferID dst, Bytes dstOffset)								__Th___ = 0;
+
+		virtual	void  DeserializeFromMemory (DeviceAddress src, RTMicromapID dst)										__Th___ = 0;
+		virtual	void  DeserializeFromMemory (BufferID src, Bytes srcOffset, RTMicromapID dst)							__Th___ = 0;
+
+		//		micromap:  EResourceState::BuildMicromap_Read
+		//		dstBuffer: EResourceState::CopyDst
+		virtual void  WriteProperty (ERTASProperty property, RTMicromapID micromap, BufferID dstBuffer, Bytes offset, Bytes size = UMax) __Th___ = 0;
+
+		//		micromap: EResourceState::CopyRTAS_Read
+		ND_ virtual Promise<Bytes>  ReadProperty (ERTASProperty property, RTMicromapID micromap)						__Th___	= 0;
+
+
 	// for debugging //
 		virtual void  WriteTimestamp (const IQueryManager::IQuery &, uint index, EPipelineScope srcScope)				__Th___ = 0;
 	};
@@ -234,6 +274,9 @@ namespace AE::Graphics
 	{
 	// interface
 	public:
+
+	// for debugging //
+		virtual void  WriteTimestamp (const IQueryManager::IQuery &, uint index, EPipelineScope srcScope)				__Th___ = 0;
 	};
 
 
@@ -246,6 +289,9 @@ namespace AE::Graphics
 	{
 	// interface
 	public:
+
+	// for debugging //
+		virtual void  WriteTimestamp (const IQueryManager::IQuery &, uint index, EPipelineScope srcScope)				__Th___ = 0;
 	};
 //-----------------------------------------------------------------------------
 

@@ -45,7 +45,7 @@ namespace AE::_Coro_ { class RenderTaskImpl; }
 
 namespace AE::Graphics::_hidden_
 {
-	class AE_PRIVATE_UNITE_RAW( SUFFIX, AccumBarriersForTask );
+	class AccumBarriersForTask;
 }
 
 namespace AE::Graphics
@@ -187,7 +187,7 @@ namespace AE::Graphics
 		using RenderTaskCoro_t	= _Coro_::BaseCoro< _Coro_::RenderTaskImpl >;
 
 	public:
-		using AccumBarriers_t	= Graphics::_hidden_:: AE_PRIVATE_UNITE_RAW( SUFFIX, AccumBarriersForTask );
+		using AccumBarriers_t	= Graphics::_hidden_:: AccumBarriersForTask;
 		using TaskBarriersPtr_t	= Ptr<const _TaskBarriers_t>;
 
 

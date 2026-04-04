@@ -18,7 +18,7 @@
 		// initialize
 		RC<Image>		rt				= Image( EPixelFormat::RGBA8_UNorm, SurfaceSize() );	rt.Name( "RT-Color" );
 		RC<FPVCamera>	camera			= FPVCamera();
-		RC<Buffer>		sphere			= Buffer();
+		RC<Buffer>		sphere;
 		RC<Buffer>		color_per_inst	= Buffer();
 		RC<RTGeometry>	geom			= RTGeometry();
 		RC<RTScene>		scene			= RTScene();
@@ -38,14 +38,12 @@
 
 		// create sphere
 		{
-			array<float3>	positions;
-			array<uint>		indices;
-			GetSphere( 3, OUT positions, OUT indices );
+			RC<Mesh>	mesh = Mesh();
+			mesh.SetAttributes( EAttribute::Position );
+			mesh.AddSphere( 3 );
 
-			sphere.FloatArray( "positions",	positions );
-			sphere.UIntArray(  "indices",	indices );
-
-			geom.AddIndexedTriangles( sphere, sphere );
+			geom.AddIndexedTriangles( mesh );
+			@sphere = mesh.ToBuffer();
 		}
 
 		// setup draw tasks
@@ -56,7 +54,7 @@
 			{
 				float2x4 task = draw_tasks[i];
 				colors.push_back( task.col1 );
-				scene.AddInstance( geom, RTInstanceTransform( float3(task.col0), float3(0.f), task.col0.w ), RTInstanceCustomIndex(i) );
+				scene.AddInstance( geom, Transform().Position(float3(task.col0)).Scale(task.col0.w), RTInstanceCustomIndex(i) );
 			}
 			color_per_inst.FloatArray( "colors", colors );
 		}

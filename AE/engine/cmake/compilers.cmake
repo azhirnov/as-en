@@ -382,7 +382,7 @@ if ( MSVC )
 		/we4002 /we4099 /we4129 /we4130 /we4172 /we4201 /we4238 /we4239 /we4240 /we4251 /we4263 /we4264 /we4266 /we4273 /we4293
 		/we4305 /we4390 /we4455 /we4456 /we4457 /we4458 /we4459 /we4473 /we4474 /we4522 /we4552 /we4553 /we4554 /we4700 /we4706 /we4715 /we4716 /we4717
 		/we4927 /we5062 /we5054 /we4565 /we5054 /we4291 /we4297 /we4584 /we4566 /we4033 /we5063 /we5030 /we5201 /we5244 /we4844 /we4067
-		/we5039
+		/we5039 /we4806
 		# disable warnings
 		/wd4061 /wd4062 /wd4063 /wd4310 /wd4324 /wd4365 /wd4503 /wd4514 /wd4530 /wd4623 /wd4625 /wd4626 /wd4710 /wd4714 /wd5026 /wd5027
 	)
@@ -440,8 +440,14 @@ if ( MSVC )
 		set( CURRENT_CXX_FLAGS "${CURRENT_CXX_FLAGS} -Wno-comment -Wno-ambiguous-reversed-operator -Wno-unneeded-internal-declaration -Wno-undefined-inline -Wno-unused-function -Wno-unused-const-variable -Wno-unused-local-typedef -Wno-switch -Wno-deprecated-copy-with-user-provided-copy -Wno-unknown-argument -Wno-deprecated-declarations -Wno-deprecated-non-prototype -Wno-deprecated-copy" )
 	endif()
 
-	set( MSVC_SHARED_OPTS /MP /Gm- /Zc:inline /Gy- /volatile:iso /Zc:__cplusplus
+	# this checks have runtime cost but can be disabled for specific files
+	set( MSVC_SEQURITY_CHECKS /sdl /GS /guard:cf )
+	#set( MSVC_SEQURITY_CHECKS /sdl /GS- /guard:cf- )	# compile time only
+
+	set( MSVC_SHARED_OPTS /MP /Gm- /Zc:inline /Gy /volatile:iso /Zc:__cplusplus /analyze- ${MSVC_SEQURITY_CHECKS}
 		 ${COMPILER_FLAGS} ${MSVC_WARNING_LIST} )
+
+	set( MSVC_SHARED_LINK " /OPT:REF /OPT:ICF /INCREMENTAL:NO /DYNAMICBASE /SAFESEH /NXCOMPAT" )
 
 	if (${AE_USE_SANITIZER})
 		set( MSVC_SHARED_OPTS ${MSVC_SHARED_OPTS} /fsanitize=address )
@@ -462,32 +468,32 @@ if ( MSVC )
 	set( CMAKE_EXE_LINKER_FLAGS_RELEASE "${CURRENT_EXE_LINKER_FLAGS} /LTCG /RELEASE " CACHE STRING "" FORCE )
 	set( CMAKE_STATIC_LINKER_FLAGS_RELEASE "${CURRENT_STATIC_LINKER_FLAGS} /LTCG " CACHE STRING "" FORCE )
 	set( CMAKE_SHARED_LINKER_FLAGS_RELEASE "${CURRENT_SHARED_LINKER_FLAGS} /LTCG /RELEASE " CACHE STRING "" FORCE )
-	set( PROJECTS_SHARED_CXX_FLAGS_RELEASE ${MSVC_SHARED_OPTS} /MT /Ob2 /Oi /Ot /Oy /GT /GL /GF /GS- /Ox /analyze- CACHE INTERNAL "" FORCE )
-	set( PROJECTS_SHARED_LINKER_FLAGS_RELEASE " /OPT:REF /OPT:ICF /LTCG /RELEASE /DYNAMICBASE /SAFESEH /NXCOMPAT" CACHE INTERNAL "" FORCE )
+	set( PROJECTS_SHARED_CXX_FLAGS_RELEASE ${MSVC_SHARED_OPTS} /MT /Ob2 /Oi /Ot /Oy /GT /GF /Ox CACHE INTERNAL "" FORCE )
+	set( PROJECTS_SHARED_LINKER_FLAGS_RELEASE "${MSVC_SHARED_LINK} /LTCG /RELEASE" CACHE INTERNAL "" FORCE )
 	# Profile
 	set( CMAKE_C_FLAGS_PROFILE "${CURRENT_C_FLAGS} /D_NDEBUG /DNDEBUG /MT /Ox /MP " CACHE STRING "" FORCE )
 	set( CMAKE_CXX_FLAGS_PROFILE "${CURRENT_CXX_FLAGS} /D_NDEBUG /DNDEBUG /MT /Ox /Zi /MP " CACHE STRING "" FORCE )
 	set( CMAKE_EXE_LINKER_FLAGS_PROFILE "${CURRENT_EXE_LINKER_FLAGS} /LTCG /DEBUG /PROFILE " CACHE STRING "" FORCE )
 	set( CMAKE_STATIC_LINKER_FLAGS_PROFILE "${CURRENT_STATIC_LINKER_FLAGS} /LTCG " CACHE STRING "" FORCE )
 	set( CMAKE_SHARED_LINKER_FLAGS_PROFILE "${CURRENT_SHARED_LINKER_FLAGS} /LTCG /DEBUG /PROFILE " CACHE STRING "" FORCE )
-	set( PROJECTS_SHARED_CXX_FLAGS_PROFILE ${MSVC_SHARED_OPTS} /MT /Ob2 /Oi /Ot /Oy /GT /GL /GF /GS- /Ox /analyze- /Zi CACHE INTERNAL "" FORCE )
-	set( PROJECTS_SHARED_LINKER_FLAGS_PROFILE " /OPT:REF /OPT:ICF /LTCG /DEBUG /PROFILE /DYNAMICBASE /SAFESEH /NXCOMPAT" CACHE INTERNAL "" FORCE )
+	set( PROJECTS_SHARED_CXX_FLAGS_PROFILE ${MSVC_SHARED_OPTS} /MT /Ob2 /Oi /Ot /Oy /GT /GF /Ox /Zi CACHE INTERNAL "" FORCE )
+	set( PROJECTS_SHARED_LINKER_FLAGS_PROFILE "${MSVC_SHARED_LINK} /LTCG /DEBUG /PROFILE" CACHE INTERNAL "" FORCE )
 	# Develop
 	set( CMAKE_C_FLAGS_DEVELOP "${CURRENT_C_FLAGS} /D_NDEBUG /DNDEBUG /D_ITERATOR_DEBUG_LEVEL=0 /MT /Od /MP " CACHE STRING "" FORCE )
 	set( CMAKE_CXX_FLAGS_DEVELOP "${CURRENT_CXX_FLAGS} /D_NDEBUG /DNDEBUG /D_ITERATOR_DEBUG_LEVEL=0 /MT /Od /Zi /MP " CACHE STRING "" FORCE )
 	set( CMAKE_EXE_LINKER_FLAGS_DEVELOP "${CURRENT_EXE_LINKER_FLAGS} /LTCG /DEBUG " CACHE STRING "" FORCE )
 	set( CMAKE_STATIC_LINKER_FLAGS_DEVELOP "${CURRENT_STATIC_LINKER_FLAGS} /LTCG " CACHE STRING "" FORCE )
 	set( CMAKE_SHARED_LINKER_FLAGS_DEVELOP "${CURRENT_SHARED_LINKER_FLAGS} /LTCG /DEBUG " CACHE STRING "" FORCE )
-	set( PROJECTS_SHARED_CXX_FLAGS_DEVELOP ${MSVC_SHARED_OPTS_DBG} /MT /Ob2 /Oi /Ot /Oy /GT /GL /GF /GS- /Od /analyze- /Zi CACHE INTERNAL "" FORCE )
-	set( PROJECTS_SHARED_LINKER_FLAGS_DEVELOP " /OPT:REF /OPT:ICF /LTCG /DEBUG /DYNAMICBASE /SAFESEH /NXCOMPAT" CACHE INTERNAL "" FORCE )
+	set( PROJECTS_SHARED_CXX_FLAGS_DEVELOP ${MSVC_SHARED_OPTS_DBG} /MT /Ob2 /Oi /Ot /Oy /GT /GF /Od /Zi CACHE INTERNAL "" FORCE )
+	set( PROJECTS_SHARED_LINKER_FLAGS_DEVELOP "${MSVC_SHARED_LINK} /LTCG /DEBUG" CACHE INTERNAL "" FORCE )
 	# Debug
 	set( CMAKE_C_FLAGS_DEBUG "${CURRENT_C_FLAGS} /D_DEBUG /D_ITERATOR_DEBUG_LEVEL=${AE_ITERATOR_DEBUG_LEVEL} /MTd /Od /MP " CACHE STRING "" FORCE )
 	set( CMAKE_CXX_FLAGS_DEBUG "${CURRENT_CXX_FLAGS} /D_DEBUG /D_ITERATOR_DEBUG_LEVEL=${AE_ITERATOR_DEBUG_LEVEL} /MTd /Od /Zi /MP " CACHE STRING "" FORCE )
 	set( CMAKE_EXE_LINKER_FLAGS_DEBUG "${CURRENT_EXE_LINKER_FLAGS} /DEBUG:FULL " CACHE STRING "" FORCE )
 	set( CMAKE_STATIC_LINKER_FLAGS_DEBUG "${CURRENT_STATIC_LINKER_FLAGS} " CACHE STRING "" FORCE )
 	set( CMAKE_SHARED_LINKER_FLAGS_DEBUG "${CURRENT_SHARED_LINKER_FLAGS} /DEBUG:FULL " CACHE STRING "" FORCE )
-	set( PROJECTS_SHARED_CXX_FLAGS_DEBUG ${MSVC_SHARED_OPTS_DBG} /MTd /sdl /Od /Ob0 /Oy- /GF- /GS /analyze- /Zi /RTC1 CACHE INTERNAL "" FORCE )
-	set( PROJECTS_SHARED_LINKER_FLAGS_DEBUG " /OPT:REF /OPT:ICF /INCREMENTAL:NO /DEBUG:FULL /DYNAMICBASE /SAFESEH /NXCOMPAT" CACHE INTERNAL "" FORCE )
+	set( PROJECTS_SHARED_CXX_FLAGS_DEBUG ${MSVC_SHARED_OPTS_DBG} /MTd /Od /Ob0 /Oy- /GF- /Zi /RTC1 CACHE INTERNAL "" FORCE )
+	set( PROJECTS_SHARED_LINKER_FLAGS_DEBUG "${MSVC_SHARED_LINK} /DEBUG:FULL" CACHE INTERNAL "" FORCE )
 endif()
 
 
@@ -554,7 +560,7 @@ if ( COMPILER_LCC )
 	set( CMAKE_EXE_LINKER_FLAGS_DEVELOP "${CURRENT_EXE_LINKER_FLAGS} " CACHE STRING "" FORCE )
 	set( CMAKE_STATIC_LINKER_FLAGS_DEVELOP "${CURRENT_STATIC_LINKER_FLAGS} " CACHE STRING "" FORCE )
 	set( CMAKE_SHARED_LINKER_FLAGS_DEVELOP "${CURRENT_SHARED_LINKER_FLAGS} " CACHE STRING "" FORCE )
-	set( PROJECTS_SHARED_CXX_FLAGS_DEVELOP  ${LCC_SHARED_OPTS} -g -ggdb -O2 -Wno-terminate  CACHE INTERNAL "" FORCE )
+	set( PROJECTS_SHARED_CXX_FLAGS_DEVELOP  ${LCC_SHARED_OPTS} -g -ggdb -O2  CACHE INTERNAL "" FORCE )
 	set( PROJECTS_SHARED_LINKER_FLAGS_DEVELOP " -static-libgcc -static-libstdc++" CACHE INTERNAL "" FORCE )
 	# Debug
 	set_property( DIRECTORY APPEND PROPERTY COMPILE_DEFINITIONS $<$<CONFIG:Debug>: > )
@@ -563,7 +569,7 @@ if ( COMPILER_LCC )
 	set( CMAKE_EXE_LINKER_FLAGS_DEBUG "${CURRENT_EXE_LINKER_FLAGS} " CACHE STRING "" FORCE )
 	set( CMAKE_STATIC_LINKER_FLAGS_DEBUG "${CURRENT_STATIC_LINKER_FLAGS} " CACHE STRING "" FORCE )
 	set( CMAKE_SHARED_LINKER_FLAGS_DEBUG "${CURRENT_SHARED_LINKER_FLAGS} " CACHE STRING "" FORCE )
-	set( PROJECTS_SHARED_CXX_FLAGS_DEBUG  ${LCC_SHARED_OPTS} -g -ggdb -O0 -Wno-terminate  CACHE INTERNAL "" FORCE )
+	set( PROJECTS_SHARED_CXX_FLAGS_DEBUG  ${LCC_SHARED_OPTS} -g -ggdb -O0 CACHE INTERNAL "" FORCE )
 	set( PROJECTS_SHARED_LINKER_FLAGS_DEBUG " -static-libgcc -static-libstdc++" CACHE INTERNAL "" FORCE )
 endif()
 
@@ -585,7 +591,7 @@ if ( COMPILER_GCC AND NOT COMPILER_LCC )
 	set( AE_CONFIGURATION_DEPENDENT_PATH OFF CACHE INTERNAL "" FORCE )
 
 	# -Wno-shadow -Wno-enum-compare -Wno-narrowing -Wno-attributes
-	set( GCC_SHARED_OPTS         ${COMPILER_FLAGS} -Wmaybe-uninitialized -Wfree-nonheap-object -Wcast-align -Wlogical-op -Waddress -Wno-non-template-friend -Werror=return-local-addr -Werror=placement-new -Werror=sign-compare -Werror=literal-suffix -Werror=shadow=local -Werror=delete-incomplete -Werror=odr -Werror=subobject-linkage -Werror=multichar -Winvalid-offsetof ${GCC_CLANG_SHARED_LOCAL_WARNING_LIST_CXX} )
+	set( GCC_SHARED_OPTS         ${COMPILER_FLAGS} -Wmaybe-uninitialized -Wfree-nonheap-object -Wcast-align -Wlogical-op -Waddress -Wno-non-template-friend -Werror=return-local-addr -Werror=placement-new -Werror=sign-compare -Werror=literal-suffix -Werror=shadow=local -Werror=delete-incomplete -Werror=odr -Werror=subobject-linkage -Werror=multichar -Winvalid-offsetof -Werror=terminate -Werror=noexcept ${GCC_CLANG_SHARED_LOCAL_WARNING_LIST_CXX} )
 	set( PROJECTS_SHARED_DEFINES ${PROJECTS_SHARED_DEFINES} "AE_COMPILER_GCC" )
 
 	# Release  TODO: -Ofast ?
@@ -613,7 +619,7 @@ if ( COMPILER_GCC AND NOT COMPILER_LCC )
 	set( CMAKE_EXE_LINKER_FLAGS_DEVELOP "${CURRENT_EXE_LINKER_FLAGS} " CACHE STRING "" FORCE )
 	set( CMAKE_STATIC_LINKER_FLAGS_DEVELOP "${CURRENT_STATIC_LINKER_FLAGS} " CACHE STRING "" FORCE )
 	set( CMAKE_SHARED_LINKER_FLAGS_DEVELOP "${CURRENT_SHARED_LINKER_FLAGS} " CACHE STRING "" FORCE )
-	set( PROJECTS_SHARED_CXX_FLAGS_DEVELOP  ${GCC_SHARED_OPTS} -g -ggdb -O2 -Wno-terminate  CACHE INTERNAL "" FORCE )
+	set( PROJECTS_SHARED_CXX_FLAGS_DEVELOP  ${GCC_SHARED_OPTS} -g -ggdb -O2  CACHE INTERNAL "" FORCE )
 	set( PROJECTS_SHARED_LINKER_FLAGS_DEVELOP " -static-libgcc -static-libstdc++" CACHE INTERNAL "" FORCE )
 	# Debug
 	set_property( DIRECTORY APPEND PROPERTY COMPILE_DEFINITIONS $<$<CONFIG:Debug>: > )
@@ -622,7 +628,7 @@ if ( COMPILER_GCC AND NOT COMPILER_LCC )
 	set( CMAKE_EXE_LINKER_FLAGS_DEBUG "${CURRENT_EXE_LINKER_FLAGS} " CACHE STRING "" FORCE )
 	set( CMAKE_STATIC_LINKER_FLAGS_DEBUG "${CURRENT_STATIC_LINKER_FLAGS} " CACHE STRING "" FORCE )
 	set( CMAKE_SHARED_LINKER_FLAGS_DEBUG "${CURRENT_SHARED_LINKER_FLAGS} " CACHE STRING "" FORCE )
-	set( PROJECTS_SHARED_CXX_FLAGS_DEBUG  ${GCC_SHARED_OPTS} -g -ggdb -O0 -Wno-terminate  CACHE INTERNAL "" FORCE )
+	set( PROJECTS_SHARED_CXX_FLAGS_DEBUG  ${GCC_SHARED_OPTS} -g -ggdb -O0 CACHE INTERNAL "" FORCE )
 	set( PROJECTS_SHARED_LINKER_FLAGS_DEBUG " -static-libgcc -static-libstdc++" CACHE INTERNAL "" FORCE )
 endif()
 
@@ -632,7 +638,7 @@ endif()
 # https://clang.llvm.org/docs/DiagnosticsReference.html
 #==================================================================================================
 set( CLANG_SHARED_GLOBAL_WARNING_LIST_C_CXX "${GCC_CLANG_SHARED_GLOBAL_WARNING_LIST_C_CXX} -Wnarrowing -stdlib=libc++" ) # -Wno-deprecated-builtins
-set( CLANG_SHARED_LOCAL_WARNING_LIST_CXX  ${GCC_CLANG_SHARED_LOCAL_WARNING_LIST_CXX} -Wnarrowing -Wlogical-op-parentheses  -Wunused -Werror=conditional-uninitialized -Wloop-analysis -Wincrement-bool -Wno-undefined-inline -Wc++14-extensions -Wc++17-extensions -Wno-comment -Wunused-private-field -Werror=return-stack-address -Werror=address -Werror=unsupported-friend -Werror=unknown-warning-option -Werror=user-defined-literals -Werror=instantiation-after-specialization -Werror=keyword-macro -Werror=large-by-value-copy -Werror=method-signatures -Werror=self-assign -Werror=self-move -Werror=infinite-recursion -Werror=pessimizing-move -Werror=dangling-else -Werror=return-std-move -Werror=deprecated-increment-bool -Werror=abstract-final-class -Wno-ambiguous-reversed-operator -Wno-unneeded-internal-declaration -Wno-unused-function -Wno-unused-const-variable -Wno-unused-local-typedef -Wdelete-non-virtual-dtor -Wrange-loop-analysis -Wundefined-bool-conversion -Winconsistent-missing-override -Wincrement-bool -Wunused-lambda-capture -fno-short-enums -Werror=implicit-exception-spec-mismatch -Werror=range-loop-bind-reference -Wno-assume -Wno-constant-evaluated -Werror=c++20-extensions -Werror=extra-tokens )
+set( CLANG_SHARED_LOCAL_WARNING_LIST_CXX  ${GCC_CLANG_SHARED_LOCAL_WARNING_LIST_CXX} -Wnarrowing -Wlogical-op-parentheses  -Wunused -Werror=conditional-uninitialized -Wloop-analysis -Wincrement-bool -Wno-undefined-inline -Wc++14-extensions -Wc++17-extensions -Wno-comment -Wunused-private-field -Werror=return-stack-address -Werror=address -Werror=unsupported-friend -Werror=unknown-warning-option -Werror=user-defined-literals -Werror=instantiation-after-specialization -Werror=keyword-macro -Werror=large-by-value-copy -Werror=method-signatures -Werror=self-assign -Werror=self-move -Werror=infinite-recursion -Werror=pessimizing-move -Werror=dangling-else -Werror=return-std-move -Werror=deprecated-increment-bool -Werror=abstract-final-class -Wno-ambiguous-reversed-operator -Wno-unneeded-internal-declaration -Wno-unused-function -Wno-unused-const-variable -Wno-unused-local-typedef -Wdelete-non-virtual-dtor -Wrange-loop-analysis -Wundefined-bool-conversion -Winconsistent-missing-override -Wincrement-bool -Wunused-lambda-capture -fno-short-enums -Werror=implicit-exception-spec-mismatch -Werror=range-loop-bind-reference -Wno-assume -Wno-constant-evaluated -Werror=c++20-extensions -Werror=extra-tokens -Werror=exceptions -Werror=duplicate-decl-specifier )
 
 #==================================================================================================
 # Linux Clang Compilation settings

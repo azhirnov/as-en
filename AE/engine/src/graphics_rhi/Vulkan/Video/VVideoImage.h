@@ -18,17 +18,25 @@ namespace AE::Graphics
 	class VVideoImage final : private VulkanInstanceFn
 	{
 	// types
+	public:
+		struct ValidationParams
+		{
+			ushort2		pictureAccessGranularity;
+		};
+
 	private:
 		using VideoStorageArr_t	= IGfxMemAllocator::VideoStorageArr_t;
 
 
 	// variables
 	private:
-		VkImage						_image				= Default;
-		VkImageView					_view				= Default;
+		VkImage						_image				= Default;		// cached '_imageId' handle
+		VkImageView					_view				= Default;		// cached '_viewId' handle
 
 		VideoImageDesc				_desc;
 		ushort2						_pictureAccessGranularity;
+
+		VkImageAspectFlagBits		_aspectMask			= Zero;
 
 		Strong<ImageID>				_imageId;
 		Strong<ImageViewID>			_viewId;
@@ -57,6 +65,7 @@ namespace AE::Graphics
 		ND_ ImageViewID				GetViewID ()					C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _viewId; }
 
 		ND_ VideoImageDesc const&	Description ()					C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _desc; }
+		ND_ VkImageAspectFlags		AspectMask ()					C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _aspectMask; }
 
 		GFX_DBG_ONLY( ND_ StringView  GetDebugName ()				C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _debugName; })
 
@@ -64,8 +73,7 @@ namespace AE::Graphics
 		ND_ static bool  IsSupported (const ResourceManager &, const VideoImageDesc &desc)	__NE___;
 		ND_ static bool  Validate (const VDevice &dev, INOUT VideoImageDesc &desc)			__NE___;
 		ND_ static bool  Validate (const VDevice &dev, INOUT VideoImageDesc &desc,
-								   OUT VkImageCreateInfo &, OUT VkImageViewCreateInfo &,
-								   OUT ushort2 &pictureAccessGranularity)					__NE___;
+								   OUT VkImageViewCreateInfo &, OUT ValidationParams &)		__NE___;
 
 	private:
 		ND_ bool  _CreateForYcbcr (ResourceManager &, const VideoImageDesc &, GfxMemAllocatorPtr, StringView dbgName) __NE___;

@@ -504,7 +504,7 @@ namespace AE::ResEditor
 		}
 
 		RTGeometryBuild				geom_build	{ tri_infos, tri_data, Default, Default, ERTASOptions::PreferFastTrace };
-		const auto					sizes		= res_mngr.GetRTGeometrySizes( geom_build );
+		const auto					sizes		= res_mngr.GetResourceManager().GetRTGeometrySizes( geom_build );
 		GAutorelease<BufferID>		scratch_buf	= res_mngr.CreateBuffer( BufferDesc{ sizes.buildScratchSize, EBufferUsage::ASBuild_Scratch },
 																		 Default, _Renderer().ChooseAllocator( True{"dynamic"}, sizes.buildScratchSize ));
 		GAutorelease<RTGeometryID>	geom_id		= res_mngr.CreateRTGeometry( RTGeometryDesc{ sizes.rtasSize, geom_build.options }, Default,
@@ -768,6 +768,10 @@ namespace AE::ResEditor
 		{
 			stages = EResourceState::RayTracingShaders;
 		}
+		if constexpr( IsBaseOf< IComputeContext, Ctx >)
+		{
+			stages = EResourceState::ComputeShader;
+		}
 
 		ctx.ResourceState( _nodeBuffer,	EResourceState::ShaderStorage_Read | stages );
 		ctx.ResourceState( _materials,	EResourceState::ShaderStorage_Read | stages );
@@ -879,6 +883,11 @@ namespace AE::ResEditor
 	}
 
 	void  ModelGeomSource::StateTransition (DirectCtx::RayTracing &ctx) __Th___
+	{
+		_meshData->StateTransition( ctx );
+	}
+
+	void  ModelGeomSource::StateTransition (DirectCtx::Compute &ctx) __Th___
 	{
 		_meshData->StateTransition( ctx );
 	}

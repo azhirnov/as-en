@@ -63,4 +63,30 @@ namespace AE::ResEditor
 	};
 
 
+
+	//
+	// Build Ray Tracing Micromap
+	//
+
+	class BuildRTMicromap final : public IPass
+	{
+	// variables
+	private:
+		RC<RTMicromap>		_dstMicromap;
+
+
+	// methods
+	public:
+		BuildRTMicromap (RC<RTMicromap>	dstMicromap,
+						 StringView		dbgName)						__Th___;
+		~BuildRTMicromap ()												{}
+
+	// IPass //
+		EPassType	GetType ()											C_NE_OV	{ return EPassType::Sync | EPassType::Update; }
+		bool		Execute (SyncPassData &)							__Th_OV;
+		bool		Update (TransferCtx_t &, const UpdatePassData &)	__Th_OV;
+		void		GetResourcesToResize (INOUT Array<RC<IResource>> &)	__NE_OV	{}
+	};
+
+
 } // AE::ResEditor

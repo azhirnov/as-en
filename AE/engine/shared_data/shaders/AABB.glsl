@@ -86,7 +86,8 @@ float3  AABB_Center (const AABB box)
 
 float  AABB_OuterRadius (const AABB box)
 {
-	return MaxOf( Abs( box.max - box.min ));
+	float3	h = AABB_HalfSize( box );
+	return	Sqrt( Dot( h, h ));
 }
 
 /*

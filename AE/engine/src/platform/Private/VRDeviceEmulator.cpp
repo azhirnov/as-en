@@ -30,9 +30,9 @@ namespace AE::App
 		DirectCtx::Transfer		ctx{ RenderCoro_Get() };
 
 		ctx.AccumBarriers()
-			.ImageBarrier( dst_rt.imageId,	dst_rt.initialState | EResourceState::Invalidate,	EResourceState::BlitDst )
-			.ImageBarrier( src_rt0.imageId,	src_rt0.finalState,									EResourceState::BlitSrc )
-			.ImageBarrier( src_rt1.imageId,	src_rt1.finalState,									EResourceState::BlitSrc );
+			.ResourceBarrier( dst_rt.imageId,	dst_rt.initialState | EResourceState::Invalidate,	EResourceState::BlitDst )
+			.ResourceBarrier( src_rt0.imageId,	src_rt0.finalState,									EResourceState::BlitSrc )
+			.ResourceBarrier( src_rt1.imageId,	src_rt1.finalState,									EResourceState::BlitSrc );
 
 		ImageBlit	region;
 		region.srcOffset0	= int3{ src_rt0.region.left,		src_rt0.region.top,		0 };
@@ -54,9 +54,9 @@ namespace AE::App
 		ctx.BlitImage( src_rt1.imageId, dst_rt.imageId, EBlitFilter::Linear, ArrayView<ImageBlit>{ &region, 1 });
 
 		ctx.AccumBarriers()
-			.ImageBarrier( dst_rt.imageId,	EResourceState::BlitDst,	dst_rt.finalState  )
-			.ImageBarrier( src_rt0.imageId,	EResourceState::BlitSrc,	src_rt0.finalState )
-			.ImageBarrier( src_rt1.imageId,	EResourceState::BlitSrc,	src_rt1.finalState );
+			.ResourceBarrier( dst_rt.imageId,	EResourceState::BlitDst,	dst_rt.finalState  )
+			.ResourceBarrier( src_rt0.imageId,	EResourceState::BlitSrc,	src_rt0.finalState )
+			.ResourceBarrier( src_rt1.imageId,	EResourceState::BlitSrc,	src_rt1.finalState );
 
 		RenderCoro_Execute( ctx );
 	}
@@ -359,6 +359,7 @@ namespace AE::App
 			return;
 
 		ASSERT( &wnd == _vrSession._window.get() );
+		Unused( wnd );
 
 		if_likely( _vrSession._listener )
 			_vrSession._listener->OnStateChanged( _vrSession, state );
@@ -375,6 +376,7 @@ namespace AE::App
 			return;
 
 		ASSERT( &wnd == _vrSession._window.get() );
+		Unused( wnd );
 
 		if_likely( _vrSession._listener )
 			_vrSession._listener->OnSurfaceCreated( _vrSession );
@@ -391,6 +393,7 @@ namespace AE::App
 			return;
 
 		ASSERT( &wnd == _vrSession._window.get() );
+		Unused( wnd );
 
 		if_likely( _vrSession._listener )
 			_vrSession._listener->OnSurfaceDestroyed( _vrSession );

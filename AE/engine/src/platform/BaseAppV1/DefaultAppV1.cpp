@@ -314,7 +314,8 @@ namespace AE::AppV1
 		if_unlikely( not _device.IsInitialized() )
 			return;
 
-		Unused( GraphicsScheduler().WaitAll( AE::DefaultTimeout ));	// TODO ???
+		// All render tasks must complete before destroing device
+		Unused( GraphicsScheduler().WaitAll( AE::DefaultTimeout ));
 
 		RenderTaskScheduler::InstanceCtor::Destroy();
 

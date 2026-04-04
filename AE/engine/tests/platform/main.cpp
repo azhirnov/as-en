@@ -1,27 +1,30 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
 #include "platform/Public/Application.h"
+#include "../tests/shared/UnitTest_Shared.h"
 
 using namespace AE::App;
 
 
 #ifdef AE_PLATFORM_ANDROID
-extern "C" AE_DLL_EXPORT int Tests_Platform (IApplication &app, IWindow &wnd)
-{
-	AE_LOGI( "Tests.Platform finished" );
-	return 0;
-}
+	TEST_ENTRY()
+	{
+		AE_LOGI( "Tests.Platform finished" );
+		return 0;
+	}
 #else
 
 	extern void Test_Application ();
 	extern void Test_Input ();
+	extern void Test_SendInput ();
 
-	Unique<IApplication::IAppListener>  AE_OnAppCreated ()
+	Unique<IApplication::IAppListener>  AE_OnAppCreated (const int argc, char const* argv[])
 	{
-		StaticLogger::LoggerScope log{};
+		BEGIN_TEST();
 
-		Test_Application();
-		Test_Input();
+		RUN_TEST( Test_Application );
+		RUN_TEST( Test_Input );
+		RUN_TEST( Test_SendInput );
 
 		AE_LOGI( "Tests.Platform finished" );
 		std::exit(0);

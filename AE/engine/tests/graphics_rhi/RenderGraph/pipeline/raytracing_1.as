@@ -53,11 +53,34 @@ void ASmain ()
 	{
 		RC<RayTracingPipelineSpec>	spec = ppln.AddSpecialization( "rtrace1.def" );
 
-		spec.AddToRenderTech( "RayTracingTestRT", "RayTrace_1" );
+		spec.AddToRenderTech( "RayTracing.RTech", "RayTrace_1" );
 
 		// shader binding table
 		{
 			RC<RayTracingShaderBinding>		sbt = RayTracingShaderBinding( spec, "rtrace1.sbt0" );
+
+			sbt.BindRayGen( "Main" );
+
+			sbt.MaxRayTypes( 2 );
+
+			sbt.BindMiss( "Miss", RayIndex(0) );	// traceRays() with missIndex = 0
+			sbt.BindMiss( "Miss", RayIndex(1) );	// traceRays() with missIndex = 1
+
+			sbt.BindHitGroup( "TriHit",	InstanceIndex(0),	RayIndex(0) );	// traceRays() with sbtRecordOffset = 0
+			sbt.BindHitGroup( "TriHit",	InstanceIndex(0),	RayIndex(1) );	// traceRays() with sbtRecordOffset = 1
+		}
+	}
+
+	// specialization
+	{
+		RC<RayTracingPipelineSpec>	spec = ppln.AddSpecialization( "mmtrace1.def" );
+
+		spec.AddToRenderTech( "OpacityMicromap.RTech", "RayTrace_1" );
+		spec.SetOptions( EPipelineOpt::OpacityMicromap );
+
+		// shader binding table
+		{
+			RC<RayTracingShaderBinding>		sbt = RayTracingShaderBinding( spec, "mmtrace1.sbt0" );
 
 			sbt.BindRayGen( "Main" );
 

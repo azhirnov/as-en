@@ -7,7 +7,7 @@
 * ALU (SIMD/warps): 4  *(from specs)*
 * Warp width: 16
 * Clock: 950 MHz
-* Device: Infinix GT 20 Pro (MediaTek Dimensity 8200, Android 14, Driver 32.1.0)
+* Device: Infinix GT 20 Pro (MediaTek Dimensity 8200, Android 14, Driver 38.1.0, vk 1.1.219)
 
 ### Memory
 

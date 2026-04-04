@@ -4,6 +4,7 @@
 # include "graphics_rhi/Vulkan/Resources/VTilePipeline.h"
 # include "graphics_rhi/Vulkan/VResourceManager.h"
 # include "graphics_rhi/Vulkan/VEnumCast.h"
+# include "graphics_rhi/Vulkan/Utils/NextChain.h"
 # include "VPipelineHelper.cpp.h"
 
 namespace AE::Graphics
@@ -33,7 +34,8 @@ namespace AE::Graphics
 		CHECK_ERR( not _handle and not _layout );
 
 		auto&	dev = resMngr.GetDevice();
-		CHECK_ERR( dev.GetVExtensions().subpassShadingHW );
+		auto&	ext	= dev.GetVExtensions();
+		CHECK_ERR( ext.subpassShadingHW );
 
 		auto*	ppln_layout = resMngr.GetResource( ci.layoutId, True{"incRef"} );
 		CHECK_ERR( ppln_layout != null );
@@ -72,15 +74,22 @@ namespace AE::Graphics
 
 		VkComputePipelineCreateInfo					pipeline_info	= {};
 		VkSubpassShadingPipelineCreateInfoHUAWEI	subpass_shading	= {};
+		VkPipelineRobustnessCreateInfoEXT			robustness_ci;
+		VkPipelineCreateFlags2CreateInfoKHR			flags2_ci		= {};
+		VNextChain									p_next			{pipeline_info};
 
 		subpass_shading.sType		= VK_STRUCTURE_TYPE_SUBPASS_SHADING_PIPELINE_CREATE_INFO_HUAWEI;
 		subpass_shading.renderPass	= render_pass->Handle();
 		subpass_shading.subpass		= subpass_idx;
 
+		p_next.AddConst( subpass_shading );
+
+		flags2_ci.sType				= VK_STRUCTURE_TYPE_PIPELINE_CREATE_FLAGS_2_CREATE_INFO;
+		flags2_ci.flags				= VEnumCast( ci.specCI.options );
+
 		pipeline_info.sType			= VK_STRUCTURE_TYPE_COMPUTE_PIPELINE_CREATE_INFO;
-		pipeline_info.pNext			= &subpass_shading;
 		pipeline_info.layout		= _layout;
-		pipeline_info.flags			= VEnumCast( ci.specCI.options );
+		pipeline_info.flags			= VkPipelineCreateFlags( flags2_ci.flags );
 
 		pipeline_info.stage.sType	= VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
 		pipeline_info.stage.flags	= 0;
@@ -90,6 +99,24 @@ namespace AE::Graphics
 
 		pipeline_info.basePipelineHandle= Default;
 		pipeline_info.basePipelineIndex	= -1;
+
+		if ( ext.rayQueryMicromapARM and NoBits( ci.specCI.options, EPipelineOpt::OpacityMicromap ))
+		{
+			flags2_ci.flags |= VK_PIPELINE_CREATE_2_DISALLOW_OPACITY_MICROMAP_BIT_ARM;
+		}
+
+		if ( ext.maintenance5 ){
+			p_next.Add( flags2_ci );
+		}else{
+			CHECK_ERR_MSG( flags2_ci.flags == pipeline_info.flags,
+				"Some pipeline creation flags requires 'maintenance5' extension" );
+		}
+
+		if ( ext.pipelineRobustness )
+		{
+			p_next.Add( robustness_ci );
+			SetRobustness( OUT robustness_ci );
+		}
 
 		const auto	AddCustomSpec = [&ci, this] (VkShaderStageFlagBits, VkSpecializationMapEntry* entryArr, uint* dataArr, OUT uint &count) __NE___
 		{{

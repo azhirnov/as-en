@@ -85,15 +85,22 @@ namespace
 	constructor
 =================================================
 */
-	BasePipelineTmpl::BasePipelineTmpl (const String &name) __Th___ :
+	BasePipelineTmpl::BasePipelineTmpl (const String &name) __NE___ :
 		_name{ PipelineTmplName{name} },
 		_nameStr{ name },
 		_filename{ ObjectStorage::Instance()->pipelineFilename },
 		_features{ ObjectStorage::Instance()->GetDefaultFeatureSets() }
+	{}
+
+	void  BasePipelineTmpl::_Init () __Th___
 	{
-		ObjectStorage::Instance()->AddName<PipelineTmplName>( name );
-		CHECK_THROW_MSG( ObjectStorage::Instance()->pplnTmplNames.insert( name ).second,
-			"Pipeline with name '"s << name << "' is already defined" );
+		// required to throw exception, must not be used from ctor
+		ASSERT( __Counter() > 0 );
+
+		auto&	storage	= *ObjectStorage::Instance();
+		storage.AddName<PipelineTmplName>( _nameStr );
+		CHECK_THROW_MSG( storage.pplnTmplNames.insert( _nameStr ).second,
+			"Pipeline with name '"s << _nameStr << "' is already defined" );
 	}
 
 /*
@@ -852,8 +859,6 @@ namespace
 		_options{ ObjectStorage::Instance()->defaultPipelineOpt }
 	{
 		ObjectStorage::Instance()->AddName<PipelineName>( name );
-	//	CHECK_THROW_MSG( ObjectStorage::Instance()->pplnSpecNames.insert( name ).second,
-	//		"PipelineSpec with name '"s << name << "' is already defined" );
 	}
 
 /*
@@ -901,6 +906,7 @@ namespace
 
 		_linkedRTechs.push_back( rt_iter->second );
 
+		// for graphics and mesh pipeline will call 'SetRenderPass()'
 		pass->AddPipeline( BasePipelineSpecPtr{this} );
 	}
 
@@ -931,15 +937,34 @@ namespace
 				case EPipelineOpt::RT_NoNullIntersectionShaders :
 				case EPipelineOpt::RT_SkipTriangles :
 				case EPipelineOpt::RT_SkipAABBs :
+					CHECK_THROW_MSG( AnyBits( GetBase()->GetStages(), EShaderStages::AllRayTracing ),
+						ToString(opt) << " requires any RayTracing stage" );
+					break;
+
 				case EPipelineOpt::RT_AllowClusterAccelStruct :
 					CHECK_THROW_MSG( AnyBits( GetBase()->GetStages(), EShaderStages::AllRayTracing ),
 						ToString(opt) << " requires any RayTracing stage" );
+					TEST_FEATURE_MSG( GetAllFeatures(), clusterAccelerationStructure,
+						", which is required for 'RT_AllowClusterAccelStruct' option" );
+					break;
+
+				case EPipelineOpt::OpacityMicromap :
+					TEST_FEATURE_MSG( GetAllFeatures(), opacityMicromap,
+						", which is required for 'OpacityMicromap' option" );
 					break;
 
 				case EPipelineOpt::DontCompile :
 				case EPipelineOpt::CaptureStatistics :
 				case EPipelineOpt::CaptureInternalRepresentation :
 					break;
+
+				case EPipelineOpt::IndirectBindable :
+				{
+					auto	pl = GetBase()->GetLayout();
+					if ( pl )
+						CHECK_THROW_MSG( pl->HasDynamicBuffers(), "Dynamic buffer offset is not compatible with 'IndirectBindable' option" );
+					break;
+				}
 
 				case EPipelineOpt::_Last :
 				case EPipelineOpt::All :
@@ -983,7 +1008,6 @@ namespace
 				//case EPipelineDynamicState::DepthBounds :
 				case EPipelineDynamicState::RTStackSize :
 				case EPipelineDynamicState::FragmentShadingRate :
-				case EPipelineDynamicState::ViewportWScaling :
 					break;	// skip
 
 				case EPipelineDynamicState::Unknown :
@@ -1270,6 +1294,31 @@ namespace
 	{
 		_tmpl->Enable();
 		_enabled = true;
+	}
+
+/*
+=================================================
+	_UpdateFeatures
+=================================================
+*/
+	void  BasePipelineSpec::_UpdateFeatures () C_NE___
+	{
+		if ( _cachedLinkedRTs == _linkedRTechs.size() )
+			return;
+
+		_cachedLinkedRTs = uint(_linkedRTechs.size());
+
+		{
+			auto	feats = _tmpl->GetFeatures();
+			_cachedFeatures.assign( feats.begin(), feats.end() );
+		}
+		for (auto& rt : _linkedRTechs)
+		{
+			auto	feats = rt->GetFeatures();
+			_cachedFeatures.insert( _cachedFeatures.end(), feats.begin(), feats.end() );
+		}
+		ScriptFeatureSet::Minimize( INOUT _cachedFeatures );
+		ASSERT( not _cachedFeatures.empty() );
 	}
 
 

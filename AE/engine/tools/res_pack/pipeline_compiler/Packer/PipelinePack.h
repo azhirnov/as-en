@@ -47,13 +47,15 @@ namespace AE::PipelineCompiler
 	};
 
 
-	enum class DescrSetUID			: uint { Unknown = ~0u };
-	enum class PipelineLayoutUID	: uint { Unknown = ~0u };
-	enum class RenderTechUID		: uint { Unknown = ~0u };
-	enum class RTShaderBindingUID	: uint { Unknown = ~0u };
+	enum class DescrSetUID				: uint { Unknown = ~0u };
+	enum class PipelineLayoutUID		: uint { Unknown = ~0u };
+	enum class RenderTechUID			: uint { Unknown = ~0u };
+	enum class RTShaderBindingUID		: uint { Unknown = ~0u };
 
-	enum class RenderStateUID		: uint { Unknown = ~0u };
-	enum class DepthStencilStateUID	: uint { Unknown = ~0u };
+	enum class RenderStateUID			: uint { Unknown = ~0u };
+	enum class DepthStencilStateUID		: uint { Unknown = ~0u };
+
+	enum class IndirectExecutionSetUID	: uint { Unknown = ~0u };
 
 
 	enum class ShaderUID : uint
@@ -852,6 +854,7 @@ namespace AE::PipelineCompiler
 		using PipelineList_t	= ArrayView<Pair< PipelineName, PipelineSpecUID >>;
 		using FeatureSetList_t	= ArrayView< FeatureSetName >;
 		using SBTList_t			= ArrayView<Pair< RTShaderBindingName, RTShaderBindingUID >>;
+		using ExecSetList_t		= ArrayView<Pair< IndirectExecutionSetName, IndirectExecutionSetUID >>;
 
 		class Pass final : public Serializing::ISerializable
 		{
@@ -883,6 +886,7 @@ namespace AE::PipelineCompiler
 		ArrayView< Pass >	passes;
 		PipelineList_t		pipelines;
 		SBTList_t			rtSBTs;
+		ExecSetList_t		execSets;
 
 
 	// methods
@@ -961,6 +965,35 @@ namespace AE::PipelineCompiler
 
 
 	//
+	// Serializable Indirect Execution Set
+	//
+	class SerializableIndirectExecutionSet final : public Serializing::ISerializable
+	{
+	// types
+	public:
+		using Pipelines_t = ArrayView< PipelineName::Optimized_t >;
+
+
+	// variables
+	public:
+		PipelineSpecUID		pipeType	= Default;
+		Pipelines_t			pipelines;
+
+
+	// methods
+	public:
+		SerializableIndirectExecutionSet () {}
+
+		ND_ String  ToString (const HashToName &) const;
+
+		// ISerializable
+		bool  Serialize (Serializing::Serializer &)			C_NE_OV;
+		bool  Deserialize (Serializing::Deserializer &)		__NE_OV;
+	};
+
+
+
+	//
 	// Pipeline Storage
 	//
 	class PipelineStorage
@@ -1011,6 +1044,8 @@ namespace AE::PipelineCompiler
 		using RayTracingPipelineSpec_t		= Array< SerializableRayTracingPipelineSpec >;
 		using RayTracingPipelineSpecMap_t	= HashMultiMap< Hash_t, PipelineSpecUID >;
 
+		using IndirectExecutionSets_t		= Array< SerializableIndirectExecutionSet >;
+
 		using RenderTechniques_t			= Array< SerializableRenderTechnique >;
 
 		using ShaderBytecodeArr_t			= Array< ShaderBytecode >;
@@ -1048,6 +1083,7 @@ namespace AE::PipelineCompiler
 			TilePipelineSpec,
 
 			RTShaderBindingTable,
+			IndirectExecutionSet,
 
 			RenderTechniques,
 
@@ -1068,6 +1104,7 @@ namespace AE::PipelineCompiler
 		static constexpr uint	MaxShaderCount			= 1 << 24;
 		static constexpr uint	MaxStateCount			= 1 << 16;
 		static constexpr uint	MaxSBTCount				= 1 << 16;
+		static constexpr uint	MaxIndExecSetCount		= 1 << 16;
 
 
 
@@ -1111,6 +1148,8 @@ namespace AE::PipelineCompiler
 		RayTracingPipelineSpecMap_t	 _rtpipelineSpecMap;
 
 		PipelineTemplMap_t			_pipelineTemplMap;
+
+		IndirectExecutionSets_t		_indExecSets;
 
 		RTShaderBindingTables_t		_shaderBindingTables;
 
@@ -1157,6 +1196,8 @@ namespace AE::PipelineCompiler
 
 		ND_ ShaderUID			AddMsliOSShader (MetalBytecode_t msl, const SpecConstants_t &spec);
 		ND_ ShaderUID			AddMslMacShader (MetalBytecode_t msl, const SpecConstants_t &spec);
+
+		IndirectExecutionSetUID	AddIndirectExecutionSet (IndirectExecutionSetName::Ref, SerializableIndirectExecutionSet);
 
 		ND_ DescriptorSetLayoutDesc const*  GetDescriptorSetLayout (DescrSetUID uid) const;
 

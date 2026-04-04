@@ -2,21 +2,12 @@
 
 #if defined(AE_ENABLE_VULKAN)
 #	define BARRIERMANAGER				VBarrierManager
-#	define ACCUMDEFERREDBARRIERS		VAccumDeferredBarriers
-#	define ACCUMDEFERREDBARRIERSFORCTX	VAccumDeferredBarriersForCtx
-#	define ACCUMBARRIERSFORTASK			VAccumBarriersForTask
 
 #elif defined(AE_ENABLE_METAL)
 #	define BARRIERMANAGER				MBarrierManager
-#	define ACCUMDEFERREDBARRIERS		MAccumDeferredBarriers
-#	define ACCUMDEFERREDBARRIERSFORCTX	MAccumDeferredBarriersForCtx
-#	define ACCUMBARRIERSFORTASK			MAccumBarriersForTask
 
 #elif defined(AE_ENABLE_REMOTE_GRAPHICS)
 #	define BARRIERMANAGER				RBarrierManager
-#	define ACCUMDEFERREDBARRIERS		RAccumDeferredBarriers
-#	define ACCUMDEFERREDBARRIERSFORCTX	RAccumDeferredBarriersForCtx
-#	define ACCUMBARRIERSFORTASK			RAccumBarriersForTask
 
 #else
 #	error not implemented
@@ -33,11 +24,11 @@ namespace _hidden_
 	//
 	// Accumulate Deferred Barriers
 	//
-	class ACCUMDEFERREDBARRIERS
+	class AccumDeferredBarriers
 	{
 	// types
 	private:
-		using Self	= ACCUMDEFERREDBARRIERS;
+		using Self	= AccumDeferredBarriers;
 
 	// variables
 	protected:
@@ -45,20 +36,26 @@ namespace _hidden_
 
 	// methods
 	protected:
-		ACCUMDEFERREDBARRIERS (CommandBatch &batch)		__NE___ : _mngr{batch} {}
+		AccumDeferredBarriers (CommandBatch &batch)		__NE___ : _mngr{batch} {}
 
 	public:
-		ACCUMDEFERREDBARRIERS ()								= delete;
-		ACCUMDEFERREDBARRIERS (const Self &)					= delete;
-		ACCUMDEFERREDBARRIERS (Self &&)					__NE___	= default;
-		~ACCUMDEFERREDBARRIERS ()						__NE___	{ ASSERT( _mngr.NoPendingBarriers() ); }
+		AccumDeferredBarriers ()								= delete;
+		AccumDeferredBarriers (const Self &)					= delete;
+		AccumDeferredBarriers (Self &&)					__NE___	= default;
+		~AccumDeferredBarriers ()						__NE___	{ ASSERT( _mngr.NoPendingBarriers() ); }
 
-		Self&  Merge (INOUT ACCUMDEFERREDBARRIERS &src)																										__NE___	{ _mngr.MergeBarriers( INOUT src._mngr );  return *this; }
+		Self&  Merge (INOUT AccumDeferredBarriers &src)																										__NE___	{ _mngr.MergeBarriers( INOUT src._mngr );  return *this; }
 
-		Self&  BufferBarrier (BufferID buffer, EResourceState srcState, EResourceState dstState)															__NE___	{ _mngr.BufferBarrier( buffer, srcState, dstState );			return *this; }
-
-		Self&  ImageBarrier (ImageID image, EResourceState srcState, EResourceState dstState)																__NE___	{ _mngr.ImageBarrier( image, srcState, dstState );				return *this; }
-		Self&  ImageBarrier (ImageID image, EResourceState srcState, EResourceState dstState, const ImageSubresourceRange &subRes)							__NE___	{ _mngr.ImageBarrier( image, srcState, dstState, subRes );		return *this; }
+		Self&  ResourceBarrier (BufferID      id, EResourceState srcState, EResourceState dstState)															__NE___	{ _mngr.ResourceBarrier( id, srcState, dstState );				return *this; }
+		Self&  ResourceBarrier (BufferViewID  id, EResourceState srcState, EResourceState dstState)															__NE___	{ _mngr.ResourceBarrier( id, srcState, dstState );				return *this; }
+		Self&  ResourceBarrier (ImageID       id, EResourceState srcState, EResourceState dstState)															__NE___	{ _mngr.ResourceBarrier( id, srcState, dstState );				return *this; }
+		Self&  ResourceBarrier (ImageID       id, EResourceState srcState, EResourceState dstState, const ImageSubresourceRange &subRes)					__NE___	{ _mngr.ResourceBarrier( id, srcState, dstState, subRes );		return *this; }
+		Self&  ResourceBarrier (ImageViewID   id, EResourceState srcState, EResourceState dstState)															__NE___	{ _mngr.ResourceBarrier( id, srcState, dstState );				return *this; }
+		Self&  ResourceBarrier (RTGeometryID  id, EResourceState srcState, EResourceState dstState)															__NE___	{ _mngr.ResourceBarrier( id, srcState, dstState );				return *this; }
+		Self&  ResourceBarrier (RTSceneID     id, EResourceState srcState, EResourceState dstState)															__NE___	{ _mngr.ResourceBarrier( id, srcState, dstState );				return *this; }
+		Self&  ResourceBarrier (RTMicromapID  id, EResourceState srcState, EResourceState dstState)															__NE___	{ _mngr.ResourceBarrier( id, srcState, dstState );				return *this; }
+		Self&  ResourceBarrier (VideoImageID  id, EResourceState srcState, EResourceState dstState)															__NE___	{ _mngr.ResourceBarrier( id, srcState, dstState );				return *this; }
+		Self&  ResourceBarrier (VideoBufferID id, EResourceState srcState, EResourceState dstState)															__NE___	{ _mngr.ResourceBarrier( id, srcState, dstState );				return *this; }
 
 		Self&  MemoryBarrier (EResourceState srcState, EResourceState dstState)																				__NE___	{ _mngr.MemoryBarrier( srcState, dstState );					return *this; }
 		Self&  MemoryBarrier (EPipelineScope srcScope, EPipelineScope dstScope)																				__NE___	{ _mngr.MemoryBarrier( srcScope, dstScope );					return *this; }
@@ -95,7 +92,7 @@ namespace _hidden_
 	// Accumulate Deferred Barriers for Context
 	//
 	template <typename Ctx>
-	class ACCUMDEFERREDBARRIERSFORCTX final : public ACCUMDEFERREDBARRIERS
+	class AccumDeferredBarriersForCtx final : public AccumDeferredBarriers
 	{
 		friend Ctx;
 
@@ -105,7 +102,7 @@ namespace _hidden_
 
 	// methods
 	private:
-		ACCUMDEFERREDBARRIERSFORCTX (CommandBatch &batch, Ctx &ctx) __NE___ : ACCUMDEFERREDBARRIERS{batch}, _ctx{ctx} {}
+		AccumDeferredBarriersForCtx (CommandBatch &batch, Ctx &ctx) __NE___ : AccumDeferredBarriers{batch}, _ctx{ctx} {}
 	public:
 		void  Commit () __Th___
 		{
@@ -123,13 +120,13 @@ namespace _hidden_
 	//
 	// Accumulate Barriers for Task
 	//
-	class ACCUMBARRIERSFORTASK final : public ACCUMDEFERREDBARRIERS
+	class AccumBarriersForTask final : public AccumDeferredBarriers
 	{
 	// methods
 	public:
-		explicit ACCUMBARRIERSFORTASK (CommandBatch &batch)	__NE___ : ACCUMDEFERREDBARRIERS{batch} {}
+		explicit AccumBarriersForTask (CommandBatch &batch)	__NE___ : AccumDeferredBarriers{batch} {}
 
-		ACCUMBARRIERSFORTASK (ACCUMBARRIERSFORTASK &&)		__NE___	= default;
+		AccumBarriersForTask (AccumBarriersForTask &&)		__NE___	= default;
 
 		ND_ auto  Get ()									__NE___	{ return _mngr.AllocBarriers(); }
 	};
@@ -142,10 +139,10 @@ namespace _hidden_
 	DeferredBarriers
 =================================================
 */
-	inline _hidden_::ACCUMBARRIERSFORTASK  CommandBatch::DeferredBarriers () __NE___
+	inline _hidden_::AccumBarriersForTask  CommandBatch::DeferredBarriers () __NE___
 	{
 		ASSERT( IsRecording() );
-		return _hidden_::ACCUMBARRIERSFORTASK{ *this };
+		return _hidden_::AccumBarriersForTask{ *this };
 	}
 
 

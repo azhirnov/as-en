@@ -1,7 +1,10 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
 #ifdef AE_ENABLE_REMOTE_GRAPHICS
+# include "graphics_rhi/Remote/REnumCast.h"
 # include "graphics_rhi/Remote/Commands/RASBuildContext.h"
+# include "graphics_rhi/Remote/Resources/RRTGeometry.h"
+# include "graphics_rhi/Remote/Resources/RRTScene.h"
 
 namespace AE::Graphics
 {
@@ -250,6 +253,43 @@ namespace AE::Graphics
 		UNTESTED;
 	}
 
+/*
+=================================================
+	_ReadProperty
+=================================================
+*/
+	template <typename ASType>
+	Promise<Bytes>  RASBuildContext::_ReadProperty (ERTASProperty property, ASType asId) __Th___
+	{
+		//VALIDATE_GCTX( ReadProperty( property ));	// TODO
+
+		auto&		as	 = _GetResourcesOrThrow( asId );
+		const auto	size = SizeOf<Bytes>;
+
+		RStagingBufferManager&					sbm	= this->_mngr.GetStagingManager();
+		RStagingBufferManager::BufferRanges_t	buffers;
+
+		sbm.GetBufferRanges( OUT buffers, size, size, GraphicsConfig::StagingBufferOffsetAlign,
+							 GetFrameId(), EStagingHeapType::Static, False{"readback"} );
+
+		if_unlikely( buffers.empty() )
+			RETURN_ERR( "failed to allocate staging buffer" );	// TODO: throw?
+
+		ASSERT( buffers.size() == 1 );
+		WriteProperty( property, as.Handle(), buffers[0].bufferHandle, buffers[0].bufferOffset, size );
+
+		const void*	ptr = _ReadbackAlloc( buffers[0].devicePtr, size );
+
+		return Scheduler().Run(
+					ETaskQueue::PerFrame,
+					[](auto ptr) -> Promise<Bytes>
+					{
+						co_return *Cast<Bytes>(ptr);
+					}( ptr ),
+					Tuple{ this->_mngr.GetBatchRC() },
+					"RASBuildContext::ReadProperty"
+				);
+	}
 
 } // AE::Graphics
 

@@ -71,7 +71,6 @@ namespace AE::ResEditor
 	// variables
 	private:
 		_IDs_t						_ids;
-		//StrongAtom<BufferViewID>	_view;
 		_Address_t					_address;
 
 		const ShaderStructName		_typeName;
@@ -89,6 +88,7 @@ namespace AE::ResEditor
 		const String				_dbgName;
 
 		Array<RC<Buffer>>			_refBuffers;
+		Array<RC<BufferView>>		_views;
 
 
 	// methods
@@ -107,7 +107,8 @@ namespace AE::ResEditor
 				RC<DynamicUInt>		outDynCount,
 				StringView			dbgName,
 				EBufferFlags		flags,
-				Array<RC<Buffer>>	refBuffers)						__NE___;
+				Array<RC<Buffer>>	refBuffers,
+				Array<RC<BufferView>> views)						__NE___;
 
 		void  _Init ()												__Th___;
 
@@ -128,7 +129,8 @@ namespace AE::ResEditor
 										RC<DynamicUInt>		outDynCount,
 										StringView			dbgName,
 										EBufferFlags		flags,
-										Array<RC<Buffer>>	refBuffers)	__Th___;
+										Array<RC<Buffer>>	refBuffers,
+										Array<RC<BufferView>> views)	__Th___;
 
 		ND_ BufferID				GetBufferId (uint fid)			const	{ return _ids[ fid ].Get(); }
 		ND_ BufferID				GetBufferId (FrameUID fid)		const	{ return _ids[ fid.Index() ].Get(); }

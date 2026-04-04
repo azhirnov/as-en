@@ -10,7 +10,7 @@ void VertexBuffers ()
 		//st1.Set( "packed_float3		Position;" );
 
 		RC<ShaderStructType>	st2 = ShaderStructType( "VB_UVf2_Normf3" );
-		st2.Set( "packed_float3		Normal;" +
+		st2.Set( "packed_float3		Normal;"
 				 "packed_float2		Texcoord;" );
 
 		RC<VertexBufferInput>	vb = VertexBufferInput( "VB{Position_f3, UVf2_Normf3}" );

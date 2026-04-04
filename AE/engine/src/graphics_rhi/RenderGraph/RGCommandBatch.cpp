@@ -84,12 +84,34 @@ namespace AE::RG::_hidden_
 				AE_LOGW( rg_batch._globalStates.KeyToString(key) << " previous state is General or not known" );
 		#endif
 
-		if_likely( key.IsImage() ){
+		if_likely( key.IsImage() )
+		{
 			if ( EResourceState_RequireImageBarrier( old_state, initial, True{"relaxed"} ))
-				_initialBarriers.ImageBarrier( key.AsImage(), old_state, initial );
-		}else{
+				_initialBarriers.ResourceBarrier( key.AsImage(), old_state, initial );
+		}
+		else
+		{
 			if ( EResourceState_RequireMemoryBarrier( old_state, initial, True{"relaxed"} ))
-				_initialBarriers.MemoryBarrier( old_state, initial );
+			{
+				switch ( key.type )
+				{
+					case_likely ResourceKey::TypeList_t::Index< BufferID > :
+						_initialBarriers.ResourceBarrier( key.AsBuffer(), old_state, initial );
+						break;
+
+					case ResourceKey::TypeList_t::Index< RTGeometryID > :
+						_initialBarriers.ResourceBarrier( key.AsRTGeometry(), old_state, initial );
+						break;
+
+					case ResourceKey::TypeList_t::Index< RTSceneID > :
+						_initialBarriers.ResourceBarrier( key.AsRTScene(), old_state, initial );
+						break;
+
+					case ResourceKey::TypeList_t::Index< RTMicromapID > :
+						_initialBarriers.ResourceBarrier( key.AsRTMicromap(), old_state, initial );
+						break;
+				}
+			}
 		}
 	}
 
@@ -156,7 +178,7 @@ namespace AE::RG::_hidden_
 			{
 				if_likely( id.IsImage() ){
 					if ( EResourceState_RequireImageBarrier( state.current, state.final, True{"relaxed"} ))
-						_finalBarriers.ImageBarrier( id.AsImage(), state.current, state.final );
+						_finalBarriers.ResourceBarrier( id.AsImage(), state.current, state.final );
 				}else{
 					if ( EResourceState_RequireMemoryBarrier( state.current, state.final, True{"relaxed"} ))
 						_finalBarriers.MemoryBarrier( state.current, state.final );

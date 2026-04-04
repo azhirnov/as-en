@@ -819,8 +819,8 @@ namespace AE::PipelineCompiler
 */
 	bool  PipelineLayoutDesc::DescSetLayout::operator == (const DescSetLayout &rhs) const
 	{
-		return	(vkIndex	== rhs.vkIndex)		&
-				(mtlIndex	== rhs.mtlIndex)	&
+		return	(vkIndex	== rhs.vkIndex)		and
+				(mtlIndex	== rhs.mtlIndex)	and
 				(uid		== rhs.uid);
 	}
 
@@ -926,8 +926,8 @@ namespace {
 */
 	ND_ static bool  BasePipelineDesc_Compare (const BasePipelineDesc &lhs, const BasePipelineDesc &rhs)
 	{
-		return	(lhs.specialization	== rhs.specialization)	&
-				(lhs.options		== rhs.options)			&
+		return	(lhs.specialization	== rhs.specialization)	and
+				(lhs.options		== rhs.options)			and
 				(lhs.dynamicState	== rhs.dynamicState);
 	}
 
@@ -941,7 +941,7 @@ namespace {
 */
 	bool  SerializableGraphicsPipeline::VertexAttrib::operator == (const VertexAttrib &rhs) const
 	{
-		return	(type	== rhs.type)	&
+		return	(type	== rhs.type)	and
 				(index	== rhs.index);
 	}
 
@@ -1430,6 +1430,19 @@ namespace {
 
 /*
 =================================================
+	Serialize (SerializableIndirectExecutionSet)
+=================================================
+*/
+	bool  SerializableIndirectExecutionSet::Serialize (Serializing::Serializer &ser) C_NE___
+	{
+		return ser( pipeType, pipelines );
+	}
+//-----------------------------------------------------------------------------
+
+
+
+/*
+=================================================
 	Serialize
 =================================================
 */
@@ -1449,7 +1462,7 @@ namespace {
 		CHECK_ERR( not pipelines.empty() );
 		CHECK_ERR( pipelines.size() <= MaxPipelineCount );
 
-		return ser( name, features, passes, pipelines, rtSBTs );
+		return ser( name, features, passes, pipelines, rtSBTs, execSets );
 	}
 //-----------------------------------------------------------------------------
 
@@ -1915,6 +1928,23 @@ namespace {
 
 /*
 =================================================
+	AddIndirectExecutionSet
+=================================================
+*/
+	IndirectExecutionSetUID  PipelineStorage::AddIndirectExecutionSet (IndirectExecutionSetName::Ref name, SerializableIndirectExecutionSet desc)
+	{
+		CHECK_ERR( name.IsDefined() );
+		CHECK_ERR( not desc.pipelines.empty() );
+		CHECK_ERR( desc.pipeType != Default );
+
+		auto	id = IndirectExecutionSetUID(_indExecSets.size());
+
+		_indExecSets.push_back( RVRef(desc) );
+		return id;
+	}
+
+/*
+=================================================
 	AddRenderTech
 =================================================
 */
@@ -2051,7 +2081,11 @@ namespace {
 */
 	bool  PipelineStorage::_SerializePipelines (ArrayWStream &stream, OUT BlockOffsets_t &offsets, OUT Bytes &offsetsPosInStream) const
 	{
-		#define LOG( ... )	AE_LOG_DBG( __VA_ARGS__ )
+		#ifdef AE_CFG_DEBUG
+		# define LOG( ... )		AE_LOGI( __VA_ARGS__ )
+		#else
+		# define LOG( ... )
+		#endif
 
 		offsets.fill( UMax );
 		CHECK_ERR( stream.Position() == 0_b );
@@ -2254,6 +2288,18 @@ namespace {
 			LOG( "Serialized shader binding tables: "s << ToString(_shaderBindingTables.size()) );
 		}
 
+		if ( not _indExecSets.empty() )
+		{
+			CHECK_ERR( _indExecSets.size() <= MaxIndExecSetCount );
+			const auto	marker	= uint(EMarker::IndirectExecutionSet);
+			offsets[marker] = stream.Position();
+			{
+				Serializing::Serializer		ser{ stream.GetRC<WStream>() };
+				CHECK_ERR( ser( marker, _indExecSets ));
+			}
+			LOG( "Serialized indirect execution sets: "s << ToString(_indExecSets.size()) );
+		}
+
 		Bytes	shader_data_size;
 
 		// spirv
@@ -2325,6 +2371,7 @@ namespace {
 			LOG( "Serialized Metal Mac shaders: "s << ToString(_metalMacShaders.size()) << ", data size: " << ToString(shader_offset) );
 		}
 
+		#undef LOG
 		return true;
 	}
 

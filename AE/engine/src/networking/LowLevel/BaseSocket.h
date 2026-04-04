@@ -32,6 +32,9 @@ namespace AE::Networking
 		{
 			Bytes	sendBufferSize;
 			Bytes	receiveBufferSize;
+
+			// Non-blocking socket is faster for multiple connections.
+			// Blocking socket is faster for single connection with high bandwidth.
 			bool	nonBlocking			= true;
 		};
 

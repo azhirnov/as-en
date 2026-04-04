@@ -93,22 +93,23 @@ namespace
 	AllocMemView
 =================================================
 */
-	bool  IVideoDecoder::AllocMemView (const Config			&cfg,
-									   OUT ImageMemView		&memView,
+	bool  IVideoDecoder::AllocMemView (OUT ImageMemView		&memView,
+									   EPixelFormat			format,
+									   const uint2			&originDim,
 									   IAllocator			&allocator,
 									   Bytes				minAlign) __NE___
 	{
 		minAlign = Max( minAlign, c_FFmpegMinPixAlign );
 
-		auto&	fmt_info	= EPixelFormat_GetInfo( cfg.dstFormat );
+		auto&	fmt_info	= EPixelFormat_GetInfo( format );
 		CHECK_ERR( fmt_info.PlaneCount() <= 1 );
 
-		Bytes	row_pitch	= ImageUtils::RowSize( cfg.dstDim.x, fmt_info.bitsPerBlock, fmt_info.TexBlockDim() );
-		Bytes	img_size	= row_pitch * cfg.dstDim.y;
+		Bytes	row_pitch	= ImageUtils::RowSize( originDim.x, fmt_info.bitsPerBlock, fmt_info.TexBlockDim() );
+		Bytes	img_size	= row_pitch * originDim.y;
 		void*	data		= allocator.Allocate( SizeAndAlign{ img_size, minAlign });
 		CHECK_ERR( data != null );
 
-		memView = ImageMemView{ data, img_size, uint3{}, uint3{cfg.dstDim, 1}, row_pitch, img_size, cfg.dstFormat, EImageAspect::Color };
+		memView = ImageMemView{ data, img_size, uint3{}, uint3{originDim, 1}, row_pitch, img_size, format, EImageAspect::Color };
 		return true;
 	}
 
@@ -117,22 +118,23 @@ namespace
 	AllocMemView
 =================================================
 */
-	bool  IVideoDecoder::AllocMemView (const Config				&cfg,
-									   OUT ImagePlanesMemView	&memViewArr,
+	bool  IVideoDecoder::AllocMemView (OUT ImagePlanesMemView	&memViewArr,
+									   const EPixelFormat		format,
+									   const uint2				&originDim,
 									   IAllocator				&allocator,
 									   Bytes					minAlign) __NE___
 	{
 		const auto	AllocPlane	= [&] (EImageAspect aspect) -> bool
 		{{
-			EPixelFormat	plane_fmt	= cfg.dstFormat;
+			EPixelFormat	plane_fmt	= format;
 			POTVec2			plane_scale;
 
 			if ( aspect != EImageAspect::Color ) {
-				CHECK_ERR( EPixelFormat_GetPlaneInfo( cfg.dstFormat, aspect, OUT plane_fmt, OUT plane_scale ));
-				CHECK_ERR( All( IsMultipleOf( cfg.dstDim, plane_scale )));
+				CHECK_ERR( EPixelFormat_GetPlaneInfo( format, aspect, OUT plane_fmt, OUT plane_scale ));
+				CHECK_ERR( All( IsMultipleOf( originDim, plane_scale )));
 			}
 
-			const uint2		dim			= cfg.dstDim / plane_scale;
+			const uint2		dim			= originDim / plane_scale;
 			auto&			plane_info	= EPixelFormat_GetInfo( plane_fmt );
 			const Bytes		row_pitch	= ImageUtils::RowSize( dim.x, plane_info.bitsPerBlock, plane_info.TexBlockDim() );
 			const Bytes		img_size	= row_pitch * dim.y;
@@ -145,7 +147,7 @@ namespace
 			return true;
 		}};
 
-		const auto&	fmt_info	= EPixelFormat_GetInfo( cfg.dstFormat );
+		const auto&	fmt_info	= EPixelFormat_GetInfo( format );
 		const uint	plane_count	= Max( 1u, fmt_info.PlaneCount() );
 		const bool	multiplanar	= fmt_info.IsMultiPlanar();
 		bool		ok			= true;
@@ -173,5 +175,23 @@ namespace
 		return ok;
 	}
 
+/*
+=================================================
+	DeallocMemView
+=================================================
+*/
+	void  IVideoDecoder::DeallocMemView (INOUT ImageMemView &memView, IAllocator &allocator) __NE___
+	{
+		for (auto& part : memView.Parts()) {
+			allocator.Deallocate( part.ptr, part.size );
+		}
+	}
+
+	void  IVideoDecoder::DeallocMemView (INOUT ImagePlanesMemView &memView, IAllocator &allocator) __NE___
+	{
+		for (auto& plane : memView) {
+			DeallocMemView( plane, allocator );
+		}
+	}
 
 } // AE::Video

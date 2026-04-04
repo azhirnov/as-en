@@ -369,6 +369,20 @@ namespace AE::Base
 
 /*
 =================================================
+	UpdateAt
+=================================================
+*/
+	bool  MemRefWStream::UpdateAt (Bytes pos) __NE___
+	{
+		if_unlikely( pos > _capacity )
+			return false;
+
+		_pos = pos;
+		return true;
+	}
+
+/*
+=================================================
 	GetSourceType
 =================================================
 */

@@ -40,6 +40,7 @@ namespace AE::Base
 	private:
 		Handle_t		_file		= -1;
 		const Bytes		_fileSize;
+		const ReqAlign	_align;
 
 		DEBUG_ONLY( const Path  _filename;)
 
@@ -67,7 +68,7 @@ namespace AE::Base
 
 		Bytes		ReadSeq (OUT void*, Bytes)											__NE_OV;
 
-		ReqAlign	OffsetAlign ()														C_NE_OV	{ return Default; }		// TODO
+		ReqAlign	DirectAccessAlign ()												C_NE_OV	{ return _align; }
 
 	private:
 		ND_ Bytes  _Position ()															C_NE___;
@@ -107,6 +108,7 @@ namespace AE::Base
 	// variables
 	private:
 		Handle_t		_file	= -1;
+		const ReqAlign	_align;
 
 		DEBUG_ONLY( const Path  _filename;)
 
@@ -130,12 +132,13 @@ namespace AE::Base
 		ESourceType	GetSourceType ()													C_NE_OV;
 
 		bool		SeekFwd (Bytes offset)												__NE_OV;
+		bool		UpdateAt (Bytes pos)												__NE_OV;
 		Bytes		Reserve (Bytes additionalSize)										__NE_OV;
 
 		Bytes		WriteSeq (const void*, Bytes)										__NE_OV;
 		void		Flush ()															__NE_OV;
 
-		ReqAlign	OffsetAlign ()														C_NE_OV	{ return Default; }		// TODO
+		ReqAlign	DirectAccessAlign ()												C_NE_OV	{ return _align; }
 	};
 //-----------------------------------------------------------------------------
 
@@ -160,6 +163,7 @@ namespace AE::Base
 	private:
 		Handle_t		_file		= -1;
 		const Bytes 	_fileSize;
+		const ReqAlign	_align;
 
 		DEBUG_ONLY( const Path  _filename;)
 
@@ -184,7 +188,7 @@ namespace AE::Base
 
 		Bytes		ReadBlock (Bytes, OUT void*, Bytes)										__NE_OV;
 
-		ReqAlign	OffsetAlign ()															C_NE_OV	{ return Default; }		// TODO
+		ReqAlign	DirectAccessAlign ()													C_NE_OV	{ return _align; }
 	};
 
 
@@ -207,6 +211,7 @@ namespace AE::Base
 	// variables
 	private:
 		Handle_t		_file	= -1;
+		const ReqAlign	_align;
 
 		DEBUG_ONLY( const Path  _filename;)
 
@@ -234,7 +239,7 @@ namespace AE::Base
 		Bytes		WriteBlock (Bytes, const void*, Bytes)									__NE_OV;
 		void		Flush ()																__NE_OV;
 
-		ReqAlign	OffsetAlign ()															C_NE_OV	{ return Default; }		// TODO
+		ReqAlign	DirectAccessAlign ()													C_NE_OV	{ return _align; }
 	};
 
 

@@ -993,4 +993,61 @@ namespace
 		)
 	}
 
+/*
+=================================================
+	GetCommandLineArg
+=================================================
+*/
+	String  Parser::GetCommandLineArg (ArrayView<const char*> args, StringView argName, String defaultStr) __NE___
+	{
+		for (usize i = 0; i < args.size(); ++i)
+		{
+			if_unlikely( argName == args[i] )
+			{
+				ASSERT( i+1 < args.size() );
+				if ( i+1 < args.size() ){
+					return String{ args[i+1] };
+				}
+				break;
+			}
+		}
+		return RVRef(defaultStr);
+	}
+
+/*
+=================================================
+	GetCommandLinePath
+=================================================
+*/
+	Path  Parser::GetCommandLinePath (ArrayView<const char*> args, StringView argName, Path defaultPath) __NE___
+	{
+		for (usize i = 0; i < args.size(); ++i)
+		{
+			if_unlikely( argName == args[i] )
+			{
+				ASSERT( i+1 < args.size() );
+				if ( i+1 < args.size() ){
+					return Path{ args[i+1] };
+				}
+				break;
+			}
+		}
+		return RVRef(defaultPath);
+	}
+
+/*
+=================================================
+	HasCommandLineArg
+=================================================
+*/
+	bool  Parser::HasCommandLineArg (ArrayView<const char*> args, StringView argName) __NE___
+	{
+		for (usize i = 0; i < args.size(); ++i)
+		{
+			if_unlikely( argName == args[i] )
+				return true;
+		}
+		return false;
+	}
+
 } // AE::Base

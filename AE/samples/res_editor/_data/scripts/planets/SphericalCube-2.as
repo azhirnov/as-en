@@ -35,21 +35,18 @@
 
 		// setup sphere
 		{
-			RC<Buffer>				geom_data	= Buffer();
-			RC<UnifiedGeometry>		geometry	= UnifiedGeometry();
+			RC<Mesh>	mesh = Mesh();
+			mesh.SetAttributes( EAttribute::Position );
+			mesh.AddSphericalCube( lod );
 
-			array<float3>	positions;
-			array<uint>		indices;
-			GetSphericalCube( lod, OUT positions, OUT indices );
-
-			geom_data.FloatArray(	"positions",	positions );
-			geom_data.UIntArray(	"indices",		indices );
+			RC<Buffer>	geom_data = mesh.ToBuffer();
 			geom_data.LayoutName( "GeometrySBlock" );
 
 			UnifiedGeometry_DrawIndexed	cmd;
-			cmd.indexCount = indices.size();
+			cmd.indexCount = mesh.IndexCount();
 			cmd.IndexBuffer( geom_data, "indices" );
 
+			RC<UnifiedGeometry>		geometry = UnifiedGeometry();
 			geometry.Draw( cmd );
 			geometry.ArgIn(	"un_Geometry",	geom_data );
 			geometry.ArgIn( "un_CubeMap",	cubemap_view, Sampler_LinearMipmapClamp );

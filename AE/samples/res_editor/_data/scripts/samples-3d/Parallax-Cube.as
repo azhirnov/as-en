@@ -33,28 +33,18 @@
 
 		// create cube
 		{
-			RC<Buffer>				geom_data	= Buffer();
 			RC<UnifiedGeometry>		geometry	= UnifiedGeometry();
+			RC<Mesh>				mesh		= Mesh();
 
-			array<float3>	positions;
-			array<float3>	normals;
-			array<float3>	tangents;
-			array<float3>	bitangents;
-			array<float2>	texcoords;
-			array<uint>		indices;
-			GetCube( OUT positions, OUT normals, OUT tangents, OUT bitangents, OUT texcoords, OUT indices );
+			mesh.SetAttributes( EAttribute::Position | EAttribute::Texcoord2D | EAttribute::TBN );
+			mesh.AddCube();
 
-			geom_data.FloatArray(	"positions",	positions );
-			geom_data.FloatArray(	"texcoords",	texcoords );
-			geom_data.FloatArray(	"normals",		normals );
-			geom_data.FloatArray(	"tangents",		tangents );
-			geom_data.FloatArray(	"bitangents",	bitangents );
-			geom_data.UIntArray(	"indices",		indices );
-			geom_data.Float(		"lightDir",		Normalize(float3( 0.f, -1.f, 0.f )) );
+			RC<Buffer>	geom_data	= mesh.ToBuffer();
+			geom_data.Float( "lightDir",	Normalize(float3( 0.f, -1.f, 0.f )) );
 			geom_data.LayoutName( "GeometrySBlock" );
 
 			UnifiedGeometry_DrawIndexed	cmd;
-			cmd.indexCount = indices.size();
+			cmd.indexCount = mesh.IndexCount();
 			cmd.IndexBuffer( geom_data, "indices" );
 
 			geometry.Draw( cmd );

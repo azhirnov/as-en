@@ -91,15 +91,17 @@ namespace
 		{
 			switch_enum( t )
 			{
-				case ERTInstanceOpt::TriangleCullDisable :	result |= VK_GEOMETRY_INSTANCE_TRIANGLE_FACING_CULL_DISABLE_BIT_KHR;	break;
-				case ERTInstanceOpt::TriangleFrontCCW :		result |= VK_GEOMETRY_INSTANCE_TRIANGLE_FLIP_FACING_BIT_KHR;			break;
-				case ERTInstanceOpt::ForceOpaque :			result |= VK_GEOMETRY_INSTANCE_FORCE_OPAQUE_BIT_KHR;					break;
-				case ERTInstanceOpt::ForceNonOpaque :		result |= VK_GEOMETRY_INSTANCE_FORCE_NO_OPAQUE_BIT_KHR;					break;
+				case ERTInstanceOpt::TriangleCullDisable :			result |= VK_GEOMETRY_INSTANCE_TRIANGLE_FACING_CULL_DISABLE_BIT_KHR;	break;
+				case ERTInstanceOpt::TriangleFrontCCW :				result |= VK_GEOMETRY_INSTANCE_TRIANGLE_FLIP_FACING_BIT_KHR;			break;
+				case ERTInstanceOpt::ForceOpaque :					result |= VK_GEOMETRY_INSTANCE_FORCE_OPAQUE_BIT_KHR;					break;
+				case ERTInstanceOpt::ForceNonOpaque :				result |= VK_GEOMETRY_INSTANCE_FORCE_NO_OPAQUE_BIT_KHR;					break;
+				case ERTInstanceOpt::DisableOpacityMicromaps :		result |= VK_GEOMETRY_INSTANCE_DISABLE_OPACITY_MICROMAPS_EXT;			break;
+				case ERTInstanceOpt::ForceOpacityMicromap2State	:	result |= VK_GEOMETRY_INSTANCE_FORCE_OPACITY_MICROMAP_2_STATE_EXT;		break;
 
 				case ERTInstanceOpt::_Last :
 				case ERTInstanceOpt::All :
 				case ERTInstanceOpt::Unknown :
-				default_unlikely :							RETURN_ERR( "unknown RT instance options", Zero );
+				default_unlikely :									RETURN_ERR( "unknown RT instance options", Zero );
 			}
 			switch_end
 		}
@@ -170,14 +172,26 @@ namespace
 	RTSceneBuild::Instance::SetFlags
 =================================================
 */
+	static constexpr auto	ERTInstanceOpt_OpacityMicromapMask	= ERTInstanceOpt::DisableOpacityMicromaps | ERTInstanceOpt::ForceOpacityMicromap2State;
+
 	RTSceneBuild::InstanceVk&  RTSceneBuild::InstanceVk::SetFlags (ERTInstanceOpt value) __NE___
 	{
+	  #ifdef AE_DEBUG
+		if ( AnyBits( value, ERTInstanceOpt_OpacityMicromapMask ))
+		{
+			CHECK_MSG( GraphicsScheduler().GetFeatureSet().opacityMicromap != FeatureSet::EFeature::RequireTrue,
+				"'opacityMicromap' feature is not supported" );
+		}
+	  #endif
+
 		this->flags = VEnumCast( value );
 		return *this;
 	}
 
 	RTSceneBuild::InstanceMtl&  RTSceneBuild::InstanceMtl::SetFlags (ERTInstanceOpt value) __NE___
 	{
+		ASSERT( NoBits( value, ERTInstanceOpt_OpacityMicromapMask ));
+
 		this->options = uint(MEnumCast( value ));
 		return *this;
 	}

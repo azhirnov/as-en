@@ -187,8 +187,8 @@ namespace AE::Graphics
 	// variables
 	public:
 		union {
-			Bytes16u	offset;
-			ushort		bufferId;
+			Bytes16u	vulkanOffset;
+			ushort		metalBufferId;
 		};
 		EShader			stage		= Default;
 
@@ -200,17 +200,17 @@ namespace AE::Graphics
 
 	// methods
 	public:
-		__Cx__ explicit PushConstantIndex ()								__NE___	: bufferId{UMax} {}
-		__Cx__ PushConstantIndex (Bytes16u vulkanOffset, EShader stage)		__NE___	: offset{vulkanOffset}, stage{stage} {}
-		__Cx__ PushConstantIndex (uint metalBufferId, EShader stage)		__NE___	: bufferId{ushort(metalBufferId)}, stage{stage} {}
+		__Cx__ explicit PushConstantIndex ()								__NE___	: metalBufferId{UMax} {}
+		__Cx__ PushConstantIndex (Bytes16u vulkanOffset, EShader stage)		__NE___	: vulkanOffset{vulkanOffset}, stage{stage} {}
+		__Cx__ PushConstantIndex (uint metalBufferId, EShader stage)		__NE___	: metalBufferId{ushort(metalBufferId)}, stage{stage} {}
 
 		__Cx__ PushConstantIndex (Bytes16u vulkanOffset, EShader stage, ShaderStructName::Ref typeName, Bytes dataSize)	__NE___	:
-			offset{vulkanOffset}, stage{stage}
+			vulkanOffset{vulkanOffset}, stage{stage}
 			DEBUG_ONLY(, dbgDataSize{dataSize}, dbgTypeName{typeName} )
 		{ Unused( typeName, dataSize ); }
 
 		__Cx__ PushConstantIndex (uint metalBufferId, EShader stage, ShaderStructName::Ref typeName, Bytes dataSize)	__NE___	:
-			bufferId{ushort(metalBufferId)}, stage{stage}
+			metalBufferId{ushort(metalBufferId)}, stage{stage}
 			DEBUG_ONLY(, dbgDataSize{dataSize}, dbgTypeName{typeName} )
 		{ Unused( typeName, dataSize ); }
 

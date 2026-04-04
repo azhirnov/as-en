@@ -240,6 +240,7 @@ namespace AE::ResEditor
 	// IGeomSource //
 		void  StateTransition (IGSMaterials &, DirectCtx::Graphics &)		__Th_OV;
 		void  StateTransition (DirectCtx::RayTracing &)						__Th_OV;
+		void  StateTransition (DirectCtx::Compute &)						__Th_OV;
 
 		bool  Draw (const DrawData &)										__Th_OV;
 		bool  PostProcess (const DrawData &)								__Th_OV;

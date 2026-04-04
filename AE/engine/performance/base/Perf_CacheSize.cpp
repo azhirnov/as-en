@@ -157,6 +157,24 @@ namespace
 #elif AE_SIMD_NEON
 	static void  XorHash (OUT void* inDst, const Bytes size)
 	{
+		auto*		src	= static_cast< uint8_t const *>(inDst);
+		auto*		end	= src + size;
+		uint8x16_t	h	= vdupq_n_u8( 0 );
+
+		for (; src < end; src += 64)
+		{
+			uint8x16_t	r0 = vld1q_u8( src +  0 );
+			uint8x16_t	r1 = vld1q_u8( src + 16 );
+			uint8x16_t	r2 = vld1q_u8( src + 32 );
+			uint8x16_t	r3 = vld1q_u8( src + 48 );
+
+			uint8x16_t	h0 = veorq_u8( r0, r1 );
+			uint8x16_t	h1 = veorq_u8( r2, r3 );
+
+			h = veorq_u8( h, veorq_u8( h0, h1 ));
+		}
+
+		vst1q_u8( static_cast<uint8_t*>(inDst), h );
 	}
 
 	static void  Fp32Sum_Cached (OUT void* inDst, const void* inSrc, const Bytes size)
@@ -444,6 +462,9 @@ extern void PerfTest_CacheSize ()
 				const auto	core_bits	= core.physicalBits;
 				const uint	core_count	= Min( max_threads, uint(core_bits.count()) );
 
+				if ( core_count <= 1 )
+					return;
+
 				CheckCacheSizeMT<0>( "memcpy", core_bits, core.type, core_count );
 				CheckCacheSizeMT<1>( "SIMD cached copy", core_bits, core.type, core_count );
 				CheckCacheSizeMT<2>( "SIMD non-cached copy", core_bits, core.type, core_count );
@@ -464,6 +485,9 @@ extern void PerfTest_CacheSize ()
 			{
 				const auto	core_bits	= core.logicalBits;
 				const uint	core_count	= Min( max_threads, uint(core_bits.count()) ) / 2;
+
+				if ( core_count <= 1 )
+					return;
 
 				CheckCacheSizeMT<0>( "memcpy", core_bits, core.type, core_count );
 				CheckCacheSizeMT<1>( "SIMD cached copy", core_bits, core.type, core_count );

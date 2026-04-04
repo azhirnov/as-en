@@ -9,17 +9,15 @@ namespace
 
 
 	template <typename Address>
-	static void  UDP_Test_IPv ()
+	static void  UDP_Test_IPv (Address sock1Addr, Address sock2Addr, Address sock2SendAddr)
 	{
-		LocalSocketMngr	mngr;
-
 		const char			send_data[] = "12346ewiofdklijnskdn";
 		Threading::Barrier	sync {2};
 
 		StdThread	listener{ [&] ()
 			{{
 				UdpSocket	sock2;
-				TEST( sock2.Open( Address::FromLocalhostUDP(c_Port) ));
+				TEST( sock2.Open( sock2Addr ));
 				TEST( sock2.IsOpen() );
 
 				sync.Wait();
@@ -57,13 +55,13 @@ namespace
 			}}};
 
 		UdpSocket	sock1;
-		TEST( sock1.Open( Address::FromLocalhostUDP(c_Port+1) ));
+		TEST( sock1.Open( sock1Addr ));
 		TEST( sock1.IsOpen() );
 
 		sync.Wait();
 
 		{
-			auto [err, sent] = sock1.Send( Address::FromHostPortUDP( "localhost", c_Port ), send_data, Sizeof(send_data) );
+			auto [err, sent] = sock1.Send( sock2SendAddr, send_data, Sizeof(send_data) );
 
 			TEST( err == SocketSendError::Sent );
 			TEST( sent == Sizeof(send_data) );
@@ -88,14 +86,64 @@ namespace
 		sock1.Close();
 	}
 
+
+	template <typename Address>
+	static void  UDP_Test_IP ()
+	{
+		LocalSocketMngr	mngr;
+
+		// localhost
+		{
+			auto	sock1		= Address::FromLocalhostUDP( c_Port+1 );
+			auto	sock2		= Address::FromLocalhostUDP( c_Port );
+			auto	sock2_send	= Address::FromHostPortUDP( "localhost", c_Port );
+
+			UDP_Test_IPv( sock1, sock2, sock2_send );
+		}
+
+		// local network
+		{
+			Address	self_addr;
+
+			if constexpr( IsSame< Address, IpAddress >)
+			{
+				if ( not mngr->GetSelfIPAddress( AE_ROUTER_IPv4, OUT self_addr ))
+				{
+					AE_LOGW( "GetSelfIPAddress failed for "s << AE_ROUTER_IPv4.ToString() );
+					return;
+				}
+			}
+			if constexpr( IsSame< Address, IpAddress6 >)
+			{
+				if ( not mngr->GetSelfIPAddress( AE_ROUTER_IPv6, OUT self_addr ))
+				{
+					AE_LOGW( "GetSelfIPAddress failed for "s << AE_ROUTER_IPv6.ToString() );
+					return;
+				}
+			}
+			self_addr.SetPort( c_Port );
+
+			auto	sock1		= Address::FromLocalPortUDP( c_Port+1 );
+			auto	sock2		= Address::FromLocalPortUDP( c_Port );
+			auto	sock2_send	= self_addr;
+
+			AE_LOGI( "Socket1: "s << sock1.ToString() );
+			AE_LOGI( "Socket2: "s << sock2.ToString() );
+			AE_LOGI( "Send:    "s << sock2_send.ToString() );
+
+			UDP_Test_IPv( sock1, sock2, sock2_send );
+		}
+	}
+
+
 	static void  UDP_Test1 ()
 	{
-		UDP_Test_IPv< IpAddress >();
+		UDP_Test_IP< IpAddress >();
 	}
 
 	static void  UDP_Test2 ()
 	{
-		UDP_Test_IPv< IpAddress6 >();
+		UDP_Test_IP< IpAddress6 >();
 	}
 	//-----------------------------------------------------
 }

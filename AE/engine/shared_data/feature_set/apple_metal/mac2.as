@@ -80,9 +80,6 @@ void ASmain ()
 	fset.shaderInputAttachmentArrayNonUniformIndexing (True);
 	fset.shaderUniformTexelBufferArrayNonUniformIndexing (True);
 	fset.shaderStorageTexelBufferArrayNonUniformIndexing (True);
-	fset.shaderSampledImageArrayNonUniformIndexingNative (True);
-	fset.shaderStorageImageArrayNonUniformIndexingNative (True);
-	fset.shaderInputAttachmentArrayNonUniformIndexingNative (True);
 	fset.shaderStorageImageReadWithoutFormat (True);
 	fset.shaderStorageImageWriteWithoutFormat (True);
 	fset.shaderDemoteToHelperInvocation (True);

@@ -373,7 +373,6 @@ namespace AE::Graphics
 
 				case EPipelineDynamicState::RTStackSize :
 				case EPipelineDynamicState::FragmentShadingRate :
-				case EPipelineDynamicState::ViewportWScaling :
 					break;	// ignore
 
 				case EPipelineDynamicState::Unknown :

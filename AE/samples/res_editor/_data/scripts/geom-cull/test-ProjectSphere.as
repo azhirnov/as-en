@@ -18,7 +18,6 @@
 		RC<DynamicDim>		dim				= SurfaceSize();
 		RC<Image>			rt				= Image( EPixelFormat::RGBA8_UNorm, dim );				rt.Name( "RT" );
 		RC<Image>			ds				= Image( Supported_DepthFormat(), dim );				ds.Name( "Depth" );
-		RC<Image>			pyramid			= Image( EPixelFormat::R32F, dim/2, MipmapLevel(~0) );	pyramid.Name( "Depth pyramid" );
 		RC<Scene>			scene			= Scene();
 		RC<Scene>			scene2			= Scene();
 		RC<FPVCamera>		camera			= FPVCamera();
@@ -32,8 +31,8 @@
 
 		obj_buf.ArrayLayout(
 			"ObjectTransform",
-			"	float3	position;" +
-			"	float	scale;" +
+			"	float3	position;"
+			"	float	scale;"
 			"	uint	color;",
 			obj_count );
 
@@ -54,18 +53,16 @@
 
 		// create geometry
 		{
-			array<float3>	positions;
-			array<uint>		indices;
-			GetSphere( 8, OUT positions, OUT indices );
+			RC<Mesh>	mesh = Mesh();
+			mesh.SetAttributes( EAttribute::Position | EAttribute::Texcoord2D );
+			mesh.AddSphere( 8 );
 
-			RC<Buffer>		geom_data = Buffer();
-			geom_data.FloatArray( "positions",	positions );
-			geom_data.UIntArray(  "indices",	indices );
+			RC<Buffer>	geom_data = mesh.ToBuffer();
 			geom_data.LayoutName( "GeometryData" );
 
 			{
 				UnifiedGeometry_DrawIndexed	cmd;
-				cmd.indexCount		= indices.size();
+				cmd.indexCount		= mesh.IndexCount();
 				cmd.instanceCount	= obj_count;
 				cmd.IndexBuffer( geom_data, "indices" );
 				cmd.PipelineHint( "DrawSphere" );

@@ -486,6 +486,16 @@ namespace AE::Graphics::_hidden_
 			ConvertCooperativeVectorMatrixImpl( fn, cmdbuf, ArrayView<ConvertCoopMatrixCmd>{ ptr, cmd.count });
 		}
 
+		static void  Fn_PreprocessIndirectCommandsCmd (VulkanDeviceFn fn, VkCommandBuffer cmdbuf, const PreprocessIndirectCommandsCmd &cmd) __NE___
+		{
+			fn.vkCmdPreprocessGeneratedCommandsEXT( cmdbuf, &cmd.info, cmd.stateCmdbuf );
+		}
+
+		static void  Fn_ExecuteIndirectCommandsCmd (VulkanDeviceFn fn, VkCommandBuffer cmdbuf, const ExecuteIndirectCommandsCmd &cmd) __NE___
+		{
+			fn.vkCmdExecuteGeneratedCommandsEXT( cmdbuf, cmd.isPreprocessed, &cmd.info );
+		}
+
 
 	// graphics commands
 
@@ -584,12 +594,6 @@ namespace AE::Graphics::_hidden_
 			VkFragmentShadingRateCombinerOpKHR	combiner_ops[2] = { cmd.primitiveOp, cmd.textureOp };
 
 			fn.vkCmdSetFragmentShadingRateKHR( cmdbuf, &frag_size, combiner_ops );
-		}
-
-		static void  Fn_SetViewportWScalingCmd (VulkanDeviceFn fn, VkCommandBuffer cmdbuf, const SetViewportWScalingCmd &cmd) __NE___
-		{
-			auto*	scaling = Cast<VkViewportWScalingNV>( AlignUp( static_cast<const void *>(&cmd + 1), AlignOf<VkViewportWScalingNV> ));
-			fn.vkCmdSetViewportWScalingNV( cmdbuf, cmd.first, cmd.count, scaling );
 		}
 
 		static void  Fn_BindIndexBufferCmd (VulkanDeviceFn fn, VkCommandBuffer cmdbuf, const BindIndexBufferCmd &cmd) __NE___
@@ -713,6 +717,41 @@ namespace AE::Graphics::_hidden_
 		static void  Fn_WriteASPropertiesCmd (VulkanDeviceFn fn, VkCommandBuffer cmdbuf, const WriteASPropertiesCmd &cmd) __NE___
 		{
 			fn.vkCmdWriteAccelerationStructuresPropertiesKHR( cmdbuf, 1, &cmd.as, cmd.type, cmd.pool, cmd.index );
+		}
+
+		static void  Fn_BuildMicromapCmd (VulkanDeviceFn fn, VkCommandBuffer cmdbuf, const BuildMicromapCmd &cmd) __NE___
+		{
+			fn.vkCmdBuildMicromapsEXT( cmdbuf, 1, &cmd.info );
+		}
+
+		static void  Fn_CopyMicromapCmd (VulkanDeviceFn fn, VkCommandBuffer cmdbuf, const CopyMicromapCmd &cmd) __NE___
+		{
+			fn.vkCmdCopyMicromapEXT( cmdbuf, &cmd.info );
+		}
+
+		static void  Fn_WriteMMPropertiesCmd (VulkanDeviceFn fn, VkCommandBuffer cmdbuf, const WriteMMPropertiesCmd &cmd) __NE___
+		{
+			fn.vkCmdWriteMicromapsPropertiesEXT( cmdbuf, 1u, &cmd.micromap, cmd.type, cmd.pool, cmd.index );
+		}
+
+		static void  Fn_CopyMicromapToMemoryCmd (VulkanDeviceFn fn, VkCommandBuffer cmdbuf, const CopyMicromapToMemoryCmd &cmd) __NE___
+		{
+			VkCopyMicromapToMemoryInfoEXT	info = {};
+			info.sType				= VK_STRUCTURE_TYPE_COPY_MICROMAP_TO_MEMORY_INFO_EXT;
+			info.src				= cmd.src;
+			info.dst.deviceAddress	= cmd.dst;
+			info.mode				= cmd.mode;
+			fn.vkCmdCopyMicromapToMemoryEXT( cmdbuf, &info );
+		}
+
+		static void  Fn_CopyMemoryToMicromapCmd (VulkanDeviceFn fn, VkCommandBuffer cmdbuf, const CopyMemoryToMicromapCmd &cmd) __NE___
+		{
+			VkCopyMemoryToMicromapInfoEXT	info = {};
+			info.sType				= VK_STRUCTURE_TYPE_COPY_MEMORY_TO_MICROMAP_INFO_EXT;
+			info.src.deviceAddress	= cmd.src;
+			info.dst				= cmd.dst;
+			info.mode				= cmd.mode;
+			fn.vkCmdCopyMemoryToMicromapEXT( cmdbuf, &info );
 		}
 
 

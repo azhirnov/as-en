@@ -39,7 +39,7 @@ namespace AE::ResEditor
 		for (; reader.ReadHeader( OUT hdr );)
 		{
 			StaticAssert( (IA.actionCount - BaseIA.actionCount) == 2 );
-			StaticAssert( IA.GLFW.actionCount == 2 );
+			StaticAssert( IA.GLFW.actionCount == 4 );
 
 			switch ( uint{hdr.name} )
 			{

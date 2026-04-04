@@ -40,10 +40,10 @@ namespace
 		RTGeometryBuild::TrianglesData	triangleData;
 	};
 
-	static constexpr auto&	RTech = RenderTechs::RayTracingTestRT;
+	static constexpr auto&	RTech = RenderTechs::RayTracing_RTech;
 
-	static const float3	buffer_vertices []	= { { 0.25f, 0.25f, 0.0f }, { 0.75f, 0.25f, 0.0f }, { 0.50f, 0.75f, 0.0f } };
-	static const uint	buffer_indices []	= { 0, 1, 2 };
+	static const float3	c_BufferVertices []	= { { 0.25f, 0.25f, 0.0f }, { 0.75f, 0.25f, 0.0f }, { 0.50f, 0.75f, 0.0f } };
+	static const uint	c_BufferIndices []	= { 0, 1, 2 };
 
 
 	template <typename CtxTypes>
@@ -58,8 +58,8 @@ namespace
 		scene_build.SetScratchBuffer( t.scratch );
 		scene_build.SetInstanceData( t.instances );
 
-		CHECK_CE( copy_ctx.UploadBuffer( t.vb, 0_b, Sizeof(buffer_vertices), buffer_vertices, EStagingHeapType::Static ));
-		CHECK_CE( copy_ctx.UploadBuffer( t.ib, 0_b, Sizeof(buffer_indices),  buffer_indices,  EStagingHeapType::Static ));
+		CHECK_CE( copy_ctx.UploadBuffer( t.vb, 0_b, Sizeof(c_BufferVertices), c_BufferVertices, EStagingHeapType::Static ));
+		CHECK_CE( copy_ctx.UploadBuffer( t.ib, 0_b, Sizeof(c_BufferIndices),  c_BufferIndices,  EStagingHeapType::Static ));
 
 		switch_enum( copy_ctx.GetDevice().GetGraphicsAPI() )
 		{
@@ -156,11 +156,11 @@ namespace
 		t.view = res_mngr.CreateImageView( ImageViewDesc{}, t.img, "ImageView" );
 		CHECK_ERR( t.view );
 
-		t.vb = rg.CreateBuffer( BufferDesc{ Sizeof(buffer_vertices), EBufferUsage::ASBuild_ReadOnly | EBufferUsage::Transfer },
+		t.vb = rg.CreateBuffer( BufferDesc{ Sizeof(c_BufferVertices), EBufferUsage::ASBuild_ReadOnly | EBufferUsage::Transfer },
 									  "RTAS vertex buffer", t.gfxAlloc );
 		CHECK_ERR( t.vb );
 
-		t.ib = rg.CreateBuffer( BufferDesc{ Sizeof(buffer_indices), EBufferUsage::ASBuild_ReadOnly | EBufferUsage::Transfer },
+		t.ib = rg.CreateBuffer( BufferDesc{ Sizeof(c_BufferIndices), EBufferUsage::ASBuild_ReadOnly | EBufferUsage::Transfer },
 									  "RTAS index buffer", t.gfxAlloc );
 		CHECK_ERR( t.ib );
 
@@ -168,15 +168,15 @@ namespace
 											 "RTAS instance buffer", t.gfxAlloc );
 		CHECK_ERR( t.instances );
 
-		t.triangleInfo.maxPrimitives	= uint(CountOf( buffer_indices )) / 3;
-		t.triangleInfo.maxVertex		= uint(CountOf( buffer_vertices ));
+		t.triangleInfo.maxPrimitives	= uint(CountOf( c_BufferIndices )) / 3;
+		t.triangleInfo.maxVertex		= uint(CountOf( c_BufferVertices ));
 		t.triangleInfo.vertexFormat		= EVertexType::Float3;
 		t.triangleInfo.indexType		= EIndex::UInt;
 		t.triangleInfo.allowTransforms	= false;
 
 		t.triangleData.vertexData		= t.vb;
 		t.triangleData.indexData		= t.ib;
-		t.triangleData.vertexStride		= Sizeof(buffer_vertices[0]);
+		t.triangleData.vertexStride		= Sizeof(c_BufferVertices[0]);
 
 		auto	geom_sizes = res_mngr.GetRTGeometrySizes( RTGeometryBuild{ ArrayView<RTGeometryBuild::TrianglesInfo>{ &t.triangleInfo, 1 }, Default, Default, Default, Default });
 		t.rtGeom = res_mngr.CreateRTGeometry( RTGeometryDesc{ geom_sizes.rtasSize, Default }, "RT geometry", t.gfxAlloc );
@@ -236,6 +236,7 @@ namespace
 		CHECK_ERR( end->Status() == ETaskStatus::Completed );
 
 		CHECK_ERR( rg.WaitAll( c_MaxTimeout ));
+		CHECK_ERR( t.result );
 
 		CHECK_ERR( Scheduler().Wait( {t.result}, c_MaxTimeout ));
 		CHECK_ERR( t.result->Status() == ETaskStatus::Completed );
@@ -247,12 +248,12 @@ namespace
 } // namespace
 
 
-bool RGTest::Test_RayTracing3 ()
+RGTest::ECode  RGTest::Test_RayTracing3 ()
 {
 	if ( _rtPipelines == null )
 	{
 		AE_LOGI( TEST_NAME << " - skipped" );
-		return true;
+		return ECode::Skipped;
 	}
 
 	auto	img_cmp = _LoadReference( TEST_NAME );
@@ -266,8 +267,12 @@ bool RGTest::Test_RayTracing3 ()
 
 	RG_CHECK( _CompareDumps( TEST_NAME ));
 
-	AE_LOGI( TEST_NAME << " - passed" );
-	return result;
+	if ( result )
+	{
+		AE_LOGI( TEST_NAME << " - passed" );
+		return ECode::Passed;
+	}
+	return ECode::Failed;
 }
 
 #endif // not AE_ENABLE_METAL

@@ -28,7 +28,7 @@ namespace
 		auto	rt = ctx.GetResourceManager().GetResource( view )->ImageId();
 
 		ctx.AccumBarriers()
-			.ImageBarrier( rt, EResourceState::Unknown, EResourceState::ColorAttachment );
+			.ResourceBarrier( rt, EResourceState::Unknown, EResourceState::ColorAttachment );
 
 		// render pass
 		{
@@ -45,7 +45,7 @@ namespace
 		DirectCtx::Transfer	tctx { self, ctx.ReleaseCommandBuffer() };
 
 		tctx.AccumBarriers()
-			.ImageBarrier( rt, EResourceState::ColorAttachment, EResourceState::CopySrc );
+			.ResourceBarrier( rt, EResourceState::ColorAttachment, EResourceState::CopySrc );
 
 		tctx.ReadbackImage( rt, ReadbackImageDesc{} )
 			.Then(	RVRef(fn),

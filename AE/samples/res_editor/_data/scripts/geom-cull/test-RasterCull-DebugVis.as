@@ -34,8 +34,8 @@
 
 		obj_buf.ArrayLayout(
 			"ObjectTransform",
-			"	float3	position;" +
-			"	float	scale;" +
+			"	float3	position;"
+			"	float	scale;"
 			"	uint	color;",
 			count );
 
@@ -70,16 +70,14 @@
 
 		// create geometry
 		{
-			array<float3>	positions;
-			array<uint>		indices;
-			GetSphere( 8, OUT positions, OUT indices );
-			index_count = indices.size();
+			RC<Mesh>	mesh = Mesh();
+			mesh.SetAttributes( EAttribute::Position | EAttribute::Texcoord2D );
+			mesh.AddSphere( 8 );
 
+			index_count = mesh.IndexCount();
 			@tris_count = count.Mul( index_count/3 );
 
-			RC<Buffer>		geom_data = Buffer();
-			geom_data.FloatArray( "positions",	positions );
-			geom_data.UIntArray(  "indices",	indices );
+			RC<Buffer>	geom_data = mesh.ToBuffer();
 			geom_data.LayoutName( "GeometryData" );
 
 			RC<UnifiedGeometry>		geometry = UnifiedGeometry();
@@ -96,13 +94,11 @@
 
 		// create AABB
 		{
-			array<float3>	positions, normals;
-			array<uint>		indices;
-			GetCube( OUT positions, OUT normals, OUT indices );
+			RC<Mesh>	mesh = Mesh();
+			mesh.SetAttributes( EAttribute::Position );
+			mesh.AddCube();
 
-			RC<Buffer>		geom_data = Buffer();
-			geom_data.FloatArray( "positions",	positions );
-			geom_data.UIntArray(  "indices",	indices );
+			RC<Buffer>		geom_data = mesh.ToBuffer();
 			geom_data.LayoutName( "GeometryData" );
 
 			RC<UnifiedGeometry>		geometry = UnifiedGeometry();
@@ -110,7 +106,7 @@
 			geometry.ArgIn( "un_Transform",	obj_buf );
 
 			UnifiedGeometry_DrawIndexed	cmd;
-			cmd.indexCount	= indices.size();
+			cmd.indexCount	= mesh.IndexCount();
 			cmd.IndexBuffer( geom_data, "indices" );
 			cmd.InstanceCount( count );
 			geometry.Draw( cmd );
@@ -300,11 +296,11 @@
 		const float			sphere_radius	= obj.scale;
 		const float2		uv				= GetGlobalCoordUNorm().xy;
 
-		float4	aabb	= Sphere_FastProject( Sphere_Create( sphere_center, sphere_radius ), un_PerPass.camera.proj[0][0], un_PerPass.camera.proj[1][1] );
+		Rect	aabb	= Sphere_FastProject( Sphere_Create( sphere_center, sphere_radius ), un_PerPass.camera.proj[0][0], un_PerPass.camera.proj[1][1] );
 				aabb	= ToUNorm( aabb );	// uv space
 
-		float2	size	= float2( aabb.z - aabb.x, aabb.w - aabb.y );
-		float2	center	= (aabb.xy + aabb.zw) * 0.5;
+		float2	size	= Rect_Size( aabb );
+		float2	center	= Rect_Center( aabb );
 
 		// draw rect
 		{

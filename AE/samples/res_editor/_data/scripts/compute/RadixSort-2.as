@@ -18,13 +18,7 @@
 		RC<Buffer>		id_buf				= Buffer();
 		RC<DynamicUInt>	row_count			= DynamicUInt();
 		RC<FeatureSet>	fs					= GetFeatureSet();
-		const bool		has_sg_size_ctrl	= fs.hasSubgroupSizeControl();
-		const uint		min_subgroup		= has_sg_size_ctrl ? fs.getMinSubgroupSize() : GetSubgroupSize();
-		const uint		max_subgroup		= has_sg_size_ctrl ? fs.getMaxSubgroupSize() : GetSubgroupSize();
 		const uint		local_size			= 16; //GetSubgroupSize();
-		const uint		sg_size				= Clamp( local_size, min_subgroup, max_subgroup );
-
-		Assert( local_size <= max_subgroup );
 
 		const uint		local_size_bits		= HighBitIndex( local_size );
 		const uint		col_count			= local_size;
@@ -56,7 +50,7 @@
 			pass.Slider(	"iSteps",		0,	6,	1 );
 			pass.LocalSize( col_count );
 			pass.DispatchGroups( row_count );
-			if ( has_sg_size_ctrl ) pass.SubgroupSize( sg_size );		// fix for Intel
+			pass.MinSubgroupSize( local_size );
 		}{
 			RC<Postprocess>		pass = Postprocess();
 			pass.ArgIn(		"un_IdBuf",		id_buf );
@@ -215,46 +209,6 @@
 	}
 #endif
 
-// GPT5 Pro version - doesn't work!
-#if 1
-	// Stable radix sort within *one subgroup* using 1-bit passes.
-	// Ascending by (unsigned) key.
-	// Complexity: 32 passes, each pass uses 2 ballots + 2 shuffles.
-	//
-	// keyBits lets you sort fewer than 32 bits if you know your key range.
-	void radixSortSubgroupU32 (inout uint key, uint keyBits)
-	{
-		// Must be uniform control flow across the subgroup.
-		uint lane = gl_SubgroupInvocationID;
-
-		// Snapshot variables used as shuffle sources each pass.
-		for (uint bit = 0u; bit < keyBits; ++bit)
-		{
-			uint k0 = key;
-
-			// Predicate: zeros first for ascending order
-			bool isZero = (((k0 >> bit) & 1u) == 0u);
-
-			// Mask of lanes where the current bit is 0
-			uvec4 zeroMask = subgroupBallot(isZero);
-
-			uint numZeros     = subgroupBallotBitCount(zeroMask);
-			uint zerosBefore  = subgroupBallotExclusiveBitCount(zeroMask);
-			uint onesBefore   = lane - zerosBefore;
-
-			// Stable destination within subgroup for this bit pass
-			uint dest = isZero ? zerosBefore : (numZeros + onesBefore);
-
-			// Invert permutation (gather) without shared memory:
-			// For my lane 'lane', find the unique 'src' lane such that dest(src) == lane.
-			uvec4 srcMask = subgroupBallot(dest == lane);
-			uint  srcLane = subgroupBallotFindLSB(srcMask);
-
-			key = subgroupShuffle(k0, srcLane);
-		}
-	}
-#endif
-
 
 	void  Main ()
 	{
@@ -300,18 +254,7 @@
 				un_IdBuf.elements[ GetGlobalIndexSize() + wg_offset + lid ].id = s_Temp[ write_offset + lid ];
 				break;
 			}
-
-			case 2 :
-			{
-				uint	key = un_IdBuf.elements[ wg_offset + lid ].id;
-
-				radixSortSubgroupU32( INOUT key, 32 );
-
-				un_IdBuf.elements[ GetGlobalIndexSize() + wg_offset + lid ].id = key;
-				return;
-			}
 		}
-
 	}
 
 #endif

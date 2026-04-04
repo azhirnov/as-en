@@ -17,6 +17,10 @@ namespace AE::LangModel
 
 	class ILanguageModel;
 	class ILanguageModelContext;
+
+	class IDiffusionModel;
+	class IDiffusionModelContext;
+
 	class ILoadingListener;
 	class IResponseListener;
 	class ILogListener;

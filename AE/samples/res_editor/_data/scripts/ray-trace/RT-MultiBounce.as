@@ -23,16 +23,12 @@
 		RC<Image>		rt			= Image( EPixelFormat::RGBA8_UNorm, SurfaceSize() );	rt.Name( "RT" );
 		RC<RTScene>		scene		= RTScene();
 		RC<FPVCamera>	camera		= FPVCamera();
-		RC<Buffer>		geom_data	= Buffer();
+		RC<Buffer>		cube		= Buffer();
 
 		const string	cm_addr			= "res/humus/Teide/";	const string  cm_ext = ".jpg";	const uint2	cm_dim (2048);
 
 		RC<Image>		cubemap			= Image( EPixelFormat::RGBA8_UNorm, cm_dim, ImageLayer(6), MipmapLevel(~0) );	cubemap.Name( "Cubemap tex" );
 		RC<Image>		cubemap_view	= cubemap.CreateView( EImage::Cube );
-
-		array<ulong>	normals_addr;
-		array<ulong>	texcoords_addr;
-		array<ulong>	indices_addr;
 
 		const uint		max_ray_types	= 1;
 		const uint		max_recursion	= 16;
@@ -63,40 +59,16 @@
 
 		// create cube
 		{
-			RC<RTGeometry>	geom	= RTGeometry();
-			RC<Buffer>		cube	= Buffer();
+			RC<Mesh>	mesh = Mesh();
+			mesh.SetAttributes( EAttribute::Position | EAttribute::Normal | EAttribute::Texcoord2D );
+			mesh.AddCube();
 
-			array<float3>	positions;
-			array<float3>	normals;
-			array<float3>	tangents;
-			array<float3>	bitangents;
-			array<float2>	texcoords;
-			array<uint>		indices;
-			GetCube( OUT positions, OUT normals, OUT tangents, OUT bitangents, OUT texcoords, OUT indices );
+			RC<RTGeometry>	geom = RTGeometry();
+			geom.AddIndexedTriangles( mesh );
 
-			uint	pos_off		= cube.FloatArray(	"positions",	positions );
-			uint	norm_off	= cube.FloatArray(	"normals",		normals );
-			uint	texc_off	= cube.FloatArray(	"texcoords",	texcoords );
-			uint	idx_off		= cube.UIntArray(	"indices",		indices );
+			scene.AddInstance( geom, Transform().Position(float3(0.f, 2.0f, 4.f)).Rotation(float3(0.f, ToRad(45.f), 0.f)) );
 
-			geom.AddIndexedTriangles( cube, cube );
-
-			scene.AddInstance( geom, RTInstanceTransform( float3(0.f, 2.0f, 4.f), float3(0.f, ToRad(45.f), 0.f) ));
-
-			normals_addr	.push_back( cube.DeviceAddress() + norm_off );
-			texcoords_addr	.push_back( cube.DeviceAddress() + texc_off );
-			indices_addr	.push_back( cube.DeviceAddress() + idx_off );
-
-			geom_data.AddReference( cube );
-		}
-
-		// create geometry data
-		{
-			Assert( normals_addr.size() == indices_addr.size() );
-
-			geom_data.ULongArray(	"normals",		normals_addr );
-			geom_data.ULongArray(	"texcoords",	texcoords_addr );
-			geom_data.ULongArray(	"indices",		indices_addr );
+			@cube = mesh.ToBuffer();
 		}
 
 		// render loop
@@ -105,7 +77,7 @@
 			pass.Set(	 camera );
 			pass.ArgOut( "un_OutImage",		rt );
 			pass.ArgIn(  "un_RtScene",		scene );
-			pass.ArgIn(  "un_Geometry",		geom_data );
+			pass.ArgIn(  "un_Geometry",		cube );
 			pass.ArgIn(  "un_CubeMap",		cubemap_view,		Sampler_LinearMipmapRepeat );
 			pass.Dispatch( rt.Dimension() );
 
@@ -124,10 +96,7 @@
 
 			pass.RayMiss( RayIndex(0), RTShader("") );
 
-			for (uint i = 0; i < indices_addr.size(); ++i)
-			{
-				pass.TriangleHit( RayIndex(0), InstanceIndex(i), RTShader("") );
-			}
+			pass.TriangleHit( RayIndex(0), InstanceIndex(0), RTShader("") );
 		}
 		Present( rt );
 	}
@@ -146,10 +115,6 @@ struct PrimaryRayPayload
 	// inout
 	uint	recursion;
 };
-
-layout(std430, buffer_reference) buffer readonly TexcoordsRef	{ float2	uvs		[]; };
-layout(std430, buffer_reference) buffer readonly NormalsRef		{ float3	normals	[]; };
-layout(std430, buffer_reference) buffer readonly IndicesRef		{ uint		indices	[]; };
 
 //-----------------------------------------------------------------------------
 #if defined(SH_RAY_GEN) or defined(SH_RAY_CHIT)
@@ -292,14 +257,11 @@ layout(std430, buffer_reference) buffer readonly IndicesRef		{ uint		indices	[];
 
 	void Main ()
 	{
-		NormalsRef		norm_addr	= NormalsRef( un_Geometry.normals[ gl.InstanceID ]);
-		IndicesRef		idx_addr	= IndicesRef( un_Geometry.indices[ gl.InstanceID ]);
-
 		const uint		idx			= gl.PrimitiveID*3;
 		const float3	normal		= Normalize( float3x3(gl.ObjectToWorld) *
-												 BaryLerp(	norm_addr.normals[ idx_addr.indices[ idx+0 ]],
-															norm_addr.normals[ idx_addr.indices[ idx+1 ]],
-															norm_addr.normals[ idx_addr.indices[ idx+2 ]],
+												 BaryLerp(	un_Geometry.normal[ un_Geometry.indices[ idx+0 ]],
+															un_Geometry.normal[ un_Geometry.indices[ idx+1 ]],
+															un_Geometry.normal[ un_Geometry.indices[ idx+2 ]],
 															in_HitAttribs ));
 
 		RayTrace( normal, PrimaryRay.recursion );

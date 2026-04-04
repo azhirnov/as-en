@@ -9,7 +9,9 @@
 # ifdef __INTELLISENSE__
 #	include <aestyle.glsl.h>
 # endif
-#endif
+#endif // __cplusplus
+
+#include "Debug.glsl"
 
 #ifndef AE_ENABLE_BYTE_TYPE
 # define AE_ENABLE_BYTE_TYPE	0
@@ -32,6 +34,7 @@
 #endif
 
 #define uniform					// mark as uniform value across subgroup, so it uses scalar register (SGPR on AMD)
+								// and may be executed in scalar thread (int MAD and address math on most discrete GPUs, fp FMA/cmp ops on AMD RDNA4+, NV Turing+).
 #define if_uniform		if		// mark as uniform control flow
 #define quad_uniform			// required for derivatives (dFdx, etc), otherwise result is undefined
 
@@ -94,7 +97,7 @@
 #define BitCount				bitCount		// (any int)
 #define ToDeg					degrees			// (half, float)
 #define ToRad					radians			// (half, float)
-#define BitReverse				bitfieldReverse
+#define BitReverse				bitfieldReverse	// (any int)
 
 #define MulAdd(_a_,_b_,_c_)		((_a_)*(_b_)+(_c_))
 
@@ -321,24 +324,23 @@ ND_ bool4  BoolOr (const bool4 lhs, const bool4 rhs)	{ return bool4( lhs.x or rh
 	T  Saturate (T x)
 =================================================
 */
-#define Gen_SATURATE1( _stype_, _type_ )				\
-	ND_ _type_  Saturate (const _type_ x) {				\
-		return clamp( x, _stype_(0.0), _stype_(1.0) );	\
-	}
+#define Gen_SATURATE1( _stype_, _type_, _zero_, _one_ )								\
+	ND_ _type_  Saturate (const _type_ x)		{ return clamp( x, _zero_, _one_ ); }\
+	ND_ _type_  ClampToSNorm (const _type_ x)	{ return clamp( x, -_one_, _one_ ); }
 
-#define Gen_SATURATE( _stype_, _vtype_ )\
-	Gen_SATURATE1( _stype_, _stype_	)	\
-	Gen_SATURATE1( _stype_, UNITE( _vtype_, 2 ))\
-	Gen_SATURATE1( _stype_, UNITE( _vtype_, 3 ))\
-	Gen_SATURATE1( _stype_, UNITE( _vtype_, 4 ))
+#define Gen_SATURATE( _stype_, _vtype_, _zero_, _one_ )\
+	Gen_SATURATE1( _stype_, _stype_,			 _zero_, _one_ )\
+	Gen_SATURATE1( _stype_, UNITE( _vtype_, 2 ), _zero_, _one_ )\
+	Gen_SATURATE1( _stype_, UNITE( _vtype_, 3 ), _zero_, _one_ )\
+	Gen_SATURATE1( _stype_, UNITE( _vtype_, 4 ), _zero_, _one_ )
 
-Gen_SATURATE( float, float_vec_t )
+Gen_SATURATE( float, float_vec_t, 0.f, 1.f )
 
 #if AE_ENABLE_HALF_TYPE
-	Gen_SATURATE( half, half_vec_t )
+	Gen_SATURATE( half, half_vec_t, 0.hf, 1.hf )
 #endif
 #if AE_ENABLE_DOUBLE_TYPE
-	Gen_SATURATE( double, double_vec_t )
+	Gen_SATURATE( double, double_vec_t, 0.lf, 1.lf )
 #endif
 
 #undef Gen_SATURATE1
@@ -354,26 +356,26 @@ Gen_SATURATE( float, float_vec_t )
 	LessF, GreaterF - may return NaN if one of operands contains NaN, use Saturate() to convert NaN to 0.0
 =================================================
 */
-#define Gen_FPBOOL1( _stype_, _vtype_ )\
+#define Gen_FPBOOL1( _stype_, _vtype_, _one_ )\
 	ND_ _vtype_  LessF (const _vtype_ lhs, const _stype_ rhs)	{ return step( lhs,			 _vtype_(rhs) ); }	\
 	ND_ _vtype_  LessF (const _stype_ lhs, const _vtype_ rhs)	{ return step( _vtype_(lhs), rhs ); }			\
 	ND_ _vtype_  LessF (const _vtype_ lhs, const _vtype_ rhs)	{ return step( lhs,			 rhs ); }			\
-	ND_ _vtype_  NotF  (const _vtype_ rhs)						{ return _stype_(1.0) - rhs; }
+	ND_ _vtype_  NotF  (const _vtype_ rhs)						{ return _one_ - rhs; }
 
-#define Gen_FPBOOL( _stype_, _vtype_ )\
+#define Gen_FPBOOL( _stype_, _vtype_, _one_ )\
 	ND_ _stype_  LessF (const _stype_ lhs, const _stype_ rhs)	{ return step( lhs, rhs ); }\
-	ND_ _stype_  NotF  (const _stype_ rhs)						{ return _stype_(1.0) - rhs; }\
-	Gen_FPBOOL1( _stype_,	UNITE( _vtype_, 2 ))\
-	Gen_FPBOOL1( _stype_,	UNITE( _vtype_, 3 ))\
-	Gen_FPBOOL1( _stype_,	UNITE( _vtype_, 4 ))
+	ND_ _stype_  NotF  (const _stype_ rhs)						{ return _one_ - rhs; }\
+	Gen_FPBOOL1( _stype_,	UNITE( _vtype_, 2 ), _one_ )\
+	Gen_FPBOOL1( _stype_,	UNITE( _vtype_, 3 ), _one_ )\
+	Gen_FPBOOL1( _stype_,	UNITE( _vtype_, 4 ), _one_ )
 
-Gen_FPBOOL( float, float_vec_t )
+Gen_FPBOOL( float, float_vec_t, 1.f )
 
 #if AE_ENABLE_HALF_TYPE
-	Gen_FPBOOL( half, half_vec_t )
+	Gen_FPBOOL( half, half_vec_t, 1.hf )
 #endif
 #if AE_ENABLE_DOUBLE_TYPE
-	Gen_FPBOOL( double, double_vec_t )
+	Gen_FPBOOL( double, double_vec_t, 1.lf )
 #endif
 
 #undef Gen_FPBOOL1
@@ -473,12 +475,12 @@ Gen_CBRT( float, float_vec_t )
 	T  ToSNorm (T x, T min, T max)	remap from [min, max] to [-1, +1]
 =================================================
 */
-#define Gen_TOUSNORM1( _type_ )														\
+#define Gen_TOUSNORM1( _type_, _half_, _two_, _minusOne_ )							\
 	ND_ _type_  ToUNorm (const _type_ x) {											\
-		return FusedMulAdd( x, _type_(0.5), _type_(0.5) );							\
+		return FusedMulAdd( x, _type_(_half_), _type_(_half_) );					\
 	}																				\
 	ND_ _type_  ToSNorm (const _type_ x) {											\
-		return FusedMulAdd( x, _type_(2.0), _type_(-1.0) );							\
+		return FusedMulAdd( x, _type_(_two_), _type_(_minusOne_) );					\
 	}																				\
 	ND_ _type_  ToUNorm (const _type_ x, const _type_ minVal, const _type_ maxVal) {\
 		return (x - minVal) / (maxVal - minVal);									\
@@ -487,19 +489,19 @@ Gen_CBRT( float, float_vec_t )
 		return ToSNorm( ToUNorm( x, minVal, maxVal ));								\
 	}																				\
 
-#define Gen_TOUSNORM( _stype_, _vtype_ )\
-	Gen_TOUSNORM1( _stype_ )\
-	Gen_TOUSNORM1( UNITE( _vtype_, 2 ))\
-	Gen_TOUSNORM1( UNITE( _vtype_, 3 ))\
-	Gen_TOUSNORM1( UNITE( _vtype_, 4 ))
+#define Gen_TOUSNORM( _stype_, _vtype_, _half_, _two_, _minusOne_ )\
+	Gen_TOUSNORM1( _stype_,				_half_, _two_, _minusOne_ )\
+	Gen_TOUSNORM1( UNITE( _vtype_, 2 ), _half_, _two_, _minusOne_ )\
+	Gen_TOUSNORM1( UNITE( _vtype_, 3 ), _half_, _two_, _minusOne_ )\
+	Gen_TOUSNORM1( UNITE( _vtype_, 4 ), _half_, _two_, _minusOne_ )
 
-Gen_TOUSNORM( float, float_vec_t )
+Gen_TOUSNORM( float, float_vec_t, 0.5f, 2.0f, -1.0f )
 
 #if AE_ENABLE_HALF_TYPE
-	Gen_TOUSNORM( half, half_vec_t )
+	Gen_TOUSNORM( half, half_vec_t, 0.5hf, 2.0hf, -1.0hf )
 #endif
 #if AE_ENABLE_DOUBLE_TYPE
-	Gen_TOUSNORM( double, double_vec_t )
+	Gen_TOUSNORM( double, double_vec_t, 0.5lf, 2.0lf, -1.0lf )
 #endif
 
 #undef Gen_TOUSNORM1
@@ -726,8 +728,8 @@ Gen_LENGTHSQ_DISTANCESQ( float, float_vec_t )
 	T  Sign (T x)
 ----
 	returns -1 or +1
-	see [GPU Benchmarks: Shader instructions performance groups line:Shader-instructions-performance-groups](https://github.com/azhirnov/as-en/blob/dev/AE/docs/papers/GPU_Benchmarks.md) for fast Sign performance.
-	see [GPU Benchmarks: NaN line:NaN](https://github.com/azhirnov/as-en/blob/dev/AE/docs/papers/GPU_Benchmarks.md) for 'Step()' results.
+	see [GPU Benchmarks: Shader instructions performance groups](https://github.com/azhirnov/as-en/blob/dev/AE/docs/papers/GPU_Benchmarks.md#Shader-instructions-performance-groups) for fast Sign performance.
+	see [GPU Benchmarks: NaN](https://github.com/azhirnov/as-en/blob/dev/AE/docs/papers/GPU_Benchmarks.md#NaN) for 'Step()' results.
 =================================================
 */
 #define Gen_SIGN1( _vtype_ )\
@@ -1519,15 +1521,78 @@ ND_ float4  UIndexToUNormRound (const float4 index, const float4 count)		{ retur
 	IndexToVec2 / IndexToVec3
 =================================================
 */
-ND_ int2   IndexToVec2 (const int  index, const int2  tile)					{ return int2(  index % tile.x, (index / tile.x) % tile.y ); }
-ND_ uint2  IndexToVec2 (const uint index, const uint2 tile)					{ return uint2( index % tile.x, (index / tile.x) % tile.y ); }
-ND_ int3   IndexToVec3 (const int  index, const int3  tile)					{ return int3(  index % tile.x, (index / tile.x) % tile.y, (index / (tile.x * tile.y)) % tile.z ); }
-ND_ uint3  IndexToVec3 (const uint index, const uint3 tile)					{ return uint3( index % tile.x, (index / tile.x) % tile.y, (index / (tile.x * tile.y)) % tile.z ); }
+#define Gen_INDEXTOVEC2( _type_, _type2_ )\
+	ND_ _type2_  IndexToVec2 (const _type_ index, const _type2_ tile)	\
+	{																	\
+		_type_	y = index / tile.x;										\
+		_type_	x = index - y * tile.x;									\
+		return	_type2_( x, y );										\
+	}
+Gen_INDEXTOVEC2( int,  int2 )
+Gen_INDEXTOVEC2( uint, uint2 )
+#undef Gen_INDEXTOVEC2
+
+#define Gen_INDEXTOVEC3( _type_, _type3_ )\
+	ND_ _type3_  IndexToVec3 (const _type_ index, const _type3_ tile)	\
+	{																	\
+		_type_	xy	= tile.x * tile.y;									\
+		_type_	z	= index / xy;										\
+		_type_	rem	= index - z * xy;									\
+		_type_	y	= rem / tile.x;										\
+		_type_	x	= rem - y * tile.x;									\
+		return	_type3_( x, y, z );										\
+	}
+Gen_INDEXTOVEC3( int,  int3 )
+Gen_INDEXTOVEC3( uint, uint3 )
+#undef Gen_INDEXTOVEC3
 
 ND_ int2   IndexToVec2 (const int  index, const int   tile)					{ return IndexToVec2( index,  int2(tile) ); }
 ND_ uint2  IndexToVec2 (const uint index, const uint  tile)					{ return IndexToVec2( index, uint2(tile) ); }
 ND_ int3   IndexToVec3 (const int  index, const int   tile)					{ return IndexToVec3( index,  int3(tile) ); }
 ND_ uint3  IndexToVec3 (const uint index, const uint  tile)					{ return IndexToVec3( index, uint3(tile) ); }
+
+/*
+=================================================
+	IndexToVec2_POT / IndexToVec3_POT
+----
+	optimized for power of 2 tile size
+=================================================
+*/
+ND_ uint2  IndexToVec2_POT (const uint index, const uint tileXmask, const uint tileXlog2)
+{
+	return	uint2(	index & tileXmask,
+					index >> tileXlog2 );
+}
+
+ND_ uint3  IndexToVec3_POT (const uint index, const uint2 tileXYmask, const uint2 tileXYlog2)
+{
+	return	uint3(	index & tileXYmask.x,
+					(index >> tileXYlog2.x) & tileXYmask.y,
+					index >> (tileXYlog2.x + tileXYlog2.y) );
+}
+
+/*
+=================================================
+	IndexToVec2 / IndexToVec3
+----
+	fp version, mach faster on mobile GPUs
+=================================================
+*/
+ND_ float2  IndexToVec2 (const float index, const float2 tile, const float invTileX)
+{
+	float	y	= Floor( index * invTileX );
+	float	x	= index - y * tile.x;
+	return	float2( x, y );
+}
+
+ND_ float3  IndexToVec3 (const float index, const float3 tile, const float2 invTileXY)
+{
+	float	z	= Floor( index * (invTileXY.x * invTileXY.y) );
+	float	rem	= index - z * (tile.x * tile.y);
+	float	y	= rem * invTileXY.x;
+	float	x	= rem - y * tile.x;
+	return	float3( x, y, z );
+}
 
 /*
 =================================================
@@ -1799,7 +1864,7 @@ Gen_DIVCEIL( uint,	uint_vec_t )
 
 /*
 =================================================
-	Cross2
+	Cross2 (2D)
 =================================================
 */
 #define Gen_CROSS2( _stype_, _vtype_ )\
@@ -1983,16 +2048,3 @@ Gen_ALIGNUP( uint,	uint_vec_t )
 #endif
 //-----------------------------------------------------------------------------
 
-
-// Dummy function, used in [ShaderTrace](https://github.com/azhirnov/as-en/blob/dev/AE/engine/tools/res_pack/shader_trace/Readme.md)
-//
-// empty functions will be replaced during shader compilation
-void dbg_EnableTraceRecording (bool b) {}
-void dbg_PauseTraceRecording (bool b) {}
-void dbg_EnableProfiling (bool b) {}
-void dbg_Assert (uint b) {}
-
-#define ASSERT( _expr_ )	\
-	if ( !(_expr_) ){		\
-		dbg_Assert(0);		\
-	}

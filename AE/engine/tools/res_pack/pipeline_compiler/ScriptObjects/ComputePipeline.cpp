@@ -8,7 +8,7 @@ namespace AE::PipelineCompiler
 namespace
 {
 	static ComputePipelineScriptBinding*  ComputePipelineScriptBinding_Ctor (const String &name) {
-		return ComputePipelinePtr{ new ComputePipelineScriptBinding{ name }}.Detach();
+		return ComputePipelineScriptBinding::Create( name ).Detach();
 	}
 
 } // namespace
@@ -18,18 +18,28 @@ namespace
 
 /*
 =================================================
-	constructor
+	_Init
 =================================================
 */
-	ComputePipelineScriptBinding::ComputePipelineScriptBinding (const String &name) __Th___ : BasePipelineTmpl{name}
+	void  ComputePipelineScriptBinding::_Init () __Th___
 	{
+		BasePipelineTmpl::_Init();  // throw
+
 		CHECK_THROW_MSG( ObjectStorage::Instance()->cpipelines.emplace( _name, ComputePipelinePtr{this} ).second,
-			"ComputePipeline with name '"s << name << "' is already defined" );
+			"ComputePipeline with name '"s << _nameStr << "' is already defined" );
 	}
 
-	ComputePipelineScriptBinding::ComputePipelineScriptBinding () :
-		ComputePipelineScriptBinding{ "<unknown>" }
-	{}
+/*
+=================================================
+	Create
+=================================================
+*/
+	ComputePipelinePtr  ComputePipelineScriptBinding::Create (const String &name) __Th___
+	{
+		ComputePipelinePtr	result{ new ComputePipelineScriptBinding{ name }};
+		result->_Init();  // throw
+		return result;
+	}
 
 /*
 =================================================
@@ -140,7 +150,7 @@ namespace
 	void  ComputePipelineScriptBinding::Bind (const ScriptEnginePtr &se) __Th___
 	{
 		ClassBinder<ComputePipelineScriptBinding>	binder{ se };
-		binder.CreateRef();
+		binder.CreateRef( 0, False{} );
 
 		binder.Comment( "Create pipeline template.\n"
 						"Name is used in C++ code to create pipeline." );
@@ -218,7 +228,7 @@ namespace
 		uint		total_size	= 0;
 		uint3		max_threads;
 
-		for (auto& feat : GetFeatures())
+		for (auto& feat : GetAllFeatures())
 		{
 			if ( inv_count <= feat->fs.maxComputeWorkGroupInvocations and
 				 x <= feat->fs.maxComputeWorkGroupSizeX and
@@ -266,7 +276,7 @@ namespace
 		CHECK_THROW_MSG( All( desc.localSize != WGLocalSize_t{BasePipelineDesc::LoadTimeLocalSize} ),
 			"Workgroup size (local size) which will be set at load time is not compatible with explicit subgroup size" );
 
-		TEST_FEATURE( GetFeatures(), subgroupSizeControl );
+		TEST_FEATURE( GetAllFeatures(), subgroupSizeControl );
 
 		const auto&		def_size	= GetBase()->shader->reflection.compute.localGroupSize;
 		const auto&		spec		= GetBase()->shader->reflection.compute.localGroupSpec;
@@ -277,7 +287,7 @@ namespace
 
 		CHECK_THROW_MSG( All( local_dim > 0u ));
 
-		for (auto& feat : GetFeatures())
+		for (auto& feat : GetAllFeatures())
 		{
 			if ( value >= feat->fs.minSubgroupSize and
 				 value <= feat->fs.maxSubgroupSize and
@@ -328,7 +338,7 @@ namespace
 	void  ComputePipelineSpecScriptBinding::Bind (const ScriptEnginePtr &se) __Th___
 	{
 		ClassBinder<ComputePipelineSpecScriptBinding>	binder{ se };
-		binder.CreateRef();
+		binder.CreateRef( 0, False{} );
 
 		binder.Comment( "Set specialization value.\n"
 						"Specialization constant must be previously defined in shader by 'Shader::AddSpec()'." );

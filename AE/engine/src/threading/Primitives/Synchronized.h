@@ -352,6 +352,14 @@ namespace _hidden_
 		}
 
 
+		ND_ Tuple_t  Extract ()				r_NE___
+		{
+			EXLOCK( _sync );
+			Tuple_t	temp = RVRef(_values);
+			_values = {};
+			return temp;
+		}
+
 		ND_ Tuple_t  Extract ()				rvNE___
 		{
 			EXLOCK( _sync );
@@ -568,6 +576,14 @@ namespace _hidden_
 			EXLOCK( _sync );
 			this->_value.~T();
 			PlacementNew<T>( OUT std::addressof(this->_value) );
+		}
+
+		ND_ T  Extract ()						r_NE___
+		{
+			EXLOCK( _sync );
+			T	temp = RVRef(_value);
+			_value = {};
+			return temp;
 		}
 
 		ND_ T  Extract ()						rvNE___

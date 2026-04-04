@@ -34,11 +34,7 @@ static IpAddress  GetSelfIPv4AddressFromRouter ()
 static IpAddress6  GetSelfIPv6AddressFromRouter ()
 {
 	IpAddress6	addr;
-	#ifdef AE_PLATFORM_APPLE
-		CHECK( SocketService::Instance().GetSelfIPAddress( AE_ROUTER_IPv6_APPLE, OUT addr ));
-	#else
-		CHECK( SocketService::Instance().GetSelfIPAddress( AE_ROUTER_IPv6, OUT addr ));
-	#endif
+	CHECK( SocketService::Instance().GetSelfIPAddress( AE_ROUTER_IPv6, OUT addr ));
 	return addr;
 }
 
@@ -57,11 +53,7 @@ static IpAddress6  GetSelfIPv6AddressFromGoogleDNS ()
 }
 
 
-#ifdef AE_PLATFORM_ANDROID
-extern "C" AE_DLL_EXPORT int Tests_NetworkStressTest (const char* path)
-#else
-int main (const int argc, char* argv[])
-#endif
+TEST_ENTRY()
 {
 	BEGIN_TEST();
 

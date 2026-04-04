@@ -2,7 +2,8 @@
 /*
 	Allocation on the GPU memory may be slow.
 	Internal data is protected by the mutex for thread safety,
-	so parallel usage is not recommended because may be too slow.
+	so parallel usage is not recommended because may be too slow,
+	use 'AsyncMutex' instead.
 */
 
 #pragma once
@@ -29,6 +30,7 @@ namespace AE::Graphics
 		struct Page
 		{
 			VkDeviceMemory	memory			= Default;
+			VkBuffer		buffer			= Default;
 			void*			mapped			= null;
 			uint			memTypeIndex	= UMax;
 		};
@@ -55,8 +57,10 @@ namespace AE::Graphics
 			PageArr *		page		= null;
 		};
 
-		using Key		= VGfxMemAllocatorUtils::Key;
-		using PageMap_t = FixedMap< Key, PageArr, 4 >;
+		using Key				= VGfxMemAllocatorUtils::Key;
+		using EFlags			= VGfxMemAllocatorUtils::EFlags;
+		using RTASMemReqAtomic	= VGfxMemAllocatorUtils::RTASMemReqAtomic;
+		using PageMap_t			= FixedMap< Key, PageArr, 4 >;
 
 
 	// variables
@@ -65,6 +69,7 @@ namespace AE::Graphics
 
 		const Bytes				_blockSize;
 		const uint				_bitsPerPage;
+		RTASMemReqAtomic		_rtasStorageMemReq  {VGfxMemAllocatorUtils::RTASMemRequirements{}};
 
 		PageMap_t				_pageMap;
 
@@ -79,6 +84,7 @@ namespace AE::Graphics
 		bool  AllocForBuffer (VkBuffer buffer, const BufferDesc &desc, OUT Storage_t &data)		__NE_OV;
 		bool  AllocForVideoSession (VkVideoSessionKHR, EMemoryType, OUT VideoStorageArr_t &data)__NE_OV;
 		bool  AllocForVideoImage (VkImage, const VideoImageDesc &, OUT VideoStorageArr_t &data)	__NE_OV;
+		bool  AllocStorage (Bytes storageSize, VkBufferUsageFlagBits2, OUT Storage_t &)			__NE_OV;
 
 		bool  Dealloc (INOUT Storage_t &data)													__NE_OV;
 
@@ -103,7 +109,7 @@ namespace AE::Graphics
 		ND_ bool  _AllocInPage (PageArr &pageArr, OUT Data &outData)							C_NE___;
 
 		ND_ bool  _Allocate (VDevice const&, Bytes memSize, Bytes memAlign, uint memBits,
-							 Bool shaderAddress, Bool isImage, Bool mapMem, OUT Data &)			__NE___;
+							 EFlags flags, OUT Data &)											__NE___;
 	};
 
 

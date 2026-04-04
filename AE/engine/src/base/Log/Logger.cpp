@@ -398,20 +398,7 @@ namespace
 		return EResult::Unknown;
 	}
 
-/*
-=================================================
-	CreateConsoleOutput (Android)
-=================================================
-*/
-	ILogger::LoggerPtr	ILogger::CreateConsoleOutput (StringView tag) __NE___
-	{
-		if ( tag.empty() )
-			tag = "<<<< AE >>>>";
-
-		return MakeUnique<AndroidLogOutput>( tag );
-	}
-
-#else
+#endif // AE_PLATFORM_ANDROID
 
 /*
 =================================================
@@ -450,7 +437,7 @@ namespace
 	CreateConsoleOutput
 =================================================
 */
-	ILogger::LoggerPtr	ILogger::CreateConsoleOutput (StringView) __NE___
+	ILogger::LoggerPtr	ILogger::CreateConsoleOutput (StringView tag) __NE___
 	{
 		// enable console colors
 		#ifdef AE_PLATFORM_WINDOWS
@@ -466,15 +453,21 @@ namespace
 		}
 		#endif
 
-		#if defined(AE_PLATFORM_LINUX) and not defined(AE_CI_BUILD_TEST)
+		Unused( tag );
+
+		#ifdef AE_PLATFORM_ANDROID
+			if ( tag.empty() )
+				tag = "<<<< AE >>>>";
+
+			return MakeUnique<AndroidLogOutput>( tag );
+
+		#elif defined(AE_PLATFORM_LINUX) and not defined(AE_CI_BUILD_TEST)
 			// use 'CreateIDEOutput()' instead
 			return {};
 		#else
 			return MakeUnique<ConsoleLogOutput>();
 		#endif
 	}
-
-#endif
 //-----------------------------------------------------------------------------
 
 

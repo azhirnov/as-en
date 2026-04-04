@@ -191,10 +191,23 @@ namespace AE::RemoteGraphics
 		class LogToHost final : public ILogger
 		{
 		public:
+			RmGAppListener&		_app;
+
+			LogToHost (RmGAppListener& app) __NE___ : _app{app} {}
+
 			EResult  Process (const MessageInfo &info)	__Th_OV;
 		};
 
 		using SyncTimer_t = Synchronized< SpinLock, Timer >;
+
+		struct PendingLogMsg
+		{
+			Msg::Log						msg;
+			UntypedAllocator::UPtr<char>	storage;	// memory for 'message, func, file'
+
+			PendingLogMsg (const Msg::Log &log) __NE___ : msg{log} {}
+		};
+		using SyncLogs_t = Synchronized< SpinLock, Array<PendingLogMsg> >;
 
 
 	// variables
@@ -228,6 +241,8 @@ namespace AE::RemoteGraphics
 		Atomic<bool>						_restartServer	{false};
 		Atomic<bool>						_hasConnection	{false};
 		SyncTimer_t							_connectionLostTimer;
+
+		SyncLogs_t							_pendingLogs;		// add to pending lof if '_GetThreadData()' returns null
 
 		PerFrameDevToHostCopy_t				_devToHostCopy;
 		Atomic<uint>						_lastSubmitIdx	{0};
@@ -308,8 +323,8 @@ namespace AE::RemoteGraphics
 		ND_ GfxMemAllocatorPtr		_Get (RmGfxMemAllocatorID);
 		ND_ DescriptorAllocatorPtr	_Get (RmDescriptorAllocatorID);
 		ND_ RenderTechPipelinesPtr	_Get (RmRenderTechPipelinesID);
-		ND_ RC<RenderTask2>		_Get (RmCommandBufferID);
-		ND_ RC<DrawTask2>		_Get (RmDrawCommandBufferID);
+		ND_ RC<RenderTask2>			_Get (RmCommandBufferID);
+		ND_ RC<DrawTask2>			_Get (RmDrawCommandBufferID);
 		ND_ CommandBatchPtr			_Get (RmCommandBatchID);
 		ND_ DrawCommandBatchPtr		_Get (RmDrawCommandBatchID);
 		ND_ GpuSemaphore			_GetSemaphore (RmSemaphoreID);
@@ -407,8 +422,10 @@ namespace AE::RemoteGraphics
 		void  _Cb_ResMngr_CreateBufferView (const Msg::ResMngr_CreateBufferView &);
 		void  _Cb_ResMngr_CreateRTGeometry (const Msg::ResMngr_CreateRTGeometry &);
 		void  _Cb_ResMngr_CreateRTScene (const Msg::ResMngr_CreateRTScene &);
+		void  _Cb_ResMngr_CreateRTMicromap (const Msg::ResMngr_CreateRTMicromap &);
 		void  _Cb_ResMngr_GetRTGeometrySizes (const Msg::ResMngr_GetRTGeometrySizes &);
 		void  _Cb_ResMngr_GetRTSceneSizes (const Msg::ResMngr_GetRTSceneSizes &);
+		void  _Cb_ResMngr_GetRTMicromapBuildSizes (const Msg::ResMngr_GetRTMicromapBuildSizes &);
 		void  _Cb_ResMngr_IsSupported_BufferDesc (const Msg::ResMngr_IsSupported_BufferDesc &);
 		void  _Cb_ResMngr_IsSupported_ImageDesc (const Msg::ResMngr_IsSupported_ImageDesc &);
 		void  _Cb_ResMngr_IsSupported_VideoImageDesc (const Msg::ResMngr_IsSupported_VideoImageDesc &);

@@ -78,9 +78,9 @@
 		{
 			RC<ShaderStructType>	st = ShaderStructType( "MeshPayload" );
 			st.Set( EStructLayout::InternalIO,
-					"float3			pos;" +
-					"float			scale;" +
-					"float			lod;" +
+					"float3			pos;"
+					"float			scale;"
+					"float			lod;"
 					"int			visible;" );
 		}{
 			RC<ShaderStructType>	st = ShaderStructType( "task-mesh.io" );
@@ -170,16 +170,16 @@
 		const uint		I		= gl.LocalInvocationID.x;
 
 		const float		scale	= In.payload[gid].scale;
-		const float4	pos		= float4( In.payload[gid].pos + un_Cube.positions[I] * scale, 1.f );
+		const float4	pos		= float4( In.payload[gid].pos + un_Cube.position[I] * scale, 1.f );
 
 		gl.MeshVertices[I].gl_Position	= LocalPosToClipSpace( pos );
-		Out[I].color					= float4( ToUNorm( un_Cube.normals[I] ), 1.0 );
+		Out[I].color					= float4( ToUNorm( un_Cube.normal[I] ), 1.0 );
 
 		if ( iDbgCulling > 0 )
 			Out[I].color = In.payload[gid].visible != 0 ? float4(0.0, 1.0, 0.0, 1.0) : float4(1.0, 0.0, 0.0, 1.0);
 
 		if ( I < 12 )
-			gl.PrimitiveTriangleIndices[I] = un_Cube.indices[I];
+			gl.PrimitiveTriangleIndices[I] = un_Cube.triangles[I];
 
 		gl.SetMeshOutputs( AE_maxVertices, AE_maxPrimitives );
 	}

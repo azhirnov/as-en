@@ -1,6 +1,19 @@
+## 03.2026
+- fix: depth test + shader sample now has correct layout
+- add SceneRayQueryPass
+- add BufferView
+- Sample: deferred texturing with parallax mapping
+- Sample: depth bias, stable SM
+- Sample: shadow filtering (ESM, VSM, MSM)
+- Sample: ray traced gltf scene using ray query
+- Script: add Mesh script class instead of GetCube, GetSphere, ...
+- Script: add Transform class instead of {pos, rotation, scale}, remove RTInstanceTransform
+
+
 ## 02.2026
 - asserts in shader
 - fisheye, paraboloid, dualparaboloid projections
+- ray tracing opacity micromap
 
 
 ## 01.2026

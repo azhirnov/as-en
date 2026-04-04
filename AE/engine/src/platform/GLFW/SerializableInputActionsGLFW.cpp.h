@@ -61,11 +61,23 @@ namespace AE::App
 				case EInputType::Unknown :
 				case EInputType::_Count :
 
-				#define BIND( _name_ )												case EInputType::_name_ : binder.AddValue( #_name_, EInputType::_name_ );
-				#define AE_GLFW_KEY_CODES_VISITOR( _key_, _code_, _name_, ... )		case EInputType::_key_  : binder.AddValue( _name_, EInputType::_key_ );
+				#define AE_GLFW_KEY_CODES_VISITOR( _key_, _code_, _name_, ... )			case EInputType::_key_  : binder.AddValue( _name_, EInputType::_key_ );
 				AE_GLFW_KEY_CODES( AE_GLFW_KEY_CODES_VISITOR )
-				#define AE_ANDROID_SERNSORS_VISITOR( _type_, ... )					case EInputType::_type_ : binder.AddValue( #_type_, EInputType::_type_ );
+				#undef AE_GLFW_KEY_CODES_VISITOR
+
+				#define AE_ANDROID_SERNSORS_VISITOR( _type_, ... )						case EInputType::_type_ : binder.AddValue( #_type_, EInputType::_type_ );
 				AE_ANDROID_SERNSORS( AE_ANDROID_SERNSORS_VISITOR )
+				#undef AE_ANDROID_SERNSORS_VISITOR
+
+				#define AE_GLFW_GAMEPAD_AXIS_VISITOR( _key_, _code_, _name_, ... )		case EInputType::_key_  : binder.AddValue( _name_, EInputType::_key_ );
+				AE_GLFW_GAMEPAD_AXIS( AE_GLFW_GAMEPAD_AXIS_VISITOR )
+				#undef AE_GLFW_GAMEPAD_AXIS_VISITOR
+
+				#define AE_GLFW_GAMEPAD_BUTTON_VISITOR( _key_, _code_, _name_, ... )	case EInputType::_key_  : binder.AddValue( _name_, EInputType::_key_ );
+				AE_GLFW_GAMEPAD_BUTTON( AE_GLFW_GAMEPAD_BUTTON_VISITOR )
+				#undef AE_GLFW_GAMEPAD_BUTTON_VISITOR
+
+				#define BIND( _name_ )													case EInputType::_name_ : binder.AddValue( #_name_, EInputType::_name_ );
 
 				BIND( MultiTouch )
 
@@ -80,8 +92,6 @@ namespace AE::App
 				BIND( TouchDelta )
 				BIND( TouchDelta_norm )
 
-				#undef AE_GLFW_KEY_CODES_VISITOR
-				#undef AE_ANDROID_SERNSORS_VISITOR
 				#undef BIND
 				default : break;
 			}

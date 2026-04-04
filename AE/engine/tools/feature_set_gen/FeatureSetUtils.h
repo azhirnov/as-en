@@ -27,7 +27,13 @@ namespace AE::Graphics
 			_visitor_( ulong,	maxGeometryCount							)\
 			_visitor_( ulong,	maxInstanceCount							)\
 			_visitor_( ulong,	maxPrimitiveCount							)\
-			_visitor_( uint,	maxRayRecursionDepth						)\
+			_visitor_( uint,	maxRayDispatchInvocationCount				)\
+			/* icb */\
+			_visitor_( uint,	maxIndirectPipelineCount					)\
+			_visitor_( uint,	maxIndirectSequenceCount					)\
+			_visitor_( uint,	maxIndirectCommandsTokenCount				)\
+			_visitor_( uint,	maxIndirectCommandsTokenOffset				)\
+			_visitor_( uint,	maxIndirectCommandsIndirectStride			)\
 
 			#define AE_FEATURE_SET_VISIT( _type_, _name_ )		_type_	_name_;
 			AE_FEATURE_SET_FIELDS_EXT( AE_FEATURE_SET_VISIT )

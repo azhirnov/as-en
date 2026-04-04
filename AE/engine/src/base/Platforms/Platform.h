@@ -53,6 +53,7 @@ namespace AE::Base
 	#elif defined(AE_PLATFORM_APPLE)
 		using PlatformUtils = AppleUtils;
 		using OSProcess		= UnixProcess;
+		using FileWatch		= AppleFileWatch;
 
 	#elif defined(AE_PLATFORM_LINUX)
 		using PlatformUtils = LinuxUtils;

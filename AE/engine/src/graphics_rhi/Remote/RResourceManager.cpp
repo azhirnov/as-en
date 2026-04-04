@@ -166,12 +166,13 @@ namespace AE::Graphics
 	Create***Allocator
 =================================================
 */
-	GfxMemAllocatorPtr  ResourceManager::CreateLinearGfxMemAllocator (Bytes pageSize) C_NE___
+	GfxMemAllocatorPtr  ResourceManager::CreateLinearGfxMemAllocator (Bytes pageSize, Bytes padding) C_NE___
 	{
 		Msg::ResMngr_CreateLinearGfxMemAllocator			msg;
 		RC<Msg::ResMngr_CreateGfxMemAllocator_Response>		res;
 
 		msg.pageSize = pageSize;
+		msg.padding  = padding;
 
 		CHECK_ERR( GetDevice().SendAndWait( msg, OUT res ));
 		CHECK_ERR( res->id );
@@ -422,6 +423,42 @@ namespace AE::Graphics
 		CHECK_ERR( res->ok );
 
 		return true;
+	}
+//-----------------------------------------------------------------------------
+
+
+/*
+=================================================
+	GetPreprocessingBufferSize
+=================================================
+*/
+	SizeAndAlign  ResourceManager::GetPreprocessingBufferSize (const GeneratedCommandsMemoryRequirementsDesc &desc) __NE___
+	{
+		// TODO
+		return {};
+	}
+
+/*
+=================================================
+	CreateIndirectExecutionSet
+=================================================
+*/
+	Strong<IndirectExecutionSetID>  ResourceManager::CreateIndirectExecutionSet (const RIndirectExecutionSet::CreateInfo &desc) __NE___
+	{
+		return _CreateResource<IndirectExecutionSetID>(
+					ERR_MSG( "failed when creating indirect execution set", desc.dbgName ),
+					*this, desc );
+	}
+
+/*
+=================================================
+	CreatePreprocessingStateCommandPool
+=================================================
+*/
+	RC<IPreprocessingStateCommandPool>  ResourceManager::CreatePreprocessingStateCommandPool (EQueueType) __NE___
+	{
+		// TODO
+		return {};
 	}
 
 

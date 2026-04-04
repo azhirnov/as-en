@@ -7,17 +7,13 @@ extern void UnitTest_EntityPool ();
 extern void UnitTest_Registry ();
 
 
-#ifdef AE_PLATFORM_ANDROID
-extern "C" AE_DLL_EXPORT int Tests_ECS (const char* path)
-#else
-int main (const int argc, char* argv[])
-#endif
+TEST_ENTRY()
 {
 	BEGIN_TEST();
 
-	UnitTest_Archetype();
-	UnitTest_EntityPool();
-	UnitTest_Registry();
+	RUN_TEST( UnitTest_Archetype );
+	RUN_TEST( UnitTest_EntityPool );
+	RUN_TEST( UnitTest_Registry );
 
 	AE_LOGI( "Tests.ECS finished" );
 	return 0;

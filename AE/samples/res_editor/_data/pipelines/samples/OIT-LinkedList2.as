@@ -12,7 +12,7 @@
 		{
 			RC<ShaderStructType>	st = ShaderStructType( "io" );
 			st.Set( EStructLayout::InternalIO,
-					"int	instanceId;" +
+					"int	instanceId;"
 					"float	viewDepth;" );
 		}{
 			RC<DescriptorSetLayout>	ds = DescriptorSetLayout( "mtr.ds" );
@@ -76,7 +76,7 @@
 		const float4	color		= un_DrawTasks.tasks[ gl.InstanceIndex ][1];
 
 		const uint		idx			= gl.VertexIndex;
-		const float3	vert_pos	= sphere_pos + (un_Geometry.positions[idx] * scale);
+		const float3	vert_pos	= sphere_pos + (un_Geometry.position[idx] * scale);
 		const float4	world_pos	= LocalPosToWorldSpace( vert_pos );
 
 		gl.Position		= WorldPosToClipSpace( world_pos );

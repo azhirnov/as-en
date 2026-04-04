@@ -50,17 +50,14 @@ namespace AE::ResEditor
 	private:
 		static void  _Variable (Scripting::ScriptArgList args)								__Th___;
 
-		ND_ auto  _CompilePipeline (OUT Bytes &ubSize)										C_Th___;
-			void  _CompilePipeline2 (OUT Bytes &ubSize)										C_Th___;
+		ND_ auto  _CompilePipeline ()														C_Th___;
+			void  _CompilePipeline2 ()														C_Th___;
 			void  _CompilePipeline3 (const String &vs, const String &fs,
 									 uint line, const String &pplnName,
 									 uint shaderOpts, EPipelineOpt pplnOpt)					C_Th___;
 
-		ND_ static auto  _CreateUBType ()													__Th___;
-		ND_ static auto  _CreatePCType ()													__Th___;
-
 	// ScriptBasePass //
-		void  _OnAddArg (INOUT ScriptPassArgs::Argument &arg)								C_Th_OV;
+		void  _OnAddArg (INOUT ScriptPassArgs::Argument &arg)								__Th_OV;
 	};
 
 

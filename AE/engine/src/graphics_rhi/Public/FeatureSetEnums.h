@@ -307,14 +307,14 @@ namespace AE::Graphics
 	//
 	// Graphics Device ID
 	//
-	enum class EGraphicsDeviceID : uint
+	enum class EGraphicsDeviceID : ubyte
 	{
 	#define AE_GRAPHICS_DEVICE_LIST( _visit_ )\
 		/*---- Adreno ----*/\
 		_visit_( Adreno_500 )			\
 		_visit_( Adreno_600 )			/* 													- VRS		*/\
 		_visit_( Adreno_700 )			/* including X, X Elite											*/\
-		_visit_( Adreno_800 )			/* 																*/\
+		_visit_( Adreno_800 )			/* X2															*/\
 		\
 		/*---- AMD ----*/\
 		_visit_( AMD_GCN1 )				/* R5-R9, RX 520, 610, HD 7970									*/\
@@ -354,6 +354,7 @@ namespace AE::Graphics
 		_visit_( Mali_Valhall_Gen4 )	/* G615, G715							- VRS, RT				*/\
 		_visit_( Mali_5thGen_Gen1 )		/* G620, G720							- DVS					*/\
 		_visit_( Mali_5thGen_Gen2 )		/* G625, G725							- FPP					*/\
+		_visit_( Mali_5thGen_Gen3 )		/* G1															*/\
 		\
 		/*---- NVidia ----*/\
 		_visit_( NV_Maxwell )			/* GTX 9xx, Titan X, Quadro Mxxxx, MX130						*/\
@@ -376,8 +377,10 @@ namespace AE::Graphics
 		_visit_( Intel_Gen9 )			/* HD 510..550, HD 610..650, UHD 610..650						*/\
 		_visit_( Intel_Gen11 )			/* Iris Plus, Core 10xxx		(Ice Lake)						*/\
 		_visit_( Intel_Gen12 )			/* UHD Graphics 7xx, Iris Xe, Core 11xxx						*/\
-		_visit_( Intel_Xe1 )			/* Arc 3/5/7									- RT, MS, VRS	*/\
-		_visit_( Intel_Xe2 )			/* B***															*/\
+		_visit_( Intel_Xe1_LP )			/* 									- VRS						*/\
+		_visit_( Intel_Xe1 )			/* Arc 3/5/7, Arc140T				- RT, MS, VRS, Tensor		*/\
+		_visit_( Intel_Xe2 )			/* B570, Arc140V												*/\
+		_visit_( Intel_Xe3 )			/* 																*/\
 		\
 		/*---- PowerVR ----*/\
 		_visit_( PowerVR_Series8 )		/* GE8xxx														*/\
@@ -385,14 +388,18 @@ namespace AE::Graphics
 		_visit_( PowerVR_SeriesA )		/* AXE, AXM														*/\
 		_visit_( PowerVR_SeriesB )		/* BXE, BXM														*/\
 		_visit_( PowerVR_SeriesC )		/* CXM															*/\
-		_visit_( PowerVR_SeriesD )		/* DXM															*/\
+		_visit_( PowerVR_SeriesD )		/* DXT															*/\
+		\
+		/*---- Maleoon ----*/\
+		_visit_( Maleoon910 )			/* subpass shading												*/\
+		_visit_( Maleoon920 )			/*																*/\
+		_visit_( Maleoon930 )			/* ray tracing													*/\
 		\
 		/*---- Other ----*/\
 		_visit_( VeriSilicon )			/*																*/\
 		/*_visit_( V3D_4 )				/ * Raspberry Pi 4												*/\
 		/*_visit_( V3D_6 )				/ * Raspberry Pi 5												*/\
 		_visit_( SwiftShader )			/* emulation													*/\
-		/*_visit_( Huawei_Maleoon910 )	/ *												- TS, VRS		*/\
 
 		#define AE_GRAPHICS_DEVICE_VISIT( _name_ )				_name_,
 		AE_GRAPHICS_DEVICE_LIST( AE_GRAPHICS_DEVICE_VISIT )
@@ -411,16 +418,19 @@ namespace AE::Graphics
 		_Apple_End		= Apple_A17_M3,
 
 		_Mali_Begin		= Mali_Midgard_Gen2,
-		_Mali_End		= Mali_5thGen_Gen2,
+		_Mali_End		= Mali_5thGen_Gen3,
 
 		_NV_Begin		= NV_Maxwell,
 		_NV_End			= NV_Blackwell,
 
 		_Intel_Begin	= Intel_Gen7,
-		_Intel_End		= Intel_Xe2,
+		_Intel_End		= Intel_Xe3,
 
 		_PowerVR_Begin	= PowerVR_Series8,
 		_PowerVR_End	= PowerVR_SeriesD,
+
+		_Maleoon_Begin	= Maleoon910,
+		_Maleoon_End	= Maleoon930,
 
 		_Other_Begin	= VeriSilicon,
 	};
@@ -439,7 +449,20 @@ namespace AE::Graphics
 	StaticAssert( uint(EGraphicsDeviceID::_Intel_Begin)		<  uint(EGraphicsDeviceID::_Intel_End) );
 	StaticAssert( uint(EGraphicsDeviceID::_Intel_End)+1		== uint(EGraphicsDeviceID::_PowerVR_Begin) );
 	StaticAssert( uint(EGraphicsDeviceID::_PowerVR_Begin)	<  uint(EGraphicsDeviceID::_PowerVR_End) );
-	StaticAssert( uint(EGraphicsDeviceID::_PowerVR_End)+1	== uint(EGraphicsDeviceID::_Other_Begin) );
+	StaticAssert( uint(EGraphicsDeviceID::_PowerVR_End)+1	== uint(EGraphicsDeviceID::_Maleoon_Begin) );
+	StaticAssert( uint(EGraphicsDeviceID::_Maleoon_Begin)	<  uint(EGraphicsDeviceID::_Maleoon_End) );
+	StaticAssert( uint(EGraphicsDeviceID::_Maleoon_End)+1	== uint(EGraphicsDeviceID::_Other_Begin) );
+
+
+	Nd__In bool  EGraphicsDeviceID_IsAdreno	 (EGraphicsDeviceID id)	__NE___	{ return id >= EGraphicsDeviceID::_Adreno_Begin		and id <= EGraphicsDeviceID::_Adreno_End;	}
+	Nd__In bool  EGraphicsDeviceID_IsAMD	 (EGraphicsDeviceID id)	__NE___	{ return id >= EGraphicsDeviceID::_AMD_Begin		and id <= EGraphicsDeviceID::_AMD_End;		}
+	Nd__In bool  EGraphicsDeviceID_IsApple	 (EGraphicsDeviceID id)	__NE___	{ return id >= EGraphicsDeviceID::_Apple_Begin		and id <= EGraphicsDeviceID::_Apple_End;	}
+	Nd__In bool  EGraphicsDeviceID_IsMali	 (EGraphicsDeviceID id)	__NE___	{ return id >= EGraphicsDeviceID::_Mali_Begin		and id <= EGraphicsDeviceID::_Mali_End;		}
+	Nd__In bool  EGraphicsDeviceID_IsNVIDIA	 (EGraphicsDeviceID id)	__NE___	{ return id >= EGraphicsDeviceID::_NV_Begin			and id <= EGraphicsDeviceID::_NV_End;		}
+	Nd__In bool  EGraphicsDeviceID_IsIntel	 (EGraphicsDeviceID id)	__NE___	{ return id >= EGraphicsDeviceID::_Intel_Begin		and id <= EGraphicsDeviceID::_Intel_End;	}
+	Nd__In bool  EGraphicsDeviceID_IsPowerVR (EGraphicsDeviceID id)	__NE___	{ return id >= EGraphicsDeviceID::_PowerVR_Begin	and id <= EGraphicsDeviceID::_PowerVR_End;	}
+	Nd__In bool  EGraphicsDeviceID_IsImgTech (EGraphicsDeviceID id)	__NE___	{ return EGraphicsDeviceID_IsPowerVR( id );	}
+	Nd__In bool  EGraphicsDeviceID_IsMaleoon (EGraphicsDeviceID id)	__NE___	{ return id >= EGraphicsDeviceID::_Maleoon_Begin	and id <= EGraphicsDeviceID::_Maleoon_End;	}
 
 
 } // AE::Graphics

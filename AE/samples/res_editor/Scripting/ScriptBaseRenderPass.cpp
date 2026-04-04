@@ -293,23 +293,6 @@ namespace AE::ResEditor
 	_AddViewport
 =================================================
 */
-	void  ScriptBaseRenderPass::_AddViewport0 (const RectF &rect, float minDepth, float maxDepth, const RectF &scissor, const packed_float2 &wScale) __Th___
-	{
-		CHECK_THROW_MSG( _viewports.size() == _wScaling.size() );
-		CHECK_THROW_MSG( _viewports.size() == _scissors.size() );
-		CHECK_THROW_MSG( GraphicsScheduler().GetFeatureSet().clipSpaceWScalingNV == FeatureSet::EFeature::RequireTrue,
-			"'clipSpaceWScalingNV' feature is not supported" );
-		CHECK_THROW_MSG( rect.bottom <= 1.f and rect.right <= 1.f, "must be in unorm coords" );
-
-		auto&	vp	= _viewports.emplace_back();
-		vp.rect		= rect;
-		vp.minDepth	= minDepth;
-		vp.maxDepth	= maxDepth;
-
-		_wScaling.push_back( wScale );
-		_scissors.push_back( scissor );
-	}
-
 	void  ScriptBaseRenderPass::_AddViewport1 (const RectF &rect, float minDepth, float maxDepth) __Th___
 	{
 		CHECK_THROW_MSG( rect.bottom <= 1.f and rect.right <= 1.f, "must be in unorm coords" );
@@ -459,7 +442,7 @@ namespace AE::ResEditor
 	{
 		#ifdef AE_COMPILER_MSVC
 		# if _ITERATOR_DEBUG_LEVEL == 0
-			StaticAssert64( sizeof(ScriptBaseRenderPass) == 808 );
+			StaticAssert64( sizeof(ScriptBaseRenderPass) == 744 );
 		# endif
 		#endif
 
@@ -468,7 +451,6 @@ namespace AE::ResEditor
 		dst._output		= RVRef( this->_output );		this->_output.clear();
 		dst._depthRange	= this->_depthRange;			this->_depthRange = {0.f, 1.f};
 		dst._viewports	= RVRef( this->_viewports );	this->_viewports.clear();
-		dst._wScaling	= RVRef( this->_wScaling );		this->_wScaling.clear();
 		dst._scissors	= RVRef( this->_scissors );		this->_scissors.clear();
 		dst._subsampled	= this->_subsampled;			this->_subsampled = false;
 	}

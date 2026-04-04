@@ -8,7 +8,7 @@ namespace AE::PipelineCompiler
 namespace
 {
 	static RenderTechnique*  RenderTechnique_Ctor (const String &name) {
-		return RenderTechniquePtr{ new RenderTechnique{ name }}.Detach();
+		return RenderTechnique::Create( name ).Detach();
 	}
 
 } // namespace
@@ -21,12 +21,15 @@ namespace
 	constructor
 =================================================
 */
-	RTBasePass::RTBasePass (RenderTechnique* rtech, const String &name, usize passIdx) __Th___ :
+	RTBasePass::RTBasePass (RenderTechnique* rtech, const String &name, usize passIdx) __NE___ :
 		_name{name},
 		_passIndex{passIdx},
 		_rtech{rtech}
+	{}
+
+	void  RTBasePass::_Init () __Th___
 	{
-		ObjectStorage::Instance()->AddName<RenderTechPassName>( name );
+		ObjectStorage::Instance()->AddName<RenderTechPassName>( _name );
 	}
 
 /*
@@ -61,6 +64,8 @@ namespace
 */
 	void  RTBasePass::AddPipeline (const BasePipelineSpecPtr &ptr) __Th___
 	{
+		CHECK_THROW( ptr );
+
 		if ( _dsLayout )
 		{
 			auto&	storage = *ObjectStorage::Instance();
@@ -87,14 +92,53 @@ namespace
 				"DescriptorSetLayout at index 0 must match with specified layout: '"s << _dsLayout->Name() << "'" );
 		}
 
+		for (auto& feat : ptr->GetBase()->GetFeatures())
 		{
-			auto	feats = ptr->GetBase()->GetFeatures();
-
-			_rtech->_features.insert( _rtech->_features.end(), feats.begin(), feats.end() );
-			ScriptFeatureSet::Minimize( INOUT _rtech->_features );
+			CHECK_THROW_MSG( ArrayContains( _rtech->GetFeatures(), feat ),
+				"RenderTechnique '"s << _rtech->Name() << "' must contain all feature sets which is added to linked pipeline."
+				"But pipeline '" << ptr->NameStr() << "' has feature set '" << feat->Name() << "' which is not exists in RenderTechnique." );
 		}
 
-		_pipelineRefs.emplace( ptr );
+		bool	inserted = _pipelineRefs.emplace( ptr ).second;
+		CHECK_THROW_MSG( inserted,
+			"Pipeline '"s << ptr->NameStr() << "' already exists in RenderTechnique pass." );
+
+		if ( not inserted )
+			return;
+
+		inserted = _pipelineMap.emplace( ptr->NameStr(), ptr ).second;
+		CHECK_THROW( inserted );  // internal error
+	}
+
+/*
+=================================================
+	AddExecSet
+=================================================
+*/
+	void  RTBasePass::AddExecSet (const IndirectExecutionSetPtr &ptr) __Th___
+	{
+		CHECK_THROW( ptr );
+
+		bool	inserted = _execSetRefs.emplace( ptr ).second;
+		CHECK_THROW_MSG( inserted,
+			"IndirectExecutionSet '"s << ptr->NameStr() << "' already exists in RenderTechnique pass." );
+	}
+
+/*
+=================================================
+	_Build
+=================================================
+*/
+	bool  RTBasePass::_Build (INOUT uint &pplnSpecCount, INOUT ExecSetRefs_t &uniqueExecSets) __NE___
+	{
+		CHECK( _pipelineRefs.size() == _pipelineMap.size() );
+
+		pplnSpecCount += uint(_pipelineRefs.size());
+
+		for (auto& es : _execSetRefs) {
+			uniqueExecSets.insert( es );
+		}
+		return true;
 	}
 //-----------------------------------------------------------------------------
 
@@ -102,7 +146,19 @@ namespace
 
 /*
 =================================================
-	SetRenderState1
+	Create
+=================================================
+*/
+	RTGraphicsPassPtr  RTGraphicsPass::Create (RenderTechnique* rtech, const String &name, usize passIdx) __Th___
+	{
+		RTGraphicsPassPtr	result	{ new RTGraphicsPass{ rtech, name, passIdx }};
+		result->_Init();  // throw
+		return result;
+	}
+
+/*
+=================================================
+	SetRenderState*
 =================================================
 */
 	void  RTGraphicsPass::SetRenderState1 (const RenderState &value) __Th___
@@ -112,11 +168,6 @@ namespace
 		Unused( value );
 	}
 
-/*
-=================================================
-	SetRenderState2
-=================================================
-*/
 	void  RTGraphicsPass::SetRenderState2 (const String &name) __Th___
 	{
 		CHECK_THROW_MSG( not _rtech->HasUID() );
@@ -278,7 +329,7 @@ namespace
 	void  RTGraphicsPass::Bind (const ScriptEnginePtr &se) __Th___
 	{
 		ClassBinder<RTGraphicsPass>	binder{ se };
-		binder.CreateRef();
+		binder.CreateRef( 0, False{} );
 
 		binder.Comment( "Set RenderPass and Subpass which is used in current pass.\n"
 						"All pipelines must be compatible with RenderPass and use same Subpass." );
@@ -300,6 +351,18 @@ namespace
 //-----------------------------------------------------------------------------
 
 
+
+/*
+=================================================
+	Create
+=================================================
+*/
+	RTComputePassPtr  RTComputePass::Create (RenderTechnique* rtech, const String &name, usize passIdx) __Th___
+	{
+		RTComputePassPtr	result	{new RTComputePass{ rtech, name, passIdx }};
+		result->_Init();
+		return result;
+	}
 
 /*
 =================================================
@@ -328,7 +391,7 @@ namespace
 	void  RTComputePass::Bind (const ScriptEnginePtr &se) __Th___
 	{
 		ClassBinder<RTComputePass>	binder{ se };
-		binder.CreateRef();
+		binder.CreateRef( 0, False{} );
 
 		binder.Comment( "Set per-pass descriptor set layout.\n"
 						"All pipelines must contains this DSLayout in 0 binding." );
@@ -344,14 +407,22 @@ namespace
 	constructor
 =================================================
 */
-	RenderTechnique::RenderTechnique (const String &name) __Th___ :
+	RenderTechnique::RenderTechnique (const String &name) __NE___ :
 		_name{ name },
 		_features{ ObjectStorage::Instance()->GetDefaultFeatureSets() }
+	{}
+
+	RenderTechniquePtr  RenderTechnique::Create (const String &name) __Th___
 	{
-		ObjectStorage::Instance()->AddName<RenderTechName>( name );
-		CHECK_THROW_MSG( ObjectStorage::Instance()->rtechMap.emplace( name, RenderTechniquePtr{this} ).second,
+		auto&				storage	= *ObjectStorage::Instance();
+		RenderTechniquePtr	result	{new RenderTechnique{ name }};
+
+		storage.AddName<RenderTechName>( name );
+		CHECK_THROW_MSG( storage.rtechMap.emplace( name, result ).second,
 			"RenderTechnique with name '"s << name << "' is already defined" );
-		CHECK_THROW_MSG( ObjectStorage::Instance()->Build() );
+		CHECK_THROW_MSG( storage.Build() );
+
+		return result;
 	}
 
 /*
@@ -518,14 +589,15 @@ namespace
 		auto&	ppln_storage	= *storage.pplnStorage;
 
 		SerializableRenderTechnique	desc;
+		RTBasePass::ExecSetRefs_t	unique_exec_sets;
 
 		desc.name = RenderTechName{_name};
 
 		uint	ppln_spec_idx	= 0;
 		uint	ppln_spec_count = 0;
 
-		for (const auto& ptr : _passes) {
-			ppln_spec_count += CheckCast{ ptr.Get()->_pipelineRefs.size() };
+		for (const auto& pass : _passes) {
+			CHECK_ERR( pass->_Build( INOUT ppln_spec_count, INOUT unique_exec_sets ));
 		}
 
 		if ( ppln_spec_count == 0 )
@@ -534,6 +606,7 @@ namespace
 			return true;
 		}
 
+		// passes
 		{
 			auto*	ppln_specs = storage.allocator.Allocate< SerializableRenderTechnique::PipelineList_t::value_type >( ppln_spec_count );
 			CHECK_ERR( ppln_specs != null );
@@ -641,9 +714,31 @@ namespace
 			{
 				sbt_list[i].first	= RTShaderBindingName{_rtSBTs[i]->Name()};
 				sbt_list[i].second	= _rtSBTs[i]->UID();
+
+				CHECK_ERR( sbt_list[i].second != Default );
 			}
 
 			desc.rtSBTs = SerializableRenderTechnique::SBTList_t{ sbt_list, _rtSBTs.size() };
+		}
+
+		if ( not unique_exec_sets.empty() )
+		{
+			auto*	exec_sets = storage.allocator.Allocate< SerializableRenderTechnique::ExecSetList_t::value_type >( unique_exec_sets.size() );
+			CHECK_ERR( exec_sets != null );
+
+			usize	i = 0;
+			for (auto& es : unique_exec_sets)
+			{
+				CHECK_ERR( es->Build() );
+
+				exec_sets[i].first	= es->Name();
+				exec_sets[i].second	= es->UID();
+
+				CHECK_ERR( exec_sets[i].second != Default );
+				++i;
+			}
+
+			desc.execSets = SerializableRenderTechnique::ExecSetList_t{ exec_sets, unique_exec_sets.size() };
 		}
 
 		_uid = ppln_storage.AddRenderTech( RVRef(desc) );
@@ -678,7 +773,7 @@ namespace
 
 		{
 			ClassBinder<RenderTechnique>	binder{ se };
-			binder.CreateRef();
+			binder.CreateRef( 0, False{} );
 
 			binder.Comment( "Create render technique.\n"
 							"Name is used in C++ code to create render technique." );

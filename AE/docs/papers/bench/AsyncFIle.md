@@ -380,3 +380,46 @@ Drive Model:	GN-512 2280
 | Async Random Read     | 1.70 s  | +24%   | 157.9MB/s |
 | Sync Sequential Read  | 6.85 s  | +398%  | 39.2MB/s  |
 | Sync Random Read      | 15.75 s | +1044% | 17.0MB/s  |
+
+
+# Realme 8i
+
+TODO UFS ???
+
+## AsyncFile test
+
+### 256 MiB / 32 KiB
+
+| test                  | time   | %     | bandwidth |
+|-----------------------|--------|-------|-----------|
+| Async Sequential Read | 0.48 s | -     | 555.8MB/s |
+| Async Random Read     | 0.49 s | +1%   | 549.2MB/s |
+| Sync Random Read      | 1.80 s | +274% | 148.8MB/s |
+| Sync Sequential Read  | 2.85 s | +491% | 94.1MB/s  |
+
+### 256 MiB / 16 KiB
+
+| test                  | time   | %     | bandwidth |
+|-----------------------|--------|-------|-----------|
+| Async Sequential Read | 0.51 s | -     | 530.2MB/s |
+| Async Random Read     | 0.53 s | +5%   | 506.8MB/s |
+| Sync Sequential Read  | 2.63 s | +420% | 101.9MB/s |
+| Sync Random Read      | 3.00 s | +493% | 89.5MB/s  |
+
+### 256 MiB / 8 KiB
+
+| test                  | time   | %     | bandwidth |
+|-----------------------|--------|-------|-----------|
+| Async Sequential Read | 0.54 s | -     | 499.3MB/s |
+| Async Random Read     | 0.73 s | +35%  | 369.9MB/s |
+| Sync Sequential Read  | 4.31 s | +702% | 62.3MB/s  |
+| Sync Random Read      | 4.40 s | +718% | 61.0MB/s  |
+
+### 256 MiB / 4 KiB
+
+| test                  | time   | %      | bandwidth |
+|-----------------------|--------|--------|-----------|
+| Async Sequential Read | 0.59 s | -      | 458.1MB/s |
+| Async Random Read     | 1.20 s | +105%  | 223.7MB/s |
+| Sync Random Read      | 9.08 s | +1450% | 29.6MB/s  |
+| Sync Sequential Read  | 9.48 s | +1518% | 28.3MB/s  |

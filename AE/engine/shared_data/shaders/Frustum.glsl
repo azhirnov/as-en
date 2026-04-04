@@ -53,8 +53,9 @@ ND_ Frustum		Frustum_FromRays (const FrustumRays rays, const float2 zRange, cons
 ND_ FrustumRays	Frustum_ToRays (const Frustum fr);
 
 ND_ Frustum		Frustum_WithXYOffset (const Frustum fr, const float2 offset);
+ND_ Frustum		Frustum_ZSlice (const Frustum fr, float near, float far);
 
-	void		Frustum_ToCornerPoints (const Frustum fr, out float3 points[8]);
+	void		Frustum_ToCornerPoints (const Frustum fr, out float3 points[8]);	// TODO: return float3[8]
 
 	void		Frustum_ZSlicePoints (const Frustum fr, float zLerp, out float3 points[4]);
 ND_ float		Frustum_ZSliceOuterRadius (const Frustum fr, float zLerp);
@@ -465,6 +466,8 @@ FrustumRays  Frustum_ToRays (const Frustum fr)
 /*
 =================================================
 	Frustum_ExtractClipPlanes
+----
+	return near/far planes in view space
 =================================================
 */
 float2  Frustum_ExtractClipPlanes (const Frustum fr)
@@ -581,6 +584,22 @@ Frustum  Frustum_WithXYOffset (const Frustum fr, const float2 offset)
 	res.planes[4]	= float4( fr.planes[4].xyz, offset.y );
 	res.planes[5]	= float4( fr.planes[5].xyz, offset.y );
 	return res;
+}
+
+/*
+=================================================
+	Frustum_ZSlice
+=================================================
+*/
+Frustum  Frustum_ZSlice (const Frustum fr, float near, float far)
+{
+	ASSERT( near >= 0.0 );
+	ASSERT( near < far );
+
+	Frustum	result = fr;
+	result.planes[0].w	= -near;	// also see Frustum_ExtractClipPlanes
+	result.planes[1].w	= far;
+	return result;
 }
 //-----------------------------------------------------------------------------
 

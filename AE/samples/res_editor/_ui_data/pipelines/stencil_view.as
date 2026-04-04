@@ -92,6 +92,9 @@ void  CreatePipeline ()
 
 void ASmain ()
 {
+	if ( not IsVulkan() )
+		return;
+
 	CreateRenderPass();
 	CreateRenderTech();
 	CreatePipeline();

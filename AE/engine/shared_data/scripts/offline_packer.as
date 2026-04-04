@@ -1,4 +1,4 @@
-//1590b721
+//842499ce
 #pragma once
 #include <vector>
 #include <string>
@@ -24,34 +24,34 @@ using array = std::vector<T>;
 
 using namespace std::string_literals;
 
-struct ubyte4;
-struct InputActions;
 struct ubyte3;
 struct ubyte2;
-struct bool4;
-struct int3;
+struct InputActions;
+struct ubyte4;
+struct short4;
+struct sbyte2;
+struct ushort3;
+struct ushort2;
+struct Archive;
+struct int4;
 struct bool2;
+struct int3;
 struct bool3;
 struct int2;
-struct int4;
-struct Archive;
-struct ushort3;
-struct sbyte2;
-struct ushort2;
-struct short4;
-struct uint3;
-struct uint2;
-struct uint4;
-struct float4;
+struct bool4;
+struct AssetPacker;
+struct sbyte4;
+struct sbyte3;
 struct ushort4;
 struct short2;
 struct short3;
-struct sbyte4;
-struct sbyte3;
-struct AssetPacker;
+struct float4;
+struct uint4;
+struct uint2;
+struct uint3;
+struct PipelineCompiler;
 struct float2;
 struct float3;
-struct PipelineCompiler;
 
 enum class EFileType : uint32
 {
@@ -1091,6 +1091,7 @@ void  Assert (bool expr);
 void  Assert (bool expr, const string & msg);
 string  GetSharedFeatureSetPath ();
 string  GetSharedShadersPath ();
+string  GetSharedPipelinesPath ();
 string  GetCanvasVerticesPath ();
 string  GetUIBindingsPath ();
 string  GetOutputDir ();

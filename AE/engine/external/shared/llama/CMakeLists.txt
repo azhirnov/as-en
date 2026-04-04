@@ -29,6 +29,6 @@ if (${AE_ENABLE_EXTERNAL_TESTS})
 	set_property( TARGET "Tests.llama" PROPERTY FOLDER "Engine/External/Tests" )
 	target_link_libraries( "Tests.llama" PUBLIC "llama-lib" )
 	#add_test( NAME "Tests.llama" COMMAND "Tests.llama" )
-	set_target_properties( "Tests.llama" PROPERTIES CXX_STANDARD 17 CXX_STANDARD_REQUIRED YES )
+	set_target_properties( "Tests.llama" PROPERTIES CXX_STANDARD 20 CXX_STANDARD_REQUIRED YES )
 endif ()
 ]]

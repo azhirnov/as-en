@@ -6,6 +6,8 @@
 
 namespace AE::PipelineCompiler
 {
+	using DescriptorSetLayoutPtr = ScriptRC< struct DescriptorSetLayout >;
+
 
 	//
 	// Descriptor Set Layout
@@ -67,8 +69,7 @@ namespace AE::PipelineCompiler
 
 	// methods
 	public:
-		DescriptorSetLayout () {}
-		explicit DescriptorSetLayout (const String &name)																									__Th___;
+		ND_ static DescriptorSetLayoutPtr  Create (const String &name)																						__Th___;
 
 		void  AddFeatureSet (const String &name)																											__Th___;
 		void  Define (const String &value)																													__Th___;
@@ -106,24 +107,27 @@ namespace AE::PipelineCompiler
 
 		static void  Bind (const ScriptEnginePtr &se)																										__Th___;
 
-		ND_ StringView		Name ()								const	{ return _name; }
-		ND_ DescrSetUID		UID ()								const	{ return _uid.value_or( Default ); }
-		ND_ String const&	GetDefines ()						const	{ return _defines; }
-		ND_ EShaderStages	GetStages ()						const	{ return _dsLayout.stages; }
-		ND_ EDescSetUsage	GetUsage ()							const	{ return _dsLayout.usage; }
-		ND_ auto const&		GetUniforms ()						const	{ return _dsLayout.uniforms; }
-		ND_ SamplerName		GetSampler (const Uniform &)		C_Th___;
-		ND_ SamplerName		GetSampler (uint indexInStorage)	const;
+		ND_ StringView						Name ()								const	{ return _name; }
+		ND_ DescrSetUID						UID ()								const	{ return _uid.value_or( Default ); }
+		ND_ String const&					GetDefines ()						const	{ return _defines; }
+		ND_ EShaderStages					GetStages ()						const	{ return _dsLayout.stages; }
+		ND_ EDescSetUsage					GetUsage ()							const	{ return _dsLayout.usage; }
+		ND_ auto const&						GetUniforms ()						const	{ return _dsLayout.uniforms; }
+		ND_ SamplerName						GetSampler (const Uniform &)		C_Th___;
+		ND_ SamplerName						GetSampler (uint indexInStorage)	const;
+		ND_ ArrayView<ScriptFeatureSetPtr>  GetFeatures ()						C_NE___	{ return _features; }
 
-		ND_ bool  IsCompatibleWithVulkan ()						const;
-		ND_ bool  IsCompatibleWithMetal ()						const;
+		ND_ bool  IsCompatibleWithVulkan ()										const;
+		ND_ bool  IsCompatibleWithMetal ()										const;
 
-		ND_ bool  Build ()										__NE___;
+		ND_ bool  Build ()														__NE___;
 
 		ND_ static bool  CheckDescriptorLimits_PerStage (const PerStageDescCount_t &, ArrayView<ScriptFeatureSetPtr> features, StringView name);
 		ND_ static bool  CheckDescriptorLimits_PerPipeline (const DescriptorCount &, ArrayView<ScriptFeatureSetPtr> features, StringView name);
 
 	private:
+		explicit DescriptorSetLayout (const String &name)									__NE___;
+
 		static void  _AddUniformBuffer (Scripting::ScriptArgList args)						__Th___;
 		static void  _AddStorageBuffer (Scripting::ScriptArgList args)						__Th___;
 		static void  _AddUniformBufferDynamic (Scripting::ScriptArgList args)				__Th___;
@@ -153,9 +157,10 @@ namespace AE::PipelineCompiler
 		void  _CheckFields (const String &fields)											C_Th___;
 		void  _CheckStateForStorage (EResourceState state)									C_Th___;
 
+		void  _ValidateShaderSample (INOUT EResourceState &state, EShaderStages stages)		C_Th___;
+
 		void  _AddSRGB (const String &name, EImageType type)								__Th___;
 	};
-	using DescriptorSetLayoutPtr = ScriptRC< DescriptorSetLayout >;
 
 
 } // AE::PipelineCompiler

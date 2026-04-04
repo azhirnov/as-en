@@ -30,7 +30,7 @@ void ASmain ()
 	// specialization
 	{
 		RC<GraphicsPipelineSpec>	spec = ppln.AddSpecialization( "draw3" );
-		spec.AddToRenderTech( "DrawTestRT", "Draw_1" );
+		spec.AddToRenderTech( "DrawTest.RTech", "Draw_1" );
 
 		RenderState	rs;
 		rs.inputAssembly.topology = EPrimitive::TriangleList;

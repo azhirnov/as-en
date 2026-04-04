@@ -8,7 +8,7 @@ namespace AE::PipelineCompiler
 namespace
 {
 	static TilePipelineScriptBinding*  TilePipelineScriptBinding_Ctor (const String &name) {
-		return TilePipelinePtr{ new TilePipelineScriptBinding{ name }}.Detach();
+		return TilePipelineScriptBinding::Create( name ).Detach();
 	}
 
 } // namespace
@@ -18,18 +18,28 @@ namespace
 
 /*
 =================================================
-	constructor
+	_Init
 =================================================
 */
-	TilePipelineScriptBinding::TilePipelineScriptBinding (const String &name) __Th___ : BasePipelineTmpl{name}
+	void  TilePipelineScriptBinding::_Init () __Th___
 	{
+		BasePipelineTmpl::_Init();  // throw
+
 		CHECK_THROW_MSG( ObjectStorage::Instance()->tpipelines.emplace( _name, TilePipelinePtr{this} ).second,
-			"TilePipeline with name '"s << name << "' is already defined" );
+			"TilePipeline with name '"s << _nameStr << "' is already defined" );
 	}
 
-	TilePipelineScriptBinding::TilePipelineScriptBinding () :
-		TilePipelineScriptBinding{ "<unknown>" }
-	{}
+/*
+=================================================
+	Create
+=================================================
+*/
+	TilePipelinePtr  TilePipelineScriptBinding::Create (const String &name) __Th___
+	{
+		TilePipelinePtr		result{ new TilePipelineScriptBinding{ name }};
+		result->_Init();  // throw
+		return result;
+	}
 
 /*
 =================================================
@@ -135,7 +145,7 @@ namespace
 	void  TilePipelineScriptBinding::Bind (const ScriptEnginePtr &se) __Th___
 	{
 		ClassBinder<TilePipelineScriptBinding>	binder{ se };
-		binder.CreateRef();
+		binder.CreateRef( 0, False{} );
 
 		binder.Comment( "Create pipeline template.\n"
 						"Name is used in C++ code to create pipeline." );
@@ -252,7 +262,7 @@ namespace
 	void  TilePipelineSpecScriptBinding::Bind (const ScriptEnginePtr &se) __Th___
 	{
 		ClassBinder<TilePipelineSpecScriptBinding>	binder{ se };
-		binder.CreateRef();
+		binder.CreateRef( 0, False{} );
 
 		binder.Comment( "Set specialization value.\n"
 						"Specialization constant must be previously defined in shader by 'Shader::AddSpec()'." );

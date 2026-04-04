@@ -129,7 +129,7 @@ namespace AE::Graphics
 		ND_ uint2				GetSurfaceSize ()								C_NE___	{ return uint2{_surfaceSize.load()}; }
 
 		ND_ VkSemaphore			GetImageAvailableSemaphore ()					C_NE___	{ return _imageAvailableSem[ GetCurrentSemaphoreIndex() ]; }
-		ND_ VkSemaphore			GetRenderFinishedSemaphore ()					C_NE___	{ return _renderFinishedSem[ GetCurrentSemaphoreIndex() ]; }
+		ND_ VkSemaphore			GetRenderFinishedSemaphore ()					C_NE___	{ return _renderFinishedSem[ GetCurrentImageIndex() ]; }
 
 		ND_ uint				GetCurrentImageIndex ()							C_NE___	{ return _indices.load().imageIdx; }
 		ND_ uint				GetCurrentSemaphoreIndex ()						C_NE___	{ return _indices.load().semaphoreId; }

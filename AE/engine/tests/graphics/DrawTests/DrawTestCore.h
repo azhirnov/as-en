@@ -64,7 +64,7 @@ protected:
 
 // methods
 public:
-	DrawTestCore ();
+	DrawTestCore (StringView);
 	~DrawTestCore () {}
 
 	bool  Run (FStorage_t assetStorage, FStorage_t refStorage);

@@ -12,28 +12,22 @@ namespace
 {
 /*
 =================================================
-	ConvertString
+	ConvertString2
 =================================================
 */
-#ifdef AE_PLATFORM_WINDOWS
-	ND_ static BasicString<CharType>  ConvertString (const WString &src)
+	template <typename SrcStr>
+	ND_ static BasicString<CharType>  ConvertString2 (const SrcStr &src) __Th___
 	{
 		BasicString<CharType>	dst;
-		dst.assign( src.begin(), src.end() );
-		return dst;
-	}
-#endif
-
-	ND_ static BasicString<CharType>  ConvertString (const String &src)
-	{
-		BasicString<CharType>	dst;
-		dst.assign( src.begin(), src.end() );
+		CHECK_THROW( Base::ConvertString( OUT dst, BasicStringView{src} ));
 		return dst;
 	}
 
-	ND_ static BasicString<CharType>  ConvertString (const Path &src)
+	ND_ static BasicString<CharType>  ConvertString2 (const Path &src) __Th___
 	{
-		return ConvertString( src.native() );
+		BasicString<CharType>	dst;
+		CHECK_THROW( Base::ConvertString( OUT dst, BasicStringView{src.native()} ));
+		return dst;
 	}
 
 /*
@@ -47,16 +41,16 @@ namespace
 		uint					priority;
 		uint					flags;
 
-		PathParams2 (const Path &path, uint prio) :
-			path{ConvertString(path)}, priority{prio}, flags{0}
+		PathParams2 (const Path &path, uint prio) __Th___ :
+			path{ConvertString2(path)}, priority{prio}, flags{0}
 		{}
 
-		PathParams2 (const Path &path, uint prio, PipelineCompiler::EPathParamsFlags flags) :
-			path{ConvertString(path)}, priority{prio}, flags{uint(flags)}
+		PathParams2 (const Path &path, uint prio, PipelineCompiler::EPathParamsFlags flags) __Th___ :
+			path{ConvertString2(path)}, priority{prio}, flags{uint(flags)}
 		{}
 
-		PathParams2 (const Path &path, uint prio, AssetPacker::EPathParamsFlags flags) :
-			path{ConvertString(path)}, priority{prio}, flags{uint(flags)}
+		PathParams2 (const Path &path, uint prio, AssetPacker::EPathParamsFlags flags) __Th___ :
+			path{ConvertString2(path)}, priority{prio}, flags{uint(flags)}
 		{}
 	};
 
@@ -171,18 +165,18 @@ namespace
 	{
 		using namespace AE::PipelineCompiler;
 
-		const auto	output_pack_name		= ConvertString( outputPackName );
-		const auto	output_cpp_types_file	= ConvertString( AE_UI_SCRIPT_FOLDER "/../cpp/vk_types.h"s );
-		const auto	output_cpp_names_file	= ConvertString( AE_UI_SCRIPT_FOLDER "/../cpp/vk_names.h"s );
+		const auto	output_pack_name		= ConvertString2( outputPackName );
+		const auto	output_cpp_types_file	= ConvertString2( AE_UI_SCRIPT_FOLDER "/../cpp/vk_types.h"s );
+		const auto	output_cpp_names_file	= ConvertString2( AE_UI_SCRIPT_FOLDER "/../cpp/vk_names.h"s );
 
-		auto		tmp_pipelines			= Array<PathParams2>{ PathParams2{ AE_SHARED_DATA "/feature_set"s, 0u, EPathParamsFlags::Folder },
-																  PathParams2{ AE_UI_SCRIPT_FOLDER "/../config_vk.as", 1u },
-																  PathParams2{ AE_UI_SCRIPT_FOLDER "/../rtech/ren_tech.as", 2u },
-																  PathParams2{ AE_UI_SCRIPT_FOLDER "/../rtech/samplers.as", 3u },
-																  PathParams2{ AE_CANVAS_VERTS, 4u },
-																  PathParams2{ AE_UI_SCRIPT_FOLDER "/../pipelines"s, 5u, EPathParamsFlags::Folder }};
-		auto		tmp_shader_folders		= Array<BasicString<CharType>>{ ConvertString( AE_UI_SCRIPT_FOLDER "/../shaders"s )};
-		auto		tmp_shader_include_dirs	= Array<BasicString<CharType>>{ ConvertString( AE_SHARED_DATA "/shaders"s )};
+		auto		tmp_pipelines			= Array<PathParams2>{ PathParams2{ AE_SHARED_DATA "/feature_set"s,				0u, EPathParamsFlags::Folder },
+																  PathParams2{ AE_UI_SCRIPT_FOLDER "/../config_vk.as",		1u },
+																  PathParams2{ AE_UI_SCRIPT_FOLDER "/../rtech/samplers.as",	2u },
+																  PathParams2{ AE_UI_SCRIPT_FOLDER "/../rtech/ren_tech.as",	3u },
+																  PathParams2{ AE_CANVAS_VERTS,								4u },
+																  PathParams2{ AE_UI_SCRIPT_FOLDER "/../pipelines"s,		5u, EPathParamsFlags::Folder }};
+		auto		tmp_shader_folders		= Array<BasicString<CharType>>{ ConvertString2( AE_UI_SCRIPT_FOLDER "/../shaders"s )};
+		auto		tmp_shader_include_dirs	= Array<BasicString<CharType>>{ ConvertString2( AE_SHARED_DATA "/shaders"s )};
 
 		const auto	pipelines				= ConvertArray<PipelineCompiler::PathParams>( tmp_pipelines );
 		const auto	shader_folders			= ConvertArray( tmp_shader_folders );
@@ -231,14 +225,18 @@ namespace
 									PathParams2{ scriptPath,								1u, EPathParamsFlags::File }
 								};
 		auto		tmp_scr_include = Array<BasicString<CharType>>{
-											ConvertString( AE_UI_SCRIPT_FOLDER "/.."s ),
-											ConvertString( AE_UI_SCRIPT_FOLDER "/../ui_styles"s )
+											ConvertString2( AE_UI_SCRIPT_FOLDER "/.."s ),
+											ConvertString2( AE_UI_SCRIPT_FOLDER "/../ui_styles"s )
+										};
+		auto		tmp_res_folders	= Array<BasicString<CharType>>{
+											ConvertString2( AE_DATA_FOLDER ""s )
 										};
 
 		const auto	scr_include	= ConvertArray( tmp_scr_include );
-		const auto	output		= ConvertString( assetPack );
+		const auto	res_folders	= ConvertArray( tmp_res_folders );
+		const auto	output		= ConvertString2( assetPack );
 		const auto	files		= ConvertArray<AssetPacker::PathParams>( tmp_files );
-		const auto	temp_file	= ConvertString( Path{assetPack}.replace_extension(".temp") );
+		const auto	temp_file	= ConvertString2( Path{assetPack}.replace_extension(".temp") );
 
 		AssetInfo	info = {};
 
@@ -249,6 +247,10 @@ namespace
 		// script include directories
 		info.inIncludeFolders		= scr_include.data();
 		info.inIncludeFolderCount	= scr_include.size();
+
+		// resource folders
+		info.inResourceFolders		= res_folders.data();
+		info.inResourceFolderCount	= res_folders.size();
 
 		// temp / output
 		info.tempFile				= temp_file.c_str();

@@ -8,7 +8,7 @@ namespace AE::PipelineCompiler
 namespace
 {
 	static MeshPipelineScriptBinding*  MeshPipelineScriptBinding_Ctor (const String &name) {
-		return MeshPipelinePtr{ new MeshPipelineScriptBinding{ name }}.Detach();
+		return MeshPipelineScriptBinding::Create( name ).Detach();
 	}
 
 } // namespace
@@ -18,18 +18,28 @@ namespace
 
 /*
 =================================================
-	constructor
+	_Init
 =================================================
 */
-	MeshPipelineScriptBinding::MeshPipelineScriptBinding (const String &name) __Th___ : BasePipelineTmpl{name}
+	void  MeshPipelineScriptBinding::_Init () __Th___
 	{
-		CHECK_THROW_MSG( ObjectStorage::Instance()->mpipelines.emplace( _name, MeshPipelinePtr{this} ).second,
-			"MeshPipeline with name '"s << name << "' is already defined" );
+		BasePipelineTmpl::_Init();  // throw
+
+		CHECK_THROW_MSG( ObjectStorage::Instance()->mpipelines.emplace( _nameStr, MeshPipelinePtr{this} ).second,
+			"MeshPipeline with name '"s << _nameStr << "' is already defined" );
 	}
 
-	MeshPipelineScriptBinding::MeshPipelineScriptBinding () :
-		MeshPipelineScriptBinding{ "<unknown>" }
-	{}
+/*
+=================================================
+	Create
+=================================================
+*/
+	MeshPipelinePtr  MeshPipelineScriptBinding::Create (const String &name) __Th___
+	{
+		MeshPipelinePtr	result{ new MeshPipelineScriptBinding{ name }};
+		result->_Init();  // throw
+		return result;
+	}
 
 /*
 =================================================
@@ -307,7 +317,7 @@ namespace
 	void  MeshPipelineScriptBinding::Bind (const ScriptEnginePtr &se) __Th___
 	{
 		ClassBinder<MeshPipelineScriptBinding>	binder{ se };
-		binder.CreateRef();
+		binder.CreateRef( 0, False{} );
 
 		binder.Comment( "Create pipeline template.\n"
 						"Name is used in C++ code to create pipeline." );
@@ -434,8 +444,8 @@ namespace
 		CHECK_THROW_MSG( state.inputAssembly.topology == Default );
 
 		renderState = state;
-		_ValidateRenderState( desc.dynamicState, INOUT renderState, GetFeatures() );
-		_ValidateRenderPass( renderState, desc.renderPass, desc.subpass, GetFeatures() );
+		_ValidateRenderState( desc.dynamicState, INOUT renderState, GetAllFeatures() );
+		_ValidateRenderPass( renderState, desc.renderPass, desc.subpass, GetAllFeatures() );
 
 		SubpassShaderIO		frag_io;
 		GetBase()->GetSubpassShaderIO( OUT frag_io );
@@ -614,7 +624,7 @@ namespace
 	void  MeshPipelineSpecScriptBinding::Bind (const ScriptEnginePtr &se) __Th___
 	{
 		ClassBinder<MeshPipelineSpecScriptBinding>	binder{ se };
-		binder.CreateRef();
+		binder.CreateRef( 0, False{} );
 
 		binder.Comment( "Set specialization value.\n"
 						"Specialization constant must be previously defined in shader by 'Shader::AddSpec()'." );

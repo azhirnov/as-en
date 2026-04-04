@@ -39,6 +39,15 @@ namespace AE::GeometryTools
 
 		using Index = ushort;
 
+		enum class EShape
+		{
+			Tube_Inner,
+			Tube,			// open ended cylinder
+			Solid,
+			Capsule,
+			Ends,			// only up and down ends
+		};
+
 
 	// variables
 	private:
@@ -48,11 +57,15 @@ namespace AE::GeometryTools
 
 	// methods
 	public:
-
-		ND_	bool  Create (uint segments, Bool inner)	__NE___;
+		ND_	bool  Create (uint segments, EShape shape)	__NE___;
 
 		ND_ ArrayView<Vertex>	GetVertices ()			C_NE___	{ return _vertices; }
 		ND_ ArrayView<Index>	GetIndices ()			C_NE___	{ return _indices; }
+
+	private:
+		void  _AddTube (uint segments, bool inner);
+		void  _AddEnds (uint segments);
+		void  _AddCapsuleEnds (uint segments);
 	};
 
 

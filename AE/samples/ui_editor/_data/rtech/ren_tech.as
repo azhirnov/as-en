@@ -3,7 +3,7 @@
 
 void CreateUIRenderPass ()
 {
-	RC<CompatibleRenderPass>	compat = CompatibleRenderPass( "UIPass" );
+	RC<CompatibleRenderPass>	compat = CompatibleRenderPass( "UI.RenderPass" );
 
 	const string	pass = "Main";
 	compat.AddSubpass( pass );
@@ -16,7 +16,7 @@ void CreateUIRenderPass ()
 
 	// specialization
 	{
-		RC<RenderPass>	rp = compat.AddSpecialization( "UIPass" );
+		RC<RenderPass>	rp = compat.AddSpecialization( "UI.RenderPass" );
 
 		RC<AttachmentSpec>	rt = rp.AddAttachment( "Color" );
 		rt.loadOp	= EAttachmentLoadOp::Load;
@@ -30,13 +30,8 @@ void  CreateUIRenderTech ()
 {
 	RC<RenderTechnique> rtech = RenderTechnique( "UI.RTech" );
 	{
-		RC<Sampler>		samp = Sampler( "LinearClamp" );
-		samp.Filter( EFilter::Linear, EFilter::Linear, EMipmapFilter::Nearest );
-		samp.AddressMode( EAddressMode::Clamp, EAddressMode::Clamp, EAddressMode::Clamp );
-	}
-	{
 		RC<ShaderStructType>	st1 = ShaderStructType( "ui.global.ublock" );
-		st1.Set( "float2	posScale;" +
+		st1.Set( "float2	posScale;"
 				 "float2	posBias;" );
 
 		RC<ShaderStructType>	st2 = ShaderStructType( "ui.material.ublock" );
@@ -50,13 +45,13 @@ void  CreateUIRenderTech ()
 	}
 	{
 		RC<GraphicsPass>	pass = rtech.AddGraphicsPass( "Main" );
-		pass.SetRenderPass( "UIPass", /*subpass*/"Main" );
+		pass.SetRenderPass( "UI.RenderPass", /*subpass*/"Main" );
 		pass.SetDSLayout( "ui.global.ds" );
 	}
 	{
 		RC<ShaderStructType>	st = ShaderStructType( "ui.io" );
 		st.Set( EStructLayout::InternalIO,
-				"float4		color;" +
+				"float4		color;"
 				"float2		uv;" );
 	}{
 		RC<PipelineLayout>		pl = PipelineLayout( "ui.pl" );

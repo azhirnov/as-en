@@ -180,7 +180,10 @@ namespace AE::Scripting
 
 		Constructor_t	create = null;
 
-		if constexpr( IsAbstract<T> or not IsDefaultConstructible<T> ) {
+		if constexpr( IsAbstract<T> ) {
+			CHECK_THROW( not hasFactory );
+		}else
+		if constexpr( not IsDefaultConstructible<T> ) {
 			CHECK_THROW( not hasFactory );
 		}else{
 			if ( hasFactory )

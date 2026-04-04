@@ -275,7 +275,7 @@ namespace AE::PipelineCompiler
 */
 	Nd__In MtlPixelFormat  MEnumCast (EPixelFormat value)
 	{
-		#define FMT_BUILDER( _engineFmt_, _mtlFormat_, _apiVer_, ... ) \
+		#define FMT_BUILDER( _engineFmt_, _mtlFormat_, ... ) \
 			case EPixelFormat::_engineFmt_ : return MtlPixelFormat::_mtlFormat_;
 
 		switch_enum( value )
@@ -304,8 +304,6 @@ namespace AE::PipelineCompiler
 			case EPixelFormat::BC1_RGB8_UNorm :
 			case EPixelFormat::BC1_sRGB8 :
 
-			case EPixelFormat::G8B8G8R8_422_UNorm :
-			case EPixelFormat::B8G8R8G8_422_UNorm :
 			case EPixelFormat::B16G16R16G16_422_UNorm :
 			case EPixelFormat::G16B16G16R16_422_UNorm :
 			case EPixelFormat::B10x6G10x6R10x6G10x6_422_UNorm :

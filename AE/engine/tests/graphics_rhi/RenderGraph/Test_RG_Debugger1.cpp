@@ -70,7 +70,7 @@ namespace
 		const auto	img_state = EResourceState::ShaderStorage_Write | EResourceState::ComputeShader;
 
 		comp_ctx.AccumBarriers()
-			.ImageBarrier( t.img, EResourceState::Invalidate, img_state );
+			.ResourceBarrier( t.img, EResourceState::Invalidate, img_state );
 
 		comp_ctx.BindPipeline( t.ppln );
 		comp_ctx.BindDescriptorSet( t.ds_index, t.ds );
@@ -78,7 +78,7 @@ namespace
 		comp_ctx.Dispatch({ 2, 2, 1 });
 
 		comp_ctx.AccumBarriers()
-			.ImageBarrier( t.img, img_state, EResourceState::CopySrc );
+			.ResourceBarrier( t.img, img_state, EResourceState::CopySrc );
 
 		RenderCoro_Execute( comp_ctx );
 	}
@@ -194,6 +194,7 @@ no source
 		CHECK_ERR( end->Status() == ETaskStatus::Completed );
 
 		CHECK_ERR( rts.WaitAll( c_MaxTimeout ));
+		CHECK_ERR( t.result );
 
 		CHECK_ERR( Scheduler().Wait( {t.result}, c_MaxTimeout ));
 		CHECK_ERR( t.result->Status() == ETaskStatus::Completed );
@@ -206,12 +207,12 @@ no source
 } // namespace
 
 
-bool RGTest::Test_Debugger1 ()
+RGTest::ECode  RGTest::Test_Debugger1 ()
 {
 	if ( not _dbgPipelines )
 	{
 		AE_LOGI( TEST_NAME << " - skipped" );
-		return true;
+		return ECode::Skipped;
 	}
 
 	bool	result = true;
@@ -220,8 +221,12 @@ bool RGTest::Test_Debugger1 ()
 
 	RG_CHECK( _CompareDumps( TEST_NAME ));
 
-	AE_LOGI( TEST_NAME << " - passed" );
-	return result;
+	if ( result )
+	{
+		AE_LOGI( TEST_NAME << " - passed" );
+		return ECode::Passed;
+	}
+	return ECode::Failed;
 }
 
 #endif // AE_TEST_SHADER_DEBUGGER

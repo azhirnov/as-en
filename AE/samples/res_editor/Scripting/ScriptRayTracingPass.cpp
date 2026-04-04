@@ -3,6 +3,7 @@
 #include "Scripting/ScriptExe.h"
 #include "Core/EditorUI.h"
 #include "Scripting/ScriptBasePass.cpp.h"
+#include "_data/cpp/types.h"
 
 AE_DECL_SCRIPT_OBJ(	AE::ResEditor::RTInstanceIndex,	"InstanceIndex"	);
 AE_DECL_SCRIPT_OBJ(	AE::ResEditor::RTRayIndex,		"RayIndex"		);
@@ -111,11 +112,18 @@ namespace
 	_OnAddArg
 =================================================
 */
-	void  ScriptRayTracingPass::_OnAddArg (INOUT ScriptPassArgs::Argument &arg) C_Th___
+	void  ScriptRayTracingPass::_OnAddArg (INOUT ScriptPassArgs::Argument &arg) __Th___
 	{
 		CHECK_THROW_MSG( _iterations.empty(), "Arg() must be used before Dispatch() call" );
 
 		arg.state |= EResourceState::RayTracingShaders;
+
+		auto*	rtscene = UnionGet< ScriptRTScenePtr >( arg.res );
+		if ( rtscene )
+		{
+			if ( (*rtscene)->HasMicromaps() )
+				_options |= EPipelineOpt::OpacityMicromap;
+		}
 	}
 
 /*
@@ -418,11 +426,11 @@ namespace
 	_CompilePipeline
 =================================================
 */
-	auto  ScriptRayTracingPass::_CompilePipeline (OUT Bytes &ubSize) C_Th___
+	auto  ScriptRayTracingPass::_CompilePipeline () C_Th___
 	{
 		return ScriptExe::ScriptPassApi::ConvertAndLoad(
-					[this, &ubSize] (ScriptEnginePtr) {
-						_CompilePipeline2( OUT ubSize );	// throw
+					[this] (ScriptEnginePtr) {
+						_CompilePipeline2();	// throw
 					},
 					_baseFlags );
 	}
@@ -441,7 +449,6 @@ namespace
 		auto		result		= MakeRC<RayTracingPass>();
 		auto&		res_mngr	= GraphicsScheduler().GetResourceManager();
 		const auto	max_frames	= GraphicsScheduler().GetMaxFrames();
-		Bytes		ub_size;
 
 		// validate
 		if ( not _hitGroups.empty() )
@@ -463,7 +470,7 @@ namespace
 			}
 		}
 
-		result->_rtech = _CompilePipeline( OUT ub_size );	// throw
+		result->_rtech = _CompilePipeline();	// throw
 
 		EnumSet<IPass::EDebugMode>	dbg_modes;
 
@@ -472,8 +479,8 @@ namespace
 		{{
 			if ( AllBits( _baseFlags, flag ))
 			{
-				auto	ppln	= cp->_rtech.rtech->GetRayTracingPipeline( pplnName );
-				auto	sbt		= cp->_rtech.rtech->GetRTShaderBinding( sbtName );
+				auto	ppln	= cp->_rtech.rtech->GetRayTracingPipeline( pplnName, True{"silent"} );
+				auto	sbt		= cp->_rtech.rtech->GetRTShaderBinding( sbtName, True{"silent"} );
 				ASSERT( bool{ppln} == bool{sbt} );
 
 				if ( ppln and sbt )
@@ -504,7 +511,7 @@ namespace
 		result->_maxRayRecursion	= this->_maxRayRecursion  ? this->_maxRayRecursion->Get()  : null;
 		result->_maxCallRecursion	= this->_maxCallRecursion ? this->_maxCallRecursion->Get() : null;
 
-		result->_ubuffer = _CreateUBuffer( ub_size, "RayTracingPassUB", EResourceState::UniformRead | EResourceState::RayTracingShaders );  // throw
+		result->_ubuffer = _CreateUBuffer( SizeOf<ShaderTypes::ComputePassUB>, "ComputePassUB", EResourceState::UniformRead | EResourceState::RayTracingShaders );  // throw
 
 		// create descriptor set
 		{
@@ -513,6 +520,7 @@ namespace
 			_args.InitResources( OUT result->_resources, result->_rtech.packId );  // throw
 		}
 
+		#if defined(AE_ENABLE_VULKAN) or defined(AE_ENABLE_REMOTE_GRAPHICS)
 		{
 			Bytes	ray_gen_stack_max;
 			Bytes	closest_hit_stack_max;
@@ -574,6 +582,7 @@ namespace
 			result->_anyHitStackMax			= any_hit_stack_max;
 			result->_callableStackMax		= callable_stack_max;
 		}
+		#endif
 
 		_Init( *result, null );
 		UIInteraction::Instance().AddPassDbgInfo( result.get(), dbg_modes, EShaderStages::AllRayTracing );
@@ -599,58 +608,12 @@ namespace AE::ResEditor
 
 /*
 =================================================
-	_CreateUBType
-=================================================
-*/
-	auto  ScriptRayTracingPass::_CreateUBType () __Th___
-	{
-		auto&	obj_storage = *ObjectStorage::Instance();
-		auto	it			= obj_storage.structTypes.find( "RayTracingPassUB" );
-
-		if ( it != obj_storage.structTypes.end() )
-			return it->second;
-
-		ShaderStructTypePtr	st{ new ShaderStructType{"RayTracingPassUB"}};
-		st->Set( EStructLayout::Compatible_Std140, R"#(
-				float		time;			// shader playback time (in seconds)
-				float		timeDelta;		// frame render time (in seconds), max value: 1/30s
-				uint		frame;			// shader playback frame, global frame counter
-				uint		passFrameId;	// current pass frame index
-				uint		seed;			// unique value, updated on each shader reloading
-				float4		mouse;			// mouse unorm coords. xy: current (if MRB down), zw: click
-				float2		customKeys;
-				float		pixPerMm;		// pix / mm
-				float		mmPerPix;		// mm / pix
-
-				// controller //
-				CameraData	camera;
-
-				// sliders //
-				float4		floatSliders [8];
-				int4		intSliders [8];
-				float4		colors [8];
-
-				// constants //
-				float4		floatConst [8];
-				int4		intConst [8];
-			)#");
-
-		StaticAssert( UIInteraction::MaxSlidersPerType == 8 );
-		StaticAssert( IPass::Constants::MaxCount == 8 );
-		StaticAssert( IPass::CustomKeys_t{}.max_size() == 2 );
-		return st;
-	}
-
-/*
-=================================================
 	GetShaderTypes
 =================================================
 */
-	void  ScriptRayTracingPass::GetShaderTypes (INOUT CppStructsFromShaders &data) __Th___
+	void  ScriptRayTracingPass::GetShaderTypes (INOUT CppStructsFromShaders &) __Th___
 	{
-		auto	st = _CreateUBType();	// throw
-
-		CHECK_THROW( st->ToCPP( INOUT data.cpp, INOUT data.uniqueTypes ));
+		// reuse ScriptComputePass
 	}
 
 /*
@@ -658,23 +621,22 @@ namespace AE::ResEditor
 	_CompilePipeline2
 =================================================
 */
-	void  ScriptRayTracingPass::_CompilePipeline2 (OUT Bytes &ubSize) C_Th___
+	void  ScriptRayTracingPass::_CompilePipeline2 () C_Th___
 	{
 		_args.ValidateArgs();
 
-		RenderTechniquePtr	rtech{ new RenderTechnique{ "rtech" }};
+		RenderTechniquePtr	rtech = RenderTechnique::Create( "rtech" );
 		{
 			RTComputePassPtr	pass = rtech->AddComputePass2( "Compute" );
 			Unused( pass );
 		}
 
-		const auto				stage	= EShaderStages::AllRayTracing;
-		DescriptorSetLayoutPtr	ds_layout{ new DescriptorSetLayout{ "dsl.0" }};
+		const auto				stage		= EShaderStages::AllRayTracing;
+		DescriptorSetLayoutPtr	ds_layout	= DescriptorSetLayout::Create( "dsl.0" );
 		{
-			ShaderStructTypePtr	st = _CreateUBType();	// throw
-			ubSize = st->StaticSize();
+			Unused( ScriptComputePass::_CreateUBType() );	// throw
 
-			ds_layout->AddUniformBuffer( stage, "un_PerPass", ArraySize{1}, "RayTracingPassUB", EResourceState::ShaderUniform, False{} );
+			ds_layout->AddUniformBuffer( stage, "un_PerPass", ArraySize{1}, "ComputePassUB", EResourceState::ShaderUniform, False{} );
 		}
 		_args.ArgsToDescSet( stage, ds_layout, ArraySize{1} );  // throw
 
@@ -683,9 +645,10 @@ namespace AE::ResEditor
 		_AddDefines( _defines, INOUT header );
 		_AddSliders( INOUT header );
 
-		const auto		flags	 = UIInteraction::Instance().graphics->shaderFlags;
-		EShaderOpt		sh_opt	 = Default;
-		EPipelineOpt	ppln_opt = Default;
+		const auto		flags		= UIInteraction::Instance().graphics->shaderFlags;
+		EShaderOpt		sh_opt		= Default;
+		EPipelineOpt	ppln_opt	= _options;
+		EPipelineOpt	ppln_opt2	= _options;
 
 		if ( flags.contains( UIInteraction::EShaderFlags::DebugInfo ))
 		{
@@ -712,16 +675,16 @@ namespace AE::ResEditor
 		if ( AllBits( _baseFlags, EFlags::Enable_ShaderAsserts )		or
 			 flags.contains( UIInteraction::EShaderFlags::EnableAsserts ))
 		{
-			NOTHROW( _CompilePipeline3( header, "raytrace.Asserts", uint(sh_opt | EShaderOpt::Asserts), Default ));
+			NOTHROW( _CompilePipeline3( header, "raytrace.Asserts", uint(sh_opt | EShaderOpt::Asserts), ppln_opt2 ));
 		}
 		if ( AllBits( _baseFlags, EFlags::Enable_ShaderTrace ))
-			NOTHROW( _CompilePipeline3( header, "raytrace.Trace", uint(sh_opt | EShaderOpt::Trace), Default ));
+			NOTHROW( _CompilePipeline3( header, "raytrace.Trace", uint(sh_opt | EShaderOpt::Trace), ppln_opt2 ));
 
 		if ( AllBits( _baseFlags, EFlags::Enable_ShaderFnProf ))
-			NOTHROW( _CompilePipeline3( header, "raytrace.FnProf", uint(sh_opt | EShaderOpt::FnProfiling), Default ));
+			NOTHROW( _CompilePipeline3( header, "raytrace.FnProf", uint(sh_opt | EShaderOpt::FnProfiling), ppln_opt2 ));
 
 		if ( AllBits( _baseFlags, EFlags::Enable_ShaderTmProf ))
-			NOTHROW( _CompilePipeline3( header, "raytrace.TmProf", uint(sh_opt | EShaderOpt::TimeHeatMap), Default ));
+			NOTHROW( _CompilePipeline3( header, "raytrace.TmProf", uint(sh_opt | EShaderOpt::TimeHeatMap), ppln_opt2 ));
 	  #endif
 	}
 
@@ -732,13 +695,13 @@ namespace AE::ResEditor
 */
 	void  ScriptRayTracingPass::_CompilePipeline3 (const String &header, const String &pplnName, uint shaderOpts, EPipelineOpt pplnOpt) C_Th___
 	{
-		PipelineLayoutPtr		ppln_layout{ new PipelineLayout{ pplnName + ".pl" }};
+		PipelineLayoutPtr		ppln_layout = PipelineLayout::Create( pplnName + ".pl" );
 		ppln_layout->AddDSLayout2( "ds0", 0, "dsl.0" );
 
 		if ( AnyBits( EShaderOpt(shaderOpts), EShaderOpt::_ShaderTrace_Mask ))
 			ppln_layout->AddDebugDSLayout2( 1, EShaderOpt(shaderOpts) & EShaderOpt::_ShaderTrace_Mask, uint(EShaderStages::AllRayTracing) );
 
-		RayTracingPipelinePtr	ppln_templ{ new RayTracingPipelineScriptBinding{ pplnName }};
+		RayTracingPipelinePtr	ppln_templ = RayTracingPipelineScriptBinding::Create( pplnName );
 		ppln_templ->Disable();
 		ppln_templ->SetLayout2( ppln_layout );
 
@@ -816,7 +779,7 @@ namespace AE::ResEditor
 			ppln_spec->SetDynamicState( uint(EPipelineDynamicState::RTStackSize) );
 
 			// create SBT
-			RayTracingShaderBindingPtr	sbt{ new RayTracingShaderBinding{ ppln_spec, pplnName + ".sbt" }};
+			RayTracingShaderBindingPtr	sbt = RayTracingShaderBinding::Create( ppln_spec, pplnName + ".sbt" );
 
 			if ( _maxRayTypes > 0 )
 				sbt->MaxRayTypes( _maxRayTypes );

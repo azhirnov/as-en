@@ -6,11 +6,11 @@ namespace
 {
 	static void  VertexBufferInput_Test1 ()
 	{
-		ShaderStructTypePtr	st{ new ShaderStructType{ "vb.vertex" }};
+		ShaderStructTypePtr	st = ShaderStructType::Create( "vb.vertex" );
 		st->Set( EStructLayout::InternalIO,
 				 "packed_ubyte_norm4	a;" );
 
-		VertexBufferInputPtr vb{ new ScriptVertexBufferInput{} };
+		VertexBufferInputPtr vb = ScriptVertexBufferInput::Create( "VB" );
 		vb->Add4( "All", st );
 
 		const String	src = vb->ToGLSL();
@@ -38,7 +38,7 @@ extern void  UnitTest_VertexBufferInput_GLSL ()
 		obj.metalCompiler = MakeUnique<MetalCompiler>( ArrayView<Path>{} );
 	#endif
 
-	ScriptFeatureSetPtr	fs {new ScriptFeatureSet{ "DefaultFS" }};
+	ScriptFeatureSetPtr	fs = ScriptFeatureSet::Create( "DefaultFS" );
 	fs->fs.Init( FeatureSet::EFeature::RequireTrue );
 
 	try {

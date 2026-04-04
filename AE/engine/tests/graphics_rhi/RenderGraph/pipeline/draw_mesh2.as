@@ -45,7 +45,7 @@ void ASmain ()
 	// specialization
 	{
 		RC<MeshPipelineSpec>	spec = ppln.AddSpecialization( "draw_mesh2" );
-		spec.AddToRenderTech( "DrawMeshesTestRT", "DrawMeshes_1" );
+		spec.AddToRenderTech( "DrawMeshes.RTech", "DrawMeshes_1" );
 
 		spec.SetTaskLocalSize( 1 );
 		spec.SetMeshLocalSize( 3 );

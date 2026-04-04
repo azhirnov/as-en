@@ -632,7 +632,6 @@ namespace AE::Base
 				//case EPipelineDynamicState::DepthBounds :			str << "DepthBounds";			break;
 				case EPipelineDynamicState::RTStackSize :			str << "RTStackSize";			break;
 				case EPipelineDynamicState::FragmentShadingRate :	str << "FragmentShadingRate";	break;
-				case EPipelineDynamicState::ViewportWScaling :		str << "ViewportWScaling";		break;
 
 				case EPipelineDynamicState::GraphicsPipelineMask :
 				case EPipelineDynamicState::All :
@@ -703,9 +702,11 @@ namespace AE::Base
 				case EPipelineOpt::RT_SkipTriangles :				str << "RT_SkipTriangles";				break;
 				case EPipelineOpt::RT_SkipAABBs :					str << "RT_SkipAABBs";					break;
 				case EPipelineOpt::RT_AllowClusterAccelStruct :		str << "RT_AllowClusterAccelStruct";	break;
+				case EPipelineOpt::OpacityMicromap :				str << "OpacityMicromap";				break;
 				case EPipelineOpt::DontCompile :					str << "DontCompile";					break;
 				case EPipelineOpt::CaptureStatistics :				str << "CaptureStatistics";				break;
 				case EPipelineOpt::CaptureInternalRepresentation :	str << "CaptureInternalRepresentation";	break;
+				case EPipelineOpt::IndirectBindable :				str << "IndirectBindable";				break;
 				case EPipelineOpt::Unknown :
 				case EPipelineOpt::_Last :
 				case EPipelineOpt::All :
@@ -946,6 +947,9 @@ namespace AE::Base
 	{
 		using _EResState = Graphics::_EResState;
 
+		if ( value == EResourceState::_InvalidState )
+			return "<InvalidState>";
+
 		String	str;
 		switch_enum( ToEResState( value ))
 		{
@@ -980,10 +984,23 @@ namespace AE::Base
 			case _EResState::BuildRTAS_Read :					str << "BuildRTAS_Read";						break;
 			case _EResState::BuildRTAS_RW :						str << "BuildRTAS_RW";							break;
 			case _EResState::BuildRTAS_IndirectBuffer :			str << "BuildRTAS_IndirectBuffer";				break;
+			case _EResState::BuildRTAS_MicromapRead :			str << "BuildRTAS_MicromapRead";				break;
 			case _EResState::ShaderRTAS :						str << "ShaderRTAS";							break;
 			case _EResState::RTShaderBindingTable :				str << "RTShaderBindingTable";					break;
+			case _EResState::BuildMicromap_Read :				str << "BuildMicromap_Read";					break;
+			case _EResState::BuildMicromap_RW :					str << "BuildMicromap_RW";						break;
 			case _EResState::ShadingRateImage :					str << "ShadingRateImage";						break;
 			case _EResState::FragmentDensityMap :				str << "FragmentDensityMap";					break;
+			case _EResState::CoopVecConvert_Read :				str << "CoopVecConvert_Read";					break;
+			case _EResState::CoopVecConvert_Write :				str << "CoopVecConvert_Write";					break;
+			case _EResState::ICB_Preprocess_Read :				str << "ICB_Preprocess_Read";					break;
+			case _EResState::ICB_Preprocess_Write :				str << "ICB_Preprocess_Write";					break;
+			case _EResState::VideoDecodeSrc :					str << "VideoDecodeSrc";						break;
+			case _EResState::VideoDecodeDst :					str << "VideoDecodeDst";						break;
+			case _EResState::VideoDecodeDpb :					str << "VideoDecodeDpb";						break;
+			case _EResState::VideoEncodeSrc :					str << "VideoEncodeSrc";						break;
+			case _EResState::VideoEncodeDst :					str << "VideoEncodeDst";						break;
+			case _EResState::VideoEncodeDpb :					str << "VideoEncodeDpb";						break;
 			case _EResState::Unknown :							str << "Unknown";								break;
 			case _EResState::Preserve :							str << "Preserve";								break;
 			case _EResState::General :							str << "General";								break;
@@ -992,12 +1009,6 @@ namespace AE::Base
 		}
 		switch_end
 
-		if ( AnyBits( value, EResourceState::DSTestBeforeFS ))
-			str << " | DSTestBeforeFS";
-
-		if ( AnyBits( value, EResourceState::DSTestAfterFS ))
-			str << " | DSTestAfterFS";
-
 		if ( AnyBits( value, EResourceState::Invalidate ))
 			str << " | Invalidate";
 
@@ -1005,11 +1016,6 @@ namespace AE::Base
 		{
 			EResourceState	stages = value & EResourceState::AllStages;
 
-			if ( AllBits( stages, EResourceState::AllStages ))
-			{
-				stages &= ~EResourceState::AllStages;
-				str << " | AllStages";
-			}
 			if ( AllBits( stages, EResourceState::AllShaderStages ))
 			{
 				stages &= ~EResourceState::AllShaderStages;
@@ -1031,21 +1037,31 @@ namespace AE::Base
 				str << " | PostRasterizationShaders";
 			}
 
+			if ( AnyBits( value, EResourceState::DSTestBeforeFS ))
+			{
+				stages &= ~EResourceState::DSTestBeforeFS;
+				str << " | DSTestBeforeFS";
+			}
+
+			if ( AnyBits( value, EResourceState::DSTestAfterFS ))
+			{
+				stages &= ~EResourceState::DSTestAfterFS;
+				str << " | DSTestAfterFS";
+			}
+
 			for (auto stage : BitfieldIterate( stages ))
 			{
-				str << " | ";
 				switch ( stage )
 				{
-					case EResourceState::MeshTaskShader :			str << "MeshTaskShader";			break;
-					case EResourceState::VertexProcessingShaders :	str << "VertexProcessingShaders";	break;
-					case EResourceState::TileShader :				str << "TileShader";				break;
-					case EResourceState::FragmentShader :			str << "FragmentShader";			break;
-					case EResourceState::ComputeShader :			str << "ComputeShader";				break;
-					case EResourceState::RayTracingShaders :		str << "RayTracingShaders";			break;
-					case EResourceState::CoopVecConvertStage :		str << "CoopVecConvertStage";		break;
+					case EResourceState::MeshTaskShader :			str << " | MeshTaskShader";				break;
+					case EResourceState::VertexProcessingShaders :	str << " | VertexProcessingShaders";	break;
+					case EResourceState::TileShader :				str << " | TileShader";					break;
+					case EResourceState::FragmentShader :			str << " | FragmentShader";				break;
+					case EResourceState::ComputeShader :			str << " | ComputeShader";				break;
+					case EResourceState::RayTracingShaders :		str << " | RayTracingShaders";			break;
 					default :										DBG_WARNING( "unknown resource state stage" );	break;
 				}
-				StaticAssert( uint(EResourceState::AllStages) == 0x3F8000 );
+				StaticAssert( uint(EResourceState::AllShaderStages) == 0x1F8000 );
 			}
 		}
 

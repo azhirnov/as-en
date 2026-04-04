@@ -2,9 +2,7 @@
 
 #include "base/ObjC/NS.h"
 
-#undef null
 #import <Cocoa/Cocoa.h>
-#define null	nullptr
 
 #include "base/Defines/Undef.h"
 #include "base/Log/Logger.h"

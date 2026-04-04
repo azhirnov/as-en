@@ -105,6 +105,16 @@ Examples in GraphicsRHI tests:
 * [Ray query](https://github.com/azhirnov/as-en/blob/dev/AE/engine/tests/graphics_rhi/RenderGraph/Test_RG_Debugger5.cpp)
 
 
+## Shader Statistics
+
+Vulkan allows to get information about compiled shaders.<br/>
+Create pipeline with `EPipelineOpt::CaptureStatistics` and then use `VDevice::PrintPipelineExecutableStatistics()` to print this information.
+
+Result may contains:
+* (vector) register count, which affects performance.
+* local memory usage
+
+
 ## External tools
 
 Overview of profiling/debugging tools which is tested for compatibility and used to optimize the engine.

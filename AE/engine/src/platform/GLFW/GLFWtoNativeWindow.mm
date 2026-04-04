@@ -18,10 +18,10 @@ extern bool  GetNSWindowView (GLFWwindow* wnd, OUT MetalNSViewRC &outNSView, OUT
 	CHECK_ERR( ns_view != nil );
 
 	NSBundle*	ns_bundle = [NSBundle bundleWithPath : @"/System/Library/Frameworks/QuartzCore.framework"];
-	CHECK_ERR( ns_bundle != null );
+	CHECK_ERR( ns_bundle != AE::null );
 
 	id	ns_layer = [[ns_bundle classNamed:@"CAMetalLayer"] layer];
-	CHECK_ERR( ns_layer != null );
+	CHECK_ERR( ns_layer != AE::null );
 
 	[ns_view setLayer : ns_layer];
 	[ns_view setWantsLayer : YES];

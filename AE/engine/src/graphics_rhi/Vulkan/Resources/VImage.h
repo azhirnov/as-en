@@ -3,11 +3,8 @@
 #pragma once
 
 #ifdef AE_ENABLE_VULKAN
-# include "graphics_rhi/Public/ImageDesc.h"
-# include "graphics_rhi/Public/EResourceState.h"
-# include "graphics_rhi/Public/IDs.h"
-# include "graphics_rhi/Vulkan/VQueue.h"
 # include "graphics_rhi/Public/ResourceManager.h"
+# include "graphics_rhi/Vulkan/VQueue.h"
 
 namespace AE::Graphics
 {
@@ -36,8 +33,9 @@ namespace AE::Graphics
 		VImage ()											__NE___	{}
 		~VImage ()											__NE___;
 
-		ND_ bool  Create (ResourceManager &, const ImageDesc &, GfxMemAllocatorPtr, StringView dbgName)		__NE___;
+		ND_ bool  Create (ResourceManager &, const ImageDesc &, GfxMemAllocatorPtr, StringView dbgName)			__NE___;
 		ND_ bool  Create (ResourceManager &, const VulkanImageDesc &, GfxMemAllocatorPtr, StringView dbgName)	__NE___;
+		ND_ bool  Create (ResourceManager &, const VulkanImageDesc2 &, GfxMemAllocatorPtr, StringView dbgName)	__NE___;
 			void  Destroy (ResourceManager &)																	__NE___;
 
 		ND_ VulkanImageDesc		GetNativeDescription ()		C_NE___;
@@ -65,6 +63,8 @@ namespace AE::Graphics
 		ND_ static bool	 IsSupported (const ResourceManager &, const ImageDesc &, const ImageViewDesc &)	__NE___;
 
 		ND_ static Bytes  GetMemoryAlignment (const VDevice &dev, const ImageDesc &desc)					__NE___;
+
+		ND_ static bool  CheckFormatFeatures (const ResourceManager &, VkFormat format, EImageUsage usage, EImageOpt options, bool optTiling) __NE___;
 	};
 
 

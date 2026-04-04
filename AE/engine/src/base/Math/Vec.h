@@ -564,6 +564,12 @@ namespace _hidden_
 		}
 	}
 
+	template <typename T>
+	NdCx__ auto  AddSat (const TByte<T> a, const TByte<T> b) __NE___
+	{
+		return TByte<T>{ AddSat( T{a}, T{b} )};
+	}
+
 /*
 =================================================
 	SubSat
@@ -597,6 +603,12 @@ namespace _hidden_
 		{
 			return (at < bt) ? T(0) : at - bt;
 		}
+	}
+
+	template <typename T>
+	NdCx__ TByte<T>  SubSat (const TByte<T> a, const TByte<T> b) __NE___
+	{
+		return TByte<T>{ SubSat( T{a}, T{b} )};
 	}
 
 /*
@@ -2065,7 +2077,7 @@ namespace _hidden_
 =================================================
 */
 	template <typename T> requires(IsInteger<T>)
-	ND_ T  IPow (const T base, const T power) __NE___
+	NdCx__ T  IPow (const T base, const T power) __NE___
 	{
 		T	res = T(1);
 		for (T i = 0; i < power; ++i)

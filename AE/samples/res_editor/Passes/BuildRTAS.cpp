@@ -133,6 +133,55 @@ namespace AE::ResEditor
 		_ReadTimeQuery( ctx.GetFrameId() );
 		return true;
 	}
+//-----------------------------------------------------------------------------
+
+
+
+/*
+=================================================
+	constructor
+=================================================
+*/
+	BuildRTMicromap::BuildRTMicromap (RC<RTMicromap> dstMicromap, StringView dbgName) __Th___ :
+		IPass{ dbgName },
+		_dstMicromap{ RVRef(dstMicromap) }
+	{
+		CHECK_THROW( _dstMicromap );
+	}
+
+/*
+=================================================
+	Execute
+=================================================
+*/
+	bool  BuildRTMicromap::Execute (SyncPassData &pd) __Th___
+	{
+		if_unlikely( not _IsEnabled() )
+			return true;
+
+		DirectCtx::ASBuild	ctx{ pd.rtask, RVRef(pd.cmdbuf), DebugLabel{_dbgName} };
+		bool				result;
+
+		_BeginTimeQuery( ctx );
+
+		result = _dstMicromap->Build( ctx );
+
+		_EndTimeQuery( ctx );
+
+		pd.cmdbuf = ctx.ReleaseCommandBuffer();
+		return result;
+	}
+
+/*
+=================================================
+	Update
+=================================================
+*/
+	bool  BuildRTMicromap::Update (TransferCtx_t &ctx, const UpdatePassData &) __Th___
+	{
+		_ReadTimeQuery( ctx.GetFrameId() );
+		return true;
+	}
 
 
 } // AE::ResEditor

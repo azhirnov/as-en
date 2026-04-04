@@ -15,7 +15,7 @@ namespace {
 }
 
 namespace AE::Base {
-	extern bool  Android_IsUnderDebugger;
+	extern "C" void AE_DLL_EXPORT Android_SetIsUnderDebugger (bool value);
 }
 
 namespace AE::App
@@ -242,6 +242,7 @@ namespace {
 			else
 			{
 				_andWindows.fast_erase( i );
+				_windows.fast_erase( i );
 			}
 		}
 
@@ -314,7 +315,7 @@ namespace {
 
 		++_windowCounter;
 
-		ASSERT( _andWindows.size() == _windows.size() );
+		ASSERT_Eq( _andWindows.size(), _windows.size() );
 	}
 
 /*
@@ -374,7 +375,8 @@ namespace {
 		app._java.application.Method( "IsNetworkConnected",	OUT app._methods.isNetworkConnected );
 		//app._java.application.Method( "CreateWindow",		OUT app._methods.createWindow );
 
-		Base::Android_IsUnderDebugger = isUnderDebugger;
+		Base::Android_SetIsUnderDebugger( isUnderDebugger );
+		ASSERT( isUnderDebugger == AndroidUtils::IsUnderDebugger() );
 
 		if ( isUnderDebugger )
 		{
@@ -498,7 +500,10 @@ namespace {
 
 		JavaEnv::SetVM( vm );
 
-		s_AndApp.reset( new ApplicationAndroid{ AE_OnAppCreated() });
+		const int	argc	= 1;
+		const char*	argv[]	= { "" };
+
+		s_AndApp.reset( new ApplicationAndroid{ AE_OnAppCreated( argc, argv )});
 
 		AE_LOGI( "Started java application" );
 

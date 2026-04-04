@@ -26,7 +26,7 @@ namespace AE::PipelineCompiler
 	static constexpr uint	SamplerPack_Version			= 1;
 	static constexpr uint	SamplerPack_Name			= "SampPack"_Hash;
 
-	static constexpr uint	PipelinePack_Version		= 3;
+	static constexpr uint	PipelinePack_Version		= 4;
 	static constexpr uint	PipelinePack_Name			= "PplnPack"_Hash;
 
 	static constexpr uint	ShaderPack_Version			= 1;

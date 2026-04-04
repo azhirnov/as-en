@@ -382,7 +382,7 @@ namespace {
 	GetWindowsPath
 =================================================
 */
-	Path  FileSystem::GetWindowsPath ()
+	Path  FileSystem::GetWindowsPath () __NE___
 	{
 		wchar_t buf[MAX_PATH];
 		uint	len = ::GetWindowsDirectoryW( buf, uint(CountOf( buf )) );  // win2000

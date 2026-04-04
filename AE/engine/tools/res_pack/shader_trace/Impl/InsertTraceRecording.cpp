@@ -895,7 +895,7 @@ ND_ static bool  RecursiveProcessSelectionNode (TIntermSelection* selection, Deb
 	ReplaceIntermLoop
 =================================================
 */
-static void  ReplaceIntermLoop (INOUT TIntermLoop* loop, TIntermNode* aBody, TIntermTyped* aTest, TIntermTyped* aTerminal)
+static void  ReplaceIntermLoop (INOUT TIntermLoop* loop, TIntermNode* aBody, TIntermNode* aTest, TIntermTyped* aTerminal)
 {
 	const bool			test_first	= loop->testFirst();
 	const bool			is_unroll	= loop->getUnroll();

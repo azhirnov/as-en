@@ -263,6 +263,22 @@ namespace AE::Base
 
 /*
 =================================================
+	UpdateAt
+=================================================
+*/
+	bool  WinFileWStream::UpdateAt (Bytes pos) __NE___
+	{
+		ASSERT( IsOpen() );
+		ASSERT( IsMultipleOf( pos, _align.offsetAlign ));
+
+		LARGE_INTEGER	info;
+		info.QuadPart = slong(pos);
+
+		return ::SetFilePointerEx( _file.Ref<HANDLE>(), info, null, FILE_BEGIN ) != FALSE;	// winxp
+	}
+
+/*
+=================================================
 	WriteSeq
 =================================================
 */

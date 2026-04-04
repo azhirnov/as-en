@@ -22,6 +22,8 @@
 #define AE_fragment_shading_rate
 #define AE_fragment_shader_barycentric
 #define AE_demote_to_helper_invocation
+#define AE_shader_realtime_clock
+#define AE_shader_clock
 
 #define AE_AMD_GPU
 #define AE_NVidia_GPU

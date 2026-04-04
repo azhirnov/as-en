@@ -93,7 +93,7 @@ namespace AE::Graphics
 		ExtensionSet_t			_deviceExtensions;
 
 		VulkanDeviceFnTable		_deviceFnTable;			// large
-		VProperties				_properties;			// very large
+		VProperties2			_properties;			// very large
 
 		DEBUG_ONLY(
 			bool				_logAllocatorStats	= true;		// constant after initialization
@@ -108,9 +108,12 @@ namespace AE::Graphics
 		ND_ EGraphicsAPI			GetGraphicsAPI ()								C_NE_OF	{ return EGraphicsAPI::Vulkan; }
 
 		ND_ VExtensions const&		GetVExtensions ()								C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _extensions; }
-		ND_ VProperties const&		GetVProperties ()								C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _properties; }
+		ND_ VProperties2 const&		GetVProperties ()								C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _properties; }
 		ND_ ResourceFlags const&	GetResourceFlags ()								C_NE_OF	{ DRC_SHAREDLOCK( _drCheck );  return _resFlags; }
 		ND_ DeviceProperties const&	GetDeviceProperties ()							C_NE_OF	{ DRC_SHAREDLOCK( _drCheck );  return _devProps; }
+
+		ND_ ExtensionSet_t const&	GetInstanceExtensions ()						C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _instanceExtensions; }
+		ND_ ExtensionSet_t const&	GetDeviceExtensions ()							C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _deviceExtensions; }
 
 		ND_ VkDevice				GetVkDevice ()									C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _vkLogicalDevice; }
 		ND_ VkPhysicalDevice		GetVkPhysicalDevice ()							C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _vkPhysicalDevice; }
@@ -221,7 +224,7 @@ namespace AE::Graphics
 			InstanceCreateInfo () __NE___ {}
 		};
 
-		using DisableFeaturesFn_t	= void (*) (void* userData, INOUT VProperties &);
+		using DisableFeaturesFn_t	= void (*) (void* userData, INOUT VProperties2 &);
 
 		struct DeviceCreateInfo
 		{
@@ -397,7 +400,7 @@ namespace AE::Graphics
 		void  _ValidateQueueStages (INOUT Queues_t &queues)																C_NE___;
 
 		void  _SetupDeviceExtensions (INOUT VExtensions &)																C_NE___;
-		void  _SetupFeatures (INOUT VProperties &)																		C_NE___;
+		void  _SetupFeatures (INOUT VProperties2 &)																		C_NE___;
 
 		ND_ bool  _InitFeaturesAndPropertiesByFeatureSet (const FeatureSet &fs)											__NE___;
 

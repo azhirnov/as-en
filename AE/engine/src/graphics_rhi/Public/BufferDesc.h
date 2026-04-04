@@ -2,8 +2,8 @@
 
 #pragma once
 
-#include "graphics_rhi/Public/ResourceEnums.h"
 #include "graphics_rhi/Public/Queue.h"
+#include "graphics_rhi/Public/ResourceEnums.h"
 
 namespace AE::Graphics
 {

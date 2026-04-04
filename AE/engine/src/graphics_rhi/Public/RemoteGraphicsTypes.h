@@ -25,12 +25,16 @@ namespace AE::Graphics
 	using RmRTGeometryID			= HandleTmpl< 16, 16, Graphics::_hidden_::RemoteIDs_Start + 14 >;		// bottom-level AS
 	using RmRTSceneID				= HandleTmpl< 16, 16, Graphics::_hidden_::RemoteIDs_Start + 15 >;		// top-level AS
 	using RmRTShaderBindingID		= HandleTmpl< 16, 16, Graphics::_hidden_::RemoteIDs_Start + 16 >;		// shader binding table
-	using RmMemoryID				= HandleTmpl< 32, 32, Graphics::_hidden_::RemoteIDs_Start + 17 >;
+	using RmRTMicromapID			= HandleTmpl< 16, 16, Graphics::_hidden_::RemoteIDs_Start + 17 >;
+
+	using RmIndirectCommandsLayoutID = HandleTmpl< 16, 16, Graphics::_hidden_::RemoteIDs_Start + 18 >;
 
 	// for internal usage
-	using RmSamplerID				= HandleTmpl< 16, 16, Graphics::_hidden_::RemoteIDs_Start + 18 >;
-	using RmPipelineLayoutID		= HandleTmpl< 16, 16, Graphics::_hidden_::RemoteIDs_Start + 19 >;
-	using RmRenderPassID			= HandleTmpl< 16, 16, Graphics::_hidden_::RemoteIDs_Start + 20 >;
+	using RmSamplerID				= HandleTmpl< 16, 16, Graphics::_hidden_::RemoteIDs_Start + 30 >;
+	using RmPipelineLayoutID		= HandleTmpl< 16, 16, Graphics::_hidden_::RemoteIDs_Start + 31 >;
+	using RmRenderPassID			= HandleTmpl< 16, 16, Graphics::_hidden_::RemoteIDs_Start + 32 >;
+	using RmMemoryID				= HandleTmpl< 32, 32, Graphics::_hidden_::RemoteIDs_Start + 33 >;
+	using RmIndirectExecutionSetID	= HandleTmpl< 16, 16, Graphics::_hidden_::RemoteIDs_Start + 34 >;
 
 	using RmVideoSessionID			= HandleTmpl< 16, 16, Graphics::_hidden_::RemoteIDs_Start + 40 >;
 	using RmVideoBufferID			= HandleTmpl< 16, 16, Graphics::_hidden_::RemoteIDs_Start + 41 >;
@@ -135,6 +139,9 @@ namespace AE::RemoteGraphics
 
 	Nd__In RmRTSceneID				RmCast (RTSceneID				id)		{ return BitCast<RmRTSceneID>(id); }
 	Nd__In RTSceneID				RmCast (RmRTSceneID				id)		{ return BitCast<RTSceneID>(id); }
+
+	Nd__In RmRTMicromapID			RmCast (RTMicromapID			id)		{ return BitCast<RmRTMicromapID>(id); }
+	Nd__In RTMicromapID				RmCast (RmRTMicromapID			id)		{ return BitCast<RTMicromapID>(id); }
 
 	Nd__In RmRTShaderBindingID		RmCast (RTShaderBindingID		id)		{ return BitCast<RmRTShaderBindingID>(id); }
 	Nd__In RTShaderBindingID		RmCast (RmRTShaderBindingID		id)		{ return BitCast<RTShaderBindingID>(id); }

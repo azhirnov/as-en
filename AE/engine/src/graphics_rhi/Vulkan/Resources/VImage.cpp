@@ -20,7 +20,17 @@ namespace {
 		VkImageAspectFlagBits	result = Zero;
 
 		if ( EPixelFormat_IsColor( format ))
+		{
 			result |= VK_IMAGE_ASPECT_COLOR_BIT;
+
+			const uint	plane_count = EPixelFormat_PlaneCount( format );
+			if ( plane_count > 0 and plane_count <= 3 )
+			{
+				result = Zero;
+				for (uint i = 0; i < plane_count; ++i)
+					result |= VkImageAspectFlagBits(VK_IMAGE_ASPECT_PLANE_0_BIT << i);
+			}
+		}
 		else
 		{
 			if ( EPixelFormat_HasDepth( format ))
@@ -30,102 +40,6 @@ namespace {
 				result |= VK_IMAGE_ASPECT_STENCIL_BIT;
 		}
 		return result;
-	}
-
-/*
-=================================================
-	CheckFormatFeatures
-=================================================
-*/
-	ND_ static bool  CheckFormatFeatures (const ResourceManager &resMngr, VkFormat format, EImageUsage usage, EImageOpt options, bool optTiling) __NE___
-	{
-		if ( AllBits( options, EImageOpt::ExtendedUsage ))
-			return true;
-
-		const auto&		dev	= resMngr.GetDevice();
-		const auto&		fs	= resMngr.GetFeatureSet();
-
-		VkFormatProperties	fmt_props = {};
-		VulkanInstanceFn::vkGetPhysicalDeviceFormatProperties( dev.GetVkPhysicalDevice(), format, OUT &fmt_props );
-		// TODO: VK_KHR_format_feature_flags2
-
-		VkFormatFeatureFlags		required	= 0;
-		const VkFormatFeatureFlags	available	= (optTiling ? fmt_props.optimalTilingFeatures : fmt_props.linearTilingFeatures) |
-												  (dev.GetVExtensions().maintenance1 ? 0 : VK_FORMAT_FEATURE_TRANSFER_SRC_BIT | VK_FORMAT_FEATURE_TRANSFER_DST_BIT);
-
-		for (auto t : BitfieldIterate( usage ))
-		{
-			switch_enum( t )
-			{
-				case EImageUsage::TransferSrc :
-					required |= VK_FORMAT_FEATURE_TRANSFER_SRC_BIT;
-
-					if ( AllBits( options, EImageOpt::BlitSrc ))
-						required |= VK_FORMAT_FEATURE_BLIT_SRC_BIT;
-					break;
-
-				case EImageUsage::TransferDst :
-					required |= VK_FORMAT_FEATURE_TRANSFER_DST_BIT;
-
-					if ( AllBits( options, EImageOpt::BlitDst ))
-						required |= VK_FORMAT_FEATURE_BLIT_DST_BIT;
-					break;
-
-				case EImageUsage::DepthStencilAttachment :
-					required |= VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT;
-					break;
-
-				case EImageUsage::ColorAttachment :
-					required |= VK_FORMAT_FEATURE_COLOR_ATTACHMENT_BIT;
-
-					if ( AllBits( options, EImageOpt::ColorAttachmentBlend ))
-						required |= VK_FORMAT_FEATURE_COLOR_ATTACHMENT_BLEND_BIT;
-					break;
-
-				case EImageUsage::Storage :
-					required |= VK_FORMAT_FEATURE_STORAGE_IMAGE_BIT;
-
-					if ( AllBits( options, EImageOpt::StorageAtomic ))
-						required |= VK_FORMAT_FEATURE_STORAGE_IMAGE_ATOMIC_BIT;
-					break;
-
-				case EImageUsage::Sampled :
-					required |= VK_FORMAT_FEATURE_SAMPLED_IMAGE_BIT;
-
-					if ( AllBits( options, EImageOpt::SampledLinear ))
-						required |= VK_FORMAT_FEATURE_SAMPLED_IMAGE_FILTER_LINEAR_BIT;
-
-					if ( AllBits( options, EImageOpt::SampledMinMax ))
-						required |= VK_FORMAT_FEATURE_SAMPLED_IMAGE_FILTER_MINMAX_BIT;
-					break;
-
-				case EImageUsage::ShadingRate :
-					if ( fs.attachmentFragmentShadingRate != FeatureSet::EFeature::RequireTrue )
-						return false;
-
-					required |= VK_FORMAT_FEATURE_FRAGMENT_SHADING_RATE_ATTACHMENT_BIT_KHR;
-					break;
-
-				case EImageUsage::FragmentDensityMap :
-					if ( fs.fragmentDensityMap != FeatureSet::EFeature::RequireTrue )
-						return false;
-
-					required |= VK_FORMAT_FEATURE_FRAGMENT_DENSITY_MAP_BIT_EXT;
-					break;
-
-				case EImageUsage::InputAttachment :		break;
-
-				case EImageUsage::_Last :
-				case EImageUsage::All :
-				case EImageUsage::Transfer :
-				case EImageUsage::Unknown :
-				case EImageUsage::RWAttachment :
-				default_unlikely :						DBG_WARNING( "unknown image usage" );	break;
-			}
-			switch_end
-		}
-
-		return AllBits( available, required );
 	}
 }
 //-----------------------------------------------------------------------------
@@ -160,7 +74,7 @@ namespace {
 		CHECK_ERR( desc.mipLevels > 0_mipmap );
 		CHECK_ERR( desc.format != Default );
 		CHECK_ERR( desc.usage != Default );
-		CHECK_ERR( EPixelFormat_PlaneCount( desc.format ) == 0 );	// use VideoImage instead
+		CHECK_ERR( NoBits( desc.options, EImageOpt::SeparatePlanes ));
 
 		_desc = desc;
 		_desc.Validate();
@@ -291,6 +205,52 @@ namespace {
 
 		if ( desc.allocMemory )
 		{
+			CHECK_ERR( allocator );
+			_memoryId = resMngr.CreateMemoryObj( _image, _desc, RVRef(allocator), dbgName );
+			CHECK_ERR( _memoryId );
+		}
+
+		const auto&		dev = resMngr.GetDevice();
+		dev.SetObjectName( _image, dbgName, VK_OBJECT_TYPE_IMAGE );
+
+		_aspectMask = desc.aspectMask;
+		if ( _aspectMask == Zero )
+			_aspectMask = ChooseAspect( _desc.format );
+
+		GFX_DBG_ONLY( _debugName = dbgName; )
+		return true;
+	}
+
+/*
+=================================================
+	Create
+=================================================
+*/
+	bool  VImage::Create (ResourceManager &resMngr, const VulkanImageDesc2 &desc, GfxMemAllocatorPtr allocator, StringView dbgName) __NE___
+	{
+		DRC_EXLOCK( _drCheck );
+		CHECK_ERR( _image == Default );
+		CHECK_ERR( _memoryId == Default );
+		CHECK_ERR( All( desc.dimension > ImageDim_t{0} ));
+		CHECK_ERR( desc.imageDim != Default );
+		CHECK_ERR( desc.arrayLayers > 0_layer );
+		CHECK_ERR( desc.mipLevels > 0_mipmap );
+		CHECK_ERR( desc.format != Default );
+		CHECK_ERR( desc.usage != Default );
+
+		_desc = desc;
+		_desc.Validate();
+		GRES_CHECK( IsSupported( resMngr, _desc ));
+
+		_image = desc.imageHandle;
+
+		if ( not desc.canBeDestroyed )
+			_desc.memType |= EMemoryType::_External;
+
+		if ( desc.allocMemory )
+		{
+			CHECK_ERR( NoBits( _desc.options, EImageOpt::SeparatePlanes ));
+
 			CHECK_ERR( allocator );
 			_memoryId = resMngr.CreateMemoryObj( _image, _desc, RVRef(allocator), dbgName );
 			CHECK_ERR( _memoryId );
@@ -544,6 +504,105 @@ namespace {
 			align = Max( align, dev.GetDeviceProperties().res.minNonCoherentAtomSize );
 
 		return align;
+	}
+
+/*
+=================================================
+	CheckFormatFeatures
+=================================================
+*/
+	bool  VImage::CheckFormatFeatures (const ResourceManager &resMngr, VkFormat format, EImageUsage usage, EImageOpt options, bool optTiling) __NE___
+	{
+		if ( AllBits( options, EImageOpt::ExtendedUsage ))
+			return true;
+
+		const auto&		dev	= resMngr.GetDevice();
+		const auto&		fs	= resMngr.GetFeatureSet();
+
+		VkFormatProperties	fmt_props = {};
+		VulkanInstanceFn::vkGetPhysicalDeviceFormatProperties( dev.GetVkPhysicalDevice(), format, OUT &fmt_props );
+		// TODO: VK_KHR_format_feature_flags2
+
+		VkFormatFeatureFlags		required	= 0;
+		const VkFormatFeatureFlags	available	= (optTiling ? fmt_props.optimalTilingFeatures : fmt_props.linearTilingFeatures) |
+												  (dev.GetVExtensions().maintenance1 ? 0 : VK_FORMAT_FEATURE_TRANSFER_SRC_BIT | VK_FORMAT_FEATURE_TRANSFER_DST_BIT);
+
+		if ( AllBits( options, EImageOpt::SeparatePlanes ))
+			required |= VK_FORMAT_FEATURE_DISJOINT_BIT;
+
+		for (auto t : BitfieldIterate( usage ))
+		{
+			switch_enum( t )
+			{
+				case EImageUsage::TransferSrc :
+					required |= VK_FORMAT_FEATURE_TRANSFER_SRC_BIT;
+
+					if ( AllBits( options, EImageOpt::BlitSrc ))
+						required |= VK_FORMAT_FEATURE_BLIT_SRC_BIT;
+					break;
+
+				case EImageUsage::TransferDst :
+					required |= VK_FORMAT_FEATURE_TRANSFER_DST_BIT;
+
+					if ( AllBits( options, EImageOpt::BlitDst ))
+						required |= VK_FORMAT_FEATURE_BLIT_DST_BIT;
+					break;
+
+				case EImageUsage::DepthStencilAttachment :
+					required |= VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT;
+					break;
+
+				case EImageUsage::ColorAttachment :
+					required |= VK_FORMAT_FEATURE_COLOR_ATTACHMENT_BIT;
+
+					if ( AllBits( options, EImageOpt::ColorAttachmentBlend ))
+						required |= VK_FORMAT_FEATURE_COLOR_ATTACHMENT_BLEND_BIT;
+					break;
+
+				case EImageUsage::Storage :
+					required |= VK_FORMAT_FEATURE_STORAGE_IMAGE_BIT;
+
+					if ( AllBits( options, EImageOpt::StorageAtomic ))
+						required |= VK_FORMAT_FEATURE_STORAGE_IMAGE_ATOMIC_BIT;
+					break;
+
+				case EImageUsage::Sampled :
+					required |= VK_FORMAT_FEATURE_SAMPLED_IMAGE_BIT;
+
+					if ( AllBits( options, EImageOpt::SampledLinear ))
+						required |= VK_FORMAT_FEATURE_SAMPLED_IMAGE_FILTER_LINEAR_BIT;
+
+					if ( AllBits( options, EImageOpt::SampledMinMax ))
+						required |= VK_FORMAT_FEATURE_SAMPLED_IMAGE_FILTER_MINMAX_BIT;
+					break;
+
+				case EImageUsage::ShadingRate :
+					if ( fs.attachmentFragmentShadingRate != FeatureSet::EFeature::RequireTrue )
+						return false;
+
+					required |= VK_FORMAT_FEATURE_FRAGMENT_SHADING_RATE_ATTACHMENT_BIT_KHR;
+					break;
+
+				case EImageUsage::FragmentDensityMap :
+					if ( fs.fragmentDensityMap != FeatureSet::EFeature::RequireTrue )
+						return false;
+
+					required |= VK_FORMAT_FEATURE_FRAGMENT_DENSITY_MAP_BIT_EXT;
+					break;
+
+				case EImageUsage::InputAttachment :		break;
+
+				case EImageUsage::_Last :
+				case EImageUsage::All :
+				case EImageUsage::Transfer :
+				case EImageUsage::Unknown :
+				case EImageUsage::RWAttachment :
+				default_unlikely :						DBG_WARNING( "unknown image usage" );	break;
+			}
+			switch_end
+		}
+
+		return AllBits( available, required );
 	}
 
 } // AE::Graphics

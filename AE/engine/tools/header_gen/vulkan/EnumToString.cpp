@@ -52,7 +52,7 @@ namespace
 			"VkDependencyFlagBits", "VkSampleCountFlagBits", "VkAttachmentLoadOp", "VkAttachmentStoreOp",
 			"VkImageAspectFlagBits", "VkStructureType", "VkRenderPassCreateFlagBits", "VkAttachmentDescriptionFlagBits",
 			"VkSubpassDescriptionFlagBits", "VkPipelineBindPoint", "VkQueueFlagBits", "VkDeviceMemoryReportEventTypeEXT",
-			"VkComponentTypeKHR", "VkScopeKHR"
+			"VkComponentTypeKHR", "VkScopeKHR", "VkCopyMicromapModeEXT"
 		};
 		const Pair<const char*, const char*>	req_bitfields[] = {
 			{ "VkPipelineStageFlags",			"VkPipelineStageFlagBits" },

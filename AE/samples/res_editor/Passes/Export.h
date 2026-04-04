@@ -53,6 +53,7 @@ namespace AE::ResEditor
 		RC<Buffer>		_temp;
 		const Path		_filePath;
 		Path			_currPath;
+		String			_absPath;
 		VFS::FileName	_fname;
 		uint			_frameId		= UMax;
 		ParserFn_t		_parser;

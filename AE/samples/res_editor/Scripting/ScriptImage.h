@@ -124,6 +124,7 @@ namespace AE::ResEditor
 		// Returns non-null resource or throw exception.
 		ND_ RC<Image>  ToResource ()												__Th___;
 
+		ND_ static bool  IsSame (const ScriptImagePtr &, const ScriptImagePtr &)	__NE___;
 
 	private:
 		ScriptImage (int) {}

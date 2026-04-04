@@ -7,6 +7,7 @@ namespace RenderTechs
 	using PipelineName_t        = AE::Graphics::PipelineName;
 	using RTShaderBindingName_t = AE::Graphics::RTShaderBindingName;
 	using DSLayoutName_t        = AE::Graphics::DSLayoutName;
+	using ExecutionSetName_t    = AE::Graphics::IndirectExecutionSetName;
 
 	static constexpr struct _CanvasDrawTest
 	{

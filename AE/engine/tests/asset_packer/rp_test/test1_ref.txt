@@ -217,7 +217,7 @@ ci.pAttachments    = {
   [1].stencilLoadOp  = DONT_CARE
   [1].stencilStoreOp = DONT_CARE
   [1].initialLayout  = DEPTH_STENCIL_ATTACHMENT_OPTIMAL  (DepthStencilAttachment_RW | DSTestBeforeFS | DSTestAfterFS)
-  [1].finalLayout    = DEPTH_STENCIL_ATTACHMENT_OPTIMAL  (DepthStencilAttachment_RW | DSTestBeforeFS | DSTestAfterFS | Invalidate)
+  [1].finalLayout    = DEPTH_STENCIL_ATTACHMENT_OPTIMAL  (DepthStencilAttachment_RW | Invalidate | DSTestBeforeFS | DSTestAfterFS)
 }
 ci.subpassCount = 1
 ci.pSubpasses   = {
@@ -449,7 +449,7 @@ ci.pAttachments    = {
   [1].storeOp        = STORE
   [1].stencilLoadOp  = DONT_CARE
   [1].stencilStoreOp = DONT_CARE
-  [1].initialLayout  = UNDEFINED  (DepthStencilAttachment_RW | DSTestBeforeFS | Invalidate)
+  [1].initialLayout  = UNDEFINED  (DepthStencilAttachment_RW | Invalidate | DSTestBeforeFS)
   [1].finalLayout    = DEPTH_STENCIL_READ_ONLY_OPTIMAL  (DepthStencilTest | DSTestBeforeFS)
 }
 ci.subpassCount = 1
@@ -998,7 +998,7 @@ ci.pAttachments    = {
   [3].storeOp        = DONT_CARE
   [3].stencilLoadOp  = DONT_CARE
   [3].stencilStoreOp = DONT_CARE
-  [3].initialLayout  = UNDEFINED  (DepthStencilAttachment_RW | DSTestBeforeFS | DSTestAfterFS | Invalidate)
+  [3].initialLayout  = UNDEFINED  (DepthStencilAttachment_RW | Invalidate | DSTestBeforeFS | DSTestAfterFS)
   [3].finalLayout    = SHADER_READ_ONLY_OPTIMAL  (InputDepthStencilAttachment | Invalidate | FragmentShader)
 }
 ci.subpassCount = 5
@@ -1216,7 +1216,7 @@ ci.pAttachments    = {
   [3].storeOp        = DONT_CARE
   [3].stencilLoadOp  = DONT_CARE
   [3].stencilStoreOp = DONT_CARE
-  [3].initialLayout  = UNDEFINED  (DepthStencilAttachment_RW | DSTestBeforeFS | Invalidate)
+  [3].initialLayout  = UNDEFINED  (DepthStencilAttachment_RW | Invalidate | DSTestBeforeFS)
   [3].finalLayout    = SHADER_READ_ONLY_OPTIMAL  (InputDepthStencilAttachment | Invalidate | FragmentShader)
 }
 ci.subpassCount = 5

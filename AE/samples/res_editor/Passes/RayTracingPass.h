@@ -20,12 +20,6 @@ namespace AE::ResEditor
 	private:
 		using PipelineMap_t		= FixedMap< EDebugMode, Tuple< RayTracingPipelineID, RTShaderBindingID >, uint(EDebugMode::_Count) >;
 
-		struct DynamicData
-		{
-			uint	frame		= 0;
-			uint	prevFrame	= UMax;
-		};
-
 	public:
 		using IterationDim_t	= Union< uint3, RC<DynamicDim>, RC<DynamicUInt>, RC<DynamicUInt3> >;
 
@@ -51,7 +45,6 @@ namespace AE::ResEditor
 		DescSetBinding			_dsIndex;
 
 		Strong<BufferID>		_ubuffer;
-		mutable DynamicData		_dynData;		// used only in 'Upload()'
 
 		ResourceArray			_resources;
 		Iterations_t			_iterations;

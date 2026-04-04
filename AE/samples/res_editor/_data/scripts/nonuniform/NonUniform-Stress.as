@@ -2,7 +2,7 @@
 /*
 	Find difference between texture array and array of texture.
 
-	results in [Bindless paper](https://github.com/azhirnov/as-en/blob/dev/AE/docs/papers/Bindless-ru.md)
+	results in [Bindless paper](https://github.com/azhirnov/as-en/blob/dev/AE/papers/graphics/Bindless-ru.md)
 */
 #ifdef __INTELLISENSE__
 # 	include <res_editor.as>
@@ -73,9 +73,9 @@
 
 		obj_buf.ArrayLayout(
 			"ObjectTransform",
-			"	float3	position;" +
-			"	float	scale;" +
-			"	uint	color;" +
+			"	float3	position;"
+			"	float	scale;"
+			"	uint	color;"
 			"	uint	texId;",
 			count );
 
@@ -97,17 +97,13 @@
 
 		// create geometry
 		{
-			array<float3>	positions;
-			array<float2>	uvs;
-			array<uint>		indices;
-			GetSphere( (low_detail ? 3 : 6), OUT positions, OUT uvs, OUT indices );
+			RC<Mesh>	mesh = Mesh();
+			mesh.SetAttributes( EAttribute::Position | EAttribute::Texcoord2D );
+			mesh.AddSphere( low_detail ? 3 : 6 );
 
-			@tris_count = count.Mul( indices.size()/3 );
+			@tris_count = count.Mul( mesh.PrimitiveCount() );
 
-			RC<Buffer>		geom_data = Buffer();
-			geom_data.FloatArray( "positions",	positions );
-			geom_data.FloatArray( "uvs",		uvs );
-			geom_data.UIntArray(  "indices",	indices );
+			RC<Buffer>	geom_data = mesh.ToBuffer();
 			geom_data.LayoutName( "GeometryData" );
 
 			{
@@ -117,7 +113,7 @@
 				geometry.ArgIn( "un_TextureArr",	img_arr,	Sampler_LinearRepeat );
 
 				UnifiedGeometry_DrawIndexed	cmd;
-				cmd.indexCount	= indices.size();
+				cmd.indexCount	= mesh.IndexCount();
 				cmd.IndexBuffer( geom_data, "indices" );
 				cmd.InstanceCount( count );
 				geometry.Draw( cmd );
@@ -130,7 +126,7 @@
 				geometry.ArgIn( "un_Textures",		images,		Sampler_LinearRepeat );
 
 				UnifiedGeometry_DrawIndexed	cmd;
-				cmd.indexCount	= indices.size();
+				cmd.indexCount	= mesh.IndexCount();
 				cmd.IndexBuffer( geom_data, "indices" );
 				cmd.InstanceCount( count );
 				geometry.Draw( cmd );
@@ -143,7 +139,7 @@
 				geometry.ArgTex( "un_Textures",		images );
 
 				UnifiedGeometry_DrawIndexed	cmd;
-				cmd.indexCount	= indices.size();
+				cmd.indexCount	= mesh.IndexCount();
 				cmd.IndexBuffer( geom_data, "indices" );
 				cmd.InstanceCount( count );
 				geometry.Draw( cmd );

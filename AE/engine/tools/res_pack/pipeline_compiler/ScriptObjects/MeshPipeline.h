@@ -6,6 +6,9 @@
 
 namespace AE::PipelineCompiler
 {
+	using MeshPipelineSpecPtr	= ScriptRC< struct MeshPipelineSpecScriptBinding >;
+	using MeshPipelinePtr		= ScriptRC< struct MeshPipelineScriptBinding >;
+
 
 	//
 	// Mesh Pipeline Specialization
@@ -20,7 +23,6 @@ namespace AE::PipelineCompiler
 
 	// methods
 	public:
-		MeshPipelineSpecScriptBinding () {}
 		MeshPipelineSpecScriptBinding (MeshPipelineScriptBinding* base, const String &name) __Th___;
 
 		// called from RTGraphicsPass
@@ -57,7 +59,6 @@ namespace AE::PipelineCompiler
 
 		static void  Bind (const ScriptEnginePtr &se)					__Th___;
 	};
-	using MeshPipelineSpecPtr = ScriptRC< MeshPipelineSpecScriptBinding >;
 
 
 
@@ -84,8 +85,7 @@ namespace AE::PipelineCompiler
 
 	// methods
 	public:
-		MeshPipelineScriptBinding ();
-		explicit MeshPipelineScriptBinding (const String &name)							__Th___;
+		ND_ static MeshPipelinePtr  Create (const String &name)							__Th___;
 
 		void  SetTaskShader		(const ScriptShaderPtr &shader)							__Th___;
 		void  SetMeshShader		(const ScriptShaderPtr &shader)							__Th___;
@@ -114,12 +114,14 @@ namespace AE::PipelineCompiler
 		static void  Bind (const ScriptEnginePtr &se)									__Th___;
 
 	private:
+		explicit MeshPipelineScriptBinding (const String &name)							__NE___ : BasePipelineTmpl{name} {}
+
+		void  _Init ()																	__Th___;
 		void  _Prepare ()																__Th___;
 
 		ND_ ShaderStructTypePtr  _GetShaderInput (EShader)								const;
 		ND_ ShaderStructTypePtr  _GetShaderOutput (EShader)								const;
 	};
-	using MeshPipelinePtr = ScriptRC< MeshPipelineScriptBinding >;
 
 
 } // AE::PipelineCompiler

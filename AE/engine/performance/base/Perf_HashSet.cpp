@@ -14,21 +14,22 @@
 #include "flat_hash_map-master/flat_hash_map.hpp"
 #include "sparse-map-master/include/tsl/sparse_set.h"
 #include "sparsepp-master/sparsepp/spp.h"
+#include "entt/src/entt/entt.hpp"
 #pragma warning(pop)
 */
+
 
 namespace
 {
 	struct Elem
 	{
-		uint	v1;
-		uint	v2;
+		ulong	v1;
 
-		Elem (uint val) : v1{val}, v2{val ^ uint(usize(this))} {}
+		Elem (ulong val) : v1{val} {}
 
 		bool  operator == (const Elem &rhs) const { return v1 == rhs.v1; }
 
-		operator ulong () const { return BitCast<ulong>(*this); }
+		explicit operator ulong () const { return v1; }
 	};
 
 	struct ElemHash
@@ -50,7 +51,7 @@ namespace
 		{
 			auto	set_it = set.find( *it );
 			if ( set_it != set.end() )
-				sum += *set_it;
+				sum += ulong{*set_it};
 		}
 
 		profiler.EndIteration();
@@ -97,6 +98,7 @@ namespace
 			std::unordered_set< Elem, ElemHash >		un_set;
 			//tsl::sparse_set< Elem, ElemHash >			tsl_set;
 			//spp::sparse_hash_set< Elem, ElemHash >	spp_set;
+			//entt::dense_set< Elem, ElemHash >			entt_set;
 			absl::flat_hash_set< Elem, ElemHash >		absl_set;
 			absl::node_hash_set< Elem, ElemHash >		absl_set2;
 		#endif
@@ -113,6 +115,7 @@ namespace
 				//large_set.reserve( count );
 				//tsl_set.reserve( count );
 				//spp_set.reserve( count );
+				//entt_set.reserve( count );
 				absl_set.reserve( count );
 				absl_set2.reserve( count );
 			}
@@ -125,6 +128,7 @@ namespace
 				//large_set.insert( k );
 				//tsl_set.insert( k );
 				//spp_set.insert( k );
+				//entt_set.insert( k );
 				absl_set.insert( k );
 				absl_set2.insert( k );
 			}
@@ -172,15 +176,22 @@ namespace
 			sum[5] += SearchTest( spp_set, keys2.begin(), keys2.end(), profiler );
 			sum[5] += SearchTest( spp_set, keys3.begin(), keys3.end(), profiler );
 			profiler.EndTest();
+			*//*
+			profiler.BeginTest( "entt::dense_set" );
+			sum[5] += SearchTest( entt_set, keys.begin(),  keys.end(),  profiler );
+			sum[5] += SearchTest( entt_set, keys.rbegin(), keys.rend(), profiler );
+			sum[5] += SearchTest( entt_set, keys2.begin(), keys2.end(), profiler );
+			sum[5] += SearchTest( entt_set, keys3.begin(), keys3.end(), profiler );
+			profiler.EndTest();
 			*/
-			profiler.BeginTest( "Absel-flat" );
+			profiler.BeginTest( "Abseil-flat" );
 			sum[6] += SearchTest( absl_set, keys.begin(),  keys.end(),  profiler );
 			sum[6] += SearchTest( absl_set, keys.rbegin(), keys.rend(), profiler );
 			sum[6] += SearchTest( absl_set, keys2.begin(), keys2.end(), profiler );
 			sum[6] += SearchTest( absl_set, keys3.begin(), keys3.end(), profiler );
 			profiler.EndTest();
 
-			profiler.BeginTest( "Absel-node" );
+			profiler.BeginTest( "Abseil-node" );
 			sum[7] += SearchTest( absl_set2, keys.begin(),  keys.end(),  profiler );
 			sum[7] += SearchTest( absl_set2, keys.rbegin(), keys.rend(), profiler );
 			sum[7] += SearchTest( absl_set2, keys2.begin(), keys2.end(), profiler );
@@ -194,8 +205,8 @@ namespace
 			//CHECK( sum[1] == sum[3] );
 			//CHECK( sum[1] == sum[4] );
 			//CHECK( sum[1] == sum[5] );
-			CHECK( sum[1] + sum[6] > 0 );
-			CHECK( sum[1] + sum[7] > 0 );
+			CHECK( sum[1] == sum[6] );
+			CHECK( sum[1] == sum[7] );
 		}
 	}
 //-----------------------------------------------------------------------------
@@ -254,6 +265,7 @@ namespace
 			std::unordered_set< Elem, ElemHash >		un_set;
 			//tsl::sparse_set< Elem, ElemHash >			tsl_set;
 			//spp::sparse_hash_set< Elem, ElemHash >	spp_set;
+			//entt::dense_set< Elem, ElemHash >			entt_set;
 			absl::flat_hash_set< Elem, ElemHash >		absl_set;
 			absl::node_hash_set< Elem, ElemHash >		absl_set2;
 		#endif
@@ -269,6 +281,7 @@ namespace
 				//large_set.reserve( count*2 );
 				//tsl_set.reserve( count*2 );
 				//spp_set.reserve( count*2 );
+				//entt_set.reserve( count*2 );
 				absl_set.reserve( count*2 );
 				absl_set2.reserve( count*2 );
 			}
@@ -316,15 +329,22 @@ namespace
 			sum[5] += InsertionTest( spp_set, keys2.begin(), keys2.end(), profiler );
 			sum[5] += InsertionTest( spp_set, keys3.begin(), keys3.end(), profiler );
 			profiler.EndTest();
+			*//*
+			profiler.BeginTest( "entt::dense_set" );
+			sum[5] += InsertionTest( entt_set, keys.begin(),  keys.end(),  profiler );
+			sum[5] += InsertionTest( entt_set, keys.rbegin(), keys.rend(), profiler );
+			sum[5] += InsertionTest( entt_set, keys2.begin(), keys2.end(), profiler );
+			sum[5] += InsertionTest( entt_set, keys3.begin(), keys3.end(), profiler );
+			profiler.EndTest();
 			*/
-			profiler.BeginTest( "Absel-flat" );
+			profiler.BeginTest( "Abseil-flat" );
 			sum[6] += InsertionTest( absl_set, keys.begin(),  keys.end(),  profiler );
 			sum[6] += InsertionTest( absl_set, keys.rbegin(), keys.rend(), profiler );
 			sum[6] += InsertionTest( absl_set, keys2.begin(), keys2.end(), profiler );
 			sum[6] += InsertionTest( absl_set, keys3.begin(), keys3.end(), profiler );
 			profiler.EndTest();
 
-			profiler.BeginTest( "Absel-node" );
+			profiler.BeginTest( "Abseil-node" );
 			sum[7] += InsertionTest( absl_set2, keys.begin(),  keys.end(),  profiler );
 			sum[7] += InsertionTest( absl_set2, keys.rbegin(), keys.rend(), profiler );
 			sum[7] += InsertionTest( absl_set2, keys2.begin(), keys2.end(), profiler );
@@ -341,8 +361,8 @@ namespace
 			//CHECK( sum[1] == sum[3] );
 			//CHECK( sum[1] == sum[4] );
 			//CHECK( sum[1] == sum[5] );
-			CHECK( sum[1] + sum[6] > 0 );
-			CHECK( sum[1] + sum[7] > 0 );
+			CHECK( sum[1] == sum[6] );
+			CHECK( sum[1] == sum[7] );
 		}
 	}
 //-----------------------------------------------------------------------------
@@ -356,7 +376,7 @@ namespace
 		ulong	h = 0;
 		for (auto it = set.begin(); it != set.end(); ++it)
 		{
-			h ^= *it;
+			h ^= ulong{*it};
 		}
 
 		profiler.EndIteration();
@@ -403,6 +423,7 @@ namespace
 		std::unordered_set< Elem, ElemHash >		un_set;
 		//tsl::sparse_set< Elem, ElemHash >			tsl_set;
 		//spp::sparse_hash_set< Elem, ElemHash >	spp_set;
+		//entt::dense_set< Elem, ElemHash >			entt_set;
 		absl::flat_hash_set< Elem, ElemHash >		absl_set;
 		absl::node_hash_set< Elem, ElemHash >		absl_set2;
 		Array< Elem >								arr;
@@ -436,15 +457,22 @@ namespace
 		sum[1] += IterationTest( un_set, keys2.begin(), keys2.end(), profiler );
 		sum[1] += IterationTest( un_set, keys3.begin(), keys3.end(), profiler );
 		profiler.EndTest();
-
-		profiler.BeginTest( "Absel-flat" );
+		/*
+		profiler.BeginTest( "entt::dense_set" );
+		sum[5] += IterationTest( entt_set, keys.begin(),  keys.end(),  profiler );
+		sum[5] += IterationTest( entt_set, keys.rbegin(), keys.rend(), profiler );
+		sum[5] += IterationTest( entt_set, keys2.begin(), keys2.end(), profiler );
+		sum[5] += IterationTest( entt_set, keys3.begin(), keys3.end(), profiler );
+		profiler.EndTest();
+		*/
+		profiler.BeginTest( "Abseil-flat" );
 		sum[6] += IterationTest( absl_set, keys.begin(),  keys.end(),  profiler );
 		sum[6] += IterationTest( absl_set, keys.rbegin(), keys.rend(), profiler );
 		sum[6] += IterationTest( absl_set, keys2.begin(), keys2.end(), profiler );
 		sum[6] += IterationTest( absl_set, keys3.begin(), keys3.end(), profiler );
 		profiler.EndTest();
 
-		profiler.BeginTest( "Absel-node" );
+		profiler.BeginTest( "Abseil-node" );
 		sum[7] += IterationTest( absl_set2, keys.begin(),  keys.end(),  profiler );
 		sum[7] += IterationTest( absl_set2, keys.rbegin(), keys.rend(), profiler );
 		sum[7] += IterationTest( absl_set2, keys2.begin(), keys2.end(), profiler );
@@ -458,9 +486,14 @@ namespace
 		sum[8] += IterationTest( arr, keys3.begin(), keys3.end(), profiler );
 		profiler.EndTest();
 
-		CHECK( sum[1] + sum[6] > 0 );
-		CHECK( sum[1] + sum[7] > 0 );
-		CHECK( sum[1] + sum[8] > 0 );
+		AE_LOGI( "std::unordered_set bukets: "s << ToString( un_set.bucket_count() ));
+		//AE_LOGI( "entt::dense_set bukets: "s << ToString( entt_set.bucket_count() ));
+		AE_LOGI( "Abseil-flat bukets: "s << ToString( absl_set.bucket_count() ));
+
+		//CHECK( sum[1] == sum[5] );
+		CHECK( sum[1] == sum[6] );
+		CHECK( sum[1] == sum[7] );
+		CHECK( sum[1] <= sum[8] );
 	}
 }
 

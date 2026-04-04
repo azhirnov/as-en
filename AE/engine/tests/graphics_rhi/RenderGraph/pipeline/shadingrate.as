@@ -24,7 +24,7 @@ void PerDrawSRPipeline ()
 	// specialization
 	{
 		RC<GraphicsPipelineSpec>	spec = ppln.AddSpecialization( "per_draw" );
-		spec.AddToRenderTech( "VRSTestRT", "nonVRS" );
+		spec.AddToRenderTech( "VRS.RTech", "nonVRS" );
 		spec.SetDynamicState( EPipelineDynamicState::FragmentShadingRate );
 
 		RenderState	rs;
@@ -38,7 +38,7 @@ void PerDrawSRPipeline ()
 void PerPrimitiveSRPipeline ()
 {
 	RC<ShaderStructType>	st = ShaderStructType( "Vertex_VRS" );
-	st.Set( "packed_float2		Position;" +
+	st.Set( "packed_float2		Position;"
 			"int				ShadingRate;" );
 
 	RC<VertexBufferInput>	vb = VertexBufferInput( "per_primitive.vb" );
@@ -66,7 +66,7 @@ void PerPrimitiveSRPipeline ()
 	// specialization
 	{
 		RC<GraphicsPipelineSpec>	spec = ppln.AddSpecialization( "per_primitive" );
-		spec.AddToRenderTech( "VRSTestRT", "nonVRS" );
+		spec.AddToRenderTech( "VRS.RTech", "nonVRS" );
 		spec.SetDynamicState( EPipelineDynamicState::FragmentShadingRate );
 
 		RenderState	rs;
@@ -100,7 +100,7 @@ void AttachmentSRPipeline ()
 	// specialization
 	{
 		RC<GraphicsPipelineSpec>	spec = ppln.AddSpecialization( "vrs_attachment" );
-		spec.AddToRenderTech( "VRSTestRT", "VRS" );
+		spec.AddToRenderTech( "VRS.RTech", "VRS" );
 		spec.SetDynamicState( EPipelineDynamicState::FragmentShadingRate );
 
 		RenderState	rs;

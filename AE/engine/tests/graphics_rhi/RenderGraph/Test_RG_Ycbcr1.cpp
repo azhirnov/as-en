@@ -9,8 +9,8 @@ namespace
 		RenderTechPipelinesPtr			rtech;
 		uint2							viewSize;
 
-		GAutorelease<ImageID>			img;	// -- render target
-		GAutorelease<ImageViewID>		view;	// /
+		GAutorelease<ImageID>			img;	// --- render target
+		GAutorelease<ImageViewID>		view;	// -/
 
 		GAutorelease<VideoImageID>		ycbcrImg;
 
@@ -25,18 +25,9 @@ namespace
 		GfxMemAllocatorPtr				gfxAlloc;
 	};
 
-	static constexpr auto&	RTech		= RenderTechs::Ycbcr_RTech;
-	static constexpr auto	ycbcrFormat	= EPixelFormat::G8_B8R8_420_UNorm;
-	static constexpr uint	imgDim [2]	= {64, 64};
-
-
-	ND_ ubyte3  RGBtoYCbCr (RGBA32f rgb)
-	{
-		float	y  =  0.2989f * rgb.b + 0.5866f * rgb.g + 0.1145f * rgb.r;
-		float	cb = -0.1687f * rgb.b - 0.3313f * rgb.g + 0.5000f * rgb.r;
-		float	cr =  0.5000f * rgb.b - 0.4184f * rgb.g - 0.0816f * rgb.r;
-		return ubyte3{ ubyte(y * 255.f), ubyte(cb * 255.f), ubyte(cr * 255.f) };
-	}
+	static constexpr auto&	RTech			= RenderTechs::Ycbcr_RTech;
+	static constexpr auto	c_YcbcrFormat	= EPixelFormat::G8_B8R8_420_UNorm;
+	static constexpr uint	imgDim [2]		= {64, 64};
 
 
 	template <typename CtxTypes>
@@ -47,18 +38,18 @@ namespace
 		typename CtxTypes::Transfer		tctx{ RenderCoro_Get() };
 		{
 			tctx.AccumBarriers()
-				.ImageBarrier( ycbcr.GetImageID(), EResourceState::Invalidate, EResourceState::CopyDst );
+				.ResourceBarrier( ycbcr.GetImageID(), EResourceState::Invalidate, EResourceState::CopyDst );
 
 			EPixelFormat	plane0_fmt, plane1_fmt;
 			POTVec2			plane0_dim, plane1_dim;
 
-			CHECK( EPixelFormat_GetPlaneInfo( ycbcrFormat, EImageAspect::Plane_0, OUT plane0_fmt, OUT plane0_dim ));
-			CHECK( EPixelFormat_GetPlaneInfo( ycbcrFormat, EImageAspect::Plane_1, OUT plane1_fmt, OUT plane1_dim ));
+			CHECK( EPixelFormat_GetPlaneInfo( c_YcbcrFormat, EImageAspect::Plane_0, OUT plane0_fmt, OUT plane0_dim ));
+			CHECK( EPixelFormat_GetPlaneInfo( c_YcbcrFormat, EImageAspect::Plane_1, OUT plane1_fmt, OUT plane1_dim ));
 
 			CHECK( All( plane0_dim == POTVec2::c_1_1() ));
 			CHECK( All( plane1_dim == POTVec2::c_2_2() ));
 
-			const ubyte3	yuv		{178, 43, 129};  //= RGBtoYCbCr( RGBA32f{ 1.f, 1.f, 0.f, 1.f });
+			const YUV8u		yuv		  { YUV32f{ RGBA32f{ 1.f, 1.f, 0.f, 1.f }}};
 			ubyte			g_pixels  [ imgDim[0] * imgDim[1] ];
 			ubyte			rb_pixels [ (imgDim[0] * imgDim[1] * 2) / 4 ];
 
@@ -88,18 +79,15 @@ namespace
 
 		typename CtxTypes::Graphics		gctx{ RenderCoro_Get(), tctx.ReleaseCommandBuffer() };
 
-		const auto	img_state = EResourceState::ShaderSample | EResourceState::FragmentShader;
-
 		gctx.AccumBarriers()
-			.ImageBarrier( t.img, EResourceState::Invalidate, img_state )
-			.ImageBarrier( ycbcr.GetImageID(), EResourceState::ClearDst, EResourceState::ShaderSample | EResourceState::FragmentShader );
+			.ResourceBarrier( ycbcr.GetImageID(), EResourceState::ClearDst, EResourceState::ShaderSample | EResourceState::FragmentShader );
 
 		constexpr auto&	rtech_pass = RTech.Main;
 		StaticAssert( rtech_pass.attachmentsCount == 1 );
 
 		auto	dctx = gctx.BeginRenderPass( RenderPassDesc{ *t.rtech, rtech_pass, t.viewSize }
 								.AddViewport( t.viewSize )
-								.AddTarget( rtech_pass.att_Color, t.view, RGBA32f{HtmlColor::Black} ));
+								.AddTarget( rtech_pass.att_Color, t.view, RGBA32f{HtmlColor::Black}, EResourceState::Invalidate, EResourceState::CopySrc ));
 		{
 			dctx.BindPipeline( t.ppln );
 			dctx.BindDescriptorSet( t.dsIndex, t.descSet );
@@ -108,9 +96,6 @@ namespace
 
 			gctx.EndRenderPass( dctx );
 		}
-
-		gctx.AccumBarriers()
-			.ImageBarrier( t.img, img_state, EResourceState::CopySrc );
 
 		RenderCoro_Execute( gctx );
 	}
@@ -158,7 +143,7 @@ namespace
 		CHECK_ERR( t.view );
 
 		t.ycbcrImg = res_mngr.CreateVideoImage( VideoImageDesc{}.SetDimension( imgDim[0], imgDim[1] )
-													.SetFormat( ycbcrFormat )
+													.SetFormat( c_YcbcrFormat )
 													.SetUsage( EImageUsage::Sampled | EImageUsage::TransferDst )
 													.SetYcbcrConversion( SamplerName{"NearestClamp|ycbcr|G8_B8R8_420_UNorm"} )
 													.SetMemory( EMemoryType::DeviceLocal ),
@@ -194,6 +179,7 @@ namespace
 		CHECK_ERR( end->Status() == ETaskStatus::Completed );
 
 		CHECK_ERR( rts.WaitAll( c_MaxTimeout ));
+		CHECK_ERR( t.result );
 
 		CHECK_ERR( Scheduler().Wait( {t.result}, c_MaxTimeout ));
 		CHECK_ERR( t.result->Status() == ETaskStatus::Completed );
@@ -205,16 +191,16 @@ namespace
 } // namespace
 
 
-bool RGTest::Test_Ycbcr1 ()
+RGTest::ECode  RGTest::Test_Ycbcr1 ()
 {
 	#ifdef AE_ENABLE_REMOTE_GRAPHICS
-		return true;	// skip
+		return ECode::Skipped;	// skip
 	#endif
 
 	if ( not _ycbcrPipelines )
 	{
 		AE_LOGI( TEST_NAME << " - skipped" );
-		return true;
+		return ECode::Skipped;
 	}
 
 	auto	img_cmp = _LoadReference( TEST_NAME );
@@ -223,6 +209,10 @@ bool RGTest::Test_Ycbcr1 ()
 	RG_CHECK( Ycbcr1Test< DirectCtx, DirectCtx::Transfer >( _ycbcrPipelines, img_cmp.get() ));
 	RG_CHECK( _CompareDumps( TEST_NAME ));
 
-	AE_LOGI( TEST_NAME << " - passed" );
-	return result;
+	if ( result )
+	{
+		AE_LOGI( TEST_NAME << " - passed" );
+		return ECode::Passed;
+	}
+	return ECode::Failed;
 }

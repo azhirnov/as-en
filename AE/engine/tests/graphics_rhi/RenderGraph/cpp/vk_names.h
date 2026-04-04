@@ -7,10 +7,11 @@ namespace RenderTechs
 	using PipelineName_t        = AE::Graphics::PipelineName;
 	using RTShaderBindingName_t = AE::Graphics::RTShaderBindingName;
 	using DSLayoutName_t        = AE::Graphics::DSLayoutName;
+	using ExecutionSetName_t    = AE::Graphics::IndirectExecutionSetName;
 
-	static constexpr struct _AsyncCompTestRT
+	static constexpr struct _AsyncComp_RTech
 	{
-		constexpr operator RenderTechName_t () const { return RenderTechName_t{Hash_t{0x5e0c4c21u}};}  // 'AsyncCompTestRT'
+		constexpr operator RenderTechName_t () const { return RenderTechName_t{Hash_t{0x2e8723e5u}};}  // 'AsyncComp.RTech'
 
 		// graphics (0)
 		static constexpr struct _Draw_1
@@ -34,11 +35,11 @@ namespace RenderTechs
 			// pipelines
 			static constexpr PipelineName_t  async_comp1_compute {Hash_t{0x47053fe0u}};  // 'async_comp1.compute'
 		} Compute_1 = {};
-	} AsyncCompTestRT;
+	} AsyncComp_RTech;
 
-	static constexpr struct _DebugDrawTestRT
+	static constexpr struct _DebugDraw_RTech
 	{
-		constexpr operator RenderTechName_t () const { return RenderTechName_t{Hash_t{0x403d33e7u}};}  // 'DebugDrawTestRT'
+		constexpr operator RenderTechName_t () const { return RenderTechName_t{Hash_t{0x30b65c23u}};}  // 'DebugDraw.RTech'
 
 		// graphics (0)
 		static constexpr struct _Draw_1
@@ -75,11 +76,11 @@ namespace RenderTechs
 			static constexpr uint  attachmentsCount = 1;
 			static constexpr AttachmentName_t  att_Color {Hash_t{0xa79767edu}};  // 'Color'
 		} Test4_2 = {};
-	} DebugDrawTestRT;
+	} DebugDraw_RTech;
 
-	static constexpr struct _DrawMeshesTestRT
+	static constexpr struct _DrawMeshes_RTech
 	{
-		constexpr operator RenderTechName_t () const { return RenderTechName_t{Hash_t{0x564eaca5u}};}  // 'DrawMeshesTestRT'
+		constexpr operator RenderTechName_t () const { return RenderTechName_t{Hash_t{0x26c5c361u}};}  // 'DrawMeshes.RTech'
 
 		// graphics (0)
 		static constexpr struct _DrawMeshes_1
@@ -96,11 +97,11 @@ namespace RenderTechs
 			static constexpr PipelineName_t  draw_mesh1 {Hash_t{0xea9250dcu}};  // 'draw_mesh1'
 			static constexpr PipelineName_t  draw_mesh2 {Hash_t{0x739b0166u}};  // 'draw_mesh2'
 		} DrawMeshes_1 = {};
-	} DrawMeshesTestRT;
+	} DrawMeshes_RTech;
 
-	static constexpr struct _DrawTestRT
+	static constexpr struct _DrawTest_RTech
 	{
-		constexpr operator RenderTechName_t () const { return RenderTechName_t{Hash_t{0x9734bd66u}};}  // 'DrawTestRT'
+		constexpr operator RenderTechName_t () const { return RenderTechName_t{Hash_t{0xd3a497bau}};}  // 'DrawTest.RTech'
 
 		// graphics (0)
 		static constexpr struct _Draw_1
@@ -145,7 +146,34 @@ namespace RenderTechs
 			// pipelines
 			static constexpr PipelineName_t  draw4_2 {Hash_t{0x3d5a9bb9u}};  // 'draw4-2'
 		} Test4_2 = {};
-	} DrawTestRT;
+	} DrawTest_RTech;
+
+	static constexpr struct _IndirectCmds_RTech
+	{
+		constexpr operator RenderTechName_t () const { return RenderTechName_t{Hash_t{0xeebd1c82u}};}  // 'IndirectCmds.RTech'
+
+		// graphics (0)
+		static constexpr struct _Main
+		{
+			constexpr operator RenderTechPassName_t () const { return RenderTechPassName_t{Hash_t{0x1f1a625au}};}  // 'Main'
+
+			// RenderPass 'DrawTest.Draw_1' subpass 'Main'
+
+			static constexpr uint  attachmentsCount = 1;
+			static constexpr AttachmentName_t  att_Color {Hash_t{0xa79767edu}};  // 'Color'
+
+			// pipelines
+			static constexpr PipelineName_t  icb_draw1_v1 {Hash_t{0x6dca48b4u}};  // 'icb.draw1.v1'
+			static constexpr PipelineName_t  icb_draw1_v2 {Hash_t{0xf4c3190eu}};  // 'icb.draw1.v2'
+			static constexpr PipelineName_t  icb_draw1_v3 {Hash_t{0x83c42998u}};  // 'icb.draw1.v3'
+
+			// indirect execution sets
+
+			static constexpr struct _ICB {
+				static constexpr ExecutionSetName_t  icb_set1 {Hash_t{0x60eb7c4u}};  // 'icb.set1'
+			} execSet;
+		} Main = {};
+	} IndirectCmds_RTech;
 
 	static constexpr struct _MultiView_RTech
 	{
@@ -180,9 +208,27 @@ namespace RenderTechs
 		} ViewportArray = {};
 	} MultiView_RTech;
 
-	static constexpr struct _RayQueryTestRT
+	static constexpr struct _OpacityMicromap_RTech
 	{
-		constexpr operator RenderTechName_t () const { return RenderTechName_t{Hash_t{0x5d4d9296u}};}  // 'RayQueryTestRT'
+		constexpr operator RenderTechName_t () const { return RenderTechName_t{Hash_t{0x6dca41bfu}};}  // 'OpacityMicromap.RTech'
+
+		// compute (0)
+		static constexpr struct _RayTrace_1
+		{
+			constexpr operator RenderTechPassName_t () const { return RenderTechPassName_t{Hash_t{0x983c0e4bu}};}  // 'RayTrace_1'
+
+			// pipelines
+			static constexpr PipelineName_t  mmtrace1_def {Hash_t{0xa690a7fbu}};  // 'mmtrace1.def'
+		} RayTrace_1 = {};
+
+		static constexpr struct _SBT {
+			static constexpr RTShaderBindingName_t  mmtrace1_sbt0 {Hash_t{0x6e676d62u}};  // 'mmtrace1.sbt0'
+		} sbt = {};
+	} OpacityMicromap_RTech;
+
+	static constexpr struct _RayQuery_RTech
+	{
+		constexpr operator RenderTechName_t () const { return RenderTechName_t{Hash_t{0x2dc6fd52u}};}  // 'RayQuery.RTech'
 
 		// compute (0)
 		static constexpr struct _RayTrace_1
@@ -193,11 +239,11 @@ namespace RenderTechs
 			static constexpr PipelineName_t  dbg5_rquery_def {Hash_t{0x4f746c9cu}};  // 'dbg5_rquery.def'
 			static constexpr PipelineName_t  rquery1_def {Hash_t{0x8e8e707eu}};  // 'rquery1.def'
 		} RayTrace_1 = {};
-	} RayQueryTestRT;
+	} RayQuery_RTech;
 
-	static constexpr struct _RayTracingTestRT
+	static constexpr struct _RayTracing_RTech
 	{
-		constexpr operator RenderTechName_t () const { return RenderTechName_t{Hash_t{0xc5f2e05fu}};}  // 'RayTracingTestRT'
+		constexpr operator RenderTechName_t () const { return RenderTechName_t{Hash_t{0xb5798f9bu}};}  // 'RayTracing.RTech'
 
 		// compute (0)
 		static constexpr struct _RayTrace_1
@@ -213,11 +259,11 @@ namespace RenderTechs
 			static constexpr RTShaderBindingName_t  dbg4_rtrace1_sbt0 {Hash_t{0x641ca9c7u}};  // 'dbg4_rtrace1.sbt0'
 			static constexpr RTShaderBindingName_t  rtrace1_sbt0 {Hash_t{0x2d952522u}};  // 'rtrace1.sbt0'
 		} sbt = {};
-	} RayTracingTestRT;
+	} RayTracing_RTech;
 
-	static constexpr struct _VRSTestRT
+	static constexpr struct _VRS_RTech
 	{
-		constexpr operator RenderTechName_t () const { return RenderTechName_t{Hash_t{0xea4bfcdau}};}  // 'VRSTestRT'
+		constexpr operator RenderTechName_t () const { return RenderTechName_t{Hash_t{0x9ac0931eu}};}  // 'VRS.RTech'
 
 		// graphics (0)
 		static constexpr struct _nonVRS
@@ -248,7 +294,7 @@ namespace RenderTechs
 			// pipelines
 			static constexpr PipelineName_t  vrs_attachment {Hash_t{0x3bf983d0u}};  // 'vrs_attachment'
 		} VRS = {};
-	} VRSTestRT;
+	} VRS_RTech;
 
 	static constexpr struct _Ycbcr_RTech
 	{

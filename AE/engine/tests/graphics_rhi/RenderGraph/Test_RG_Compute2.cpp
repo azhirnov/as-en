@@ -229,7 +229,7 @@ namespace
 } // namespace
 
 
-bool RGTest::Test_Compute2 ()
+RGTest::ECode  RGTest::Test_Compute2 ()
 {
 	bool	result = true;
 
@@ -239,6 +239,10 @@ bool RGTest::Test_Compute2 ()
 
 	RG_CHECK( _CompareDumps( TEST_NAME ));
 
-	AE_LOGI( TEST_NAME << " - passed" );
-	return result;
+	if ( result )
+	{
+		AE_LOGI( TEST_NAME << " - passed" );
+		return ECode::Passed;
+	}
+	return ECode::Failed;
 }

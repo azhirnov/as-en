@@ -142,9 +142,7 @@ namespace {
 */
 	Nd__In bool  RequireBufferDeviceAddress (const BufferDesc &desc) __NE___
 	{
-		constexpr auto	mask =	EBufferUsage::ShaderBindingTable | EBufferUsage::ASBuild_ReadOnly |
-								EBufferUsage::ASBuild_Scratch | EBufferUsage::ShaderAddress;
-		return AnyBits( desc.usage, mask );
+		return AnyBits( desc.usage, EBufferUsage_RequireDevAddress );
 	}
 
 } // namespace

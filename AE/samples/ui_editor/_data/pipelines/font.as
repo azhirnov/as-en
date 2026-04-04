@@ -11,7 +11,7 @@
 		{
 			RC<ShaderStructType>	st = ShaderStructType( "font.io" );
 			st.Set( EStructLayout::InternalIO,
-					"float4		color;" +
+					"float4		color;"
 					"float2		uv;" );
 		}{
 			RC<DescriptorSetLayout>	ds = DescriptorSetLayout( "font.ds" );

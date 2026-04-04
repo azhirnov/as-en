@@ -716,83 +716,6 @@ namespace _hidden_ {
 	}
 #endif
 
-/*
-=================================================
-	Utf32ToUtf8
-----
-	deprecated, use 'ConvertString()'
-=================================================
-*/
-#ifdef AE_ENABLE_UTF8PROC
-	Nd__In bool  Utf32ToUtf8 (OUT BasicString<CharUtf8> &dst, BasicStringView<CharUtf32> src) __NE___
-	{
-		NOTHROW_ERR( dst.resize( src.size() * 4 ));
-
-		bool	ok  = true;
-		usize	pos	= 0;
-
-		for (usize i = 0; i < src.size() and ok; ++i)
-		{
-			ok = Utf8Encode( src[i], dst.size(), dst.data(), INOUT pos );
-		}
-
-		if ( ok )
-			dst.resize( pos );
-		else
-			dst.clear();
-
-		return ok;
-	}
-#endif
-
-/*
-=================================================
-	ToAnsiString
-----
-	See 'WCharToAnsi' and 'Utf8ToAnsi'.
-	deprecated, use 'ConvertString()'
-=================================================
-*/
-	template <typename R, typename T>
-	ND_ BasicString<R>  ToAnsiString (BasicStringView<T> str, const R defaultChar = R('?')) __Th___
-	{
-		if constexpr( IsSame< T, CharAnsi >)
-			return BasicString<R>{str};
-		else
-		if constexpr( IsSame< T, wchar_t > or IsSame< T, CharUtf32 >)
-		{
-			BasicString<R>	result;
-			result.resize( str.size() );	// throw
-			WCharToAnsi( OUT result.data(), str.data(), str.length(), defaultChar );
-			return result;
-		}
-	  #ifdef AE_ENABLE_UTF8PROC
-		else
-		if constexpr( IsSame< T, CharUtf8 >)
-		{
-			usize			len		= str.length();
-			BasicString<R>	result;
-			result.resize( str.size() );	// throw
-
-			Utf8ToAnsi( OUT result.data(), str.data(), INOUT len, defaultChar );
-			result.resize( len );
-
-			return result;
-		}
-	  #endif
-	}
-
-	template <typename R, typename T>
-	ND_ BasicString<R>  ToAnsiString (const T* str, const R defaultChar = R('?')) __Th___
-	{
-		return ToAnsiString<R>( BasicStringView<T>{ str }, defaultChar );
-	}
-
-	template <typename R, typename T, typename A>
-	ND_ BasicString<R>  ToAnsiString (const BasicString<T,A> &str, const R defaultChar = R('?')) __Th___
-	{
-		return ToAnsiString<R>( BasicStringView<T>{ str }, defaultChar );
-	}
 
 /*
 =================================================
@@ -856,6 +779,7 @@ namespace _hidden_ {
 			return true;
 		}
 
+		// Utf8 -> WChar
 		if constexpr( IsSame< T, CharUtf8 >)
 		{
 			NOTHROW_ERR( dst.resize( src.size() ));
@@ -880,6 +804,7 @@ namespace _hidden_ {
 			return true;
 		}
 
+		// Utf32 -> WChar
 		if constexpr( IsSame< T, CharUtf32 >)
 		{
 			NOTHROW_ERR( dst.resize( src.size() ));
@@ -927,6 +852,7 @@ namespace _hidden_ {
 			return true;
 		}
 
+		// Utf8 -> Utf16
 		if constexpr( IsSame< T, CharUtf8 >)
 		{
 			NOTHROW_ERR( dst.resize( src.size() ));
@@ -951,6 +877,7 @@ namespace _hidden_ {
 			return true;
 		}
 
+		// Utf32 -> Utf16
 		if constexpr( IsSame< T, CharUtf32 >)
 		{
 			NOTHROW_ERR( dst.resize( src.size() ));
@@ -991,6 +918,7 @@ namespace _hidden_ {
 			return true;
 		}
 
+		// Utf16 -> Utf8
 		if constexpr( IsSame< T, CharUtf16 >
 					#ifdef AE_PLATFORM_WINDOWS
 					  or IsSame< T, wchar_t >
@@ -1019,6 +947,7 @@ namespace _hidden_ {
 			return true;
 		}
 
+		// Utf32 -> Utf8
 		if constexpr( IsSame< T, CharUtf32 >)
 		{
 			NOTHROW_ERR( dst.resize( src.size()*3 ));
@@ -1057,6 +986,7 @@ namespace _hidden_ {
 			return true;
 		}
 
+		// Utf16 -> Utf32
 		if constexpr( IsSame< T, CharUtf16 >
 					#ifdef AE_PLATFORM_WINDOWS
 					  or IsSame< T, wchar_t >
@@ -1078,6 +1008,7 @@ namespace _hidden_ {
 			return true;
 		}
 
+		// Utf8 -> Utf32
 		if constexpr( IsSame< T, CharUtf8 >)
 		{
 			NOTHROW_ERR( dst.resize( src.size() ));
@@ -1112,6 +1043,7 @@ namespace _hidden_ {
 			return true;
 		}
 
+		// Utf8 -> Ansi
 		if constexpr( IsSame< T, CharUtf8 >)
 		{
 			NOTHROW_ERR( dst.resize( src.size() ));
@@ -1129,14 +1061,21 @@ namespace _hidden_ {
 			return true;
 		}
 
-		if constexpr( IsSame< T, CharUtf16 >)
+		// Utf16 -> Ansi
+		if constexpr( IsSame< T, CharUtf16 >
+					#ifdef AE_PLATFORM_WINDOWS
+					  or IsSame< T, wchar_t >
+					#endif
+					)
 		{
 			NOTHROW_ERR( dst.resize( src.size() ));
+
+			auto*	ptr = Cast<CharUtf16>( src.data() );
 
 			usize j = 0;
 			for (usize i = 0; i < src.size(); ++j)
 			{
-				auto [c, w] = Utf16Decode( src.data() + i, src.size() - i );
+				auto [c, w] = Utf16Decode( ptr + i, src.size() - i );
 
 				i += w;
 				dst[j] = c < 0x7F ? CharAnsi(c) : defaultChar;

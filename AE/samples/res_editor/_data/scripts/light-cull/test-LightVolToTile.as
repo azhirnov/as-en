@@ -76,6 +76,12 @@
 		return int2(Ceil( ToUNorm( ndc ) * float2(iTileCount) ));
 	}
 
+	RectI  NdcToTile (Rect ndc)
+	{
+		return Rect_Create( NdcToTile(		Rect_Min( ndc )),
+							NdcToCeilTile(	Rect_Max( ndc )) );
+	}
+
 	int2  FragCoordToTile (float2 coord)
 	{
 		coord *= un_PerPass.invResolution;
@@ -98,11 +104,10 @@
 		{
 			case 0 :	// project sphere
 			{
-				float4	aabb_ndc = Sphere_FastProject( Sphere_Create( viewPos, sp.radius ), un_PerPass.camera.proj[0][0], un_PerPass.camera.proj[1][1] );
-				int2	min_tile = NdcToTile( aabb_ndc.xy );
-				int2	max_tile = NdcToCeilTile( aabb_ndc.zw );
+				Rect	aabb_ndc  = Sphere_FastProject( Sphere_Create( viewPos, sp.radius ), un_PerPass.camera.proj[0][0], un_PerPass.camera.proj[1][1] );
+				RectI	tile_rect = NdcToTile( aabb_ndc );
 
-				if ( AllGreaterEqual( tileIdx, min_tile ) and AllLess( tileIdx, max_tile ))
+				if ( Rect_IsInside( tile_rect, tileIdx ))
 					result |= 2;
 				break;
 			}
@@ -143,10 +148,10 @@
 
 			case 3 :	// for debugging: draw sphere bounding rect
 			{
-				float4	aabb_ndc = Sphere_FastProject( Sphere_Create( viewPos, sp.radius ), un_PerPass.camera.proj[0][0], un_PerPass.camera.proj[1][1] );
+				Rect	aabb_ndc = Sphere_FastProject( Sphere_Create( viewPos, sp.radius ), un_PerPass.camera.proj[0][0], un_PerPass.camera.proj[1][1] );
 				float2	frag_ndc = ToSNorm( gl.FragCoord.xy * un_PerPass.invResolution );
 
-				if ( AllGreater( frag_ndc, aabb_ndc.xy ) and AllLess( frag_ndc, aabb_ndc.zw ))
+				if ( Rect_IsInside( aabb_ndc, frag_ndc ))
 					result |= 2;
 				break;
 			}
@@ -194,11 +199,10 @@
 		{
 			case 0 :	// project bounding sphere
 			{
-				float4	aabb_ndc = Sphere_FastProject( sp, un_PerPass.camera.proj[0][0], un_PerPass.camera.proj[1][1] );
-				int2	min_tile = NdcToTile( aabb_ndc.xy );
-				int2	max_tile = NdcToCeilTile( aabb_ndc.zw );
+				Rect	aabb_ndc  = Sphere_FastProject( sp, un_PerPass.camera.proj[0][0], un_PerPass.camera.proj[1][1] );
+				RectI	tile_rect = NdcToTile( aabb_ndc );
 
-				if ( AllGreaterEqual( tileIdx, min_tile ) and AllLess( tileIdx, max_tile ))
+				if ( Rect_IsInside( tile_rect, tileIdx ))
 					result |= 2;
 				break;
 			}

@@ -159,7 +159,7 @@ namespace AE::VFS
 			ReadRequestPtr  ReadBlock (Bytes pos, OUT void* data, Bytes dataSize, RC<> mem)		__NE_OV;
 			ReadRequestPtr  ReadBlock (Bytes pos, Bytes size)									__NE_OV;
 			bool			CancelAllRequests ()												__NE_OV;
-			ReqAlign		OffsetAlign ()														C_NE_OV	{ return Default; }
+			ReqAlign		DirectAccessAlign ()												C_NE_OV	{ return Default; }
 
 			// EnableRC //
 			void			_ReleaseObject ()													__NE_OV;
@@ -192,7 +192,7 @@ namespace AE::VFS
 			RC<SharedMem>	Alloc (SizeAndAlign)												__NE_OV;
 			WriteRequestPtr	WriteBlock (Bytes pos, const void* data, Bytes dataSize, RC<> mem)	__NE_OV;
 			bool			CancelAllRequests ()												__NE_OV;
-			ReqAlign		OffsetAlign ()														C_NE_OV	{ return Default; }
+			ReqAlign		DirectAccessAlign ()												C_NE_OV	{ return Default; }
 
 			// EnableRC //
 			void			_ReleaseObject ()													__NE_OV;

@@ -57,14 +57,13 @@
 // disable warnings
 #if defined(AE_COMPILER_CLANG) or defined(AE_COMPILER_CLANG_CL)
 #	pragma clang diagnostic push
-# if __clang_major__ >= 19
+# if __clang_major__ >= 17
 #	pragma clang diagnostic ignored "-Wexplicit-specialization-storage-class"
 # endif
 #endif
 
 #include "glm.hpp"
 
-//#include "gtc/bitfield.hpp"
 #include "gtc/epsilon.hpp"
 #include "gtc/integer.hpp"
 #include "gtc/matrix_access.hpp"

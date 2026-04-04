@@ -9,12 +9,15 @@ extern void Test_Buffer (ResourceManager &resMngr);
 
 static constexpr uint  c_MaxRenderThreads = 3;
 
+const bool	RGTest::c_UpdateAllReferences = false;
+
 /*
 =================================================
 	constructor
 =================================================
 */
-RGTest::RGTest () :
+RGTest::RGTest (StringView testName, ArrayView<const char*> args) :
+	_consoleArgs{ args },
 	_device{ True{"enable info log"}, False{"disable allocator stats"} }
 {
 	#ifdef AE_ENABLE_VULKAN
@@ -26,58 +29,68 @@ RGTest::RGTest () :
 	# endif
 	#endif
 
+	#undef RUN_TEST
+	#define RUN_TEST( _name_ )\
+		if ( testName.empty() or testName == AE_TOSTRING(_name_) )\
+			_tests.emplace_back( &RGTest::_name_ );
+
 	// too slow
-	//_tests.emplace_back( &RGTest::Test_Buffer );
-	//_tests.emplace_back( &RGTest::Test_Image );
+	//RUN_TEST( Test_Buffer );
+	//RUN_TEST( Test_Image );
 
-	_tests.emplace_back( &RGTest::Test_Allocator );
-	_tests.emplace_back( &RGTest::Test_FeatureSets );
-//	_tests.emplace_back( &RGTest::Test_FrameCounter );
-	_tests.emplace_back( &RGTest::Test_ImageFormat );
+	RUN_TEST( Test_Allocator );
+	RUN_TEST( Test_FeatureSets );
+//	RUN_TEST( Test_FrameCounter );
+	RUN_TEST( Test_ImageFormat );
 
-	_tests.emplace_back( &RGTest::Test_UploadStream1 );
-	_tests.emplace_back( &RGTest::Test_UploadStream2 );
+	RUN_TEST( Test_UploadStream1 );
+	RUN_TEST( Test_UploadStream2 );
 
-	_tests.emplace_back( &RGTest::Test_CopyBuffer1 );
-	_tests.emplace_back( &RGTest::Test_CopyBuffer2 );
-	_tests.emplace_back( &RGTest::Test_CopyImage1 );
-	_tests.emplace_back( &RGTest::Test_CopyImage2 );
-	_tests.emplace_back( &RGTest::Test_Compute1 );
-	_tests.emplace_back( &RGTest::Test_Compute2 );
-	_tests.emplace_back( &RGTest::Test_Draw1 );
-	_tests.emplace_back( &RGTest::Test_Draw2 );
-	_tests.emplace_back( &RGTest::Test_Draw3 );
-	_tests.emplace_back( &RGTest::Test_Draw4 );
-	_tests.emplace_back( &RGTest::Test_Draw5 );
-	_tests.emplace_back( &RGTest::Test_DrawAsync1 );
-	_tests.emplace_back( &RGTest::Test_AsyncCompute1 );
-	_tests.emplace_back( &RGTest::Test_AsyncCompute2 );
-	_tests.emplace_back( &RGTest::Test_AsyncCompute3 );
+	RUN_TEST( Test_CopyBuffer1 );
+	RUN_TEST( Test_CopyBuffer2 );
+	RUN_TEST( Test_CopyImage1 );
+	RUN_TEST( Test_CopyImage2 );
+	RUN_TEST( Test_Compute1 );
+	RUN_TEST( Test_Compute2 );
+	RUN_TEST( Test_Draw1 );
+	RUN_TEST( Test_Draw2 );
+	RUN_TEST( Test_Draw3 );
+	RUN_TEST( Test_Draw4 );
+	RUN_TEST( Test_Draw5 );
+	RUN_TEST( Test_DrawAsync1 );
+	RUN_TEST( Test_AsyncCompute1 );
+	RUN_TEST( Test_AsyncCompute2 );
+	RUN_TEST( Test_AsyncCompute3 );
 
   #ifndef AE_ENABLE_METAL
-	_tests.emplace_back( &RGTest::Test_DrawMesh1 );
-	_tests.emplace_back( &RGTest::Test_DrawMesh2 );
-	_tests.emplace_back( &RGTest::Test_RayQuery1 );
-	_tests.emplace_back( &RGTest::Test_RayTracing1 );
-	_tests.emplace_back( &RGTest::Test_RayTracing2 );
-	_tests.emplace_back( &RGTest::Test_RayTracing3 );
-	//_tests.emplace_back( &RGTest::Test_RayTracingCluster1 );
-	//_tests.emplace_back( &RGTest::Test_RayTracingPartitioned1 );
-	_tests.emplace_back( &RGTest::Test_ShadingRate1 );
-	_tests.emplace_back( &RGTest::Test_Ycbcr1 );
-	_tests.emplace_back( &RGTest::Test_MultiView );
-	_tests.emplace_back( &RGTest::Test_ViewportArray );
+	RUN_TEST( Test_DrawMesh1 );
+	RUN_TEST( Test_DrawMesh2 );
+	RUN_TEST( Test_RayQuery1 );
+	RUN_TEST( Test_RayTracing1 );
+	RUN_TEST( Test_RayTracing2 );
+	RUN_TEST( Test_RayTracing3 );
+	//RUN_TEST( Test_RayTracingCluster1 );
+	//RUN_TEST( Test_RayTracingPartitioned1 );
+	RUN_TEST( Test_OpacityMicromap1 );
+	RUN_TEST( Test_ShadingRate1 );
+	RUN_TEST( Test_Ycbcr1 );
+	RUN_TEST( Test_MultiView );
+	RUN_TEST( Test_ViewportArray );
+	RUN_TEST( Test_IndirectCommandBuffer1 );
+	RUN_TEST( Test_IndirectCommandBuffer2 );
+	//RUN_TEST( Test_VideoEncoder1 );
   #endif
   #ifdef AE_TEST_SHADER_DEBUGGER
-	_tests.emplace_back( &RGTest::Test_Debugger1 );
-	_tests.emplace_back( &RGTest::Test_Debugger2 );
-	_tests.emplace_back( &RGTest::Test_Debugger3 );
-	_tests.emplace_back( &RGTest::Test_Debugger4 );
-	_tests.emplace_back( &RGTest::Test_Debugger5 );
-	_tests.emplace_back( &RGTest::Test_Debugger6 );
+	RUN_TEST( Test_Debugger1 );
+	RUN_TEST( Test_Debugger2 );
+	RUN_TEST( Test_Debugger3 );
+	RUN_TEST( Test_Debugger4 );
+	RUN_TEST( Test_Debugger5 );
+	RUN_TEST( Test_Debugger6 );
   #endif
 
 	RenderTaskScheduler::InstanceCtor::Create( _device );
+	#undef RUN_TEST
 }
 
 /*
@@ -85,16 +98,16 @@ RGTest::RGTest () :
 	Test_Image/Buffer
 =================================================
 */
-bool  RGTest::Test_Image ()
+RGTest::ECode  RGTest::Test_Image ()
 {
 	::Test_Image( GraphicsScheduler().GetResourceManager() );
-	return true;
+	return ECode::Passed;
 }
 
-bool  RGTest::Test_Buffer ()
+RGTest::ECode  RGTest::Test_Buffer ()
 {
 	::Test_Buffer( GraphicsScheduler().GetResourceManager() );
-	return true;
+	return ECode::Passed;
 }
 
 /*
@@ -117,7 +130,7 @@ Unique<ImageComparator>  RGTest::_LoadReference (StringView name) const
 		return diff_file;
 	}};
 
-	if ( not UpdateAllReferences )
+	if ( not c_UpdateAllReferences )
 	{
 		RC<RStream>	rfile;
 		if ( _refImageStorage->Open( OUT rfile, VFS::FileName{ToString(path)} ))
@@ -202,6 +215,8 @@ void  RGTest::_Destroy ()
 	_vrsPipelines	= null;
 	_ycbcrPipelines	= null;
 	_mvPipelines	= null;
+	_icbPipelines	= null;
+	_ommPipelines	= null;
 
 	RenderTaskScheduler::InstanceCtor::Destroy();
 
@@ -238,17 +253,19 @@ bool  RGTest::_CompilePipelines (FStorage_t assetStorage)
 		CHECK_ERR( res_mngr.InitializeResources( RVRef(pack_id) ));
 	}
 
-	_pipelines = res_mngr.LoadRenderTech( Default, RenderTechs::DrawTestRT );
+	_pipelines = res_mngr.LoadRenderTech( Default, RenderTechs::DrawTest_RTech );
 	CHECK_ERR( _pipelines );
 
-	_dbgPipelines	= res_mngr.LoadRenderTech( Default, RenderTechs::DebugDrawTestRT );
-	_acPipelines	= res_mngr.LoadRenderTech( Default, RenderTechs::AsyncCompTestRT );
-	_msPipelines	= res_mngr.LoadRenderTech( Default, RenderTechs::DrawMeshesTestRT );
-	_rtPipelines	= res_mngr.LoadRenderTech( Default, RenderTechs::RayTracingTestRT );
-	_rqPipelines	= res_mngr.LoadRenderTech( Default, RenderTechs::RayQueryTestRT );
-	_vrsPipelines	= res_mngr.LoadRenderTech( Default, RenderTechs::VRSTestRT );
+	_dbgPipelines	= res_mngr.LoadRenderTech( Default, RenderTechs::DebugDraw_RTech );
+	_acPipelines	= res_mngr.LoadRenderTech( Default, RenderTechs::AsyncComp_RTech );
+	_msPipelines	= res_mngr.LoadRenderTech( Default, RenderTechs::DrawMeshes_RTech );
+	_rtPipelines	= res_mngr.LoadRenderTech( Default, RenderTechs::RayTracing_RTech );
+	_rqPipelines	= res_mngr.LoadRenderTech( Default, RenderTechs::RayQuery_RTech );
+	_vrsPipelines	= res_mngr.LoadRenderTech( Default, RenderTechs::VRS_RTech );
 	_ycbcrPipelines	= res_mngr.LoadRenderTech( Default, RenderTechs::Ycbcr_RTech );
 	_mvPipelines	= res_mngr.LoadRenderTech( Default, RenderTechs::MultiView_RTech );
+	_icbPipelines	= res_mngr.LoadRenderTech( Default, RenderTechs::IndirectCmds_RTech );
+	_ommPipelines	= res_mngr.LoadRenderTech( Default, RenderTechs::OpacityMicromap_RTech );
 
 	return true;
 }
@@ -261,7 +278,7 @@ bool  RGTest::_CompilePipelines (FStorage_t assetStorage)
 GraphicsCreateInfo  RGTest::_GetGraphicsCreateInfo ()
 {
 	GraphicsCreateInfo	info;
-	info.maxFrames		= 2;
+	info.maxFrames					= 2;
 	info.staging.readStaticSize		= 2_MiB;
 	info.staging.writeStaticSize	= 2_MiB;
 
@@ -293,7 +310,7 @@ bool  RGTest::_CompareDumps (StringView right, StringView filename) const
 	}
 
 	// override dump
-	if ( update_ref or UpdateAllReferences )
+	if ( update_ref or c_UpdateAllReferences )
 	{
 		VFS::FileName	name;
 		CHECK_ERR( _refImageStorage->CreateFile( OUT name, fname ));
@@ -334,7 +351,7 @@ bool  RGTest::_Create (FStorage_t refStorage)
 		VDeviceInitializer::InstanceCreateInfo	inst_ci;
 		inst_ci.appName			= "TestApp";
 		inst_ci.instanceLayers	= _device.GetRecommendedInstanceLayers();
-		inst_ci.version			= {1,3};
+		inst_ci.version			= {1,4};
 
 		#if 0
 		const VkValidationFeatureEnableEXT	sync_enable_feats  [] = { VK_VALIDATION_FEATURE_ENABLE_SYNCHRONIZATION_VALIDATION_EXT };
@@ -349,7 +366,7 @@ bool  RGTest::_Create (FStorage_t refStorage)
 
 	// this is a test and the test should fail for any validation error
 	_device.CreateDebugCallback( VDeviceInitializer::c_DefaultDebugMessageSeverity,
-                                 VDeviceInitializer::c_DefaultDebugMessageTypes,
+								 VDeviceInitializer::c_DefaultDebugMessageTypes,
 								 [] (const VDeviceInitializer::DebugReport &rep) { AE_LOGW(rep.message);  CHECK_FATAL(not rep.isError); });
 
   #if AE_VK_TIMELINE_SEMAPHORE
@@ -398,19 +415,20 @@ bool  RGTest::_RunTests ()
 			_syncLog.Enable();
 
 			TestFunc_t&	func	= _tests.front();
-			bool		passed	= (this->*func)();
+			ECode		code	= (this->*func)();
 
 			_syncLog.Disable();
 
-			_testsPassed += uint(passed);
-			_testsFailed += uint(not passed);
+			_testsPassed  += uint(code == ECode::Passed);
+			_testsFailed  += uint(code == ECode::Failed);
+			_testsSkipped += uint(code == ECode::Skipped);
 			_tests.pop_front();
 
 			for (; Scheduler().ProcessTask( ETaskQueue::Main, EThreadSeed(0) );) {}
 		}
 		else
 		{
-			AE_LOGI( "Tests passed: " + ToString( _testsPassed ) + ", failed: " + ToString( _testsFailed ));
+			AE_LOGI( "Tests passed: "s << ToString( _testsPassed ) << ", skipped: " << ToString( _testsSkipped ) << ", failed: " << ToString( _testsFailed ));
 			break;
 		}
 	}
@@ -434,9 +452,9 @@ bool  RGTest::_CompareDumps (StringView filename) const
 	Test_VulkanRenderGraph
 =================================================
 */
-extern void  Test_VulkanRenderGraph (RC<VFS::IVirtualFileStorage> assetStorage, RC<VFS::IVirtualFileStorage> refStorage)
+extern void  Test_VulkanRenderGraph (RC<VFS::IVirtualFileStorage> assetStorage, RC<VFS::IVirtualFileStorage> refStorage, StringView testName, ArrayView<const char*> args)
 {
-	RGTest		test;
+	RGTest		test {testName, args};
 	CHECK_FATAL( test.Run( assetStorage, refStorage ));
 	TEST_PASSED();
 }
@@ -494,17 +512,18 @@ bool  RGTest::_RunTests ()
 		if ( not _tests.empty() )
 		{
 			TestFunc_t&	func	= _tests.front();
-			bool		passed	= (this->*func)();
+			ECode		code	= (this->*func)();
 
-			_testsPassed += uint(passed);
-			_testsFailed += uint(not passed);
+			_testsPassed  += uint(code == ECode::Passed);
+			_testsFailed  += uint(code == ECode::Failed);
+			_testsSkipped += uint(code == ECode::Skipped);
 			_tests.pop_front();
 
 			for (; Scheduler().ProcessTask( ETaskQueue::Main, EThreadSeed(0) );) {}
 		}
 		else
 		{
-			AE_LOGI( "Tests passed: " + ToString( _testsPassed ) + ", failed: " + ToString( _testsFailed ));
+			AE_LOGI( "Tests passed: "s << ToString( _testsPassed ) << ", skipped: " << ToString( _testsSkipped ) << ", failed: " << ToString( _testsFailed ));
 			break;
 		}
 	}
@@ -516,9 +535,9 @@ bool  RGTest::_RunTests ()
 	Test_MetalRenderGraph
 =================================================
 */
-extern void  Test_MetalRenderGraph (RC<VFS::IVirtualFileStorage> assetStorage, RC<VFS::IVirtualFileStorage> refStorage)
+extern void  Test_MetalRenderGraph (RC<VFS::IVirtualFileStorage> assetStorage, RC<VFS::IVirtualFileStorage> refStorage, StringView testName, ArrayView<const char*> args)
 {
-	RGTest		test;
+	RGTest		test {testName, args};
 	CHECK_FATAL( test.Run( assetStorage, refStorage ));
 	TEST_PASSED();
 }
@@ -538,6 +557,9 @@ bool  RGTest::_Create (FStorage_t refStorage)
 {
 	using namespace AE::Networking;
 
+	String	ip_addr	= Parser::GetCommandLineArg( _consoleArgs, "-rm-addr" );
+	String	port	= Parser::GetCommandLineArg( _consoleArgs, "-rm-port" );
+
 	GraphicsCreateInfo	info = _GetGraphicsCreateInfo();
 
 	info.device.appName			= "TestApp";
@@ -551,7 +573,11 @@ bool  RGTest::_Create (FStorage_t refStorage)
 	info.swapchain.presentMode	= EPresentMode::FIFO;
 	info.swapchain.minImageCount= 2;
 
-	info.deviceAddr				= Networking::IpAddress::FromLocalhostTCP( 0 );	// or AE_RMG_IPv4
+	if ( not ip_addr.empty() and not port.empty() )
+		info.deviceAddr = IpAddress::FromServiceTCP( ip_addr, port );
+	else
+		info.deviceAddr = AE_RMG_IPv4;
+
 	info.enableSyncLog			= true;
 
 	CHECK_ERR( _device.Init( info ));
@@ -597,19 +623,20 @@ bool  RGTest::_RunTests ()
 			_device.EnableSyncLog( true );
 
 			TestFunc_t&	func	= _tests.front();
-			bool		passed	= (this->*func)();
+			ECode		code	= (this->*func)();
 
 			_device.EnableSyncLog( false );
 
-			_testsPassed += uint(passed);
-			_testsFailed += uint(not passed);
+			_testsPassed  += uint(code == ECode::Passed);
+			_testsFailed  += uint(code == ECode::Failed);
+			_testsSkipped += uint(code == ECode::Skipped);
 			_tests.pop_front();
 
 			for (; Scheduler().ProcessTask( ETaskQueue::Main, EThreadSeed(0) );) {}
 		}
 		else
 		{
-			AE_LOGI( "Tests passed: " + ToString( _testsPassed ) + ", failed: " + ToString( _testsFailed ));
+			AE_LOGI( "Tests passed: "s << ToString( _testsPassed ) << ", skipped: " << ToString( _testsSkipped ) << ", failed: " << ToString( _testsFailed ));
 			break;
 		}
 	}
@@ -621,9 +648,9 @@ bool  RGTest::_RunTests ()
 	Test_RemoteRenderGraph
 =================================================
 */
-extern void  Test_RemoteRenderGraph (RC<VFS::IVirtualFileStorage> assetStorage, RC<VFS::IVirtualFileStorage> refStorage)
+extern void  Test_RemoteRenderGraph (RC<VFS::IVirtualFileStorage> assetStorage, RC<VFS::IVirtualFileStorage> refStorage, StringView testName, ArrayView<const char*> args)
 {
-	RGTest		test;
+	RGTest		test {testName, args};
 	CHECK_FATAL( test.Run( assetStorage, refStorage ));
 	TEST_PASSED();
 }

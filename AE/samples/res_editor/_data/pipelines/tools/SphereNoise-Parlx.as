@@ -14,8 +14,8 @@
 		{
 			RC<ShaderStructType>	st = ShaderStructType( "io" );
 			st.Set( EStructLayout::InternalIO,
-					"float3		texcoord;" +
-					"float3		worldPos;" +
+					"float3		texcoord;"
+					"float3		worldPos;"
 					"float3		normal;" );
 		}{
 			RC<DescriptorSetLayout>	ds = DescriptorSetLayout( "mtr.ds" );

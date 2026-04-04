@@ -3,8 +3,7 @@
 #pragma once
 
 #ifdef AE_ENABLE_REMOTE_GRAPHICS
-
-# include "graphics_rhi/Public/BufferDesc.h"
+# include "graphics_rhi/Public/RayTracingDesc.h"
 # include "graphics_rhi/Public/ResourceManager.h"
 # include "graphics_rhi/Public/IDs.h"
 # include "graphics_rhi/Remote/RQueue.h"
@@ -42,7 +41,7 @@ namespace AE::Graphics
 		ND_ DeviceAddress			GetDeviceAddress ()																C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _address; }
 		ND_ RTGeometryDesc const&	Description ()																	C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _desc; }
 		ND_ RmMemoryID				MemoryId ()																		C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _memoryId; }
-		ND_ bool					IsExclusiveSharing ()															C_NE___	{ return false; }
+		ND_ bool					IsExclusiveSharing ()															C_NE___	{ return true; }
 
 		GFX_DBG_ONLY( ND_ StringView GetDebugName ()																C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _debugName; })
 
@@ -51,7 +50,7 @@ namespace AE::Graphics
 		ND_ static RTASBuildSizes	GetBuildSizes (const ResourceManager &, const RTGeometryBuild &desc)			__NE___;
 
 		ND_ static bool				IsSupported (const ResourceManager &, const RTGeometryDesc &desc)				__NE___;
-		ND_ static bool				IsSupported (const ResourceManager &, const RTGeometryBuild &build)			__NE___;
+		ND_ static bool				IsSupported (const ResourceManager &, const RTGeometryBuild &build)				__NE___;
 
 		ND_ static bool				ConvertBuildInfo (const ResourceManager &, INOUT RTGeometryBuild &,
 													  RTempLinearAllocator &)										__NE___;

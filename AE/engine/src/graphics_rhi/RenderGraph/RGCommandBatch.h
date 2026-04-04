@@ -283,13 +283,8 @@ namespace AE::RG::_hidden_
 			AE_LOGW( _globalStates.KeyToString(ResourceKey{id}) << " previous state is General or not known" );
 	  #endif
 
-		if constexpr( IsSame< ID, ImageID >){
-			if ( EResourceState_RequireImageBarrier( old_state, newState, False{"strict"} ))
-				ctx.ImageBarrier( id, old_state, newState );	// throw
-		}else{
-			if ( EResourceState_RequireMemoryBarrier( old_state, newState, False{"strict"} ))
-				ctx.MemoryBarrier( old_state, newState );		// throw
-		}
+		if ( EResourceState_RequireImageBarrier( old_state, newState, False{"strict"} ))
+			ctx.ResourceBarrier( id, old_state, newState );	// throw
 	}
 
 /*
@@ -337,7 +332,7 @@ namespace AE::RG::_hidden_
 			if_unlikely( not EResourceState_IsSameStates( state.current, state.final ))
 			{
 				if ( id.IsImage() )
-					ctx.ImageBarrier( id.AsImage(), state.current, state.final );	// throw
+					ctx.ResourceBarrier( id.AsImage(), state.current, state.final );	// throw
 				else
 					ctx.MemoryBarrier( state.current, state.final );				// throw
 			}

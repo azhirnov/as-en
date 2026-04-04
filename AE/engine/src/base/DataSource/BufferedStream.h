@@ -44,7 +44,7 @@ namespace AE::Base
 		void		UpdateFastStream (OUT const void* &begin, OUT const void* &end)	__NE_OV;
 		void		EndFastStream (const void* ptr)									__NE_OV;
 
-		ReqAlign	OffsetAlign ()													C_NE_OV	{ return Default; }
+		ReqAlign	DirectAccessAlign ()											C_NE_OV	{ return Default; }
 
 	private:
 		void	_ReadNext ()														__NE___;
@@ -76,6 +76,7 @@ namespace AE::Base
 		ESourceType	GetSourceType ()											C_NE_OV	{ return ESourceType::Buffered | ESourceType::SequentialAccess | ESourceType::WriteAccess; }
 
 		bool		SeekFwd (Bytes offset)										__NE_OV;
+		bool		UpdateAt (Bytes pos)										__NE_OV;
 		Bytes		WriteSeq (const void* buffer, Bytes size)					__NE_OV;
 
 		void		Flush ()													__NE_OV;
@@ -84,7 +85,7 @@ namespace AE::Base
 								  Bytes reserve = DefaultAllocationSize)		__NE_OV;
 		void		EndFastStream (const void* ptr)								__NE_OV;
 
-		ReqAlign	OffsetAlign ()												C_NE_OV	{ return Default; }
+		ReqAlign	DirectAccessAlign ()										C_NE_OV	{ return Default; }
 
 	private:
 		void	_Flush ()														__NE___;

@@ -76,9 +76,9 @@ namespace
 		const auto	img_state = EResourceState::ShaderStorage_Write | EResourceState::ComputeShader;
 
 		ctx.AccumBarriers()
-			.ImageBarrier( t.img0, EResourceState::Invalidate, img_state )
-			.ImageBarrier( t.img1, EResourceState::Invalidate, img_state )
-			.ImageBarrier( t.img2, EResourceState::Invalidate, img_state );
+			.ResourceBarrier( t.img0, EResourceState::Invalidate, img_state )
+			.ResourceBarrier( t.img1, EResourceState::Invalidate, img_state )
+			.ResourceBarrier( t.img2, EResourceState::Invalidate, img_state );
 
 		ctx.BindPipeline( t.ppln0 );
 		ctx.BindDescriptorSet( t.ds_index, t.ds0 );
@@ -93,9 +93,9 @@ namespace
 		ctx.Dispatch({ 1, 1, 1 });
 
 		ctx.AccumBarriers()
-			.ImageBarrier( t.img0, img_state, EResourceState::CopySrc )
-			.ImageBarrier( t.img1, img_state, EResourceState::CopySrc )
-			.ImageBarrier( t.img2, img_state, EResourceState::CopySrc );
+			.ResourceBarrier( t.img0, img_state, EResourceState::CopySrc )
+			.ResourceBarrier( t.img1, img_state, EResourceState::CopySrc )
+			.ResourceBarrier( t.img2, img_state, EResourceState::CopySrc );
 
 		RenderCoro_Execute( ctx );
 	}
@@ -232,7 +232,7 @@ namespace
 } // namespace
 
 
-bool RGTest::Test_Compute1 ()
+RGTest::ECode  RGTest::Test_Compute1 ()
 {
 	bool	result = true;
 
@@ -242,6 +242,10 @@ bool RGTest::Test_Compute1 ()
 
 	RG_CHECK( _CompareDumps( TEST_NAME ));
 
-	AE_LOGI( TEST_NAME << " - passed" );
-	return result;
+	if ( result )
+	{
+		AE_LOGI( TEST_NAME << " - passed" );
+		return ECode::Passed;
+	}
+	return ECode::Failed;
 }

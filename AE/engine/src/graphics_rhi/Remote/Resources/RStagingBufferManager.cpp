@@ -95,6 +95,7 @@ namespace AE::Graphics
 		result.format			= res->format;
 		result.dataRowPitch		= res->dataRowPitch;
 		result.dataSlicePitch	= res->dataSlicePitch;
+		result.regionDim		= res->regionDim;
 	}
 
 /*
@@ -144,6 +145,7 @@ namespace AE::Graphics
 		result.format			= res->format;
 		result.dataRowPitch		= res->dataRowPitch;
 		result.dataSlicePitch	= res->dataSlicePitch;
+		result.regionDim		= res->regionDim;
 	}
 
 /*

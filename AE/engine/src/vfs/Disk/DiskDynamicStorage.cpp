@@ -214,7 +214,7 @@ namespace AE::VFS
 			const Path	abs_path = (_folder / inPath).lexically_normal();	// path without '..'
 			const Path	rel_path = FileSystem::ToRelative( abs_path, _folder );
 
-			CHECK_ERR( *rel_path.begin() != ".." );
+			CHECK_ERR( not rel_path.empty() and *rel_path.begin() != ".." );
 			FileSystem::CreateDirectories( abs_path.parent_path() );
 
 			String	str;
@@ -237,7 +237,7 @@ namespace AE::VFS
 =================================================
 */
 #if 1
-	bool  DiskDynamicStorage::CreateUniqueFile (OUT FileName &name, INOUT Path &inoutPath) C_NE___
+	bool  DiskDynamicStorage::CreateUniqueFile (OUT FileName &name, INOUT Path &inoutPath, OUT Path* absolutePath) C_NE___
 	{
 		TRY{
 			const Path		abs_path	= (_folder / inoutPath).lexically_normal();	// path without '..'
@@ -248,7 +248,8 @@ namespace AE::VFS
 
 			{
 				const Path	rel_path = FileSystem::ToRelative( abs_path, _folder );
-				CHECK_ERR( *rel_path.begin() != ".." );
+				CHECK_ERR_MSG( not rel_path.empty() and *rel_path.begin() != "..",
+					"input path is outside of disk storage folder, don't use '../' in path" );
 				FileSystem::CreateDirectories( abs_path.parent_path() );
 			}
 
@@ -259,7 +260,7 @@ namespace AE::VFS
 				p = path / fname;
 			}};
 
-			const auto	Consume = [this, &inoutPath, &name] (const Path &p) __Th___ -> bool
+			const auto	Consume = [this, &inoutPath, &name, &absolutePath] (const Path &p) __Th___ -> bool
 			{{
 				inoutPath = FileSystem::ToRelative( p, _folder );
 
@@ -268,6 +269,9 @@ namespace AE::VFS
 
 				name = FileName{_prefix + str};
 				DEBUG_ONLY( _fileMap->hashCollisionCheck.Add( name ));
+
+				if ( absolutePath != null )
+					*absolutePath = p;
 
 				_fileMap->map.emplace( FileName::Optimized_t{name}, RVRef(str) );
 				return true;
@@ -282,7 +286,7 @@ namespace AE::VFS
 	}
 #else
 
-	bool  DiskDynamicStorage::CreateUniqueFile (OUT FileName &name, INOUT Path &inoutPath) C_NE___
+	bool  DiskDynamicStorage::CreateUniqueFile (OUT FileName &name, INOUT Path &inoutPath, OUT Path* absolutePath) C_NE___
 	{
 		Path	path = (_folder / inoutPath).lexically_normal();	// path without '..'
 				path = FileSystem::ToRelative( path, _folder );

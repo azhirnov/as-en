@@ -88,12 +88,12 @@ namespace AE::Graphics
 	bool  EResourceState_Validate (const EResourceState state) __NE___
 	{
 		const auto				access		= ToEResState( state );
-		const EResourceState	stages		= state & EResourceState::AllStages;
+		const EResourceState	stages		= state & EResourceState::AllShaderStages;
 
 		const bool	has_any_stage			= stages != Zero;
 		const bool	has_any_shader			= AnyBits( stages, EResourceState::AllShaderStages );
 		const bool	has_post_raster_shaders	= AnyBits( stages, EResourceState::PostRasterizationShaders );
-		const bool	has_pre_raster_shaders	= AnyBits( stages, ~EResourceState::PostRasterizationShaders );
+		const bool	has_pre_raster_shaders	= AnyBits( stages, EResourceState::PreRasterizationShaders );
 		const bool	has_ds_stage			= AnyBits( state, EResourceState::DSTestBeforeFS | EResourceState::DSTestAfterFS );
 
 		switch_enum( access )
@@ -129,7 +129,6 @@ namespace AE::Graphics
 			case _EResState::DepthStencilTest_ShaderSample :
 			case _EResState::DepthTest_DepthSample_StencilRW :
 				CHECK_ERR_MSG( AnyBits( stages, EResourceState::AllGraphicsShaders ),  "Resource state ("s << ToString( state ) << ") must contain graphics shader stage." );
-				CHECK_ERR_MSG( not has_pre_raster_shaders,  "Resource state ("s << ToString( state ) << ") should not contain pre-rasterization shaders." );
 				break;
 
 			case _EResState::DepthStencilTest :
@@ -160,7 +159,20 @@ namespace AE::Graphics
 			case _EResState::BuildRTAS_Read :
 			case _EResState::BuildRTAS_RW :
 			case _EResState::BuildRTAS_IndirectBuffer :
+			case _EResState::BuildRTAS_MicromapRead :
 			case _EResState::RTShaderBindingTable :
+			case _EResState::BuildMicromap_Read :
+			case _EResState::BuildMicromap_RW :
+			case _EResState::CoopVecConvert_Read :
+			case _EResState::CoopVecConvert_Write :
+			case _EResState::ICB_Preprocess_Read :
+			case _EResState::ICB_Preprocess_Write :
+			case _EResState::VideoDecodeSrc :
+			case _EResState::VideoDecodeDst :
+			case _EResState::VideoDecodeDpb :
+			case _EResState::VideoEncodeSrc :
+			case _EResState::VideoEncodeDst :
+			case _EResState::VideoEncodeDpb :
 				CHECK_MSG( not has_any_stage,	"Resource state ("s << ToString( state ) << ") should not contain shader stages." );
 				CHECK_MSG( not has_ds_stage,	"Resource state ("s << ToString( state ) << ") should not contain depth stage." );
 				break;
@@ -279,9 +291,22 @@ namespace AE::Graphics
 			case _EResState::BuildRTAS_Read :
 			case _EResState::BuildRTAS_RW :
 			case _EResState::BuildRTAS_IndirectBuffer :
+			case _EResState::BuildRTAS_MicromapRead :
 			case _EResState::RTShaderBindingTable :
+			case _EResState::BuildMicromap_Read :
+			case _EResState::BuildMicromap_RW :
 			case _EResState::ShadingRateImage :
 			case _EResState::FragmentDensityMap :
+			case _EResState::CoopVecConvert_Read :
+			case _EResState::CoopVecConvert_Write :
+			case _EResState::ICB_Preprocess_Read :
+			case _EResState::ICB_Preprocess_Write :
+			case _EResState::VideoDecodeSrc :
+			case _EResState::VideoDecodeDst :
+			case _EResState::VideoDecodeDpb :
+			case _EResState::VideoEncodeSrc :
+			case _EResState::VideoEncodeDst :
+			case _EResState::VideoEncodeDpb :
 			case _EResState::General :
 				return false;
 
@@ -1505,13 +1530,14 @@ namespace AE::Graphics
 */
 	EGPUVendor  GetVendorTypeByDevice (EGraphicsDeviceID id) __NE___
 	{
-		if ( id >= EGraphicsDeviceID::_Adreno_Begin		and id <= EGraphicsDeviceID::_Adreno_End )	return EGPUVendor::Qualcomm;
-		if ( id >= EGraphicsDeviceID::_AMD_Begin		and id <= EGraphicsDeviceID::_AMD_End )		return EGPUVendor::AMD;
-		if ( id >= EGraphicsDeviceID::_Apple_Begin		and id <= EGraphicsDeviceID::_Apple_End )	return EGPUVendor::Apple;
-		if ( id >= EGraphicsDeviceID::_Mali_Begin		and id <= EGraphicsDeviceID::_Mali_End )	return EGPUVendor::ARM;
-		if ( id >= EGraphicsDeviceID::_NV_Begin			and id <= EGraphicsDeviceID::_NV_End )		return EGPUVendor::NVidia;
-		if ( id >= EGraphicsDeviceID::_Intel_Begin		and id <= EGraphicsDeviceID::_Intel_End )	return EGPUVendor::Intel;
-		if ( id >= EGraphicsDeviceID::_PowerVR_Begin	and id <= EGraphicsDeviceID::_PowerVR_End )	return EGPUVendor::ImgTech;
+		if ( EGraphicsDeviceID_IsAdreno( id ))	return EGPUVendor::Qualcomm;
+		if ( EGraphicsDeviceID_IsAMD( id ))		return EGPUVendor::AMD;
+		if ( EGraphicsDeviceID_IsApple( id ))	return EGPUVendor::Apple;
+		if ( EGraphicsDeviceID_IsMali( id ))	return EGPUVendor::ARM;
+		if ( EGraphicsDeviceID_IsNVIDIA( id ))	return EGPUVendor::NVidia;
+		if ( EGraphicsDeviceID_IsIntel( id ))	return EGPUVendor::Intel;
+		if ( EGraphicsDeviceID_IsPowerVR( id ))	return EGPUVendor::ImgTech;
+		if ( EGraphicsDeviceID_IsMaleoon( id ))	return EGPUVendor::Huawei;
 
 		switch ( id )
 		{
@@ -1708,17 +1734,19 @@ namespace AE::Graphics
 		// Adreno
 		if ( HasSubStringIC( name, "Adreno" ))
 		{
-			if ( HasSubString( name, " 5" ))
-				return EGraphicsDeviceID::Adreno_500;
+			if ( HasSubString( name, " 8" ) or
+				 HasSubString( name, " X2" ))
+				return EGraphicsDeviceID::Adreno_800;
+
+			if ( HasSubString( name, " 7" ) or
+				 HasSubString( name, " X " ))
+				return EGraphicsDeviceID::Adreno_700;
 
 			if ( HasSubString( name, " 6" ))
 				return EGraphicsDeviceID::Adreno_600;
 
-			if ( HasSubString( name, " 7" ))
-				return EGraphicsDeviceID::Adreno_700;
-
-			if ( HasSubString( name, " 8" ))
-				return EGraphicsDeviceID::Adreno_800;
+			if ( HasSubString( name, " 5" ))
+				return EGraphicsDeviceID::Adreno_500;
 
 			StaticAssert( EGraphicsDeviceID::_Adreno_End == EGraphicsDeviceID::Adreno_800 );
 			return Default;
@@ -1758,6 +1786,14 @@ namespace AE::Graphics
 		// Apple
 		if ( HasSubStringIC( name, "Apple" ))
 		{
+			if ( HasSubString( name, " A17" )		or
+				 HasSubString( name, " M3" )		or
+				 HasSubString( name, " M4" ))
+				return EGraphicsDeviceID::Apple_A17_M3;
+
+			if ( HasSubString( name, " A16" ))
+				return EGraphicsDeviceID::Apple_A16;
+
 			if ( HasSubString( name, " A15" )		or
 				 HasSubString( name, " M2" ))
 				return EGraphicsDeviceID::Apple_A15_M2;
@@ -1818,7 +1854,7 @@ namespace AE::Graphics
 			if ( HasSubStringIC( name, "-T8" ))
 				return EGraphicsDeviceID::Mali_Midgard_Gen4;
 
-			StaticAssert( EGraphicsDeviceID::_Mali_End == EGraphicsDeviceID::Mali_5thGen_Gen2 );
+			StaticAssert( EGraphicsDeviceID::_Mali_End == EGraphicsDeviceID::Mali_5thGen_Gen3 );
 			return Default;
 		}
 
@@ -1910,7 +1946,7 @@ namespace AE::Graphics
 			if ( HasSubStringIC( name, " Arc" ))
 				return EGraphicsDeviceID::Intel_Xe1;
 
-			StaticAssert( EGraphicsDeviceID::_Intel_End == EGraphicsDeviceID::Intel_Xe2 );
+			StaticAssert( EGraphicsDeviceID::_Intel_End == EGraphicsDeviceID::Intel_Xe3 );
 			return Default;
 		}
 
@@ -1926,11 +1962,25 @@ namespace AE::Graphics
 			if ( HasSubString( name, "BXM" ))
 				return EGraphicsDeviceID::PowerVR_SeriesB;
 
-			if ( HasSubString( name, "DXM" ))
+			if ( HasSubString( name, "DXT" ))
 				return EGraphicsDeviceID::PowerVR_SeriesD;
 
 			StaticAssert( EGraphicsDeviceID::_PowerVR_End == EGraphicsDeviceID::PowerVR_SeriesD );
 			return Default;
+		}
+
+		// Maleoon
+		if ( HasSubStringIC( name, "Maleoon" ))
+		{
+			if ( HasSubStringIC( name, " 910" ))
+				return EGraphicsDeviceID::Maleoon910;
+
+			if ( HasSubStringIC( name, " 920" ))
+				return EGraphicsDeviceID::Maleoon920;
+
+			if ( HasSubStringIC( name, " 930" ) or
+				 HasSubStringIC( name, " 935" ))
+				return EGraphicsDeviceID::Maleoon930;
 		}
 
 		// Other
@@ -2140,72 +2190,80 @@ namespace AE::Graphics
 	VideoFormatToPixelFormat
 =================================================
 */
-	EPixelFormat  VideoFormatToPixelFormat (const EVideoFormat fmt, const uint planeCount) __NE___
+	VideoFormatToPixelFormatResult  VideoFormatToPixelFormat (const EVideoFormat fmt) __NE___
 	{
+		constexpr ImageSwizzle	yuv	= "RGB1"_swizzle;
+		constexpr ImageSwizzle	yvu	= "RBG1"_swizzle;	// swap U and V
+		#define ALT( _fmt_ )	_fmt_
+
 		switch_enum( fmt )
 		{
-			case EVideoFormat::YUV420P :	return planeCount == 2 ? EPixelFormat::G8_B8R8_420_UNorm			: EPixelFormat::G8_B8_R8_420_UNorm;
-			case EVideoFormat::YUV422P :	return planeCount == 2 ? EPixelFormat::G8_B8R8_422_UNorm			: EPixelFormat::G8_B8_R8_422_UNorm;
-			case EVideoFormat::YUV444P :	return planeCount == 2 ? EPixelFormat::G8_B8R8_444_UNorm			: EPixelFormat::G8_B8_R8_444_UNorm;
+			// 3 plane Y/U/V
+			case EVideoFormat::YUV420P :	return { EPixelFormat::G8_B8_R8_420_UNorm,				ALT( EPixelFormat::G8_B8R8_420_UNorm )};
+			case EVideoFormat::YUV422P :	return { EPixelFormat::G8_B8_R8_422_UNorm,				ALT( EPixelFormat::G8_B8R8_422_UNorm )};
+			case EVideoFormat::YUV444P :	return { EPixelFormat::G8_B8_R8_444_UNorm,				ALT( EPixelFormat::G8_B8R8_444_UNorm )};
+			case EVideoFormat::YUV420P10 :	return { EPixelFormat::G10x6_B10x6_R10x6_420_UNorm,		ALT( EPixelFormat::G10x6_B10x6R10x6_420_UNorm )};
+			case EVideoFormat::YUV422P10 :	return { EPixelFormat::G10x6_B10x6_R10x6_422_UNorm,		ALT( EPixelFormat::G10x6_B10x6R10x6_422_UNorm )};
+			case EVideoFormat::YUV444P10 :	return { EPixelFormat::G10x6_B10x6_R10x6_444_UNorm,		ALT( EPixelFormat::G10x6_B10x6R10x6_444_UNorm )};
+			case EVideoFormat::YUV420P12 :	return { EPixelFormat::G12x4_B12x4_R12x4_420_UNorm,		ALT( EPixelFormat::G12x4_B12x4R12x4_420_UNorm )};
+			case EVideoFormat::YUV422P12 :	return { EPixelFormat::G12x4_B12x4_R12x4_422_UNorm,		ALT( EPixelFormat::G12x4_B12x4R12x4_422_UNorm )};
+			case EVideoFormat::YUV444P12 :	return { EPixelFormat::G12x4_B12x4_R12x4_444_UNorm,		ALT( EPixelFormat::G12x4_B12x4R12x4_444_UNorm )};
+			case EVideoFormat::YUV420P16 :	return { EPixelFormat::G16_B16_R16_420_UNorm,			ALT( EPixelFormat::G16_B16R16_420_UNorm )};
+			case EVideoFormat::YUV422P16 :	return { EPixelFormat::G16_B16_R16_422_UNorm,			ALT( EPixelFormat::G16_B16R16_422_UNorm )};
+			case EVideoFormat::YUV444P16 :	return { EPixelFormat::G16_B16_R16_444_UNorm,			ALT( EPixelFormat::G16_B16R16_444_UNorm )};
 
-			case EVideoFormat::YUV420P10 :	return planeCount == 2 ? EPixelFormat::G10x6_B10x6R10x6_420_UNorm	: EPixelFormat::G10x6_B10x6_R10x6_420_UNorm;
-			case EVideoFormat::YUV422P10 :	return planeCount == 2 ? EPixelFormat::G10x6_B10x6R10x6_422_UNorm	: EPixelFormat::G10x6_B10x6_R10x6_422_UNorm;
-			case EVideoFormat::YUV444P10 :	return planeCount == 2 ? EPixelFormat::G10x6_B10x6R10x6_444_UNorm	: EPixelFormat::G10x6_B10x6_R10x6_444_UNorm;
-			case EVideoFormat::YUV420P12 :	return planeCount == 2 ? EPixelFormat::G12x4_B12x4R12x4_420_UNorm	: EPixelFormat::G12x4_B12x4_R12x4_420_UNorm;
-			case EVideoFormat::YUV422P12 :	return planeCount == 2 ? EPixelFormat::G12x4_B12x4R12x4_422_UNorm	: EPixelFormat::G12x4_B12x4_R12x4_422_UNorm;
-			case EVideoFormat::YUV444P12 :	return planeCount == 2 ? EPixelFormat::G12x4_B12x4R12x4_444_UNorm	: EPixelFormat::G12x4_B12x4_R12x4_444_UNorm;
-			case EVideoFormat::YUV420P16 :	return planeCount == 2 ? EPixelFormat::G16_B16R16_420_UNorm			: EPixelFormat::G16_B16_R16_420_UNorm;
-			case EVideoFormat::YUV422P16 :	return planeCount == 2 ? EPixelFormat::G16_B16R16_422_UNorm			: EPixelFormat::G16_B16_R16_422_UNorm;
-			case EVideoFormat::YUV444P16 :	return planeCount == 2 ? EPixelFormat::G16_B16R16_444_UNorm			: EPixelFormat::G16_B16_R16_444_UNorm;
+			// 3 plane Y/U/V + alpha
+			case EVideoFormat::YUVA420P :	return { EPixelFormat::G8_B8_R8_420_UNorm,				ALT( EPixelFormat::G8_B8R8_420_UNorm ),				EPixelFormat::R8_UNorm };
+			case EVideoFormat::YUVA422P :	return { EPixelFormat::G8_B8_R8_422_UNorm,				ALT( EPixelFormat::G8_B8R8_422_UNorm ),				EPixelFormat::R8_UNorm };
+			case EVideoFormat::YUVA444P :	return { EPixelFormat::G8_B8_R8_444_UNorm,				ALT( EPixelFormat::G8_B8R8_444_UNorm ),				EPixelFormat::R8_UNorm };
+			case EVideoFormat::YUVA420P10 :	return { EPixelFormat::G10x6_B10x6_R10x6_420_UNorm,		ALT( EPixelFormat::G10x6_B10x6R10x6_420_UNorm ),	EPixelFormat::R16_UNorm };
+			case EVideoFormat::YUVA422P10 :	return { EPixelFormat::G10x6_B10x6_R10x6_422_UNorm,		ALT( EPixelFormat::G10x6_B10x6R10x6_422_UNorm ),	EPixelFormat::R16_UNorm };
+			case EVideoFormat::YUVA444P10 :	return { EPixelFormat::G10x6_B10x6_R10x6_444_UNorm,		ALT( EPixelFormat::G10x6_B10x6R10x6_444_UNorm ),	EPixelFormat::R16_UNorm };
+			case EVideoFormat::YUVA420P16 :	return { EPixelFormat::G16_B16_R16_420_UNorm,			ALT( EPixelFormat::G16_B16R16_420_UNorm ),			EPixelFormat::R16_UNorm };
+			case EVideoFormat::YUVA422P16 :	return { EPixelFormat::G16_B16_R16_422_UNorm,			ALT( EPixelFormat::G16_B16R16_422_UNorm ),			EPixelFormat::R16_UNorm };
+			case EVideoFormat::YUVA444P16 :	return { EPixelFormat::G16_B16_R16_444_UNorm,			ALT( EPixelFormat::G16_B16R16_444_UNorm ),			EPixelFormat::R16_UNorm };
 
-			// TODO: add alpha channel
-			case EVideoFormat::YUVA420P :	return planeCount == 2 ? EPixelFormat::G8_B8R8_420_UNorm			: EPixelFormat::G8_B8_R8_420_UNorm;
-			case EVideoFormat::YUVA422P :	return planeCount == 2 ? EPixelFormat::G8_B8R8_422_UNorm			: EPixelFormat::G8_B8_R8_422_UNorm;
-			case EVideoFormat::YUVA444P :	return planeCount == 2 ? EPixelFormat::G8_B8R8_444_UNorm			: EPixelFormat::G8_B8_R8_444_UNorm;
-			case EVideoFormat::YUVA420P10 :	return planeCount == 2 ? EPixelFormat::G10x6_B10x6R10x6_420_UNorm	: EPixelFormat::G10x6_B10x6_R10x6_420_UNorm;
-			case EVideoFormat::YUVA422P10 :	return planeCount == 2 ? EPixelFormat::G10x6_B10x6R10x6_422_UNorm	: EPixelFormat::G10x6_B10x6_R10x6_422_UNorm;
-			case EVideoFormat::YUVA444P10 :	return planeCount == 2 ? EPixelFormat::G10x6_B10x6R10x6_444_UNorm	: EPixelFormat::G10x6_B10x6_R10x6_444_UNorm;
-			case EVideoFormat::YUVA420P16 :	return planeCount == 2 ? EPixelFormat::G16_B16R16_420_UNorm			: EPixelFormat::G16_B16_R16_420_UNorm;
-			case EVideoFormat::YUVA422P16 :	return planeCount == 2 ? EPixelFormat::G16_B16R16_422_UNorm			: EPixelFormat::G16_B16_R16_422_UNorm;
-			case EVideoFormat::YUVA444P16 :	return planeCount == 2 ? EPixelFormat::G16_B16R16_444_UNorm			: EPixelFormat::G16_B16_R16_444_UNorm;
+			// 2 plane Y+UV (interleaved)
+			case EVideoFormat::NV12 :		return { EPixelFormat::G8_B8R8_420_UNorm,				ALT( EPixelFormat::G8_B8_R8_420_UNorm )};
+			case EVideoFormat::P010 :		return { EPixelFormat::G10x6_B10x6R10x6_420_UNorm,		ALT( EPixelFormat::G10x6_B10x6_R10x6_420_UNorm )};
+			case EVideoFormat::P012 :		return { EPixelFormat::G12x4_B12x4R12x4_420_UNorm,		ALT( EPixelFormat::G12x4_B12x4_R12x4_420_UNorm )};
+			case EVideoFormat::P016 :		return { EPixelFormat::G16_B16R16_420_UNorm,			ALT( EPixelFormat::G16_B16_R16_420_UNorm )};
 
-			case EVideoFormat::NV12 :		return EPixelFormat::G8_B8R8_420_UNorm;
-			case EVideoFormat::P010 :		return EPixelFormat::G10x6_B10x6R10x6_420_UNorm;
-			case EVideoFormat::P012 :		return EPixelFormat::G12x4_B12x4R12x4_420_UNorm;
-			case EVideoFormat::P016 :		return EPixelFormat::G16_B16R16_420_UNorm;
+			case EVideoFormat::NV16 :		return { EPixelFormat::G8_B8R8_422_UNorm,				ALT( EPixelFormat::G8_B8_R8_422_UNorm )};
+			case EVideoFormat::P210 :		return { EPixelFormat::G10x6_B10x6R10x6_422_UNorm,		ALT( EPixelFormat::G10x6_B10x6_R10x6_422_UNorm )};
+			case EVideoFormat::P212 :		return { EPixelFormat::G12x4_B12x4R12x4_422_UNorm,		ALT( EPixelFormat::G12x4_B12x4_R12x4_422_UNorm )};
+			case EVideoFormat::P216 :		return { EPixelFormat::G16_B16R16_422_UNorm,			ALT( EPixelFormat::G16_B16_R16_422_UNorm )};
 
-			case EVideoFormat::NV16 :		return EPixelFormat::G8_B8R8_422_UNorm;
-			case EVideoFormat::P210 :		return EPixelFormat::G10x6_B10x6R10x6_422_UNorm;
-			case EVideoFormat::P212 :		return EPixelFormat::G12x4_B12x4R12x4_422_UNorm;
-			case EVideoFormat::P216 :		return EPixelFormat::G16_B16R16_422_UNorm;
+			case EVideoFormat::NV24 :		return { EPixelFormat::G8_B8R8_444_UNorm,				ALT( EPixelFormat::G8_B8_R8_444_UNorm )};
+			case EVideoFormat::P410 :		return { EPixelFormat::G10x6_B10x6R10x6_444_UNorm,		ALT( EPixelFormat::G10x6_B10x6_R10x6_444_UNorm )};
+			case EVideoFormat::P412 :		return { EPixelFormat::G12x4_B12x4R12x4_444_UNorm,		ALT( EPixelFormat::G12x4_B12x4_R12x4_444_UNorm )};
+			case EVideoFormat::P416 :		return { EPixelFormat::G16_B16R16_444_UNorm,			ALT( EPixelFormat::G16_B16_R16_444_UNorm )};
 
-			case EVideoFormat::NV24 :		return EPixelFormat::G8_B8R8_444_UNorm;
-			case EVideoFormat::P410 :		return EPixelFormat::G10x6_B10x6R10x6_444_UNorm;
-			case EVideoFormat::P412 :		return EPixelFormat::G12x4_B12x4R12x4_444_UNorm;
-			case EVideoFormat::P416 :		return EPixelFormat::G16_B16R16_444_UNorm;
+			// YUYV
+			case EVideoFormat::YUYV422 :	return { EPixelFormat::G8B8G8R8_422_UNorm };
+			case EVideoFormat::UYVY422 :	return { EPixelFormat::B8G8R8G8_422_UNorm };
 
-			case EVideoFormat::YUYV422 :	return EPixelFormat::G8B8G8R8_422_UNorm;
-			case EVideoFormat::UYVY422 :	return EPixelFormat::B8G8R8G8_422_UNorm;
-
-			case EVideoFormat::Y210 :		return EPixelFormat::G10x6B10x6G10x6R10x6_422_UNorm;
-			case EVideoFormat::Y212 :		return EPixelFormat::G12x4B12x4G12x4R12x4_422_UNorm;
+			case EVideoFormat::Y210 :		return { EPixelFormat::G10x6B10x6G10x6R10x6_422_UNorm };
+			case EVideoFormat::Y212 :		return { EPixelFormat::G12x4B12x4G12x4R12x4_422_UNorm };
 
 			case EVideoFormat::BGR0 :
-			case EVideoFormat::BGRA :		return EPixelFormat::BGRA8_UNorm;
+			case EVideoFormat::BGRA :		return { EPixelFormat::BGRA8_UNorm };
 
 			case EVideoFormat::RGB0 :
-			case EVideoFormat::RGBA :		return EPixelFormat::RGBA8_UNorm;
+			case EVideoFormat::RGBA :		return { EPixelFormat::RGBA8_UNorm };
 
-			case EVideoFormat::XV36 :		return EPixelFormat::RGBA16_UNorm;
+			case EVideoFormat::XV36 :		return { EPixelFormat::RGBA16_UNorm };
 
-			case EVideoFormat::NV21 :
-			case EVideoFormat::NV42 :
-			case EVideoFormat::NV20 :
-			case EVideoFormat::XV30 :
+			case EVideoFormat::NV21 :		return { EPixelFormat::G8_B8R8_420_UNorm,				ALT( EPixelFormat::G8_B8_R8_420_UNorm ),			yvu };
+			case EVideoFormat::NV42 :		return { EPixelFormat::G8_B8R8_444_UNorm,				ALT( EPixelFormat::G8_B8_R8_444_UNorm ),			yvu };
+			case EVideoFormat::NV20 :		return { EPixelFormat::G10x6_B10x6R10x6_422_UNorm,		ALT( EPixelFormat::G10x6_B10x6_R10x6_422_UNorm ),	yvu };
+
+			case EVideoFormat::XV30 :		// not supported
 
 			case EVideoFormat::Unknown :	break;
 		}
 		switch_end
+		#undef ALT
 		return Default;
 	}
 
@@ -2214,75 +2272,91 @@ namespace AE::Graphics
 	PixelFormatToVideoFormat
 =================================================
 */
-	EVideoFormat  PixelFormatToVideoFormat (const EPixelFormat fmt) __NE___
+	PixelFormatToVideoFormatResult  PixelFormatToVideoFormat (const EPixelFormat fmt) __NE___
 	{
+		#define ALT( ... )	__VA_ARGS__
+
 		switch ( fmt )
 		{
-			case EPixelFormat::G8_B8_R8_420_UNorm :				return EVideoFormat::YUV420P;
-			case EPixelFormat::G8_B8_R8_422_UNorm :				return EVideoFormat::YUV422P;
-			case EPixelFormat::G8_B8_R8_444_UNorm :				return EVideoFormat::YUV444P;
+			case EPixelFormat::G8_B8_R8_420_UNorm :				return { EVideoFormat::YUV420P,		EVideoFormat::YUVA420P,		ALT( EVideoFormat::NV12,		EVideoFormat::NV21			)};
+			case EPixelFormat::G8_B8_R8_422_UNorm :				return { EVideoFormat::YUV422P,		EVideoFormat::YUVA422P,		ALT( EVideoFormat::NV16										)};
+			case EPixelFormat::G8_B8_R8_444_UNorm :				return { EVideoFormat::YUV444P,		EVideoFormat::YUVA444P,		ALT( EVideoFormat::NV24,		EVideoFormat::NV42			)};
 
-			case EPixelFormat::G10x6_B10x6_R10x6_420_UNorm :	return EVideoFormat::YUV420P10;
-			case EPixelFormat::G10x6_B10x6_R10x6_422_UNorm :	return EVideoFormat::YUV422P10;
-			case EPixelFormat::G10x6_B10x6_R10x6_444_UNorm :	return EVideoFormat::YUV444P10;
+			case EPixelFormat::G10x6_B10x6_R10x6_420_UNorm :	return { EVideoFormat::YUV420P10,	EVideoFormat::YUVA420P10,	ALT( EVideoFormat::P010										)};
+			case EPixelFormat::G10x6_B10x6_R10x6_422_UNorm :	return { EVideoFormat::YUV422P10,	EVideoFormat::YUVA422P10,	ALT( EVideoFormat::P210,		EVideoFormat::NV20			)};
+			case EPixelFormat::G10x6_B10x6_R10x6_444_UNorm :	return { EVideoFormat::YUV444P10,	EVideoFormat::YUVA444P10,	ALT( EVideoFormat::P410										)};
 
-			case EPixelFormat::G12x4_B12x4_R12x4_420_UNorm :	return EVideoFormat::YUV420P12;
-			case EPixelFormat::G12x4_B12x4_R12x4_422_UNorm :	return EVideoFormat::YUV422P12;
-			case EPixelFormat::G12x4_B12x4_R12x4_444_UNorm :	return EVideoFormat::YUV444P12;
+			case EPixelFormat::G12x4_B12x4_R12x4_420_UNorm :	return { EVideoFormat::YUV420P12,								ALT( EVideoFormat::P012 )};
+			case EPixelFormat::G12x4_B12x4_R12x4_422_UNorm :	return { EVideoFormat::YUV422P12,								ALT( EVideoFormat::P212 )};
+			case EPixelFormat::G12x4_B12x4_R12x4_444_UNorm :	return { EVideoFormat::YUV444P12,								ALT( EVideoFormat::P412 )};
 
-			case EPixelFormat::G16_B16_R16_420_UNorm :			return EVideoFormat::YUV420P16;
-			case EPixelFormat::G16_B16_R16_422_UNorm :			return EVideoFormat::YUV422P16;
-			case EPixelFormat::G16_B16_R16_444_UNorm :			return EVideoFormat::YUV444P16;
+			case EPixelFormat::G16_B16_R16_420_UNorm :			return { EVideoFormat::YUV420P16,	EVideoFormat::YUVA420P16,	ALT( EVideoFormat::P016 )};
+			case EPixelFormat::G16_B16_R16_422_UNorm :			return { EVideoFormat::YUV422P16,	EVideoFormat::YUVA422P16,	ALT( EVideoFormat::P216 )};
+			case EPixelFormat::G16_B16_R16_444_UNorm :			return { EVideoFormat::YUV444P16,	EVideoFormat::YUVA444P16,	ALT( EVideoFormat::P416 )};
 
-		  #if 1
-			case EPixelFormat::G8_B8R8_420_UNorm :				return EVideoFormat::NV12;
-			case EPixelFormat::G10x6_B10x6R10x6_420_UNorm :		return EVideoFormat::P010;
-			case EPixelFormat::G12x4_B12x4R12x4_420_UNorm :		return EVideoFormat::P012;
-			case EPixelFormat::G16_B16R16_420_UNorm :			return EVideoFormat::P016;
+			case EPixelFormat::G8_B8R8_420_UNorm :				return { EVideoFormat::NV12,		EVideoFormat::NV21,			ALT( EVideoFormat::YUV420P,		EVideoFormat::YUVA420P		)};
+			case EPixelFormat::G10x6_B10x6R10x6_420_UNorm :		return { EVideoFormat::P010,									ALT( EVideoFormat::YUV420P10,	EVideoFormat::YUVA420P10	)};
+			case EPixelFormat::G12x4_B12x4R12x4_420_UNorm :		return { EVideoFormat::P012,									ALT( EVideoFormat::YUV420P12								)};
+			case EPixelFormat::G16_B16R16_420_UNorm :			return { EVideoFormat::P016,									ALT( EVideoFormat::YUV420P16,	EVideoFormat::YUVA420P16	)};
 
-			case EPixelFormat::G8_B8R8_422_UNorm :				return EVideoFormat::NV16;
-			case EPixelFormat::G10x6_B10x6R10x6_422_UNorm :		return EVideoFormat::P210;
-			case EPixelFormat::G12x4_B12x4R12x4_422_UNorm :		return EVideoFormat::P212;
-			case EPixelFormat::G16_B16R16_422_UNorm :			return EVideoFormat::P216;
+			case EPixelFormat::G8_B8R8_422_UNorm :				return { EVideoFormat::NV16,									ALT( EVideoFormat::YUV422P,		EVideoFormat::YUVA422P		)};
+			case EPixelFormat::G10x6_B10x6R10x6_422_UNorm :		return { EVideoFormat::P210,		EVideoFormat::NV20,			ALT( EVideoFormat::YUV422P10,	EVideoFormat::YUVA422P10	)};
+			case EPixelFormat::G12x4_B12x4R12x4_422_UNorm :		return { EVideoFormat::P212,									ALT( EVideoFormat::YUV422P12								)};
+			case EPixelFormat::G16_B16R16_422_UNorm :			return { EVideoFormat::P216,									ALT( EVideoFormat::YUV422P16,	EVideoFormat::YUVA422P16	)};
 
-			case EPixelFormat::G8_B8R8_444_UNorm :				return EVideoFormat::NV24;
-			case EPixelFormat::G10x6_B10x6R10x6_444_UNorm :		return EVideoFormat::P410;
-			case EPixelFormat::G12x4_B12x4R12x4_444_UNorm :		return EVideoFormat::P412;
-			case EPixelFormat::G16_B16R16_444_UNorm :			return EVideoFormat::P416;
-		  #else
-			case EPixelFormat::G8_B8R8_420_UNorm :				return EVideoFormat::YUV420P;
-			case EPixelFormat::G8_B8R8_422_UNorm :				return EVideoFormat::YUV422P;
-			case EPixelFormat::G8_B8R8_444_UNorm :				return EVideoFormat::YUV444P;
+			case EPixelFormat::G8_B8R8_444_UNorm :				return { EVideoFormat::NV24,		EVideoFormat::NV42,			ALT( EVideoFormat::YUV444P,		EVideoFormat::YUVA444P		)};
+			case EPixelFormat::G10x6_B10x6R10x6_444_UNorm :		return { EVideoFormat::P410,									ALT( EVideoFormat::YUV444P10,	EVideoFormat::YUVA444P10	)};
+			case EPixelFormat::G12x4_B12x4R12x4_444_UNorm :		return { EVideoFormat::P412,									ALT( EVideoFormat::YUV444P12								)};
+			case EPixelFormat::G16_B16R16_444_UNorm :			return { EVideoFormat::P416,									ALT( EVideoFormat::YUV444P16,	EVideoFormat::YUVA444P16	)};
 
-			case EPixelFormat::G10x6_B10x6R10x6_420_UNorm :		return EVideoFormat::YUV420P10;
-			case EPixelFormat::G10x6_B10x6R10x6_422_UNorm :		return EVideoFormat::YUV422P10;
-			case EPixelFormat::G10x6_B10x6R10x6_444_UNorm :		return EVideoFormat::YUV444P10;
+			case EPixelFormat::G8B8G8R8_422_UNorm :				return { EVideoFormat::YUYV422 };
+			case EPixelFormat::B8G8R8G8_422_UNorm :				return { EVideoFormat::UYVY422 };
 
-			case EPixelFormat::G12x4_B12x4R12x4_420_UNorm :		return EVideoFormat::YUV420P12;
-			case EPixelFormat::G12x4_B12x4R12x4_422_UNorm :		return EVideoFormat::YUV422P12;
-			case EPixelFormat::G12x4_B12x4R12x4_444_UNorm :		return EVideoFormat::YUV444P12;
-
-			case EPixelFormat::G16_B16R16_420_UNorm :			return EVideoFormat::YUV420P16;
-			case EPixelFormat::G16_B16R16_422_UNorm :			return EVideoFormat::YUV422P16;
-			case EPixelFormat::G16_B16R16_444_UNorm :			return EVideoFormat::YUV444P16;
-		  #endif
-
-			case EPixelFormat::G8B8G8R8_422_UNorm :				return EVideoFormat::YUYV422;
-			case EPixelFormat::B8G8R8G8_422_UNorm :				return EVideoFormat::UYVY422;
-
-			case EPixelFormat::G10x6B10x6G10x6R10x6_422_UNorm:	return EVideoFormat::Y210;
-			case EPixelFormat::G12x4B12x4G12x4R12x4_422_UNorm:	return EVideoFormat::Y212;
+			case EPixelFormat::G10x6B10x6G10x6R10x6_422_UNorm:	return { EVideoFormat::Y210 };
+			case EPixelFormat::G12x4B12x4G12x4R12x4_422_UNorm:	return { EVideoFormat::Y212 };
 
 			case EPixelFormat::sBGR8_A8 :
-			case EPixelFormat::BGRA8_UNorm :					return EVideoFormat::BGR0;	// or BGRA
+			case EPixelFormat::BGRA8_UNorm :					return { EVideoFormat::BGR0,		EVideoFormat::BGRA };
 
 			case EPixelFormat::sRGB8_A8 :
-			case EPixelFormat::RGBA8_UNorm :					return EVideoFormat::RGB0;	// or RGBA
+			case EPixelFormat::RGBA8_UNorm :					return { EVideoFormat::RGB0,		EVideoFormat::RGBA };
 
-			case EPixelFormat::RGBA16_UNorm :					return EVideoFormat::XV36;
+			case EPixelFormat::RGBA16_UNorm :					return { EVideoFormat::XV36 };
 		}
+		#undef ALT
 		return Default;
 	}
 
+/*
+=================================================
+	VideoFormatToChromaSubsamplingAndBitDepth
+=================================================
+*/
+	bool  VideoFormatToChromaSubsamplingAndBitDepth (EVideoFormat fmt, OUT EVideoChromaSubsampling &chromaSS,
+													 OUT EVideoComponentBitDepth &luma, OUT EVideoComponentBitDepth &chroma) __NE___
+	{
+		using CS = EVideoChromaSubsampling;
+		using BD = EVideoComponentBitDepth;
+
+		switch ( fmt )
+		{
+			case EVideoFormat::YUV420P :		chromaSS = CS::_420;	luma = chroma = BD::_8;		return true;
+			case EVideoFormat::YUV422P :		chromaSS = CS::_422;	luma = chroma = BD::_8;		return true;
+			case EVideoFormat::YUV444P :		chromaSS = CS::_444;	luma = chroma = BD::_8;		return true;
+
+			case EVideoFormat::YUV420P10 :		chromaSS = CS::_420;	luma = chroma = BD::_10;	return true;
+			case EVideoFormat::YUV422P10 :		chromaSS = CS::_422;	luma = chroma = BD::_10;	return true;
+			case EVideoFormat::YUV444P10 :		chromaSS = CS::_444;	luma = chroma = BD::_10;	return true;
+
+			case EVideoFormat::YUV420P12 :		chromaSS = CS::_420;	luma = chroma = BD::_12;	return true;
+			case EVideoFormat::YUV422P12 :		chromaSS = CS::_422;	luma = chroma = BD::_12;	return true;
+			case EVideoFormat::YUV444P12 :		chromaSS = CS::_444;	luma = chroma = BD::_12;	return true;
+		}
+
+		chromaSS	= Default;
+		luma		= Default;
+		chroma		= Default;
+		return false;
+	}
 
 } // AE::Graphics

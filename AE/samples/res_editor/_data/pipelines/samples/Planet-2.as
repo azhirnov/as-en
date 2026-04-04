@@ -16,12 +16,12 @@
 		{
 			RC<ShaderStructType>	st = ShaderStructType( "io.vs-tcs" );
 			st.Set(	EStructLayout::InternalIO,
-					"float4		position;" +
+					"float4		position;"
 					"float3		texcoord;" );
 		}{
 			RC<ShaderStructType>	st = ShaderStructType( "io.tcs-tes" );
 			st.Set( EStructLayout::InternalIO,
-					"float4		position;" +
+					"float4		position;"
 					"float3		texcoord;" );
 		}{
 			RC<ShaderStructType>	st = ShaderStructType( "io.tes-fs" );

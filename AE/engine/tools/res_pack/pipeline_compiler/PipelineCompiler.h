@@ -85,6 +85,7 @@ namespace AE::PipelineCompiler
 		const CharType *		outputCppStructsFile	= null;		// C++ reflection
 		const CharType *		outputCppNamesFile		= null;		// C++ reflection
 		const CharType *		outputScriptFile		= null;		// script reflection
+		const CharType *		outputShaderHeader		= null;		// C++ / GLSL / MSL reflection to use in shader
 	};
 
 

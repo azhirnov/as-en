@@ -28,19 +28,19 @@ void ASmain ()
 	{
 		RC<ShaderStructType>	st = ShaderStructType( "VB_UVf2_Col8" );
 		st.Set( EStructLayout::InternalIO,
-				"packed_float2			UV;" +
+				"packed_float2			UV;"
 				"packed_ubyte_norm4		Color;" );
 	}
 	{
 		RC<ShaderStructType>	st = ShaderStructType( "VB_UVs2_Col8" );
 		st.Set( EStructLayout::InternalIO,
-				"packed_ushort_norm2	UV;" +
+				"packed_ushort_norm2	UV;"
 				"packed_ubyte_norm4		Color;" );
 	}
 	{
 		RC<ShaderStructType>	st = ShaderStructType( "VB_UVs2_SCs1_Col8" );
 		st.Set( EStructLayout::InternalIO,
-				"packed_ushort_norm4	UV_Scale;"	+
+				"packed_ushort_norm4	UV_Scale;"
 				"packed_ubyte_norm4		Color;"		);
 	}
 	{

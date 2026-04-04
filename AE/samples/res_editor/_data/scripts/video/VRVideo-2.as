@@ -16,9 +16,9 @@
 		RC<Image>		rt			= Image( EPixelFormat::RGBA8_UNorm, SurfaceSize() );
 		int				mode		= 0;
 	//	RC<VideoImage>	vtex		= VideoImage( "res/video/av1_16k_360.mp4" );	mode = 1;	// 360
-	//	RC<VideoImage>	vtex		= VideoImage( "res/video/h265_16k_360.mp4" );	mode = 1;	// 360
+		RC<VideoImage>	vtex		= VideoImage( "res/video/h265_16k_360.mp4" );	mode = 1;	// 360
 	//	RC<VideoImage>	vtex		= VideoImage( "res/video/vp9_cube360.webm" );	mode = 2;	// Cubemap 360
-		RC<VideoImage>	vtex		= VideoImage( "res/video/vp9_vr360.webm" );		mode = 6;	// Cubemap VR360
+	//	RC<VideoImage>	vtex		= VideoImage( "res/video/vp9_vr360.webm" );		mode = 6;	// Cubemap VR360
 	//	RC<VideoImage>	vtex		= VideoImage( "res/video/vp9_vr180.webm" );		mode = 7;	// VR180
 		RC<FPVCamera>	camera		= FPVCamera();
 		bool			has_2eyes	= mode >= 5;

@@ -14,18 +14,26 @@ namespace AE::GeometryTools
 */
 	inline void  CheckTBN (const float3 &normal, const float3 &tangent, const float3 &bitangent)
 	{
-		ASSERT( IsNormalized( normal ));
-		ASSERT( IsNormalized( tangent ));
-		ASSERT( IsNormalized( bitangent ));
+	#ifdef AE_DEBUG
+		CHECK( IsNormalized( normal ));
+		CHECK( IsNormalized( tangent ));
+		CHECK( IsNormalized( bitangent ));
+
+		const float		handedness	= Dot( Cross( tangent, bitangent ), normal );
+
+		// must be -1 for left-handed matrix
+		CHECK( IsZero( handedness + 1.f ));
 
 		const float3	normal2		= Normalize( Cross( bitangent, tangent ));
 		const float3	tangent2	= Normalize( Cross( normal, bitangent ));
 		const float3	bitangent2	= Normalize( Cross( tangent, normal ));
 
-		ASSERT( All(Equal( normal,		normal2,	1_pct )));
-		ASSERT( All(Equal( tangent,		tangent2,	1_pct )));
-		ASSERT( All(Equal( bitangent,	bitangent2,	1_pct )));
-		Unused( normal2, tangent2, bitangent2 );
+		CHECK( All(Equal( normal,		normal2,	1_pct )));
+		CHECK( All(Equal( tangent,		tangent2,	1_pct )));
+		CHECK( All(Equal( bitangent,	bitangent2,	1_pct )));
+	#else
+		Unused( normal, tangent, bitangent );
+	#endif
 	}
 
 /*

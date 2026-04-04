@@ -72,25 +72,10 @@ namespace AE::Graphics
 		VkPipelineDynamicStateCreateInfo			dynamic_state_info	= {};
 		VkPipelineVertexInputStateCreateInfo		vertex_input_info	= {};
 		VkPipelineViewportStateCreateInfo			viewport_info		= {};
-		VkPipelineViewportWScalingStateCreateInfoNV	w_scaling			= {};
 		VkPipelineRobustnessCreateInfoEXT			robustness_ci;
-		//VkPipelineCreateFlags2CreateInfoKHR		flags_ci;
+		VkPipelineCreateFlags2CreateInfoKHR			flags2_ci			= {};
 		VNextChain									p_next				{pipeline_info};
 		VTempLinearAllocator						allocator;
-
-		if ( ext.pipelineRobustness )
-		{
-			p_next.Add( robustness_ci );
-			SetRobustness( OUT robustness_ci );
-		}
-
-		/*if ( ext.maintenance5 )
-		{
-			p_next.Add( flags_ci );
-
-			flags_ci.sType	= VK_STRUCTURE_TYPE_PIPELINE_CREATE_FLAGS_2_CREATE_INFO;
-			flags_ci.flags	= 0;	// TODO
-		}*/
 
 		const bool	vertex_divisor_supported = (resMngr.GetFeatureSet().vertexDivisor == FeatureSet::EFeature::RequireTrue);
 
@@ -105,8 +90,11 @@ namespace AE::Graphics
 		SetViewportState( OUT viewport_info, ci.specCI.viewportCount );
 		CHECK_ERR( SetColorBlendState( OUT blend_info, render_state.color, *subpass, render_state.rasterOrderAccess, allocator ));
 
+		flags2_ci.sType						= VK_STRUCTURE_TYPE_PIPELINE_CREATE_FLAGS_2_CREATE_INFO;
+		flags2_ci.flags						= VEnumCast( ci.specCI.options );
+
 		pipeline_info.sType					= VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
-		pipeline_info.flags					= VEnumCast( ci.specCI.options );
+		pipeline_info.flags					= VkPipelineCreateFlags( flags2_ci.flags );
 		pipeline_info.basePipelineIndex		= -1;
 		pipeline_info.basePipelineHandle	= Default;
 		pipeline_info.pColorBlendState		= &blend_info;
@@ -121,6 +109,24 @@ namespace AE::Graphics
 		pipeline_info.renderPass			= render_pass->Handle();
 		pipeline_info.subpass				= subpass_idx;
 
+		if ( ext.pipelineRobustness )
+		{
+			p_next.Add( robustness_ci );
+			SetRobustness( OUT robustness_ci );
+		}
+
+		if ( ext.rayQueryMicromapARM and NoBits( ci.specCI.options, EPipelineOpt::OpacityMicromap ))
+		{
+			flags2_ci.flags |= VK_PIPELINE_CREATE_2_DISALLOW_OPACITY_MICROMAP_BIT_ARM;
+		}
+
+		if ( ext.maintenance5 ){
+			p_next.Add( flags2_ci );
+		}else{
+			CHECK_ERR_MSG( flags2_ci.flags == pipeline_info.flags,
+				"Some pipeline creation flags requires 'maintenance5' extension" );
+		}
+
 		if ( not rasterization_info.rasterizerDiscardEnable )
 		{
 			pipeline_info.pViewportState		= &viewport_info;
@@ -129,14 +135,6 @@ namespace AE::Graphics
 			pipeline_info.pMultisampleState		= null;
 			pipeline_info.pDepthStencilState	= null;
 			pipeline_info.pColorBlendState		= null;
-		}
-
-		if ( AllBits( ci.specCI.dynamicState, EPipelineDynamicState::ViewportWScaling ))
-		{
-			w_scaling.sType						= VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_W_SCALING_STATE_CREATE_INFO_NV;
-			w_scaling.viewportWScalingEnable	= VK_TRUE;
-			w_scaling.viewportCount				= ci.specCI.viewportCount;
-			viewport_info.pNext					= &w_scaling;
 		}
 
 		VK_CHECK_ERR( CreateGraphicsPipelines( dev, ppln_cache, 1, &pipeline_info, null, OUT &_handle ));

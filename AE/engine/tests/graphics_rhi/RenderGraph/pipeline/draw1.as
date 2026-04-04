@@ -21,7 +21,7 @@ void ASmain ()
 	// specialization
 	{
 		RC<GraphicsPipelineSpec>	spec = ppln.AddSpecialization( "draw1" );
-		spec.AddToRenderTech( "DrawTestRT", "Draw_1" );
+		spec.AddToRenderTech( "DrawTest.RTech", "Draw_1" );
 
 		RenderState	rs;
 		rs.inputAssembly.topology = EPrimitive::TriangleList;
@@ -32,7 +32,7 @@ void ASmain ()
 	// specialization
 	{
 		RC<GraphicsPipelineSpec>	spec = ppln.AddSpecialization( "async_comp1.graphics" );
-		spec.AddToRenderTech( "AsyncCompTestRT", "Draw_1" );
+		spec.AddToRenderTech( "AsyncComp.RTech", "Draw_1" );
 
 		RenderState	rs;
 		rs.inputAssembly.topology = EPrimitive::TriangleList;

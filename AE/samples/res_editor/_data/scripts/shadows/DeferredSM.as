@@ -1,6 +1,8 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 /*
 	Apply shadow map with deferred shading.
+
+	Used 'depthBiasConstFactor' and 'depthBiasSlopeFactor' to fix self shadowing.
 */
 #ifdef __INTELLISENSE__
 # 	include <res_editor.as>
@@ -67,13 +69,11 @@
 
 		// create scene with buildings
 		{
-			array<float3>	positions, normals;
-			array<uint>		indices;
-			GetCube( OUT positions, OUT normals, OUT indices );
+			RC<Mesh>	mesh = Mesh();
+			mesh.SetAttributes( EAttribute::Position );
+			mesh.AddCube();
 
-			RC<Buffer>		geom_data = Buffer();
-			geom_data.FloatArray( "positions",	positions );
-			geom_data.UIntArray(  "indices",	indices );
+			RC<Buffer>		geom_data = mesh.ToBuffer();
 			geom_data.LayoutName( "GeometryData" );
 
 			{
@@ -82,7 +82,7 @@
 				geometry.ArgIn( "un_Transform",	obj_buf );
 
 				UnifiedGeometry_DrawIndexed	cmd;
-				cmd.indexCount	= indices.size();
+				cmd.indexCount	= mesh.IndexCount();
 				cmd.IndexBuffer( geom_data, "indices" );
 				cmd.InstanceCount( obj_count );
 				cmd.PipelineHint( "opaque.LEqual" );
@@ -96,7 +96,7 @@
 				geometry.ArgIn( "un_Params",	cbuf );
 
 				UnifiedGeometry_DrawIndexed	cmd;
-				cmd.indexCount	= indices.size();
+				cmd.indexCount	= mesh.IndexCount();
 				cmd.IndexBuffer( geom_data, "indices" );
 				cmd.InstanceCount( obj_count );
 				geometry.Draw( cmd );
@@ -140,27 +140,24 @@
 			RC<ComputePass>			pass = ComputePass( "", "SETUP_SM" );
 			pass.Set( camera );
 			pass.ArgInOut(	"un_Params",	cbuf );
-			pass.Slider(	"iLightDir",	float3(-1.0),	float3(1.0),	float3(0.3, 0.0, -0.35) );
+			pass.Slider(	"iLightDir",	float3(-1.0),	float3(1.0),	float3(0.4, 0.0, -0.35) );
 			pass.Slider(	"iShadowDist",	1.0,			100.0,			30.0 );
 			pass.Slider(	"iShadowZ",		0.0,			100.0,			25.0 );		// or set 'depthClamp=true' in pipeline
-			pass.Slider(	"iSnapToTexel",	0,				1 );
+			pass.Slider(	"iStable",		0,				3,				3 );
 			pass.Constant(	"iShadowDim",	sm_dim );
 			pass.LocalSize( 1 );
 			pass.DispatchThreads( 1 );
 		}{
 			RC<SceneGraphicsPass>	pass = scene.AddGraphicsPass( "opaque" );
-			pass.AddPipeline( "samples/StreetLights-Opaque.as" );		// [src](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/pipelines/samples/StreetLights-Opaque.as)
+			pass.AddPipeline( "samples/StreetLights/Opaque.as" );		// [src](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/pipelines/samples/StreetLights/Opaque.as)
 			pass.Output( "out_Color",		rt_col,		RGBA32f(0.0) );
 			pass.Output( "out_Normal",		rt_norm,	RGBA32f(0.0) );
 			pass.Output(					ds,			DepthStencil(1.0, 0) );
 		}{
 			RC<SceneGraphicsPass>	pass = scene_sm.AddGraphicsPass( "shadows" );
-			pass.AddPipeline( "samples/StreetLights-SM.as" );			// [src](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/pipelines/samples/StreetLights-SM.as)
+			pass.AddPipeline( "samples/StreetLights/SM.as" );			// [src](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/pipelines/samples/StreetLights/SM.as)
 			pass.Output( "out_Color",		sm_col,		RGBA32f(0.0) );
 			pass.Output(					sm,			DepthStencil(1.0, 0) );
-		//	pass.Slider( "iConstBias",		0.0,	1.0,	0.1 );
-		//	pass.Slider( "iSlopeBias",		0.0,	1.0,	0.5 );
-		//	pass.Slider( "iBiasClamp",		0.0,	2.0,	0.0 );
 		}{
 			CopyImage( sm_col, sm_col2 );
 
@@ -179,8 +176,9 @@
 			pass.ArgIn( "un_SMColor",		sm_col,		Sampler_NearestClamp );
 			pass.ArgIn( "un_SMColor2",		sm_col2,	Sampler_NearestClamp );
 			pass.ArgIn( "un_Params",		cbuf );
-			pass.Slider( "iView",			0,		5,				0 );
+			pass.Slider( "iView",			0,		7,				0 );
 			pass.Slider( "iScale",			1.0,	10.0,			1.0 );
+			pass.Constant( "iShadowDim",	sm_dim );
 		}
 
 		Present( rt );
@@ -214,6 +212,9 @@
 			return;
 		}
 
+		if ( idx >= un_Objects.elements.length() )
+			return;
+
 		obj.position.x	= (ToSNorm( uv.x ) + 0.25) * 20.0;
 		obj.position.y	= GROUND_Y;
 		obj.position.z	= uv.y - 5.0;
@@ -239,12 +240,15 @@
 	#include "Frustum.glsl"
 
 
-	float2  SnapToTexel (float2 size)
+	// input and output in light space
+	float2  SnapToTexel (float2 centerLS, float2 sizeLS)
 	{
-		const float2	inv_texel_size	= float2(iShadowDim);
-		const float2	texel_size		= Rcp( inv_texel_size );
+		float2	units_per_texel	= sizeLS / float2(iShadowDim);
 
-		return Ceil( size * inv_texel_size ) * texel_size;
+		float2	min_ls	= centerLS - sizeLS * 0.5;
+				min_ls	= Floor( min_ls / units_per_texel ) * units_per_texel;
+
+		return	min_ls + sizeLS * 0.5;
 	}
 
 
@@ -256,7 +260,7 @@
 		// 'UnProjectNDC' returns world space, camera at (0,0,0)
 		// 'view * wp' returns light space
 
-		float3		near		= float3(0.0);
+		float3		near		= float3(0.0);	// same as camera pos
 
 		float3		far0		= view * UnProjectNDC( inv_vp, float3(-1.0,  1.0, z) );
 		float3		far1		= view * UnProjectNDC( inv_vp, float3( 1.0,  1.0, z) );
@@ -273,22 +277,51 @@
 	void Main ()
 	{
 		float3		light_ang	= iLightDir * float_HalfPi + float3(0.5, 1.0, 0.0) * float_Pi;
-		float3x3	view		= f3x3_RotateX( light_ang.x ) * f3x3_RotateY( light_ang.y ) * f3x3_RotateZ( light_ang.z );
+		float3x3	light_view	= f3x3_RotateX( light_ang.x ) * f3x3_RotateY( light_ang.y ) * f3x3_RotateZ( light_ang.z );
 
 		float4x4	tr_mat		= f4x4_Translate( -un_PerPass.camera.pos );
+		float		fov			= MaxOf( un_PerPass.camera.fov );	// 'fov.x' for FPS camera, 'MaxOf(fov.xy)' for flight camera
+		float		tan_hfov	= Tan( fov * 0.5 );
 
-		AABB		aabb		= CalcShadowBBox( view );
+		AABB		aabb		= CalcShadowBBox( light_view );
 
 		float2		center		= AABB_Center( aabb ).xy;
-		float2		size		= float2(MaxOf( AABB_Size( aabb )));
+		float2		size		= AABB_Size( aabb ).xy;
+		float2		z_range		= float2( aabb.min.z - iShadowZ, aabb.max.z + iShadowZ );
+		float		max_size	= iShadowDist * Max( tan_hfov, 1.0 ) * 2.0;
+		float		shadow_dist = iShadowDist / Cos( fov * 0.5 );
 
-		if ( iSnapToTexel == 1 )
-			center = SnapToTexel( center );
+		// Virtual shadow map: rectangle with sides 'shadow_dist*2' and camera in center (snaped to texel center).
+		// This make pixels stable when rotating or moving camera.
+		// Physical shadow map will use part of this virtual texture to save memory.
+		// Max size of physical texture is 'max_size'.
+		//
+		switch ( iStable )
+		{
+			case 1 :	// stable size
+				size = float2( max_size );
+				break;
 
-		float2		z_range		= float2( aabb.min.z - iShadowZ, aabb.max.z );
+			case 2 :	// stable size and snap local center to texel
+				size   = float2( max_size );
+				center = SnapToTexel( center, size );
+				break;
 
-		un_Params.shadowVP = f4x4_Ortho( Rect_FromCenterSize( center, size ), z_range ) * float4x4(view) * tr_mat;
-		un_Params.lightDir = Normalize( -GetAxisZ( view ));
+			case 3 :	// stable size and snap global center to texel
+			{
+				ASSERT( AllLess( size, float2(max_size * 1.01) ));
+
+				float3 view_pos = light_view * un_PerPass.camera.pos;
+				size   = float2( max_size );
+				center = SnapToTexel( view_pos.xy + center, size );
+				tr_mat = f4x4_Identity();
+				z_range += view_pos.z;
+				break;
+			}
+		}
+
+		un_Params.shadowVP = f4x4_Ortho( Rect_FromCenterSize( center, size ), z_range ) * float4x4(light_view) * tr_mat;
+		un_Params.lightDir = Normalize( -GetAxisZ( light_view ));
 
 		un_Params.cameraPos = un_PerPass.camera.pos;
 		Frustum_ToCornerPoints( Frustum_Create(un_PerPass.camera.frustum), OUT un_Params.cornerPoints );
@@ -318,13 +351,20 @@
 #endif
 //-----------------------------------------------------------------------------
 #ifdef RESOLVE
+	#include "Hash.glsl"
+	#include "Color.glsl"
 	#include "Matrix.glsl"
 	#include "ColorSpace.glsl"
 	#include "InvocationID.glsl"
 	#include "TexSampling.glsl"
 
+	struct ShadowResult
+	{
+		float	value;
+		float2	pxCoord;
+	};
 
-	float  Shadow ()
+	ShadowResult  Shadow ()
 	{
 		float	depth		= gl.texture.Fetch( un_Depth, int2(gl.FragCoord.xy), 0 ).r;					// non-linear
 		float3	normal		= ToSNorm( gl.texture.Fetch( un_Normal, int2(gl.FragCoord.xy), 0 ).rgb );	// world space
@@ -332,29 +372,37 @@
 		float3	world_pos	= UnProject( un_PerPass.camera.invViewProj, float3( gl.FragCoord.xy, depth ), un_PerPass.invResolution );
 		float4	sc			= ProjectShadow( un_Params.shadowVP, world_pos + un_PerPass.camera.pos );
 
+		ShadowResult	res;
+
 		if ( ! SampleShadow_IsValidCoord( sc ))
-			return 2.0;
+		{
+			res.value	= 2.0;
+			res.pxCoord	= float2(0.0);
+			return res;
+		}
 
 		float	shadow		= SampleShadow( un_ShadowMap, sc );
 		float	ambient		= 0.2;
 		float	n_dot_l		= Max( Dot( normal, un_Params.lightDir ), 0.0 );
 
-		return	Max( shadow * n_dot_l, ambient );
+		res.value		= Max( shadow * n_dot_l, ambient );
+		res.pxCoord		= Floor( sc.xy * float2(iShadowDim) );
+		return res;
 	}
 
 
 	void Main ()
 	{
-		float3	albedo	= gl.texture.Fetch( un_Albedo, int2(gl.FragCoord.xy), 0 ).rgb;
-		float	shadow	= Shadow();
+		float3			albedo	= gl.texture.Fetch( un_Albedo, int2(gl.FragCoord.xy), 0 ).rgb;
+		ShadowResult	shadow	= Shadow();
 
 		float2	uv2 = MapPixCoordToUNormCorrected(
 							gl.FragCoord.xy,	// with subpixel offset
 							un_PerPass.resolution.xy,
-							float2(gl.texture.GetSize( un_SMColor, 0 ))
+							float2(iShadowDim)
 						);
 
-		// shadow map is filpped
+		// shadow map is flipped
 		uv2.x = 1.0 - uv2.x;
 
 		out_Color = float4(0.2);
@@ -362,10 +410,10 @@
 		switch ( iView )
 		{
 			case 0 :	// color + shadow
-				out_Color = float4( albedo * shadow * iScale, 1.0 );  break;
+				out_Color = float4( albedo * shadow.value * iScale, 1.0 );  break;
 
 			case 1 :	// shadow only
-				out_Color = float2( shadow * iScale, 1.0 ).rrrg;  break;
+				out_Color = float2( shadow.value * iScale, 1.0 ).rrrg;  break;
 
 			case 2 :	// color only
 				out_Color = float4( albedo * iScale, 1.0 );  break;
@@ -384,10 +432,27 @@
 				break;
 			}
 
-			case 5 :	// shadow map color with reprojected view space depth
+			case 5 :	// shadow map color with frustum
 			{
 				if ( IsUNorm( uv2 ))
 					out_Color = float4( gl.texture.Sample( un_SMColor2, uv2 ).rgb * iScale, 1.0 );
+				break;
+			}
+
+			case 6 :	// shadow map unique pixels
+			{
+				out_Color = float4( Saturate( DHash32( shadow.pxCoord ) - shadow.value * (iScale - 1.0) ), 1.0 );
+				break;
+			}
+
+			case 7 :	// shadow map LOD (pixel density)
+			{
+				float2	dx		= gl.dFdx( shadow.pxCoord );
+				float2	dy		= gl.dFdy( shadow.pxCoord );
+				float	Pmax	= Max( Length(dx), Length(dy) );
+				float	level	= Log2( Pmax );
+
+				out_Color = Rainbow2( 1.0 - level * iScale / 8.0 );
 				break;
 			}
 		}

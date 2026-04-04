@@ -25,7 +25,7 @@ namespace AE::ResEditor
 		if ( _gpuMemSize >= 4_GiB )
 			_pageSize = 64_MiB;
 
-		_gfxLinearAlloc	= rts.GetResourceManager().CreateLinearGfxMemAllocator( _pageSize );
+		_gfxLinearAlloc	= rts.GetResourceManager().CreateLinearGfxMemAllocator( _pageSize, 1_KiB );
 		_gfxLargeAlloc	= rts.GetResourceManager().CreateLargeSizeGfxMemAllocator();
 
 		_CreateDummyImage2D( OUT _dummyRes.image2D, _gfxLinearAlloc );

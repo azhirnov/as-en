@@ -57,10 +57,7 @@ namespace AE::ResEditor
 		ND_ virtual float4x4		GetInvViewProj ()							C_NE___ { return GetViewProj().Inversed(); }
 
 		ND_ virtual float4x4		GetProj ()									C_NE___ = 0;
-	//	ND_ virtual float4x4		GetInvProj ()								C_NE___ { return GetProj().Inversed(); }
-
 		ND_ virtual float4x4		GetView ()									C_NE___ = 0;
-	//	ND_ virtual float4x4		GetInvView ()								C_NE___ { return GetView().Inversed(); }
 
 		ND_ virtual float2			GetClipPlanes ()							C_NE___ = 0;
 		ND_ virtual float			GetZoom ()									C_NE___ = 0;

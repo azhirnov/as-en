@@ -17,8 +17,6 @@ namespace AE::Graphics
 */
 	VRTScene::~VRTScene () __NE___
 	{
-		DRC_EXLOCK( _drCheck );
-		ASSERT( _buffer == Default );
 		ASSERT( _accelStruct == Default );
 	}
 
@@ -29,8 +27,6 @@ namespace AE::Graphics
 */
 	bool  VRTScene::Create (ResourceManager &resMngr, const RTSceneDesc &desc, GfxMemAllocatorPtr allocator, StringView dbgName) __NE___
 	{
-		DRC_EXLOCK( _drCheck );
-		CHECK_ERR( _buffer == Default );
 		CHECK_ERR( _accelStruct == Default );
 		CHECK_ERR( desc.size > 0 );
 
@@ -38,28 +34,24 @@ namespace AE::Graphics
 		GRES_CHECK( IsSupported( resMngr, desc ));
 
 		// create buffer
-		VkBufferCreateInfo	buf_ci = {};
-		buf_ci.sType		= VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
-		buf_ci.flags		= 0;
-		buf_ci.usage		= VK_BUFFER_USAGE_ACCELERATION_STRUCTURE_STORAGE_BIT_KHR | VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT;
-		buf_ci.size			= VkDeviceSize( _desc.size );
-		buf_ci.sharingMode	= VK_SHARING_MODE_EXCLUSIVE;
-
 		auto&	dev = resMngr.GetDevice();
-		VK_CHECK_ERR( dev.vkCreateBuffer( dev.GetVkDevice(), &buf_ci, null, OUT &_buffer ));
-
-		_memoryId = resMngr.CreateMemoryObj( _buffer,
-											 BufferDesc{}
-												.SetUsage( EBufferUsage::ShaderAddress )
-												.SetMemory( EMemoryType::DeviceLocal ),
-											 RVRef(allocator), dbgName );
+		_memoryId	= resMngr.CreateMemoryObj( _desc.size, VK_BUFFER_USAGE_2_ACCELERATION_STRUCTURE_STORAGE_BIT_KHR, RVRef(allocator), dbgName );
 		CHECK_ERR( _memoryId );
 
+		auto*	mem_obj = resMngr.GetResource( _memoryId );
+		CHECK_ERR( mem_obj != null );
+
+		VulkanMemoryObjInfo	mem_info;
+		CHECK_ERR( mem_obj->GetMemoryInfo( OUT mem_info ));
+		CHECK_ERR( mem_info.buffer != Default );
+		CHECK_ERR( IsMultipleOf( mem_info.offset, 256_b ));  // from specs
+
+		// create acceleration structure
 		VkAccelerationStructureCreateInfoKHR	blas_ci = {};
 		blas_ci.sType		= VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_CREATE_INFO_KHR;
-		blas_ci.createFlags	= 0;	// VK_ACCELERATION_STRUCTURE_CREATE_MOTION_BIT_NV
-		blas_ci.buffer		= _buffer;
-		blas_ci.offset		= 0;
+		blas_ci.createFlags	= 0;	// TODO: VK_ACCELERATION_STRUCTURE_CREATE_MOTION_BIT_NV
+		blas_ci.buffer		= mem_info.buffer;
+		blas_ci.offset		= VkDeviceSize( mem_info.offset );
 		blas_ci.size		= VkDeviceSize( _desc.size );
 		blas_ci.type		= VK_ACCELERATION_STRUCTURE_TYPE_TOP_LEVEL_KHR;
 
@@ -74,6 +66,9 @@ namespace AE::Graphics
 		_address = BitCast<DeviceAddress>( dev.vkGetAccelerationStructureDeviceAddressKHR( dev.GetVkDevice(), &addr_info ));
 		CHECK_ERR( _address != Default );
 
+		_storage = mem_info.buffer;
+		_offset	 = mem_info.offset;
+
 		GFX_DBG_ONLY( _debugName = dbgName; )
 		return true;
 	}
@@ -85,12 +80,7 @@ namespace AE::Graphics
 */
 	void  VRTScene::Destroy (ResourceManager &resMngr) __NE___
 	{
-		DRC_EXLOCK( _drCheck );
-
 		auto&	dev = resMngr.GetDevice();
-
-		if ( _buffer != Default )
-			dev.vkDestroyBuffer( dev.GetVkDevice(), _buffer, null );
 
 		if ( _accelStruct != Default )
 			dev.vkDestroyAccelerationStructureKHR( dev.GetVkDevice(), _accelStruct, null );
@@ -100,8 +90,9 @@ namespace AE::Graphics
 		_address		= Default;
 		_memoryId		= Default;
 		_accelStruct	= Default;
-		_buffer			= Default;
 		_desc			= Default;
+		_storage		= Default;
+		_offset			= 0_b;
 
 		GFX_DBG_ONLY( _debugName.clear() );
 	}
@@ -263,6 +254,17 @@ namespace AE::Graphics
 		}
 
 		return true;
+	}
+
+/*
+=================================================
+	GetBufferStorage
+=================================================
+*/
+	BufferSubRange  VRTScene::GetBufferStorage () C_NE___
+	{
+		ASSERT( _storage != Default );
+		return BufferSubRange{ _storage, _offset, _desc.size };
 	}
 
 

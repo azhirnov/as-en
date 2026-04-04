@@ -132,7 +132,7 @@
 		if ( iMode != 0 )
 			covered3 = 0.0;
 
-		out_Color = float4(0.0);
+		out_Color = float4(0.0, 0.0, 0.0, 1.0);
 
 		switch ( iDrawOrder )
 		{

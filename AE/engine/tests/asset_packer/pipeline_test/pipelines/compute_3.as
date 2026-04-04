@@ -16,6 +16,6 @@ void ASmain ()
 	{
 		RC<ComputePipelineSpec>		spec = ppln.AddSpecialization( "compute_3.def" );
 
-		spec.AddToRenderTech( "MinForward", "Compute1" );
+		spec.AddToRenderTech( "RayTracing", "Trace1" );
 	}
 }

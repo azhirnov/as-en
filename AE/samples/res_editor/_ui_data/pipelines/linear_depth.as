@@ -46,8 +46,8 @@ void  CreatePipeline ()
 		ds.SampledImage( EShaderStages::Fragment, "un_Depth", EImageType::Float_2D );
 	}{
 		RC<ShaderStructType>	st = ShaderStructType( "LinearDepth.draw.pc" );
-		st.Set( "float4x4	proj;" +
-				"float		nearPlane;" +
+		st.Set( "float4x4	proj;"
+				"float		nearPlane;"
 				"float		invDistance;" );
 	}{
 		RC<PipelineLayout>		pl = PipelineLayout( "LinearDepth.draw.pl" );

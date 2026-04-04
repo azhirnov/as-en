@@ -15,7 +15,7 @@ namespace
 		Atomic<uint>				counter		{0};
 	};
 
-	static constexpr Bytes	upload_limit = 1_MiB;
+	static constexpr Bytes	c_UploadLimit = 1_MiB;
 
 
 	static RenderCoro  US2_UploadStreamTask (US2_TestData& t)
@@ -27,7 +27,7 @@ namespace
 		if ( t.counter.fetch_add(1) == 0 )
 		{
 			ctx.AccumBarriers()
-				.ImageBarrier( t.stream.ImageId(), EResourceState::Invalidate, EResourceState::CopyDst );
+				.ResourceBarrier( t.stream.ImageId(), EResourceState::Invalidate, EResourceState::CopyDst );
 		}
 
 		ImageMemView	mem_view;
@@ -41,7 +41,7 @@ namespace
 
 		const auto	stat = GraphicsScheduler().GetResourceManager().GetStagingBufferFrameStat( RenderCoro_Get().FrameId() );
 		CHECK( stat.dynamicWrite > 0 );
-		CHECK( stat.dynamicWrite <= upload_limit );
+		CHECK( stat.dynamicWrite <= c_UploadLimit );
 
 		co_return;
 	}
@@ -54,7 +54,7 @@ namespace
 			auto&	rts = GraphicsScheduler();
 
 			BeginFrameConfig	cfg;
-			cfg.stagingBufferPerFrameLimits.write = upload_limit;
+			cfg.stagingBufferPerFrameLimits.write = c_UploadLimit;
 
 			CHECK_CE( rts.WaitNextFrame( c_ThreadArr, c_MaxTimeout ));
 			CHECK_CE( rts.BeginFrame( cfg ));
@@ -112,7 +112,7 @@ namespace
 		CHECK_ERR( rts.WaitAll( c_MaxTimeout ));
 
 		CHECK_ERR( t.stream.IsCompleted() );
-		CHECK_ERR( t.counter.load() >= uint(t.imageData.Image2DSize() / upload_limit) );
+		CHECK_ERR( t.counter.load() >= uint(t.imageData.Image2DSize() / c_UploadLimit) );
 
 		return true;
 	}
@@ -120,7 +120,7 @@ namespace
 } // namespace
 
 
-bool RGTest::Test_UploadStream2 ()
+RGTest::ECode  RGTest::Test_UploadStream2 ()
 {
 	bool	result = true;
 
@@ -128,6 +128,10 @@ bool RGTest::Test_UploadStream2 ()
 
 	RG_CHECK( _CompareDumps( TEST_NAME ));
 
-	AE_LOGI( TEST_NAME << " - passed" );
-	return result;
+	if ( result )
+	{
+		AE_LOGI( TEST_NAME << " - passed" );
+		return ECode::Passed;
+	}
+	return ECode::Failed;
 }

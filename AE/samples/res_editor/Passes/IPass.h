@@ -132,6 +132,12 @@ namespace AE::ResEditor
 
 		using RenderTargets_t	= Array< RenderTarget >;
 
+		struct DynamicData
+		{
+			uint	frame		= 0;
+			uint	prevFrame	= UMax;
+		};
+
 
 	public:
 		using DynamicFloatTypes_t	= TypeList< DynamicFloat, DynamicFloat2, DynamicFloat3, DynamicFloat4 >;
@@ -157,6 +163,8 @@ namespace AE::ResEditor
 
 		RC<DynamicFloat>		_passTime;
 		PerFrameTimeQuery_t		_timeQuery;
+
+		mutable DynamicData		_dynData;		// used only in 'Upload()'
 
 		String					_dbgName;
 		RGBA8u					_dbgColor;
@@ -216,6 +224,8 @@ namespace AE::ResEditor
 
 		ND_ bool  _IsEnabled ()																const;
 		ND_ uint  _GetRepeatCount ()														const;
+
+		void  _UpdateComputeUB (INOUT AnyTypeRef, const UpdatePassData &pd)					C_NE___;
 	};
 
 
@@ -231,6 +241,8 @@ namespace AE::ResEditor
 		if ( not _passTime )
 			return;
 
+	  #if defined(AE_ENABLE_VULKAN) or defined(AE_ENABLE_REMOTE_GRAPHICS)
+
 		auto&		qm			= GraphicsScheduler().GetQueryManager();
 		FrameUID	frame_id	= ctx.GetFrameId();
 		auto&		query		= _timeQuery[ frame_id.Index() ];
@@ -240,6 +252,7 @@ namespace AE::ResEditor
 			return;
 
 		ctx.WriteTimestamp( query, 0, EPipelineScope::All );
+	  #endif
 	}
 
 /*
@@ -253,6 +266,8 @@ namespace AE::ResEditor
 		if ( not _passTime )
 			return;
 
+	  #if defined(AE_ENABLE_VULKAN) or defined(AE_ENABLE_REMOTE_GRAPHICS)
+
 		FrameUID	frame_id	= ctx.GetFrameId();
 		auto&		query		= _timeQuery[ frame_id.Index() ];
 
@@ -260,6 +275,7 @@ namespace AE::ResEditor
 			return;
 
 		ctx.WriteTimestamp( query, 1, EPipelineScope::All );
+	  #endif
 	}
 
 

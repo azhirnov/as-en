@@ -6,6 +6,9 @@
 
 namespace AE::PipelineCompiler
 {
+	using RayTracingPipelineSpecPtr = ScriptRC< struct RayTracingPipelineSpecScriptBinding >;
+	using RayTracingPipelinePtr		= ScriptRC< struct RayTracingPipelineScriptBinding >;
+
 
 	//
 	// Ray Tracing Pipeline Specialization
@@ -19,7 +22,6 @@ namespace AE::PipelineCompiler
 
 	// methods
 	public:
-		RayTracingPipelineSpecScriptBinding () {}
 		RayTracingPipelineSpecScriptBinding (RayTracingPipelineScriptBinding* base, const String &name) __Th___;
 
 		void  SetSpecValueU (const String &name, uint  value)			__Th___	{ return BasePipelineSpec::_SetSpecValue( INOUT desc.specialization, name, value ); }
@@ -42,7 +44,6 @@ namespace AE::PipelineCompiler
 
 		static void  Bind (const ScriptEnginePtr &se)					__Th___;
 	};
-	using RayTracingPipelineSpecPtr = ScriptRC< RayTracingPipelineSpecScriptBinding >;
 
 
 
@@ -90,8 +91,7 @@ namespace AE::PipelineCompiler
 
 	// methods
 	public:
-		RayTracingPipelineScriptBinding ();
-		explicit RayTracingPipelineScriptBinding (const String &name)						__Th___;
+		ND_ static RayTracingPipelinePtr  Create (const String &name)						__Th___;
 
 		void  AddGeneralShader      (const String &name, const ScriptShaderPtr &shader)		__Th___;
 		void  AddTriangleHitGroup   (const String &name, const ScriptShaderPtr &closestHit,   const ScriptShaderPtr &anyHit) __Th___;
@@ -127,10 +127,12 @@ namespace AE::PipelineCompiler
 		static void  Bind (const ScriptEnginePtr &se)										__Th___;
 
 	private:
+		explicit RayTracingPipelineScriptBinding (const String &name)						__NE___	: BasePipelineTmpl{name} {}
+
+		void  _Init ()																		__Th___;
 		void  _Prepare ()																	__Th___;
 		void  _CheckSupport ()																__Th___;
 	};
-	using RayTracingPipelinePtr = ScriptRC< RayTracingPipelineScriptBinding >;
 
 
 } // AE::PipelineCompiler

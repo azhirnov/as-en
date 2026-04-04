@@ -14,7 +14,7 @@
 		{
 			RC<ShaderStructType>	st = ShaderStructType( "io" );
 			st.Set( EStructLayout::InternalIO,
-					"float3		worldPos;" +
+					"float3		worldPos;"
 					"float3		normal;" );
 		}{
 			RC<DescriptorSetLayout>	ds = DescriptorSetLayout( "mtr.ds" );
@@ -69,10 +69,10 @@
 	void Main ()
 	{
 		const uint		idx		= gl.VertexIndex;
-		const float4	wpos	= LocalPosToWorldSpace( un_Geometry.positions[idx] );
+		const float4	wpos	= LocalPosToWorldSpace( un_Geometry.position[idx] );
 
 		gl.Position		= WorldPosToClipSpace( wpos );
-		Out.normal		= LocalVecToWorldSpace( un_Geometry.normals[idx] );
+		Out.normal		= LocalVecToWorldSpace( un_Geometry.normal[idx] );
 		Out.worldPos	= wpos.xyz;
 	}
 

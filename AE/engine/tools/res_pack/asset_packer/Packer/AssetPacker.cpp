@@ -116,6 +116,7 @@ namespace
 		CHECK_ERR( info != null );
 		CHECK_ERR( (info->inFileCount > 0) and (info->inFiles != null) );
 		CHECK_ERR( (info->inIncludeFolderCount > 0) == (info->inIncludeFolders != null) );
+		CHECK_ERR( (info->inResourceFolderCount > 0) == (info->inResourceFolders != null) );
 		CHECK_ERR( info->tempFile != null );
 		CHECK_ERR( info->outputArchive != null );
 
@@ -135,6 +136,17 @@ namespace
 			else
 				AE_LOGI( "Skip invalid include directory: '"s << ToString(path) << "'" );
 		}
+
+		Array<Path>		resource_folders;
+		for (usize i = 0; i < info->inResourceFolderCount; ++i)
+		{
+			Path	path = FileSystem::ToAbsolute( info->inResourceFolders[i] );
+			if ( FileSystem::IsDirectory( path ))
+				resource_folders.push_back( RVRef(path) );
+			else
+				AE_LOGI( "Skip invalid resource directory: '"s << ToString(path) << "'" );
+		}
+		obj_storage.SetResourceFolders( RVRef(resource_folders) );
 
 		Array<Path>		script_files;
 		CHECK_ERR( BuildFileList( info, OUT script_files ));

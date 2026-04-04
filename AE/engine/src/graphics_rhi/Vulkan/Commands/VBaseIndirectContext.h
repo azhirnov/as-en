@@ -238,6 +238,18 @@ namespace AE::Graphics::_hidden_
 			//ConvertCoopMatrixCmd	commands [];
 		};
 
+		struct PreprocessIndirectCommandsCmd : BaseCmd
+		{
+			VkGeneratedCommandsInfoEXT	info;
+			VkCommandBuffer				stateCmdbuf;
+		};
+
+		struct ExecuteIndirectCommandsCmd : BaseCmd
+		{
+			VkGeneratedCommandsInfoEXT	info;
+			bool						isPreprocessed;
+		};
+
 		//-------------------------------------------------
 		// graphics commands
 
@@ -329,13 +341,6 @@ namespace AE::Graphics::_hidden_
 			ubyte2								fragSize;
 			VkFragmentShadingRateCombinerOpKHR	primitiveOp;
 			VkFragmentShadingRateCombinerOpKHR	textureOp;
-		};
-
-		struct SetViewportWScalingCmd : BaseCmd
-		{
-			ushort					first;
-			ushort					count;
-			//VkViewportWScalingNV	scaling;
 		};
 
 		struct BindIndexBufferCmd : BaseCmd
@@ -484,6 +489,39 @@ namespace AE::Graphics::_hidden_
 			VkQueryType							type;
 		};
 
+		struct BuildMicromapCmd : BaseCmd
+		{
+			VkMicromapBuildInfoEXT				info;
+			//VkMicromapUsageEXT[]
+		};
+
+		struct CopyMicromapCmd : BaseCmd
+		{
+			VkCopyMicromapInfoEXT				info;
+		};
+
+		struct WriteMMPropertiesCmd : BaseCmd
+		{
+			VkMicromapEXT						micromap;
+			VkQueryPool							pool;
+			uint								index;
+			VkQueryType							type;
+		};
+
+		struct CopyMicromapToMemoryCmd : BaseCmd
+		{
+			VkMicromapEXT						src;
+			VkDeviceAddress						dst;
+			VkCopyMicromapModeEXT				mode;
+		};
+
+		struct CopyMemoryToMicromapCmd : BaseCmd
+		{
+			VkDeviceAddress						src;
+			VkMicromapEXT						dst;
+			VkCopyMicromapModeEXT				mode;
+		};
+
 		//-------------------------------------------------
 		// ray tracing commands
 
@@ -547,6 +585,8 @@ namespace AE::Graphics::_hidden_
 			_visitor_( DispatchBaseCmd )\
 			_visitor_( DispatchIndirectCmd )\
 			_visitor_( ConvertCooperativeVectorMatrixCmd )\
+			_visitor_( PreprocessIndirectCommandsCmd )\
+			_visitor_( ExecuteIndirectCommandsCmd )\
 			/* graphics commands */\
 			_visitor_( BeginRenderPassCmd )\
 			_visitor_( NextSubpassCmd )\
@@ -562,7 +602,6 @@ namespace AE::Graphics::_hidden_
 			_visitor_( SetStencilReferenceCmd )\
 			_visitor_( SetBlendConstantsCmd )\
 			_visitor_( SetFragmentShadingRateCmd )\
-			_visitor_( SetViewportWScalingCmd )\
 			_visitor_( BindIndexBufferCmd )\
 			_visitor_( BindVertexBuffersCmd )\
 			_visitor_( DrawCmd )\
@@ -583,6 +622,11 @@ namespace AE::Graphics::_hidden_
 			_visitor_( CopyASToMemoryCmd )\
 			_visitor_( CopyMemoryToASCmd )\
 			_visitor_( WriteASPropertiesCmd )\
+			_visitor_( BuildMicromapCmd )\
+			_visitor_( CopyMicromapCmd )\
+			_visitor_( WriteMMPropertiesCmd )\
+			_visitor_( CopyMicromapToMemoryCmd )\
+			_visitor_( CopyMemoryToMicromapCmd )\
 			/* ray tracing commands */\
 			_visitor_( TraceRaysCmd )\
 			_visitor_( TraceRaysIndirectCmd )\
@@ -602,12 +646,13 @@ namespace AE::Graphics::_hidden_
 				// transfer commands
 				VkImageSubresourceRange, VkBufferCopy, VkImageCopy, VkBufferImageCopy, VkImageBlit,
 				// compute commands
+				ConvertCoopMatrixCmd,
 				// graphics commands
 				VkCommandBuffer,
 				// draw commands
 				VkRect2D, VkViewport, VkBuffer, VkDeviceSize,
 				// acceleration structure build commands
-				VkAccelerationStructureBuildRangeInfoKHR, VkAccelerationStructureGeometryKHR
+				VkAccelerationStructureBuildRangeInfoKHR, VkAccelerationStructureGeometryKHR, VkMicromapUsageEXT
 				// ray tracing commands
 			>;
 

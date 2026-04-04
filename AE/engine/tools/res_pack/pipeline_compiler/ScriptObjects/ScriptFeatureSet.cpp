@@ -31,7 +31,7 @@ namespace
 	using namespace AE::Scripting;
 
 	static ScriptFeatureSet*  ScriptFeatureSet_Ctor (const String &name) {
-		return ScriptFeatureSetPtr{ new ScriptFeatureSet{ name }}.Detach();
+		return ScriptFeatureSet::Create( name ).Detach();
 	}
 //-----------------------------------------------------------------------------
 
@@ -385,14 +385,22 @@ namespace
 	constructor
 =================================================
 */
-	ScriptFeatureSet::ScriptFeatureSet (const String &name) __Th___ :
+	ScriptFeatureSet::ScriptFeatureSet (const String &name) __NE___ :
 		_name{name}, _hash{name}
-	{
-		fs.Init( EFeature::Ignore );
+	{}
 
-		ObjectStorage::Instance()->AddName<FeatureSetName>( name );
-		CHECK_THROW_MSG( ObjectStorage::Instance()->featureSets.emplace( _name, ScriptFeatureSetPtr{this} ).second,
+	ScriptFeatureSetPtr  ScriptFeatureSet::Create (const String &name) __Th___
+	{
+		ScriptFeatureSetPtr	result	{new ScriptFeatureSet{ name }};
+		auto&				storage	= *ObjectStorage::Instance();
+
+		result->fs.Init( EFeature::Ignore );
+
+		storage.AddName<FeatureSetName>( name );
+		CHECK_THROW_MSG( storage.featureSets.emplace( name, result ).second,
 			"FeatureSet with name '"s << name << "' is already defined" );
+
+		return result;
 	}
 
 /*
@@ -484,7 +492,7 @@ namespace
 		}
 		{
 			ClassBinder<ScriptFeatureSet>	binder{ se };
-			binder.CreateRef();
+			binder.CreateRef( 0, False{} );
 
 			const auto	ToMethodName = [] (StringView prefix, String s)
 			{{

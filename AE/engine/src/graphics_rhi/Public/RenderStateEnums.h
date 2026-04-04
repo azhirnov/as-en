@@ -178,14 +178,11 @@ namespace AE::Graphics
 		// shading rate
 		FragmentShadingRate		= 1 << 7,
 
-		// NV
-		ViewportWScaling		= 1 << 8,
-
 		_Last,
 		All						= ((_Last-1) << 1) - 1,
 
 		GraphicsPipelineMask	= StencilCompareMask | StencilWriteMask | StencilReference | DepthBias |
-								  BlendConstants | FragmentShadingRate | ViewportWScaling,
+								  BlendConstants | FragmentShadingRate,
 		MeshPipelineMask		= GraphicsPipelineMask,
 		ComputePipelineMask		= 0,
 		TilePipelineMask		= 0,

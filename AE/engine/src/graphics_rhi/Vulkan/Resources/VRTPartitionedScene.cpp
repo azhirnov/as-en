@@ -39,8 +39,14 @@ namespace AE::Graphics
 	IsSupported
 =================================================
 */
-	bool  VRTPartitionedScene::IsSupported (const ResourceManager &, const RTPartitionedSceneInfo &) __NE___
+	bool  VRTPartitionedScene::IsSupported (const ResourceManager &resMngr, const RTPartitionedSceneInfo &) __NE___
 	{
+		if ( resMngr.GetFeatureSet().accelerationStructure() != FeatureSet::EFeature::RequireTrue )
+			return false;
+
+		if ( not resMngr.GetDevice().GetVExtensions().partitionedAccelStructNV )
+			return false;
+
 		// TODO
 		return true;
 	}

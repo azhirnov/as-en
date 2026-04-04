@@ -16,8 +16,8 @@
 #	pragma warning (pop)
 # endif
 
-# if IMGUI_VERSION_NUM != 19210
-#	pragma message( "required ImGui version 1.92.1" )
+# if IMGUI_VERSION_NUM != 19261
+#	pragma message( "required ImGui version 1.92.6" )
 # endif
 
 namespace AE::Graphics
@@ -556,7 +556,7 @@ namespace AE::Graphics
 		_imguiCtx->IO.Fonts->GetTexDataAsRGBA32( OUT &pixels, OUT &width, OUT &height );
 
 		copyCtx.AccumBarriers()
-			.ImageBarrier( _font.image, EResourceState::Unknown, EResourceState::CopyDst );
+			.ResourceBarrier( _font.image, EResourceState::Unknown, EResourceState::CopyDst );
 
 		UploadImageDesc		upload;
 		upload.aspectMask	= EImageAspect::Color;
@@ -568,7 +568,7 @@ namespace AE::Graphics
 		const bool	result	= (copyCtx.UploadImage( _font.image, upload, ArrayView<ubyte>{ pixels, usize(size) }) == size);
 
 		copyCtx.AccumBarriers()
-			.ImageBarrier( _font.image, EResourceState::CopyDst, EResourceState::ShaderSample | EResourceState::FragmentShader );
+			.ResourceBarrier( _font.image, EResourceState::CopyDst, EResourceState::ShaderSample | EResourceState::FragmentShader );
 
 		_imguiCtx->IO.Fonts->ClearTexData();
 		return result;

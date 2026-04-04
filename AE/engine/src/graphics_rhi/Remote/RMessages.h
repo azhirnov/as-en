@@ -128,7 +128,6 @@ namespace AE::RemoteGraphics::Msg
 			DrawIndirectCount,
 			DrawIndexedIndirectCount,
 			DrawMeshTasksIndirectCount,
-			ViewportWScaling,
 
 			// ITransferContext (Vulkan)
 			ClearColorImage,
@@ -318,6 +317,7 @@ namespace AE::RemoteGraphics::Msg
 	DECL_RESP( RTS_CreateBatch_Response,
 		RmCommandBatchID		batchId;
 		RmSemaphoreID			semaphoreId;
+		ulong					semaphoreVal;
 	)
 
 	DECL_MSG( RTS_SubmitBatch,
@@ -423,6 +423,18 @@ namespace AE::RemoteGraphics::Msg
 		RTSceneDesc				desc;
 	)
 
+	DECL_MSG( ResMngr_CreateRTMicromap,
+		RTMicromapDesc			desc;
+		RmGfxMemAllocatorID		gfxAlloc;
+		StringView				dbgName;
+	)
+
+	DECL_RESP( ResMngr_CreateRTMicromap_Response,
+		RmRTMicromapID			micromapId;
+		RmMemoryID				memoryId;
+		RTMicromapDesc			desc;
+	)
+
 	DECL_MSG( ResMngr_GetRTGeometrySizes,
 		RTGeometryBuild			desc;
 	)
@@ -437,6 +449,14 @@ namespace AE::RemoteGraphics::Msg
 
 	DECL_RESP( ResMngr_GetRTSceneSizes_Response,
 		RTASBuildSizes			sizes;
+	)
+
+	DECL_MSG( ResMngr_GetRTMicromapBuildSizes,
+		RTMicromapInfo			desc;
+	)
+
+	DECL_RESP( ResMngr_GetRTMicromapBuildSizes_Response,
+		RTMicromapBuildSizes	sizes;
 	)
 
 	DECL_MSG( ResMngr_IsSupported_BufferDesc,
@@ -491,7 +511,7 @@ namespace AE::RemoteGraphics::Msg
 
 	DECL_MSG( ResMngr_ReleaseResource,
 		using Types = TypeList< RmImageID, RmBufferID, RmImageViewID, RmBufferViewID, RmGfxMemAllocatorID, RmDescriptorAllocatorID,
-								RmRTGeometryID, RmRTSceneID, RmDescriptorSetID, RmRayTracingPipelineID, RmTilePipelineID,
+								RmRTGeometryID, RmRTSceneID, RmRTMicromapID, RmDescriptorSetID, RmRayTracingPipelineID, RmTilePipelineID,
 								RmComputePipelineID, RmGraphicsPipelineID, RmMeshPipelineID, RmPipelinePackID,
 								RmPipelineCacheID, RmRenderTechPipelinesID >;
 
@@ -725,6 +745,7 @@ namespace AE::RemoteGraphics::Msg
 
 	DECL_MSG( ResMngr_CreateLinearGfxMemAllocator,
 		Bytes				pageSize;
+		Bytes				padding;
 	)
 
 	DECL_MSG( ResMngr_CreateBlockGfxMemAllocator,
@@ -1185,6 +1206,7 @@ namespace AE::RemoteGraphics::Msg
 		EPixelFormat								format;
 		Bytes										dataRowPitch;
 		Bytes										dataSlicePitch;
+		uint3										regionDim;
 	)
 
 	DECL_MSG( SBM_AllocVStream,
@@ -1334,6 +1356,30 @@ namespace AE::RemoteGraphics::Msg
 
 		DECL_CMD( ImageViewBarrierCmd,
 			RmImageViewID			imageView;
+			EResourceState			srcState;
+			EResourceState			dstState;
+		)
+
+		DECL_CMD( RTGeometryBarrierCmd,
+			RmRTGeometryID			geomId;
+			EResourceState			srcState;
+			EResourceState			dstState;
+		)
+
+		DECL_CMD( RTSceneBarrierCmd,
+			RmRTSceneID				sceneId;
+			EResourceState			srcState;
+			EResourceState			dstState;
+		)
+
+		DECL_CMD( RTMicromapBarrierCmd,
+			RmRTMicromapID			micromapId;
+			EResourceState			srcState;
+			EResourceState			dstState;
+		)
+
+		DECL_CMD( VideoImageBarrierCmd,
+			RmVideoImageID			imageId;
 			EResourceState			srcState;
 			EResourceState			dstState;
 		)
@@ -1653,10 +1699,6 @@ namespace AE::RemoteGraphics::Msg
 			EShadingRate						rate;
 			EShadingRateCombinerOp				primitiveOp;
 			EShadingRateCombinerOp				textureOp;
-		)
-
-		DECL_CMD( Draw_SetViewportWScalingCmd,
-			ArrayView<packed_float2>			scaling;
 		)
 
 		DECL_CMD( Draw_BindIndexBufferCmd,

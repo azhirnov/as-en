@@ -229,8 +229,8 @@ namespace AE::Graphics
 		SHAREDLOCK( _guard );
 
 		MutableIdxBits	cur_idx = _indices.load();
-		CHECK_ERR( cur_idx.imageIdx == _MaxImageIndex, VK_RESULT_MAX_ENUM );
-		CHECK_ERR( _vkSwapchain != Default, VK_RESULT_MAX_ENUM );
+		CHECK_ERR( cur_idx.imageIdx == _MaxImageIndex, VK_RESULT_MAX_ENUM ); // already acquired
+		CHECK_ERR( _vkSwapchain != Default, VK_RESULT_MAX_ENUM ); // not initialized
 
 		cur_idx.imageIdx = _MaxImageIndex;
 
@@ -251,7 +251,7 @@ namespace AE::Graphics
 =================================================
 	Present
 ----
-	Nvidia in windowed mode: when used vsync vkAcquireNextImage() stalls on 1/refresh_rate.
+	Nvidia in windowed mode: when used vsync vkQueuePresentKHR() stalls on 1/refresh_rate.
 =================================================
 */
 	VkResult  VSwapchain::Present (VQueuePtr queue, FrameUID frameId) __NE___
@@ -273,11 +273,11 @@ namespace AE::Graphics
 		StaticAssert( CountOf(swap_chains) == CountOf(image_indices) );
 
 		if ( renderFinished.empty() )
-			renderFinished = ArrayView<VkSemaphore>{ &_renderFinishedSem[cur_idx.semaphoreId], 1 };
+			renderFinished = ArrayView<VkSemaphore>{ &_renderFinishedSem[cur_idx.imageIdx], 1 };
 
-		// 'renderFinished' should contains semaphore which is returned by AcquireNextImage()
+		// 'renderFinished' should contains semaphore which is returned by 'GetRenderFinishedSemaphore()'
 		GFX_DBG_ONLY(
-			CHECK( ArrayContains( renderFinished, _renderFinishedSem[cur_idx.semaphoreId] ));
+			CHECK( ArrayContains( renderFinished, _renderFinishedSem[cur_idx.imageIdx] ));
 		)
 
 		VkPresentInfoKHR	present_info = {};
@@ -865,8 +865,12 @@ namespace AE::Graphics
 		}
 
 		// destroy obsolete resources
+		// TODO: can be delayed to avoid stalls, but it requires to double-buffer semaphores
+
 		auto&	res_mngr = GraphicsScheduler().GetResourceManager();
 		{
+			VK_CHECK_ERR( _device->vkDeviceWaitIdle( _device->GetVkDevice() ));
+
 			for (auto& id : _imageViewIDs)
 			{
 				if ( auto tmp = id.Release() )
@@ -1193,13 +1197,11 @@ namespace AE::Graphics
 
 			VK_CHECK( vkGetPhysicalDeviceSurfaceCapabilities2KHR( _device->GetVkPhysicalDevice(), &surf_info, OUT &surf_caps2 ));
 
-			for (VkBaseInStructure const* iter = reinterpret_cast<VkBaseInStructure const *>(&surf_caps2);
-					iter != null;
-					iter = iter->pNext)
+			for (auto& ext : VNextRange{ surf_caps2 })
 			{
-				if ( iter->sType == VK_STRUCTURE_TYPE_SHARED_PRESENT_SURFACE_CAPABILITIES_KHR )
+				if ( ext.Type() == VK_STRUCTURE_TYPE_SHARED_PRESENT_SURFACE_CAPABILITIES_KHR )
 				{
-					imageUsage = reinterpret_cast<VkSharedPresentSurfaceCapabilitiesKHR const*>(iter)->sharedPresentSupportedUsageFlags;
+					imageUsage = ext.As<VkSharedPresentSurfaceCapabilitiesKHR>().sharedPresentSupportedUsageFlags;
 					break;
 				}
 			}

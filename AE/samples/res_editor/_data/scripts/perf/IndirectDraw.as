@@ -63,7 +63,7 @@
 			}
 
 			vbuf.UIntArray(	 "indices",		indices );
-			vbuf.FloatArray( "positions",	positions );
+			vbuf.FloatArray( "position",	positions );
 			vbuf.LayoutName( "VertexBuffer" );
 
 			idx_count = indices.size();

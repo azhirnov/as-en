@@ -5,18 +5,18 @@
 
 # ifdef AE_PLATFORM_WINDOWS
 
-#	define FFMPEG_AVCODEC		"avcodec-60.dll"
-#	define FFMPEG_AVFORMAT		"avformat-60.dll"
-#	define FFMPEG_AVUTIL		"avutil-58.dll"
-#	define FFMPEG_SWSCALE		"swscale-7.dll"
+#	define FFMPEG_AVCODEC		"avcodec-62.dll"
+#	define FFMPEG_AVFORMAT		"avformat-62.dll"
+#	define FFMPEG_AVUTIL		"avutil-60.dll"
+#	define FFMPEG_SWSCALE		"swscale-9.dll"
 
 # else
 //#elif defined(AE_PLATFORM_LINUX) or defined(AE_PLATFORM_ANDROID)
 
-#	define FFMPEG_AVCODEC		"avcodec-60.so"
-#	define FFMPEG_AVFORMAT		"avformat-60.so"
-#	define FFMPEG_AVUTIL		"avutil-58.so"
-#	define FFMPEG_SWSCALE		"swscale-7.so"
+#	define FFMPEG_AVCODEC		"avcodec-62.so"
+#	define FFMPEG_AVFORMAT		"avformat-62.so"
+#	define FFMPEG_AVUTIL		"avutil-60.so"
+#	define FFMPEG_SWSCALE		"swscale-9.so"
 # endif
 
 

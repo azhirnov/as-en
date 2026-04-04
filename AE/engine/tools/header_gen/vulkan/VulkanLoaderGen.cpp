@@ -625,7 +625,9 @@ namespace AE::Parsers
 			{ "rayTracingPositionFetch",		VK_KHR_RAY_TRACING_POSITION_FETCH_EXTENSION_NAME,			NoVer,	{1,1},	{VK_KHR_ACCELERATION_STRUCTURE_EXTENSION_NAME} },
 			{ "rayTracingValidation",			VK_NV_RAY_TRACING_VALIDATION_EXTENSION_NAME,				NoVer,	{1,1},	{VK_KHR_RAY_TRACING_PIPELINE_EXTENSION_NAME} },
 		// not supported on Turing:
-		//	{ "accelStructOpacityMicromap",		VK_EXT_OPACITY_MICROMAP_EXTENSION_NAME,						NoVer,	{1,1},	{VK_KHR_ACCELERATION_STRUCTURE_EXTENSION_NAME, VK_KHR_SYNCHRONIZATION_2_EXTENSION_NAME} },
+			{ "opacityMicromap",				VK_EXT_OPACITY_MICROMAP_EXTENSION_NAME,						NoVer,	{1,1},	{VK_KHR_ACCELERATION_STRUCTURE_EXTENSION_NAME, VK_KHR_SYNCHRONIZATION_2_EXTENSION_NAME} },
+			{ "rayQueryMicromapARM",			VK_ARM_PIPELINE_OPACITY_MICROMAP_EXTENSION_NAME,			NoVer,	{1,1},	{VK_EXT_OPACITY_MICROMAP_EXTENSION_NAME} },
+			{ "displacementMicromapNV",			VK_NV_DISPLACEMENT_MICROMAP_EXTENSION_NAME,					NoVer,	{1,1},	{VK_EXT_OPACITY_MICROMAP_EXTENSION_NAME} },
 
 		// dynamic state //
 		//	{ "extendedDynamicState",			VK_EXT_EXTENDED_DYNAMIC_STATE_EXTENSION_NAME,				NoVer,	{1,0},	{VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME} },
@@ -642,12 +644,18 @@ namespace AE::Parsers
 			{ "videoQueue",						VK_KHR_VIDEO_QUEUE_EXTENSION_NAME,							NoVer,	{1,1},	{VK_KHR_SYNCHRONIZATION_2_EXTENSION_NAME} },
 			{ "videoEncodeQueue",				VK_KHR_VIDEO_ENCODE_QUEUE_EXTENSION_NAME,					NoVer,	{1,1},	{VK_KHR_VIDEO_QUEUE_EXTENSION_NAME} },
 			{ "videoDecodeQueue",				VK_KHR_VIDEO_DECODE_QUEUE_EXTENSION_NAME,					NoVer,	{1,1},	{VK_KHR_VIDEO_QUEUE_EXTENSION_NAME} },
+			{ "videoMaintenance1",				VK_KHR_VIDEO_MAINTENANCE_1_EXTENSION_NAME,					NoVer,	{1,1},	{VK_KHR_VIDEO_QUEUE_EXTENSION_NAME} },
+			{ "videoMaintenance2",				VK_KHR_VIDEO_MAINTENANCE_2_EXTENSION_NAME,					NoVer,	{1,1},	{VK_KHR_VIDEO_QUEUE_EXTENSION_NAME} },
+			// decode
 			{ "videoDecodeH264",				VK_KHR_VIDEO_DECODE_H264_EXTENSION_NAME,					NoVer,	{1,1},	{VK_KHR_VIDEO_DECODE_QUEUE_EXTENSION_NAME} },
 			{ "videoDecodeH265",				VK_KHR_VIDEO_DECODE_H265_EXTENSION_NAME,					NoVer,	{1,1},	{VK_KHR_VIDEO_DECODE_QUEUE_EXTENSION_NAME} },
+			{ "videoDecodeAV1",					VK_KHR_VIDEO_DECODE_AV1_EXTENSION_NAME,						NoVer,	{1,1},	{VK_KHR_VIDEO_DECODE_QUEUE_EXTENSION_NAME} },
+			{ "videoDecodeVP9",					VK_KHR_VIDEO_DECODE_VP9_EXTENSION_NAME,						NoVer,	{1,1},	{VK_KHR_VIDEO_DECODE_QUEUE_EXTENSION_NAME} },
+			// encode
 			{ "videoEncodeH264",				VK_KHR_VIDEO_ENCODE_H264_EXTENSION_NAME,					NoVer,	{1,1},	{VK_KHR_VIDEO_ENCODE_QUEUE_EXTENSION_NAME} },
 			{ "videoEncodeH265",				VK_KHR_VIDEO_ENCODE_H265_EXTENSION_NAME,					NoVer,	{1,1},	{VK_KHR_VIDEO_ENCODE_QUEUE_EXTENSION_NAME} },
-		//	VK_KHR_video_decode_av1
-		//	VK_KHR_video_encode_av1
+			{ "videoEncodeAV1",					VK_KHR_VIDEO_ENCODE_AV1_EXTENSION_NAME,						NoVer,	{1,1},	{VK_KHR_VIDEO_ENCODE_QUEUE_EXTENSION_NAME} },
+
 
 		// NVidia //
 		//	{ "rayTracingNV",					VK_NV_RAY_TRACING_EXTENSION_NAME,							NoVer,	{1,0},	{VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME, VK_KHR_GET_MEMORY_REQUIREMENTS_2_EXTENSION_NAME} },
@@ -667,7 +675,7 @@ namespace AE::Parsers
 		//	{ "viewportArrayNV",				VK_NV_VIEWPORT_ARRAY_2_EXTENSION_NAME,						NoVer,	{1,0},	{} },
 		//	{ "viewportSwizzleNV",				VK_NV_VIEWPORT_SWIZZLE_EXTENSION_NAME,						NoVer,	{1,0},	{} },
 		//	{ "linearColorAttachmentNV",		VK_NV_LINEAR_COLOR_ATTACHMENT_EXTENSION_NAME,				NoVer,	{1,0},	{VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME} },
-			{ "clipSpaceWScalingNV",			VK_NV_CLIP_SPACE_W_SCALING_EXTENSION_NAME,					NoVer,	{1,0},	{} },
+		//	{ "clipSpaceWScalingNV",			VK_NV_CLIP_SPACE_W_SCALING_EXTENSION_NAME,					NoVer,	{1,0},	{} },
 			{ "rayTracingInvocationReorderNV",	VK_NV_RAY_TRACING_INVOCATION_REORDER_EXTENSION_NAME,		NoVer,	{1,1},	{VK_KHR_RAY_TRACING_PIPELINE_EXTENSION_NAME} },
 			{ "clusterAccelStructNV",			VK_NV_CLUSTER_ACCELERATION_STRUCTURE_EXTENSION_NAME,		NoVer,	{1,1},	{VK_KHR_ACCELERATION_STRUCTURE_EXTENSION_NAME} },
 			{ "partitionedAccelStructNV",		VK_NV_PARTITIONED_ACCELERATION_STRUCTURE_EXTENSION_NAME,	NoVer,	{1,1},	{VK_KHR_ACCELERATION_STRUCTURE_EXTENSION_NAME} },
@@ -788,7 +796,9 @@ namespace AE::Parsers
 	ND_ static String  ExtToName (StringView name)
 	{
 		const HashMap< String, String > FixNames = {
-			{"VK_EXT_SWAPCHAIN_COLORSPACE_EXTENSION_NAME",	"VK_EXT_SWAPCHAIN_COLOR_SPACE_EXTENSION_NAME"}
+			{ "VK_EXT_SWAPCHAIN_COLORSPACE_EXTENSION_NAME",		"VK_EXT_SWAPCHAIN_COLOR_SPACE_EXTENSION_NAME"	},
+			{ "VK_KHR_VIDEO_DECODE_AV_1_EXTENSION_NAME",		"VK_KHR_VIDEO_DECODE_AV1_EXTENSION_NAME"		},
+			{ "VK_KHR_VIDEO_ENCODE_AV_1_EXTENSION_NAME",		"VK_KHR_VIDEO_ENCODE_AV1_EXTENSION_NAME"		}
 		};
 
 		String	res;
@@ -876,9 +886,9 @@ namespace AE::Parsers
 	{
 		String	str;
 		str << "\tstruct VProperties\n\t{\n"
-			<< "\t\tVkPhysicalDeviceProperties         properties;\n"
-			<< "\t\tVkPhysicalDeviceFeatures           features;\n"
-			<< "\t\tVkPhysicalDeviceMemoryProperties   memoryProperties;\n"
+			<< "\t\tVkPhysicalDeviceProperties2        properties2;\n"
+			<< "\t\tVkPhysicalDeviceFeatures2          features2;\n"
+			<< "\t\tVkPhysicalDeviceMemoryProperties2  memoryProperties2;\n"
 			<< "\t\tVkPhysicalDeviceSubgroupProperties subgroupProperties;\n"
 			<< "\t\tVkPhysicalDeviceIDProperties       deviceIdProperties;\n";
 
@@ -912,7 +922,14 @@ namespace AE::Parsers
 			}
 		}
 
-		str << "\n\t\tVProperties () { UnsafeZeroMem( *this ); }\n"
+		str << "\n\t\tVProperties () { Reset(); }\n"
+			<< "\t\tvoid Reset () { UnsafeZeroMem( *this ); }\n"
+			<< "\t};\n\n"
+
+			<< "\tstruct VProperties2 : VProperties\n\t{\n"
+			<< "\t\tVkPhysicalDeviceProperties &        properties           = properties2.properties;\n"
+			<< "\t\tVkPhysicalDeviceFeatures &          features             = features2.features;\n"
+			<< "\t\tVkPhysicalDeviceMemoryProperties &  memoryProperties     = memoryProperties2.memoryProperties;\n"
 			<< "\t};\n";
 		return str;
 	}
@@ -1064,20 +1081,14 @@ namespace AE::Parsers
 			<< "\t// 'lastFeat' - will write pointer to the pNext field of last feature in chain, can be used to insert new features.\n"
 			<< "\t//\n"
 			<< "\tvoid  VDeviceInitializer::_InitFeaturesAndProperties (OUT void* &nextFeat, OUT void** &lastFeat)\n\t{\n"
-			<< "\t\tvkGetPhysicalDeviceFeatures( GetVkPhysicalDevice(), OUT &_properties.features );\n"
-			<< "\t\tvkGetPhysicalDeviceProperties( GetVkPhysicalDevice(), OUT &_properties.properties );\n"
-			<< "\t\tvkGetPhysicalDeviceMemoryProperties( GetVkPhysicalDevice(), OUT &_properties.memoryProperties );\n\n"
 			<< "\t\tif ( GetInstanceVersion() >= InstanceVersion{1,1} or HasInstanceExtension( VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME ))\n"
 			<< "\t\t{\n"
-			<< "\t\t\tVkPhysicalDeviceFeatures2         feat2      = {};\n"
-			<< "\t\t\tVkPhysicalDeviceProperties2       props2     = {};\n"
-			<< "\t\t\tVkPhysicalDeviceMemoryProperties2 mem_props2 = {};\n\n"
-			<< "\t\t\tvoid **  next_feat  = &feat2.pNext;\n"
-			<< "\t\t\tvoid **  next_props = &props2.pNext;\n"
-			<< "\t\t\tvoid **  next_mem   = &mem_props2.pNext;\n\n"
-			<< "\t\t\tfeat2.sType      = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2;\n"
-			<< "\t\t\tprops2.sType     = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PROPERTIES_2;\n"
-			<< "\t\t\tmem_props2.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MEMORY_PROPERTIES_2;\n\n";
+			<< "\t\t\tvoid **  next_feat  = &_properties.features2.pNext;\n"
+			<< "\t\t\tvoid **  next_props = &_properties.properties2.pNext;\n"
+			<< "\t\t\tvoid **  next_mem   = &_properties.memoryProperties2.pNext;\n\n"
+			<< "\t\t\t_properties.features2.sType         = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2;\n"
+			<< "\t\t\t_properties.properties2.sType       = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PROPERTIES_2;\n"
+			<< "\t\t\t_properties.memoryProperties2.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MEMORY_PROPERTIES_2;\n\n";
 
 		str	<< "\t\t\tif ( _extensions.subgroup )\n"
 			<< "\t\t\t{\n"
@@ -1156,15 +1167,18 @@ namespace AE::Parsers
 		str	<< "\n\t\t\t*next_feat  = null;"
 			<< "\n\t\t\t*next_props = null;"
 			<< "\n\t\t\t*next_mem   = null;\n\n"
-			<< "\t\t\tvkGetPhysicalDeviceFeatures2KHR( GetVkPhysicalDevice(), OUT &feat2 );\n"
-			<< "\t\t\tvkGetPhysicalDeviceProperties2KHR( GetVkPhysicalDevice(), OUT &props2 );\n"
-			<< "\t\t\tvkGetPhysicalDeviceMemoryProperties2KHR( GetVkPhysicalDevice(), OUT &mem_props2 );\n\n"
-			<< "\t\t\tnextFeat = feat2.pNext;\n"
+			<< "\t\t\tvkGetPhysicalDeviceFeatures2KHR( GetVkPhysicalDevice(), OUT &_properties.features2 );\n"
+			<< "\t\t\tvkGetPhysicalDeviceProperties2KHR( GetVkPhysicalDevice(), OUT &_properties.properties2 );\n"
+			<< "\t\t\tvkGetPhysicalDeviceMemoryProperties2KHR( GetVkPhysicalDevice(), OUT &_properties.memoryProperties2 );\n\n"
+			<< "\t\t\tnextFeat = _properties.features2.pNext;\n"
 			<< "\t\t\tlastFeat = next_feat;\n\n"
 			<< ext_validation
 			<< "\t\t}else{\n"
 			<< "\t\t\tnextFeat = null;\n"
-			<< "\t\t\tlastFeat = null;\n"
+			<< "\t\t\tlastFeat = null;\n\n"
+			<< "\t\t\tvkGetPhysicalDeviceFeatures( GetVkPhysicalDevice(), OUT &_properties.features2.features );\n"
+			<< "\t\t\tvkGetPhysicalDeviceProperties( GetVkPhysicalDevice(), OUT &_properties.properties2.properties );\n"
+			<< "\t\t\tvkGetPhysicalDeviceMemoryProperties( GetVkPhysicalDevice(), OUT &_properties.memoryProperties2.memoryProperties );\n"
 			<< "\t\t}\n"
 			<< "\t}\n";
 		return str;

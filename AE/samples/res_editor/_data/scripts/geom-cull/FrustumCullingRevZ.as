@@ -59,19 +59,17 @@
 
 		// create sphere
 		{
-			RC<Buffer>				sphere		= Buffer();
 			RC<UnifiedGeometry>		geometry	= UnifiedGeometry();
+			RC<Mesh>				mesh		= Mesh();
 
-			array<float3>	positions;
-			array<uint>		indices;
-			GetSphere( 3, OUT positions, OUT indices );
+			mesh.SetAttributes( EAttribute::Position );
+			mesh.AddSphere( 3 );
 
-			sphere.FloatArray( "positions",	positions );
-			sphere.UIntArray(  "indices",	indices );
+			RC<Buffer>	sphere = mesh.ToBuffer();
 			sphere.LayoutName( "GeometrySBlock" );
 
 			UnifiedGeometry_DrawIndexed	cmd;
-			cmd.indexCount		= indices.size();
+			cmd.indexCount		= mesh.IndexCount();
 			cmd.instanceCount	= instance_count;
 			cmd.IndexBuffer( sphere, "indices" );
 			cmd.PipelineHint( "GEqual" );
@@ -103,20 +101,17 @@
 
 		// create box
 		{
-			RC<Buffer>				box			= Buffer();
 			RC<UnifiedGeometry>		geometry	= UnifiedGeometry();
+			RC<Mesh>				mesh		= Mesh();
 
-			array<float3>	positions;
-			array<float3>	normals;
-			array<uint>		indices;
-			GetCube( OUT positions, OUT normals, OUT indices );
+			mesh.SetAttributes( EAttribute::Position );
+			mesh.AddCube();
 
-			box.FloatArray( "positions",	positions );
-			box.UIntArray(  "indices",		indices );
+			RC<Buffer>	box = mesh.ToBuffer();
 			box.LayoutName( "GeometrySBlock" );
 
 			UnifiedGeometry_DrawIndexed	cmd;
-			cmd.indexCount		= indices.size();
+			cmd.indexCount		= mesh.IndexCount();
 			cmd.instanceCount	= instance_count;
 			cmd.IndexBuffer( box, "indices" );
 			cmd.PipelineHint( "GEqual" );
@@ -191,19 +186,17 @@
 
 		// create cone
 		{
-			RC<Buffer>				cone		= Buffer();
 			RC<UnifiedGeometry>		geometry	= UnifiedGeometry();
+			RC<Mesh>				mesh		= Mesh();
 
-			array<float3>	positions;
-			array<uint>		indices;
-			GetCone( 14, 1.0, 1.0, OUT positions, OUT indices );
+			mesh.SetAttributes( EAttribute::Position );
+			mesh.AddCone( 14 );
 
-			cone.FloatArray( "positions",	positions );
-			cone.UIntArray(  "indices",		indices );
+			RC<Buffer>	cone = mesh.ToBuffer();
 			cone.LayoutName( "GeometrySBlock" );
 
 			UnifiedGeometry_DrawIndexed	cmd;
-			cmd.indexCount		= indices.size();
+			cmd.indexCount		= mesh.IndexCount();
 			cmd.instanceCount	= instance_count;
 			cmd.IndexBuffer( cone, "indices" );
 			cmd.PipelineHint( "GEqual" );
@@ -414,7 +407,7 @@
 		const float3	line_begin	= line_pos - un_Params.cameraPos - dir * scale;
 		const float3	line_end	= line_pos - un_Params.cameraPos + dir * scale;
 		const Frustum	frustum		= Frustum_Create( un_Params.frustum );
-		bool			is_visible	= Frustum_IsVisible( frustum, line_begin, line_end );
+		bool			is_visible	= Frustum_IsLineVisible( frustum, line_begin, line_end );
 
 		un_DrawTasks.params[ idx ]		= float4( dir, 0.0 );
 		un_DrawTasks.isVisible[ idx ]	= is_visible ? 1 : 0;

@@ -26,3 +26,34 @@ If `TEST( h == FeatureSet::GetHashOfFS_Precalculated() );` failed - copy new has
 
 If `TEST( h == FeatureSet::GetHashOfFS_Precalculated() );` is not failed or after updating hash:
 build `*.PackRes` target to recompile resources.
+
+
+## Vulkan validation reports incorrect synchronization
+
+Use [VulkanSyncLog](https://github.com/azhirnov/as-en/blob/dev/AE/engine/tools/vulkan_sync_log/Readme.md) by enabling `#define ENABLE_SYNC_LOG 1` in `DefaultAppV1.cpp` or `DefaultAppV2.cpp` depends on what app wrapper you currently use.
+
+On validation error skip it all and at the end of frame another breakpoint will be triggered:
+
+```cpp
+String	log;
+VulkanSyncLog::GetLog( OUT log );
+CHECK( not _device.HasValidationError() );
+```
+
+Check content of `log`:
+* Use resource name (if exists) from validation report to find where resource used in barriers or commands.
+* In `VulkanSyncLog.cpp`:
+	- Try `PRINT_RESOURCE_ID 1` to capture resource IDs when name is not defined.
+	- Try `ENABLE_DBG_LABEL 3` to print debug message and debug groups.
+
+
+## Synchronization problem
+
+Looks like blinking blocks on texture, missing triangles in geometry, incorrect data in buffer, etc.
+
+To fix it enable Vulkan Synchronization Validation by creating graphics device with `EDeviceValidation::SynchronizationPreset`.
+Instead of default validation which check only image layout transition, the Synchronization Validation will check for missing barriers for all types of resources.
+
+To improve accuracy of validation reports enable [VulkanSyncLog](https://github.com/azhirnov/as-en/blob/dev/AE/engine/tools/vulkan_sync_log/Readme.md) as described above and in `VulkanSyncLog.cpp` set `ENABLE_SEQNO 1`.
+Synchronization Validation will print possible data races and seqno of read/write commands, then in sync log you find this command with same seqno.
+

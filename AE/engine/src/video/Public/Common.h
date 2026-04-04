@@ -83,11 +83,32 @@ namespace AE::Video
 		Disable,
 		Optional,
 		Require,
+		Require_Vulkan,
+
 		// TODO:
 		// PrefereCPU
 		// PrefereGPU
 		Unknown		= Optional,
 	};
 
+
+	enum class EResult : int
+	{
+		OK					= 0,
+		EndOfFile			= 1,
+
+		Error				= -1,
+		Failed_RGBtoYUV		= -2,
+	};
+
+
+	enum class EEncoderFlags : ushort
+	{
+		Unknown				= 0,
+		Fragmented			= 1 << 0,		// compatible with streaming
+		Remux				= 1 << 1,		// can be used for 'Bitstream' to write correct duration after encoding
+		Bitstream			= 1 << 2,		// write bitstream instead of 'mp4' or any container, compatible with streaming
+		_BITOPS_
+	};
 
 } // AE::Video

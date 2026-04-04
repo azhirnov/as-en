@@ -276,7 +276,7 @@ namespace
 */
 	void  MFeatureSet::InitFeatureSet (const MGPUFamilies &f, INOUT FeatureSet &outFeatureSet) C_NE___
 	{
-		StaticAssert( FeatureSet::GetFeatureCount() == 272 );
+		StaticAssert( FeatureSet::GetFeatureCount() == 277 );
 
 		using SubgroupOperationBits = FeatureSet::SubgroupOperationBits;
 		using KiBytes				= FeatureSet::KiBytes;
@@ -514,11 +514,6 @@ namespace
 			outFeatureSet.shaderInputAttachmentArrayNonUniformIndexing		= features.arrayOfTexturesRead ? True : False;
 			outFeatureSet.shaderUniformTexelBufferArrayNonUniformIndexing	= features.arrayOfTexturesRead ? True : False;
 			outFeatureSet.shaderStorageTexelBufferArrayNonUniformIndexing	= features.arrayOfTexturesWrite ? True : False;
-			outFeatureSet.shaderUniformBufferArrayNonUniformIndexingNative	= outFeatureSet.shaderUniformBufferArrayNonUniformIndexing;
-			outFeatureSet.shaderSampledImageArrayNonUniformIndexingNative	= outFeatureSet.shaderSampledImageArrayNonUniformIndexing;
-			outFeatureSet.shaderStorageBufferArrayNonUniformIndexingNative	= outFeatureSet.shaderStorageBufferArrayNonUniformIndexing;
-			outFeatureSet.shaderStorageImageArrayNonUniformIndexingNative	= outFeatureSet.shaderStorageImageArrayNonUniformIndexing;
-			outFeatureSet.shaderInputAttachmentArrayNonUniformIndexingNative= outFeatureSet.shaderInputAttachmentArrayNonUniformIndexing;
 			outFeatureSet.quadDivergentImplicitLod							= False;
 
 			// storage image format

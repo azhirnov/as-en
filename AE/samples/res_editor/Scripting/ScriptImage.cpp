@@ -716,7 +716,9 @@ namespace
 				case EResourceUsage::VertexInput :
 				case EResourceUsage::IndirectBuffer :
 				case EResourceUsage::ASBuild :
+				case EResourceUsage::MMBuild :
 				case EResourceUsage::WithHistory :
+				case EResourceUsage::TexelStorage :
 				default :								RETURN_ERR( "unsupported usage" );
 			}
 			switch_end
@@ -808,6 +810,28 @@ namespace
 									(_inDynSize ? _inDynSize->Get() : null), (_outDynSize ? _outDynSize->Get() : null),
 									_flags, _dbgName );  // throw
 		return _resource;
+	}
+
+/*
+=================================================
+	IsSame
+=================================================
+*/
+	bool  ScriptImage::IsSame (const ScriptImagePtr &lhs, const ScriptImagePtr &rhs) __NE___
+	{
+		if ( lhs == null or rhs == null )
+			return lhs == rhs;  // both 'null'
+
+		ScriptImage const*	p_lhs = lhs.Get();
+		ScriptImage const*	p_rhs = rhs.Get();
+
+		for (; p_lhs->_base; )
+			p_lhs = p_lhs->_base.Get();
+
+		for (; p_rhs->_base; )
+			p_rhs = p_rhs->_base.Get();
+
+		return p_lhs == p_rhs;
 	}
 
 

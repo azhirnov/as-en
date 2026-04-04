@@ -6,6 +6,7 @@
 # include "graphics_rhi/Vulkan/VResourceManager.h"
 # include "graphics_rhi/Vulkan/VEnumCast.h"
 # include "graphics_rhi/Private/EnumUtils.h"
+# include "graphics_rhi/Vulkan/Utils/NextChain.h"
 
 namespace AE::Graphics
 {
@@ -17,8 +18,6 @@ namespace AE::Graphics
 */
 	VRTGeometry::~VRTGeometry () __NE___
 	{
-		DRC_EXLOCK( _drCheck );
-		ASSERT( _buffer == Default );
 		ASSERT( _accelStruct == Default );
 	}
 
@@ -29,8 +28,6 @@ namespace AE::Graphics
 */
 	bool  VRTGeometry::Create (ResourceManager &resMngr, const RTGeometryDesc &desc, GfxMemAllocatorPtr allocator, StringView dbgName) __NE___
 	{
-		DRC_EXLOCK( _drCheck );
-		CHECK_ERR( _buffer == Default );
 		CHECK_ERR( _accelStruct == Default );
 		CHECK_ERR( desc.size > 0 );
 
@@ -38,28 +35,24 @@ namespace AE::Graphics
 		GRES_CHECK( IsSupported( resMngr, desc ));
 
 		// create buffer
-		VkBufferCreateInfo	buf_ci = {};
-		buf_ci.sType		= VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
-		buf_ci.flags		= 0;
-		buf_ci.usage		= VK_BUFFER_USAGE_ACCELERATION_STRUCTURE_STORAGE_BIT_KHR | VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT;
-		buf_ci.size			= VkDeviceSize( _desc.size );
-		buf_ci.sharingMode	= VK_SHARING_MODE_EXCLUSIVE;
-
 		auto&	dev = resMngr.GetDevice();
-		VK_CHECK_ERR( dev.vkCreateBuffer( dev.GetVkDevice(), &buf_ci, null, OUT &_buffer ));
-
-		_memoryId = resMngr.CreateMemoryObj( _buffer,
-											 BufferDesc{}
-												.SetUsage( EBufferUsage::ShaderAddress )
-												.SetMemory( EMemoryType::DeviceLocal ),
-											 RVRef(allocator), dbgName );
+		_memoryId	= resMngr.CreateMemoryObj( _desc.size, VK_BUFFER_USAGE_2_ACCELERATION_STRUCTURE_STORAGE_BIT_KHR, RVRef(allocator), dbgName );
 		CHECK_ERR( _memoryId );
 
+		auto*	mem_obj = resMngr.GetResource( _memoryId );
+		CHECK_ERR( mem_obj != null );
+
+		VulkanMemoryObjInfo	mem_info;
+		CHECK_ERR( mem_obj->GetMemoryInfo( OUT mem_info ));
+		CHECK_ERR( mem_info.buffer != Default );
+		CHECK_ERR( IsMultipleOf( mem_info.offset, 256_b ));  // from specs
+
+		// create acceleration structure
 		VkAccelerationStructureCreateInfoKHR	blas_ci = {};
 		blas_ci.sType		= VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_CREATE_INFO_KHR;
-		blas_ci.createFlags	= 0;	// VK_ACCELERATION_STRUCTURE_CREATE_MOTION_BIT_NV
-		blas_ci.buffer		= _buffer;
-		blas_ci.offset		= 0;
+		blas_ci.createFlags	= 0;	// TODO: VK_ACCELERATION_STRUCTURE_CREATE_MOTION_BIT_NV
+		blas_ci.buffer		= mem_info.buffer;
+		blas_ci.offset		= VkDeviceSize( mem_info.offset );
 		blas_ci.size		= VkDeviceSize( _desc.size );
 		blas_ci.type		= VK_ACCELERATION_STRUCTURE_TYPE_BOTTOM_LEVEL_KHR;
 
@@ -74,6 +67,9 @@ namespace AE::Graphics
 		_address = BitCast<DeviceAddress>( dev.vkGetAccelerationStructureDeviceAddressKHR( dev.GetVkDevice(), &addr_info ));
 		CHECK_ERR( _address != Default );
 
+		_storage = mem_info.buffer;
+		_offset	 = mem_info.offset;
+
 		GFX_DBG_ONLY( _debugName = dbgName; )
 		return true;
 	}
@@ -85,12 +81,7 @@ namespace AE::Graphics
 */
 	void  VRTGeometry::Destroy (ResourceManager &resMngr) __NE___
 	{
-		DRC_EXLOCK( _drCheck );
-
 		auto&	dev = resMngr.GetDevice();
-
-		if ( _buffer != Default )
-			dev.vkDestroyBuffer( dev.GetVkDevice(), _buffer, null );
 
 		if ( _accelStruct != Default )
 			dev.vkDestroyAccelerationStructureKHR( dev.GetVkDevice(), _accelStruct, null );
@@ -100,8 +91,9 @@ namespace AE::Graphics
 		_address		= Default;
 		_memoryId		= Default;
 		_accelStruct	= Default;
-		_buffer			= Default;
 		_desc			= Default;
+		_storage		= Default;
+		_offset			= 0_b;
 
 		GFX_DBG_ONLY( _debugName.clear() );
 	}
@@ -119,16 +111,18 @@ namespace AE::Graphics
 		auto&		build_info	= outBuildInfo;
 
 		const usize	geom_count	= desc.triangles.size() + desc.aabbs.size();
-		auto*		pp_geom		= allocator.Allocate< VkAccelerationStructureGeometryKHR *>( geom_count );
+		auto*		p_geom		= allocator.Allocate< VkAccelerationStructureGeometryKHR >( geom_count );
 		auto*		prim_count	= IsForBuilding ? null : allocator.Allocate< uint >( geom_count );
 		auto*		ranges		= IsForBuilding ? allocator.Allocate< VkAccelerationStructureBuildRangeInfoKHR >( geom_count ) : null;
-		CHECK_ERR( pp_geom != null and (prim_count != null or ranges != null) );
+		auto*		micormaps	= desc.micromaps.empty() ? null : allocator.Allocate< VkAccelerationStructureTrianglesOpacityMicromapEXT >( desc.micromaps.size() );
+		CHECK_ERR( p_geom != null and (prim_count != null or ranges != null) );
+		CHECK_ERR( desc.micromaps.empty() or micormaps != null );
 
 		build_info				= {};
 		build_info.sType		= VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_BUILD_GEOMETRY_INFO_KHR;
 		build_info.flags		= VEnumCast( desc.options );
 		build_info.type			= VK_ACCELERATION_STRUCTURE_TYPE_BOTTOM_LEVEL_KHR;
-		build_info.ppGeometries	= pp_geom;
+		build_info.pGeometries	= p_geom;
 		build_info.geometryCount= CheckCast{ geom_count };
 		outPrimitiveCount		= prim_count;
 		outRanges				= ranges;
@@ -142,13 +136,43 @@ namespace AE::Graphics
 			CHECK_ERR( desc.aabbs.empty()		or desc.aabbs.data< RTGeometryBuild::AABBsData >() != null );
 		}
 
-		for (usize i = 0; i < desc.triangles.size(); ++i)
+		for (usize i : IndicesOnly( desc.micromaps ))
 		{
-			*pp_geom = allocator.Allocate< VkAccelerationStructureGeometryKHR >(1);
+			auto&	info	= desc.micromaps[i];
+			auto&	dst		= micormaps[i];
+			auto*	mm		= resMngr.GetResource( info.micromapId,	 False{"don't inc ref"}, True{"quiet"} );
+			auto*	ib		= resMngr.GetResource( info.indexBuffer, False{"don't inc ref"}, True{"quiet"} );
+			CHECK_ERR( (mm != null) or (ib != null) );
 
-			auto&	info	= desc.triangles.at< RTGeometryBuild::TrianglesInfo >(i);
-			auto&	dst		= **(pp_geom++);
-			auto&	tri		= dst.geometry.triangles;
+			dst = {};
+			dst.sType				= VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_TRIANGLES_OPACITY_MICROMAP_EXT;
+			dst.indexType			= info.indexType == Default ? VK_INDEX_TYPE_NONE_KHR : VEnumCast( info.indexType );
+			dst.usageCountsCount	= uint(info.usage.size());
+			dst.pUsageCounts		= Cast<VkMicromapUsageEXT>( info.usage.data() );	// it is valid cast, see checks in 'VRTMicromap.cpp'
+			dst.indexStride			= VkDeviceSize{ info.indexStride };
+
+			if ( mm != null )
+			{
+				dst.micromap = mm->Handle();
+			}
+			if ( ib != null )
+			{
+				GRES_CHECK( info.indexStride > 0 );
+				GRES_CHECK( info.indexType != Default );
+				GRES_CHECK( ib->HasDeviceAddress() );
+				dst.indexBuffer.deviceAddress = BitCast<VkDeviceAddress>( ib->GetDeviceAddress() + info.indexBufferOffset );
+			}
+			else
+			{
+				GRES_CHECK( info.indexType == Default );
+			}
+		}
+
+		for (usize i : IndicesOnly( desc.triangles ))
+		{
+			auto&	info		= desc.triangles.at< RTGeometryBuild::TrianglesInfo >(i);
+			auto&	dst			= *(p_geom++);
+			auto&	tri			= dst.geometry.triangles;
 
 			dst.sType			= VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_GEOMETRY_KHR;
 			dst.pNext			= null;
@@ -160,6 +184,8 @@ namespace AE::Graphics
 			tri.vertexFormat	= VEnumCast( info.vertexFormat );
 			tri.maxVertex		= info.maxVertex;
 			tri.indexType		= info.indexType == Default ? VK_INDEX_TYPE_NONE_KHR : VEnumCast( info.indexType );
+
+			VNextChain			p_tri_next {tri};
 
 			if constexpr( IsForBuilding )
 			{
@@ -174,20 +200,24 @@ namespace AE::Graphics
 				CHECK_ERR( (info.indexType != Default) == data.indexData.IsValid() );
 				CHECK_ERR( info.allowTransforms == data.transformData.IsValid() );
 
+				GRES_CHECK( AllBits( vb->Description().usage, EBufferUsage::ASBuild_ReadOnly ));
+				GRES_CHECK( ib == null or AllBits( ib->Description().usage, EBufferUsage::ASBuild_ReadOnly ));
+				GRES_CHECK( tb == null or AllBits( tb->Description().usage, EBufferUsage::ASBuild_ReadOnly ));
+
 				tri.vertexData.deviceAddress	= BitCast<VkDeviceAddress>( vb->GetDeviceAddress() + data.vertexDataOffset );
 				tri.vertexStride				= VkDeviceSize(data.vertexStride);
 				tri.indexData.deviceAddress		= ib != null ? BitCast<VkDeviceAddress>( ib->GetDeviceAddress() + data.indexDataOffset )     : 0;
 				tri.transformData.deviceAddress = tb != null ? BitCast<VkDeviceAddress>( tb->GetDeviceAddress() + data.transformDataOffset ) : 0;
 
 				// must be aligned to the size in bytes of the smallest component of the format in vertexFormat
-				ASSERT( IsMultipleOf( tri.vertexData.deviceAddress, EVertexType_SizeOf( info.vertexFormat & ~EVertexType::_VecMask )));
+				GRES_CHECK( IsMultipleOf( tri.vertexData.deviceAddress, EVertexType_SizeOf( info.vertexFormat & ~EVertexType::_VecMask )));
 
-				ASSERT( Bytes{data.vertexStride} >= EVertexType_SizeOf( info.vertexFormat ));
-				ASSERT( (info.indexType == Default) or IsMultipleOf( tri.indexData.deviceAddress, EIndex_SizeOf( info.indexType )) );
-				ASSERT( (not info.allowTransforms) or IsMultipleOf( tri.transformData.deviceAddress, 16 ) );
-				ASSERT( vb->Size() >= (data.vertexDataOffset + Bytes{data.vertexStride} * info.maxVertex) );
-				ASSERT( (info.indexType == Default) or (ib->Size() >= (data.indexDataOffset + info.maxPrimitives * EIndex_SizeOf( info.indexType ))) );
-				ASSERT( (not info.allowTransforms) or (tb->Size() >= (data.transformDataOffset + SizeOf<VkTransformMatrixKHR>)) );
+				GRES_CHECK( Bytes{data.vertexStride} >= EVertexType_SizeOf( info.vertexFormat ));
+				GRES_CHECK( (info.indexType == Default) or IsMultipleOf( tri.indexData.deviceAddress, EIndex_SizeOf( info.indexType )) );
+				GRES_CHECK( (not info.allowTransforms) or IsMultipleOf( tri.transformData.deviceAddress, 16 ) );
+				GRES_CHECK( vb->Size() >= (data.vertexDataOffset + Bytes{data.vertexStride} * info.maxVertex) );
+				GRES_CHECK( (info.indexType == Default) or (ib->Size() >= (data.indexDataOffset + info.maxPrimitives * EIndex_SizeOf( info.indexType ))) );
+				GRES_CHECK( (not info.allowTransforms) or (tb->Size() >= (data.transformDataOffset + SizeOf<VkTransformMatrixKHR>)) );
 
 				auto&	range = *(ranges++);
 				range.primitiveCount	= info.maxPrimitives;
@@ -206,15 +236,19 @@ namespace AE::Graphics
 
 				*(prim_count++) = info.maxPrimitives;
 			}
+
+			if ( info.micromapIndex != UMax )
+			{
+				CHECK_ERR( info.micromapIndex < desc.micromaps.size() );
+				p_tri_next.AddConst( micormaps[ info.micromapIndex ]);
+			}
 		}
 
-		for (usize i = 0; i < desc.aabbs.size(); ++i)
+		for (usize i : IndicesOnly( desc.aabbs ))
 		{
-			*pp_geom = allocator.Allocate< VkAccelerationStructureGeometryKHR >(1);
-
-			auto&	info	= desc.aabbs.at< RTGeometryBuild::AABBsInfo >(i);
-			auto&	dst		= **(pp_geom++);
-			auto&	aabb	= dst.geometry.aabbs;
+			auto&	info		= desc.aabbs.at< RTGeometryBuild::AABBsInfo >(i);
+			auto&	dst			= *(p_geom++);
+			auto&	aabb		= dst.geometry.aabbs;
 
 			dst.sType			= VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_GEOMETRY_KHR;
 			dst.pNext			= null;
@@ -230,12 +264,13 @@ namespace AE::Graphics
 
 				auto*	buf = resMngr.GetResource( data.data, False{"don't inc ref"}, True{"quiet"} );
 				CHECK_ERR( buf != null );
+				GRES_CHECK( AllBits( buf->Description().usage, EBufferUsage::ASBuild_ReadOnly ));
 
 				aabb.data.deviceAddress = BitCast<VkDeviceAddress>( buf->GetDeviceAddress() + data.dataOffset );
 				aabb.stride				= VkDeviceSize(data.stride);
 
-				ASSERT( IsMultipleOf( aabb.data.deviceAddress, 8 ));
-				ASSERT( buf->Size() >= (data.dataOffset + SizeOf<VkAabbPositionsKHR> * info.maxAABBs) );
+				GRES_CHECK( IsMultipleOf( aabb.data.deviceAddress, 8 ));
+				GRES_CHECK( buf->Size() >= (data.dataOffset + SizeOf<VkAabbPositionsKHR> * info.maxAABBs) );
 
 				auto&	range = *(ranges++);
 				range.primitiveCount	= info.maxAABBs;
@@ -386,6 +421,17 @@ namespace AE::Graphics
 			return false;
 
 		return true;
+	}
+
+/*
+=================================================
+	GetBufferStorage
+=================================================
+*/
+	BufferSubRange  VRTGeometry::GetBufferStorage () C_NE___
+	{
+		ASSERT( _storage != Default );
+		return BufferSubRange{ _storage, _offset, _desc.size };
 	}
 
 

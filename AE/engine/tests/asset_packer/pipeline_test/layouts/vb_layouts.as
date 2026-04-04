@@ -6,7 +6,7 @@ void VertexBuffers ()
 	{
 		RC<ShaderStructType>	st = ShaderStructType( "vb_layout1" );
 		st.Set( EStructLayout::InternalIO,
-				"float3		Position;" +
+				"float3		Position;"
 				"float2		Texcoord;" );
 
 		RC<VertexBufferInput>	vb = VertexBufferInput( "vb_layout1" );
@@ -15,7 +15,7 @@ void VertexBuffers ()
 	{
 		RC<ShaderStructType>	st = ShaderStructType( "vb_layout2" );
 		st.Set( EStructLayout::InternalIO,
-				"float2		Position;" +
+				"float2		Position;"
 				"float2		Texcoord;" );
 
 		RC<VertexBufferInput>	vb = VertexBufferInput( "vb_layout2" );
@@ -26,7 +26,7 @@ void VertexBuffers ()
 	{
 		RC<ShaderStructType>	st = ShaderStructType( "vb_input1" );
 		st.Set( EStructLayout::InternalIO,
-				"packed_float3			Position;" +
+				"packed_float3			Position;"
 				"packed_ushort_norm2	Texcoord;" );
 
 		RC<VertexBufferInput>	vb = VertexBufferInput( "vb_input1" );
@@ -38,7 +38,7 @@ void VertexBuffers ()
 	{
 		RC<ShaderStructType>	st = ShaderStructType( "vb_input2" );
 		st.Set( EStructLayout::InternalIO,
-				"packed_float2			Position;" +
+				"packed_float2			Position;"
 				"packed_ushort_norm2	Texcoord;" );
 
 		RC<VertexBufferInput>	vb = VertexBufferInput( "vb_input2" );

@@ -46,6 +46,14 @@
 
 namespace AE::Graphics
 {
+	struct IndirectExecutionSetDesc;
+	struct IndirectCommandsLayoutDesc;
+	struct GeneratedCommandsMemoryRequirementsDesc;
+	class  IPreprocessingStateCommandPool;
+	class  IQueryManager;
+	class  IDevice;
+
+
 
 	//
 	// Graphics Memory Allocator interface
@@ -83,6 +91,9 @@ namespace AE::Graphics
 
 		ND_ virtual bool  AllocForVideoSession (VkVideoSessionKHR, EMemoryType, OUT VideoStorageArr_t &)		__NE___	{ return false; }
 		ND_ virtual bool  AllocForVideoImage (VkImage, const VideoImageDesc &, OUT VideoStorageArr_t &)			__NE___	{ return false; }
+
+		// used for device local acceleration structure
+		ND_ virtual bool  AllocStorage (Bytes, VkBufferUsageFlagBits2, OUT Storage_t &)							__NE___ = 0;
 
 		// returns 'true' if deallocated
 			virtual bool  Dealloc (INOUT Storage_t &data)														__NE___	= 0;
@@ -198,19 +209,22 @@ namespace AE::Graphics
 
 	// interface
 	public:
-		ND_ virtual RenderTechName::Optimized_t	Name ()																C_NE___ = 0;
-		ND_ virtual PipelinePackID			GetPipelinePack ()														C_NE___ = 0;
+		ND_ virtual RenderTechName::Optimized_t	Name ()																			C_NE___ = 0;
+		ND_ virtual PipelinePackID			GetPipelinePack ()																	C_NE___ = 0;
 
-		ND_ virtual GraphicsPipelineID		GetGraphicsPipeline (PipelineName::Ref name)							C_NE___ = 0;
-		ND_ virtual MeshPipelineID			GetMeshPipeline (PipelineName::Ref name)								C_NE___ = 0;
-		ND_ virtual TilePipelineID			GetTilePipeline (PipelineName::Ref name)								C_NE___ = 0;
-		ND_ virtual ComputePipelineID		GetComputePipeline (PipelineName::Ref name)								C_NE___ = 0;
-		ND_ virtual RayTracingPipelineID	GetRayTracingPipeline (PipelineName::Ref name)							C_NE___ = 0;
-		ND_ virtual RTShaderBindingID		GetRTShaderBinding (RTShaderBindingName::Ref name)						C_NE___ = 0;
-		ND_ virtual PassInfo				GetPass (RenderTechPassName::Ref pass)									C_NE___ = 0;
+		// all IDs are alive until 'IRenderTechPipelines' object is alive
+		ND_ virtual GraphicsPipelineID		GetGraphicsPipeline (PipelineName::Ref name, Bool silent = False{})					C_NE___ = 0;
+		ND_ virtual MeshPipelineID			GetMeshPipeline (PipelineName::Ref name, Bool silent = False{})						C_NE___ = 0;
+		ND_ virtual TilePipelineID			GetTilePipeline (PipelineName::Ref name, Bool silent = False{})						C_NE___ = 0;
+		ND_ virtual ComputePipelineID		GetComputePipeline (PipelineName::Ref name, Bool silent = False{})					C_NE___ = 0;
+		ND_ virtual RayTracingPipelineID	GetRayTracingPipeline (PipelineName::Ref name, Bool silent = False{})				C_NE___ = 0;
+		ND_ virtual RTShaderBindingID		GetRTShaderBinding (RTShaderBindingName::Ref name, Bool silent = False{})			C_NE___ = 0;
+		ND_ virtual IndirectExecutionSetID	GetIndirectExecutionSet (IndirectExecutionSetName::Ref name, Bool silent = False{})	C_NE___ = 0;
 
-		ND_ virtual EPixelFormat			GetAttachmentFormat (RenderTechPassName::Ref pass, AttachmentName::Ref)	C_NE___ = 0;
-		ND_ virtual bool					FeatureSetSupported (FeatureSetName::Ref name)							C_NE___ = 0;	// for debugging
+		ND_ virtual PassInfo				GetPass (RenderTechPassName::Ref pass)												C_NE___ = 0;
+
+		ND_ virtual EPixelFormat			GetAttachmentFormat (RenderTechPassName::Ref pass, AttachmentName::Ref)				C_NE___ = 0;
+		ND_ virtual bool					FeatureSetSupported (FeatureSetName::Ref name)										C_NE___ = 0;	// for debugging
 	};
 	using RenderTechPipelinesPtr = RC< IRenderTechPipelines >;
 
@@ -224,42 +238,42 @@ namespace AE::Graphics
 	{
 	// types
 	public:
-		#if defined(AE_ENABLE_VULKAN)
-		using NativeBuffer_t		= VkBuffer;
-		using NativeImage_t			= VkImage;
-		using NativeBufferView_t	= VkBufferView;
-		using NativeImageView_t		= VkImageView;
-		using NativeImageDesc_t		= VulkanImageDesc;
-		using NativeBufferDesc_t	= VulkanBufferDesc;
-		using NativeImageViewDesc_t	= VulkanImageViewDesc;
-		using NativeBufferViewDesc_t= VulkanBufferViewDesc;
-		using NativeMemObjInfo_t	= VulkanMemoryObjInfo;
+	  #if defined(AE_ENABLE_VULKAN)
+		using NativeBuffer_t			= VkBuffer;
+		using NativeImage_t				= VkImage;
+		using NativeBufferView_t		= VkBufferView;
+		using NativeImageView_t			= VkImageView;
+		using NativeImageDesc_t			= VulkanImageDesc;
+		using NativeBufferDesc_t		= VulkanBufferDesc;
+		using NativeImageViewDesc_t		= VulkanImageViewDesc;
+		using NativeBufferViewDesc_t	= VulkanBufferViewDesc;
+		using NativeMemObjInfo_t		= VulkanMemoryObjInfo;
 
-		#elif defined(AE_ENABLE_METAL)
-		using NativeBuffer_t		= MetalBuffer;
-		using NativeImage_t			= MetalImage;
-		using NativeBufferView_t	= MetalImage;
-		using NativeImageView_t		= MetalImage;
-		using NativeImageDesc_t		= MetalImageDesc;
-		using NativeBufferDesc_t	= MetalBufferDesc;
-		using NativeImageViewDesc_t	= MetalImageViewDesc;
-		using NativeBufferViewDesc_t= MetalBufferViewDesc;
-		using NativeMemObjInfo_t	= MetalMemoryObjInfo;
+	  #elif defined(AE_ENABLE_METAL)
+		using NativeBuffer_t			= MetalBuffer;
+		using NativeImage_t				= MetalImage;
+		using NativeBufferView_t		= MetalImage;
+		using NativeImageView_t			= MetalImage;
+		using NativeImageDesc_t			= MetalImageDesc;
+		using NativeBufferDesc_t		= MetalBufferDesc;
+		using NativeImageViewDesc_t		= MetalImageViewDesc;
+		using NativeBufferViewDesc_t	= MetalBufferViewDesc;
+		using NativeMemObjInfo_t		= MetalMemoryObjInfo;
 
-		#elif defined(AE_ENABLE_REMOTE_GRAPHICS)
-		using NativeBuffer_t		= RmBufferID;
-		using NativeImage_t			= RmImageID;
-		using NativeBufferView_t	= RmBufferViewID;
-		using NativeImageView_t		= RmImageViewID;
-		using NativeImageDesc_t		= RemoteImageDesc;
-		using NativeBufferDesc_t	= RemoteBufferDesc;
-		using NativeImageViewDesc_t	= RemoteImageViewDesc;
-		using NativeBufferViewDesc_t= RemoteBufferViewDesc;
-		using NativeMemObjInfo_t	= RemoteMemoryObjInfo;
+	  #elif defined(AE_ENABLE_REMOTE_GRAPHICS)
+		using NativeBuffer_t			= RmBufferID;
+		using NativeImage_t				= RmImageID;
+		using NativeBufferView_t		= RmBufferViewID;
+		using NativeImageView_t			= RmImageViewID;
+		using NativeImageDesc_t			= RemoteImageDesc;
+		using NativeBufferDesc_t		= RemoteBufferDesc;
+		using NativeImageViewDesc_t		= RemoteImageViewDesc;
+		using NativeBufferViewDesc_t	= RemoteBufferViewDesc;
+		using NativeMemObjInfo_t		= RemoteMemoryObjInfo;
 
-		#else
-		#	error not implemented
-		#endif
+	  #else
+	  # error not implemented
+	  #endif
 
 		using DescSetAndBinding_t	= Tuple< Strong<DescriptorSetID>, DescSetBinding >;
 		using AsyncRTechPipelines	= Promise< RenderTechPipelinesPtr >;
@@ -294,6 +308,7 @@ namespace AE::Graphics
 		ND_ virtual bool						IsSupported (const RTSceneBuild &build)																			C_NE___ = 0;
 		ND_ virtual bool						IsSupported (const RTClusterInfo &info)																			C_NE___ = 0;
 		ND_ virtual bool						IsSupported (const RTPartitionedSceneInfo &info)																C_NE___ = 0;
+		ND_ virtual bool						IsSupported (const RTMicromapInfo &info)																		C_NE___ = 0;
 
 		ND_ virtual Strong<ImageID>				CreateImage (const ImageDesc &desc, StringView dbgName = Default, GfxMemAllocatorPtr allocator = null)			__NE___ = 0;
 		ND_ virtual Strong<BufferID>			CreateBuffer (const BufferDesc &desc, StringView dbgName = Default, GfxMemAllocatorPtr allocator = null)		__NE___ = 0;
@@ -310,11 +325,14 @@ namespace AE::Graphics
 		ND_ virtual Strong<RTGeometryID>		CreateRTGeometry (const RTGeometryDesc &desc, StringView dbgName = Default, GfxMemAllocatorPtr allocator = null)__NE___	= 0;
 		ND_ virtual Strong<RTSceneID>			CreateRTScene (const RTSceneDesc &desc, StringView dbgName = Default, GfxMemAllocatorPtr allocator = null)		__NE___	= 0;
 
-		ND_ virtual Bytes						GetShaderGroupStackSize (RayTracingPipelineID ppln, ArrayView<RayTracingGroupName> names, ERTShaderGroup type)	__NE___ = 0;
-		ND_ virtual RTASBuildSizes				GetRTGeometrySizes (const RTGeometryBuild &desc)																__NE___	= 0;
-		ND_ virtual RTASBuildSizes				GetRTSceneSizes (const RTSceneBuild &desc)																		__NE___	= 0;
-		ND_ virtual RTASBuildSizes				GetRTClusterSizes (const RTClusterInfo &info)																	__NE___	= 0;
-		ND_ virtual RTASBuildSizes				GetRTPartitionedSceneSizes (const RTPartitionedSceneInfo &info)													__NE___	= 0;
+		ND_ virtual Strong<RTMicromapID>		CreateRTMicromap (const RTMicromapDesc &desc, StringView dbgName = Default, GfxMemAllocatorPtr allocator = null)__NE___	= 0;
+
+		ND_ virtual Bytes						GetShaderGroupStackSize (RayTracingPipelineID ppln, ArrayView<RayTracingGroupName> names, ERTShaderGroup type)	C_NE___ = 0;
+		ND_ virtual RTASBuildSizes				GetRTGeometrySizes (const RTGeometryBuild &desc)																C_NE___	= 0;
+		ND_ virtual RTASBuildSizes				GetRTSceneSizes (const RTSceneBuild &desc)																		C_NE___	= 0;
+		ND_ virtual RTASBuildSizes				GetRTClusterSizes (const RTClusterInfo &info)																	C_NE___	= 0;
+		ND_ virtual RTASBuildSizes				GetRTPartitionedSceneSizes (const RTPartitionedSceneInfo &info)													C_NE___	= 0;
+		ND_ virtual RTMicromapBuildSizes		GetRTMicromapSizes (const RTMicromapInfo &info)																	C_NE___	= 0;
 
 		ND_ virtual DeviceAddress				GetDeviceAddress (BufferID		id)																				C_NE___ = 0;
 		ND_ virtual DeviceAddress				GetDeviceAddress (RTGeometryID	id)																				C_NE___ = 0;
@@ -355,6 +373,11 @@ namespace AE::Graphics
 		// pipeline cache
 		ND_ virtual Strong<PipelineCacheID>		CreatePipelineCache (RC<RStream> data = null, StringView dbgName = Default)	__NE___ = 0;
 		ND_	virtual bool						SerializePipelineCache (PipelineCacheID id, RC<WStream> dst)				C_NE___ = 0;
+
+		// indirect command buffer
+		ND_ virtual Strong<IndirectCommandsLayoutID>  CreateIndirectCommandsLayout (const IndirectCommandsLayoutDesc &desc, StringView dbgName = Default)	__NE___ = 0;
+		ND_ virtual SizeAndAlign					  GetPreprocessingBufferSize (const GeneratedCommandsMemoryRequirementsDesc &)							__NE___ = 0;
+		ND_ virtual RC<IPreprocessingStateCommandPool>	CreatePreprocessingStateCommandPool (EQueueType)													__NE___ = 0;
 
 		// load default pack
 		ND_	virtual bool						InitializeResources (Strong<PipelinePackID> defaultPackId)			__NE___	= 0;
@@ -399,6 +422,10 @@ namespace AE::Graphics
 		ND_ auto								GetResourcesOrThrow (ID0 id0, ID1 id1, IDs ...ids)					C_Th___;
 		)
 
+		// By default all resources destroyed when all pending command buffers are complete execution.
+		// Returns 'true' if wasn't empty.
+			virtual bool						ForceReleaseResources ()											__NE___	= 0;
+
 
 		// Returned reference is valid until resource is alive
 		ND_ virtual BufferDesc const&			GetDescription (BufferID id)										C_NE___ = 0;
@@ -412,10 +439,6 @@ namespace AE::Graphics
 		ND_ virtual VideoBufferDesc const&		GetDescription (VideoBufferID id)									C_NE___	= 0;
 		ND_ virtual VideoSessionDesc const&		GetDescription (VideoSessionID id)									C_NE___	= 0;
 
-		// By default all resources destroyed when all pending command buffers are complete execution.
-		// Returns 'true' if wasn't empty.
-			virtual bool						ForceReleaseResources ()											__NE___	= 0;
-
 		// Returns native handle.
 		ND_ virtual NativeBuffer_t				GetBufferHandle (BufferID id)										C_NE___ = 0;
 		ND_ virtual NativeImage_t				GetImageHandle (ImageID id)											C_NE___ = 0;
@@ -428,7 +451,7 @@ namespace AE::Graphics
 		// async loading
 		//	Pipeline compilation may be distributed to multiple threads.
 		ND_ virtual AsyncRTechPipelines			LoadRenderTechAsync (PipelinePackID packId, RenderTechName::Ref name, const RenderTechDesc &desc = Default, PipelineCacheID cache = Default)	__NE___	= 0;
-		ND_ virtual RenderTechPipelinesPtr		LoadRenderTech (PipelinePackID packId, RenderTechName::Ref name, const RenderTechDesc &desc = Default, PipelineCacheID cache = Default)		__NE___	= 0;
+		ND_ virtual RenderTechPipelinesPtr		LoadRenderTech (PipelinePackID packId, RenderTechName::Ref name, const RenderTechDesc &desc = Default, PipelineCacheID cache = Default)			__NE___	= 0;
 
 		// statistics
 		ND_ virtual StagingBufferStat			GetStagingBufferFrameStat (FrameUID frameId)						C_NE___ = 0;
@@ -436,7 +459,7 @@ namespace AE::Graphics
 		ND_ virtual FeatureSet const&			GetFeatureSet ()													C_NE___	= 0;
 
 		// memory allocators
-		ND_ virtual GfxMemAllocatorPtr			CreateLinearGfxMemAllocator (Bytes pageSize = 0_b)					C_NE___ = 0;
+		ND_ virtual GfxMemAllocatorPtr			CreateLinearGfxMemAllocator (Bytes pageSize = 0_b, Bytes padding = 0_b) C_NE___ = 0;
 		ND_ virtual GfxMemAllocatorPtr			CreateBlockGfxMemAllocator (Bytes blockSize, Bytes pageSize)		C_NE___ = 0;
 		ND_ virtual GfxMemAllocatorPtr			CreateUnifiedGfxMemAllocator (Bytes pageSize = 0_b)					C_NE___ = 0;
 		ND_ virtual GfxMemAllocatorPtr			CreateLargeSizeGfxMemAllocator ()									C_NE___ = 0;
@@ -445,6 +468,9 @@ namespace AE::Graphics
 		// descriptor allocators
 		//ND_ virtual DescriptorAllocatorPtr	CreateLinearDescriptorAllocator ()									C_NE___ = 0;
 		ND_ virtual DescriptorAllocatorPtr		GetDefaultDescriptorAllocator ()									C_NE___ = 0;
+
+		ND_ virtual IQueryManager&				GetQueryManager ()													__NE___	= 0;
+		ND_ virtual IDevice const&				GetDevice ()														C_NE___ = 0;
 	};
 
 

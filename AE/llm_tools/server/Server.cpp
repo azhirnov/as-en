@@ -7,7 +7,7 @@ using namespace AE;
 using namespace AE::Base;
 
 
-int main (const int argc, char* argv[])
+int main (const int argc, char const* argv[])
 {
 	ushort	port = AE_LLM_SERVER_PORT;
 	if ( argc >= 3 )

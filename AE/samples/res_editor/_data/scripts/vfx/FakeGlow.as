@@ -44,7 +44,7 @@
 			indices[36] = 8;	indices[37] = 12;	indices[38] = 9;
 			indices[39] = 9;	indices[40] = 12;	indices[41] = 13;
 
-			vbuf.FloatArray( "positions",	positions );
+			vbuf.FloatArray( "position",	positions );
 			vbuf.UIntArray(  "centerIdx",	centerIdx );
 			vbuf.UIntArray(  "indices",		indices );
 		}
@@ -179,7 +179,7 @@
 		};
 
 		BuildProjectedVolume( projected, float2(1.0, ratio) * 0.5,
-							  OUT un_VBuffer.positions, OUT un_VBuffer.centerIdx );
+							  OUT un_VBuffer.position, OUT un_VBuffer.centerIdx );
 
 		un_Cmd.cmd = DrawIndexedIndirectCommand_Create( un_VBuffer.indices.length() );
 	}

@@ -50,6 +50,24 @@ void ASmain (GLFW_ActionBindings& bindings)
 				  ActionInfo( "CustomKey2", EValueType::Float, EGestureType::Down, float4(2.f) ));
 		bind.Add( GLFW_Input::Equal,
 				  ActionInfo( "CustomKey2", EValueType::Float, EGestureType::Down, float4(3.f) ));
+
+		bind.Add( GLFW_Input::GP_Start,
+				  ActionInfo( "UI.ReloadScript", EGestureType::Down ));
+
+		bind.Add( GLFW_Input::GP_X,
+				  ActionInfo( "UI.ShowHide", EGestureType::Down ));
+
+		bind.Add( GLFW_Input::GP_Y,
+				  ActionInfo( "Freeze", EGestureType::Down ));
+
+		bind.Add( GLFW_Input::GP_A,
+				  ActionInfo( "CustomKey1", EValueType::Float, EGestureType::Down, float4(1.f) ));
+
+		bind.Add( GLFW_Input::GP_AxisLeftTrigger,
+				  ActionInfo( "CustomKey3", EValueType::Float, EGestureType::Move ));
+
+		bind.Add( GLFW_Input::GP_AxisRightTrigger,
+				  ActionInfo( "CustomKey4", EValueType::Float, EGestureType::Move ));
 	}
 
 	// switch input mode
@@ -59,6 +77,9 @@ void ASmain (GLFW_ActionBindings& bindings)
 
 		bind.Add( GLFW_Input::Escape,
 				  ActionInfo( "SwitchInputMode", EGestureType::Down ));
+
+		bind.Add( GLFW_Input::GP_Back,  // Select
+				  ActionInfo( "SwitchInputMode", EGestureType::Down ));
 	}
 
 	// UI bindings
@@ -67,6 +88,9 @@ void ASmain (GLFW_ActionBindings& bindings)
 		bind.Inherit( "Shared" );
 
 		bind.Add( GLFW_Input::Escape,
+				  ActionInfo( "UI.SwitchInputMode", EGestureType::Down ));
+
+		bind.Add( GLFW_Input::GP_Back, // Select
 				  ActionInfo( "UI.SwitchInputMode", EGestureType::Down ));
 
 		bind.Add( GLFW_Input::CursorPos,
@@ -187,6 +211,8 @@ void ASmain (GLFW_ActionBindings& bindings)
 
 		const float4	arrow_scale		(0.01f);
 		const float		mouse_scale		= 4.0f;
+		const float4	gp_move_scale	(-0.01f, 0.01f, 0.f, 0.f);
+		const float4	gp_rot_scale	( 0.03f );
 
 		bind.Add( GLFW_Input::W,
 				  ActionInfo( "Camera.Move", EValueType::Float3, EGestureType::Hold, VecSwizzle("+00") ));
@@ -199,7 +225,22 @@ void ASmain (GLFW_ActionBindings& bindings)
 		bind.Add( GLFW_Input::LeftShift,
 				  ActionInfo( "Camera.Move", EValueType::Float3, EGestureType::Hold, VecSwizzle("00+") ));
 		bind.Add( GLFW_Input::Space,
+				  ActionInfo( "Camera.Move", EValueType::Float3, EGestureType::Hold, VecSwizzle("00-") ));  // -Y - up
+
+		bind.Add( GLFW_Input::GP_AxisLeftY,
+				  ActionInfo( "Camera.Move", EValueType::Float3, EGestureType::Move, VecSwizzle("X00"), gp_move_scale ));
+		bind.Add( GLFW_Input::GP_AxisLeftX,
+				  ActionInfo( "Camera.Move", EValueType::Float3, EGestureType::Move, VecSwizzle("0X0"), gp_move_scale ));
+
+		bind.Add( GLFW_Input::GP_DpadUp,
 				  ActionInfo( "Camera.Move", EValueType::Float3, EGestureType::Hold, VecSwizzle("00-") ));
+		bind.Add( GLFW_Input::GP_DpadDown,
+				  ActionInfo( "Camera.Move", EValueType::Float3, EGestureType::Hold, VecSwizzle("00+") ));
+
+		bind.Add( GLFW_Input::GP_DpadLeft,
+				  ActionInfo( "Camera.Move", EValueType::Float3, EGestureType::Hold, VecSwizzle("0-0") ));
+		bind.Add( GLFW_Input::GP_DpadRight,
+				  ActionInfo( "Camera.Move", EValueType::Float3, EGestureType::Hold, VecSwizzle("0+0") ));
 
 		bind.Add( GLFW_Input::CursorDelta_norm,
 				  ActionInfo( "Camera.Rotate", EValueType::Float2, EGestureType::Move, float4(mouse_scale, mouse_scale, 0.f, 0.f) ));
@@ -216,6 +257,14 @@ void ASmain (GLFW_ActionBindings& bindings)
 				  ActionInfo( "Camera.Rotate", EValueType::Float2, EGestureType::Hold, VecSwizzle("0-"), arrow_scale ));
 		bind.Add( GLFW_Input::ArrowDown,
 				  ActionInfo( "Camera.Rotate", EValueType::Float2, EGestureType::Hold, VecSwizzle("0+"), arrow_scale ));
+
+		bind.Add( GLFW_Input::GP_AxisRightY,
+				  ActionInfo( "Camera.Rotate", EValueType::Float2, EGestureType::Move, VecSwizzle("0X"), gp_rot_scale ));
+		bind.Add( GLFW_Input::GP_AxisRightX,
+				  ActionInfo( "Camera.Rotate", EValueType::Float2, EGestureType::Move, VecSwizzle("X0"), gp_rot_scale ));
+
+		bind.Add( GLFW_Input::GP_B,
+				  ActionInfo( "Camera.Reset", EGestureType::Down ));
 
 		bind.Add( GLFW_Input::MouseLeft,
 				  ActionInfo( "CustomKey2", EValueType::Float, EGestureType::Hold, float4(1.f) ));
@@ -244,6 +293,7 @@ void ASmain (GLFW_ActionBindings& bindings)
 		const float4	roll_scale		(0.02f);
 		const float4	thrust_scale	(0.01f);
 		const float		mouse_scale		= 4.0f;
+		const float4	gp_rot_scale	(0.02f, 0.05f, 0.05f, 0.f);
 
 		// yaw
 		bind.Add( GLFW_Input::Q,
@@ -282,6 +332,25 @@ void ASmain (GLFW_ActionBindings& bindings)
 
 		bind.Add( GLFW_Input::MouseLeft,
 				  ActionInfo( "CustomKey2", EValueType::Float, EGestureType::Hold, float4(1.f) ));
+
+		// roll
+		bind.Add( GLFW_Input::GP_AxisRightX,
+				  ActionInfo( "FlightCamera.Rotate", EValueType::Float3, EGestureType::Move, VecSwizzle("00X"), gp_rot_scale ));
+		// pitch
+		bind.Add( GLFW_Input::GP_AxisRightY,
+				  ActionInfo( "FlightCamera.Rotate", EValueType::Float3, EGestureType::Move, VecSwizzle("0X0"), gp_rot_scale ));
+		// yaw
+		bind.Add( GLFW_Input::GP_AxisLeftX,
+				  ActionInfo( "FlightCamera.Rotate", EValueType::Float3, EGestureType::Move, VecSwizzle("X00"), gp_rot_scale ));
+
+		bind.Add( GLFW_Input::GP_DpadUp,
+				  ActionInfo( "FlightCamera.Thrust", EValueType::Float, EGestureType::Hold, VecSwizzle("+"), thrust_scale ));
+		bind.Add( GLFW_Input::GP_DpadDown,
+				  ActionInfo( "FlightCamera.Thrust", EValueType::Float, EGestureType::Hold, VecSwizzle("-"), thrust_scale ));
+
+		bind.Add( GLFW_Input::GP_B,
+				  ActionInfo( "FlightCamera.Reset", EGestureType::Down ));
+
 	}
 
 	// Remote camera

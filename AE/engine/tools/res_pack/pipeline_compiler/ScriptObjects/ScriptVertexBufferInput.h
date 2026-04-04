@@ -70,8 +70,7 @@ namespace AE::PipelineCompiler
 
 	// methods
 	public:
-		ScriptVertexBufferInput () {}
-		ScriptVertexBufferInput (const String &name);
+		ND_ static VertexBufferInputPtr  Create (const String &name)										__Th___;
 
 		void  AddFeatureSet (const String &name)															__Th___;
 
@@ -107,6 +106,8 @@ namespace AE::PipelineCompiler
 		static void  Bind (const ScriptEnginePtr &se)														__Th___;
 
 	private:
+		explicit ScriptVertexBufferInput (const String &name)												__NE___;
+
 		void  _Get (OUT Array<VertexAttrib> &attribs)														const;
 
 		void  _Add (const String &bufferName, const ShaderStructTypePtr &ptr, uint stride, Optional<VertexDivisor> divisor) __Th___;

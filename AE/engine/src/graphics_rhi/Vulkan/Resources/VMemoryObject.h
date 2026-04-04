@@ -31,6 +31,7 @@ namespace AE::Graphics
 
 		ND_ bool  Create (VkBuffer, const BufferDesc &, GfxMemAllocatorPtr, StringView dbgName)	__NE___;
 		ND_ bool  Create (VkImage, const ImageDesc &, GfxMemAllocatorPtr, StringView dbgName)	__NE___;
+		ND_ bool  Create (Bytes, VkBufferUsageFlagBits2, GfxMemAllocatorPtr, StringView dbgName)__NE___;
 			void  Destroy (ResourceManager &)													__NE___;
 
 		ND_ bool  GetMemoryInfo (OUT VulkanMemoryObjInfo &) C_NE___;

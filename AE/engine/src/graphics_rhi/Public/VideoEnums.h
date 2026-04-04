@@ -90,55 +90,55 @@ namespace AE::Graphics
 
 	enum class EVideoFormat : ubyte
 	{
-		YUV420P,		// 12bpp
-		YUV422P,		// 16bpp
-		YUV444P,		// 24bpp
+		YUV420P,		// 12bpp	Y/U/V
+		YUV422P,		// 16bpp	Y/U/V
+		YUV444P,		// 24bpp	Y/U/V
 
-		YUV420P10,		// 15bpp
-		YUV422P10,		// 20bpp
-		YUV444P10,		// 30bpp
+		YUV420P10,		// 15bpp	Y/U/V
+		YUV422P10,		// 20bpp	Y/U/V
+		YUV444P10,		// 30bpp	Y/U/V
 
-		YUV420P12,		// 18bpp
-		YUV422P12,		// 24bpp
-		YUV444P12,		// 36bpp
+		YUV420P12,		// 18bpp	Y/U/V
+		YUV422P12,		// 24bpp	Y/U/V
+		YUV444P12,		// 36bpp	Y/U/V
 
-		YUV420P16,		// 24bpp
-		YUV422P16,		// 32bpp
-		YUV444P16,		// 48bpp
+		YUV420P16,		// 24bpp	Y/U/V
+		YUV422P16,		// 32bpp	Y/U/V
+		YUV444P16,		// 48bpp	Y/U/V
 
-		YUVA420P,		// 12+8bpp
-		YUVA422P,		// 16+8bpp
-		YUVA444P,		// 24+8bpp
-		YUVA420P10,		// 25bpp
-		YUVA422P10,		// 30bpp
-		YUVA444P10,		// 40bpp
-		YUVA420P16,		// 40bpp
-		YUVA422P16,		// 48bpp
-		YUVA444P16,		// 64bpp
+		YUVA420P,		// 12+8bpp	Y/U/V/A
+		YUVA422P,		// 16+8bpp	Y/U/V/A
+		YUVA444P,		// 24+8bpp	Y/U/V/A
+		YUVA420P10,		// 25bpp	Y/U/V/A
+		YUVA422P10,		// 30bpp	Y/U/V/A
+		YUVA444P10,		// 40bpp	Y/U/V/A
+		YUVA420P16,		// 40bpp	Y/U/V/A
+		YUVA422P16,		// 48bpp	Y/U/V/A
+		YUVA444P16,		// 64bpp	Y/U/V/A
 
-		NV12,			// 12bpp
-		P010,			// 10bpp
-		P012,			// 12bpp
-		P016,			// 16bpp
+		NV12,			// 12bpp	Y+UV (interleaved)
+		P010,			// 10bpp	Y+UV (interleaved)
+		P012,			// 12bpp	Y+UV (interleaved)
+		P016,			// 16bpp	Y+UV (interleaved)
 
-		NV16,			// 16bpp
-		P210,			// 20bpp
-		P212,			// 24bpp
-		P216,			// 32bpp
+		NV16,			// 16bpp	Y+UV (interleaved)
+		P210,			// 20bpp	Y+UV (interleaved)
+		P212,			// 24bpp	Y+UV (interleaved)
+		P216,			// 32bpp	Y+UV (interleaved)
 
-		NV24,			// 24bpp
-		P410,			// 30bpp
-		P412,			// 36bpp
-		P416,			// 48bpp
+		NV24,			// 24bpp	Y+UV (interleaved)
+		P410,			// 30bpp	Y+UV (interleaved)
+		P412,			// 36bpp	Y+UV (interleaved)
+		P416,			// 48bpp	Y+UV (interleaved)
 
-		NV21,			// 12bpp
-		NV42,			// 24bpp
-		NV20,			// 20bpp
+		NV21,			// 12bpp	Y+VU (interleaved)
+		NV42,			// 24bpp	Y+VU (interleaved)
+		NV20,			// 20bpp	Y+VU (interleaved)
 
-		YUYV422,		// 16bpp
-		UYVY422,		// 16bpp
-		Y210,			// 20bpp
-		Y212,			// 24bpp
+		YUYV422,		// 16bpp	YUYV
+		UYVY422,		// 16bpp	UYVY
+		Y210,			// 20bpp	YUYV
+		Y212,			// 24bpp	YUYV
 		XV30,			// 32bpp
 		XV36,			// 48bpp
 
@@ -181,6 +181,54 @@ namespace AE::Graphics
 
 		_Last,
 		All			= ((_Last - 1) << 1) - 1
+	};
+
+
+	struct VideoH264
+	{
+		enum class EPictureType : ubyte
+		{
+			P,
+			B,
+			I,
+			IDR,			// Instantaneous Decoder Refresh. After an IDR, the decoder can throw away all old references and still decode correctly.
+			Unknown
+		};
+	};
+
+
+	struct VideoH265
+	{
+		enum class EPictureType : ubyte
+		{
+			P,
+			B,
+			I,
+			IDR,			// Instantaneous Decoder Refresh. After an IDR, the decoder can throw away all old references and still decode correctly.
+			Unknown
+		};
+	};
+
+
+	struct VideoAV1
+	{
+		enum class EFrameType : ubyte
+		{
+			Key,
+			Inter,
+			IntraOnly,
+			Switch,
+			Unknown
+		};
+
+		enum class EPredictionMode : ubyte
+		{
+			Unknown,
+			InfraOnly,
+			SingleReference,
+			UnidirectionalCompound,
+			BidirectionalCompound,
+		};
 	};
 
 

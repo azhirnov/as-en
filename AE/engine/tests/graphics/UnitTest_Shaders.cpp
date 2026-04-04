@@ -15,6 +15,7 @@
 
 namespace
 {
+	#undef ASSERT
 	#define AE_HAS_ATOMICS			1
 	#define AE_shader_atomic_float	1
 	#define AE_shader_atomic_float2	1

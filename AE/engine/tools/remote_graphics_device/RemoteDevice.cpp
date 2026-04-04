@@ -181,16 +181,16 @@ namespace AE::RemoteGraphics
 		IpAddress	server_addr;
 		CHECK( SocketService::Instance().GetSelfIPAddress( AE_ROUTER_IPv4, OUT server_addr ));
 
-		server_addr.SetPort( 0 );
+		server_addr.SetPort( RmNetConfig::serverPort );
 
-		AE_LOGI( "Start RemoteGraphicsDevice on address: "s << server_addr.ToString() );
+		AE_LOGI( "Start RemoteGraphicsDevice on address: "s << server_addr.ToString() << " x" << ToString( RmNetConfig::socketCount ));
 
 	  #ifdef AE_PLATFORM_ANDROID
 		if ( _app )
 			Cast<App::ApplicationAndroid>(_app)->ShowToast( server_addr.ToString(), False{"short"} );
 	  #endif
 	  #ifdef AE_PLATFORM_WINDOWS
-		CHECK( WindowsUtils::AddExceptionToFirewall( WindowsUtils::GetExeLocation(), "AE RmG In", True{"inbound"}, True{"TCP"}, 0 ));
+		//CHECK( WindowsUtils::AddExceptionToFirewall( WindowsUtils::GetExeLocation(), "AE RmG In", True{"inbound"}, True{"TCP"}, {} ));
 	  #endif
 	}
 
@@ -391,6 +391,21 @@ namespace AE::RemoteGraphics
 */
 	void  RmGAppListener::_ProcessMessage (Msg::BaseMsg &msg)
 	{
+		// send pending logs
+		{
+			auto	logs = _pendingLogs.WriteLock();
+			if ( not logs->empty() )
+			{
+				auto*	td = _GetThreadData();
+				CHECK_THROW( td != null );
+
+				for (auto& log : *logs){
+					CHECK( td->conn.Send( log.msg ));
+				}
+				logs->clear();
+			}
+		}
+
 		auto	id = TypeIdOf( msg );
 		auto	it = _cbMap.find( id );
 
@@ -609,6 +624,7 @@ namespace AE::RemoteGraphics
 			inserted	= inserted2;
 		}
 
+		ASSERT( inserted );
 		if_unlikely( not inserted )
 			_Remove2( id, _res.queryPool );
 
@@ -647,6 +663,7 @@ namespace AE::RemoteGraphics
 			inserted	= inserted2;
 		}
 
+		ASSERT( inserted );
 		if_unlikely( not inserted )
 			_Remove2( id, _res.semaphorePool );
 
@@ -764,7 +781,8 @@ namespace AE::RemoteGraphics
 		StringView	text = info.message;
 
 	  #if defined(__cpp_lib_stacktrace) and not defined(AE_COMPILER_GCC)
-		String		msg_with_call_stack;
+		String		msg_with_call_stack {info.message};
+
 		if ( info.level >= ELogLevel::Warning )
 		{
 		  #ifdef AE_PLATFORM_WINDOWS
@@ -778,6 +796,8 @@ namespace AE::RemoteGraphics
 			usize		i		= 0;
 			const usize	count	= stack.size();
 			String&		str		= msg_with_call_stack;
+
+			str << "\ncallstack:\n";
 
 			// skip logger functions
 			{
@@ -793,8 +813,13 @@ namespace AE::RemoteGraphics
 				}
 			}
 
-			for (; i < count; ++i, ++it) {
-				str << "  " << FileSystem::ToShortPath( it->source_file() ) << '(' << ToString( it->source_line() ) << "): " << it->description() << '\n';
+			for (; i < count; ++i, ++it)
+			{
+				String	file = it->source_file();
+				if ( file.empty() or it->source_line() == 0 )
+					break;
+
+				str << "  " << FileSystem::ToShortPath( file ) << '(' << ToString( it->source_line() ) << "): " << it->description() << '\n';
 			}
 			str.pop_back();
 			text = msg_with_call_stack;
@@ -810,8 +835,38 @@ namespace AE::RemoteGraphics
 		msg.scope	= info.scope;
 
 		auto*	td = _GetThreadData();
+
 		if ( td != null and td->looping.load() )
-			Unused( td->conn.Send( msg ));
+		{
+			CHECK( td->conn.Send( msg ));
+		}else
+		if ( td == null )
+		{
+			usize	offset	= 0;
+			usize	size	= msg.message.size() + msg.func.size() + msg.file.size() + 3;
+
+			PendingLogMsg	pending {msg};
+			pending.storage = UntypedAllocator::AllocateUPtr<char>( size );
+
+			MemCopy( OUT pending.storage.get() + offset, msg.message.data(), StringSizeOf(msg.message) );
+			pending.msg.message = StringView{ pending.storage.get() + offset, msg.message.size() };
+			offset += msg.message.size();
+			pending.storage.get()[ offset++ ] = 0;
+
+			MemCopy( OUT pending.storage.get() + offset, msg.func.data(), StringSizeOf(msg.func) );
+			pending.msg.func = StringView{ pending.storage.get() + offset, msg.func.size() };
+			offset += msg.func.size();
+			pending.storage.get()[ offset++ ] = 0;
+
+			MemCopy( OUT pending.storage.get() + offset, msg.file.data(), StringSizeOf(msg.file) );
+			pending.msg.file = StringView{ pending.storage.get() + offset, msg.file.size() };
+			offset += msg.file.size();
+			pending.storage.get()[ offset++ ] = 0;
+
+			CHECK( offset == size );
+
+			_app._pendingLogs->push_back( RVRef(pending) );
+		}
 
 		return EResult::Continue;
 	}
@@ -829,8 +884,9 @@ using namespace AE::RemoteGraphics;
 	AE_OnAppCreated / AE_OnAppDestroyed
 =================================================
 */
-Unique<IApplication::IAppListener>  AE_OnAppCreated ()
+Unique<IApplication::IAppListener>  AE_OnAppCreated (const int argc, char const* argv[])
 {
+	Unused( argc, argv );
 	StaticLogger::InitDefault();
 	return MakeUnique<RmGAppListener>();
 }

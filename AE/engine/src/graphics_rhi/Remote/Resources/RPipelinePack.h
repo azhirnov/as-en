@@ -74,30 +74,31 @@ namespace AE::Graphics
 
 		// methods
 		public:
-			RenderTech (const RPipelinePack &pack)														__NE___;
-			~RenderTech ()																				__NE_OV;
+			RenderTech (const RPipelinePack &pack)																	__NE___;
+			~RenderTech ()																							__NE_OV;
 
 			ND_ bool  Create (ResourceManager&,
-							  const RemoteGraphics::Msg::ResMngr_LoadRenderTech_Response &)				__NE___;
-				void  Destroy (ResourceManager &)														__NE___;
+							  const RemoteGraphics::Msg::ResMngr_LoadRenderTech_Response &)							__NE___;
+				void  Destroy (ResourceManager &)																	__NE___;
 
-			ND_ RenderTechName::Optimized_t	Name ()														C_NE_OV	{ DRC_SHAREDLOCK( _drCheck );  return _name; }
-			ND_ PipelinePackID				GetPipelinePack ()											C_NE_OV	{ DRC_SHAREDLOCK( _drCheck );  return _pack._selfId; }
-			ND_ RmRenderTechPipelinesID		Handle ()													C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _rtechId; }
+			ND_ RenderTechName::Optimized_t	Name ()																	C_NE_OV	{ DRC_SHAREDLOCK( _drCheck );  return _name; }
+			ND_ PipelinePackID				GetPipelinePack ()														C_NE_OV	{ DRC_SHAREDLOCK( _drCheck );  return _pack._selfId; }
+			ND_ RmRenderTechPipelinesID		Handle ()																C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _rtechId; }
 
-			GraphicsPipelineID		GetGraphicsPipeline	 (PipelineName::Ref name)						C_NE_OV;
-			MeshPipelineID			GetMeshPipeline		 (PipelineName::Ref name)						C_NE_OV;
-			TilePipelineID			GetTilePipeline		 (PipelineName::Ref name)						C_NE_OV;
-			ComputePipelineID		GetComputePipeline	 (PipelineName::Ref name)						C_NE_OV;
-			RayTracingPipelineID	GetRayTracingPipeline(PipelineName::Ref name)						C_NE_OV;
-			RTShaderBindingID		GetRTShaderBinding	 (RTShaderBindingName::Ref name)				C_NE_OV;
-			PassInfo				GetPass				 (RenderTechPassName::Ref pass)					C_NE_OV;
-			bool					FeatureSetSupported  (FeatureSetName::Ref name)						C_NE_OV;
-			EPixelFormat			GetAttachmentFormat  (RenderTechPassName::Ref, AttachmentName::Ref)	C_NE_OV;
+			GraphicsPipelineID		GetGraphicsPipeline	 (PipelineName::Ref name, Bool silent = False{})			C_NE_OV;
+			MeshPipelineID			GetMeshPipeline		 (PipelineName::Ref name, Bool silent = False{})			C_NE_OV;
+			TilePipelineID			GetTilePipeline		 (PipelineName::Ref name, Bool silent = False{})			C_NE_OV;
+			ComputePipelineID		GetComputePipeline	 (PipelineName::Ref name, Bool silent = False{})			C_NE_OV;
+			RayTracingPipelineID	GetRayTracingPipeline(PipelineName::Ref name, Bool silent = False{})			C_NE_OV;
+			RTShaderBindingID		GetRTShaderBinding	 (RTShaderBindingName::Ref name, Bool silent = False{})		C_NE_OV;
+			IndirectExecutionSetID	GetIndirectExecutionSet (IndirectExecutionSetName::Ref, Bool silent = False{})	C_NE_OV;
+			PassInfo				GetPass				 (RenderTechPassName::Ref pass)								C_NE_OV;
+			bool					FeatureSetSupported  (FeatureSetName::Ref name)									C_NE_OV;
+			EPixelFormat			GetAttachmentFormat  (RenderTechPassName::Ref, AttachmentName::Ref)				C_NE_OV;
 
 		private:
-			void  _PrintPipelines (PipelineName::Ref name, PipelineCompiler::PipelineSpecUID mask)		C_NE___;
-			void  _PrintSBTs (RTShaderBindingName::Ref reqName)											C_NE___;
+			void  _PrintPipelines (PipelineName::Ref name, PipelineCompiler::PipelineSpecUID mask)					C_NE___;
+			void  _PrintSBTs (RTShaderBindingName::Ref reqName)														C_NE___;
 		};
 
 	private:

@@ -13,7 +13,7 @@
 namespace AE::Graphics
 {
 
-#ifdef AE_PLATFORM_APPLE
+#if defined(AE_PLATFORM_APPLE) or defined(AE_ENABLE_METAL)
 namespace
 {
 /*
@@ -136,7 +136,7 @@ namespace
 */
 	bool  DeviceProperties::CompareWithConstant (AnyTypeCRef vkExt_mtlFS) C_NE___
 	{
-		StaticAssert( sizeof(DeviceProperties) == 176 );
+		StaticAssert( sizeof(DeviceProperties) == 192 );
 
 		const auto	CheckLimitLess = [] (auto curr, auto constant, const char* name)
 		{{
@@ -242,10 +242,10 @@ namespace
 	void  DeviceProperties::InitVulkan (AnyTypeCRef vkExt, AnyTypeCRef vkProps) __NE___
 	{
 		CHECK_ERRV( vkExt.Is< VDevice::VExtensions >() );
-		CHECK_ERRV( vkProps.Is< VDevice::VProperties >() );
+		CHECK_ERRV( vkProps.Is< VDevice::VProperties2 >() );
 
 		const auto&		vk_ext		= vkExt.As< VDevice::VExtensions >();
-		const auto&		vk_props	= vkProps.As< VDevice::VProperties >();
+		const auto&		vk_props	= vkProps.As< VDevice::VProperties2 >();
 
 		// resource alignment
 		{
@@ -393,6 +393,17 @@ namespace
 		}{
 			compute.subgroupSize = vk_props.subgroupProperties.subgroupSize;
 		}
+
+		// indirect command buffer Properties
+		StaticAssert( sizeof(icb) == 16 );
+		{
+			const auto&	props = vk_props.deviceGeneratedCommandsProps;
+
+			icb.maxIndirectSequenceCount			= props.maxIndirectSequenceCount;
+			icb.maxIndirectCommandsTokenCount		= props.maxIndirectCommandsTokenCount;
+			icb.maxIndirectCommandsTokenOffset		= Bytes32u{props.maxIndirectCommandsTokenOffset};
+			icb.maxIndirectCommandsIndirectStride	= Bytes32u{props.maxIndirectCommandsIndirectStride};
+		}
 	}
 #endif // AE_ENABLE_VULKAN
 
@@ -431,7 +442,7 @@ namespace
 
 		if ( mtl_feats.accelerationStructure() )
 		{
-			StaticAssert( sizeof(rayTracing) == 48 );
+			StaticAssert( sizeof(rayTracing) == 80 );
 
 			const POTBytes		buf_align 	{mtl_props.minStorageBufferOffsetAlign};
 
@@ -478,19 +489,31 @@ namespace
 
 			rayTracing.maxRecursion				= 0;	// not supported, yet
 			rayTracing.maxDispatchInvocations	= 0;
-			rayTracing.maxThreadCount			= {};
+			rayTracing.maxThreadCount[0]		= 0;
+			rayTracing.maxThreadCount[1]		= 0;
+			rayTracing.maxThreadCount[2]		= 0;
+
+			// not supported in Metal
+			rayTracing.maxVerticesPerCluster	= 0;
+			rayTracing.maxTrianglesPerCluster	= 0;
+			rayTracing.maxClusterGeometryIndex	= 0;
+			rayTracing.maxPartitionCount		= 0;
 		}
 
 		// shader HW
 		{
-			StaticAssert( sizeof(shaderHW) == sizeof(uint)*3 );
+			StaticAssert( sizeof(shaderHW) == sizeof(uint)*4 );
 
 			if ( HasSubStringIC( devName, "Apple" ))
 				InitAppleShaderHWProperties( OUT shaderHW, devName );
 		}
 
 		// compute properties
-		StaticAssert( sizeof(compute) == 48 );
+		StaticAssert( sizeof(compute) == 52 );
+		// TODO
+
+		// indirect command buffer Properties
+		StaticAssert( sizeof(icb) == 16 );
 		// TODO
 
 	}

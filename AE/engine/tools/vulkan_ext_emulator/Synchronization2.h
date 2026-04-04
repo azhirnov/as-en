@@ -369,13 +369,13 @@
 			dst			= src;
 			dst.pNext	= null;
 
-			for (auto* next = Cast<VkBaseInStructure>(src.pNext); next != null; next = next->pNext)
+			for (auto& ext : VNextRange{ src })
 			{
-				switch ( next->sType )
+				switch ( ext.Type() )
 				{
 					case VK_STRUCTURE_TYPE_MEMORY_BARRIER_2 :
 					{
-						const auto&	bar		= *Cast<VkMemoryBarrier2>(next);
+						const auto&	bar		= ext.As<VkMemoryBarrier2>();
 						dst.srcStageMask	= emulator.ConvertVkPipelineStageFlags2( bar.srcStageMask, SyncScope::First );
 						dst.dstStageMask	= emulator.ConvertVkPipelineStageFlags2( bar.dstStageMask, SyncScope::Second );
 						dst.srcAccessMask	= emulator.ConvertVkAccessFlags2( bar.srcAccessMask, bar.srcStageMask );

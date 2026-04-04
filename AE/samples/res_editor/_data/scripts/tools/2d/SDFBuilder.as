@@ -21,11 +21,11 @@
 		cbuf.ArrayLayout(
 			"CBuf",
 			// array element struct
-			"	uint		shape;" +
-			"	uint		op;" +
-			"	uint		color;" +
-			"	float2		opParams;" +
-			"	float2		center;" +
+			"	uint		shape;"
+			"	uint		op;"
+			"	uint		color;"
+			"	float2		opParams;"
+			"	float2		center;"
 			"	float4		params;",
 			max_obj
 		);

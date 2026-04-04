@@ -52,7 +52,7 @@ namespace
 	_OnAddArg
 =================================================
 */
-	void  ScriptRasterMip::_OnAddArg (INOUT ScriptPassArgs::Argument &arg) C_Th___
+	void  ScriptRasterMip::_OnAddArg (INOUT ScriptPassArgs::Argument &arg) __Th___
 	{
 		arg.state |= EResourceState::FragmentShader;
 	}
@@ -108,6 +108,8 @@ namespace
 		binder.AddFactoryCtor( &ScriptRasterMip_Ctor2,	{"shaderPath"} );
 		binder.AddFactoryCtor( &ScriptRasterMip_Ctor3,	{"shaderPath", "defines"} );
 
+		binder.Comment( "Add image which first mip used as input and other mips used as output for mipmap generation." );
+
 		binder.AddGenericMethod< void (const String &, const String &, const ScriptImagePtr &, const String &)	>( &ScriptRasterMip::_Variable, "Variable", {"inName", "outName", "image", "sampler"} );
 		binder.AddGenericMethod< void (const String &, const String &, const ScriptImagePtr &, const MipmapLevel &, const String &)	>( &ScriptRasterMip::_Variable, "Variable", {"inName", "outName", "image", "baseMipmap", "sampler"} );
 	}
@@ -117,11 +119,11 @@ namespace
 	_CompilePipeline
 =================================================
 */
-	auto  ScriptRasterMip::_CompilePipeline (OUT Bytes &ubSize) C_Th___
+	auto  ScriptRasterMip::_CompilePipeline () C_Th___
 	{
 		return ScriptExe::ScriptPassApi::ConvertAndLoad(
-					[this, &ubSize] (ScriptEnginePtr) {
-						_CompilePipeline2( OUT ubSize );	// throw
+					[this] (ScriptEnginePtr) {
+						_CompilePipeline2();	// throw
 					},
 					_baseFlags );
 	}
@@ -139,9 +141,8 @@ namespace
 		auto		result		= MakeRC<RasterMip>();
 		auto&		res_mngr	= GraphicsScheduler().GetResourceManager();
 		const auto	max_frames	= GraphicsScheduler().GetMaxFrames();
-		Bytes		ub_size;
 
-		result->_rtech = _CompilePipeline( OUT ub_size );	// throw
+		result->_rtech = _CompilePipeline();	// throw
 
 		result->_rpDesc.renderPassName	= RenderPassName{"rp"};
 		result->_rpDesc.subpassName		= SubpassName{"main"};
@@ -153,7 +154,7 @@ namespace
 		{{
 			if ( AllBits( _baseFlags, flag ))
 			{
-				auto	id = cp->_rtech.rtech->GetGraphicsPipeline( name );
+				auto	id = cp->_rtech.rtech->GetGraphicsPipeline( name, True{"silent"} );
 				if ( id ) {
 					cp->_pipelines.insert_or_assign( mode, id );
 					dbg_modes.insert( mode );
@@ -169,7 +170,7 @@ namespace
 
 		auto	ppln = result->_pipelines.find( IPass::EDebugMode::Unknown )->second;
 
-		result->_ubuffer = _CreateUBuffer( ub_size, "ComputeMipUB", EResourceState::UniformRead | EResourceState::FragmentShader );  // throw
+		result->_ubuffer = _CreateUBuffer( SizeOf<ShaderTypes::ComputePassUB>, "ComputePassUB", EResourceState::UniformRead | EResourceState::FragmentShader );  // throw
 
 		// create descriptor set
 		{
@@ -217,81 +218,12 @@ namespace AE::ResEditor
 
 /*
 =================================================
-	_CreateUBType
-=================================================
-*/
-	auto  ScriptRasterMip::_CreateUBType () __Th___
-	{
-		auto&	obj_storage = *ObjectStorage::Instance();
-		auto	it			= obj_storage.structTypes.find( "ComputeMipUB" );
-
-		if ( it != obj_storage.structTypes.end() )
-			return it->second;
-
-		ShaderStructTypePtr	st{ new ShaderStructType{"ComputeMipUB"}};
-		st->Set( EStructLayout::Compatible_Std140, R"#(
-				float		time;			// shader playback time (in seconds)
-				float		timeDelta;		// frame render time (in seconds), max value: 1/30s
-				uint		frame;			// shader playback frame, global frame counter
-				uint		passFrameId;	// current pass frame index
-				uint		seed;			// unique value, updated on each shader reloading
-				float4		mouse;			// mouse unorm coords. xy: current (if MRB down), zw: click
-				float2		customKeys;
-				float		pixPerMm;		// pix / mm
-				float		mmPerPix;		// mm / pix
-
-				// sliders //
-				float4		floatSliders [8];
-				int4		intSliders [8];
-				float4		colors [8];
-
-				// constants //
-				float4		floatConst [8];
-				int4		intConst [8];
-			)#");
-
-		StaticAssert( UIInteraction::MaxSlidersPerType == 8 );
-		StaticAssert( IPass::Constants::MaxCount == 8 );
-		StaticAssert( IPass::CustomKeys_t{}.max_size() == 2 );
-		return st;
-	}
-
-/*
-=================================================
-	_CreatePCType
-=================================================
-*/
-	auto  ScriptRasterMip::_CreatePCType () __Th___
-	{
-		auto&	obj_storage = *ObjectStorage::Instance();
-		auto	it			= obj_storage.structTypes.find( "ComputeMipPC" );
-
-		if ( it != obj_storage.structTypes.end() )
-			return it->second;
-
-		ShaderStructTypePtr	st{ new ShaderStructType{"ComputeMipPC"}};
-		st->Set( EStructLayout::Compatible_Std140, R"#(
-				float2	invResolution;
-				uint2	resolution;
-			)#");
-
-		return st;
-	}
-
-/*
-=================================================
 	GetShaderTypes
 =================================================
 */
-	void  ScriptRasterMip::GetShaderTypes (INOUT CppStructsFromShaders &data) __Th___
+	void  ScriptRasterMip::GetShaderTypes (INOUT CppStructsFromShaders &) __Th___
 	{
-		{
-			auto	st = _CreateUBType();	// throw
-			CHECK_THROW( st->ToCPP( INOUT data.cpp, INOUT data.uniqueTypes ));
-		}{
-			auto	st = _CreatePCType();	// throw
-			CHECK_THROW( st->ToCPP( INOUT data.cpp, INOUT data.uniqueTypes ));
-		}
+		// reuse ScriptComputePass
 	}
 
 /*
@@ -299,13 +231,13 @@ namespace AE::ResEditor
 	_CompilePipeline2
 =================================================
 */
-	void  ScriptRasterMip::_CompilePipeline2 (OUT Bytes &ubSize) C_Th___
+	void  ScriptRasterMip::_CompilePipeline2 () C_Th___
 	{
 		const String	subpass = "main";
 
 		_args.ValidateArgs();
 
-		CompatibleRenderPassDescPtr		compat_rp{ new CompatibleRenderPassDesc{ "compat.rp" }};
+		CompatibleRenderPassDescPtr		compat_rp = CompatibleRenderPassDesc::Create( "compat.rp" );
 		compat_rp->AddSubpass( subpass );
 		{
 			for (auto [var, i] : WithIndex(_variables))
@@ -334,7 +266,7 @@ namespace AE::ResEditor
 		}
 
 
-		RenderTechniquePtr	rtech{ new RenderTechnique{ "rtech" }};
+		RenderTechniquePtr	rtech = RenderTechnique::Create( "rtech" );
 		{
 			RTGraphicsPassPtr	pass = rtech->AddGraphicsPass2( subpass );
 			pass->SetRenderPass( "rp", subpass );
@@ -342,15 +274,14 @@ namespace AE::ResEditor
 
 		const auto	stage = EShaderStages::Fragment;
 		{
-			DescriptorSetLayoutPtr	ds_layout{ new DescriptorSetLayout{ "dsl.0" }};
+			DescriptorSetLayoutPtr	ds_layout = DescriptorSetLayout::Create( "dsl.0" );
 
-			ShaderStructTypePtr	st = _CreateUBType();	// throw
-			ubSize = st->StaticSize();
+			Unused( ScriptComputePass::_CreateUBType() );	// throw
 
-			ds_layout->AddUniformBuffer( stage, "un_PerPass", ArraySize{1}, "ComputeMipUB", EResourceState::ShaderUniform, False{} );
+			ds_layout->AddUniformBuffer( stage, "un_PerPass", ArraySize{1}, "ComputePassUB", EResourceState::ShaderUniform, False{} );
 			_args.ArgsToDescSet( stage, ds_layout, ArraySize{1} );  // throw
 		}{
-			DescriptorSetLayoutPtr	ds_layout{ new DescriptorSetLayout{ "dsl.1" }};
+			DescriptorSetLayoutPtr	ds_layout = DescriptorSetLayout::Create( "dsl.1" );
 
 			for (auto& var : _variables)
 			{
@@ -445,12 +376,12 @@ namespace AE::ResEditor
 	{
 		const String			subpass = "main";
 
-		PipelineLayoutPtr		ppln_layout{ new PipelineLayout{ pplnName + ".pl" }};
+		PipelineLayoutPtr		ppln_layout = PipelineLayout::Create( pplnName + ".pl" );
 		ppln_layout->AddDSLayout2( "ds0", 0, "dsl.0" );
 		ppln_layout->AddDSLayout2( "ds1", 1, "dsl.1" );
 
 		{
-			ShaderStructTypePtr	st = _CreatePCType();	// throw
+			ShaderStructTypePtr	st = ScriptComputeMip::_CreatePCType();	// throw
 			ppln_layout->AddPushConst2( "pc", st, EShader::Fragment );
 
 			ppln_layout->Define( "iInvResolution=pc.invResolution" );
@@ -460,7 +391,7 @@ namespace AE::ResEditor
 		if ( AnyBits( EShaderOpt(shaderOpts), EShaderOpt::_ShaderTrace_Mask ))
 			ppln_layout->AddDebugDSLayout2( 2, EShaderOpt(shaderOpts) & EShaderOpt::_ShaderTrace_Mask, uint(EShaderStages::Fragment) );
 
-		GraphicsPipelinePtr		ppln_templ{ new GraphicsPipelineScriptBinding{ pplnName }};
+		GraphicsPipelinePtr		ppln_templ = GraphicsPipelineScriptBinding::Create( pplnName );
 		ppln_templ->Disable();
 		ppln_templ->SetFragmentOutputFromRenderPass( "compat.rp", subpass );
 		ppln_templ->SetLayout2( ppln_layout );

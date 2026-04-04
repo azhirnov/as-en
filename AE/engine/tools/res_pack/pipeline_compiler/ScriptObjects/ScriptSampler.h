@@ -6,6 +6,8 @@
 
 namespace AE::PipelineCompiler
 {
+	using ScriptSamplerPtr = ScriptRC< struct ScriptSampler >;
+
 
 	//
 	// Script Sampler
@@ -28,9 +30,9 @@ namespace AE::PipelineCompiler
 
 	// methods
 	public:
-		ScriptSampler ();
 		ScriptSampler (ScriptSampler &&)										__NE___;
-		explicit ScriptSampler (const String &name)								__Th___;
+
+		ND_ static ScriptSamplerPtr  Create (const String &name)				__Th___;
 
 		void  SetDesc (const SamplerDesc &)										__Th___;
 		void  SetYcbcrDesc (const SamplerYcbcrConversionDesc &)					__Th___;
@@ -75,10 +77,11 @@ namespace AE::PipelineCompiler
 		ND_ StringView	GetName ()												const	{ return _nameStr; }
 
 	private:
+		explicit ScriptSampler (const String &name)								__NE___;
+
 		void  _CheckAddressMode (EAddressMode mode)								__Th___;
 		void  _CheckYcbcrSampler ()												__Th___;
 	};
-	using ScriptSamplerPtr = ScriptRC< ScriptSampler >;
 
 
 } // AE::PipelineCompiler

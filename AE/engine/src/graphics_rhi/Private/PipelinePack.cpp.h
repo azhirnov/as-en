@@ -232,6 +232,12 @@ namespace AE::Graphics
 		if_likely( _parentPack != null )
 			return _parentPack->GetRenderPass( name );
 
+		#if AE_DBG_GRAPHICS
+		{
+			auto&	res_mngr = GraphicsScheduler().GetResourceManager();
+			AE_LOGW( "RenderPass '"s << res_mngr.HashToName( name ) << "' is not exist in pipeline pack" );
+		}
+		#endif
 		return Default;
 	}
 
@@ -253,6 +259,12 @@ namespace AE::Graphics
 		if_likely( _parentPack != null )
 			return _parentPack->GetRenderPass( name );
 
+		#if AE_DBG_GRAPHICS
+		{
+			auto&	res_mngr = GraphicsScheduler().GetResourceManager();
+			AE_LOGW( "CompatRenderPass '"s << res_mngr.HashToName( name ) << "' is not exist in pipeline pack" );
+		}
+		#endif
 		return Default;
 	}
 
@@ -274,6 +286,12 @@ namespace AE::Graphics
 		if_likely( _parentPack != null )
 			return _parentPack->GetSampler( name );
 
+		#if AE_DBG_GRAPHICS
+		{
+			auto&	res_mngr = GraphicsScheduler().GetResourceManager();
+			AE_LOGW( "Sampler '"s << res_mngr.HashToName( name ) << "' is not exist in pipeline pack" );
+		}
+		#endif
 		return Default;
 	}
 
@@ -824,6 +842,8 @@ namespace AE::Graphics
 
 				case EMarker::RTShaderBindingTable :	CHECK_ERR( _LoadRTShaderBindingTable( des ));					break;
 
+				case EMarker::IndirectExecutionSet :	CHECK_ERR( _LoadIndirectExecutionSet( des ));					break;
+
 			  #ifdef AE_ENABLE_VULKAN
 				case EMarker::SpirvShaders :			CHECK_ERR( _LoadShaders( des ));								break;
 			  #else
@@ -1203,6 +1223,32 @@ namespace AE::Graphics
 
 /*
 =================================================
+	_LoadIndirectExecutionSet
+=================================================
+*/
+	bool  PPLNPACK::_LoadIndirectExecutionSet (Serializing::Deserializer &des) __NE___
+	{
+		uint	count = 0;
+		CHECK_ERR( des( OUT count ));
+		CHECK_ERR( count <= PipelineStorage::MaxIndExecSetCount );
+
+		if ( count == 0 )
+			return true;
+
+		auto	ptr = _allocator->Allocate< PipelineCompiler::SerializableIndirectExecutionSet >( count );
+		CHECK_ERR( ptr != null );
+		_serExecSets = SerExecSets_t{ ptr, count };
+
+		bool	result = true;
+		for (uint i = 0; result and (i < count); ++i)
+		{
+			result = PlacementNew< PipelineCompiler::SerializableIndirectExecutionSet >( OUT &ptr[i] )->Deserialize( des );
+		}
+		return result;
+	}
+
+/*
+=================================================
 	_LoadRTShaderBindingTable
 =================================================
 */
@@ -1284,7 +1330,8 @@ namespace AE::Graphics
 		_pack{ pack },
 		_isSupported{ false },	_isLoaded{ false },		_wasAttemptToLoad{ false },
 		_pipelines{ StdAlloc_t< Pair< const PipelineName::Optimized_t, PipelineInfo >>{ pack._allocator.get() }},
-		_rtSbtMap{ StdAlloc_t< Pair< const RTShaderBindingName::Optimized_t, SBTInfo >>{ pack._allocator.get() }}
+		_rtSbtMap{ StdAlloc_t< Pair< const RTShaderBindingName::Optimized_t, SBTInfo >>{ pack._allocator.get() }},
+		_execSetMap{ StdAlloc_t< Pair< const IndirectExecutionSetName::Optimized_t, ExecSetInfo >>{ pack._allocator.get() }}
 	{}
 
 	PPLNPACK::RenderTech::~RenderTech () __NE___
@@ -1390,6 +1437,28 @@ namespace AE::Graphics
 			}
 		}
 
+		// indirect execution sets
+		{
+			uint	ies_count = 0;
+			CHECK_ERR( des( OUT ies_count ));
+
+			if ( ies_count > 0 )
+			{
+				_execSetMap.reserve( ies_count );  // throw
+
+				bool	result = true;
+				for (uint i = 0; result and (i < ies_count); ++i)
+				{
+					IndirectExecutionSetName::Optimized_t	name;
+					ExecSetInfo								info;
+					result = des( OUT name, OUT info.uid );
+					_execSetMap.emplace( name, info );	// throw
+				}
+				CHECK_ERR( result );
+				CHECK_ERR( _execSetMap.size() == ies_count );
+			}
+		}
+
 		return true;
 	}
 
@@ -1452,13 +1521,15 @@ namespace AE::Graphics
 		ASSERT( it == _pipelines.end() );
 		ASSERT( task_count > 0 );
 
-		if ( not _rtSbtMap.empty() )
+		if ( not _rtSbtMap.empty() or
+			 not _execSetMap.empty() )
 		{
 			auto	task = Scheduler().Run(
 								ETaskQueue::Background,
 								[] (RC<RenderTech> rtech, ResourceManager &resMngr) -> AsyncCoro
 								{
-									CHECK_CE( rtech->_PreloadShaders( resMngr ));
+									CHECK_CE( rtech->_CreateSBTs( resMngr ));
+									CHECK_CE( rtech->_CreateExecSets( resMngr ));
 									co_return;
 								}( rt, resMngr ),
 								Tuple{ArrayView<AsyncTask>{ compile_tasks, task_count }},
@@ -1507,6 +1578,7 @@ namespace AE::Graphics
 		CHECK_ERR( _PreloadShaders( resMngr ));
 		CHECK_ERR( _CompilePipelines( resMngr, cacheid, _pipelines.begin(), _pipelines.end() ));
 		CHECK_ERR( _CreateSBTs( resMngr ));
+		CHECK_ERR( _CreateExecSets( resMngr ));
 
 		_isLoaded = true;
 		return true;
@@ -1621,6 +1693,31 @@ namespace AE::Graphics
 
 /*
 =================================================
+	_CreateExecSets
+----
+	Internally use pipelines, so should not run in parallel with '_CompilePipelines()'.
+=================================================
+*/
+	bool  PPLNPACK::RenderTech::_CreateExecSets (ResourceManager &resMngr) __NE___
+	{
+		for (auto& [name, info] : _execSetMap)
+		{
+			CHECK_ERR( uint(info.uid) < _pack._serExecSets.size() );
+
+		  #if AE_DBG_GRAPHICS
+			String		dbg_name = resMngr.HashToName( name );
+		  #else
+			StringView	dbg_name;
+		  #endif
+
+			info.execSetId = _CreateIndirectExecutionSet( resMngr, _pack._serExecSets[ uint(info.uid) ], dbg_name );
+			CHECK_ERR( info.execSetId );
+		}
+		return true;
+	}
+
+/*
+=================================================
 	Destroy
 =================================================
 */
@@ -1630,9 +1727,15 @@ namespace AE::Graphics
 
 		if ( _isLoaded or _wasAttemptToLoad )
 		{
-			for (auto& [name, sbt] : _rtSbtMap)
+			for (auto& [name, info] : _rtSbtMap)
 			{
-				Strong<RTShaderBindingID>	id{ sbt.sbtId };
+				Strong<RTShaderBindingID>	id{ info.sbtId };
+				DEV_CHECK( resMngr.ImmediatelyRelease2( INOUT id ));
+			}
+
+			for (auto& [name, info] : _execSetMap)
+			{
+				Strong<IndirectExecutionSetID>	id{ info.execSetId };
 				DEV_CHECK( resMngr.ImmediatelyRelease2( INOUT id ));
 			}
 
@@ -1656,6 +1759,8 @@ namespace AE::Graphics
 
 		_rtSbtMap.clear();
 		_pipelines.clear();
+		_execSetMap.clear();
+
 		_passes				= Default;
 		_isLoaded			= false;
 		_wasAttemptToLoad	= false;
@@ -2003,7 +2108,7 @@ namespace AE::Graphics
 
 		("Can't find pipeline '"s << res_mngr.HashToName( reqName ) << "'\n") >> str;
 
-		AE_LOGI( str );
+		AE_LOGW( str );
 	#else
 		Unused( mask, reqName );
 	#endif
@@ -2014,14 +2119,15 @@ namespace AE::Graphics
 	GetGraphicsPipeline
 =================================================
 */
-	GraphicsPipelineID  PPLNPACK::RenderTech::GetGraphicsPipeline (PipelineName::Ref name) C_NE___
+	GraphicsPipelineID  PPLNPACK::RenderTech::GetGraphicsPipeline (PipelineName::Ref name, Bool silent) C_NE___
 	{
 		DRC_SHAREDLOCK( _drCheck );
 
 		auto	it = _pipelines.find( name );
 		if_unlikely( it == _pipelines.end() )
 		{
-			_PrintPipelines( name, PipelineSpecUID::Graphics );
+			if ( not silent )
+				_PrintPipelines( name, PipelineSpecUID::Graphics );
 			return Default;
 		}
 
@@ -2035,14 +2141,15 @@ namespace AE::Graphics
 	GetMeshPipeline
 =================================================
 */
-	MeshPipelineID  PPLNPACK::RenderTech::GetMeshPipeline (PipelineName::Ref name) C_NE___
+	MeshPipelineID  PPLNPACK::RenderTech::GetMeshPipeline (PipelineName::Ref name, Bool silent) C_NE___
 	{
 		DRC_SHAREDLOCK( _drCheck );
 
 		auto	it = _pipelines.find( name );
 		if_unlikely( it == _pipelines.end() )
 		{
-			_PrintPipelines( name, PipelineSpecUID::Mesh );
+			if ( not silent )
+				_PrintPipelines( name, PipelineSpecUID::Mesh );
 			return Default;
 		}
 
@@ -2056,14 +2163,15 @@ namespace AE::Graphics
 	GetTilePipeline
 =================================================
 */
-	TilePipelineID  PPLNPACK::RenderTech::GetTilePipeline (PipelineName::Ref name) C_NE___
+	TilePipelineID  PPLNPACK::RenderTech::GetTilePipeline (PipelineName::Ref name, Bool silent) C_NE___
 	{
 		DRC_SHAREDLOCK( _drCheck );
 
 		auto	it = _pipelines.find( name );
 		if_unlikely( it == _pipelines.end() )
 		{
-			_PrintPipelines( name, PipelineSpecUID::Tile );
+			if ( not silent )
+				_PrintPipelines( name, PipelineSpecUID::Tile );
 			return Default;
 		}
 
@@ -2077,14 +2185,15 @@ namespace AE::Graphics
 	GetComputePipeline
 =================================================
 */
-	ComputePipelineID  PPLNPACK::RenderTech::GetComputePipeline (PipelineName::Ref name) C_NE___
+	ComputePipelineID  PPLNPACK::RenderTech::GetComputePipeline (PipelineName::Ref name, Bool silent) C_NE___
 	{
 		DRC_SHAREDLOCK( _drCheck );
 
 		auto	it = _pipelines.find( name );
 		if_unlikely( it == _pipelines.end() )
 		{
-			_PrintPipelines( name, PipelineSpecUID::Compute );
+			if ( not silent )
+				_PrintPipelines( name, PipelineSpecUID::Compute );
 			return Default;
 		}
 
@@ -2098,14 +2207,15 @@ namespace AE::Graphics
 	GetRayTracingPipeline
 =================================================
 */
-	RayTracingPipelineID  PPLNPACK::RenderTech::GetRayTracingPipeline (PipelineName::Ref name) C_NE___
+	RayTracingPipelineID  PPLNPACK::RenderTech::GetRayTracingPipeline (PipelineName::Ref name, Bool silent) C_NE___
 	{
 		DRC_SHAREDLOCK( _drCheck );
 
 		auto	it = _pipelines.find( name );
 		if_unlikely( it == _pipelines.end() )
 		{
-			_PrintPipelines( name, PipelineSpecUID::RayTracing );
+			if ( not silent )
+				_PrintPipelines( name, PipelineSpecUID::RayTracing );
 			return Default;
 		}
 
@@ -2145,18 +2255,38 @@ namespace AE::Graphics
 	GetRTShaderBinding
 =================================================
 */
-	RTShaderBindingID  PPLNPACK::RenderTech::GetRTShaderBinding (RTShaderBindingName::Ref name) C_NE___
+	RTShaderBindingID  PPLNPACK::RenderTech::GetRTShaderBinding (RTShaderBindingName::Ref name, Bool silent) C_NE___
 	{
 		DRC_SHAREDLOCK( _drCheck );
 
 		auto	it = _rtSbtMap.find( name );
 		if_unlikely( it == _rtSbtMap.end() )
 		{
-			_PrintSBTs( name );
+			if ( not silent )
+				_PrintSBTs( name );
 			return Default;
 		}
 
 		return it->second.sbtId;
+	}
+
+/*
+=================================================
+	GetIndirectExecutionSet
+=================================================
+*/
+	IndirectExecutionSetID  PPLNPACK::RenderTech::GetIndirectExecutionSet (IndirectExecutionSetName::Ref name, Bool silent) C_NE___
+	{
+		DRC_SHAREDLOCK( _drCheck );
+
+		auto	it = _execSetMap.find( name );
+		if_unlikely( it == _execSetMap.end() )
+		{
+			// TODO: print available
+			return Default;
+		}
+
+		return it->second.execSetId;
 	}
 
 /*

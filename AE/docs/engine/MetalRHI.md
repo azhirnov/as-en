@@ -19,4 +19,7 @@ TODO:
 - [ ] indirect command buffer
 - [ ] minimize useResources/useHeap calls
 - [ ] upscaling
-
+- [ ] tensor https://developer.apple.com/documentation/metal/MTLTensor
+- [ ] min/max sampler https://developer.apple.com/documentation/metal/mtlsamplerreductionmode
+- [ ] ml commands https://developer.apple.com/documentation/metal/mtl4machinelearningcommandencoder
+- [ ] https://developer.apple.com/documentation/metal/resource-synchronization

@@ -1,11 +1,14 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
 #include "Resources/Buffer.h"
+#include "Resources/BufferView.h"
 #include "Resources/RTScene.h"
 #include "Resources/Image.h"
 #include "Resources/VideoImage.h"
 #include "Resources/VideoImage2.h"
+#include "Controllers/IController.h"
 #include "Core/EditorUI.h"
+#include "_data/cpp/types.h"
 
 namespace AE::ResEditor
 {
@@ -204,6 +207,39 @@ namespace
 		query = Default;
 
 		_passTime->Set( float( secondsd{ time[1] - time[0] }.count() / double(cnt) ));
+	}
+
+/*
+=================================================
+	_UpdateComputeUB
+=================================================
+*/
+	void  IPass::_UpdateComputeUB (INOUT AnyTypeRef ub, const UpdatePassData &pd) C_NE___
+	{
+		CHECK_ERRV( ub.Is< ShaderTypes::ComputePassUB >());
+
+		auto&	ub_data		= ub.As<ShaderTypes::ComputePassUB>();
+		ub_data.time		= pd.totalTime.count();
+		ub_data.timeDelta	= pd.frameTime.count();
+		ub_data.frame		= pd.frameId;
+		ub_data.passFrameId	= _dynData.frame;
+		ub_data.seed		= pd.seed;
+		ub_data.mouse		= float4{ pd.unormCursorPos.x, pd.unormCursorPos.y, float(pd.pressed), 0.f };
+		ub_data.customKeys	= float2{ pd.customKeys[0], pd.customKeys[1] };
+		ub_data.pixPerMm	= pd.pixPerMm;
+		ub_data.mmPerPix	= pd.mmPerPix;
+
+		if ( _controller )
+			_controller->CopyTo( OUT ub_data.camera );
+
+		_CopySliders( OUT ub_data.floatSliders, OUT ub_data.intSliders, OUT ub_data.colors );
+		_CopyConstants( _shConst, OUT ub_data.floatConst, OUT ub_data.intConst );
+
+		if ( _dynData.prevFrame != pd.frameId )
+		{
+			++_dynData.frame;
+			_dynData.prevFrame = pd.frameId;
+		}
 	}
 
 } // AE::ResEditor

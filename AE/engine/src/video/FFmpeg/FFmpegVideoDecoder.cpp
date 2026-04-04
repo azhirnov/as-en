@@ -148,9 +148,9 @@ namespace AE::Video
 		}
 		else
 		{
-			const bool	is_NV		= (cfg.targetGPU >= EGraphicsDeviceID::_NV_Begin and cfg.targetGPU <= EGraphicsDeviceID::_NV_End);
-			const bool	is_Intel	= cfg.targetCPU == ECPUVendor::Intel or
-									  (cfg.targetGPU >= EGraphicsDeviceID::_Intel_Begin and cfg.targetGPU <= EGraphicsDeviceID::_Intel_End);
+			const bool	is_NV		= EGraphicsDeviceID_IsNVIDIA( cfg.targetGPU );
+			const bool	is_Intel	= cfg.targetCPU == ECPUVendor::Intel or EGraphicsDeviceID_IsAMD( cfg.targetGPU );
+			const bool	is_AMD		= EGraphicsDeviceID_IsAMD( _config.targetGPU );
 
 			// choose known decoder
 			switch ( codecId )
@@ -170,6 +170,9 @@ namespace AE::Video
 					if ( is_Intel and createCodec2( "h264_qsv" ))
 						return true;
 
+					if ( is_AMD and createCodec2( "h264_amf" ))
+						return true;
+
 					break;
 				}
 				case AV_CODEC_ID_H265 :
@@ -180,6 +183,16 @@ namespace AE::Video
 					if ( is_Intel and createCodec2( "hevc_qsv" ))
 						return true;
 
+					if ( is_AMD and createCodec2( "hevc_amf" ))
+						return true;
+
+					break;
+				}
+				case AV_CODEC_ID_H266 :
+				{
+					if ( is_Intel and createCodec2( "vvc_qsv" ))
+						return true;
+
 					break;
 				}
 				case AV_CODEC_ID_AV1 :
@@ -188,6 +201,32 @@ namespace AE::Video
 						return true;
 
 					if ( is_Intel and createCodec2( "av1_qsv" ))
+						return true;
+
+					if ( is_AMD and createCodec2( "av1_amf" ))
+						return true;
+
+					break;
+				}
+				case AV_CODEC_ID_VP8 :
+				{
+					if ( is_NV and createCodec2( "vp8_cuvid" ))
+						return true;
+
+					if ( is_Intel and createCodec2( "vp8_qsv" ))
+						return true;
+
+					break;
+				}
+				case AV_CODEC_ID_VP9 :
+				{
+					if ( is_NV and createCodec2( "vp9_cuvid" ))
+						return true;
+
+					if ( is_Intel and createCodec2( "vp9_qsv" ))
+						return true;
+
+					if ( is_AMD and createCodec2( "vp9_amf" ))
 						return true;
 
 					break;
@@ -238,6 +277,11 @@ namespace AE::Video
 		return _Begin();
 	}
 
+/*
+=================================================
+	Begin
+=================================================
+*/
 	bool  FFmpegVideoDecoder::Begin (const Config &cfg, RC<RStream> stream) __NE___
 	{
 		EXLOCK( _guard );
@@ -257,7 +301,16 @@ namespace AE::Video
 			_formatCtx = _ffmpeg->avformat_alloc_context();
 			CHECK_ERR( _formatCtx != null );
 
-			_ioCtx = _ffmpeg->avio_alloc_context( null, 0, 0, _rstream.get(), &_IOReadPacket, null, &_IOSeek );
+			const int	avio_buf_size = int(AlignUp( 4096_b, _rstream->DirectAccessAlign().offsetAlign ));
+
+			auto*	buf = Cast<unsigned char>( _ffmpeg->av_malloc( avio_buf_size ));
+			CHECK_ERR( buf != null );
+
+			_ioCtx = _ffmpeg->avio_alloc_context( buf, avio_buf_size, 0, _rstream.get(), &_IOReadPacket, null, &_IOSeek );
+
+			if ( _ioCtx == null )
+				_ffmpeg->av_free( buf );
+
 			CHECK_ERR( _ioCtx != null );
 
 			_ioCtx->seekable	= AVIO_SEEKABLE_NORMAL;
@@ -428,6 +481,7 @@ namespace AE::Video
 		ASSERT( vstream->nb_frames == 0 or targetPTS < vstream->nb_frames );
 
 		FF_CHECK_ERR( _ffmpeg->av_seek_frame( _formatCtx, _config.videoStreamIdx, targetPTS, AVSEEK_FLAG_BACKWARD ));
+		_ffmpeg->avcodec_flush_buffers( _video.codecCtx );
 
 		// av_seek_frame takes effect after one frame
 		for (; _ffmpeg->av_read_frame( _formatCtx, OUT _avPacket ) >= 0;)
@@ -447,6 +501,7 @@ namespace AE::Video
 			if ( err == AVERROR(EAGAIN) or err == AVERROR_EOF )
 				continue;
 
+            _ffmpeg->av_frame_unref( _video.frame );
 			FF_CHECK_ERR( err );
 			break;
 		}
@@ -458,29 +513,22 @@ namespace AE::Video
 	GetVideoFrame
 =================================================
 */
-	bool  FFmpegVideoDecoder::GetVideoFrame (INOUT ImageMemViewArr& imagePlanes, OUT FrameInfo &info) __NE___
+	EResult  FFmpegVideoDecoder::GetVideoFrame (INOUT ImageMemViewArr& imagePlanes, OUT FrameInfo &info) __NE___
 	{
 		EXLOCK( _guard );
 
+		info = {};
+
 		if_unlikely( not _decodingStarted )
-			return false;
+			return EResult::Error;
 
 		CHECK_ERR(	_formatCtx	!= null			and
 					_avPacket	!= null			and
 					_config.videoStreamIdx >= 0	and
-					_config.videoStreamIdx < int(_formatCtx->nb_streams) );
+					_config.videoStreamIdx < int(_formatCtx->nb_streams),
+			EResult::Error );
 
-		for (; _ffmpeg->av_read_frame( _formatCtx, OUT _avPacket ) >= 0;)
-		{
-			if ( _avPacket->stream_index == _config.videoStreamIdx )
-			{
-				bool	res = _GetVideoFrame( INOUT imagePlanes, OUT info );
-				_ffmpeg->av_packet_unref( _avPacket );
-				return res;
-			}
-		}
-
-		return false;
+		return _GetVideoFrame( INOUT imagePlanes, OUT info );
 	}
 
 /*
@@ -488,12 +536,12 @@ namespace AE::Video
 	GetAudioVideoFrame
 =================================================
 */
-	bool  FFmpegVideoDecoder::GetAudioVideoFrame (INOUT ImageMemViewArr &imagePlanes, INOUT AudioSampleArr &samples, OUT FrameInfo &info) __NE___
+	EResult  FFmpegVideoDecoder::GetAudioVideoFrame (INOUT ImageMemViewArr &imagePlanes, INOUT AudioSampleArr &samples, OUT FrameInfo &info) __NE___
 	{
-		EXLOCK( _guard );
+	/*	EXLOCK( _guard );
 
 		if_unlikely( not _decodingStarted )
-			return false;
+			return EResult::Error;
 
 		CHECK_ERR(	_formatCtx	!= null	and
 					_avPacket	!= null	);
@@ -506,13 +554,13 @@ namespace AE::Video
 		{
 			if ( _avPacket->stream_index == _config.videoStreamIdx )
 			{
-				success += uint{_GetVideoFrame( INOUT imagePlanes, OUT info )};
+				//success += uint{_GetVideoFrame( INOUT imagePlanes, OUT info )};
 				complete++;
 			}
 			else
 			if ( _avPacket->stream_index == _config.audioStreamIdx )
 			{
-				success += uint{_GetAudioSamples( INOUT samples )};
+				//success += uint{_GetAudioSamples( INOUT samples )};
 				complete++;
 			}
 
@@ -520,9 +568,9 @@ namespace AE::Video
 
 			if ( complete == expected )
 				break;
-		}
+		}*/
 
-		return success == expected;
+		return EResult::Error;  //success == expected;
 	}
 
 /*
@@ -530,50 +578,81 @@ namespace AE::Video
 	_GetVideoFrame
 =================================================
 */
-	inline bool  FFmpegVideoDecoder::_GetVideoFrame (INOUT ImageMemViewArr &memView, OUT FrameInfo &outInfo) __NE___
+	inline EResult  FFmpegVideoDecoder::_GetVideoFrame (INOUT ImageMemViewArr &memView, OUT FrameInfo &outInfo) __NE___
 	{
-		CHECK_ERR( _video.codecCtx != null );
+		CHECK_ERR( _video.codecCtx != null, EResult::Error );
 
 		ASSERT( (memView.size() > 1) == EPixelFormat_IsYcbcr( _config.dstFormat ));
-		ASSERT( _avPacket->stream_index == _config.videoStreamIdx );
 
-		AVStream*	vstream = _formatCtx->streams[ _config.videoStreamIdx ];
-
-		// read frame to packet
-		{
-			int		err		= _ffmpeg->avcodec_send_packet( _video.codecCtx, _avPacket );
-			double	scale	= av_q2d( vstream->time_base );
-
-			outInfo.timestamp	= Seconds_t{ _avPacket->pts * scale };
-			outInfo.duration	= Seconds_t{ _avPacket->duration * scale };
-			outInfo.frameIdx	= _PTStoFrameIdx( _avPacket->pts );
-
-			FF_CHECK_ERR( err );
-		}
+		AVStream*		vstream		= _formatCtx->streams[ _config.videoStreamIdx ];
+		const uint		max_iter	= 100;
+		const double	scale		= av_q2d( vstream->time_base );
 
 		// receive frame into '_video.frame'
-		for (;;)
+		for (uint i = 0; i < max_iter; ++i)
 		{
 			int err = _ffmpeg->avcodec_receive_frame( _video.codecCtx, OUT _video.frame );
-
-			if_unlikely( err == AVERROR_EOF )
-				return false;
-
-			if_unlikely( err == AVERROR(EAGAIN) )
-				break;
-
-			if_unlikely( err < 0 )
+			if ( err == 0 )
 			{
-				FF_CHECK( err );
-				return false;
+				//slong	ts = _video.frame->best_effort_timestamp;
+				slong	ts = _video.frame->pts;
+
+				//AE_LOGI( "ts: "s << ToString(ts) );
+
+				outInfo.timestamp	= Seconds_t{ ts * scale };
+				outInfo.duration	= _video.frame->duration > 0 ? Seconds_t{ _video.frame->duration * scale } : Seconds_t{};
+				outInfo.frameIdx	= _PTStoFrameIdx( ts );
+
+				EResult	res;
+				if ( memView.size() == 1 )
+					res = _ScaleFrame1( INOUT memView[0] );
+				else
+					res = _ScaleFrame2( INOUT memView );
+
+				_ffmpeg->av_frame_unref( _video.frame );
+				return res;
 			}
 
-			if ( memView.size() == 1 )
-				return _ScaleFrame1( INOUT memView[0] );
-			else
-				return _ScaleFrame2( INOUT memView );
+			if_unlikely( err == AVERROR_EOF )
+				return EResult::EndOfFile;
+
+			if_unlikely( err != AVERROR(EAGAIN) )
+			{
+				FF_CHECK( err );
+				return EResult::Error;
+			}
+
+			// need more input
+			for (uint j = 0; j < max_iter; ++j)
+			{
+				err = _ffmpeg->av_read_frame( _formatCtx, OUT _avPacket );
+				if ( err < 0 )
+				{
+					// demuxer EOF: flush decoder
+					_ffmpeg->avcodec_send_packet( _video.codecCtx, null );
+					break;
+				}
+
+				if ( _avPacket->stream_index != _config.videoStreamIdx )
+				{
+					_ffmpeg->av_packet_unref(_avPacket);
+					continue;
+				}
+
+				err = _ffmpeg->avcodec_send_packet( _video.codecCtx, _avPacket );
+				_ffmpeg->av_packet_unref( _avPacket );
+
+				if ( err == 0 )
+					break;	// go back to receive_frame()
+
+				if ( err == AVERROR(EAGAIN) )
+					break;	// need to receive frames
+
+				FF_CHECK( err );
+				return EResult::Error;
+			}
 		}
-		return false;
+		return EResult::Error;
 	}
 
 /*
@@ -581,7 +660,7 @@ namespace AE::Video
 	_ScaleFrame1
 =================================================
 */
-	inline bool  FFmpegVideoDecoder::_ScaleFrame1 (INOUT ImageMemView & memView) __NE___
+	inline EResult  FFmpegVideoDecoder::_ScaleFrame1 (INOUT ImageMemView & memView) __NE___
 	{
 		ASSERT( memView.Parts().size() == 1 );
 		ASSERT( memView.Format() == _config.dstFormat );
@@ -597,10 +676,10 @@ namespace AE::Video
 		if_unlikely( scaled_h < 0 or scaled_h != int(_config.dstDim.y) )
 		{
 			FF_CHECK( scaled_h );
-			return false;
+			return EResult::Failed_RGBtoYUV;
 		}
 
-		return true;
+		return EResult::OK;
 	}
 
 /*
@@ -608,7 +687,7 @@ namespace AE::Video
 	_ScaleFrame2
 =================================================
 */
-	inline bool  FFmpegVideoDecoder::_ScaleFrame2 (INOUT ImageMemViewArr &memViewArr) __NE___
+	inline EResult  FFmpegVideoDecoder::_ScaleFrame2 (INOUT ImageMemViewArr &memViewArr) __NE___
 	{
 		ImageMemViewArr	image_planes = memViewArr;
 
@@ -631,7 +710,7 @@ namespace AE::Video
 			usize	count = 0;
 			for (; _video.frame->data[count] != null and (count < AV_NUM_DATA_POINTERS); ++count) {}
 
-			CHECK_ERR( image_planes.size() <= count );
+			CHECK_ERR( image_planes.size() <= count, EResult::Error );
 			image_planes.resize( count );
 		}
 
@@ -657,7 +736,7 @@ namespace AE::Video
 			if_unlikely( scaled_h < 0 or scaled_h != int(_config.dstDim.y) )
 			{
 				FF_CHECK( scaled_h );
-				return false;
+				return EResult::Failed_RGBtoYUV;
 			}
 		}
 		else
@@ -688,7 +767,7 @@ namespace AE::Video
 		}
 
 		memViewArr = image_planes;
-		return true;
+		return EResult::OK;
 	}
 
 /*
@@ -696,7 +775,7 @@ namespace AE::Video
 	_GetAudioSamples
 =================================================
 */
-	bool  FFmpegVideoDecoder::_GetAudioSamples (INOUT AudioSampleArr &inoutSamples) __NE___
+	EResult  FFmpegVideoDecoder::_GetAudioSamples (INOUT AudioSampleArr &inoutSamples) __NE___
 	{
 	  #ifdef AE_ENABLE_AUDIO
 
@@ -704,7 +783,7 @@ namespace AE::Video
 
 		Unused( inoutSamples );
 		// TODO
-		return false;
+		return EResult::Error;
 
 	  #else
 		Unused( memView );
@@ -764,7 +843,10 @@ namespace AE::Video
 			_ffmpeg->avformat_free_context( _formatCtx );
 
 		if ( _ioCtx != null )
+		{
+			_ffmpeg->av_freep( &_ioCtx->buffer );
 			_ffmpeg->avio_context_free( &_ioCtx );
+		}
 
 		_avPacket			= null;
 		_formatCtx			= null;
@@ -880,7 +962,7 @@ namespace AE::Video
 				dst.type			= EnumCast( codec->type );
 				dst.codec			= EnumCast( params->codec_id );
 				dst.videoFormat		= EnumCast( AVPixelFormat( params->format ));
-				dst.pixFormat		= VideoFormatToPixelFormat( dst.videoFormat, 3 );
+				dst.pixFormat		= VideoFormatToPixelFormat( dst.videoFormat ).format;
 				dst.colorPreset		= EnumCast( params->color_range, params->color_primaries, params->color_trc, params->color_space, params->chroma_location );
 				dst.frameCount		= stream->nb_frames;
 				dst.duration		= stream->duration > 0 ? Seconds_t{ stream->duration * av_q2d( stream->time_base )} : duration;
@@ -900,7 +982,7 @@ namespace AE::Video
 				if ( _video.codecCtx != null )
 				{
 					dst.videoFormat	= EnumCast( _video.codecCtx->pix_fmt );
-					dst.pixFormat	= VideoFormatToPixelFormat( dst.videoFormat, 3 );
+					dst.pixFormat	= VideoFormatToPixelFormat( dst.videoFormat ).format;
 				}
 				else
 				{
@@ -927,7 +1009,7 @@ namespace AE::Video
 							if ( _ffmpeg->avcodec_open2( codec_ctx, codec, null ) == 0 )
 							{
 								dst.videoFormat	= EnumCast( codec_ctx->pix_fmt );
-								dst.pixFormat	= VideoFormatToPixelFormat( dst.videoFormat, 3 );
+								dst.pixFormat	= VideoFormatToPixelFormat( dst.videoFormat ).format;
 							}
 						}
 						_ffmpeg->avcodec_free_context( &codec_ctx );
@@ -1035,15 +1117,19 @@ namespace AE::Video
 
 			str << "  name:. . . . . " << codec->name << " (" << codec->long_name << ")\n";
 
-			if ( codec->pix_fmts != null )
+			int						num_formats = 0;
+			const AVPixelFormat*	pix_formats = null;
+			_ffmpeg->avcodec_get_supported_config( null, codec, AV_CODEC_CONFIG_PIX_FORMAT, 0, OUT Cast<const void*>( &pix_formats ), OUT &num_formats );
+
+			if ( pix_formats != null and num_formats > 0 )
 			{
 				str << "  pix_formats:   { ";
-				for (auto* pix_fmts = codec->pix_fmts;  *pix_fmts != -1; ++pix_fmts)
+				for (int i = 0; i < num_formats; ++i)
 				{
-					auto	fmt		= EnumCast( *pix_fmts );
-					auto	name	= (fmt != Default ? ToString( fmt ) : PixFmtToString( *pix_fmts ));
+					auto	fmt		= EnumCast( pix_formats[i] );
+					auto	name	= (fmt != Default ? ToString( fmt ) : PixFmtToString( pix_formats[i] ));
 					if ( name.empty() ) {
-						AE_LOGI( "skip format: "s << ToString(*pix_fmts) );
+						AE_LOGI( "skip format: "s << ToString(pix_formats[i]) );
 						continue;
 					}
 					str << name << ", ";
@@ -1056,33 +1142,6 @@ namespace AE::Video
 			str << "  frame threads: " << ToString((codec->capabilities & AV_CODEC_CAP_FRAME_THREADS) != 0) << '\n';
 			str << "  slice threads: " << ToString((codec->capabilities & AV_CODEC_CAP_SLICE_THREADS) != 0) << '\n';
 			str << "  delay:         " << ToString((codec->capabilities & AV_CODEC_CAP_DELAY) != 0) << '\n';
-
-		  #if 0
-			bool	supported = false;
-			{
-				auto	codec_ctx = _ffmpeg->avcodec_alloc_context3( _codec );
-				if ( codec_ctx != null and codec->pix_fmts != null )
-				{
-					for (auto* pix_fmts = codec->pix_fmts;  *pix_fmts != -1; ++pix_fmts)
-					{
-						if ( EnumCast( *pix_fmts ) != Default ) {
-							codec_ctx->pix_fmt = *pix_fmts;
-							break;
-						}
-					}
-
-					int err = _ffmpeg->avcodec_open2( codec_ctx, codec, null );
-					FF_CHECK( err );
-
-					if ( err == 0 )
-					{
-						supported = true;
-						_ffmpeg->avcodec_free_context( &codec_ctx );
-					}
-				}
-			}
-			str << "  supported:     " << ToString( supported ) << '\n';
-		  #endif
 
 			if ( codec->capabilities & AV_CODEC_CAP_HARDWARE )
 			{

@@ -1,6 +1,6 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 /*
-	Use 'FeatureSet'		to validate pipelines at compile time.
+	Use 'FeatureSet'		to validate pipelines at resource compilation stage.
 	Use 'DeviceProperties'	for runtime limits like a alignment.
 	Use 'DeviceLimits'		for compile time limits like a alignment.
 
@@ -123,7 +123,7 @@ namespace AE::Graphics
 			uint		meshTotalGroups			= 0;
 			uint		meshGroupCount [3]		= {};
 
-			uint		subgroupSize			= 0;
+			uint		subgroupSize			= 0;	// TODO: POT
 
 			bool		prefersLocalInvocationVertexOutput		: 1;
 			bool		prefersLocalInvocationPrimitiveOutput	: 1;
@@ -136,12 +136,24 @@ namespace AE::Graphics
 			{}
 		};
 
+		//
+		// Indirect Command Buffer Properties
+		//
+		struct ICBProperties
+		{
+			uint		maxIndirectSequenceCount			= 0;
+			uint		maxIndirectCommandsTokenCount		= 0;
+			Bytes32u	maxIndirectCommandsTokenOffset;
+			Bytes32u	maxIndirectCommandsIndirectStride;
+		};
+
 
 	// variables
 		ResourceAlignment		res;
 		RayTracingProperties	rayTracing;
 		ShaderHWProperties		shaderHW;
 		ComputeProperties		compute;
+		ICBProperties			icb;
 
 
 	// methods
@@ -217,7 +229,7 @@ namespace AE::Graphics
 		{
 			constexpr CT_DeviceProperties ()
 			{
-				StaticAssert( sizeof(DeviceProperties) == 176 );
+				StaticAssert( sizeof(DeviceProperties) == 192 );
 
 				StaticAssert( sizeof(res) == 24 );
 				{
@@ -268,6 +280,8 @@ namespace AE::Graphics
 					//rayTracing.maxPartitionCount			= 0;
 				}
 				// ignore shaderHW
+
+				// TODO: ICBProperties
 			}
 		};
 	}

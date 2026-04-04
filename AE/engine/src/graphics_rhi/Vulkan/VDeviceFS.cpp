@@ -37,7 +37,7 @@ namespace
 */
 	void  VDevice::InitFeatureSet (OUT FeatureSet &outFeatureSet) C_NE___
 	{
-		StaticAssert( FeatureSet::GetFeatureCount() == 272 );
+		StaticAssert( FeatureSet::GetFeatureCount() == 277 );
 
 		using EFeature	= FeatureSet::EFeature;
 		using KiBytes	= FeatureSet::KiBytes;
@@ -150,7 +150,6 @@ namespace
 		SET_EXT( shaderSubgroupUniformControlFlow );
 		SET_EXT( shaderMaximalReconvergence );
 		SET_EXT( shaderQuadControl );
-		SET_EXT( clipSpaceWScalingNV );
 		SET_EXT( shaderExpectAssume );
 
 		if ( _extensions.shaderFloat16Int8 )
@@ -405,11 +404,6 @@ namespace
 			SET_FEAT2( shaderUniformTexelBufferArrayNonUniformIndexing,		_properties.descriptorIndexingFeats );
 			SET_FEAT2( shaderStorageTexelBufferArrayNonUniformIndexing,		_properties.descriptorIndexingFeats );
 			SET_FEAT2( runtimeDescriptorArray,								_properties.descriptorIndexingFeats );
-			SET_FEAT2( shaderUniformBufferArrayNonUniformIndexingNative,	_properties.descriptorIndexingProps );
-			SET_FEAT2( shaderSampledImageArrayNonUniformIndexingNative,		_properties.descriptorIndexingProps );
-			SET_FEAT2( shaderStorageBufferArrayNonUniformIndexingNative,	_properties.descriptorIndexingProps );
-			SET_FEAT2( shaderStorageImageArrayNonUniformIndexingNative,		_properties.descriptorIndexingProps );
-			SET_FEAT2( shaderInputAttachmentArrayNonUniformIndexingNative,	_properties.descriptorIndexingProps );
 			SET_FEAT2( quadDivergentImplicitLod,							_properties.descriptorIndexingProps );
 		}
 
@@ -669,6 +663,7 @@ namespace
 
 		SET_EXT2( imageViewFormatList,			imageFormatList );
 		SET_EXT2( imageViewExtendedUsage,		maintenance2 );
+		SET_EXT2( separateDepthStencilRW,		maintenance2 );
 		SET_EXT2( textureCompressionASTC_HDR,	astcHdr );
 
 		outFeatureSet.maxImageDimension1D	= CastPOT( limits.maxImageDimension1D );
@@ -676,8 +671,6 @@ namespace
 		outFeatureSet.maxImageDimension3D	= CastPOT( limits.maxImageDimension3D );
 		outFeatureSet.maxImageDimensionCube	= CastPOT( limits.maxImageDimensionCube );
 		outFeatureSet.maxImageArrayLayers	= CastPOT( limits.maxImageArrayLayers );
-
-		// TODO: storageImageFormats
 
 		SET_FEAT( samplerAnisotropy );
 		outFeatureSet.maxSamplerAnisotropy	= limits.maxSamplerAnisotropy;
@@ -691,7 +684,6 @@ namespace
 		{
 			outFeatureSet.samplerFilterMinmax = True;
 			SET_FEAT2( filterMinmaxImageComponentMapping,	_properties.samplerFilterMinmaxProps );
-			//SET_FEAT2( filterMinmaxSingleComponentFormats,	_properties.samplerFilterMinmaxProps );
 		}
 
 		if ( _extensions.rasterOrderAttachment )
@@ -755,8 +747,32 @@ namespace
 		}
 
 		if ( _extensions.conservativeRasterization )
-		{
 			outFeatureSet.conservativeRasterization = True;
+
+		if ( _extensions.deviceGeneratedCommands )
+		{
+			SET_FEAT2( deviceGeneratedCommands, _properties.deviceGeneratedCommandsFeats );
+
+			auto&	props = _properties.deviceGeneratedCommandsProps;
+			SET_FEAT2( deviceGeneratedCommandsMultiDrawIndirectCount,	props );
+			outFeatureSet.supportedIndirectCommandsShaderStages					= AEEnumCast( VkShaderStageFlagBits( props.supportedIndirectCommandsShaderStages ));
+			outFeatureSet.supportedIndirectCommandsShaderStagesPipelineBinding	= AEEnumCast( VkShaderStageFlagBits( props.supportedIndirectCommandsShaderStagesPipelineBinding ));
+			outFeatureSet.maxIndirectPipelineCount = LimitCast{ props.maxIndirectPipelineCount };
+		}
+
+		if ( _extensions.opacityMicromap and _properties.opacityMicromapFeats.micromap == VK_TRUE )
+		{
+			auto&	props = _properties.opacityMicromapProps;
+
+			outFeatureSet.opacityMicromap					= True;
+			outFeatureSet.maxOpacity2StateSubdivisionLevel	= CheckCast{ props.maxOpacity2StateSubdivisionLevel };
+			outFeatureSet.maxOpacity4StateSubdivisionLevel	= CheckCast{ props.maxOpacity4StateSubdivisionLevel };
+
+			if ( _extensions.displacementMicromapNV and _properties.displacementMicromapNVFeats.displacementMicromap == VK_TRUE )
+			{
+				outFeatureSet.displacementMicromap = True;
+				outFeatureSet.maxDisplacementMicromapSubdivisionLevel = CheckCast{ _properties.displacementMicromapNVProps.maxDisplacementMicromapSubdivisionLevel };
+			}
 		}
 
 		constexpr usize	max_samples = CT_SizeOfInBits< FeatureSet::SampleCountBits >;
@@ -900,7 +916,7 @@ namespace
 		#define SET_FEAT( _name_ )			feats10._name_ = (inFS._name_ == True ? VK_TRUE : VK_FALSE)
 		#define SET_FEAT2( _name_, _feat_ )	_feat_._name_  = (inFS._name_ == True ? VK_TRUE : VK_FALSE)
 
-		StaticAssert( FeatureSet::GetFeatureCount() == 272 );
+		StaticAssert( FeatureSet::GetFeatureCount() == 277 );
 		using EFeature = FeatureSet::EFeature;
 
 		auto&			feats10		= _properties.features;
@@ -957,9 +973,6 @@ namespace
 			_properties.shaderQuadControlFeats.shaderQuadControl = VK_TRUE;
 			_extensions.shaderQuadControl = true;
 		}
-
-		if ( inFS.clipSpaceWScalingNV == True )
-			_extensions.clipSpaceWScalingNV = true;
 
 		if ( inFS.shaderExpectAssume == True )
 			_extensions.shaderExpectAssume = true;
@@ -1131,11 +1144,6 @@ namespace
 		SET_FEAT2( shaderUniformTexelBufferArrayNonUniformIndexing,		_properties.descriptorIndexingFeats );
 		SET_FEAT2( shaderStorageTexelBufferArrayNonUniformIndexing,		_properties.descriptorIndexingFeats );
 		SET_FEAT2( runtimeDescriptorArray,								_properties.descriptorIndexingFeats );
-		SET_FEAT2( shaderUniformBufferArrayNonUniformIndexingNative,	_properties.descriptorIndexingProps );
-		SET_FEAT2( shaderSampledImageArrayNonUniformIndexingNative,		_properties.descriptorIndexingProps );
-		SET_FEAT2( shaderStorageBufferArrayNonUniformIndexingNative,	_properties.descriptorIndexingProps );
-		SET_FEAT2( shaderStorageImageArrayNonUniformIndexingNative,		_properties.descriptorIndexingProps );
-		SET_FEAT2( shaderInputAttachmentArrayNonUniformIndexingNative,	_properties.descriptorIndexingProps );
 		SET_FEAT2( quadDivergentImplicitLod,							_properties.descriptorIndexingProps );
 
 		SET_FEAT( shaderStorageImageMultisample );

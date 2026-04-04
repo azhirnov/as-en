@@ -177,25 +177,26 @@ namespace
 
 				// parse CPU features which may be not detected by cpuid
 				{
-					feats.VAES				= feats.VAES 			or (flags_str.find( "vaes" ) != String::npos);
-					feats.AESKL				= feats.AESKL 			or (flags_str.find( "aeskl" ) != String::npos);
-					feats.SHA2_256			= feats.SHA2_256 		or (flags_str.find( "sha_ni" ) != String::npos);	// sha ???
+					feats.VAES				= feats.VAES 			or flags_str.contains( "vaes" );
+					feats.AESKL				= feats.AESKL 			or flags_str.contains( "aeskl" );
+					feats.SHA2_256			= feats.SHA2_256 		or flags_str.contains( "sha_ni" );	// sha ???
 
-					feats.AVX2				= feats.AVX2 			or (flags_str.find( "avx2" ) != String::npos);
-					feats.AVX512F			= feats.AVX512F 		or (flags_str.find( "avx512f" ) != String::npos);
-					feats.AVX512_DQ			= feats.AVX512_DQ 		or (flags_str.find( "avx512dq" ) != String::npos);
-					feats.AVX512_IFMA		= feats.AVX512_IFMA		or (flags_str.find( "avx512ifma" ) != String::npos);
-				//	feats.AVX512_ER			= feats.AVX512_ER 		or (flags_str.find( "avx512er" ) != String::npos);
-					feats.AVX512_BW			= feats.AVX512_BW 		or (flags_str.find( "avx512bw" ) != String::npos);
-					feats.AVX512_VL			= feats.AVX512_VL 		or (flags_str.find( "avx512vl" ) != String::npos);
-					feats.AVX512_VBMI		= feats.AVX512_VBMI		or (flags_str.find( "avx512vbmi" ) != String::npos);
-					feats.AVX512_VBMI2		= feats.AVX512_VBMI2 	or (flags_str.find( "avx512_vbmi2" ) != String::npos);
-					feats.AVX512_VNNI		= feats.AVX512_VNNI 	or (flags_str.find( "avx512_vnni" ) != String::npos);
-					feats.AVX512_BITALG		= feats.AVX512_BITALG 	or (flags_str.find( "avx512_bitalg" ) != String::npos);
-					feats.AVX512_VPOPCNTDQ	= feats.AVX512_VPOPCNTDQ or (flags_str.find( "avx512_vpopcntdq" ) != String::npos);
-				//	feats.AVX512_4FMAPS		= feats.AVX512_4FMAPS 	or (flags_str.find( "avx5124fmaps" ) != String::npos);
-				//	feats.AVX512_FP16		= feats.AVX512_FP16 	or (flags_str.find( "avx512fp16" ) != String::npos);
-					feats.AVX512_BF16		= feats.AVX512_BF16 	or (flags_str.find( "avx512_bf16" ) != String::npos);
+					feats.AVX2				= feats.AVX2 			or flags_str.contains( "avx2" );
+					feats.AVX512F			= feats.AVX512F 		or flags_str.contains( "avx512f" );
+					feats.AVX512_DQ			= feats.AVX512_DQ 		or flags_str.contains( "avx512dq" );
+					feats.AVX512_IFMA		= feats.AVX512_IFMA		or flags_str.contains( "avx512ifma" );
+				//	feats.AVX512_ER			= feats.AVX512_ER 		or flags_str.contains( "avx512er" );
+					feats.AVX512_CD			= feats.AVX512_CD 		or flags_str.contains( "avx512cd" );
+					feats.AVX512_BW			= feats.AVX512_BW 		or flags_str.contains( "avx512bw" );
+					feats.AVX512_VL			= feats.AVX512_VL 		or flags_str.contains( "avx512vl" );
+					feats.AVX512_VBMI		= feats.AVX512_VBMI		or flags_str.contains( "avx512vbmi" );
+					feats.AVX512_VBMI2		= feats.AVX512_VBMI2 	or flags_str.contains( "avx512_vbmi2" );
+					feats.AVX512_VNNI		= feats.AVX512_VNNI 	or flags_str.contains( "avx512_vnni" );
+					feats.AVX512_BITALG		= feats.AVX512_BITALG 	or flags_str.contains( "avx512_bitalg" );
+					feats.AVX512_VPOPCNTDQ	= feats.AVX512_VPOPCNTDQ or flags_str.contains( "avx512_vpopcntdq" );
+				//	feats.AVX512_4FMAPS		= feats.AVX512_4FMAPS 	or flags_str.contains( "avx5124fmaps" );
+				//	feats.AVX512_FP16		= feats.AVX512_FP16 	or flags_str.contains( "avx512fp16" );
+					feats.AVX512_BF16		= feats.AVX512_BF16 	or flags_str.contains( "avx512_bf16" );
 				}
 			}
 		}

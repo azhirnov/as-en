@@ -2,12 +2,10 @@
 
 #include "base/ObjC/NS.h"
 
-#undef null
 #include <mach/mach_host.h>
 #include <mach/task.h>
 #include <os/proc.h>
 #import <Foundation/Foundation.h>
-#define null	nullptr
 
 #include "base/Defines/Undef.h"
 #include "base/Platforms/AppleUtils.h"

@@ -7,23 +7,27 @@
 #include "vulkan_sync_log/VulkanSyncLog.h"
 #include "base/Algorithms/StringUtils.h"
 #include "graphics_rhi/Public/ImageUtils.h"
+#include "graphics_rhi/Vulkan/Utils/NextChain.h"
 
 using namespace AE;
 using namespace AE::Graphics;
 using namespace AE::Threading;
 
-#define PRINT_ALL_DS		1
+#define PRINT_ALL_DS			1
 
 // Print debug marker and debug groups.
-#define ENABLE_DBG_LABEL	0	// 0, 1, 2
+#define ENABLE_DBG_LABEL		0	// 0, 1, 2
 
 // Vulkan validation writes 'seq_no' - the zero based index of command within the command buffer.
 // Enable 'seq_no' field in the sync commands.
 // You should disable 'ENABLE_DEBUG_CLEAR' in 'VulkanExtEmulation' module, otherwise command indices will not match.
-#define ENABLE_SEQNO		0
+#define ENABLE_SEQNO			0
 
 // Can be used to find resources with same name. For example, when resource recreated, but old resource is already used by descriptor set.
-#define PRINT_RESOURCE_ID	0
+#define PRINT_RESOURCE_ID		0
+
+// Print expected resource state.
+#define PRINT_EXPECTED_STATE	1
 
 // Always add objectId to the debug name
 #if 0
@@ -43,6 +47,8 @@ namespace
 #		undef  VKLOADER_STAGE_FNPOINTER
 	};
 	StaticAssert( sizeof(DeviceFnTable) == sizeof(VulkanDeviceFnTable) );
+
+	using AE::Graphics::VNextRange;
 
 
 
@@ -116,6 +122,15 @@ namespace
 			VkDeviceAddress			address	= 0;
 		};
 		using AccelStructMap_t = FlatHashMap< VkAccelerationStructureKHR, AccelStructData >;
+
+
+		struct MicromapData
+		{
+			String					name;
+			VkDeviceSize			size	= 0;
+			VkDeviceAddress			address	= 0;
+		};
+		using MicromapMap_t = FlatHashMap< VkMicromapEXT, MicromapData >;
 
 
 		struct MemoryData
@@ -272,6 +287,7 @@ namespace
 			usize	bufferViewCount		= 0;
 			usize	imageViewCount		= 0;
 			usize	pipelineCount		= 0;
+			usize	pplnLayoutCount		= 0;
 			usize	framebufferCount	= 0;
 			usize	renderPassCount		= 0;
 			usize	commandBufferCount	= 0;
@@ -279,6 +295,8 @@ namespace
 			usize	descSetCount		= 0;
 			usize	semaphoreCount		= 0;
 			usize	fenceCount			= 0;
+			usize	rtasCount			= 0;
+			usize	micromapCount		= 0;
 		};
 
 		using SyncNameMap_t	= FlatHashMap< Pair<VkSemaphore, ulong>, String >;
@@ -288,7 +306,7 @@ namespace
 	public:
 		RecursiveMutex			guard;
 		bool					enableLog		= false;
-		String					log;
+		String					_log;
 
 		QueueMap_t				queueMap;
 		SemaphoreNameMap_t		semaphoreMap;
@@ -303,6 +321,7 @@ namespace
 		DevAddressToBuffer_t	devAddrToBuffer;
 		MemoryMap_t				memoryMap;
 		AccelStructMap_t		accelStructMap;
+		MicromapMap_t			micromapMap;
 		FramebufferMap_t		framebufferMap;
 		RenderPassMap_t			renderPassMap;
 		PipelineMap_t			pipelineMap;
@@ -323,13 +342,20 @@ namespace
 		void  Initialize (INOUT VulkanDeviceFnTable& fnTable, FlatHashMap<VkQueue, String> queueNames);
 		void  Deinitialize (OUT VulkanDeviceFnTable& fnTable);
 
-		void  _PrintResourceUsage (CommandBufferData &cmdbuf, VkPipelineBindPoint pipelineBindPoint);
+		void  _PrintResourceUsage (CommandBufferData &cmdbuf, VkPipelineBindPoint pipelineBindPoint) const;
 		void  _SetDebugUtilsObjectName (VkObjectType type, ulong id, StringView name);
+		void  _PrintIndirect (String &, VkBuffer buffer, VkDeviceSize offset, uint drawCount, uint stride) const;
+		void  _PrintIndirectCount (String &, VkBuffer buffer, VkDeviceSize offset, VkBuffer countBuffer, VkDeviceSize countBufferOffset, uint drawCount, uint stride) const;
+		void  _PrintASBuild (String &, uint infoCount, const VkAccelerationStructureBuildGeometryInfoKHR* pInfos) const;
+		void  _PrintDGC (String &, const VkGeneratedCommandsInfoEXT &, bool preprocess) const;
 
 		ND_ CommandBufferData*  _WithCmdBuf (VkCommandBuffer commandBuffer, Bool incCmdIndex = False{});
 
 			void	ResetSyncNames ();
 		ND_ String	GetSyncName (VkSemaphore sem, ulong val);
+
+		template <typename T>
+		ND_ String  GetName (T handle) const;
 
 		ND_ String	GetBufferAsString (VkDeviceAddress addr)				const;
 		ND_ String	GetBufferAsString (VkDeviceOrHostAddressConstKHR addr)	const	{ return GetBufferAsString( addr.deviceAddress ); }
@@ -762,12 +788,12 @@ namespace
 			dep.pNext				= &rp.barriers[i];
 		}
 
-		for (auto* next = Cast<VkBaseInStructure>(pCreateInfo->pNext); next != null; next = next->pNext)
+		for (auto& ext : VNextRange{ *pCreateInfo })
 		{
-			switch ( next->sType )
+			switch ( ext.Type() )
 			{
 				case VK_STRUCTURE_TYPE_RENDER_PASS_FRAGMENT_DENSITY_MAP_CREATE_INFO_EXT :
-					rp.densityMapRef = Cast<VkRenderPassFragmentDensityMapCreateInfoEXT>(next)->fragmentDensityMapAttachment;	break;
+					rp.densityMapRef = ext.As<VkRenderPassFragmentDensityMapCreateInfoEXT>().fragmentDensityMapAttachment;	break;
 
 				default :
 					DBG_WARNING( "unsupported extension" );
@@ -808,6 +834,7 @@ namespace
 
 		auto&	pl = logger.pplnLayoutMap.insert_or_assign( *pPipelineLayout, VulkanLogger::PipelineLayoutData{} ).first->second;
 
+		pl.name = ADD_OBJ_ID( "pipeline-layout-"s << ToString( logger.resourceStat.pplnLayoutCount++ ), pPipelineLayout );
 		pl.dsLayouts.resize( pCreateInfo->setLayoutCount );
 
 		for (usize i = 0; i < pl.dsLayouts.size(); ++i) {
@@ -1410,11 +1437,11 @@ namespace
 				auto&	batch = pSubmits[i];
 
 				const VkTimelineSemaphoreSubmitInfo*	timeline = null;
-				for (auto* next = Cast<VkBaseInStructure>(batch.pNext); next != null;)
+				for (auto& ext : VNextRange{ batch })
 				{
-					if ( next->sType == VK_STRUCTURE_TYPE_TIMELINE_SEMAPHORE_SUBMIT_INFO )
+					if ( ext.Type() == VK_STRUCTURE_TYPE_TIMELINE_SEMAPHORE_SUBMIT_INFO )
 					{
-						timeline = Cast<VkTimelineSemaphoreSubmitInfo>(next);
+						timeline = &ext.As<VkTimelineSemaphoreSubmitInfo>();
 						break;
 					}
 				}
@@ -1500,7 +1527,7 @@ namespace
 				}
 			}
 
-			logger.log << log
+			logger._log << log
 				<< "==================================================\n";
 		}
 
@@ -1638,7 +1665,7 @@ namespace
 				}
 			}
 
-			logger.log << log
+			logger._log << log
 				<< "==================================================\n";
 		}
 
@@ -1675,7 +1702,7 @@ namespace
 			if ( semaphore != Default )
 				log << "  signalSemaphore:  " << logger.GetSyncName( semaphore, 0 ) << '\n';
 
-			logger.log << log
+			logger._log << log
 				<< "==================================================\n";
 		}
 
@@ -1710,7 +1737,7 @@ namespace
 				log << "\n  }\n";
 			}
 
-			logger.log << log
+			logger._log << log
 				<< "==================================================\n";
 		}
 
@@ -1750,14 +1777,14 @@ namespace
 				if ( IsIntersects( pMemoryRanges[i].offset, pMemoryRanges[i].offset + pMemoryRanges[i].size,
 									it2->second.memOffset, it2->second.memOffset + it2->second.info.size ))
 				{
-					log << "\n  buffer '" << it2->second.name << "' range [" << ToString( Max( pMemoryRanges[i].offset, it2->second.memOffset ) - it2->second.memOffset )
+					log << "\n  buffer " << PrintName( it2->second.name, buf ) << " range [" << ToString( Max( pMemoryRanges[i].offset, it2->second.memOffset ) - it2->second.memOffset )
 						<< ", " << ToString( Min( pMemoryRanges[i].offset + pMemoryRanges[i].size - it2->second.memOffset, it2->second.info.size )) << ")";
 				}
 			}
 		}
 
 		if ( not log.empty() )
-			logger.log << "----\nInvalidateMappedMemoryRanges" << log << "\n----\n";
+			logger._log << "----\nInvalidateMappedMemoryRanges" << log << "\n----\n";
 
 		return res;
 	}
@@ -2181,6 +2208,10 @@ namespace
 		log << "\n      view:    " << PrintName( view_it->second.name, id );
 		log << "\n      image:   " << PrintName( img_it->second.name, view_it->second.info.image );
 
+		#if PRINT_EXPECTED_STATE
+		// TODO
+		#endif
+
 		if ( subres.baseMipLevel+1 != img_it->second.info.mipLevels )
 			log << "\n      mipmap:   " << ToString(subres.baseMipLevel);
 
@@ -2212,8 +2243,8 @@ namespace
 
 		if ( subpassIndex == 0 )
 		{
-			log << "    renderPass:  '" << rp.name << "'\n";
-		//	log << "    framebuffer: '" << fb.name << "'\n";
+			log << "    renderPass:  " << PrintName( rp.name, cmdbuf.currentRP ) << '\n';
+		//	log << "    framebuffer: " << PrintName( fb.name, cmdbuf.currentFB ) << '\n';
 		}
 
 		auto&			pass = rp.info.pSubpasses [cmdbuf.subpassIndex];
@@ -2231,7 +2262,7 @@ namespace
 			log << "    color attachment:";
 
 			if ( not PrintRPImageViewName( log, fb.attachments[ref.attachment] ))
-				return;
+				return;  // TODO: why return?
 
 			if ( subpassIndex == 0 )
 			{
@@ -2596,6 +2627,7 @@ namespace
 
 		if ( not logger.enableLog )
 			return;
+
 		auto	rp_it = logger.renderPassMap.find( old_rp );
 		if ( rp_it == logger.renderPassMap.end() )
 			return;
@@ -2692,8 +2724,17 @@ namespace
 		if ( dst_it == logger.bufferMap.end() )
 			return;
 
-		log << "    src: '" << src_it->second.name << "'\n";
-		log << "    dst: '" << dst_it->second.name << "'\n";
+		log << "    src: " << PrintName( src_it->second.name, srcBuffer ) << '\n';
+		#if PRINT_EXPECTED_STATE
+			log.pop_back();
+			log << " (stage: COPY, access: TRANSFER_READ)\n";
+		#endif
+
+		log << "    dst: " << PrintName( dst_it->second.name, dstBuffer ) << '\n';
+		#if PRINT_EXPECTED_STATE
+			log.pop_back();
+			log << " (stage: COPY, access: TRANSFER_WRITE)\n";
+		#endif
 
 		for (uint i = 0; i < regionCount; ++i)
 		{
@@ -3342,12 +3383,20 @@ namespace
 
 		auto	src_it = logger.imageMap.find( srcImage );
 		auto	dst_it = logger.imageMap.find( dstImage );
-		if ( src_it == logger.imageMap.end() or  dst_it == logger.imageMap.end() )
+		if ( src_it == logger.imageMap.end() or dst_it == logger.imageMap.end() )
 			return;
 
-		log << "    src:       '" << src_it->second.name << "'\n";
+		log << "    src:       " << PrintName( src_it->second.name, srcImage ) << '\n';
+		#if PRINT_EXPECTED_STATE
+			log.pop_back();
+			log << " (stage: COPY, access: TRANSFER_READ)\n";
+		#endif
 		log << "    srcLayout: " << VkImageLayoutToString( srcImageLayout ) << '\n';
-		log << "    dst:       '" << dst_it->second.name << "'\n";
+		log << "    dst:       " << PrintName( dst_it->second.name, dstImage ) << '\n';
+		#if PRINT_EXPECTED_STATE
+			log.pop_back();
+			log << " (stage: COPY, access: TRANSFER_WRITE)\n";
+		#endif
 		log << "    dstLayout: " << VkImageLayoutToString( dstImageLayout ) << '\n';
 
 		for (uint i = 0; i < regionCount; ++i)
@@ -3390,9 +3439,17 @@ namespace
 		if ( src_it == logger.imageMap.end() or dst_it == logger.imageMap.end( ))
 			return;
 
-		log << "    src:       '" << src_it->second.name << "'\n";
+		log << "    src:       " << PrintName( src_it->second.name, srcImage ) << '\n';
+		#if PRINT_EXPECTED_STATE
+			log.pop_back();
+			log << " (stage: BLIT, access: TRANSFER_READ)\n";
+		#endif
 		log << "    srcLayout: " << VkImageLayoutToString( srcImageLayout ) << '\n';
-		log << "    dst:       '" << dst_it->second.name << "'\n";
+		log << "    dst:       " << PrintName( dst_it->second.name, dstImage ) << '\n';
+		#if PRINT_EXPECTED_STATE
+			log.pop_back();
+			log << " (stage: BLIT, access: TRANSFER_WRITE)\n";
+		#endif
 		log << "    dstLayout: " << VkImageLayoutToString( dstImageLayout ) << '\n';
 
 		for (uint i = 0; i < regionCount; ++i)
@@ -3438,8 +3495,16 @@ namespace
 		if ( src_it == logger.bufferMap.end() or dst_it == logger.imageMap.end() )
 			return;
 
-		log << "    src:       '" << src_it->second.name << "'\n";
-		log << "    dst:       '" << dst_it->second.name << "'\n";
+		log << "    src:       " << PrintName( src_it->second.name, srcBuffer ) << '\n';
+		#if PRINT_EXPECTED_STATE
+			log.pop_back();
+			log << " (stage: COPY, access: TRANSFER_READ)\n";
+		#endif
+		log << "    dst:       " << PrintName( dst_it->second.name, dstImage ) << '\n';
+		#if PRINT_EXPECTED_STATE
+			log.pop_back();
+			log << " (stage: COPY, access: TRANSFER_WRITE)\n";
+		#endif
 		log << "    dstLayout: " << VkImageLayoutToString( dstImageLayout ) << '\n';
 
 		for (uint i = 0; i < regionCount; ++i)
@@ -3481,9 +3546,17 @@ namespace
 		if ( src_it == logger.imageMap.end() or dst_it == logger.bufferMap.end() )
 			return;
 
-		log << "    src:       '" << src_it->second.name << "'\n";
+		log << "    src:       " << PrintName( src_it->second.name, srcImage ) << '\n';
+		#if PRINT_EXPECTED_STATE
+			log.pop_back();
+			log << " (stage: COPY, access: TRANSFER_READ)\n";
+		#endif
 		log << "    srcLayout: " << VkImageLayoutToString( srcImageLayout ) << '\n';
-		log << "    dst:       '" << dst_it->second.name << "'\n";
+		log << "    dst:       " << PrintName( dst_it->second.name, dstBuffer ) << '\n';
+		#if PRINT_EXPECTED_STATE
+			log.pop_back();
+			log << " (stage: COPY, access: TRANSFER_WRITE)\n";
+		#endif
 
 		for (uint i = 0; i < regionCount; ++i)
 		{
@@ -3522,7 +3595,11 @@ namespace
 		if ( dst_it == logger.bufferMap.end() )
 			return;
 
-		log << "    dst:     '" << dst_it->second.name << "'\n";
+		log << "    dst:     " << PrintName( dst_it->second.name, dstBuffer ) << '\n';
+		#if PRINT_EXPECTED_STATE
+			log.pop_back();
+			log << " (stage: CLEAR, access: TRANSFER_WRITE)\n";
+		#endif
 		log << "    offset:  " << ToString( dstOffset ) << '\n';
 		log << "    size:    " << ToString( dataSize ) << '\n';
 		#if ENABLE_SEQNO
@@ -3556,7 +3633,11 @@ namespace
 		if ( dst_it == logger.bufferMap.end() )
 			return;
 
-		log << "    dst:     '" << dst_it->second.name << "'\n";
+		log << "    dst:     " << PrintName( dst_it->second.name, dstBuffer ) << '\n';
+		#if PRINT_EXPECTED_STATE
+			log.pop_back();
+			log << " (stage: CLEAR, access: TRANSFER_WRITE)\n";
+		#endif
 		log << "    offset:  " << ToString( dstOffset ) << '\n';
 		log << "    size:    " << ToString( size ) << '\n';
 		#if ENABLE_SEQNO
@@ -3591,7 +3672,11 @@ namespace
 		if ( dst_it == logger.imageMap.end() )
 			return;
 
-		log << "    dst:    '" << dst_it->second.name << "'\n";
+		log << "    dst:    " << PrintName( dst_it->second.name, image ) << '\n';
+		#if PRINT_EXPECTED_STATE
+			log.pop_back();
+			log << " (stage: CLEAR, access: TRANSFER_WRITE)\n";
+		#endif
 		log << "    layout: " << VkImageLayoutToString( imageLayout ) << '\n';
 
 		for (uint i = 0; i < rangeCount; ++i) {
@@ -3630,7 +3715,11 @@ namespace
 		if ( dst_it == logger.imageMap.end() )
 			return;
 
-		log << "    dst:    '" << dst_it->second.name << "'\n";
+		log << "    dst:    " << PrintName( dst_it->second.name, image ) << '\n';
+		#if PRINT_EXPECTED_STATE
+			log.pop_back();
+			log << " (stage: CLEAR, access: TRANSFER_WRITE)\n";
+		#endif
 		log << "    layout: " << VkImageLayoutToString( imageLayout ) << '\n';
 
 		for (uint i = 0; i < rangeCount; ++i) {
@@ -3688,29 +3777,35 @@ namespace
 			return;
 
 		auto& log = cmdbuf->log;
-		log << "  ResolveImage\n";
+		log << "  ResolveImage";
 
 		auto	src_it = logger.imageMap.find( srcImage );
 		auto	dst_it = logger.imageMap.find( dstImage );
 		if ( src_it == logger.imageMap.end() or dst_it == logger.imageMap.end() )
 			return;
 
-		log << "    src:       '" << src_it->second.name << "'\n";
-		log << "    srcLayout: " << VkImageLayoutToString( srcImageLayout ) << '\n';
-		log << "    dst:       '" << dst_it->second.name << "'\n";
-		log << "    dstLayout: " << VkImageLayoutToString( dstImageLayout ) << '\n';
+		log << "\n    src:       " << PrintName( src_it->second.name, srcImage );
+		#if PRINT_EXPECTED_STATE
+			log << " (stage: RESOLVE, access: TRANSFER_READ)";
+		#endif
+		log << "\n    srcLayout: " << VkImageLayoutToString( srcImageLayout );
+		log << "\n    dst:       " << PrintName( dst_it->second.name, dstImage );
+		#if PRINT_EXPECTED_STATE
+			log << " (stage: RESOLVE, access: TRANSFER_WRITE)";
+		#endif
+		log << "\n    dstLayout: " << VkImageLayoutToString( dstImageLayout ) << '\n';
 
 		for (uint i = 0; i < regionCount; ++i)
 		{
 			auto&	reg = pRegions[i];
-			log << "      resolve "
+			log << "\n      resolve "
 				<< SubresourceLayerToString( reg.srcOffset, reg.extent, reg.srcSubresource, src_it->second.info ) << " ---> "
-				<< SubresourceLayerToString( reg.dstOffset, reg.extent, reg.dstSubresource, dst_it->second.info ) << '\n';
+				<< SubresourceLayerToString( reg.dstOffset, reg.extent, reg.dstSubresource, dst_it->second.info );
 		}
 		#if ENABLE_SEQNO
-		log << "    seq_no: " << ToString( cmdbuf->cmdIndex ) << '\n';
+		log << "\n    seq_no: " << ToString( cmdbuf->cmdIndex );
 		#endif
-		log << "  ----------\n\n";
+		log << "\n  ----------\n\n";
 	}
 
 /*
@@ -3733,7 +3828,7 @@ namespace
 
 		cmdbuf->log << "  Dispatch\n";
 		#if ENABLE_SEQNO
-		cmdbuf->log << "    seq_no: " << ToString( cmdbuf->cmdIndex ) << '\n';
+		cmdbuf->log << "    seq_no: " << ToString( cmdbuf->cmdIndex );
 		#endif
 		logger._PrintResourceUsage( *cmdbuf, VK_PIPELINE_BIND_POINT_COMPUTE );
 	}
@@ -3758,7 +3853,7 @@ namespace
 
 		cmdbuf->log << "  DispatchBase\n";
 		#if ENABLE_SEQNO
-		cmdbuf->log << "    seq_no: " << ToString( cmdbuf->cmdIndex ) << '\n';
+		cmdbuf->log << "    seq_no: " << ToString( cmdbuf->cmdIndex );
 		#endif
 		logger._PrintResourceUsage( *cmdbuf, VK_PIPELINE_BIND_POINT_COMPUTE );
 	}
@@ -3781,9 +3876,12 @@ namespace
 		if ( cmdbuf == null )
 			return;
 
-		cmdbuf->log << "  DispatchIndirect\n";
+		auto&	log = cmdbuf->log;
+		log << "  DispatchIndirect";
+		logger._PrintIndirect( log, buffer, offset, 1, sizeof(uint)*3 );
+
 		#if ENABLE_SEQNO
-		cmdbuf->log << "    seq_no: " << ToString( cmdbuf->cmdIndex ) << '\n';
+		log << "\n    seq_no: " << ToString( cmdbuf->cmdIndex );
 		#endif
 		logger._PrintResourceUsage( *cmdbuf, VK_PIPELINE_BIND_POINT_COMPUTE );
 	}
@@ -3808,7 +3906,7 @@ namespace
 
 		cmdbuf->log << "  Draw\n";
 		#if ENABLE_SEQNO
-		cmdbuf->log << "    seq_no: " << ToString( cmdbuf->cmdIndex ) << '\n';
+		cmdbuf->log << "    seq_no: " << ToString( cmdbuf->cmdIndex );
 		#endif
 		logger._PrintResourceUsage( *cmdbuf, VK_PIPELINE_BIND_POINT_GRAPHICS );
 	}
@@ -3833,7 +3931,7 @@ namespace
 
 		cmdbuf->log << "  DrawIndexed\n";
 		#if ENABLE_SEQNO
-		cmdbuf->log << "    seq_no: " << ToString( cmdbuf->cmdIndex ) << '\n';
+		cmdbuf->log << "    seq_no: " << ToString( cmdbuf->cmdIndex );
 		#endif
 		logger._PrintResourceUsage( *cmdbuf, VK_PIPELINE_BIND_POINT_GRAPHICS );
 	}
@@ -3856,9 +3954,12 @@ namespace
 		if ( cmdbuf == null )
 			return;
 
-		cmdbuf->log << "  DrawIndirect\n";
+		auto&	log = cmdbuf->log;
+		log << "  DrawIndirect\n";
+		logger._PrintIndirect( log, buffer, offset, drawCount, stride );
+
 		#if ENABLE_SEQNO
-		cmdbuf->log << "    seq_no: " << ToString( cmdbuf->cmdIndex ) << '\n';
+		cmdbuf->log << "\n    seq_no: " << ToString( cmdbuf->cmdIndex );
 		#endif
 		logger._PrintResourceUsage( *cmdbuf, VK_PIPELINE_BIND_POINT_GRAPHICS );
 	}
@@ -3881,9 +3982,12 @@ namespace
 		if ( cmdbuf == null )
 			return;
 
-		cmdbuf->log << "  DrawIndexedIndirect\n";
+		auto&	log = cmdbuf->log;
+		log << "  DrawIndexedIndirect";
+		logger._PrintIndirect( log, buffer, offset, drawCount, stride );
+
 		#if ENABLE_SEQNO
-		cmdbuf->log << "    seq_no: " << ToString( cmdbuf->cmdIndex ) << '\n';
+		cmdbuf->log << "\n    seq_no: " << ToString( cmdbuf->cmdIndex );
 		#endif
 		logger._PrintResourceUsage( *cmdbuf, VK_PIPELINE_BIND_POINT_GRAPHICS );
 	}
@@ -3907,9 +4011,12 @@ namespace
 		if ( cmdbuf == null )
 			return;
 
-		cmdbuf->log << "  DrawIndirectCount\n";
+		auto&	log = cmdbuf->log;
+		log << "  DrawIndirectCount";
+		logger._PrintIndirectCount( log, buffer, offset, countBuffer, countBufferOffset, maxDrawCount, stride );
+
 		#if ENABLE_SEQNO
-		cmdbuf->log << "    seq_no: " << ToString( cmdbuf->cmdIndex ) << '\n';
+		cmdbuf->log << "\n    seq_no: " << ToString( cmdbuf->cmdIndex );
 		#endif
 		logger._PrintResourceUsage( *cmdbuf, VK_PIPELINE_BIND_POINT_GRAPHICS );
 	}
@@ -3933,9 +4040,12 @@ namespace
 		if ( cmdbuf == null )
 			return;
 
-		cmdbuf->log << "  DrawIndexedIndirectCount\n";
+		auto&	log = cmdbuf->log;
+		log << "  DrawIndexedIndirectCount";
+		logger._PrintIndirectCount( log, buffer, offset, countBuffer, countBufferOffset, maxDrawCount, stride );
+
 		#if ENABLE_SEQNO
-		cmdbuf->log << "    seq_no: " << ToString( cmdbuf->cmdIndex ) << '\n';
+		cmdbuf->log << "    seq_no: " << ToString( cmdbuf->cmdIndex );
 		#endif
 		logger._PrintResourceUsage( *cmdbuf, VK_PIPELINE_BIND_POINT_GRAPHICS );
 	}
@@ -3960,7 +4070,7 @@ namespace
 
 		cmdbuf->log << "  DrawMeshTasks\n";
 		#if ENABLE_SEQNO
-		cmdbuf->log << "    seq_no: " << ToString( cmdbuf->cmdIndex ) << '\n';
+		cmdbuf->log << "    seq_no: " << ToString( cmdbuf->cmdIndex );
 		#endif
 		logger._PrintResourceUsage( *cmdbuf, VK_PIPELINE_BIND_POINT_GRAPHICS );
 	}
@@ -3983,9 +4093,11 @@ namespace
 		if ( cmdbuf == null )
 			return;
 
-		cmdbuf->log << "  DrawMeshTasksIndirect\n";
+		cmdbuf->log << "  DrawMeshTasksIndirect";
+		logger._PrintIndirect( cmdbuf->log, buffer, offset, drawCount, stride );
+
 		#if ENABLE_SEQNO
-		cmdbuf->log << "    seq_no: " << ToString( cmdbuf->cmdIndex ) << '\n';
+		cmdbuf->log << "\n    seq_no: " << ToString( cmdbuf->cmdIndex );
 		#endif
 		logger._PrintResourceUsage( *cmdbuf, VK_PIPELINE_BIND_POINT_GRAPHICS );
 	}
@@ -4009,9 +4121,11 @@ namespace
 		if ( cmdbuf == null )
 			return;
 
-		cmdbuf->log << "  DrawMeshTasksIndirectCount\n";
+		cmdbuf->log << "  DrawMeshTasksIndirectCount";
+		logger._PrintIndirectCount( cmdbuf->log, buffer, offset, countBuffer, countBufferOffset, maxDrawCount, stride );
+
 		#if ENABLE_SEQNO
-		cmdbuf->log << "    seq_no: " << ToString( cmdbuf->cmdIndex ) << '\n';
+		cmdbuf->log << "\n    seq_no: " << ToString( cmdbuf->cmdIndex );
 		#endif
 		logger._PrintResourceUsage( *cmdbuf, VK_PIPELINE_BIND_POINT_GRAPHICS );
 	}
@@ -4038,8 +4152,10 @@ namespace
 			return;
 
 		cmdbuf->log << "  TraceRays\n";
+		// TODO: SBT
+
 		#if ENABLE_SEQNO
-		cmdbuf->log << "    seq_no: " << ToString( cmdbuf->cmdIndex ) << '\n';
+		cmdbuf->log << "    seq_no: " << ToString( cmdbuf->cmdIndex );
 		#endif
 		logger._PrintResourceUsage( *cmdbuf, VK_PIPELINE_BIND_POINT_RAY_TRACING_KHR );
 	}
@@ -4065,9 +4181,48 @@ namespace
 		if ( cmdbuf == null )
 			return;
 
-		cmdbuf->log << "  TraceRaysIndirect\n";
+		auto&	log = cmdbuf->log;
+		log << "  TraceRaysIndirect";
+
+		if ( pRaygenShaderBindingTable )
+		{
+			log << "\n    sbt.rayGen:   " << logger.GetBufferAsString( pRaygenShaderBindingTable->deviceAddress );
+			#if PRINT_EXPECTED_STATE
+				log << " (stage: RAY_TRACING_SHADER, access: SHADER_BINDING_TABLE_READ)";
+			#endif
+		}
+
+		if ( pMissShaderBindingTable )
+		{
+			log << "\n    sbt.miss:     " << logger.GetBufferAsString( pMissShaderBindingTable->deviceAddress );
+			#if PRINT_EXPECTED_STATE
+				log << " (stage: RAY_TRACING_SHADER, access: SHADER_BINDING_TABLE_READ)";
+			#endif
+		}
+
+		if ( pHitShaderBindingTable )
+		{
+			log << "\n    sbt.hit:      " << logger.GetBufferAsString( pHitShaderBindingTable->deviceAddress );
+			#if PRINT_EXPECTED_STATE
+				log << " (stage: RAY_TRACING_SHADER, access: SHADER_BINDING_TABLE_READ)";
+			#endif
+		}
+
+		if ( pCallableShaderBindingTable )
+		{
+			log << "\n    sbt.callable: " << logger.GetBufferAsString( pCallableShaderBindingTable->deviceAddress );
+			#if PRINT_EXPECTED_STATE
+				log << " (stage: RAY_TRACING_SHADER, access: SHADER_BINDING_TABLE_READ)";
+			#endif
+		}
+
+		log << "\n    indirectBuf:  " << logger.GetBufferAsString( indirectDeviceAddress );
+		#if PRINT_EXPECTED_STATE
+			log << " (stage: DRAW_INDIRECT, access: INDIRECT_COMMAND_READ)";
+		#endif
+
 		#if ENABLE_SEQNO
-		cmdbuf->log << "    seq_no: " << ToString( cmdbuf->cmdIndex ) << '\n';
+		log << "\n    seq_no: " << ToString( cmdbuf->cmdIndex );
 		#endif
 		logger._PrintResourceUsage( *cmdbuf, VK_PIPELINE_BIND_POINT_RAY_TRACING_KHR );
 	}
@@ -4090,9 +4245,14 @@ namespace
 		if ( cmdbuf == null )
 			return;
 
-		cmdbuf->log << "  TraceRaysIndirect2\n";
+		cmdbuf->log << "  TraceRaysIndirect2";
+		cmdbuf->log << "\n    indirectBuf:  " << logger.GetBufferAsString( indirectDeviceAddress );
+		#if PRINT_EXPECTED_STATE
+			cmdbuf->log << " (stage: DRAW_INDIRECT, access: INDIRECT_COMMAND_READ)";
+		#endif
+
 		#if ENABLE_SEQNO
-		cmdbuf->log << "    seq_no: " << ToString( cmdbuf->cmdIndex ) << '\n';
+		cmdbuf->log << "\n    seq_no: " << ToString( cmdbuf->cmdIndex );
 		#endif
 		logger._PrintResourceUsage( *cmdbuf, VK_PIPELINE_BIND_POINT_RAY_TRACING_KHR );
 	}
@@ -4163,9 +4323,10 @@ namespace
 
 		EXLOCK( logger.guard );
 
-		auto it = logger.accelStructMap.insert_or_assign( *pAccelerationStructure, VulkanLogger::AccelStructData{} ).first;
+		auto& as = logger.accelStructMap.insert_or_assign( *pAccelerationStructure, VulkanLogger::AccelStructData{} ).first->second;
 
-		it->second.size = pCreateInfo->size;
+		as.name = ADD_OBJ_ID( "rt-as-"s << ToString( logger.resourceStat.rtasCount++ ), pAccelerationStructure );
+		as.size = pCreateInfo->size;
 
 		return VK_SUCCESS;
 	}
@@ -4271,6 +4432,326 @@ namespace
 
 /*
 =================================================
+	Wrap_vkCreateMicromapEXT
+=================================================
+*/
+	VKAPI_ATTR VkResult VKAPI_CALL Wrap_vkCreateMicromapEXT (VkDevice device, const VkMicromapCreateInfoEXT *pCreateInfo, const VkAllocationCallbacks *pAllocator, OUT VkMicromapEXT *pMicromap)
+	{
+		auto&		logger	= VulkanLogger::Get();
+		VkResult	res		= logger.vkCreateMicromapEXT( device, pCreateInfo, pAllocator, OUT pMicromap );
+
+		if ( res != VK_SUCCESS )
+			return res;
+
+		EXLOCK( logger.guard );
+
+		auto& mm = logger.micromapMap.insert_or_assign( *pMicromap, VulkanLogger::MicromapData{} ).first->second;
+
+		mm.name = ADD_OBJ_ID( "rt-mm-"s << ToString( logger.resourceStat.micromapCount++ ), pMicromap );
+		mm.size = pCreateInfo->size;
+
+		return VK_SUCCESS;
+	}
+
+/*
+=================================================
+	Wrap_vkDestroyMicromapEXT
+=================================================
+*/
+	VKAPI_ATTR void VKAPI_CALL Wrap_vkDestroyMicromapEXT (VkDevice device, VkMicromapEXT micromap, const VkAllocationCallbacks *pAllocator)
+	{
+		auto&	logger = VulkanLogger::Get();
+		{
+			EXLOCK( logger.guard );
+			logger.micromapMap.erase( micromap );
+		}
+		logger.vkDestroyMicromapEXT( device, micromap, pAllocator );
+	}
+
+/*
+=================================================
+	Wrap_vkCmdBuildMicromapsEXT
+=================================================
+*/
+	VKAPI_ATTR void VKAPI_CALL Wrap_vkCmdBuildMicromapsEXT (VkCommandBuffer commandBuffer, const uint infoCount, const VkMicromapBuildInfoEXT* pInfos)
+	{
+		auto&		logger	= VulkanLogger::Get();
+		logger.vkCmdBuildMicromapsEXT( commandBuffer, infoCount, pInfos );
+
+		EXLOCK( logger.guard );
+		if ( not logger.enableLog )
+			return;
+
+		auto* cmdbuf = logger._WithCmdBuf( commandBuffer );
+		if ( cmdbuf == null )
+			return;
+
+		auto&	log = cmdbuf->log;
+		log << "  BuildMicromaps";
+
+		for (uint i = 0; i < infoCount; ++i)
+		{
+			auto&	info = pInfos[i];
+
+			log	<< "\n    [" << ToString(i) << "] BuildInfo"
+				<< "\n      dstMicromap:   ";
+
+			auto	mm_it = logger.micromapMap.find( info.dstMicromap );
+			if ( mm_it != logger.micromapMap.end() )
+				log << PrintName( mm_it->second.name, info.dstMicromap );
+
+			#if PRINT_EXPECTED_STATE
+				log << " (stage: MICROMAP_BUILD, access: MICROMAP_WRITE)";
+			#endif
+
+			log	<< "\n      scratchData:   " << logger.GetBufferAsString( info.scratchData );
+			#if PRINT_EXPECTED_STATE
+				log << " (stage: MICROMAP_BUILD, access: MICROMAP_READ | MICROMAP_WRITE)";
+			#endif
+			log	<< "\n      data:          " << logger.GetBufferAsString( info.data );
+			#if PRINT_EXPECTED_STATE
+				log << " (stage: MICROMAP_BUILD, access: SHADER_READ)";
+			#endif
+			log	<< "\n      triangleArray: " << logger.GetBufferAsString( info.triangleArray );
+			#if PRINT_EXPECTED_STATE
+				log << " (stage: MICROMAP_BUILD, access: SHADER_READ)";
+			#endif
+		}
+
+		#if ENABLE_SEQNO
+		log << "\n    seq_no: " << ToString( cmdbuf->cmdIndex );
+		#endif
+		log << "\n  ----------\n\n";
+	}
+
+/*
+=================================================
+	Wrap_vkCmdCopyMicromapEXT
+=================================================
+*/
+	VKAPI_ATTR void VKAPI_CALL Wrap_vkCmdCopyMicromapEXT (VkCommandBuffer commandBuffer, const VkCopyMicromapInfoEXT* pInfo)
+	{
+		auto&		logger	= VulkanLogger::Get();
+		logger.vkCmdCopyMicromapEXT( commandBuffer, pInfo );
+
+		EXLOCK( logger.guard );
+		if ( not logger.enableLog )
+			return;
+
+		auto* cmdbuf = logger._WithCmdBuf( commandBuffer );
+		if ( cmdbuf == null )
+			return;
+
+		auto&	log = cmdbuf->log;
+		log << "  CopyMicromap"
+			<< "\n    mode: " << VkCopyMicromapModeEXTToString( pInfo->mode )
+			<< "\n    src:  ";
+
+		auto	src_it = logger.micromapMap.find( pInfo->src );
+		if ( src_it != logger.micromapMap.end() )
+			log << PrintName( src_it->second.name, pInfo->src );
+
+		#if PRINT_EXPECTED_STATE
+			log << " (stage: MICROMAP_BUILD, access: MICROMAP_READ)";
+		#endif
+
+		log << "\n    dst:  ";
+
+		auto	dst_it = logger.micromapMap.find( pInfo->dst );
+		if ( dst_it != logger.micromapMap.end() )
+			log << PrintName( dst_it->second.name, pInfo->dst );
+
+		#if PRINT_EXPECTED_STATE
+			log << " (stage: MICROMAP_BUILD, access: MICROMAP_WRITE)";
+		#endif
+
+		#if ENABLE_SEQNO
+		log << "\n    seq_no: " << ToString( cmdbuf->cmdIndex );
+		#endif
+		log << "\n  ----------\n\n";
+	}
+
+/*
+=================================================
+	Wrap_vkCmdWriteMicromapsPropertiesEXT
+=================================================
+*/
+	VKAPI_ATTR void VKAPI_CALL Wrap_vkCmdWriteMicromapsPropertiesEXT (VkCommandBuffer commandBuffer, uint micromapCount, const VkMicromapEXT *pMicromaps, VkQueryType queryType, VkQueryPool queryPool, uint firstQuery)
+	{
+		auto&		logger	= VulkanLogger::Get();
+		logger.vkCmdWriteMicromapsPropertiesEXT( commandBuffer, micromapCount, pMicromaps, queryType, queryPool, firstQuery );
+
+		EXLOCK( logger.guard );
+		if ( not logger.enableLog )
+			return;
+
+		auto* cmdbuf = logger._WithCmdBuf( commandBuffer );
+		if ( cmdbuf == null )
+			return;
+
+		auto&	log = cmdbuf->log;
+		log << "  WriteMicromapsProperties";
+
+		for (uint i = 0; i < micromapCount; ++i)
+		{
+			auto	mm_it = logger.micromapMap.find( pMicromaps[i] );
+			if ( mm_it == logger.micromapMap.end() )
+				continue;
+
+			log << (i > 0 ? ", " : "") << PrintName( mm_it->second.name, pMicromaps[i] );
+		}
+
+		#if PRINT_EXPECTED_STATE
+			log << " (stage: MICROMAP_BUILD, access: MICROMAP_READ)";
+		#endif
+
+		#if ENABLE_SEQNO
+		log << "\n    seq_no: " << ToString( cmdbuf->cmdIndex );
+		#endif
+		log << "\n  ----------\n\n";
+	}
+
+/*
+=================================================
+	Wrap_vkCmdCopyMemoryToMicromapEXT
+=================================================
+*/
+	VKAPI_ATTR void VKAPI_CALL Wrap_vkCmdCopyMemoryToMicromapEXT (VkCommandBuffer commandBuffer, const VkCopyMemoryToMicromapInfoEXT* pInfo)
+	{
+		auto&		logger	= VulkanLogger::Get();
+		logger.vkCmdCopyMemoryToMicromapEXT( commandBuffer, pInfo );
+
+		EXLOCK( logger.guard );
+		if ( not logger.enableLog )
+			return;
+
+		auto* cmdbuf = logger._WithCmdBuf( commandBuffer );
+		if ( cmdbuf == null )
+			return;
+
+		auto&	log = cmdbuf->log;
+		log << "  CopyMemoryToMicromap"
+			<< "\n    src:  " << logger.GetBufferAsString( pInfo->src );
+		#if PRINT_EXPECTED_STATE
+			log << " (stage: MICROMAP_BUILD, access: TRANSFER_READ)";
+		#endif
+
+		log	<< "\n    dst:  ";
+
+		auto	mm_it = logger.micromapMap.find( pInfo->dst );
+		if ( mm_it != logger.micromapMap.end() )
+			log << PrintName( mm_it->second.name, pInfo->dst );
+
+		#if PRINT_EXPECTED_STATE
+			log << " (stage: MICROMAP_BUILD, access: MICROMAP_WRITE)";
+		#endif
+
+		#if ENABLE_SEQNO
+		log << "\n    seq_no: " << ToString( cmdbuf->cmdIndex );
+		#endif
+		log << "\n  ----------\n\n";
+	}
+
+/*
+=================================================
+	Wrap_vkCmdCopyMicromapToMemoryEXT
+=================================================
+*/
+	VKAPI_ATTR void VKAPI_CALL Wrap_vkCmdCopyMicromapToMemoryEXT (VkCommandBuffer commandBuffer, const VkCopyMicromapToMemoryInfoEXT* pInfo)
+	{
+		auto&		logger	= VulkanLogger::Get();
+		logger.vkCmdCopyMicromapToMemoryEXT( commandBuffer, pInfo );
+
+		EXLOCK( logger.guard );
+		if ( not logger.enableLog )
+			return;
+
+		auto* cmdbuf = logger._WithCmdBuf( commandBuffer );
+		if ( cmdbuf == null )
+			return;
+
+		auto&	log = cmdbuf->log;
+		log << "  CopyMicromapToMemory"
+			<< "\n    src:  ";
+
+		auto	mm_it = logger.micromapMap.find( pInfo->src );
+		if ( mm_it != logger.micromapMap.end() )
+			log << PrintName( mm_it->second.name, pInfo->src );
+
+		#if PRINT_EXPECTED_STATE
+			log << " (stage: MICROMAP_BUILD, access: MICROMAP_READ)";
+		#endif
+
+		log	<< "\n    dst:  " << logger.GetBufferAsString( pInfo->dst );
+		#if PRINT_EXPECTED_STATE
+			log << " (stage: MICROMAP_BUILD, access: TRANSFER_WRITE)";
+		#endif
+
+		#if ENABLE_SEQNO
+		log << "\n    seq_no: " << ToString( cmdbuf->cmdIndex );
+		#endif
+		log << "\n  ----------\n\n";
+	}
+
+/*
+=================================================
+	Wrap_vkCmdPreprocessGeneratedCommandsEXT
+=================================================
+*/
+	VKAPI_ATTR void VKAPI_CALL Wrap_vkCmdPreprocessGeneratedCommandsEXT (VkCommandBuffer commandBuffer, const VkGeneratedCommandsInfoEXT* pGeneratedCommandsInfo, VkCommandBuffer stateCommandBuffer)
+	{
+		auto&		logger	= VulkanLogger::Get();
+		logger.vkCmdPreprocessGeneratedCommandsEXT( commandBuffer, pGeneratedCommandsInfo, stateCommandBuffer );
+
+		EXLOCK( logger.guard );
+		if ( not logger.enableLog )
+			return;
+
+		auto* cmdbuf = logger._WithCmdBuf( commandBuffer );
+		if ( cmdbuf == null )
+			return;
+
+		auto&	log = cmdbuf->log;
+		log << "  PreprocessGeneratedCommands";
+		logger._PrintDGC( log, *pGeneratedCommandsInfo, true );
+
+		#if ENABLE_SEQNO
+		log << "\n    seq_no: " << ToString( cmdbuf->cmdIndex );
+		#endif
+		log << "\n  ----------\n\n";
+	}
+
+/*
+=================================================
+	Wrap_vkCmdExecuteGeneratedCommandsEXT
+=================================================
+*/
+	VKAPI_ATTR void VKAPI_CALL Wrap_vkCmdExecuteGeneratedCommandsEXT (VkCommandBuffer commandBuffer, VkBool32 isPreprocessed, const VkGeneratedCommandsInfoEXT* pGeneratedCommandsInfo)
+	{
+		auto&		logger	= VulkanLogger::Get();
+		logger.vkCmdExecuteGeneratedCommandsEXT( commandBuffer, isPreprocessed, pGeneratedCommandsInfo );
+
+		EXLOCK( logger.guard );
+		if ( not logger.enableLog )
+			return;
+
+		auto* cmdbuf = logger._WithCmdBuf( commandBuffer );
+		if ( cmdbuf == null )
+			return;
+
+		auto&	log = cmdbuf->log;
+		log << "  ExecuteGeneratedCommands"
+			<< "\n    isPreprocessed: " << ToString( bool(isPreprocessed) );
+		logger._PrintDGC( log, *pGeneratedCommandsInfo, false );
+
+		#if ENABLE_SEQNO
+		log << "\n    seq_no: " << ToString( cmdbuf->cmdIndex );
+		#endif
+		log << "\n  ----------\n\n";
+	}
+
+/*
+=================================================
 	Wrap_vkCmdInsertDebugUtilsLabelEXT
 =================================================
 */
@@ -4323,7 +4804,7 @@ namespace
 		auto&	log = cmdbuf->log;
 		log << "  BeginDebugLabel\n";
 		log << "    name:   '" << pLabelInfo->pLabelName << "'\n";
-		log << "    depth:  " << ToString( depth ) << "\n";
+		log << "    depth:  " << ToString( depth ) << '\n';
 		#if ENABLE_SEQNO
 		log << "    seq_no: " << ToString( cmdbuf->cmdIndex ) << '\n';
 		#endif
@@ -4360,7 +4841,7 @@ namespace
 			log << '\n';
 
 		log << "  EndDebugLabel\n";
-		log << "    depth:  " << ToString( depth ) << "\n";
+		log << "    depth:  " << ToString( depth ) << '\n';
 		#if ENABLE_SEQNO
 		log << "    seq_no: " << ToString( cmdbuf->cmdIndex ) << '\n';
 		#endif
@@ -4393,11 +4874,14 @@ namespace
 
 		auto&	log = cmdbuf->log;
 		log << "  CopyQueryPoolResults\n";
-		log << "    dstBuffer: '" << buf_it->second.name << "'\n";
-		log << "    dstRange:  [" << ToString(dstOffset) << ", "
-			<< ToString( dstOffset + queryCount * stride + (AllBits(flags, VK_QUERY_RESULT_64_BIT) ? sizeof(ulong) : sizeof(uint))) << ")\n";
+		log << "\n    dstBuffer: " << PrintName( buf_it->second.name, dstBuffer );
+		#if PRINT_EXPECTED_STATE
+			log << " (stage: COPY, access: TRANSFER_WRITE)";
+		#endif
+		log << "\n    dstRange:  [" << ToString(dstOffset) << ", "
+			<< ToString( dstOffset + queryCount * stride + (AllBits(flags, VK_QUERY_RESULT_64_BIT) ? sizeof(ulong) : sizeof(uint))) << ")";
 		#if ENABLE_SEQNO
-		log << "    seq_no:    " << ToString( cmdbuf->cmdIndex ) << '\n';
+		log << "\n    seq_no:    " << ToString( cmdbuf->cmdIndex ) << '\n';
 		#endif
 		log << "  ----------\n\n";
 	}
@@ -4422,93 +4906,13 @@ namespace
 			return;
 
 		auto&	log = cmdbuf->log;
-		log << "  BuildAccelerationStructures\n";
+		log << "  BuildAccelerationStructures";
+		logger._PrintASBuild( log, infoCount, pInfos );
 
-		const auto	LogGeometry = [&logger, &log] (const VkAccelerationStructureGeometryKHR &geom)
-		{{
-			switch_enum( geom.geometryType )
-			{
-				case VK_GEOMETRY_TYPE_TRIANGLES_KHR :
-					log << "Triangles\n";
-					log << "      vertexData:    " << logger.GetBufferAsString( geom.geometry.triangles.vertexData ) << '\n';
-					log << "      indexData:     " << logger.GetBufferAsString( geom.geometry.triangles.indexData ) << '\n';
-					log << "      transformData: " << logger.GetBufferAsString( geom.geometry.triangles.transformData ) << '\n';
-					break;
-				case VK_GEOMETRY_TYPE_AABBS_KHR :
-					log << "AABBs\n";
-					log << "      data: " << logger.GetBufferAsString( geom.geometry.aabbs.data ) << '\n';
-					break;
-				case VK_GEOMETRY_TYPE_INSTANCES_KHR :
-					log << "Instances\n";
-					log << "      data: " << logger.GetBufferAsString( geom.geometry.instances.data ) << '\n';
-					break;
-				case VK_GEOMETRY_TYPE_MAX_ENUM_KHR :
-				case VK_GEOMETRY_TYPE_SPHERES_NV :
-				case VK_GEOMETRY_TYPE_LINEAR_SWEPT_SPHERES_NV :
-				default :
-					DBG_WARNING("unknown geometry type");
-					break;
-			}
-			switch_end
-		}};
-
-		for (uint i = 0; i < infoCount; ++i)
-		{
-			const auto&	info		= pInfos[i];
-			auto		src_as_it	= logger.accelStructMap.find( info.srcAccelerationStructure );
-			auto		dst_as_it	= logger.accelStructMap.find( info.dstAccelerationStructure );
-
-			if ( src_as_it != logger.accelStructMap.end() )
-				log << "    srcAS: '" << src_as_it->second.name << "'\n";
-
-			if ( dst_as_it != logger.accelStructMap.end() )
-				log << "    dstAS: '" << dst_as_it->second.name << "'\n";
-
-			log << "    scratch: " << logger.GetBufferAsString( info.scratchData ) << '\n';
-
-			log << "    type: ";
-			switch_enum( info.type )
-			{
-				case VK_ACCELERATION_STRUCTURE_TYPE_TOP_LEVEL_KHR :		log << "TopLevel\n";	break;
-				case VK_ACCELERATION_STRUCTURE_TYPE_BOTTOM_LEVEL_KHR :	log << "BottomLevel\n";	break;
-				case VK_ACCELERATION_STRUCTURE_TYPE_GENERIC_KHR :
-				case VK_ACCELERATION_STRUCTURE_TYPE_MAX_ENUM_KHR :
-				default :												log << "<unknown>\n";	break;
-			}
-			switch_end
-
-			log << "    mode: ";
-			switch_enum( info.mode )
-			{
-				case VK_BUILD_ACCELERATION_STRUCTURE_MODE_BUILD_KHR :	log << "Build\n";		break;
-				case VK_BUILD_ACCELERATION_STRUCTURE_MODE_UPDATE_KHR :	log << "Update\n";		break;
-				case VK_BUILD_ACCELERATION_STRUCTURE_MODE_MAX_ENUM_KHR :
-				default :												log << "<unknown>\n";	break;
-			}
-			switch_end
-
-			if ( info.pGeometries != null )
-			{
-				for (uint j = 0; j < info.geometryCount; ++j)
-				{
-					log << "    [" << ToString(i) << "] ";
-					LogGeometry( info.pGeometries[i] );
-				}
-			}
-			if ( info.ppGeometries != null )
-			{
-				for (uint j = 0; j < info.geometryCount; ++j)
-				{
-					log << "    [" << ToString(i) << "] ";
-					LogGeometry( *(info.ppGeometries[i]) );
-				}
-			}
-			log << "    ----\n";
-		}
 		#if ENABLE_SEQNO
-		log << "    seq_no: " << ToString( cmdbuf->cmdIndex ) << '\n';
+		log << "\n    seq_no: " << ToString( cmdbuf->cmdIndex );
 		#endif
-		log << "  ----------\n\n";
+		log << "\n  ----------\n\n";
 	}
 
 /*
@@ -4533,14 +4937,24 @@ namespace
 			return;
 
 		auto&	log = cmdbuf->log;
-		log << "  BuildAccelerationStructuresIndirect\n";
+		log << "  BuildAccelerationStructuresIndirect";
 
-		// TODO
+		log << "\n    indirectBuf: ";
+		for (uint i = 0; i < infoCount; ++i)
+		{
+			log << logger.GetBufferAsString( pIndirectDeviceAddresses[i] );
+			log << (i+1 < infoCount ? ", " : "");
+		}
+		#if PRINT_EXPECTED_STATE
+			log << " (stage: ACCELERATION_STRUCTURE_BUILD, access: INDIRECT_COMMAND_READ)";
+		#endif
+
+		logger._PrintASBuild( log, infoCount, pInfos );
 
 		#if ENABLE_SEQNO
-		log << "    seq_no: " << ToString( cmdbuf->cmdIndex ) << '\n';
+		log << "\n    seq_no: " << ToString( cmdbuf->cmdIndex );
 		#endif
-		log << "  ----------\n\n";
+		log << "\n  ----------\n\n";
 	}
 
 /*
@@ -4564,8 +4978,8 @@ namespace
 			return;
 
 		auto&	log = cmdbuf->log;
-		log << "  WriteAccelerationStructuresProperties\n";
-		log << "    AccelerationStructures: ";
+		log << "  WriteAccelerationStructuresProperties";
+		log << "\n    AccelerationStructures: ";
 
 		for (uint i = 0; i < accelerationStructureCount; ++i)
 		{
@@ -4573,12 +4987,12 @@ namespace
 			if ( as_it == logger.accelStructMap.end() )
 				continue;
 
-			log << (i > 0 ? ", " : "") << "'" << as_it->second.name << "'";
+			log << (i > 0 ? ", " : "") << PrintName( as_it->second.name, pAccelerationStructures[i] );
 		}
 		#if ENABLE_SEQNO
-		log << "    seq_no: " << ToString( cmdbuf->cmdIndex ) << '\n';
+		log << "\n    seq_no: " << ToString( cmdbuf->cmdIndex );
 		#endif
-		log << "  ----------\n\n";
+		log << "\n  ----------\n\n";
 	}
 
 /*
@@ -4606,13 +5020,20 @@ namespace
 			return;
 
 		auto&	log = cmdbuf->log;
-		log << "  CopyAccelerationStructure\n";
-		log << "    srcAS:  '" << src_as_it->second.name << "'\n";
-		log << "    dstAS:  '" << dst_as_it->second.name << "'\n";
-		#if ENABLE_SEQNO
-		log << "    seq_no: " << ToString( cmdbuf->cmdIndex ) << '\n';
+		log << "  CopyAccelerationStructure";
+		log << "\n    srcAS:  " << PrintName( src_as_it->second.name, pInfo->src );
+		#if PRINT_EXPECTED_STATE
+			log << " (stage: ACCELERATION_STRUCTURE_COPY, access: ACCELERATION_STRUCTURE_READ)";
 		#endif
-		log << "  ----------\n\n";
+		log << "\n    dstAS:  " << PrintName( dst_as_it->second.name, pInfo->dst );
+		#if PRINT_EXPECTED_STATE
+			log << " (stage: ACCELERATION_STRUCTURE_COPY, access: ACCELERATION_STRUCTURE_WRITE)";
+		#endif
+
+		#if ENABLE_SEQNO
+		log << "\n    seq_no: " << ToString( cmdbuf->cmdIndex );
+		#endif
+		log << "\n  ----------\n\n";
 	}
 
 /*
@@ -4638,13 +5059,22 @@ namespace
 			return;
 
 		auto&	log = cmdbuf->log;
-		log << "  CopyAccelerationStructureToMemory\n";
-		log << "    srcAS:  '" << as_it->second.name << "'\n";
-		log << "    dstBuf: " << logger.GetBufferAsString( pInfo->dst ) << '\n';
-		#if ENABLE_SEQNO
-		log << "    seq_no: " << ToString( cmdbuf->cmdIndex ) << '\n';
+		log << "  CopyAccelerationStructureToMemory";
+
+		log << "\n    srcAS:  " << PrintName( as_it->second.name, pInfo->src );
+		#if PRINT_EXPECTED_STATE
+			log << " (stage: ACCELERATION_STRUCTURE_COPY, access: ACCELERATION_STRUCTURE_READ)";
 		#endif
-		log << "  ----------\n\n";
+
+		log << "\n    dstBuf: " << logger.GetBufferAsString( pInfo->dst );
+		#if PRINT_EXPECTED_STATE
+			log << " (stage: ACCELERATION_STRUCTURE_COPY, access: TRANSFER_WRITE)";
+		#endif
+
+		#if ENABLE_SEQNO
+		log << "\n    seq_no: " << ToString( cmdbuf->cmdIndex );
+		#endif
+		log << "\n  ----------\n\n";
 	}
 
 /*
@@ -4665,18 +5095,26 @@ namespace
 		if ( cmdbuf == null )
 			return;
 
+		auto&	log = cmdbuf->log;
+		log << "  CopyMemoryToAccelerationStructure";
+		log << "\n    srcBuf: " << logger.GetBufferAsString( pInfo->src );
+		#if PRINT_EXPECTED_STATE
+			log << " (stage: ACCELERATION_STRUCTURE_COPY, access: TRANSFER_READ)";
+		#endif
+
+		log << "\n    dstAS:  ";
 		auto	as_it = logger.accelStructMap.find( pInfo->dst );
 		if ( as_it == logger.accelStructMap.end() )
-			return;
+			log << PrintName( as_it->second.name, pInfo->dst );
 
-		auto&	log = cmdbuf->log;
-		log << "  CopyMemoryToAccelerationStructure\n";
-		log << "    srcBuf: " << logger.GetBufferAsString( pInfo->src ) << '\n';
-		log << "    dstAS:  '" << as_it->second.name << "'\n";
-		#if ENABLE_SEQNO
-		log << "    seq_no: " << ToString( cmdbuf->cmdIndex ) << '\n';
+		#if PRINT_EXPECTED_STATE
+			log << " (stage: ACCELERATION_STRUCTURE_COPY, access: ACCELERATION_STRUCTURE_WRITE)";
 		#endif
-		log << "  ----------\n\n";
+
+		#if ENABLE_SEQNO
+		log << "\n    seq_no: " << ToString( cmdbuf->cmdIndex );
+		#endif
+		log << "\n  ----------\n\n";
 	}
 
 /*
@@ -4693,7 +5131,7 @@ namespace
 		if ( not logger.enableLog )
 			return result;
 
-		logger.log
+		logger._log
 			<< "GetSemaphoreCounterValue: " << logger.GetSyncName( semaphore, *pValue ) << "\n\n";
 
 		return result;
@@ -4722,13 +5160,16 @@ namespace
 			return;
 
 		auto&	log = cmdbuf->log;
-		log << "  BindIndexBuffer\n";
-		log << "    buffer: " << PrintName( buf_it->second.name, buffer ) << "\n";
-		log << "    offset: " << ToString( offset ) << '\n';
-		#if ENABLE_SEQNO
-		log << "    seq_no: " << ToString( cmdbuf->cmdIndex ) << '\n';
+		log << "  BindIndexBuffer";
+		log << "\n    buffer: " << PrintName( buf_it->second.name, buffer );
+		#if PRINT_EXPECTED_STATE
+			log << " (stage: INDEX_INPUT, access: INDEX_READ)";
 		#endif
-		log << "  ----------\n\n";
+		log << "\n    offset: " << ToString( offset );
+		#if ENABLE_SEQNO
+		log << "\n    seq_no: " << ToString( cmdbuf->cmdIndex );
+		#endif
+		log << "\n  ----------\n\n";
 	}
 
 /*
@@ -4750,23 +5191,25 @@ namespace
 			return;
 
 		auto&	log = cmdbuf->log;
-		log << "  BindVertexBuffers\n";
+		log << "  BindVertexBuffers";
 		for (uint i = 0; i < bindingCount; ++i)
 		{
-			log << "    [" << ToString(i + firstBinding) << "] buffer: ";
+			log << "\n    [" << ToString(i + firstBinding) << "] buffer: ";
 
-			if (auto buf_it = logger.bufferMap.find( pBuffers[i] );  buf_it != logger.bufferMap.end() )
+			if ( auto buf_it = logger.bufferMap.find( pBuffers[i] );  buf_it != logger.bufferMap.end() )
 				log << PrintName( buf_it->second.name, pBuffers[i] );
-			else
-				log << "''";
 
-			log << ", offset: " << ToString( pOffsets[i] ) << "\n";
+			log << ", offset: " << ToString( pOffsets[i] );
+
+			#if PRINT_EXPECTED_STATE
+				log << " (stage: VERTEX_ATTRIBUTE_INPUT, access: VERTEX_ATTRIBUTE_READ)";
+			#endif
 		}
 
 		#if ENABLE_SEQNO
-		log << "    seq_no: " << ToString( cmdbuf->cmdIndex ) << '\n';
+		log << "\n    seq_no: " << ToString( cmdbuf->cmdIndex );
 		#endif
-		log << "  ----------\n\n";
+		log << "\n  ----------\n\n";
 	}
 
 /*
@@ -4796,14 +5239,14 @@ namespace
 			return;
 
 		auto&	log = cmdbuf->log;
-		log << "  BindPipeline\n";
-		log << "    pipeline:  '" << ppln_it->second.name << "'\n";
-		log << "    layout:    '" << layout_it->second.name << "', DSCount: " << ToString(layout_it->second.dsLayouts.size()) << '\n';
-		log << "    bindPoint: " << VkPipelineBindPointToString( pipelineBindPoint ) << '\n';
+		log << "  BindPipeline";
+		log << "\n    pipeline:  " << PrintName( ppln_it->second.name, pipeline );
+		log << "\n    layout:    " << PrintName( layout_it->second.name, ppln_it->second.layout ) << ", DSCount: " << ToString( layout_it->second.dsLayouts.size() );
+		log << "\n    bindPoint: " << VkPipelineBindPointToString( pipelineBindPoint );
 		#if ENABLE_SEQNO
-		log << "    seq_no: " << ToString( cmdbuf->cmdIndex ) << '\n';
+		log << "\n    seq_no: " << ToString( cmdbuf->cmdIndex );
 		#endif
-		log << "  ----------\n\n";
+		log << "\n  ----------\n\n";
 	}
 
 /*
@@ -4935,6 +5378,12 @@ namespace
 					iter->second.name = ADD_OBJ_ID( name, id );
 				break;
 			}
+			case VK_OBJECT_TYPE_MICROMAP_EXT : {
+				auto	iter = micromapMap.find( VBitCast<VkMicromapEXT>(id) );
+				if ( iter != micromapMap.end() )
+					iter->second.name = ADD_OBJ_ID( name, id );
+				break;
+			}
 			case VK_OBJECT_TYPE_SEMAPHORE : {
 				semaphoreMap[ VBitCast<VkSemaphore>(id) ] = ADD_OBJ_ID( name, id );
 				break;
@@ -4956,11 +5405,231 @@ namespace
 
 /*
 =================================================
+	_PrintASBuild
+=================================================
+*/
+	void  VulkanLogger::_PrintASBuild (String &log, uint infoCount, const VkAccelerationStructureBuildGeometryInfoKHR* pInfos) const
+	{
+		const auto	LogGeometry = [this, &log] (const VkAccelerationStructureGeometryKHR &geom)
+		{{
+			switch ( geom.geometryType )
+			{
+				case VK_GEOMETRY_TYPE_TRIANGLES_KHR :
+					log << "Triangles";
+					log << "\n      vertexData:    " << GetBufferAsString( geom.geometry.triangles.vertexData );
+					#if PRINT_EXPECTED_STATE
+						log << " (stage: ACCELERATION_STRUCTURE_BUILD, access: SHADER_READ)";
+					#endif
+					log << "\n      indexData:     " << GetBufferAsString( geom.geometry.triangles.indexData );
+					#if PRINT_EXPECTED_STATE
+						log << " (stage: ACCELERATION_STRUCTURE_BUILD, access: SHADER_READ)";
+					#endif
+					log << "\n      transformData: " << GetBufferAsString( geom.geometry.triangles.transformData );
+					#if PRINT_EXPECTED_STATE
+						log << " (stage: ACCELERATION_STRUCTURE_BUILD, access: SHADER_READ)";
+					#endif
+					for (auto& ext : VNextRange{ geom.geometry.triangles })
+					{
+						switch ( ext.Type() )
+						{
+							case VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_TRIANGLES_OPACITY_MICROMAP_EXT :
+							{
+								auto&	omm = ext.As<VkAccelerationStructureTrianglesOpacityMicromapEXT>();
+								if ( omm.micromap != Zero )
+								{
+									log << "\n      micromap:      ";
+									auto	mm_it = micromapMap.find( omm.micromap );
+									if ( mm_it != micromapMap.end() )
+										log << PrintName( mm_it->second.name, omm.micromap );
+									#if PRINT_EXPECTED_STATE
+										log << " (stage: ACCELERATION_STRUCTURE_BUILD, access: SHADER_READ)";	// MICROMAP_READ ?
+									#endif
+								}
+								if ( omm.indexBuffer.deviceAddress != Zero )
+								{
+									log << "\n      indexBuffer:   " << GetBufferAsString( omm.indexBuffer );
+									#if PRINT_EXPECTED_STATE
+										log << " (stage: ACCELERATION_STRUCTURE_BUILD, access: SHADER_READ)";
+									#endif
+								}
+								break;
+							}
+							default :
+								CHECK_MSG( false, "unsupported RTAS triangle geometry extension" );
+						}
+					}
+					break;
+
+				case VK_GEOMETRY_TYPE_AABBS_KHR :
+					log << "AABBs";
+					log << "\n      data: " << GetBufferAsString( geom.geometry.aabbs.data );
+					#if PRINT_EXPECTED_STATE
+						log << " (stage: ACCELERATION_STRUCTURE_BUILD, access: SHADER_READ)";
+					#endif
+					break;
+
+				case VK_GEOMETRY_TYPE_INSTANCES_KHR :
+					log << "Instances";
+					log << "\n      data: " << GetBufferAsString( geom.geometry.instances.data );
+					#if PRINT_EXPECTED_STATE
+						log << " (stage: ACCELERATION_STRUCTURE_BUILD, access: SHADER_READ)";
+					#endif
+					break;
+				default :
+					DBG_WARNING("unknown geometry type");
+					break;
+			}
+		}};
+
+		for (uint i = 0; i < infoCount; ++i)
+		{
+			const auto&	info		= pInfos[i];
+			auto		src_as_it	= accelStructMap.find( info.srcAccelerationStructure );
+			auto		dst_as_it	= accelStructMap.find( info.dstAccelerationStructure );
+
+			if ( src_as_it != accelStructMap.end() )
+			{
+				log << "\n    srcAS: " << PrintName( src_as_it->second.name, info.srcAccelerationStructure );
+				#if PRINT_EXPECTED_STATE
+					log << " (stage: ACCELERATION_STRUCTURE_BUILD, access: ACCELERATION_STRUCTURE_READ)";
+				#endif
+			}
+			if ( dst_as_it != accelStructMap.end() )
+			{
+				log << "\n    dstAS: " << PrintName( dst_as_it->second.name, info.dstAccelerationStructure );
+				#if PRINT_EXPECTED_STATE
+					log << " (stage: ACCELERATION_STRUCTURE_BUILD, access: ACCELERATION_STRUCTURE_WRITE)";
+				#endif
+			}
+
+			log << "\n    scratch: " << GetBufferAsString( info.scratchData );
+			#if PRINT_EXPECTED_STATE
+				log << " (stage: ACCELERATION_STRUCTURE_BUILD, access: ACCELERATION_STRUCTURE_READ | ACCELERATION_STRUCTURE_WRITE)";
+			#endif
+
+			log << "\n    type: ";
+			switch_enum( info.type )
+			{
+				case VK_ACCELERATION_STRUCTURE_TYPE_TOP_LEVEL_KHR :		log << "TopLevel";		break;
+				case VK_ACCELERATION_STRUCTURE_TYPE_BOTTOM_LEVEL_KHR :	log << "BottomLevel";	break;
+				case VK_ACCELERATION_STRUCTURE_TYPE_GENERIC_KHR :
+				case VK_ACCELERATION_STRUCTURE_TYPE_MAX_ENUM_KHR :
+				default :												log << "<unknown>";		break;
+			}
+			switch_end
+
+			log << "\n    mode: ";
+			switch_enum( info.mode )
+			{
+				case VK_BUILD_ACCELERATION_STRUCTURE_MODE_BUILD_KHR :	log << "Build";			break;
+				case VK_BUILD_ACCELERATION_STRUCTURE_MODE_UPDATE_KHR :	log << "Update";		break;
+				case VK_BUILD_ACCELERATION_STRUCTURE_MODE_MAX_ENUM_KHR :
+				default :												log << "<unknown>";		break;
+			}
+			switch_end
+
+			if ( info.pGeometries != null )
+			{
+				for (uint j = 0; j < info.geometryCount; ++j)
+				{
+					log << "\n    [" << ToString(i) << "] ";
+					LogGeometry( info.pGeometries[i] );
+				}
+			}
+			if ( info.ppGeometries != null )
+			{
+				for (uint j = 0; j < info.geometryCount; ++j)
+				{
+					log << "\n    [" << ToString(i) << "] ";
+					LogGeometry( *(info.ppGeometries[i]) );
+				}
+			}
+			log << "\n    ----";
+		}
+	}
+
+/*
+=================================================
+	_PrintDGC
+=================================================
+*/
+	void  VulkanLogger::_PrintDGC (String &log, const VkGeneratedCommandsInfoEXT &info, bool preprocess) const
+	{
+		// indirectExecutionSet
+		// indirectCommandsLayout
+
+		log << "\n    indirectAddress:      " << GetBufferAsString( info.indirectAddress ) << ", size: " << ToString(ulong{info.indirectAddressSize});
+		#if PRINT_EXPECTED_STATE
+			const StringView	stage	= preprocess ? "COMMAND_PREPROCESS"		 : "DRAW_INDIRECT";
+			const StringView	access	= preprocess ? "COMMAND_PREPROCESS_READ" : "INDIRECT_COMMAND_READ";
+			log << ", (stage: " << stage << ", access: " << access << ")";
+		#endif
+
+		log	<< "\n    preprocessAddress:    " << GetBufferAsString( info.preprocessAddress ) << ", size: " << ToString(ulong{info.preprocessSize});
+		#if PRINT_EXPECTED_STATE
+			log << ", (stage: " << stage << ", access: " << (preprocess ? "COMMAND_PREPROCESS_WRITE | COMMAND_PREPROCESS_READ" : "INDIRECT_COMMAND_READ") << ")";
+		#endif
+
+		log	<< "\n    sequenceCountAddress: " << GetBufferAsString( info.sequenceCountAddress ) << ", size: 4";
+		#if PRINT_EXPECTED_STATE
+			log << ", (stage: " << stage << ", access: " << access << ")";
+		#endif
+	}
+
+/*
+=================================================
+	_PrintIndirect
+=================================================
+*/
+	void  VulkanLogger::_PrintIndirect (String &log, VkBuffer buffer, VkDeviceSize offset, uint drawCount, uint stride) const
+	{
+		log << "\n    indirectBuf:  ";
+		if ( auto buf_it = bufferMap.find( buffer );  buf_it != bufferMap.end() )
+			log << PrintName( buf_it->second.name, buffer );
+
+		log << ", range: [" << ToString( Bytes{offset} ) << ", " << ToString(Bytes{ offset + drawCount * stride }) << ")";
+
+		#if PRINT_EXPECTED_STATE
+			log << ", (stage: DRAW_INDIRECT, access: INDIRECT_COMMAND_READ)";
+		#endif
+	}
+
+/*
+=================================================
+	_PrintIndirectCount
+=================================================
+*/
+	void  VulkanLogger::_PrintIndirectCount (String &log, VkBuffer buffer, VkDeviceSize offset, VkBuffer countBuffer, VkDeviceSize countBufferOffset, uint maxDrawCount, uint stride) const
+	{
+		log	<< "\n    indirectBuf:  ";
+		if ( auto buf_it = bufferMap.find( buffer );  buf_it != bufferMap.end() )
+			log << PrintName( buf_it->second.name, buffer );
+
+		log << ", range: [" << ToString( Bytes{offset} ) << ", " << ToString(Bytes{ offset + maxDrawCount * stride }) << ")";
+		#if PRINT_EXPECTED_STATE
+			log << ", (stage: DRAW_INDIRECT, access: INDIRECT_COMMAND_READ)";
+		#endif
+
+		log << "\n    countBuffer:  ";
+		if ( auto cbuf_it = bufferMap.find( countBuffer );  cbuf_it != bufferMap.end() )
+			log << PrintName( cbuf_it->second.name, countBuffer );
+
+		log << ", offset: " << ToString( Bytes{countBufferOffset} );
+		#if PRINT_EXPECTED_STATE
+			log << ", (stage: DRAW_INDIRECT, access: INDIRECT_COMMAND_READ)";
+		#endif
+	}
+
+/*
+=================================================
 	_PrintResourceUsage
 =================================================
 */
-	void  VulkanLogger::_PrintResourceUsage (CommandBufferData &cmdbuf, VkPipelineBindPoint pipelineBindPoint)
+	void  VulkanLogger::_PrintResourceUsage (CommandBufferData &cmdbuf, VkPipelineBindPoint pipelineBindPoint) const
 	{
+		if ( cmdbuf.log.back() != '\n' )
+			cmdbuf.log << '\n';
+
 	  #if PRINT_ALL_DS == 0
 		const uint			family_idx	= cmdbuf.queueFamilyIndex;
 	  #endif
@@ -5039,6 +5708,15 @@ namespace
 							tmp_log << "      image: " << PrintName( img.name, view_it->second.info.image ) << ", layout: " << VkImageLayoutToString( bind.images[a].imageLayout )
 								<< MipmapsToString( ", ", subres.baseMipLevel, subres.levelCount, img.info.mipLevels, true )
 								<< ArrayLayersToString( ", ", subres.baseArrayLayer, subres.layerCount, img.info.arrayLayers, true ) << '\n';
+
+							#if PRINT_EXPECTED_STATE
+								tmp_log.pop_back();
+								tmp_log << " (access: ";
+								if ( bind.descriptorType == VK_DESCRIPTOR_TYPE_STORAGE_IMAGE )		tmp_log << "SHADER_STORAGE_READ | SHADER_STORAGE_WRITE";	else
+								if ( bind.descriptorType == VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT )	tmp_log << "INPUT_ATTACHMENT_READ";							else
+																									tmp_log << "SHADER_SAMPLED_READ";
+								tmp_log << ")\n";
+							#endif
 						}
 						break;
 					}
@@ -5063,7 +5741,15 @@ namespace
 								continue;
 
 							auto&	buf = buffer_it->second;
-							tmp_log << "      buffer: " << PrintName( buf.name, view_it->second.info.buffer ) << "\n";
+							tmp_log << "      buffer: " << PrintName( buf.name, view_it->second.info.buffer ) << '\n';
+
+							#if PRINT_EXPECTED_STATE
+								tmp_log.pop_back();
+								tmp_log << " (access: ";
+								if ( bind.descriptorType == VK_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER )	tmp_log << "SHADER_STORAGE_READ | SHADER_STORAGE_WRITE";	else
+																										tmp_log << "SHADER_SAMPLED_READ";
+								tmp_log << ")\n";
+							#endif
 						}
 						break;
 					}
@@ -5086,7 +5772,17 @@ namespace
 								continue;
 
 							auto&	buf = buf_it->second;
-							tmp_log << "      buffer: " << PrintName( buf.name, bind.buffers[a].buffer ) << "\n";
+							tmp_log << "      buffer: " << PrintName( buf.name, bind.buffers[a].buffer ) << '\n';
+
+							#if PRINT_EXPECTED_STATE
+								tmp_log.pop_back();
+								tmp_log << " (access: ";
+								if ( AnyEqual( bind.descriptorType, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC ))
+									tmp_log << "UNIFORM_READ";
+								else
+									tmp_log << "SHADER_STORAGE_READ | SHADER_STORAGE_WRITE";
+								tmp_log << ")\n";
+							#endif
 						}
 						break;
 					}
@@ -5106,7 +5802,12 @@ namespace
 								continue;
 
 							auto&	as = as_it->second;
-							tmp_log << "      accel struct: " << PrintName( as.name, bind.accelStructs[a] ) << "\n";
+							tmp_log << "      accel struct: " << PrintName( as.name, bind.accelStructs[a] ) << '\n';
+
+							#if PRINT_EXPECTED_STATE
+								tmp_log.pop_back();
+								tmp_log << " (access: ACCELERATION_STRUCTURE_READ)\n";
+							#endif
 						}
 						break;
 					}
@@ -5200,6 +5901,8 @@ namespace
 		table._var_vkBindBufferMemory2KHR			= &Wrap_vkBindBufferMemory2;
 		table._var_vkFreeMemory						= &Wrap_vkFreeMemory;
 		table._var_vkInvalidateMappedMemoryRanges	= &Wrap_vkInvalidateMappedMemoryRanges;
+		table._var_vkCreateMicromapEXT				= &Wrap_vkCreateMicromapEXT;
+		table._var_vkDestroyMicromapEXT				= &Wrap_vkDestroyMicromapEXT;
 
 		table._var_vkQueueSubmit					= &Wrap_vkQueueSubmit;
 		table._var_vkQueueSubmit2KHR				= &Wrap_vkQueueSubmit2KHR;
@@ -5258,6 +5961,13 @@ namespace
 		table._var_vkCmdBindIndexBuffer				= &Wrap_vkCmdBindIndexBuffer;
 		table._var_vkCmdBindVertexBuffers			= &Wrap_vkCmdBindVertexBuffers;
 		table._var_vkCmdBindPipeline				= &Wrap_vkCmdBindPipeline;
+		table._var_vkCmdBuildMicromapsEXT			= &Wrap_vkCmdBuildMicromapsEXT;
+		table._var_vkCmdCopyMicromapEXT				= &Wrap_vkCmdCopyMicromapEXT;
+		table._var_vkCmdWriteMicromapsPropertiesEXT	= &Wrap_vkCmdWriteMicromapsPropertiesEXT;
+		table._var_vkCmdCopyMicromapToMemoryEXT		= &Wrap_vkCmdCopyMicromapToMemoryEXT;
+		table._var_vkCmdCopyMemoryToMicromapEXT		= &Wrap_vkCmdCopyMemoryToMicromapEXT;
+		table._var_vkCmdPreprocessGeneratedCommandsEXT = &Wrap_vkCmdPreprocessGeneratedCommandsEXT;
+		table._var_vkCmdExecuteGeneratedCommandsEXT	= &Wrap_vkCmdExecuteGeneratedCommandsEXT;
 
 	//	table._var_vkGetSemaphoreCounterValueKHR	= &Wrap_vkGetSemaphoreCounterValueKHR;
 
@@ -5346,6 +6056,10 @@ namespace
 		String	name = "sync-";
 		name << ToString( _syncNameCount++ );
 
+		#if 0
+			name << " (" << ToString<16>( BitCast<ulong>(sem) ) << ", " << ToString(val) << ")";
+		#endif
+
 		_syncNameMap.emplace( MakePair( sem, val ), name );
 		return name;
 	}
@@ -5377,6 +6091,17 @@ namespace
 				return "'"s << it->second.name << "', offset: " << ToString(ulong{addr - it->second.address});
 		}
 		return "<unknown>";
+	}
+
+/*
+=================================================
+	GetName
+=================================================
+*/
+	template <typename T>
+	String  VulkanLogger::GetName (T handle) const
+	{
+		// TODO
 	}
 
 } // namespace
@@ -5461,6 +6186,6 @@ void  VulkanSyncLog::GetLog (OUT String &log)
 		EXLOCK( logger.guard );
 
 		log.clear();
-		std::swap( log, logger.log );
+		std::swap( log, logger._log );
 	}
 }

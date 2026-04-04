@@ -11,21 +11,17 @@ extern void UnitTest_Preprocessor ();
 extern void UnitTest_Fn ();
 
 
-#ifdef AE_PLATFORM_ANDROID
-extern "C" AE_DLL_EXPORT int Tests_Scripting (const char* path)
-#else
-int main (const int argc, char* argv[])
-#endif
+TEST_ENTRY()
 {
 	BEGIN_TEST();
 
-	UnitTest_Array();
-	UnitTest_Class();
-	UnitTest_MathFunc();
-	UnitTest_String();
-	UnitTest_Exceptions();
-	UnitTest_Preprocessor();
-	UnitTest_Fn();
+	RUN_TEST( UnitTest_Array );
+	RUN_TEST( UnitTest_Class );
+	RUN_TEST( UnitTest_MathFunc );
+	RUN_TEST( UnitTest_String );
+	RUN_TEST( UnitTest_Exceptions );
+	RUN_TEST( UnitTest_Preprocessor );
+	RUN_TEST( UnitTest_Fn );
 
 	// TODO: multithreading test
 

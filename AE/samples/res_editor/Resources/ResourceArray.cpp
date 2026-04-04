@@ -1,6 +1,7 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
 #include "Resources/Buffer.h"
+#include "Resources/BufferView.h"
 #include "Resources/RTScene.h"
 #include "Resources/Image.h"
 #include "Resources/VideoImage.h"
@@ -50,6 +51,9 @@ namespace AE::ResEditor
 						ctx.ResourceState( ref->GetBufferId( fid ), ref_state );
 					}
 				},
+				[&] (const RC<BufferView> &buf) {
+					ctx.ResourceState( buf->GetViewId(), state );
+				},
 				[&] (const RC<RTScene> &scene) {
 					scene->Validate( fid );
 					ctx.ResourceState( scene->GetSceneId( fid ), state );
@@ -86,6 +90,9 @@ namespace AE::ResEditor
 			CHECK_ERR( Visit( res,
 				[&] (const RC<Buffer> &buf) {
 					return updater.BindBuffer( un, buf->GetBufferId( fid ));
+				},
+				[&] (const RC<BufferView> &buf) {
+					return updater.BindTexelBuffer( un, buf->GetViewId() );
 				},
 				[&] (const RC<RTScene> &scene) {
 					return updater.BindRayTracingScene( un, scene->GetSceneId( fid ));
@@ -125,6 +132,10 @@ namespace AE::ResEditor
 		{
 			Visit( res,
 				[&] (const RC<Buffer> &buf) {
+					if_unlikely( buf->RequireResize() )
+						result.push_back( buf );
+				},
+				[&] (const RC<BufferView> &buf) {
 					if_unlikely( buf->RequireResize() )
 						result.push_back( buf );
 				},

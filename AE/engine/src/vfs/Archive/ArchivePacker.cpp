@@ -22,7 +22,7 @@ namespace AE::VFS
 	{
 		DRC_EXLOCK( _drCheck );
 		CHECK( not _map.empty() );
-		CHECK( _archive == null );
+		CHECK_MSG( _archive == null, "archive is not stored before destruction" );
 	}
 
 /*

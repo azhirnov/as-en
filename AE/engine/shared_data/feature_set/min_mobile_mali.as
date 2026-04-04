@@ -13,6 +13,7 @@
 void ASmain ()
 {
 	// include:
+	//	Mali-G1U-1.3.305
 	//	Mali-G52-1.1.191
 	//	Mali-G52-1.3.278
 	//	Mali-G52.1.1.149
@@ -236,5 +237,6 @@ void ASmain ()
 	fset.framebufferColorSampleCounts({ 1, 4 });
 	fset.framebufferDepthSampleCounts({ 1, 4 });
 	fset.maxFramebufferLayers (256);
+	fset.separateDepthStencilRW (True);
 	fset.supportedQueues(EQueueMask( EQueueMask::Graphics ));
 }

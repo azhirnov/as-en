@@ -141,9 +141,9 @@ void DeclMultiViewRenderPass ()
 //-----------------------------------------------------------------------------
 
 
-void DeclRenderTech ()
+void DeclRenderTech_Graphics ()
 {
-	RC<RenderTechnique>	rtech = RenderTechnique( "DrawTestRT" );
+	RC<RenderTechnique>	rtech = RenderTechnique( "DrawTest.RTech" );
 
 	{
 		RC<GraphicsPass>	pass = rtech.AddGraphicsPass( "Draw_1" );
@@ -163,9 +163,12 @@ void DeclRenderTech ()
 }
 
 
-void DeclDebugRenderTech ()
+void DeclRenderTech_Debug ()
 {
-	RC<RenderTechnique>	rtech = RenderTechnique( "DebugDrawTestRT" );
+	RC<RenderTechnique>	rtech = RenderTechnique( "DebugDraw.RTech" );
+	rtech.AddFeatureSet( "MinDesktop" );
+	rtech.AddFeatureSet( "part.FragmentShaderTrace" );
+	rtech.AddFeatureSet( "part.VertexShaderTrace" );
 
 	{
 		RC<GraphicsPass>	pass = rtech.AddGraphicsPass( "Draw_1" );
@@ -185,9 +188,9 @@ void DeclDebugRenderTech ()
 }
 
 
-void DeclAsyncCompRenderTech ()
+void DeclRenderTech_AsyncCompute ()
 {
-	RC<RenderTechnique> rtech = RenderTechnique( "AsyncCompTestRT" );
+	RC<RenderTechnique> rtech = RenderTechnique( "AsyncComp.RTech" );
 
 	{
 		RC<GraphicsPass>	pass = rtech.AddGraphicsPass( "Draw_1" );
@@ -200,9 +203,9 @@ void DeclAsyncCompRenderTech ()
 }
 
 
-void DeclMeshShaderRenderTech ()
+void DeclRenderTech_MeshShader ()
 {
-	RC<RenderTechnique> rtech = RenderTechnique( "DrawMeshesTestRT" );
+	RC<RenderTechnique> rtech = RenderTechnique( "DrawMeshes.RTech" );
 	rtech.AddFeatureSet( "MinMeshShader" );
 	{
 		RC<GraphicsPass>	pass = rtech.AddGraphicsPass( "DrawMeshes_1" );
@@ -212,9 +215,9 @@ void DeclMeshShaderRenderTech ()
 }
 
 
-void DeclRayTracingRenderTech ()
+void DeclRenderTech_RayTracing ()
 {
-	RC<RenderTechnique>	rtech = RenderTechnique( "RayTracingTestRT" );
+	RC<RenderTechnique>	rtech = RenderTechnique( "RayTracing.RTech" );
 	rtech.AddFeatureSet( "MinRecursiveRayTracing" );
 	{
 		RC<ComputePass>	pass = rtech.AddComputePass( "RayTrace_1" );
@@ -222,9 +225,9 @@ void DeclRayTracingRenderTech ()
 }
 
 
-void DeclRayQueryRenderTech ()
+void DeclRenderTech_RayQuery ()
 {
-	RC<RenderTechnique> rtech = RenderTechnique( "RayQueryTestRT" );
+	RC<RenderTechnique> rtech = RenderTechnique( "RayQuery.RTech" );
 	rtech.AddFeatureSet( "MinInlineRayTracing" );
 	{
 		RC<ComputePass>	pass = rtech.AddComputePass( "RayTrace_1" );
@@ -232,9 +235,10 @@ void DeclRayQueryRenderTech ()
 }
 
 
-void DeclVRSRenderTech ()
+void DeclRenderTech_VRS ()
 {
-	RC<RenderTechnique>	rtech = RenderTechnique( "VRSTestRT" );
+	RC<RenderTechnique>	rtech = RenderTechnique( "VRS.RTech" );
+	rtech.AddFeatureSet( "part.ShadingRate.compat" );
 
 	{
 		RC<GraphicsPass>	pass = rtech.AddGraphicsPass( "nonVRS" );
@@ -248,9 +252,10 @@ void DeclVRSRenderTech ()
 }
 
 
-void DeclYcbcrSRenderTech ()
+void DeclRenderTech_Ycbcr ()
 {
 	RC<RenderTechnique>	rtech = RenderTechnique( "Ycbcr.RTech" );
+	rtech.AddFeatureSet( "part.samplerYcbcrConversion" );
 
 	{
 		RC<GraphicsPass>	pass = rtech.AddGraphicsPass( "Main" );
@@ -259,9 +264,11 @@ void DeclYcbcrSRenderTech ()
 	}
 }
 
-void DeclMultiViewRenderTech ()
+
+void DeclRenderTech_MultiView ()
 {
 	RC<RenderTechnique>	rtech = RenderTechnique( "MultiView.RTech" );
+	rtech.AddFeatureSet( "part.ViewportArray" );
 
 	{
 		RC<GraphicsPass>	pass = rtech.AddGraphicsPass( "MultiView" );
@@ -271,6 +278,31 @@ void DeclMultiViewRenderTech ()
 		RC<GraphicsPass>	pass = rtech.AddGraphicsPass( "ViewportArray" );
 
 		pass.SetRenderPass( "DrawTest.Draw_1", /*subpass*/"Main" );
+	}
+}
+
+
+void DeclRenderTech_IndirectCmds ()
+{
+	RC<RenderTechnique>	rtech = RenderTechnique( "IndirectCmds.RTech" );
+	rtech.AddFeatureSet( "MinIndirectCmds" );
+
+	{
+		RC<GraphicsPass>	pass = rtech.AddGraphicsPass( "Main" );
+
+		pass.SetRenderPass( "DrawTest.Draw_1", /*subpass*/"Main" );
+	}
+}
+
+
+void DeclRenderTech_OpacityMicromap ()
+{
+	RC<RenderTechnique>	rtech = RenderTechnique( "OpacityMicromap.RTech" );
+	rtech.AddFeatureSet( "MinRecursiveRayTracing" );
+	rtech.AddFeatureSet( "MinOpacityMicromap" );
+
+	{
+		RC<ComputePass>	pass = rtech.AddComputePass( "RayTrace_1" );
 	}
 }
 //-----------------------------------------------------------------------------
@@ -283,13 +315,15 @@ void ASmain ()
 	DeclVRSRenderPass();
 	DeclMultiViewRenderPass();
 
-	DeclRenderTech();
-	DeclDebugRenderTech();
-	DeclAsyncCompRenderTech();
-	DeclMeshShaderRenderTech();
-	DeclRayTracingRenderTech();
-	DeclRayQueryRenderTech();
-	DeclVRSRenderTech();
-	DeclYcbcrSRenderTech();
-	DeclMultiViewRenderTech();
+	DeclRenderTech_Graphics();
+	DeclRenderTech_Debug();
+	DeclRenderTech_AsyncCompute();
+	DeclRenderTech_MeshShader();
+	DeclRenderTech_RayTracing();
+	DeclRenderTech_RayQuery();
+	DeclRenderTech_VRS();
+	DeclRenderTech_Ycbcr();
+	DeclRenderTech_MultiView();
+	DeclRenderTech_IndirectCmds();
+	DeclRenderTech_OpacityMicromap();
 }

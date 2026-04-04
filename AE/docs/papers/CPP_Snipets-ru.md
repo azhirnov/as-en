@@ -11,6 +11,7 @@
 * [Variadic templates](#Variadic-templates)
 * [using](#using)
 * [Structured binding](#Structured-binding)
+* [template export](#Template-export)
 * [Макросы](#Макросы)
 * [Контейнеры](#Контейнеры)
 * [Время жизни объекта](#Время-жизни-объекта)
@@ -546,6 +547,10 @@ __inline__ __attribute__((__always_inline__)) [[clang::flatten]] void MyFn()
 }
 ```
 
+### Likely/Unlikely
+
+`[[unlikely]]` аттрибут подсказывает компилятору, что вероятность пойти по этому пути низкая, поэтому компилятор перемещает код в конец функции.
+Когда выполнение идет по вероятному пути, то инструкции расположены последовательно.
 ### Без внешних зависимостей
 
 `[[gnu::const]]` или `__attribute__((const))`<br/>
@@ -738,6 +743,30 @@ w.x = 0;  // OK
 w.y = 0;  // error
 ```
 
+
+## Template export
+
+Позволяет спрятать методы шаблона в cpp файл.
+
+Важный нюанс - MSVC позволяет объевить `template class` до реализации всех методов, а clang - нет.
+
+```cpp
+// .h
+template <typename T>
+struct Templ
+{
+	void foo();
+};
+
+extern template class Templ< int >;
+
+// .cpp
+template <typename T>
+void Templ<T>::foo()
+{}
+
+template class Templ< int >;
+```
 ## Модули
 
 ### Архитектура

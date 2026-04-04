@@ -20,14 +20,14 @@ namespace AE::Graphics
 	// variables
 	private:
 		VkAccelerationStructureKHR	_accelStruct	= Default;
-		VkBuffer					_buffer			= Default;
-		RTSceneDesc					_desc;
 		DeviceAddress				_address		= Default;
+		VkBuffer					_storage		= Default;
+		Bytes						_offset;
+		RTSceneDesc					_desc;
 
 		Strong<MemoryID>			_memoryId;
 
-		GFX_DBG_ONLY(	DebugName_t		_debugName;	)
-		DRC_ONLY(		RWDataRaceCheck	_drCheck;	)
+		GFX_DBG_ONLY( DebugName_t	_debugName;	)
 
 
 	// methods
@@ -38,13 +38,14 @@ namespace AE::Graphics
 		ND_ bool  Create (ResourceManager &, const RTSceneDesc &, GfxMemAllocatorPtr, StringView dbgName)			__NE___;
 			void  Destroy (ResourceManager &)																		__NE___;
 
-		ND_ VkAccelerationStructureKHR	Handle ()																	C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _accelStruct; }
-		ND_ DeviceAddress				GetDeviceAddress ()															C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _address; }
-		ND_ RTSceneDesc const&			Description ()																C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _desc; }
-		ND_ MemoryID					MemoryId ()																	C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _memoryId; }
-		ND_ bool						IsExclusiveSharing ()														C_NE___	{ return false; }
+		ND_ VkAccelerationStructureKHR	Handle ()																	C_NE___	{ return _accelStruct; }
+		ND_ DeviceAddress				GetDeviceAddress ()															C_NE___	{ return _address; }
+		ND_ RTSceneDesc const&			Description ()																C_NE___	{ return _desc; }
+		ND_ MemoryID					MemoryId ()																	C_NE___	{ return _memoryId; }
+		ND_ bool						IsExclusiveSharing ()														C_NE___	{ return true; }
+		ND_ BufferSubRange				GetBufferStorage ()															C_NE___;
 
-		GFX_DBG_ONLY( ND_ StringView	GetDebugName ()																C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _debugName; })
+		GFX_DBG_ONLY( ND_ StringView	GetDebugName ()																C_NE___	{ return _debugName; })
 
 
 		ND_ static bool				IsSerializedMemoryCompatible (const VDevice &dev, const void* ptr, Bytes size)	__NE___;

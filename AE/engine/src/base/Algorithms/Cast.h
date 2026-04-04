@@ -287,8 +287,10 @@ namespace AE::Base
 	  #endif
 		{
 		#ifdef AE_COMPILER_CLANG
-		#	pragma clang diagnostic push
+		# pragma clang diagnostic push
+		# if __clang_major__ > 19
 		#	pragma clang diagnostic ignored "-Wnontrivial-memcall"
+		# endif
 		#endif
 
 			To	dst;
@@ -296,7 +298,7 @@ namespace AE::Base
 			return dst;
 
 		#ifdef AE_COMPILER_CLANG
-		#	pragma clang diagnostic pop
+		# pragma clang diagnostic pop
 		#endif
 		}
 	}
@@ -323,8 +325,10 @@ namespace AE::Base
 	  #endif
 		{
 		#ifdef AE_COMPILER_CLANG
-		#	pragma clang diagnostic push
+		# pragma clang diagnostic push
+		# if __clang_major__ > 19
 		#	pragma clang diagnostic ignored "-Wnontrivial-memcall"
+		# endif
 		#endif
 
 			To	dst = {};
@@ -332,7 +336,7 @@ namespace AE::Base
 			return dst;
 
 		#ifdef AE_COMPILER_CLANG
-		#	pragma clang diagnostic pop
+		# pragma clang diagnostic pop
 		#endif
 		}
 	}

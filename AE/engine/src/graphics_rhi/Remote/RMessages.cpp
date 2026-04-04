@@ -57,6 +57,8 @@ namespace AE::RemoteGraphics::Msg
 
 	DECL_SERIALIZER( ProfGeneral_Initialize_Response::SerCpuCluster,	name, logicalCores )
 
+	//DECL_SERIALIZER( VideoProfile,		mode, codec, chromaSubsampling, lumaBitDepth, chromaBitDepth, spec )
+
 	DECL_SERIALIZER( DefaultResponse,		ok )
 	DECL_SERIALIZER( UploadData,			size )			// skip 'data'
 	DECL_SERIALIZER( UploadDataAndCopy,		size, dst )		// skip 'data'
@@ -113,7 +115,7 @@ namespace AE::RemoteGraphics::Msg
 	DECL_SERIALIZER( RTS_SkipCmdBatches,			queue, bits )
 
 	DECL_SERIALIZER( RTS_CreateBatch,				queue, flags, frameId, submitIdx, Ser_DebugLabel( dbgLabel ))
-	DECL_SERIALIZER( RTS_CreateBatch_Response,		batchId, semaphoreId )
+	DECL_SERIALIZER( RTS_CreateBatch_Response,		batchId, semaphoreId, semaphoreVal )
 
 	DECL_SERIALIZER( RTS_SubmitBatch,				id, submitIdx, cmdbufs, inputDeps, outputDeps )
 	DECL_SERIALIZER( RTS_DestroyBatch,				batchId, semaphoreId )
@@ -150,21 +152,33 @@ namespace AE::RemoteGraphics::Msg
 	#define Ser_RTSceneDesc( _desc_ )\
 		_desc_.size, _desc_.options
 
-	StaticAssert64( sizeof(RTGeometryBuild::ScratchBuffer) == 16 );
-	#define Ser_RTScratchBuffer( _desc_ )\
+	StaticAssert64( sizeof(RTMicromapDesc) == 16 );
+	#define Ser_RTMicromapDesc( _desc_ )\
+		_desc_.size, _desc_.type
+
+	StaticAssert64( sizeof(RTGeometryBuild::BufferWithOffset) == 16 );
+	#define Ser_BufferWithOffset( _desc_ )\
 		_desc_.id, _desc_.offset
 
-	StaticAssert64( sizeof(RTSceneBuild::InstanceBuffer) == 24 );
-	#define Ser_RTInstanceBuffer( _desc_ )\
+	StaticAssert64( sizeof(RTGeometryBuild::BufferWithOffsetAndStride) == 24 );
+	#define Ser_BufferWithOffsetAndStride( _desc_ )\
 		_desc_.id, _desc_.offset, _desc_.stride
 
-	StaticAssert64( sizeof(RTGeometryBuild) == 72 );
+	StaticAssert64( sizeof(RTGeometryBuild) == 88 );
 	#define Ser_RTGeometryBuild( _desc_ )\
-		_desc_.triangles, _desc_.aabbs, _desc_.options, Ser_RTScratchBuffer( _desc_.scratch )
+		_desc_.triangles, _desc_.aabbs, _desc_.micromaps, _desc_.options, Ser_BufferWithOffset( _desc_.scratch )
 
 	StaticAssert64( sizeof(RTSceneBuild) == 376 );
 	#define Ser_RTSceneBuild( _desc_ )\
-		_desc_.maxInstanceCount, _desc_.options, Ser_RTScratchBuffer( _desc_.scratch ), Ser_RTInstanceBuffer( _desc_.instanceData ), _desc_.uniqueGeoms
+		_desc_.maxInstanceCount, _desc_.options, Ser_BufferWithOffset( _desc_.scratch ), Ser_BufferWithOffsetAndStride( _desc_.instanceData ), _desc_.uniqueGeoms
+
+	StaticAssert64( sizeof(RTMicromapInfo) == 24 );
+	#define Ser_RTMicromapInfo( _desc_ )\
+		_desc_.type, _desc_.buildFlags, _desc_.usage
+
+	StaticAssert64( sizeof(RTMicromapBuild) == 80 );
+	#define Ser_RTMicromapBuild( _desc_ )\
+		Ser_RTMicromapInfo( _desc_ ), Ser_BufferWithOffset( _desc_.data ), Ser_BufferWithOffsetAndStride( _desc_.triangleArray ), Ser_BufferWithOffset( _desc_.scratch )
 
 	StaticAssert64( sizeof(BasePipelineDesc) == 96 );
 	#define Ser_BasePipelineDesc( _desc_ )\
@@ -192,23 +206,19 @@ namespace AE::RemoteGraphics::Msg
 	#define Ser_TilePipelineDesc( _desc_ )\
 		Ser_BasePipelineDesc( _desc_ ), _desc_.renderPass, _desc_.subpass, _desc_.localSize
 
-	//StaticAssert64( sizeof(VideoProfile) == 8 );
-	#define Ser_VideoProfile( _desc_ )\
-		_desc_.mode, _desc_.codec, _desc_.chromaSubsampling, _desc_.lumaBitDepth, _desc_.chromaBitDepth, _desc_.spec
-
 	//StaticAssert64( sizeof(VideoSessionDesc) == 40 );
 	#define Ser_VideoSessionDesc( _desc_ )\
-		_desc_.queue, _desc_.pictureFormat, Ser_VideoProfile( _desc_.profile ), _desc_.memType, \
+		_desc_.queue, _desc_.pictureFormat, /*_desc_.profile,*/ _desc_.memType, \
 		_desc_.maxCodedExtent, _desc_.referencePictureFormat, _desc_.maxDpbSlots, _desc_.maxActiveReferencePictures
 
 	//StaticAssert64( sizeof(VideoBufferDesc) == 32 );
 	#define Ser_VideoBufferDesc( _desc_ )\
-		_desc_.size, _desc_.usage, _desc_.options, _desc_.videoUsage, _desc_.memType, _desc_.queues, Ser_VideoProfile( _desc_.profile )
+		_desc_.size, _desc_.usage, _desc_.options, _desc_.videoUsage, _desc_.memType, _desc_.queues/*, _desc_.profiles*/
 
 	//StaticAssert64( sizeof(VideoImageDesc) == 112 );
 	#define Ser_VideoImageDesc( _desc_ )\
 		_desc_.dimension, _desc_.arrayLayers, _desc_.format, _desc_.options, _desc_.usage, _desc_.videoUsage, \
-		_desc_.memType, _desc_.queues, _desc_.ycbcrConversion, _desc_.ycbcrConvPack, Ser_VideoProfile( _desc_.profile )
+		_desc_.memType, _desc_.queues, _desc_.ycbcrConversion, _desc_.ycbcrConvPack/*, _desc_.profiles*/
 
 	StaticAssert64( sizeof(PipelinePackDesc) == 40 );
 	#define Ser_PipelinePackDesc( _desc_ )\
@@ -237,11 +247,17 @@ namespace AE::RemoteGraphics::Msg
 	DECL_SERIALIZER( ResMngr_CreateRTScene,					Ser_RTSceneDesc( desc ), gfxAlloc, dbgName )
 	DECL_SERIALIZER( ResMngr_CreateRTScene_Response,		sceneId, memoryId, addr, Ser_RTSceneDesc( desc ))
 
+	DECL_SERIALIZER( ResMngr_CreateRTMicromap,				Ser_RTMicromapDesc( desc ), gfxAlloc, dbgName )
+	DECL_SERIALIZER( ResMngr_CreateRTMicromap_Response,		micromapId, memoryId, Ser_RTMicromapDesc( desc ))
+
 	DECL_SERIALIZER( ResMngr_GetRTGeometrySizes,			Ser_RTGeometryBuild( desc ))
 	DECL_SERIALIZER( ResMngr_GetRTGeometrySizes_Response,	sizes )
 
 	DECL_SERIALIZER( ResMngr_GetRTSceneSizes,				Ser_RTSceneBuild( desc ))
 	DECL_SERIALIZER( ResMngr_GetRTSceneSizes_Response,		sizes )
+
+	DECL_SERIALIZER( ResMngr_GetRTMicromapBuildSizes,			Ser_RTMicromapInfo( desc ))
+	DECL_SERIALIZER( ResMngr_GetRTMicromapBuildSizes_Response,	sizes )
 
 	DECL_SERIALIZER( ResMngr_IsSupported_BufferDesc,		Ser_BufferDesc( desc ))
 	DECL_SERIALIZER( ResMngr_IsSupported_ImageDesc,			Ser_ImageDesc( desc ))
@@ -414,7 +430,7 @@ namespace AE::RemoteGraphics::Msg
 
 	DECL_SERIALIZER( SBM_GetImageRanges,					Ser_UploadImageDesc( uploadDesc ), Ser_ImageDesc( imageDesc ), maxSize, imageGranularity, frameId, upload )
 	DECL_SERIALIZER( SBM_GetImageRanges2,					Ser_UploadImageDesc( uploadDesc ), Ser_VideoImageDesc( videoDesc ), maxSize, imageGranularity, frameId, upload )
-	DECL_SERIALIZER( SBM_GetImageRanges_Response,			ranges, bufferRowLength, planeScaleY, format, dataRowPitch, dataSlicePitch )
+	DECL_SERIALIZER( SBM_GetImageRanges_Response,			ranges, bufferRowLength, planeScaleY, format, dataRowPitch, dataSlicePitch, regionDim )
 	DECL_SERIALIZER( SBM_GetImageRanges_Response::Result,	buffer, bufferOffset, size, mapped, imageOffset, imageDim, bufferSlicePitch )
 
 	DECL_SERIALIZER( SBM_AllocVStream,						frameId, size )
@@ -449,6 +465,10 @@ namespace AE::RemoteGraphics::Msg
 	DECL_SERIALIZER( CmdBuf_Bake::ImageBarrierCmd,					image, srcState, dstState )
 	DECL_SERIALIZER( CmdBuf_Bake::ImageRangeBarrierCmd,				image, srcState, dstState, subRes )
 	DECL_SERIALIZER( CmdBuf_Bake::ImageViewBarrierCmd,				imageView, srcState, dstState )
+	DECL_SERIALIZER( CmdBuf_Bake::RTGeometryBarrierCmd,				geomId, srcState, dstState )
+	DECL_SERIALIZER( CmdBuf_Bake::RTSceneBarrierCmd,				sceneId, srcState, dstState )
+	DECL_SERIALIZER( CmdBuf_Bake::RTMicromapBarrierCmd,				micromapId, srcState, dstState )
+	DECL_SERIALIZER( CmdBuf_Bake::VideoImageBarrierCmd,				imageId, srcState, dstState )
 	DECL_SERIALIZER( CmdBuf_Bake::MemoryBarrierCmd,					srcState, dstState )
 	DECL_SERIALIZER( CmdBuf_Bake::MemoryBarrier2Cmd,				srcScope, dstScope )
 	DECL_EMPTY_SERIALIZER( CmdBuf_Bake::MemoryBarrier3Cmd			)
@@ -511,7 +531,6 @@ namespace AE::RemoteGraphics::Msg
 	DECL_SERIALIZER( CmdBuf_Bake::Draw_SetBlendConstantsCmd,		color )
 	DECL_SERIALIZER( CmdBuf_Bake::Draw_SetDepthBoundsCmd,			minDepthBounds, maxDepthBounds )
 	DECL_SERIALIZER( CmdBuf_Bake::Draw_SetFragmentShadingRateCmd,	rate, primitiveOp, textureOp )
-	DECL_SERIALIZER( CmdBuf_Bake::Draw_SetViewportWScalingCmd,		scaling )
 	DECL_SERIALIZER( CmdBuf_Bake::Draw_BindIndexBufferCmd,			buffer, offset, indexType )
 	DECL_SERIALIZER( CmdBuf_Bake::Draw_BindVertexBuffersCmd,		firstBinding, buffers, offsets )
 	DECL_SERIALIZER( CmdBuf_Bake::DrawCmd,							vertexCount, instanceCount, firstVertex, firstInstance )

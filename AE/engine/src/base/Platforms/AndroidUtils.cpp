@@ -229,7 +229,12 @@ namespace AE::Base
 	https://developer.android.com/reference/android/os/Debug.html#isDebuggerConnected()
 =================================================
 */
-	bool  Android_IsUnderDebugger = false;  // extern
+	static bool  Android_IsUnderDebugger = false;
+
+	extern "C" void AE_DLL_EXPORT Android_SetIsUnderDebugger (bool value)
+	{
+		Android_IsUnderDebugger = value;
+	}
 
 	bool  AndroidUtils::IsUnderDebugger () __NE___
 	{
@@ -266,8 +271,8 @@ namespace AE::Base
 		::cpu_set_t  mask;
 		CPU_ZERO( OUT &mask );
 
-        StaticAssert( sizeof(mask.__bits[0]) == 8 );
-        mask.__bits[0] = coreMask.to_ullong();
+		StaticAssert( sizeof(mask.__bits[0]) == 8 );
+		mask.__bits[0] = coreMask.to_ullong();
 
 		return ::sched_setaffinity( pid, sizeof(mask), &mask ) == 0;
 	}

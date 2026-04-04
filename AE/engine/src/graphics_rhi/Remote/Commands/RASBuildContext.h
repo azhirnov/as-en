@@ -3,11 +3,8 @@
 #pragma once
 
 #ifdef AE_ENABLE_REMOTE_GRAPHICS
-# include "graphics_rhi/Remote/REnumCast.h"
 # include "graphics_rhi/Remote/Commands/RBaseContext.h"
 # include "graphics_rhi/Remote/Commands/RAccumBarriers.h"
-# include "graphics_rhi/Remote/Resources/RRTGeometry.h"
-# include "graphics_rhi/Remote/Resources/RRTScene.h"
 
 namespace AE::Graphics
 {
@@ -20,8 +17,8 @@ namespace AE::Graphics
 	{
 	// types
 	private:
-		using AccumBar		= Graphics::_hidden_::RAccumBarriers< RASBuildContext >;
-		using DeferredBar	= Graphics::_hidden_::RAccumDeferredBarriersForCtx< RASBuildContext >;
+		using AccumBar		= Graphics::_hidden_::AccumBarriers< RASBuildContext >;
+		using DeferredBar	= Graphics::_hidden_::AccumDeferredBarriersForCtx< RASBuildContext >;
 		using Validator_t	= Graphics::_hidden_::ASBuildContextValidation;
 
 
@@ -40,14 +37,20 @@ namespace AE::Graphics
 		void  Update (const RTSceneBuild &cmd, RTSceneID src, RTSceneID dst)										__Th_OV;
 		void  Copy   (RTSceneID src, RTSceneID dst, ERTASCopyMode mode = ERTASCopyMode::Clone)						__Th_OV;
 
+		void  Build (const RTMicromapBuild &cmd, RTMicromapID dst)													__Th_OV	{}	// TODO
+		void  Copy (RTMicromapID src, RTMicromapID dst, ERTASCopyMode mode = ERTASCopyMode::Clone)					__Th_OV	{}
+
 		void  WriteProperty (ERTASProperty property, RTGeometryID as, BufferID dstBuffer, Bytes offset, Bytes size)	__Th_OV;
 		void  WriteProperty (ERTASProperty property, RTSceneID as, BufferID dstBuffer, Bytes offset, Bytes size)	__Th_OV;
 
 		void  WriteProperty (ERTASProperty, RmRTGeometryID as, RmBufferID dstBuffer, Bytes offset, Bytes size)		__Th___;
 		void  WriteProperty (ERTASProperty, RmRTSceneID as, RmBufferID dstBuffer, Bytes offset, Bytes size)			__Th___;
 
+		void  WriteProperty (ERTASProperty property, RTMicromapID micromap, BufferID dstBuffer, Bytes offset, Bytes size = UMax) __Th_OV {}
+
 		Promise<Bytes>  ReadProperty (ERTASProperty property, RTGeometryID as)										__Th_OV	{ return _ReadProperty( property, as ); }
 		Promise<Bytes>  ReadProperty (ERTASProperty property, RTSceneID as)											__Th_OV	{ return _ReadProperty( property, as ); }
+		Promise<Bytes>  ReadProperty (ERTASProperty property, RTMicromapID micromap)								__Th_OV	{ return {}; }
 
 
 		// Vulkan only //
@@ -67,11 +70,17 @@ namespace AE::Graphics
 		void  SerializeToMemory (RTSceneID src, DeviceAddress dst)													__Th_OV;
 		void  SerializeToMemory (RTSceneID src, BufferID dst, Bytes dstOffset)										__Th_OV;
 
+		void  SerializeToMemory (RTMicromapID src, DeviceAddress dst)												__Th_OV	{}	// TODO
+		void  SerializeToMemory (RTMicromapID src, BufferID dst, Bytes dstOffset)									__Th_OV	{}
+
 		void  DeserializeFromMemory (DeviceAddress src, RTGeometryID dst)											__Th_OV;
 		void  DeserializeFromMemory (BufferID src, Bytes srcOffset, RTGeometryID dst)								__Th_OV;
 
 		void  DeserializeFromMemory (DeviceAddress src, RTSceneID dst)												__Th_OV;
 		void  DeserializeFromMemory (BufferID src, Bytes srcOffset, RTSceneID dst)									__Th_OV;
+
+		void  DeserializeFromMemory (DeviceAddress src, RTMicromapID dst)											__Th_OV	{}	// TODO
+		void  DeserializeFromMemory (BufferID src, Bytes srcOffset, RTMicromapID dst)								__Th_OV	{}
 
 		void  BuildClusterIndirect (const RTClusterBuild &)															__Th_OV	{ UNTESTED; }
 		void  BuildPartitionedIndirect (const RTPartitionedSceneBuild &)											__Th_OV	{ UNTESTED; }
@@ -86,45 +95,6 @@ namespace AE::Graphics
 		template <typename ASType>
 		ND_ Promise<Bytes>  _ReadProperty (ERTASProperty property, ASType as)										__Th___;
 	};
-
-
-/*
-=================================================
-	_ReadProperty
-=================================================
-*/
-	template <typename ASType>
-	Promise<Bytes>  RASBuildContext::_ReadProperty (ERTASProperty property, ASType asId) __Th___
-	{
-		//VALIDATE_GCTX( ReadProperty( property ));	// TODO
-
-		auto&		as	 = _GetResourcesOrThrow( asId );
-		const auto	size = SizeOf<Bytes>;
-
-		RStagingBufferManager&					sbm	= this->_mngr.GetStagingManager();
-		RStagingBufferManager::BufferRanges_t	buffers;
-
-		sbm.GetBufferRanges( OUT buffers, size, size, GraphicsConfig::StagingBufferOffsetAlign,
-							 GetFrameId(), EStagingHeapType::Static, False{"readback"} );
-
-		if_unlikely( buffers.empty() )
-			RETURN_ERR( "failed to allocate staging buffer" );	// TODO: throw?
-
-		ASSERT( buffers.size() == 1 );
-		WriteProperty( property, as.Handle(), buffers[0].bufferHandle, buffers[0].bufferOffset, size );
-
-		const void*	ptr = _ReadbackAlloc( buffers[0].devicePtr, size );
-
-		return Scheduler().Run(
-					ETaskQueue::PerFrame,
-					[](auto ptr) -> Promise<Bytes>
-					{
-						co_return *Cast<Bytes>(ptr);
-					}( ptr ),
-					Tuple{ this->_mngr.GetBatchRC() },
-					"RASBuildContext::ReadProperty"
-				);
-	}
 
 } // AE::Graphics
 

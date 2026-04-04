@@ -18,22 +18,23 @@ extern void UnitTest_SurfaceTransform ();
 
 #if defined(AE_ENABLE_VULKAN)
 	extern void Test_VulkanDevice (IApplication* app, IWindow* wnd);
-	extern void Test_VulkanRenderGraph (RC<VFS::IVirtualFileStorage> assetStorage, RC<VFS::IVirtualFileStorage> refStorage);
+	extern void Test_VulkanRenderGraph (RC<VFS::IVirtualFileStorage> assetStorage, RC<VFS::IVirtualFileStorage> refStorage, StringView, ArrayView<const char*>);
 
 #elif defined(AE_ENABLE_METAL)
 	extern void Test_MetalDevice (IApplication* app, IWindow* wnd);
-	extern void Test_MetalRenderGraph (RC<VFS::IVirtualFileStorage> assetStorage, RC<VFS::IVirtualFileStorage> refStorage);
+	extern void Test_MetalRenderGraph (RC<VFS::IVirtualFileStorage> assetStorage, RC<VFS::IVirtualFileStorage> refStorage, StringView, ArrayView<const char*>);
 
 #elif defined(AE_ENABLE_REMOTE_GRAPHICS)
 	extern void Test_RemoteDevice (IApplication* app, IWindow* wnd);
-	extern void Test_RemoteRenderGraph (RC<VFS::IVirtualFileStorage> assetStorage, RC<VFS::IVirtualFileStorage> refStorage);
+	extern void Test_RemoteRenderGraph (RC<VFS::IVirtualFileStorage> assetStorage, RC<VFS::IVirtualFileStorage> refStorage, StringView, ArrayView<const char*>);
 
 #else
 #	error not implemented
 #endif
 
 
-static void  RenderTests (RC<VFS::IVirtualFileStorage> assetStorage, RC<VFS::IVirtualFileStorage> refStorage)
+static void  RenderTests (RC<VFS::IVirtualFileStorage> assetStorage, RC<VFS::IVirtualFileStorage> refStorage,
+						  StringView test_name, ArrayView<const char*> args)
 {
 	CHECK_FATAL( assetStorage and refStorage );
 
@@ -45,24 +46,24 @@ static void  RenderTests (RC<VFS::IVirtualFileStorage> assetStorage, RC<VFS::IVi
 	CHECK_FATAL( Networking::SocketService::Instance().Initialize() );
 
 
-	UnitTest_BufferMemView();
-	UnitTest_EResourceState();
-	UnitTest_FeatureSet();
-	UnitTest_ImageDesc();
-	UnitTest_ImageSwizzle();
-	UnitTest_ImageMemView();
-	UnitTest_ImageUtils();
-	UnitTest_PixelFormat();
-	UnitTest_SurfaceTransform();
+	RUN_TEST( UnitTest_BufferMemView );
+	RUN_TEST( UnitTest_EResourceState );
+	RUN_TEST( UnitTest_FeatureSet );
+	RUN_TEST( UnitTest_ImageDesc );
+	RUN_TEST( UnitTest_ImageSwizzle );
+	RUN_TEST( UnitTest_ImageMemView );
+	RUN_TEST( UnitTest_ImageUtils );
+	RUN_TEST( UnitTest_PixelFormat );
+	RUN_TEST( UnitTest_SurfaceTransform );
 
 	#if defined(AE_ENABLE_VULKAN)
-		Test_VulkanRenderGraph( assetStorage, refStorage );
+		Test_VulkanRenderGraph( assetStorage, refStorage, test_name, args );
 
 	#elif defined(AE_ENABLE_METAL)
-		Test_MetalRenderGraph( assetStorage, refStorage );
+		Test_MetalRenderGraph( assetStorage, refStorage, test_name, args );
 
 	#elif defined(AE_ENABLE_REMOTE_GRAPHICS)
-		Test_RemoteRenderGraph( assetStorage, refStorage );
+		Test_RemoteRenderGraph( assetStorage, refStorage, test_name, args );
 
 	#else
 	#	error not implemented
@@ -77,156 +78,59 @@ static void  RenderTests (RC<VFS::IVirtualFileStorage> assetStorage, RC<VFS::IVi
 }
 
 
-#ifdef AE_PLATFORM_ANDROID
+extern "C" AE_DLL_EXPORT int Tests_GraphicsRHI (VFS::IVirtualFileStorage* assetStorage,
+												VFS::IVirtualFileStorage* refStorage)
+{
+	StaticLogger::LoggerScope log{};
 
-	extern "C" AE_DLL_EXPORT int Tests_GraphicsRHI2 (VFS::IVirtualFileStorage* assetStorage,
-													 VFS::IVirtualFileStorage* refStorage)
-	{
-		StaticLogger::LoggerScope log{};
-
-		RenderTests( RC{assetStorage}, RC{refStorage} );
-		return 0;
-	}
-
-	extern "C" AE_DLL_EXPORT int Tests_GraphicsRHI (const char* path)
-	{
-		BEGIN_TEST();
-
-	  #ifdef AE_CI_BUILD_TEST
-		const Path	ref_path	= Path{path} / AE_REF_IMG_PATH;
-		AE_LOGI( "ref_path: "s << ToString(ref_path) );
-	  #else
-		const Path	ref_path	= Path{path} / AE_REF_IMG_PATH "vulkan";
-	  #endif
-
-		auto	ref_storage		= VFS::VirtualFileStorageFactory::CreateDynamicFolder( ref_path, Default, True{"createFolder"} );
-		auto	asset_storage	= VFS::VirtualFileStorageFactory::CreateStaticFolder( path, Default );
-
-		RenderTests( asset_storage, ref_storage );
-		return 0;
-	}
-
-//-----------------------------------------------------------------------------
-#elif 1
-
-	int main (const int argc, char* argv[])
-	{
-		BEGIN_TEST();
-
-	  #ifdef AE_CI_BUILD_TEST
-		const Path	ref_path	= curr / AE_REF_IMG_PATH;
-		const Path	asset_path	= curr;
-
-	  #elif defined(AE_ENABLE_METAL)
-		const Path	ref_path	{AE_REF_IMG_PATH "metal"};
-		const Path	asset_path	{AE_RES_PACK_FOLDER};
-
-	  #elif defined(AE_ENABLE_VULKAN)
-		const Path	ref_path	{AE_REF_IMG_PATH "vulkan"};
-		const Path	asset_path	{AE_RES_PACK_FOLDER};
-
-	  #elif defined(AE_ENABLE_REMOTE_GRAPHICS)
-		const Path	ref_path	{AE_REF_IMG_PATH "remote"};
-		const Path	asset_path	{AE_RES_PACK_FOLDER};
-
-	  #else
-	  #	error not implemented
-	  #endif
-
-		auto	ref_storage		= VFS::VirtualFileStorageFactory::CreateDynamicFolder( ref_path, Default, True{"createFolder"} );
-		auto	asset_storage	= VFS::VirtualFileStorageFactory::CreateStaticFolder( asset_path, Default );
-
-		RenderTests( asset_storage, ref_storage );
-		return 0;
-	}
-
-//-----------------------------------------------------------------------------
-#else
+	RenderTests( RC{assetStorage}, RC{refStorage}, {}, {} );
+	return 0;
+}
 
 
-	class WndListener final : public IWindow::IWndListener
-	{
-	private:
-		IApplication&   _app;
+TEST_ENTRY()
+{
+	BEGIN_TEST();
 
-	public:
-		WndListener (IApplication &app)             __NE___ : _app{app} {}
-		~WndListener ()                             __NE_OV {}
+	Path	ref_path;
+	Path	asset_path;
 
-		void OnStateChanged (IWindow &, EState)     __NE_OV {}
-		void OnSurfaceDestroyed (IWindow &)         __NE_OV {}
+	#ifdef AE_CI_BUILD_TEST
+		ref_path	= curr / "tests_graphics_rhi_ref";
+		asset_path	= curr;
 
-		void OnSurfaceCreated (IWindow &wnd)        __NE_OV
+	#else
+		#if defined(AE_PLATFORM_WINDOWS) or defined(AE_PLATFORM_LINUX) or defined(AE_PLATFORM_MACOS)
 		{
-			#if defined(AE_ENABLE_VULKAN)
-				Test_VulkanDevice( &_app, &wnd );
+			Path	data_path = curr;
+			for (uint i = 0; i < 10; ++i)
+			{
+				if ( FileSystem::IsDirectory( data_path / "AE-Data" ))
+				{
+					ref_path	= data_path / "AE-Data/tests/graphics_rhi";
+					asset_path	= data_path / "AE-Temp/engine/graphics_rhi";
+					break;
+				}
 
-			#elif defined(AE_ENABLE_METAL)
-				Test_MetalDevice( &_app, &wnd );
-
-			#elif defined(AE_ENABLE_REMOTE_GRAPHICS)
-				Test_RemoteDevice( &_app, &wnd );
-
-			#else
-			#	error not implemented
-			#endif
-
-			wnd.Close();
-			AE_LOGI( "Tests.GraphicsRHI finished" );
+				data_path = data_path.parent_path();
+			}
 		}
-	};
+		#endif
 
+		#if defined(AE_ENABLE_METAL)
+			ref_path /= "metal";
+		#elif defined(AE_ENABLE_VULKAN)
+			ref_path /= "vulkan";
+		#elif defined(AE_ENABLE_REMOTE_GRAPHICS)
+			ref_path /= "remote";
+		#else
+		#	error not implemented
+		#endif
+	#endif
 
-	class AppListener final : public IApplication::IAppListener
-	{
-	private:
-		WindowPtr   _window;
+	auto	ref_storage		= VFS::VirtualFileStorageFactory::CreateDynamicFolder( ref_path, Default, True{"createFolder"} );
+	auto	asset_storage	= VFS::VirtualFileStorageFactory::CreateStaticFolder( asset_path, Default );
 
-	public:
-		AppListener ()                              __NE___
-		{
-			TaskScheduler::InstanceCtor::Create();
-
-			TaskScheduler::Config   cfg;
-			CHECK_FATAL( Scheduler().Setup( cfg ));
-			CHECK_FATAL( Networking::SocketService::Instance().Initialize() );
-		}
-
-		~AppListener ()                             __NE_OV
-		{
-			Scheduler().Release();
-			Networking::SocketService::Instance().Deinitialize();
-			TaskScheduler::InstanceCtor::Destroy();
-		}
-
-		void  OnStart (IApplication &app)           __NE_OV
-		{
-			_window = app.CreateWindow( MakeUnique<WndListener>( app ), Default );
-			CHECK_FATAL( _window );
-		}
-
-		void  BeforeWndUpdate (IApplication &)      __NE_OV {}
-
-		void  AfterWndUpdate (IApplication &app)    __NE_OV
-		{
-			if ( _window and _window->GetState() == IWindow::EState::Destroyed )
-				app.Terminate();
-		}
-
-		void  OnStop (IApplication &)               __NE_OV {}
-	};
-
-
-	Unique<IApplication::IAppListener>  AE_OnAppCreated ()
-	{
-		StaticLogger::InitDefault();
-
-		return MakeUnique<AppListener>();
-	}
-
-	void  AE_OnAppDestroyed ()
-	{
-		StaticLogger::Deinitialize( True{"checkMemLeaks"} );
-	}
-
-#endif // not AE_PLATFORM_ANDROID
+	RenderTests( asset_storage, ref_storage, test_name, ArrayView{argv, usize(Max(argc,0))} );
+	return 0;
+}

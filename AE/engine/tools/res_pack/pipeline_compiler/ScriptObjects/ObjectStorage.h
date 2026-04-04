@@ -16,6 +16,7 @@
 #include "res_pack/pipeline_compiler/ScriptObjects/ScriptSampler.h"
 #include "res_pack/pipeline_compiler/ScriptObjects/ScriptShader.h"
 #include "res_pack/pipeline_compiler/ScriptObjects/RayTracingShaderBinding.h"
+#include "res_pack/pipeline_compiler/ScriptObjects/IndirectExecutionSet.h"
 
 #include "res_pack/pipeline_compiler/Packer/HashToName.h"
 
@@ -245,6 +246,7 @@ namespace AE::PipelineCompiler
 		ND_ bool  SavePack (WStream &stream, bool addNameMapping, OUT PipelinePackOffsets &offsets)									const;
 		ND_ bool  SaveCppStructs (const Path &filename)																				const;
 		ND_ bool  SaveCppNames (const Path &filename, EReflectionFlags flags)														const;
+		ND_ bool  SaveShaderHeader (const Path &filename)																			const;
 
 
 		ND_ static Ptr<ObjectStorage>  Instance ();
@@ -346,6 +348,7 @@ AE_DECL_SCRIPT_OBJ_RC(	AE::PipelineCompiler::ScriptVertexBufferInput,				"Vertex
 AE_DECL_SCRIPT_OBJ_RC(	AE::PipelineCompiler::ShaderStructType,						"ShaderStructType"		);
 AE_DECL_SCRIPT_OBJ_RC(	AE::PipelineCompiler::ScriptShader,							"Shader"				);
 AE_DECL_SCRIPT_OBJ_RC(	AE::PipelineCompiler::RayTracingShaderBinding,				"RayTracingShaderBinding");
+AE_DECL_SCRIPT_OBJ_RC(	AE::PipelineCompiler::IndirectExecutionSet,					"IndirectExecutionSet"	);
 
 AE_DECL_SCRIPT_OBJ(		AE::PipelineCompiler::ArraySize,							"ArraySize"				);
 AE_DECL_SCRIPT_OBJ(		AE::PipelineCompiler::Align,								"Align"					);

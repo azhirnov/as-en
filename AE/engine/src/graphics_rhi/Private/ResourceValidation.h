@@ -19,7 +19,7 @@ namespace AE::Graphics
 	template <typename ResMngr>
 	ND_ bool  Buffer_IsSupported (const ResMngr &resMngr, const BufferDesc &desc) __NE___
 	{
-		StaticAssert( uint(EBufferUsage::All) == 0x3FFF );
+		StaticAssert( uint(EBufferUsage::All) == 0xFFFF );
 
 		if_unlikely( desc.size == 0 )
 			return false;
@@ -56,7 +56,7 @@ namespace AE::Graphics
 	template <typename ResMngr>
 	ND_ bool  BufferView_IsSupported (const ResMngr &resMngr, const BufferDesc &desc, const BufferViewDesc &view) __NE___
 	{
-		StaticAssert( uint(EBufferUsage::All) == 0x3FFF );
+		StaticAssert( uint(EBufferUsage::All) == 0xFFFF );
 
 		if_unlikely( NoBits( desc.usage, EBufferUsage_AllowBufferView ))
 			return false;
@@ -201,7 +201,7 @@ namespace AE::Graphics
 	ND_ bool  ImageView_IsSupported (const ResMngr &resMngr, const ImageDesc &desc, const ImageViewDesc &view) __NE___
 	{
 		StaticAssert( uint(EImageUsage::All) == 0x1FF );
-		StaticAssert( uint(EImageOpt::All) == 0x7FFFF );
+		StaticAssert( uint(EImageOpt::All) == 0xFFFFF );
 		ASSERT( view.format != Default );
 
 		if_unlikely( NoBits( desc.usage, EImageUsage_AllowImageView ))
@@ -276,21 +276,50 @@ namespace AE::Graphics
 
 /*
 =================================================
+	ERTASOptions_IsSupported
+=================================================
+*/
+	template <typename ResMngr>
+	ND_ bool  ERTASOptions_IsSupported (const ResMngr &resMngr, ERTASOptions options, Bool isGeometry) __NE___
+	{
+		StaticAssert( uint(ERTASOptions::All) == 0x7FF );
+
+		auto&			fs						= resMngr.GetFeatureSet();
+		constexpr auto	opacity_micromaps_mask	= ERTASOptions::AllowDisableOpacityMicromaps | ERTASOptions::AllowOpacityMicromapDataUpdate |
+												  ERTASOptions::AllowOpacityMicromapUpdate | ERTASOptions::AllowClusterOpacityMicromap;
+
+		if ( AnyBits( options, opacity_micromaps_mask ))
+		{
+			if ( fs.opacityMicromap != FeatureSet::EFeature::RequireTrue )
+				return false;
+		}
+		if ( AnyBits( options, ERTASOptions::AllowDisplacementMicromapUpdate ))
+		{
+			if ( fs.displacementMicromap != FeatureSet::EFeature::RequireTrue )
+				return false;
+		}
+
+		Unused( isGeometry );
+		return true;
+	}
+
+/*
+=================================================
 	RTGeometry_IsSupported
 =================================================
 */
 	template <typename ResMngr>
 	ND_ bool  RTGeometry_IsSupported (const ResMngr &resMngr, const RTGeometryDesc &desc) __NE___
 	{
-		if_unlikely( resMngr.GetFeatureSet().accelerationStructure() != FeatureSet::EFeature::RequireTrue )
+		auto&	fs = resMngr.GetFeatureSet();
+
+		if_unlikely( fs.accelerationStructure() != FeatureSet::EFeature::RequireTrue )
 			return false;
 
 		if_unlikely( desc.size == 0 )
 			return false;
 
-		// TODO: desc.options
-
-		return true;
+		return ERTASOptions_IsSupported( resMngr, desc.options, True{"geometry"} );
 	}
 
 /*
@@ -307,7 +336,97 @@ namespace AE::Graphics
 		if_unlikely( desc.size == 0 )
 			return false;
 
-		// TODO: desc.options
+		return ERTASOptions_IsSupported( resMngr, desc.options, False{"scene"} );
+	}
+
+/*
+=================================================
+	RTMicromapUsage_IsSupported
+=================================================
+*/
+	template <typename ResMngr>
+	ND_ bool  RTMicromapUsage_IsSupported (const ResMngr &resMngr, EMicromapType type, RTMicromapInfo::UsageArr_t usageArr) __NE___
+	{
+		auto&	fs = resMngr.GetFeatureSet();
+
+		switch_enum( type )
+		{
+			case EMicromapType::Opacity :
+				for (auto& usage : usageArr)
+				{
+					switch ( usage.format.opacity )
+					{
+						case EOpacityMicromapFormat::TwoState :
+							CHECK_ERR( usage.subdivisionLevel <= fs.maxOpacity2StateSubdivisionLevel );		break;
+
+						case EOpacityMicromapFormat::FourState :
+							CHECK_ERR( usage.subdivisionLevel <= fs.maxOpacity4StateSubdivisionLevel );		break;
+
+						case EOpacityMicromapFormat::Unknown :
+						default :
+							RETURN_ERR( "unsupported micromap format" ); break;
+					}
+				}
+				break;
+
+			case EMicromapType::Displacement :
+				for (auto& usage : usageArr)
+				{
+					CHECK_ERR( usage.subdivisionLevel < fs.maxDisplacementMicromapSubdivisionLevel );
+				}
+				break;
+
+			case EMicromapType::Unknown :
+				RETURN_ERR( "unsupported micromap type" );
+		}
+		switch_end
+		return true;
+	}
+
+/*
+=================================================
+	RTMicromapInfo_IsSupported
+=================================================
+*/
+	template <typename ResMngr>
+	ND_ bool  RTMicromapInfo_IsSupported (const ResMngr &resMngr, const RTMicromapInfo &) __NE___
+	{
+		if_unlikely( resMngr.GetFeatureSet().opacityMicromap != FeatureSet::EFeature::RequireTrue )
+			return false;
+
+		// TODO
+
+		return true;
+	}
+
+/*
+=================================================
+	RTMicromapDesc_IsSupported
+=================================================
+*/
+	template <typename ResMngr>
+	ND_ bool  RTMicromapDesc_IsSupported (const ResMngr &resMngr, const RTMicromapDesc &desc) __NE___
+	{
+		auto&	fs = resMngr.GetFeatureSet();
+
+		if_unlikely( fs.opacityMicromap != FeatureSet::EFeature::RequireTrue )
+			return false;
+
+		if_unlikely( desc.size == 0 )
+			return false;
+
+		switch_enum( desc.type )
+		{
+			case EMicromapType::Displacement :
+				if_unlikely( fs.displacementMicromap != FeatureSet::EFeature::RequireTrue )
+					return false;
+				break;
+
+			case EMicromapType::Opacity :	break;
+			case EMicromapType::Unknown :
+			default :						return false;
+		}
+		switch_end
 
 		return true;
 	}

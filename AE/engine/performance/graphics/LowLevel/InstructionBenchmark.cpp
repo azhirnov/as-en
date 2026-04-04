@@ -789,7 +789,7 @@ namespace
 		DirectCtx::Graphics	ctx{ self };
 
 		ctx.AccumBarriers()
-			.ImageBarrier( _res.rt, EResourceState::Unknown, EResourceState::ColorAttachment );
+			.ResourceBarrier( _res.rt, EResourceState::Unknown, EResourceState::ColorAttachment );
 
 		if ( q )
 			ctx.WriteTimestamp( q, qIndex*3+0, EPipelineScope::All );
@@ -824,7 +824,7 @@ namespace
 			copy.imageExtent			= uint3{1};
 
 			tctx.AccumBarriers()
-				.ImageBarrier( _res.rt, EResourceState::ColorAttachment, EResourceState::CopySrc );
+				.ResourceBarrier( _res.rt, EResourceState::ColorAttachment, EResourceState::CopySrc );
 
 			tctx.CopyImageToBuffer( _res.rt, _res.hostBuf, {copy} );
 
@@ -854,7 +854,7 @@ namespace
 		uint2	wg_size = uint2{ctx.GetResourceManager().GetResource( ppln )->LocalSize()};
 
 		ctx.AccumBarriers()
-			.ImageBarrier( _res.img, EResourceState::Unknown, state );
+			.ResourceBarrier( _res.img, EResourceState::Unknown, state );
 
 		if ( q )
 			ctx.WriteTimestamp( q, qIndex*3+0, EPipelineScope::All );
@@ -884,7 +884,7 @@ namespace
 			copy.imageExtent			= uint3{1};
 
 			tctx.AccumBarriers()
-				.ImageBarrier( _res.img, state, EResourceState::CopySrc );
+				.ResourceBarrier( _res.img, state, EResourceState::CopySrc );
 
 			tctx.CopyImageToBuffer( _res.img, _res.hostBuf, {copy} );
 

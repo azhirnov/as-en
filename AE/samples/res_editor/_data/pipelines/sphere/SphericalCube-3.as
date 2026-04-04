@@ -68,8 +68,8 @@
 	void Main ()
 	{
 		const uint		idx		= gl.VertexIndex;
-		const float2	coord	= un_Geometry.positions[idx].xy;
-		const int		face	= int(un_Geometry.positions[idx].z);
+		const float2	coord	= un_Geometry.position[idx].xy;
+		const int		face	= int(un_Geometry.position[idx].z);
 		float3			uvw		= float3(0.0);
 
 		switch ( iProj )

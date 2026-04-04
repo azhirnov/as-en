@@ -8,6 +8,7 @@ void  Widget ()
 	RC<PaddingLayout>	lt_0	= PaddingLayout( ELayoutType::PaddingLayoutPx );
 
 	lt_0.Padding( 10.f );  // px
+	lt_0.SetDrawable( RectangleDrawable( "col_red" ));
 
 
 	RC<UIWidget>	widget = UIWidget();

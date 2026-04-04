@@ -117,8 +117,7 @@ namespace {
 */
 	Unique<IntermImage>  ScriptTexture::_Load (const String &imageFile, bool flipY) __Th___
 	{
-		Path	path = ObjectStorage::Instance()->GetScriptFolder();
-		path.append( imageFile );
+		const Path	path = ObjectStorage::Instance()->GetResourcePath( imageFile );  // throw
 
 		Unique<IntermImage>	img{ new IntermImage{ path }};
 		AllImageLoaders		loader;

@@ -303,10 +303,10 @@ namespace AE::RG::_hidden_
 
 /*
 =================================================
-	_AddResource (RTGeometryID)
+	_AddResource3
 =================================================
 */
-	bool  ResStateTracker::_AddResource (RTGeometryID id, EResourceState currentState, EResourceState defaultState, const RC<CommandBatch> &batch, EQueueType queue) __NE___
+	bool  ResStateTracker::_AddResource3 (ResourceKey key, EResourceState currentState, EResourceState defaultState, const RC<CommandBatch> &batch, EQueueType queue) __NE___
 	{
 		if ( defaultState == Default )
 			defaultState = EResourceState::General;
@@ -314,7 +314,11 @@ namespace AE::RG::_hidden_
 		ResGlobalState			info;
 		info.defaultState		= defaultState;
 		info.currentState		= currentState;
-		info.exclusiveSharing	= false;
+		info.exclusiveSharing	= true;
+
+		StaticAssert( RTGeometryDesc::IsExclusiveSharing() );
+		StaticAssert( RTSceneDesc::IsExclusiveSharing() );
+		StaticAssert( RTMicromapDesc::IsExclusiveSharing() );
 
 		if ( batch )
 		{
@@ -326,35 +330,7 @@ namespace AE::RG::_hidden_
 		{
 			info.lastQueue = queue;
 		}
-		return _AddResource2( ResourceKey{id}, info );
-	}
-
-/*
-=================================================
-	_AddResource (RTSceneID)
-=================================================
-*/
-	bool  ResStateTracker::_AddResource (RTSceneID id, EResourceState currentState, EResourceState defaultState, const RC<CommandBatch> &batch, EQueueType queue) __NE___
-	{
-		if ( defaultState == Default )
-			defaultState = EResourceState::General;
-
-		ResGlobalState			info;
-		info.defaultState		= defaultState;
-		info.currentState		= currentState;
-		info.exclusiveSharing	= false;
-
-		if ( batch )
-		{
-			info.lastBatch	= batch->GetSemaphore();
-			info.lastQueue	= batch->GetQueueType();
-			ASSERT( queue == Default or info.lastQueue == queue );
-		}
-		else
-		{
-			info.lastQueue = queue;
-		}
-		return _AddResource2( ResourceKey{id}, info );
+		return _AddResource2( key, info );
 	}
 
 /*
@@ -394,6 +370,7 @@ namespace AE::RG::_hidden_
 	Strong<BufferID>		ResStateTracker::CreateBuffer (const NativeBufferDesc_t &desc, StringView dbgName)								__NE___	{ auto id = _ResMngr().CreateBuffer( desc, dbgName );						AddResource( id.Get() );	return RVRef(id); }
 	Strong<RTGeometryID>	ResStateTracker::CreateRTGeometry (const RTGeometryDesc &desc, StringView dbgName, GfxMemAllocatorPtr allocator)__NE___	{ auto id = _ResMngr().CreateRTGeometry( desc, dbgName, RVRef(allocator) );	AddResource( id.Get() );	return RVRef(id); }
 	Strong<RTSceneID>		ResStateTracker::CreateRTScene (const RTSceneDesc &desc, StringView dbgName, GfxMemAllocatorPtr allocator)		__NE___	{ auto id = _ResMngr().CreateRTScene( desc, dbgName, RVRef(allocator) );	AddResource( id.Get() );	return RVRef(id); }
+	Strong<RTMicromapID>	ResStateTracker::CreateRTMicromap (const RTMicromapDesc &desc, StringView dbgName, GfxMemAllocatorPtr allocator)__NE___	{ auto id = _ResMngr().CreateRTMicromap( desc, dbgName, RVRef(allocator) );	AddResource( id.Get() );	return RVRef(id); }
 
 	Strong<ImageViewID>		ResStateTracker::CreateImageView (const ImageViewDesc &desc, ImageID image, StringView dbgName)					__NE___	{ auto id = _ResMngr().CreateImageView( desc, image, dbgName );		AddResourceIfNotTracked( image );	return RVRef(id); }
 	Strong<BufferViewID>	ResStateTracker::CreateBufferView (const BufferViewDesc &desc, BufferID buffer, StringView dbgName)				__NE___	{ auto id = _ResMngr().CreateBufferView( desc, buffer, dbgName );	AddResourceIfNotTracked( buffer );	return RVRef(id); }
@@ -451,6 +428,7 @@ namespace AE::RG::_hidden_
 	bool  ResStateTracker::ReleaseResource (INOUT Strong<BufferID>		&id) __NE___ { return _ReleaseResource( id ); }
 	bool  ResStateTracker::ReleaseResource (INOUT Strong<RTGeometryID>	&id) __NE___ { return _ReleaseResource( id ); }
 	bool  ResStateTracker::ReleaseResource (INOUT Strong<RTSceneID>		&id) __NE___ { return _ReleaseResource( id ); }
+	bool  ResStateTracker::ReleaseResource (INOUT Strong<RTMicromapID>	&id) __NE___ { return _ReleaseResource( id ); }
 	bool  ResStateTracker::ReleaseResource (INOUT Strong<ImageViewID>	&id) __NE___ { return _ResMngr().ReleaseResource( INOUT id ); }
 	bool  ResStateTracker::ReleaseResource (INOUT Strong<BufferViewID>	&id) __NE___ { return _ResMngr().ReleaseResource( INOUT id ); }
 

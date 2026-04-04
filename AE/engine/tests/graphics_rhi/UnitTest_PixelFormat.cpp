@@ -2,6 +2,10 @@
 
 #include "UnitTest_Common.h"
 
+#ifdef AE_ENABLE_VULKAN
+# include "graphics_rhi/Vulkan/VEnumCast.h"
+#endif
+
 namespace
 {
 	static void PixelFormat_Test1 ()
@@ -203,6 +207,36 @@ namespace
 	}
 
 
+	static void PixelFormat_Test4 ()
+	{
+	#ifdef AE_ENABLE_VULKAN
+		const auto	Convert = [] (EPixelFormat fmt)
+		{{
+			#define FMT_BUILDER( _engineFmt_, _vkFormat_ )\
+				case EPixelFormat::_engineFmt_ : return _vkFormat_;
+
+			switch_enum( fmt )
+			{
+				AE_PRIVATE_VKPIXELFORMATS( FMT_BUILDER )
+				case EPixelFormat::SwapchainColor :
+				case EPixelFormat::Unknown :		break;
+			}
+			switch_end
+			#undef FMT_BUILDER
+			return VK_FORMAT_MAX_ENUM;
+		}};
+
+		for (uint i = 0; i < uint(EPixelFormat::_Count); ++i)
+		{
+			auto		fmt = EPixelFormat(i);
+			VkFormat	cur = VEnumCast( fmt );
+			VkFormat	ref = Convert( fmt );
+			TEST( cur == ref );
+		}
+	#endif
+	}
+
+
 	static void VertexType_Test1 ()
 	{
 		HashSet<EVertexType>	unique;
@@ -225,6 +259,7 @@ extern void UnitTest_PixelFormat ()
 	PixelFormat_Test1();
 	PixelFormat_Test2();
 	PixelFormat_Test3();
+	PixelFormat_Test4();
 
 	VertexType_Test1();
 

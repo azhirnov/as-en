@@ -56,6 +56,7 @@ namespace AE::Graphics
 		bool  AllocForBuffer (VkBuffer buffer, const BufferDesc &desc, OUT Storage_t &data)		__NE_OV;
 		bool  AllocForVideoSession (VkVideoSessionKHR, EMemoryType, OUT VideoStorageArr_t &data)__NE_OV;
 		bool  AllocForVideoImage (VkImage, const VideoImageDesc &, OUT VideoStorageArr_t &data)	__NE_OV;
+		bool  AllocStorage (Bytes, VkBufferUsageFlagBits2, OUT Storage_t &)						__NE_OV	{ return false; }
 
 		bool  Dealloc (INOUT Storage_t &data)													__NE_OV;
 

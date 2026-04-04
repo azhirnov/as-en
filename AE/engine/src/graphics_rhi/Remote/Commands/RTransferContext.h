@@ -3,7 +3,6 @@
 #pragma once
 
 #ifdef AE_ENABLE_REMOTE_GRAPHICS
-# include "graphics_rhi/Remote/REnumCast.h"
 # include "graphics_rhi/Remote/Commands/RBaseContext.h"
 # include "graphics_rhi/Remote/Commands/RAccumBarriers.h"
 
@@ -18,8 +17,8 @@ namespace AE::Graphics
 	{
 	// types
 	private:
-		using AccumBar		= Graphics::_hidden_::RAccumBarriers< RTransferContext >;
-		using DeferredBar	= Graphics::_hidden_::RAccumDeferredBarriersForCtx< RTransferContext >;
+		using AccumBar		= Graphics::_hidden_::AccumBarriers< RTransferContext >;
+		using DeferredBar	= Graphics::_hidden_::AccumDeferredBarriersForCtx< RTransferContext >;
 		using Validator_t	= Graphics::_hidden_::TransferContextValidation;
 
 
@@ -123,9 +122,6 @@ namespace AE::Graphics
 		ND_ ReadbackImageResult  _ReadbackImage (INOUT StreamType &stream)											__Th___;
 	};
 
-
 } // AE::Graphics
-
-# include "graphics_rhi/Private/TransferContextImpl.h"
 
 #endif // AE_ENABLE_REMOTE_GRAPHICS

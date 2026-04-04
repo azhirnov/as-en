@@ -2,11 +2,18 @@
 
 #pragma once
 
+// utils
+#include "Scripting/ScriptTransform.h"
+#include "Scripting/ScriptMesh.h"
+
 // resources
 #include "Scripting/ScriptImage.h"
 #include "Scripting/ScriptVideoImage.h"
 #include "Scripting/ScriptBuffer.h"
+#include "Scripting/ScriptBufferView.h"
+#include "Scripting/ScriptRTGeometry.h"
 #include "Scripting/ScriptRTScene.h"
+#include "Scripting/ScriptRTMicromap.h"
 #include "Scripting/ScriptDynamicVars.h"
 
 // pass/view
@@ -19,6 +26,9 @@
 #include "Scripting/ScriptRasterMip.h"
 #include "Scripting/ScriptRayTracingPass.h"
 #include "Scripting/ScriptScene.h"
+#include "Scripting/ScriptSceneGraphicsPass.h"
+#include "Scripting/ScriptSceneRayTracingPass.h"
+#include "Scripting/ScriptSceneRayQueryPass.h"
 
 // geometry source
 #include "Scripting/ScriptGeomSource.h"
@@ -95,6 +105,7 @@ namespace AE::ResEditor
 		class ScriptResolveImage;
 		class ScriptClearImage;
 		class ScriptClearBuffer;
+		class ScriptBuildRTMicromap;
 		class ScriptBuildRTGeometry;
 		class ScriptBuildRTScene;
 		class ScriptExportImage;
@@ -237,94 +248,112 @@ namespace AE::ResEditor
 		static void  _BuildRTScene (const ScriptRTScenePtr &)													__Th___;
 		static void  _BuildRTSceneIndirect (const ScriptRTScenePtr &)											__Th___;
 
-		static void  _GetCube2 (OUT ScriptArray<packed_float3>	&positions,
-							    OUT ScriptArray<packed_float3>	&normals,
-							    OUT ScriptArray<uint>			&indices)										__Th___;
-		static void  _GetCube3 (OUT ScriptArray<packed_float3>	&positions,
-							    OUT ScriptArray<packed_float3>	&normals,
-							    OUT ScriptArray<packed_float3>	&tangents,
-							    OUT ScriptArray<packed_float3>	&bitangents,
-							    OUT ScriptArray<packed_float2>	&texcoords,			// 2d
-							    OUT ScriptArray<uint>			&indices)										__Th___;
-		static void  _GetCube4 (OUT ScriptArray<packed_float3>	&positions,
-							    OUT ScriptArray<packed_float3>	&normals,
-							    OUT ScriptArray<packed_float3>	&tangents,
-							    OUT ScriptArray<packed_float3>	&bitangents,
-							    OUT ScriptArray<packed_float3>	&texcoords,			// cubemap
-							    OUT ScriptArray<uint>			&indices)										__Th___;
+		static void  _BuildRTMicromap (const ScriptRTMicromapPtr &)												__Th___;
 
-		static void  _GetSphericalCube1 (uint							lod,
-										 OUT ScriptArray<packed_float3>	&positions,
-										 OUT ScriptArray<uint>			&indices)								__Th___;
+	// deprecated begin
+	// use ScriptMesh instead
+	//	static void  _GetSphericalCube1 (uint							lod,
+	//									 OUT ScriptArray<packed_float3>	&positions,
+	//									 OUT ScriptArray<uint>			&indices)								__Th___;
 
-		static void  _GetSphere1 (uint								lod,
-								  OUT ScriptArray<packed_float3>	&positions,
-								  OUT ScriptArray<uint>				&indices)									__Th___;
-		static void  _GetSphere2 (uint								lod,
-								  OUT ScriptArray<packed_float3>	&positions,
-								  OUT ScriptArray<packed_float3>	&texcoords,		// cubemap
-								  OUT ScriptArray<uint>				&indices)									__Th___;
-		static void  _GetSphere3 (uint								lod,
-								  OUT ScriptArray<packed_float3>	&positions,
-								  OUT ScriptArray<packed_float3>	&normals,
-							      OUT ScriptArray<packed_float3>	&tangents,
-							      OUT ScriptArray<packed_float3>	&bitangents,
-							      OUT ScriptArray<packed_float3>	&texcoords,		// cubemap
-							      OUT ScriptArray<uint>				&indices)									__Th___;
-		static void  _GetSphere4 (uint								lod,
-								  OUT ScriptArray<packed_float3>	&positions,
-								  OUT ScriptArray<packed_float3>	&normals,
-							      OUT ScriptArray<packed_float3>	&tangents,
-							      OUT ScriptArray<packed_float3>	&bitangents,
-							      OUT ScriptArray<packed_float2>	&texcoords,		// 2d
-							      OUT ScriptArray<uint>				&indices)									__Th___;
-		static void  _GetSphere5 (uint								lod,
-								  OUT ScriptArray<packed_float3>	&positions,
-								  OUT ScriptArray<packed_float2>	&texcoords,		// 2d
-								  OUT ScriptArray<uint>				&indices)									__Th___;
+	//	static void  _TBNtoQuat (const ScriptArray<packed_float3>	&tangents,
+	//						     const ScriptArray<packed_float3>	&bitangents,
+	//						     const ScriptArray<packed_float3>	&normals,
+	//						     const ScriptArray<uint>			&indices,
+	//						     OUT   ScriptArray<packed_float4>	&tbnQuat)									__Th___;
 
-		static void  _GetGrid1 (uint							size,
-							    OUT ScriptArray<packed_float2>	&positions,			// unorm
-							    OUT ScriptArray<uint>			&indices)										__Th___;
-		static void  _GetGrid2 (uint							size,
-							    OUT ScriptArray<packed_float3>	&positions,			// unorm, XY space
-							    OUT ScriptArray<uint>			&indices)										__Th___;
+	//	static void  _GetCube2 (OUT ScriptArray<packed_float3>	&positions,
+	//						    OUT ScriptArray<packed_float3>	&normals,
+	//						    OUT ScriptArray<uint>			&indices)										__Th___;
+	//	static void  _GetCube3 (OUT ScriptArray<packed_float3>	&positions,
+	//						    OUT ScriptArray<packed_float3>	&normals,
+	//						    OUT ScriptArray<packed_float3>	&tangents,
+	//						    OUT ScriptArray<packed_float3>	&bitangents,
+	//						    OUT ScriptArray<packed_float2>	&texcoords,			// 2d
+	//						    OUT ScriptArray<uint>			&indices)										__Th___;
+	//	static void  _GetCube4 (OUT ScriptArray<packed_float3>	&positions,
+	//						    OUT ScriptArray<packed_float3>	&normals,
+	//						    OUT ScriptArray<packed_float3>	&tangents,
+	//						    OUT ScriptArray<packed_float3>	&bitangents,
+	//						    OUT ScriptArray<packed_float3>	&texcoords,			// cubemap
+	//						    OUT ScriptArray<uint>			&indices)										__Th___;
 
-		static void  _GetCylinder1 (uint							segmentCount,
-									bool							isInner,
-									OUT ScriptArray<packed_float3>	&positions,
-									OUT ScriptArray<packed_float2>	&texcoords,
-									OUT ScriptArray<uint>			&indices)									__Th___;
-		static void  _GetCylinder2 (uint							segmentCount,
-									bool							isInner,
-									OUT ScriptArray<packed_float3>	&positions,
-									OUT ScriptArray<packed_float3>	&normals,
-									OUT ScriptArray<packed_float3>	&tangents,
-									OUT ScriptArray<packed_float3>	&bitangents,
-									OUT ScriptArray<packed_float2>	&texcoords,
-									OUT ScriptArray<uint>			&indices)									__Th___;
+	//	static void  _GetSphere1 (uint								lod,
+	//							  OUT ScriptArray<packed_float3>	&positions,
+	//							  OUT ScriptArray<uint>				&indices)									__Th___;
+	//	static void  _GetSphere2 (uint								lod,
+	//							  OUT ScriptArray<packed_float3>	&positions,
+	//							  OUT ScriptArray<packed_float3>	&texcoords,		// cubemap
+	//							  OUT ScriptArray<uint>				&indices)									__Th___;
+	//	static void  _GetSphere3 (uint								lod,
+	//							  OUT ScriptArray<packed_float3>	&positions,
+	//							  OUT ScriptArray<packed_float3>	&normals,
+	//						      OUT ScriptArray<packed_float3>	&tangents,
+	//						      OUT ScriptArray<packed_float3>	&bitangents,
+	//						      OUT ScriptArray<packed_float3>	&texcoords,		// cubemap
+	//						      OUT ScriptArray<uint>				&indices)									__Th___;
+	//	static void  _GetSphere4 (uint								lod,
+	//							  OUT ScriptArray<packed_float3>	&positions,
+	//							  OUT ScriptArray<packed_float3>	&normals,
+	//						      OUT ScriptArray<packed_float3>	&tangents,
+	//						      OUT ScriptArray<packed_float3>	&bitangents,
+	//						      OUT ScriptArray<packed_float2>	&texcoords,		// 2d
+	//						      OUT ScriptArray<uint>				&indices)									__Th___;
+	//	static void  _GetSphere5 (uint								lod,
+	//							  OUT ScriptArray<packed_float3>	&positions,
+	//							  OUT ScriptArray<packed_float2>	&texcoords,		// 2d
+	//							  OUT ScriptArray<uint>				&indices)									__Th___;
 
-		static void  _GetCone1 (uint							segmentCount,
-								float							radius,
-								float							height,
-								OUT ScriptArray<packed_float3>	&positions,
-								OUT ScriptArray<uint>			&indices)										__Th___;
-		static void  _GetCone2 (uint							segmentCount,
-								float							radius,
-								float							height,
-								OUT ScriptArray<packed_float3>	&positions,
-								OUT ScriptArray<packed_float3>	&normals,
-								OUT ScriptArray<packed_float2>	&texcoords,
-								OUT ScriptArray<uint>			&indices)										__Th___;
-		static void  _GetCone3 (uint							segmentCount,
-								float							radius,
-								float							height,
-								OUT ScriptArray<packed_float3>	&positions,
-								OUT ScriptArray<packed_float3>	&normals,
-								OUT ScriptArray<packed_float3>	&tangents,
-								OUT ScriptArray<packed_float3>	&bitangents,
-								OUT ScriptArray<packed_float2>	&texcoords,
-								OUT ScriptArray<uint>			&indices)										__Th___;
+	//	static void  _GetGrid1 (uint							size,
+	//						    OUT ScriptArray<packed_float2>	&positions,			// unorm
+	//						    OUT ScriptArray<uint>			&indices)										__Th___;
+	//	static void  _GetGrid2 (uint							size,
+	//						    OUT ScriptArray<packed_float3>	&positions,			// unorm, XY space
+	//						    OUT ScriptArray<uint>			&indices)										__Th___;
+
+	//	static void  _GetCylinder1 (uint							segmentCount,
+	//								bool							isInner,
+	//								OUT ScriptArray<packed_float3>	&positions,
+	//								OUT ScriptArray<packed_float2>	&texcoords,
+	//								OUT ScriptArray<uint>			&indices)									__Th___;
+	//	static void  _GetCylinder2 (uint							segmentCount,
+	//								bool							isInner,
+	//								OUT ScriptArray<packed_float3>	&positions,
+	//								OUT ScriptArray<packed_float3>	&normals,
+	//								OUT ScriptArray<packed_float3>	&tangents,
+	//								OUT ScriptArray<packed_float3>	&bitangents,
+	//								OUT ScriptArray<packed_float2>	&texcoords,
+	//								OUT ScriptArray<uint>			&indices)									__Th___;
+
+	//	static void  _GetCone1 (uint							segmentCount,
+	//							float							radius,
+	//							float							height,
+	//							OUT ScriptArray<packed_float3>	&positions,
+	//							OUT ScriptArray<uint>			&indices)										__Th___;
+	//	static void  _GetCone2 (uint							segmentCount,
+	//							float							radius,
+	//							float							height,
+	//							OUT ScriptArray<packed_float3>	&positions,
+	//							OUT ScriptArray<packed_float3>	&normals,
+	//							OUT ScriptArray<packed_float2>	&texcoords,
+	//							OUT ScriptArray<uint>			&indices)										__Th___;
+	//	static void  _GetCone3 (uint							segmentCount,
+	//							float							radius,
+	//							float							height,
+	//							OUT ScriptArray<packed_float3>	&positions,
+	//							OUT ScriptArray<packed_float3>	&normals,
+	//							OUT ScriptArray<packed_float3>	&tangents,
+	//							OUT ScriptArray<packed_float3>	&bitangents,
+	//							OUT ScriptArray<packed_float2>	&texcoords,
+	//							OUT ScriptArray<uint>			&indices)										__Th___;
+
+	//	static void  _IndicesToPrimitives (const ScriptArray<uint>			&indices,
+	//									   OUT ScriptArray<packed_uint3>	&primitives)						__Th___;
+
+	//	static void  _MergeMesh (INOUT ScriptArray<uint>	&srcIndices,
+	//							 uint						srcVertexCount,
+	//							 const ScriptArray<uint>	&indicesToAdd)										__Th___;
+	// deprecated end
 
 		static void  _GetFrustumIndices (OUT ScriptArray<uint> &indices)										__Th___;
 
@@ -340,13 +369,6 @@ namespace AE::ResEditor
 										  OUT ScriptArray<uint> &transitionCellData,
 										  OUT ScriptArray<uint> &transitionCornerData,
 										  OUT ScriptArray<uint> &transitionVertexData)							__Th___;
-
-		static void  _IndicesToPrimitives (const ScriptArray<uint>			&indices,
-										   OUT ScriptArray<packed_uint3>	&primitives)						__Th___;
-
-		static void  _MergeMesh (INOUT ScriptArray<uint>	&srcIndices,
-								 uint						srcVertexCount,
-								 const ScriptArray<uint>	&indicesToAdd)										__Th___;
 
 		static void  _ExtrudeAndMerge (const ScriptArray<packed_float2>		&lineStrip,
 										float								height,
@@ -498,6 +520,7 @@ namespace AE::ResEditor
 		friend class ScriptRayTracingPass;
 		friend class ScriptSceneGraphicsPass;
 		friend class ScriptSceneRayTracingPass;
+		friend class ScriptSceneRayQueryPass;
 
 			static RTechInfo	ConvertAndLoad (Function<void (ScriptEnginePtr)> fn,
 												ScriptBasePass::EFlags flags)			__Th___;
@@ -525,12 +548,14 @@ namespace AE::ResEditor
 	class ScriptExe::ScriptResourceApi
 	{
 		friend class ScriptBuffer;
+		friend class ScriptBufferView;
 		friend class ScriptImage;
 		friend class ScriptVideoImage;
 		friend class ScriptSphericalCube;
 		friend class ScriptUniGeometry;
 		friend class ScriptRTGeometry;
 		friend class ScriptRTScene;
+		friend class ScriptRTMicromap;
 		friend class ScriptModelGeometrySrc;
 
 		ND_ static Renderer&	GetRenderer ()											__Th___;
@@ -554,7 +579,6 @@ namespace AE::ResEditor
 AE_DECL_SCRIPT_OBJ(		AE::ResEditor::RTInstanceCustomIndex,			"RTInstanceCustomIndex" );
 AE_DECL_SCRIPT_OBJ(		AE::ResEditor::RTInstanceMask,					"RTInstanceMask"	);
 AE_DECL_SCRIPT_OBJ(		AE::ResEditor::RTInstanceSBTOffset,				"RTInstanceSBTOffset" );
-AE_DECL_SCRIPT_OBJ(		AE::ResEditor::RTInstanceTransform,				"RTInstanceTransform" );
 
 // pass/view
 AE_DECL_SCRIPT_OBJ_RC(	AE::ResEditor::ScriptBasePass,					"IPass"				);
@@ -566,6 +590,7 @@ AE_DECL_SCRIPT_OBJ_RC(	AE::ResEditor::ScriptRayTracingPass,			"RayTracingPass"	)
 AE_DECL_SCRIPT_OBJ_RC(	AE::ResEditor::ScriptScene,						"Scene"				);
 AE_DECL_SCRIPT_OBJ_RC(	AE::ResEditor::ScriptSceneGraphicsPass,			"SceneGraphicsPass"	);
 AE_DECL_SCRIPT_OBJ_RC(	AE::ResEditor::ScriptSceneRayTracingPass,		"SceneRayTracingPass");
+AE_DECL_SCRIPT_OBJ_RC(	AE::ResEditor::ScriptSceneRayQueryPass,			"SceneRayQueryPass"	);
 
 // controller
 AE_DECL_SCRIPT_OBJ_RC(	AE::ResEditor::ScriptBaseController,			"BaseController"	);

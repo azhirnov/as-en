@@ -35,33 +35,33 @@
 			arg_buf.UseLayout(
 				"ArgBuffer",
 
-				"	uint		enable;"s +
-				"	uint		iteration;" +
-				"	uint		iteration2;" +
+				"	uint		enable;"
+				"	uint		iteration;"
+				"	uint		iteration2;"
 
 				// LEARN_GRADIENT
-				"	float *		layer1_weights;" +
-				"	float *		layer1_weightsGrad;" +
-				"	float *		layer1_biases;" +
-				"	float *		layer1_biasesGrad;" +
+				"	float *		layer1_weights;"
+				"	float *		layer1_weightsGrad;"
+				"	float *		layer1_biases;"
+				"	float *		layer1_biasesGrad;"
 
-				"	float *		layer2_weights;" +
-				"	float *		layer2_weightsGrad;" +
-				"	float *		layer2_biases;" +
-				"	float *		layer2_biasesGrad;" +
+				"	float *		layer2_weights;"
+				"	float *		layer2_weightsGrad;"
+				"	float *		layer2_biases;"
+				"	float *		layer2_biasesGrad;"
 
-				"	float2 *	inputs;" +
-				"	uint		inputCount;" +
-				"	Atomic<uint>	loss;" +
+				"	float2 *	inputs;"
+				"	uint		inputCount;"
+				"	Atomic<uint>	loss;"
 
 				// ADJUST_PARAMETERS
-				"	uint		gradientsCount;" +
+				"	uint		gradientsCount;"
 
-				"	float *		adamState_mean;" +
-				"	float *		adamState_variance;" +
-				"	int *		adamState_iteration;" +
+				"	float *		adamState_mean;"
+				"	float *		adamState_variance;"
+				"	int *		adamState_iteration;"
 
-				"	float *		params;" +
+				"	float *		params;"
 				"	float *		gradients;"
 			);
 			arg_buf.AddReference( large_buf );

@@ -25,37 +25,33 @@ extern void UnitTest_LfStaticBlockAllocator ();
 extern void UnitTest_TsSharedMem ();
 
 
-#ifdef AE_PLATFORM_ANDROID
-extern "C" AE_DLL_EXPORT int Tests_Threading (const char* path)
-#else
-int main (const int argc, char* argv[])
-#endif
+TEST_ENTRY()
 {
 	BEGIN_TEST();
 
-	UnitTest_Task();
-	UnitTest_Promise();
-	UnitTest_AsyncDataSource( curr );
+	RUN_TEST( UnitTest_Task );
+	RUN_TEST( UnitTest_Promise );
+	RUN_TEST( UnitTest_AsyncDataSource, curr );
 
-	UnitTest_TsSharedMem();
+	RUN_TEST( UnitTest_TsSharedMem );
 
-	UnitTest_LfChunkList();
-	UnitTest_LfIndexedPool();
-	UnitTest_LfStaticPool();
-	UnitTest_LfStaticIndexedPool();
-	UnitTest_LfTaskQueue();
+	RUN_TEST( UnitTest_LfChunkList );
+	RUN_TEST( UnitTest_LfIndexedPool );
+	RUN_TEST( UnitTest_LfStaticPool );
+	RUN_TEST( UnitTest_LfStaticIndexedPool );
+	RUN_TEST( UnitTest_LfTaskQueue );
 
-	UnitTest_LfFixedBlockAllocator3();
-	UnitTest_LfLinearAllocator();
-	UnitTest_LfStaticBlockAllocator();
+	RUN_TEST( UnitTest_LfFixedBlockAllocator3 );
+	RUN_TEST( UnitTest_LfLinearAllocator );
+	RUN_TEST( UnitTest_LfStaticBlockAllocator );
 
-	UnitTest_SpinLock();
-	UnitTest_Synchronized();
-	UnitTest_Barrier();
-	UnitTest_Semaphore();
+	RUN_TEST( UnitTest_SpinLock );
+	RUN_TEST( UnitTest_Synchronized );
+	RUN_TEST( UnitTest_Barrier );
+	RUN_TEST( UnitTest_Semaphore );
 
-	UnitTest_AsyncMutex();
-	UnitTest_SyncPoint();
+	RUN_TEST( UnitTest_AsyncMutex );
+	RUN_TEST( UnitTest_SyncPoint );
 
 	AE_LOGI( "Tests.Threading finished" );
 	return 0;

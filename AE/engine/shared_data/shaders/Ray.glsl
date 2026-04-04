@@ -83,7 +83,8 @@ ND_ float2	RayInverse_FishEye (const float fov, const float3 rayDir);
 ND_ float2	RayInverse_DualFishEye (const float fov, const float3 rayDir, float uvScale);
 ND_ float2	RayInverse_FishEyeVR (const float fov, const float3 rayDir, const uint eye);
 ND_ float2	RayInverse_Paraboloid (const float3 rayDir);
-ND_ float2	RayInverse_DualParaboloid (float3 rayDir);
+ND_ float2	RayInverse_DualParaboloid2D (float3 rayDir);
+ND_ float3	RayInverse_DualParaboloid (float3 rayDir);											// returns YV + layer (front, back)
 ND_ float2  RayInverse_Panini (const float fov, const float3 rayDir);							// returns snorm
 ND_ float2  RayInverse_Panini (const float fov, const float2 screenDim, const float3 rayDir);	// returns pixels
 
@@ -528,8 +529,8 @@ float2  RayInverse_Panini (const float fov, const float3 dir)
 float2  RayInverse_Panini (const float fov, const float2 screenDim, const float3 rayDir)
 {
 	float2	uv		= RayInverse_Panini( fov, rayDir );
-    float	aspect	= screenDim.y / screenDim.x;
-    float2	scr_pos	= (uv + float2(1.0, aspect)) * (screenDim.x * 0.5);
+	float	aspect	= screenDim.y / screenDim.x;
+	float2	scr_pos	= (uv + float2(1.0, aspect)) * (screenDim.x * 0.5);
 	return	scr_pos;
 }
 
@@ -570,9 +571,9 @@ Ray  Ray_FishEye (const float3 origin, const float nearPlane, const float fov, c
 float2  RayInverse_FishEye (const float2 fov, const float3 rayDir, float uvScale)
 {
 	float	theta	= ACos( Clamp( rayDir.z, -1.0, 1.0 ));
-    float2	r		= uvScale * theta / (fov * 0.5);
-    float	phi		= ATan( rayDir.y, rayDir.x );
-    float2	uv		= ToUNorm( r * float2( Cos(phi), Sin(phi) ));
+	float2	r		= uvScale * theta / (fov * 0.5);
+	float	phi		= ATan( rayDir.y, rayDir.x );
+	float2	uv		= ToUNorm( r * float2( Cos(phi), Sin(phi) ));
 	return	AllLess( r, float2(1.0) ) ? uv : float2(-1.0);
 }
 
@@ -684,11 +685,16 @@ Ray  Ray_Paraboloid (const float3 origin, const float nearPlane, const float2 un
 */
 float2  RayInverse_Paraboloid (const float3 rayDir)
 {
-	float	t		= ToUNorm( rayDir.y );			// [0, 1]
-	float	r2		= (1.0 - t) / (1.0 + t);
-	float2	uv		= rayDir.xz * ToUNorm( r2 );	// [-1, +1]
-	bool	valid	= Dot( uv, uv ) <= 1.0;
-	return	valid ? ToUNorm( uv ) : float2(-1.0);
+	float	dy	= rayDir.y;
+	float	h	= 1.0 - dy * dy;  // dx² + dz²
+
+	float	s	= h < 1.0e-7 ?
+					(dy > 0.0 ? 0.0 : 1.0e7) :  // pole cases
+					(-dy + Sqrt(3.0 - 2.0 * dy * dy)) / (3.0 * h);
+
+	float2	uv = s * rayDir.xz;         // [-1, +1]
+	bool	valid = Dot(uv, uv) <= 1.0;
+	return	valid ? ToUNorm(uv) : float2(-1.0);
 }
 
 /*
@@ -730,11 +736,10 @@ Ray  Ray_DualParaboloid (const float3 origin, const float nearPlane, const float
 =================================================
 	RayInverse_DualParaboloid
 ----
-	left  - back
-	right - front
+	layer0 - front, layer1 - back
 =================================================
 */
-float2  RayInverse_DualParaboloid (float3 rayDir)
+float3  RayInverse_DualParaboloid (float3 rayDir)
 {
 	bool	is_back	= rayDir.z < 0.0;
 	if ( is_back )
@@ -743,8 +748,22 @@ float2  RayInverse_DualParaboloid (float3 rayDir)
 	float	denom	= 1.0 + rayDir.z;					// (0, 2]
 	float2	uv		= rayDir.xy / denom;				// [-1, +1]
 			uv		= ToUNorm( uv );
-			uv.x	= uv.x * 0.5 + (is_back ? 0.5 : 0.0);
-	return	uv;
+	return	float3( uv, is_back ? 1.0 : 0.0 );
+}
+
+/*
+=================================================
+	RayInverse_DualParaboloid2D
+----
+	left  - back
+	right - front
+=================================================
+*/
+float2  RayInverse_DualParaboloid2D (float3 rayDir)
+{
+	float3	uvw = RayInverse_DualParaboloid( rayDir );
+	uvw.x = uvw.x * 0.5 + (uvw.z > 0.0 ? 0.5 : 0.0);
+	return uvw.xy;
 }
 
 /*

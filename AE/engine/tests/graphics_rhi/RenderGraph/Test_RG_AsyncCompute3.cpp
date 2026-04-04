@@ -45,7 +45,7 @@ namespace
 		GfxMemAllocatorPtr				gfxAlloc;
 	};
 
-	static constexpr auto&	RTech = RenderTechs::AsyncCompTestRT;
+	static constexpr auto&	RTech = RenderTechs::AsyncComp_RTech;
 
 
 	template <typename CtxTypes>
@@ -246,6 +246,7 @@ namespace
 		CHECK_ERR( rg.WaitAll( c_MaxTimeout ));
 
 		CHECK_ERR( t.frameIdx.load() == 4 );
+		CHECK_ERR( t.result[0] and t.result[1] );
 
 		CHECK_ERR( Scheduler().Wait( List{ t.result[0], t.result[1] }, c_MaxTimeout ));
 		CHECK_ERR( t.result[0]->Status() == ETaskStatus::Completed );
@@ -259,12 +260,12 @@ namespace
 } // namespace
 
 
-bool RGTest::Test_AsyncCompute3 ()
+RGTest::ECode  RGTest::Test_AsyncCompute3 ()
 {
 	if ( not AllBits( GraphicsScheduler().GetDevice().GetAvailableQueues(), EQueueMask::Graphics | EQueueMask::AsyncCompute ))
 	{
 		AE_LOGI( TEST_NAME << " - skipped" );
-		return true;
+		return ECode::Skipped;
 	}
 
 	auto	img_cmp = _LoadReference( TEST_NAME );
@@ -275,6 +276,10 @@ bool RGTest::Test_AsyncCompute3 ()
 
 	RG_CHECK( _CompareDumps( TEST_NAME ));
 
-	AE_LOGI( TEST_NAME << " - passed" );
-	return result;
+	if ( result )
+	{
+		AE_LOGI( TEST_NAME << " - passed" );
+		return ECode::Passed;
+	}
+	return ECode::Failed;
 }

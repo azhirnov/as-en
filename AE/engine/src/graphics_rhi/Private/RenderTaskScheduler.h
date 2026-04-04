@@ -36,7 +36,7 @@ namespace AE::Graphics
 	private:
 		using Device_t			= AE_PRIVATE_UNITE_RAW( SUFFIX, Device		 );
 		using QueryManager_t	= AE_PRIVATE_UNITE_RAW( SUFFIX, QueryManager );
-		using ResMngrApi		= ResourceManager::RenderTaskSchedulerApi;
+		//using ResMngrApi		= ResourceManager::RenderTaskSchedulerApi;
 
 
 	public:
@@ -229,15 +229,16 @@ namespace AE::Graphics
 		ND_ FrameUID				GetFrameId ()										C_NE___	{ return _frameId.load(); }
 		ND_ TimePoint_t				GetFrameBeginTime ()								C_NE___	{ return _lastUpdate.load(); }
 		ND_ secondsf				GetFrameTimeDelta ()								C_NE___	{ return secondsf{_timeDelta.load()}; }
+		ND_ FrameUID				LastCompletedFrameId ()								C_NE___	{ return GetFrameId().PrevCycle().value_or( Default ); }
 
 		ND_ uint					GetMaxFrames ()										C_NE___	{ return _frameId.load().MaxFrames(); }
 
-		ND_ ResourceManager&		GetResourceManager ()								__NE___	{ ASSERT( _resMngr );		return *_resMngr; }
+		ND_ ResourceManager&		GetResourceManager ()								__NE___;
 		ND_ RenderGraph_t&			GetRenderGraph ()									__NE___	{ ASSERT( _rg );			return *_rg; }
 		ND_ Ptr<RenderGraph_t>		GetRenderGraphPtr ()								__NE___	{ return _rg.get(); }
-		ND_ QueryManager_t&			GetQueryManager ()									__NE___	{ return GetResourceManager().GetQueryManager(); }
+		ND_ QueryManager_t&			GetQueryManager ()									__NE___;
 		ND_ Device_t const&			GetDevice ()										C_NE___	{ return _device; }
-		ND_ FeatureSet const&		GetFeatureSet ()									C_NE___	{ ASSERT( _resMngr );		return _resMngr->GetFeatureSet(); }
+		ND_ FeatureSet const&		GetFeatureSet ()									C_NE___;
 		ND_ DeviceProperties const&	GetDeviceProperties ()								C_NE___	{ return _device.GetDeviceProperties(); }
 
 	  #ifdef CMDPOOLMNGR
@@ -315,8 +316,8 @@ namespace AE::Graphics
 
 	// methods
 	private:
-		ND_ RC<MDrawCommandBatch>  _CreateDrawBatch (MetalParallelRenderCommandEncoderRC encoder, const MPrimaryCmdBufState &primaryState,
-													 ArrayView<Viewport> viewports, DebugLabel dbg)	__NE___;
+		ND_ RC<DrawCommandBatch>  _CreateDrawBatch (MetalParallelRenderCommandEncoderRC encoder, const MPrimaryCmdBufState &primaryState,
+													ArrayView<Viewport> viewports, DebugLabel dbg)	__NE___;
 
 		ND_ bool	_FlushQueue2 (EQueueType queueType, TempBatches_t &pending)			__NE___;
 
@@ -382,19 +383,19 @@ namespace AE::Graphics
 	{
 		friend class _hidden_::_MDirectGraphicsCtx;
 
-		ND_ static RC<MDrawCommandBatch>  CreateFirstPassBatch (RenderTaskScheduler &, MetalParallelRenderCommandEncoderRC,
-																const MPrimaryCmdBufState &, ArrayView<Viewport>, DebugLabel)	__NE___;
+		ND_ static RC<DrawCommandBatch>  CreateFirstPassBatch (RenderTaskScheduler &, MetalParallelRenderCommandEncoderRC,
+															   const MPrimaryCmdBufState &, ArrayView<Viewport>, DebugLabel) __NE___;
 
-		ND_ static RC<MDrawCommandBatch>  CreateNextPassBatch (RenderTaskScheduler &, MetalParallelRenderCommandEncoderRC,
-															   const MPrimaryCmdBufState &, ArrayView<Viewport>, DebugLabel)	__NE___;
+		ND_ static RC<DrawCommandBatch>  CreateNextPassBatch (RenderTaskScheduler &, MetalParallelRenderCommandEncoderRC,
+															  const MPrimaryCmdBufState &, ArrayView<Viewport>, DebugLabel)  __NE___;
 	};
 
 	class RenderTaskScheduler::IndirectGraphicsContextApi : Noninstanceable
 	{
 		friend class _hidden_::_MIndirectGraphicsCtx;
 
-		ND_ static RC<MDrawCommandBatch>  CreateFirstPassBatch (RenderTaskScheduler &, const MPrimaryCmdBufState &, ArrayView<Viewport>, DebugLabel)__NE___;
-		ND_ static RC<MDrawCommandBatch>  CreateNextPassBatch (RenderTaskScheduler &, const MPrimaryCmdBufState &, ArrayView<Viewport>, DebugLabel)	__NE___;
+		ND_ static RC<DrawCommandBatch>  CreateFirstPassBatch (RenderTaskScheduler &, const MPrimaryCmdBufState &, ArrayView<Viewport>, DebugLabel) __NE___;
+		ND_ static RC<DrawCommandBatch>  CreateNextPassBatch (RenderTaskScheduler &, const MPrimaryCmdBufState &, ArrayView<Viewport>, DebugLabel)  __NE___;
 	};
 
 # elif defined(AE_ENABLE_REMOTE_GRAPHICS)
@@ -516,20 +517,6 @@ namespace AE::Graphics
 		}
 		else
 			return Threading::TaskScheduler::GetCanceledTask();
-	}
-
-/*
-=================================================
-	GAutorelease::_ReleaseRef
-=================================================
-*/
-	template <usize IndexSize, usize GenerationSize, uint UID>
-	void  GAutorelease< HandleTmpl< IndexSize, GenerationSize, UID >>::_ReleaseRef () __NE___
-	{
-		if ( _id )
-			GraphicsScheduler().GetResourceManager().DelayedRelease( INOUT _id );
-
-		ASSERT( not _id.IsValid() );
 	}
 
 /*

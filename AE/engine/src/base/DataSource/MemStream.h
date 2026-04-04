@@ -51,7 +51,7 @@ namespace AE::Base
 
 		ESourceType	GetSourceType ()											C_NE_OF;
 
-		ReqAlign	OffsetAlign ()												C_NE_OV	{ return Default; }
+		ReqAlign	DirectAccessAlign ()												C_NE_OV	{ return Default; }
 
 		bool	SeekSet (Bytes pos)												__NE_OF;
 		bool	SeekFwd (Bytes offset)											__NE_OF;
@@ -154,10 +154,11 @@ namespace AE::Base
 		ESourceType	GetSourceType ()											C_NE_OF;
 
 		bool		SeekFwd (Bytes offset)										__NE_OF;
+		bool		UpdateAt (Bytes pos)										__NE_OF;
 		Bytes		WriteSeq (const void*, Bytes)								__NE_OF;
 		void		Flush ()													__NE_OF	{}
 
-		ReqAlign	OffsetAlign ()												C_NE_OV	{ return Default; }
+		ReqAlign	DirectAccessAlign ()										C_NE_OV	{ return Default; }
 
 		void		UpdateFastStream (OUT void* &begin, OUT const void* &end,
 									  Bytes reserve = DefaultAllocationSize)	__NE_OF;

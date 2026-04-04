@@ -2,7 +2,7 @@
 /*
 	Send global event to the OS.
 
-	Thread safe: ???
+	Thread safe: yes
 */
 
 #pragma once
@@ -18,14 +18,22 @@ namespace AE::App
 
 	class ISendInput
 	{
+	// types
+	public:
+		using KeyCode_t		= ushort;	// only key range from EInputType
+
+
 	// interface
 	public:
-		virtual ~ISendInput ()										__NE___ {}
+		virtual ~ISendInput ()											__NE___ {}
 
-		virtual bool  SetCursorPos (Monitor::ID monitor, int2 pos)	__NE___	= 0;
-		virtual bool  SetCursorPos (int2 pos)						__NE___	= 0;
+		virtual bool  SetCursorPos (int2 pos)							__NE___	= 0;
 
-		virtual bool  SetKeyState (uint key, bool pressed)			__NE___	= 0;
+		virtual bool  SetCursorDelta (int2 delta)						__NE___	= 0;
+
+		virtual bool  SetKeyState (KeyCode_t key, EGestureState state)	__NE___	= 0;
+
+		virtual StringView	GetApiName ()								C_NE___ = 0;
 
 		// TODO: clipboard
 	};

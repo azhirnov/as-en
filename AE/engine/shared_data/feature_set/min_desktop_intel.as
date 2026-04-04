@@ -99,7 +99,6 @@ void ASmain ()
 	fset.shaderStorageBufferArrayDynamicIndexing (True);
 	fset.shaderStorageImageArrayDynamicIndexing (True);
 	fset.shaderUniformBufferArrayDynamicIndexing (True);
-	fset.shaderStorageBufferArrayNonUniformIndexing (True);
 	fset.shaderStorageImageWriteWithoutFormat (True);
 	fset.vulkanMemoryModel (True);
 	fset.vulkanMemoryModelDeviceScope (True);
@@ -282,5 +281,6 @@ void ASmain ()
 	fset.framebufferDepthSampleCounts({ 1, 2, 4, 8 });
 	fset.maxFramebufferLayers (2 << 10);
 	fset.variableMultisampleRate (True);
+	fset.separateDepthStencilRW (True);
 	fset.supportedQueues(EQueueMask( EQueueMask::Graphics ));
 }

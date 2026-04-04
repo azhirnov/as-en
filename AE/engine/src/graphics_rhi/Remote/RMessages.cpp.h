@@ -23,6 +23,10 @@
 			_reg_( CmdBuf_Bake::ImageBarrierCmd						)	and\
 			_reg_( CmdBuf_Bake::ImageRangeBarrierCmd				)	and\
 			_reg_( CmdBuf_Bake::ImageViewBarrierCmd					)	and\
+			_reg_( CmdBuf_Bake::RTGeometryBarrierCmd				)	and\
+			_reg_( CmdBuf_Bake::RTSceneBarrierCmd					)	and\
+			_reg_( CmdBuf_Bake::RTMicromapBarrierCmd				)	and\
+			_reg_( CmdBuf_Bake::VideoImageBarrierCmd				)	and\
 			_reg_( CmdBuf_Bake::MemoryBarrierCmd					)	and\
 			_reg_( CmdBuf_Bake::MemoryBarrier2Cmd					)	and\
 			_reg_( CmdBuf_Bake::MemoryBarrier3Cmd					)	and\
@@ -79,7 +83,6 @@
 			_reg_( CmdBuf_Bake::Draw_SetBlendConstantsCmd			)	and\
 			_reg_( CmdBuf_Bake::Draw_SetDepthBoundsCmd				)	and\
 			_reg_( CmdBuf_Bake::Draw_SetFragmentShadingRateCmd		)	and\
-			_reg_( CmdBuf_Bake::Draw_SetViewportWScalingCmd			)	and\
 			_reg_( CmdBuf_Bake::Draw_BindIndexBufferCmd				)	and\
 			_reg_( CmdBuf_Bake::Draw_BindVertexBuffersCmd			)	and\
 			_reg_( CmdBuf_Bake::DrawCmd								)	and\
@@ -177,8 +180,10 @@
 			_regMsg_( ResMngr_CreateBufferView				)	and\
 			_regMsg_( ResMngr_CreateRTGeometry				)	and\
 			_regMsg_( ResMngr_CreateRTScene					)	and\
+			_regMsg_( ResMngr_CreateRTMicromap				)	and\
 			_regMsg_( ResMngr_GetRTGeometrySizes			)	and\
 			_regMsg_( ResMngr_GetRTSceneSizes				)	and\
+			_regMsg_( ResMngr_GetRTMicromapBuildSizes			)	and\
 			_regMsg_( ResMngr_IsSupported_BufferDesc		)	and\
 			_regMsg_( ResMngr_IsSupported_ImageDesc			)	and\
 			_regMsg_( ResMngr_IsSupported_VideoImageDesc	)	and\
@@ -222,6 +227,8 @@
 			_regResp_( ResMngr_CreateRTScene_Response			)	and\
 			_regResp_( ResMngr_GetRTGeometrySizes_Response		)	and\
 			_regResp_( ResMngr_GetRTSceneSizes_Response			)	and\
+			_regResp_( ResMngr_GetRTMicromapBuildSizes_Response	)	and\
+			_regResp_( ResMngr_CreateRTMicromap_Response		)	and\
 			_regResp_( ResMngr_IsSupported_Response				)	and\
 			_regResp_( ResMngr_ReleaseResource_Response			)	and\
 			_regResp_( ResMngr_CreateDescriptorSets_Response	)	and\

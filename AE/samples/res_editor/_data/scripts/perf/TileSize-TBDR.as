@@ -18,11 +18,8 @@
 		RC<DynamicDim>		dim				= rt_size.Dimension2();
 		RC<Image>			rt				= Image( EPixelFormat::RGBA8_UNorm, SurfaceSize() );
 		RC<Scene>			scene			= Scene();
-		RC<Scene>			scene_inst		= Scene();
 		RC<DynamicUInt>		grid_size		= DynamicUInt();
-		RC<DynamicUInt>		draw_tile		= DynamicUInt();
 		RC<DynamicUInt>		draw_mode		= DynamicUInt();
-		RC<DynamicUInt>		instancing		= DynamicUInt();
 		RC<DynamicUInt>		tile_size_pot	= DynamicUInt();
 		RC<DynamicUInt>		tile_size		= tile_size_pot.Exp2();
 		RC<DynamicUInt>		tile_bits		= DynamicUInt();

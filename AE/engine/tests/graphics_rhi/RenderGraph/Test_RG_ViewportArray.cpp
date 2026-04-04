@@ -54,7 +54,7 @@ namespace
 		ctx.AccumBarriers()
 			.MemoryBarrier( EResourceState::CopyDst, EResourceState::VertexBuffer )
 			.MemoryBarrier( EResourceState::CopyDst, EResourceState::IndexBuffer )
-			.ImageBarrier( t.img, EResourceState::Invalidate, img_state );
+			.ResourceBarrier( t.img, EResourceState::Invalidate, img_state );
 
 		// draw
 		{
@@ -79,7 +79,7 @@ namespace
 		}
 
 		ctx.AccumBarriers()
-			.ImageBarrier( t.img, img_state, EResourceState::CopySrc );
+			.ResourceBarrier( t.img, img_state, EResourceState::CopySrc );
 
 		RenderCoro_Execute( ctx );
 	}
@@ -153,6 +153,7 @@ namespace
 		CHECK_ERR( end->Status() == ETaskStatus::Completed );
 
 		CHECK_ERR( rts.WaitAll( c_MaxTimeout ));
+		CHECK_ERR( t.result );
 
 		CHECK_ERR( Scheduler().Wait( {t.result}, c_MaxTimeout ));
 		CHECK_ERR( t.result->Status() == ETaskStatus::Completed );
@@ -164,12 +165,12 @@ namespace
 } // namespace
 
 
-bool RGTest::Test_ViewportArray ()
+RGTest::ECode  RGTest::Test_ViewportArray ()
 {
 	if ( not _mvPipelines )
 	{
 		AE_LOGI( TEST_NAME << " - skipped" );
-		return true;
+		return ECode::Skipped;
 	}
 
 	auto	img_cmp = _LoadReference( TEST_NAME );
@@ -183,6 +184,10 @@ bool RGTest::Test_ViewportArray ()
 
 	RG_CHECK( _CompareDumps( TEST_NAME ));
 
-	AE_LOGI( TEST_NAME << " - passed" );
-	return result;
+	if ( result )
+	{
+		AE_LOGI( TEST_NAME << " - passed" );
+		return ECode::Passed;
+	}
+	return ECode::Failed;
 }

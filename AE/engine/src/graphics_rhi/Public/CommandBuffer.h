@@ -36,10 +36,28 @@ namespace AE::Graphics
 {
 
 	//
+	// Indirect Command Execution Context interface
+	//
+
+	class IIndirectCommandExecutionContext
+	{
+	// interface
+	public:
+
+		// indirect commands //
+		virtual void  BindInitialPipeline (IndirectExecutionSetID)																	__Th___ = 0;
+
+		virtual void  ExecuteGeneratedCommands (const ExecuteGeneratedCommandsCmd &)												__Th___ = 0;
+		virtual void  ExecuteGeneratedCommands (const ExecuteGeneratedCommands2Cmd &)												__Th___ = 0;
+	};
+
+
+
+	//
 	// Draw Context interface
 	//
 
-	class IDrawContext
+	class IDrawContext : public IIndirectCommandExecutionContext
 	{
 	// interface
 	public:
@@ -132,7 +150,6 @@ namespace AE::Graphics
 											 uint		drawCount,
 											 Bytes		stride)																		__Th___	= 0;
 
-
 		// for debugging //
 		virtual void  DebugMarker (DebugLabel dbg)																					__Th___	= 0;
 		virtual void  PushDebugGroup (DebugLabel dbg)																				__Th___	= 0;
@@ -170,17 +187,26 @@ namespace AE::Graphics
 	{
 	// interface
 	public:
-		virtual void  BufferBarrier (BufferID buffer, EResourceState srcState, EResourceState dstState)										__Th___	= 0;
+		virtual void  ResourceBarrier (BufferID buffer, EResourceState srcState, EResourceState dstState)									__Th___	= 0;
 
 		// internally get 'BufferID' from 'BufferViewID'
-		virtual void  BufferViewBarrier (BufferViewID view, EResourceState srcState, EResourceState dstState)								__Th___	= 0;
+		virtual void  ResourceBarrier (BufferViewID view, EResourceState srcState, EResourceState dstState)									__Th___	= 0;
 
-		virtual void  ImageBarrier (ImageID image, EResourceState srcState, EResourceState dstState)										__Th___	= 0;
-		virtual void  ImageBarrier (ImageID image, EResourceState srcState, EResourceState dstState, const ImageSubresourceRange &subRes)	__Th___	= 0;
+		virtual void  ResourceBarrier (ImageID image, EResourceState srcState, EResourceState dstState)										__Th___	= 0;
+		virtual void  ResourceBarrier (ImageID image, EResourceState srcState, EResourceState dstState, const ImageSubresourceRange &subRes)__Th___	= 0;
 
 		// internally get 'ImageID' from 'ImageViewID'
-		virtual void  ImageViewBarrier (ImageViewID view, EResourceState srcState, EResourceState dstState)									__Th___	= 0;
+		virtual void  ResourceBarrier (ImageViewID view, EResourceState srcState, EResourceState dstState)									__Th___	= 0;
 
+		// internally get buffer storage
+		virtual void  ResourceBarrier (RTGeometryID id, EResourceState srcState, EResourceState dstState)									__Th___	= 0;
+		virtual void  ResourceBarrier (RTSceneID    id, EResourceState srcState, EResourceState dstState)									__Th___	= 0;
+		virtual void  ResourceBarrier (RTMicromapID id, EResourceState srcState, EResourceState dstState)									__Th___	= 0;
+
+		virtual void  ResourceBarrier (VideoImageID  id, EResourceState srcState, EResourceState dstState)									__Th___	= 0;
+		virtual void  ResourceBarrier (VideoBufferID id, EResourceState srcState, EResourceState dstState)									__Th___	= 0;
+
+		// may be slow on GPU side
 		virtual void  MemoryBarrier (EResourceState srcState, EResourceState dstState)														__Th___	= 0;
 		virtual void  MemoryBarrier (EPipelineScope srcScope, EPipelineScope dstScope)														__Th___	= 0;
 		virtual void  MemoryBarrier ()																										__Th___	= 0;
@@ -189,6 +215,7 @@ namespace AE::Graphics
 		virtual void  ExecutionBarrier (EPipelineScope srcScope, EPipelineScope dstScope)													__Th___	= 0;
 		virtual void  ExecutionBarrier ()																									__Th___	= 0;
 
+		// only for exclusive ownership
 		virtual void  AcquireBufferOwnership (BufferID buffer, EQueueType srcQueue, EResourceState srcState, EResourceState dstState)		__Th___	= 0;
 		virtual void  ReleaseBufferOwnership (BufferID buffer, EResourceState srcState, EResourceState dstState, EQueueType dstQueue)		__Th___	= 0;
 
@@ -394,7 +421,7 @@ namespace AE::Graphics
 	// Compute Context interface
 	//
 
-	class IComputeContext : public IBaseContext
+	class IComputeContext : public IBaseContext, public IIndirectCommandExecutionContext
 	{
 	// interface
 	public:
@@ -445,7 +472,7 @@ namespace AE::Graphics
 	// Ray Tracing Context interface
 	//
 
-	class IRayTracingContext : public IBaseContext
+	class IRayTracingContext : public IBaseContext, public IIndirectCommandExecutionContext
 	{
 	// interface
 	public:

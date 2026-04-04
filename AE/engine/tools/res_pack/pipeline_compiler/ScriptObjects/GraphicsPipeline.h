@@ -6,6 +6,9 @@
 
 namespace AE::PipelineCompiler
 {
+	using GraphicsPipelineSpecPtr	= ScriptRC< struct GraphicsPipelineSpecScriptBinding >;
+	using GraphicsPipelinePtr		= ScriptRC< struct GraphicsPipelineScriptBinding >;
+
 
 
 	//
@@ -23,7 +26,6 @@ namespace AE::PipelineCompiler
 
 	// methods
 	public:
-		GraphicsPipelineSpecScriptBinding () {}
 		GraphicsPipelineSpecScriptBinding (GraphicsPipelineScriptBinding* base, const String &name) __Th___;
 
 		// called from RTGraphicsPass
@@ -57,7 +59,6 @@ namespace AE::PipelineCompiler
 	private:
 		bool  _CheckTopology ();
 	};
-	using GraphicsPipelineSpecPtr = ScriptRC< GraphicsPipelineSpecScriptBinding >;
 
 
 
@@ -89,8 +90,7 @@ namespace AE::PipelineCompiler
 
 	// methods
 	public:
-		GraphicsPipelineScriptBinding ();
-		explicit GraphicsPipelineScriptBinding (const String &name)					__Th___;
+		ND_ static GraphicsPipelinePtr  Create (const String &name)					__Th___;
 
 		void  SetVertexShader		(const ScriptShaderPtr &shader)					__Th___;
 		void  SetTessControlShader	(const ScriptShaderPtr &shader)					__Th___;
@@ -126,12 +126,14 @@ namespace AE::PipelineCompiler
 		static void  Bind (const ScriptEnginePtr &se)								__Th___;
 
 	private:
+		explicit GraphicsPipelineScriptBinding (const String &name)					__NE___	: BasePipelineTmpl{name} {}
+
+		void  _Init ()																__Th___;
 		void  _Prepare ()															__Th___;
 
 		ND_ ShaderStructTypePtr  _GetShaderInput (EShader) const;
 		ND_ ShaderStructTypePtr  _GetShaderOutput (EShader) const;
 	};
-	using GraphicsPipelinePtr = ScriptRC< GraphicsPipelineScriptBinding >;
 
 
 } // AE::PipelineCompiler

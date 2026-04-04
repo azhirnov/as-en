@@ -267,7 +267,7 @@ namespace AE::Graphics
 			return false;
 
 		ctx.FillBuffer( result._deviceBuf, result._offset, result._size, 0 );
-		ctx.BufferBarrier( result._deviceBuf, EResourceState::ClearDst, result._state );
+		ctx.ResourceBarrier( result._deviceBuf, EResourceState::ClearDst, result._state );
 		ctx.CommitBarriers();
 
 		return true;

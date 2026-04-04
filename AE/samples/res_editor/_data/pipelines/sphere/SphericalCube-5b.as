@@ -11,7 +11,7 @@
 		{
 			RC<ShaderStructType>	st = ShaderStructType( "vs-fs.io" );
 			st.Set( EStructLayout::InternalIO,
-					"float3		texcoord;" +
+					"float3		texcoord;"
 					"float3		normal;" );
 		}{
 			RC<DescriptorSetLayout>	ds = DescriptorSetLayout( "mtr.ds" );
@@ -69,8 +69,8 @@
 	void Main ()
 	{
 		const uint		idx		= gl.VertexIndex;
-		const float2	coord	= un_Geometry.positions[idx].xy;
-		const int		face	= int(un_Geometry.positions[idx].z);
+		const float2	coord	= un_Geometry.position[idx].xy;
+		const int		face	= int(un_Geometry.position[idx].z);
 		float3			uvw		= float3(0.0);
 
 		switch ( iProj )
@@ -117,12 +117,14 @@
 					out_Color = float4(1.0, 0.0, 0.0, 1.0);
 
 				// wireframe
+				#ifdef AE_fragment_shader_barycentric
 				{
 					const float		thickness	= 1.0;	// pixels
 					const float		falloff		= 1.0;	// pixels
 
 					out_Color.rgb = Lerp( float3(0.0, 0.5, 1.0), out_Color.rgb, FSBarycentricWireframe( thickness, falloff ).x);
 				}
+				#endif
 				break;
 			}
 		}

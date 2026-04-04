@@ -3,9 +3,12 @@
 #pragma once
 
 #include "lang_model/Public/Common.h"
+#include "graphics_rhi/Public/ResourceEnums.h"
 
 namespace AE::LangModel
 {
+	using Graphics::EPixelFormat;
+
 
 	enum class EModelFormat : ubyte
 	{
@@ -30,6 +33,7 @@ namespace AE::LangModel
 	enum class EImplementation : ubyte
 	{
 		LLama,
+		StableDiffusion,
 		_Count,
 	};
 
@@ -45,6 +49,18 @@ namespace AE::LangModel
 	};
 
 
+	enum class EBackend : ubyte
+	{
+		CPU,		// will use CPU only backend which is slower, other backend will combine CPU with GPU or NPU
+		Auto,
+		Vulkan,		// may return out-of-memory error for small VRAM
+		CUDA,		// can use RAM to increase memory size, but performance limited to PCI bandwidth
+		Metal,
+	//	SYCL,
+	//	HIP,
+		_Count
+	};
+
 
 	//
 	// Language Model Open Params
@@ -53,6 +69,8 @@ namespace AE::LangModel
 	{
 		RC<ILoadingListener>	listener;
 		RC<ILogListener>		logger;
+		bool					enableLogger	= true;
+		EBackend				backend			= EBackend::Auto;
 	};
 
 
@@ -155,4 +173,106 @@ namespace AE::LangModel
 	};
 
 
+
+	//
+	// Diffusion Model Input Image
+	//
+	struct ImageRef
+	{
+		uint2				dim;
+		EPixelFormat		format		= Default;	// expected 'RGB8_UNorm'
+		void*				pixels		= null;
+		Bytes				rowPitch;				// most implementations expects to get packed data, so alignment may cause additional copy
+		Bytes				size;
+
+		ND_ bool	IsDefined ()			C_NE___	{ return dim.x > 0 and dim.y > 0 and format != Default and pixels != null and size > 0; }
+	};
+
+	struct ImageStorage : ImageRef
+	{
+	private:
+		void *		_ptr	= null;		// may not match with 'pixels'
+		Bytes		_size;
+
+	public:
+		ImageStorage ()						__NE___ {}
+		ImageStorage (ImageStorage &&other)	__NE___ : _ptr{other._ptr} { other._ptr = null; }
+		~ImageStorage ()					__NE___;
+
+		ND_ bool  Allocate ()				__NE___;
+			void  Deallocate ()				__NE___;
+		ND_ bool  IsValid ()				C_NE___;
+	};
+
+
+
+	//
+	// Diffusion Model Image Generation Params
+	//
+	struct ImageGenParams
+	{
+	public:
+		String					prompt;							// text to image mode
+		String					negativePrompt;
+
+		uint2					dim;
+		uint					seed				= 0;
+
+		ImageRef				initImage;						// image to image mode
+		ImageRef				maskImage;
+		float					initImageStrength	= 1.f;		// 0 - tries to preserve the input almost entirely,
+																// 1 - behaves close to pure text-to-image
+
+	protected:
+		const EImplementation	_type;
+		explicit ImageGenParams (EImplementation type)	__NE___ : _type{type} {}
+	public:
+		ND_ EImplementation  Type ()					C_NE___	{ return _type; }
+
+	};
+
+
+	//
+	// Diffusion Model Video Generation Params
+	//
+	struct VideoGenParams
+	{
+	public:
+
+	protected:
+		const EImplementation	_type;
+		explicit VideoGenParams (EImplementation type)	__NE___ : _type{type} {}
+	public:
+		ND_ EImplementation  Type ()					C_NE___	{ return _type; }
+	};
+
 } // AE::LangModel
+
+
+#ifdef AE_ENABLE_LOGS
+namespace AE::Base
+{
+
+/*
+=================================================
+	ToString (EBackend)
+=================================================
+*/
+	Nd__In StringView  ToString (LangModel::EBackend type) __NE___
+	{
+		switch_enum( type )
+		{
+			using enum LangModel::EBackend;
+			case CPU :		return "CPU";
+			case Auto :		return "Auto";
+			case Vulkan :	return "Vulkan";
+			case CUDA :		return "CUDA";
+			case Metal :	return "Metal";
+			case _Count :	break;
+		}
+		switch_end
+		return Default;
+	}
+
+} // AE::Base
+#endif // AE_ENABLE_LOGS

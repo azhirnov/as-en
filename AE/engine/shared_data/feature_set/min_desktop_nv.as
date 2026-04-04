@@ -112,11 +112,6 @@ void ASmain ()
 	fset.shaderInputAttachmentArrayNonUniformIndexing (True);
 	fset.shaderUniformTexelBufferArrayNonUniformIndexing (True);
 	fset.shaderStorageTexelBufferArrayNonUniformIndexing (True);
-	fset.shaderUniformBufferArrayNonUniformIndexingNative (True);
-	fset.shaderSampledImageArrayNonUniformIndexingNative (True);
-	fset.shaderStorageBufferArrayNonUniformIndexingNative (True);
-	fset.shaderStorageImageArrayNonUniformIndexingNative (True);
-	fset.shaderInputAttachmentArrayNonUniformIndexingNative (True);
 	fset.quadDivergentImplicitLod (True);
 	fset.shaderStorageImageMultisample (True);
 	fset.shaderStorageImageReadWithoutFormat (True);
@@ -314,5 +309,6 @@ void ASmain ()
 	fset.framebufferDepthSampleCounts({ 1, 2, 4, 8 });
 	fset.maxFramebufferLayers (2 << 10);
 	fset.variableMultisampleRate (True);
+	fset.separateDepthStencilRW (True);
 	fset.supportedQueues(EQueueMask( EQueueMask::Graphics | EQueueMask::AsyncTransfer ));
 }

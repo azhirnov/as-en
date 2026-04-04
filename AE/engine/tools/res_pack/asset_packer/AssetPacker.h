@@ -45,6 +45,10 @@ namespace AE::AssetPacker
 		const CharType * const*	inIncludeFolders		= null;		// [inIncludeFolderCount]
 		usize					inIncludeFolderCount	= 0;
 
+		// used to search images, fonts, etc.
+		const CharType * const*	inResourceFolders		= null;		// [inResourceFolderCount]
+		usize					inResourceFolderCount	= 0;
+
 		const CharType *		tempFile				= null;
 		const CharType *		outputArchive			= null;
 		const CharType *		outputScriptFile		= null;

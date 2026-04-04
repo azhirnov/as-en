@@ -19,6 +19,7 @@ namespace AE::Base
 */
 	WindowsProcess::~WindowsProcess ()
 	{
+		// use WaitAndClose or Terminate
 		ASSERT( _thread == null );
 		ASSERT( _process == null );
 	}
@@ -48,9 +49,10 @@ namespace AE::Base
 				if ( stdout_write )	{ ::CloseHandle( stdout_write ); stdout_write = null; }
 			});
 
-		STARTUPINFO_t			startup_info = {};
-		PROCESS_INFORMATION		proc_info	 = {};
-		const bool				has_dir		 = not (currentDir == null or currentDir->empty());
+		STARTUPINFO_t			startup_info	= {};
+		PROCESS_INFORMATION		proc_info		= {};
+		const bool				has_dir			= not (currentDir == null or currentDir->empty());
+		DWORD					creation_flags	= CREATE_NEW_CONSOLE;
 
 		startup_info.cb = sizeof(startup_info);
 
@@ -71,6 +73,9 @@ namespace AE::Base
 			startup_info.hStdInput	= stdin_read;
 			startup_info.dwFlags	|= STARTF_USESTDHANDLES;
 		}
+
+		if ( AllBits( flags, EFlags::NoWindow ))
+			creation_flags = CREATE_NO_WINDOW;	// without 'CREATE_NEW_CONSOLE'
 
 		bool	result = false;
 
@@ -94,7 +99,7 @@ namespace AE::Base
 				null,														// process security attributes
 				null,														// primary thread security attributes
 				AllBits( flags, EFlags::ReadOutput ) ? TRUE : FALSE,		// handles are inherited
-				AllBits( flags, EFlags::NoWindow ) ? CREATE_NO_WINDOW : 0,	// creation flags
+				creation_flags,
 				null,														// use parent's environment
 				(has_dir ? ToString(*currentDir).c_str() : null),			// use parent's current directory
 				INOUT &startup_info,
@@ -121,7 +126,7 @@ namespace AE::Base
 				null,														// process security attributes
 				null,														// primary thread security attributes
 				AllBits( flags, EFlags::ReadOutput ) ? TRUE : FALSE,		// handles are inherited
-				AllBits( flags, EFlags::NoWindow ) ? CREATE_NO_WINDOW : 0,	// creation flags
+				creation_flags,
 				null,														// use parent's environment
 				(has_dir ? currentDir->c_str() : null),						// use parent's current directory
 				INOUT &startup_info,
@@ -166,12 +171,19 @@ namespace AE::Base
 	bool  WindowsProcess::Execute (String &commandLine, const Path &currentDir, EFlags flags, milliseconds timeout)
 	{
 		WindowsProcess	proc;
-		bool			result;
 
-		result = proc._ExecuteAsync( commandLine, &currentDir, flags );
-		result = result and proc.WaitAndClose( timeout );
+		if_unlikely( not proc._ExecuteAsync( commandLine, &currentDir, flags ))
+		{
+			proc.Terminate();
+			return false;
+		}
 
-		return result;
+		if_unlikely( not proc.WaitAndClose( timeout ))
+		{
+			proc.Terminate();
+			return false;
+		}
+		return true;
 	}
 
 	bool  WindowsProcess::Execute (String &commandLine, const Path &currentDir, INOUT String &output, EFlags flags, milliseconds timeout)
@@ -179,12 +191,19 @@ namespace AE::Base
 		ASSERT( AllBits( flags, EFlags::ReadOutput ));
 
 		WindowsProcess	proc;
-		bool			result;
 
-		result = proc._ExecuteAsync( commandLine, &currentDir, flags );
-		result = result and proc.WaitAndClose( INOUT output, timeout );
+		if_unlikely( not proc._ExecuteAsync( commandLine, &currentDir, flags ))
+		{
+			proc.Terminate();
+			return false;
+		}
 
-		return result;
+		if_unlikely( not proc.WaitAndClose( INOUT output, timeout ))
+		{
+			proc.Terminate();
+			return false;
+		}
+		return true;
 	}
 
 /*

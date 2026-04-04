@@ -16,12 +16,12 @@ namespace AE::Scripting::_hidden_
 	// types
 	private:
 		StaticAssert( not (ScriptTypeInfo<T>::is_object or ScriptTypeInfo<T>::is_ref_counted) );
+		StaticAssert( not IsEnum<T> or sizeof(T) == 4 );
 
 		using Self				= ScriptPODArray< T >;
-		using View_t			= StructView< T >;
 	public:
-		using iterator			= typename View_t::large_iterator;
-		using const_iterator	= iterator;
+		using iterator			= T *;
+		using const_iterator	= T const *;
 
 
 	// methods
@@ -33,30 +33,80 @@ namespace AE::Scripting::_hidden_
 			Self&		operator = (Self &&)		= delete;
 			Self&		operator = (const Self &)	= delete;
 
-		ND_ iterator	begin ()					C_NE___	{ return _Arr().begin(); }
-		ND_ iterator	end ()						C_NE___	{ return _Arr().end(); }
+		ND_ iterator	begin ()					__NE___	{ return _ToMutableView().begin(); }
+		ND_ iterator	end ()						__NE___	{ return _ToMutableView().end(); }
+
+		ND_ const_iterator	begin ()				C_NE___	{ return _ToArrayView().begin(); }
+		ND_ const_iterator	end ()					C_NE___	{ return _ToArrayView().end(); }
 
 		ND_ usize		size ()						C_NE___	{ return this->GetSize(); }
 		ND_ bool		empty ()					C_NE___	{ return this->IsEmpty(); }
 
-		ND_ explicit operator View_t ()				C_NE___	{ return _Arr(); }
+		ND_ explicit operator ArrayView<T> ()		C_NE___	{ return _ToArrayView(); }
+		ND_ explicit operator MutableArrayView<T> ()__NE___	{ return _ToMutableView(); }
+		ND_ explicit operator Array<T> ()			C_Th___	{ return Array<T>{ ArrayView<T>{ *this }}; }
 
-		ND_ explicit operator ArrayView<T> ()		C_NE___
-		{
-			CHECK_ERR( this->elementSize == sizeof(T) );
-			return ArrayView<T>{ Cast<T>( const_cast< Self *>(this)->GetBuffer() ), size() };
-		}
+		ND_ T &			operator [] (usize i)		__NE___	{ return _ToMutableView()[i]; }
+		ND_ T const &	operator [] (usize i)		C_NE___	{ return _ToArrayView()[i]; }
 
-		ND_ explicit operator MutableArrayView<T> ()__NE___
+			void  push_back (T value)				__NE___	{ this->InsertLast( &value ); }
+
+			template <typename ...Args>
+			void  emplace_back (Args&& ...args)		__NE___	{ push_back( T{ FwdArg<Args>(args)... }); }
+
+			void  clear ()							__NE___	{ this->Resize( 0 ); }
+			void  resize (usize newSize)			__NE___	{ this->Resize( uint(newSize) ); }
+			void  reserve (usize newSize)			__NE___	{ this->Reserve( uint(newSize) ); }
+
+	private:
+		ND_ MutableArrayView<T>  _ToMutableView ()	__NE___
 		{
 			CHECK_ERR( this->elementSize == sizeof(T) );
 			return MutableArrayView<T>{ Cast<T>(this->GetBuffer()), size() };
 		}
 
-		ND_ explicit operator Array<T> ()			C_Th___
+		ND_ ArrayView<T>  _ToArrayView ()			C_NE___
 		{
-			return Array<T>{ View_t{ *this }};
+			CHECK_ERR( this->elementSize == sizeof(T) );
+			return ArrayView<T>{ Cast<T>( const_cast< Self *>(this)->GetBuffer() ), size() };
 		}
+	};
+
+
+
+	//
+	// POD Array v2
+	//
+	template <typename T>
+	class ScriptPODArray2 final : protected AngelScript::CScriptArray
+	{
+	// types
+	private:
+		StaticAssert( not (ScriptTypeInfo<T>::is_object or ScriptTypeInfo<T>::is_ref_counted) );
+
+		using Self				= ScriptPODArray2< T >;
+		using View_t			= StructView< T >;
+	public:
+		using const_iterator	= typename View_t::large_iterator;
+
+
+	// methods
+	public:
+		ScriptPODArray2 ()							= delete;
+		ScriptPODArray2 (Self &&)					= delete;
+		ScriptPODArray2 (const Self &)				= delete;
+
+			Self&		operator = (Self &&)		= delete;
+			Self&		operator = (const Self &)	= delete;
+
+		ND_ const_iterator	begin ()				C_NE___	{ return _ToView().begin(); }
+		ND_ const_iterator	end ()					C_NE___	{ return _ToView().end(); }
+
+		ND_ usize		size ()						C_NE___	{ return this->GetSize(); }
+		ND_ bool		empty ()					C_NE___	{ return this->IsEmpty(); }
+
+		ND_ explicit operator View_t ()				C_NE___	{ return _ToView(); }
+		ND_ explicit operator Array<T> ()			C_Th___	{ return Array<T>{ View_t{ *this }}; }
 
 		ND_ T &			operator [] (usize i)		__NE___	{ ASSERT( i < size() );  return *Cast<T>( this->At( uint(i) )); }
 		ND_ T const &	operator [] (usize i)		C_NE___	{ ASSERT( i < size() );  return *Cast<T>( this->At( uint(i) )); }
@@ -71,7 +121,7 @@ namespace AE::Scripting::_hidden_
 			void  reserve (usize newSize)			__NE___	{ this->Reserve( uint(newSize) ); }
 
 	private:
-		ND_ View_t  _Arr ()							C_NE___
+		ND_ View_t  _ToView ()						C_NE___
 		{
 			return	StructView<T>{
 						Cast<T>( const_cast< Self *>(this)->GetBuffer() ),
@@ -289,7 +339,9 @@ namespace AE::Scripting::_hidden_
 						ScriptStringArray,
 						Conditional< (ScriptTypeInfo<T>::is_object or ScriptTypeInfo<T>::is_ref_counted),
 							ScriptObjArray<T>,
-							ScriptPODArray<T> >>;
+							Conditional< IsEnum<T> and sizeof(T) != 4,
+								ScriptPODArray2<T>,
+								ScriptPODArray<T> >>>;
 	};
 
 
@@ -327,6 +379,9 @@ namespace AE::Scripting
 
 	template <typename T>
 	struct ScriptTypeInfo< Scripting::_hidden_::ScriptPODArray<T> > : Scripting::_hidden_::TScriptTypeInfo<T> {};
+
+	template <typename T>
+	struct ScriptTypeInfo< Scripting::_hidden_::ScriptPODArray2<T> > : Scripting::_hidden_::TScriptTypeInfo<T> {};
 
 
 } // AE::Scripting

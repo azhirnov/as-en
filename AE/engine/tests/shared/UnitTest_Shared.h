@@ -3,11 +3,13 @@
 #pragma once
 
 #include "base/Algorithms/StringUtils.h"
+#include "base/Algorithms/Parser.h"
 
 using namespace AE;
 using namespace AE::Base;
 
-#define TEST( ... )		CHECK_FATAL_MSG( (__VA_ARGS__), AE_TOSTRING(__VA_ARGS__) )
+#define TEST( ... )					CHECK_FATAL_MSG( (__VA_ARGS__), AE_TOSTRING(__VA_ARGS__) )
+#define TEST_MSG( _expr_, _msg_ )	CHECK_FATAL_MSG( (_expr_), (_msg_) )
 
 #define TEST_NO_LOG( ... )										\
 	{															\
@@ -60,23 +62,45 @@ using namespace AE::Base;
 
 #define TEST_PASSED()		AE_LOGI( AE::Base::String{AE_FUNCTION_NAME} + " - passed" );
 
-#ifdef AE_PLATFORM_ANDROID
-#	define BEGIN_TEST()									\
-		const Path	curr {path};						\
-		std::filesystem::current_path( curr );			\
-		StaticLogger::LoggerScope log{};
-
-#elif defined(AE_PLATFORM_APPLE)
-#	define BEGIN_TEST()																				\
-		const Path	curr = Path{argv[0]}.parent_path().parent_path().parent_path().parent_path();	\
-		Unused( argc );																				\
-		std::filesystem::current_path( curr );														\
-		StaticLogger::LoggerScope log{};
-
+#ifdef AE_PLATFORM_APPLE
+#	define _BEGIN_TEST2()																																								\
+		const auto	SetOrGetCurrDir = [argc, argv]()																																	\
+		{{																																												\
+			Path	curr = AE::Base::Parser::GetCommandLinePath( ArrayView{ argv, usize(Max(argc,0)) }, "-p", Path{argv[0]}.parent_path().parent_path().parent_path().parent_path() );	\
+			std::error_code ec;																																							\
+			std::filesystem::current_path( curr, OUT ec );																																\
+			if ( ec ) curr = std::filesystem::current_path( OUT ec );																													\
+			AE_LOG_DBG( "Current path: "s << curr.string() );																															\
+			return curr;																																								\
+		}}
 #else
-#	define BEGIN_TEST()													\
-		std::filesystem::current_path( Path{argv[0]}.parent_path() );	\
-		StaticLogger::LoggerScope log{};								\
-		const Path	curr = Path{argv[0]}.parent_path();					\
-		Unused( argc );
+#	define _BEGIN_TEST2()																																								\
+		const auto	SetOrGetCurrDir = [argc, argv]()																																	\
+		{{																																												\
+			Path	curr = AE::Base::Parser::GetCommandLinePath( ArrayView{ argv, usize(Max(argc,0)) }, "-p", Path{argv[0]}.parent_path() );											\
+			std::error_code ec;																																							\
+			std::filesystem::current_path( curr, OUT ec );																																\
+			if ( ec ) curr = std::filesystem::current_path( OUT ec );																													\
+			AE_LOG_DBG( "Current path: "s << curr.string() );																															\
+			return curr;																																								\
+		}}
 #endif
+
+
+#define BEGIN_TEST()																								\
+	StaticLogger::LoggerScope log{};																				\
+	_BEGIN_TEST2();																									\
+	const Path	curr		= SetOrGetCurrDir();																	\
+	String		test_name	= AE::Base::Parser::GetCommandLineArg( ArrayView{ argv, usize(Max(argc,0)) }, "-t" );
+
+#ifdef AE_PLATFORM_ANDROID
+#	define TEST_ENTRY()		extern "C" AE_DLL_EXPORT int  AEMain (const int argc, char const* argv[])
+#else
+#	define TEST_ENTRY()		int main (const int argc, char const* argv[])
+#endif
+
+#define RUN_TEST( _name_, ... )										\
+	if ( test_name.empty() or test_name == AE_TOSTRING(_name_) ) {	\
+		_name_( __VA_ARGS__ );										\
+	}
+

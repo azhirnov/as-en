@@ -3,6 +3,7 @@
 #pragma once
 
 #include "Passes/Postprocess.h"
+#include "Passes/ComputePass.h"
 #include "Passes/RayTracingPass.h"
 #include "GeomSource/IGeomSource.h"
 
@@ -17,6 +18,7 @@ namespace AE::ResEditor
 		friend class SceneGraphicsPass;
 		friend class SceneGraphicsSubpass;
 		friend class SceneRayTracingPass;
+		friend class SceneRayQueryPass;
 		friend class ScriptScene;
 
 	// types
@@ -52,7 +54,6 @@ namespace AE::ResEditor
 	// types
 	private:
 		using Materials_t			= Array< RC<IGSMaterials> >;
-		using ViewportWScaling_t	= FixedArray< packed_float2, GraphicsConfig::MaxViewports >;
 		using FScissors_t			= FixedArray< RectF, GraphicsConfig::MaxViewports >;
 		using Scissors_t			= FixedArray< RectI, GraphicsConfig::MaxViewports >;
 		using Viewports_t			= FixedArray< Viewport, GraphicsConfig::MaxViewports >;
@@ -75,7 +76,6 @@ namespace AE::ResEditor
 
 		uint2					_dimension;			// updated by main pass
 		ERenderLayer			_renderLayer;
-		ViewportWScaling_t		_wScaling;
 		FScissors_t				_scissors;
 		Viewports_t				_viewports;
 
@@ -154,7 +154,6 @@ namespace AE::ResEditor
 
 	// types
 	private:
-		using Materials_t	= Array< RC<IGSMaterials> >;
 		using Iterations_t	= Array< RayTracingPass::Iteration >;
 
 
@@ -184,6 +183,56 @@ namespace AE::ResEditor
 	public:
 		SceneRayTracingPass ()											__NE___ {}
 		~SceneRayTracingPass ();
+
+	// IPass //
+		EPassType	GetType ()											C_NE_OV	{ return EPassType::Sync | EPassType::Update; }
+		bool		Execute (SyncPassData &)							__Th_OV;
+		bool		Update (TransferCtx_t &, const UpdatePassData &)	__Th_OV;
+		void		GetResourcesToResize (INOUT Array<RC<IResource>> &)	__NE_OV;
+	};
+
+
+
+	//
+	// Scene Ray Query Pass
+	//
+	class SceneRayQueryPass final : public IPass
+	{
+		friend class ScriptSceneRayQueryPass;
+
+	// types
+	private:
+		using Iteration			= ComputePass::Iteration;
+		using Iterations_t		= ComputePass::Iterations_t;
+		using PipelineMap_t		= FixedMap< EDebugMode, ComputePipelineID, uint(EDebugMode::_Count) >;
+
+
+	// variables
+	private:
+		RTechInfo				_rtech;
+
+		PipelineMap_t			_pipelines;
+
+		RC<SceneData>			_scene;
+
+		ResourceArray			_resources;
+		Iterations_t			_iterations;
+		uint3					_localSize;
+
+		PerFrameDescSet_t		_passDescSets;
+		PerFrameDescSet_t		_objDescSets;
+
+		Strong<BufferID>		_ubuffer;
+
+		DescSetBinding			_passDSIndex;
+		DescSetBinding			_objDSIndex;
+		PushConstantIndex		_pcIndex;
+
+
+	// methods
+	public:
+		SceneRayQueryPass ()											__NE___ {}
+		~SceneRayQueryPass ();
 
 	// IPass //
 		EPassType	GetType ()											C_NE_OV	{ return EPassType::Sync | EPassType::Update; }

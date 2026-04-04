@@ -19,9 +19,9 @@
 			const uint	inst_count = 38;
 			inst_buf.ArrayLayout(
 				"InstanceData",
-				"float3x2	m1;" +
-				"float		r;" +
-				"float		t;" +
+				"float3x2	m1;"
+				"float		r;"
+				"float		t;"
 				"float		f;",
 				inst_count
 			);

@@ -927,7 +927,7 @@ namespace
 			TEST( wfile.IsOpen() );
 			TEST( AllBits( wfile.GetSourceType(), ESourceType::RandomAccess | ESourceType::WriteAccess ));
 
-			const Bytes	align = Max( Bytes{wfile.OffsetAlign().ptrAlign}, AlignOf<ulong> );
+			const Bytes	align = Max( Bytes{wfile.DirectAccessAlign().ptrAlign}, AlignOf<ulong> );
 
 			DynUntypedStorage	buf;
 			TEST( buf.Alloc( Bytes{buf_size}, align, null ));
@@ -954,7 +954,7 @@ namespace
 			TEST( AllBits( rfile.GetSourceType(), ESourceType::RandomAccess | ESourceType::ReadAccess ));
 			TEST_Eq( rfile.Size(), file_size );
 
-			const Bytes	align = Max( Bytes{rfile.OffsetAlign().ptrAlign}, AlignOf<ulong> );
+			const Bytes	align = Max( Bytes{rfile.DirectAccessAlign().ptrAlign}, AlignOf<ulong> );
 
 			DynUntypedStorage	dst_buf;
 			TEST( dst_buf.Alloc( Bytes{buf_size}, align, null ));

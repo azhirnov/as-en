@@ -13,9 +13,9 @@
 			{
 				RC<ShaderStructType>	st = ShaderStructType( "io" );
 				st.Set( EStructLayout::InternalIO,
-						"mediump float4		color;" +
-						"mediump float3		worldPos;" +
-						"mediump float2		uv;" +
+						"mediump float4		color;"
+						"mediump float3		worldPos;"
+						"mediump float2		uv;"
 						"uint				objId;" );
 			}{
 				RC<DescriptorSetLayout>	ds = DescriptorSetLayout( "mtr.ds" );
@@ -123,7 +123,7 @@
 		#endif
 
 		ObjectTransform	obj	= un_Transform.elements[ obj_id ];
-		float3			pos = un_Geometry.positions[ gl.VertexIndex ];
+		float3			pos = un_Geometry.position[ gl.VertexIndex ];
 
 		pos *= obj.scale;
 		pos += obj.position;
@@ -154,7 +154,7 @@
 	#ifdef VIS_BUF1_2
 		float3  LocalPosToWorldSpace (ObjectTransform obj, uint vertId)
 		{
-			float3	pos = un_Geometry.positions[ vertId ];
+			float3	pos = un_Geometry.position[ vertId ];
 			pos *= obj.scale;
 			pos += obj.position;
 			pos -= un_PerPass.camera.pos;
@@ -202,7 +202,7 @@
 															ToSNorm( gl.FragCoord.xy * un_PerPass.invResolution.xy ),
 															2.0 * un_PerPass.invResolution.xy );
 
-			GradientInterpolationResults uv_res = Interpolate2DWithDeriv( deriv, un_Geometry.uvs[idx.x], un_Geometry.uvs[idx.y], un_Geometry.uvs[idx.z] );
+			GradientInterpolationResults uv_res = Interpolate2DWithDeriv( deriv, un_Geometry.uv[idx.x], un_Geometry.uv[idx.y], un_Geometry.uv[idx.z] );
 
 			DerivativesOutput	wp_deriv	= Cal3DDeriv( deriv, wpos0, wpos1, wpos2 );
 			const float3		norm		= Normalize( Cross( wp_deriv.db_dx, wp_deriv.db_dy ));	// ComputeNormalInWS_dxdy

@@ -208,6 +208,49 @@ namespace
 	#endif
 	}
 
+/*
+=================================================
+	ExtendFile
+=================================================
+*/
+#ifdef AE_PLATFORM_ANDROID
+	#ifndef AT_EMPTY_PATH
+	# define AT_EMPTY_PATH 0x1000
+	#endif
+
+	bool  android_statx (int fd, unsigned mask, OUT struct statx* sx)
+	{
+		#ifdef SYS_statx
+			return syscall( SYS_statx, fd, "", AT_EMPTY_PATH, mask, sx ) == 0;
+		#elif defined(__NR_statx)
+			return syscall( __NR_statx, fd, "", AT_EMPTY_PATH, mask, sx ) == 0;
+		#else
+			errno = ENOSYS;
+			return false;
+		#endif
+	}
+	#define STATX( _fd_, _mask_, _outStx_ )		android_statx( _fd_, _mask_, _outStx_ )
+#else
+	#define STATX( _fd_, _mask_, _outStx_ )		(::statx( _fd_, "", AT_EMPTY_PATH | AT_STATX_SYNC_AS_STAT, _mask_, _outStx_ ) != -1)
+#endif
+
+	IDataSource::ReqAlign  GetDirectAccessAlign (int fd) __NE___
+	{
+		static constexpr POTBytes	logical_sector_size		{PowerOfTwo(9)};	// 512_b
+		static constexpr POTBytes	physical_sector_size	{PowerOfTwo(12)};	// 4_KiB
+
+		struct statx	stx{};
+
+		if ( not STATX( fd, STATX_DIOALIGN, OUT &stx ) or
+			 NoBits( stx.stx_mask, STATX_DIOALIGN ))
+		{
+			// default
+			return IDataSource::ReqAlign{ logical_sector_size, physical_sector_size };
+		}
+
+		return IDataSource::ReqAlign{ POTBytes{stx.stx_dio_offset_align}, POTBytes{stx.stx_dio_mem_align} };
+	}
+
 } // namespace
 
 #endif // AE_PLATFORM_UNIX_BASED

@@ -6,6 +6,7 @@
 	related:
 	* [view clusters in 3D](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/scripts/light-cull/test-ClusterBoundingSphere.as)
 	* [frustum culling](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/scripts/geom-cull/FrustumCulling.as)
+	* [Cluster Forward](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/scripts/light-cull/wip-ClusterForward.as)
 */
 #ifdef __INTELLISENSE__
 # 	include <res_editor.as>
@@ -34,23 +35,20 @@
 
 		// create sphere
 		{
-			RC<Buffer>				sphere		= Buffer();
-			RC<UnifiedGeometry>		geometry	= UnifiedGeometry();
+			RC<Mesh>	mesh = Mesh();
+			mesh.SetAttributes( EAttribute::Position );
+			mesh.AddSphere( 3 );
 
-			array<float3>	positions;
-			array<uint>		indices;
-			GetSphere( 3, OUT positions, OUT indices );
-
-			sphere.FloatArray( "positions",	positions );
-			sphere.UIntArray(  "indices",	indices );
+			RC<Buffer>	sphere = mesh.ToBuffer();
 			sphere.LayoutName( "GeometrySBlock" );
 
+			RC<UnifiedGeometry>		geometry = UnifiedGeometry();
+			geometry.ArgIn( "un_Geometry",	sphere );
+
 			UnifiedGeometry_DrawIndexed	cmd;
-			cmd.indexCount = indices.size();
+			cmd.indexCount = mesh.IndexCount();
 			cmd.IndexBuffer( sphere, "indices" );
 			geometry.Draw( cmd );
-
-			geometry.ArgIn( "un_Geometry",	sphere );
 
 			scene.Add( geometry );
 		}
@@ -74,22 +72,19 @@
 
 		// create cone
 		{
-			RC<Buffer>				cone		= Buffer();
-			RC<UnifiedGeometry>		geometry	= UnifiedGeometry();
+			RC<Mesh>	mesh = Mesh();
+			mesh.SetAttributes( EAttribute::Position );
+			mesh.AddCone( 32 );
 
-			array<float3>	positions;
-			array<uint>		indices;
-			GetCone( 32, 1.0, 1.0, OUT positions, OUT indices );
-
-			cone.FloatArray( "positions",	positions );
-			cone.UIntArray(  "indices",		indices );
+			RC<Buffer>	cone = mesh.ToBuffer();
 			cone.LayoutName( "GeometrySBlock" );
 
 			UnifiedGeometry_DrawIndexed	cmd;
-			cmd.indexCount = indices.size();
+			cmd.indexCount = mesh.IndexCount();
 			cmd.IndexBuffer( cone, "indices" );
-			geometry.Draw( cmd );
 
+			RC<UnifiedGeometry>		geometry = UnifiedGeometry();
+			geometry.Draw( cmd );
 			geometry.ArgIn( "un_Geometry",	cone );
 
 			scene.Add( geometry );
@@ -116,30 +111,27 @@
 
 		// create sphere
 		{
-			RC<UnifiedGeometry>		geometry	= UnifiedGeometry();
-			RC<Buffer>				geom_data	= Buffer();
+			RC<Mesh>	mesh = Mesh();
+			mesh.SetAttributes( EAttribute::Position );
+			mesh.AddSphere( 3 );
 
-			array<float3>	positions;
-			array<uint>		indices;
-			GetSphere( 3, OUT positions, OUT indices );
-
-			geom_data.FloatArray( "positions",	positions );
-			geom_data.UIntArray(  "indices",	indices );
+			RC<Buffer>	geom_data = mesh.ToBuffer();
 			geom_data.LayoutName( "GeometrySBlock" );
 
+			RC<UnifiedGeometry>		geometry = UnifiedGeometry();
+			geometry.ArgIn(	"un_Geometry",	geom_data );
+			geometry.ArgIn(	"un_Clusters",	clusters );
+
 			UnifiedGeometry_DrawIndexed	cmd;
-			cmd.indexCount		= indices.size();
+			cmd.indexCount		= mesh.IndexCount();
 			cmd.IndexBuffer(	geom_data,	"indices" );
 			cmd.InstanceCount( clusters_count.Volume() );
 			geometry.Draw( cmd );
 
-			geometry.ArgIn(	"un_Geometry",	geom_data );
-			geometry.ArgIn(	"un_Clusters",	clusters );
-
 			scene2.Add( geometry );
 		}
 
-		// create box
+		// create frustum
 		{
 			RC<UnifiedGeometry>		geometry	= UnifiedGeometry();
 			RC<Buffer>				geom_data	= Buffer();
@@ -148,17 +140,9 @@
 			// | / |           | \ |
 			// 0 - 1    far -- 4 - 5
 			array<float3>		positions;	positions.resize( 8 );	// near[4], far[4]
-			const array<uint>	indices		= {
-				0, 1, 3,	0, 3, 2,	// front
-				5, 4, 6,	5, 6, 7,	// back
-				1, 5, 7,	1, 7, 3,	// right
-				3, 7, 6,	3, 6, 2,	// top
-				0, 4, 5,	0, 5, 1,	// bottom
-				4, 0, 2,	4, 2, 6		// left
-			};
-			Assert( indices.size() == 6*2*3 );
+			array<uint>			indices;	GetFrustumIndices( OUT indices );
 
-			geom_data.FloatArray( "positions",	positions );
+			geom_data.FloatArray( "position",	positions );
 			geom_data.UIntArray(  "indices",	indices );
 			geom_data.LayoutName( "GeometrySBlock" );
 
@@ -213,21 +197,21 @@
 
 		clusters.ArrayLayout(
 			"Cluster",
-			"	float4		sp;"s +
-			"	float3		points [8];" +
+			"	float4		sp;"
+			"	float3		points [8];"
 			"	uint		visible;",
 			clusters_count.Volume()
 		);
 
 		params_buf.UseLayout(
 			"Params",
-			"	float3		lightPos;"s
-			"	float		sphereRadius;" +
-			"	float3		coneDir;" +
-			"	float		coneAngle;" +
-			"	float		coneHeight;" +
-			"	float2		clipPlanes;" +
-			"	float4		frustumPlanes [6];" +
+			"	float3		lightPos;"
+			"	float		sphereRadius;"
+			"	float3		coneDir;"
+			"	float		coneAngle;"
+			"	float		coneHeight;"
+			"	float2		clipPlanes;"
+			"	float4		frustumPlanes [6];"
 			"	uint		visibleClusters;"
 		);
 
@@ -356,6 +340,7 @@
 	#include "Frustum.glsl"
 	#include "Quaternion.glsl"
 	#include "InvocationID.glsl"
+	#include "Intersectors.glsl"
 
 
 	float2  ZProjectionLerp (int clusterZ, int clusterCount)
@@ -392,7 +377,7 @@
 
 	bool  SpotLight (const Frustum frustum, const Sphere frustumSphere)
 	{
-		const Cone	cone = Cone_Create( un_Params.lightPos, un_Params.coneDir, un_Params.coneAngle, un_Params.coneHeight );
+		const Cone	cone = Cone_Create( un_Params.lightPos, un_Params.coneDir, un_Params.coneAngle, un_Params.coneHeight );  // view space
 
 		switch ( iVisTestMode )
 		{
@@ -400,13 +385,13 @@
 			case 1 :	return Cone_Sphere_Intersects( cone, frustumSphere );
 			case 2 :
 			{
-				Quat	rot		= QFrom2Normals( float3(0.0, -1.0, 0.0),	// origin direction (negative because of SDF_Cone implementation)
-												 cone.dir );				// new direction
+				Quat	rot	= QFrom2Normals( float3(0.0, -1.0, 0.0),	// origin direction (negative because of SDF_Cone implementation)
+											 cone.dir );				// new direction
 
-				float3	pos		= frustumSphere.center - cone.origin;
-						pos		= SDF_Rotate( pos, rot );
+				float3	pos	= frustumSphere.center - cone.origin;
+						pos	= SDF_Rotate( pos, rot );
 
-				float	d		= SDF_Cone( pos, SinCos( cone.halfAngle ), cone.height );
+				float	d	= SDF_Cone( pos, SinCos( cone.halfAngle ), cone.height );
 				return	d < frustumSphere.radius;
 			}
 		}
@@ -415,9 +400,9 @@
 
 	void  Main ()
 	{
-		const int3		cluster_idx		= GetGlobalCoord();
-		const int3		cluster_count	= int3(iClusterCount);
-		const int		idx				= VecToIndex( cluster_idx, cluster_count );
+		const int3	cluster_idx		= GetGlobalCoord();
+		const int3	cluster_count	= int3(iClusterCount);
+		const int	idx				= VecToIndex( cluster_idx, cluster_count );
 
 		if ( AnyGreaterEqual( cluster_idx, cluster_count ))
 			return;

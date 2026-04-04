@@ -1,7 +1,7 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 /*
 	references:
-	https://github.com/KhronosGroup/GLSL/blob/master/extensions/ext/GL_EXT_shader_realtime_clock.txt
+	https://github.com/KhronosGroup/GLSL/blob/main/extensions/ext/GL_EXT_shader_realtime_clock.txt
 	https://www.khronos.org/registry/OpenGL/extensions/ARB/ARB_shader_clock.txt
 	https://www.khronos.org/registry/vulkan/specs/1.1-extensions/html/vkspec.html#VK_KHR_shader_clock
 */
@@ -1113,6 +1113,7 @@ ND_ static TIntermAggregate*  CreateAddTimeToTrace (TIntermTyped* exprNode, TInt
 		case TBasicType::EbtRayQuery :
 		case TBasicType::EbtSpirvType :
 		case TBasicType::EbtHitObjectNV :
+		case TBasicType::EbtHitObjectEXT :
 		case TBasicType::EbtCoopmat :
 		case TBasicType::EbtFunction :
 		case TBasicType::EbtTensorLayoutNV :
@@ -1122,6 +1123,7 @@ ND_ static TIntermAggregate*  CreateAddTimeToTrace (TIntermTyped* exprNode, TInt
 		case TBasicType::EbtFloatE5M2 :
 		case TBasicType::EbtFloatE4M3 :
 		case TBasicType::EbtTensorARM :
+		case TBasicType::EbtLongVector :
 		default :						RETURN_ERR( "not supported" );
 	}
 	switch_end

@@ -12,14 +12,44 @@
 
 	void CreatePipelines (string prefix, bool withUV, bool withNorm, bool translucent)
 	{
+		const bool	with_tess = true;
+
+		if ( with_tess )
+		{
+			{
+				RC<ShaderStructType>	st = ShaderStructType( prefix+"io.vs-tcs" );
+				st.Set(	EStructLayout::InternalIO,
+						"float3		worldNormal;"
+						"float3		worldPos;"
+						"uint		materialIdx;"
+						"float2		texcoord;" );
+			}{
+				RC<ShaderStructType>	st = ShaderStructType( prefix+"io.tcs-tes" );
+				st.Set( EStructLayout::InternalIO,
+						"float3		worldNormal;"
+						"float3		worldPos;"
+						"uint		materialIdx;"
+						"float2		texcoord;" );
+			}{
+				RC<ShaderStructType>	st = ShaderStructType( prefix+"io.tes-fs" );
+				st.Set( EStructLayout::InternalIO,
+						"float3		worldNormal;"
+					//	"float		clip;"
+						"float3		worldPos;"
+						"uint		materialIdx;"
+						"float2		texcoord;" );
+			}
+		}
+		else
 		{
 			RC<ShaderStructType>	st = ShaderStructType( prefix+"io.vs-fs" );
 			st.Set( EStructLayout::InternalIO,
-					"float3		worldNormal;" +
-					"float3		worldPos;" +
-					"float2		texcoord;" +
-					"uint		materialIdx;" );
+					"float3		worldNormal;"
+					"float3		worldPos;"
+					"uint		materialIdx;"
+					"float2		texcoord;" );
 		}
+
 		{
 			RC<GraphicsPipeline>	ppln = GraphicsPipeline( prefix+"t" );
 			ppln.SetLayout( "model.pl" );	// [InitPipelineLayout()](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/pipeline_inc/ModelTypes.as)
@@ -30,7 +60,14 @@
 										ppln.SetVertexInput( "VB{Posf3}" );
 
 			ppln.SetFragmentOutputFromRenderTech( "rtech", "main" );
-			ppln.SetShaderIO( EShader::Vertex, EShader::Fragment, prefix+"io.vs-fs" );
+
+			if ( with_tess ) {
+				ppln.SetShaderIO( EShader::Vertex,			EShader::TessControl,	 prefix+"io.vs-tcs" );
+				ppln.SetShaderIO( EShader::TessControl,		EShader::TessEvaluation, prefix+"io.tcs-tes" );
+				ppln.SetShaderIO( EShader::TessEvaluation,	EShader::Fragment,		 prefix+"io.tes-fs" );
+			}else{
+				ppln.SetShaderIO( EShader::Vertex,			EShader::Fragment,		 prefix+"io.vs-fs" );
+			}
 
 			{
 				RC<Shader>	vs = Shader();
@@ -38,7 +75,22 @@
 				if ( withUV ) vs.Define( "VS_TEXCOORD" );
 				if ( withNorm ) vs.Define( "VS_NORMALS" );
 				ppln.SetVertexShader( vs );
-			}{
+			}
+			if ( with_tess )
+			{
+				{
+					RC<Shader>	tcs = Shader();
+					tcs.LoadSelf();
+					tcs.TessPatchSize( 3 );
+					ppln.SetTessControlShader( tcs );
+				}{
+					RC<Shader>	tes = Shader();
+					tes.LoadSelf();
+					tes.TessPatchMode( ETessPatch::Triangles, ETessSpacing::Equal, /*ccw*/false );
+					ppln.SetTessEvalShader( tes );
+				}
+			}
+			{
 				RC<Shader>	fs = Shader();
 				fs.LoadSelf();
 				fs.Define( withUV ? "FS_TEXTURING" : "FS_FLAT_SHADING" );
@@ -62,7 +114,7 @@
 				rs.depth.test					= true;
 				rs.depth.write					= true;
 
-				rs.inputAssembly.topology		= EPrimitive::TriangleList;
+				rs.inputAssembly.topology		= with_tess ? EPrimitive::Patch : EPrimitive::TriangleList;
 
 				rs.rasterization.frontFaceCCW	= true;
 			}
@@ -104,7 +156,7 @@
 	{
 		ModelNode	node		= un_Nodes.elements[ gl.InstanceIndex ];	// only 'firstInstance'
 		float4		world_pos	= LocalPosToWorldSpace( node.transform * float4( in_Position, 1.0f ));
-		float4		view_pos	= un_CBuf.viewMat * world_pos;
+		float3		view_pos	= world_pos.xyz;	// top down
 
 		Out.worldPos	= world_pos.xyz;
 		Out.materialIdx	= node.materialIdx;	// uniform per draw call
@@ -115,6 +167,57 @@
 	  #ifdef VS_TEXCOORD
 		Out.texcoord	= in_Texcoord;
 	  #endif
+	}
+
+#endif
+//-----------------------------------------------------------------------------
+#ifdef SH_TESS_CTRL
+	#include "Math.glsl"
+
+	#define I	gl.InvocationID
+
+	float EdgeTessLevel (float3 p0, float3 p1)
+	{
+		float	edge_length		= Distance( p0, p1 );
+		float	edge_center		= Distance( (p0 + p1) * 0.5f, float3(0.0f) );
+		float	tess_level		= Max( 1.0, iTessLevel * edge_length / Max( edge_center, 0.001 ));
+		return	tess_level;
+	}
+
+	void Main ()
+	{
+		if ( I == 0 )
+		{
+			float3 p0 = In[0].worldPos;
+			float3 p1 = In[1].worldPos;
+			float3 p2 = In[2].worldPos;
+
+			gl.TessLevelOuter[0] = EdgeTessLevel( p1, p2 );
+			gl.TessLevelOuter[1] = EdgeTessLevel( p2, p0 );
+			gl.TessLevelOuter[2] = EdgeTessLevel( p0, p1 );
+
+			gl.TessLevelInner[0] = (gl.TessLevelOuter[0] + gl.TessLevelOuter[1] + gl.TessLevelOuter[2]) / 3.0;
+		}
+
+		Out[I].worldPos		= In[I].worldPos;
+		Out[I].materialIdx	= In[I].materialIdx;
+		Out[I].worldNormal	= In[I].worldNormal;
+		Out[I].texcoord		= In[I].texcoord;
+	}
+
+#endif
+//-----------------------------------------------------------------------------
+#ifdef SH_TESS_EVAL
+	#include "Math.glsl"
+
+	#define Interpolate( _arr_, _field_ )	InterpolateTriangle( _arr_, _field_, gl.TessCoord )
+
+	void Main ()
+	{
+		float3	view_pos	= Interpolate( In, .worldPos );
+		Out.worldNormal		= Interpolate( In, .worldNormal );
+		Out.texcoord		= Interpolate( In, .texcoord );
+		Out.materialIdx		= In[0].materialIdx;
 
 		const float	z_near	= un_PerPass.camera.clipPlanes.x;
 		const float	z_far	= un_PerPass.camera.clipPlanes.y;
@@ -124,28 +227,54 @@
 			case 0 :	// paraboloid
 			{
 				// see 'RayInverse_Paraboloid'
-				float	t		= ToUNorm( view_pos.y );		// [0, 1]
-				float	r2		= (1.0 - t) / (1.0 + t);
-				float2	uv		= view_pos.xz * ToUNorm( r2 );	// [-1, +1]
-				float	d		= Length( view_pos.xyz );
-						d		= Saturate( (d / z_near) / (z_far - z_near) );
+				float	d		= Max( Length( view_pos.xyz ), 1.0e-5 );
+				float	d2		= Max( Length( view_pos.xz ), 1.0e-5 );
+				float	r2		= ToUNorm( -view_pos.y / d );
 
-				gl.Position		= float4( uv, d, 1.0 );
+				gl.Position.xy	= view_pos.xz / d2 * r2;
+				gl.Position.z	= Saturate( (d - z_near) / (z_far - z_near) );
+				gl.Position.w	= 1.0;
+
+				gl.ClipDistance[0] = 1.0;  // unused for paraboloid
 				break;
 			}
+
 			case 1 :	// dual paraboloid
 			{
-				// see RayInverse_DualParaboloid
+				// see 'RayInverse_DualParaboloid'
 				if ( iPassIdx == 1 )
-					view_pos = float4( -view_pos.x, view_pos.y, -view_pos.z, 1.0 );
+					view_pos = float3( -view_pos.x, view_pos.y, -view_pos.z );
 
-				float	denom	= view_pos.z + 1.0;
-				float2	uv		= view_pos.xy / denom;
-				float	d		= Length( view_pos.xyz );
-						d		= Saturate( (d / z_near) / (z_far - z_near) );
+				float	len		= Length( view_pos.xyz );
+				float3	dir		= view_pos.xyz / len;
 
-				gl.Position		= float4( uv, d, 1.0 );
-				gl.Layer		= iPassIdx;
+				gl.Position.xy	= dir.xy / (dir.z + 1.0);
+				gl.Position.z	= (len - z_near) / (z_far - z_near);
+				gl.Position.w	= 1.0;
+
+				gl.ClipDistance[0]	= dir.z + iOverlap * 0.1;	// requires 'shaderClipDistance'
+				//Out.clip			= dir.z + iOverlap * 0.1;
+				break;
+			}
+
+			case 2 :	// dual paraboloid v2
+			{
+				// see 'RayInverse_DualParaboloid'
+				if ( iPassIdx == 1 )
+					view_pos = float3( -view_pos.x, view_pos.y, -view_pos.z );
+
+				float	len		= Length( view_pos.xyz );
+				float3	dir		= view_pos.xyz / len;
+				float	w		= Sign( dir.z );	// free clipping, but with UV distortion and missed triangles near to Z=0
+
+				gl.Position.xy	= dir.xy / (dir.z + 1.0);
+				gl.Position.z	= (len - z_near) / (z_far - z_near);
+				gl.Position.w	= 1.0;
+
+				if ( dir.z < -iOverlap * 0.1 )
+					gl.Position.z = -0.01;
+
+				gl.ClipDistance[0] = 1.0;  // unused for this implementation
 				break;
 			}
 		}
@@ -159,6 +288,9 @@
 
 	void Main ()
 	{
+		//if ( iProjection == 1 and In.clip < 0.0 )
+		//	gl.Discard;
+
 		// world-space normal
 	  #ifdef GEN_NORMALS
 		const float3	normal	= ComputeNormalInWS_dxdy( In.worldPos );
@@ -181,11 +313,7 @@
 			}
 		}
 
-	  #ifdef TRANSLUCENT
 		out_Color = albedo;
-	  #else
-		out_Color = albedo * CalcLighting( In.worldPos, normal );
-	  #endif
 	}
 
 #endif
@@ -196,6 +324,9 @@
 
 	void Main ()
 	{
+		//if ( iProjection == 1 and In.clip < 0.0 )
+		//	gl.Discard;
+
 	  #ifdef GEN_NORMALS
 		const float3	normal	= ComputeNormalInWS_dxdy( In.worldPos );
 	  #else
@@ -205,11 +336,7 @@
 		ModelMaterial	mtr		= un_Materials.elements[ In.materialIdx ];	// uniform per draw call
 		float4			albedo	= UnpackRGBM( mtr.albedoRGBM );
 
-	  #ifdef TRANSLUCENT
 		out_Color = albedo;
-	  #else
-		out_Color = albedo * CalcLighting( In.worldPos, normal );
-	  #endif
 	}
 
 #endif

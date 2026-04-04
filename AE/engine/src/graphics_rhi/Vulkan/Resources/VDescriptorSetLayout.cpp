@@ -205,7 +205,6 @@ namespace AE::Graphics
 				break;
 
 			case EDescriptorType::CombinedImage :
-				ASSERT( ToEResState(un.image.state) == _EResState::ShaderSample );
 				entry_stride		= SizeOf<VkDescriptorImageInfo>;
 				bind.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
 				break;
@@ -221,7 +220,6 @@ namespace AE::Graphics
 				break;
 
 			case EDescriptorType::CombinedImage_ImmutableSampler :
-				ASSERT( ToEResState(un.image.state) == _EResState::ShaderSample );
 				entry_stride			= SizeOf<VkDescriptorImageInfo>;
 				bind.descriptorType		= VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
 				bind.pImmutableSamplers	= samplerStorage.data() + un.image.samplerOffsetInStorage;

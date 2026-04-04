@@ -27,11 +27,14 @@ namespace AE::Graphics
 		mem_req.memoryTypeBits &= dev.GetMemoryTypeBits( desc.memType );
 		CHECK_ERR( mem_req.memoryTypeBits != 0 );
 
+		EFlags	flags = EFlags::Image;
+
+		if ( EMemoryType_IsHostVisible( desc.memType ))
+			flags |= EFlags::MapMemory;
+
 		// allocate memory
 		auto&	mem_data = _CastStorage( data );
-		CHECK_ERR( _Allocate( dev, Bytes{mem_req.size}, Bytes{mem_req.alignment}, mem_req.memoryTypeBits,
-							  False{"no shaderAddress"}, True{"image"}, Bool{EMemoryType_IsHostVisible( desc.memType )},
-							  OUT mem_data ));
+		CHECK_ERR( _Allocate( dev, Bytes{mem_req.size}, Bytes{mem_req.alignment}, mem_req.memoryTypeBits, flags, OUT mem_data ));
 
 		// bind image to memory
 		auto	err = dev.vkBindImageMemory( dev.GetVkDevice(), image, _GetMemory(mem_data), VkDeviceSize(_GetOffset(mem_data)) );
@@ -51,9 +54,6 @@ namespace AE::Graphics
 */
 	bool  VGFXALLOC::AllocForBuffer (VkBuffer buffer, const BufferDesc &desc, OUT Storage_t &data) __NE___
 	{
-		constexpr auto	dev_addr_mask = EBufferUsage::ShaderAddress | EBufferUsage::ShaderBindingTable |
-										EBufferUsage::ASBuild_ReadOnly | EBufferUsage::ASBuild_Scratch;
-
 		CHECK_ERR( buffer != Default );
 		CHECK_ERR( desc.memType != Default );
 		ASSERT_MSG( NoBits( desc.memType, EMemoryType::Dedicated ),
@@ -70,11 +70,17 @@ namespace AE::Graphics
 		mem_req.memoryTypeBits &= dev.GetMemoryTypeBits( desc.memType );
 		CHECK_ERR( mem_req.memoryTypeBits != 0 );
 
+		EFlags	flags = EFlags::Buffer;
+
+		if ( EMemoryType_IsHostVisible( desc.memType ))
+			flags |= EFlags::MapMemory;
+
+		if ( AnyBits( desc.usage, EBufferUsage_RequireDevAddress ))
+			flags |= EFlags::ShaderAddress;
+
 		// allocate memory
 		auto&	mem_data = _CastStorage( data );
-		CHECK_ERR( _Allocate( dev, Bytes{mem_req.size}, Bytes{mem_req.alignment}, mem_req.memoryTypeBits,
-							  Bool{AnyBits( desc.usage, dev_addr_mask )}, False{"buffer"}, Bool{EMemoryType_IsHostVisible( desc.memType )},
-							  OUT mem_data ));
+		CHECK_ERR( _Allocate( dev, Bytes{mem_req.size}, Bytes{mem_req.alignment}, mem_req.memoryTypeBits, flags, OUT mem_data ));
 
 		// bind buffer to memory
 		auto	err = dev.vkBindBufferMemory( dev.GetVkDevice(), buffer, _GetMemory(mem_data), VkDeviceSize(_GetOffset(mem_data)) );
@@ -103,6 +109,8 @@ namespace AE::Graphics
 		uint									count								= VConfig::MaxVideoMemReq;
 		const uint								membits_mask						= dev.GetMemoryTypeBits( memType );
 
+		for (auto& dst : mem_reqs) { dst.sType = VK_STRUCTURE_TYPE_VIDEO_SESSION_MEMORY_REQUIREMENTS_KHR; }
+
 		VK_CHECK_ERR( dev.vkGetVideoSessionMemoryRequirementsKHR( dev.GetVkDevice(), videoSession, INOUT &count, OUT mem_reqs ));
 		CHECK_ERR( count > 0 and count <= CountOf(mem_reqs) );
 
@@ -113,12 +121,16 @@ namespace AE::Graphics
 
 		for (i = 0; ok and (i < count); ++i)
 		{
-			ok = (mem_reqs[i].memoryRequirements.memoryTypeBits &= membits_mask) != 0;
-			if ( not ok ) continue;
+			uint	mem_bits = mem_reqs[i].memoryRequirements.memoryTypeBits & membits_mask;
+			if ( mem_bits == 0 )
+			{
+				// may require host memory
+				mem_bits = mem_reqs[i].memoryRequirements.memoryTypeBits;
+			}
 
 			ok = _Allocate( dev, Bytes{mem_reqs[i].memoryRequirements.size}, Bytes{mem_reqs[i].memoryRequirements.alignment},
-							mem_reqs[i].memoryRequirements.memoryTypeBits, False{"no shaderAddress"},
-							False{"buffer"}, False{"map mem"}, OUT _CastStorage( data[i] ));
+							mem_reqs[i].memoryRequirements.memoryTypeBits, EFlags::Buffer, OUT _CastStorage( data[i] ));
+			ASSERT( ok );
 		}
 
 		if_unlikely( not ok )
@@ -187,11 +199,14 @@ namespace AE::Graphics
 			mem_req.memoryTypeBits &= membits_mask;
 			CHECK_ERR( mem_req.memoryTypeBits != 0 );
 
+			EFlags	flags = EFlags::Image;
+
+			if ( EMemoryType_IsHostVisible( desc.memType ))
+				flags |= EFlags::MapMemory;
+
 			// allocate memory
 			auto&	mem_data = _CastStorage( data[0] );
-			CHECK_ERR( _Allocate( dev, Bytes{mem_req.size}, Bytes{mem_req.alignment}, mem_req.memoryTypeBits,
-								  False{"no shaderAddress"}, True{"image"}, Bool{EMemoryType_IsHostVisible( desc.memType )},
-								  OUT mem_data ));
+			CHECK_ERR( _Allocate( dev, Bytes{mem_req.size}, Bytes{mem_req.alignment}, mem_req.memoryTypeBits, flags, OUT mem_data ));
 
 			// bind image to memory
 			auto	err = dev.vkBindImageMemory( dev.GetVkDevice(), image, _GetMemory(mem_data), VkDeviceSize(_GetOffset(mem_data)) );
@@ -244,11 +259,15 @@ namespace AE::Graphics
 				ok = (mem_req.memoryRequirements.memoryTypeBits &= membits_mask) != 0;
 				if ( not ok ) continue;
 
+				EFlags	flags = EFlags::Image;
+
+				if ( EMemoryType_IsHostVisible( desc.memType ))
+					flags |= EFlags::MapMemory;
+
 				// allocate memory
 				auto&	mem_data = _CastStorage( data[plane] );
 				ok = _Allocate( dev, Bytes{mem_req.memoryRequirements.size}, Bytes{mem_req.memoryRequirements.alignment},
-								mem_req.memoryRequirements.memoryTypeBits, False{"no shaderAddress"},
-								True{"image"}, Bool{EMemoryType_IsHostVisible( desc.memType )}, OUT mem_data );
+								mem_req.memoryRequirements.memoryTypeBits, flags, OUT mem_data );
 
 				auto&	bind_info	= bind_infos [plane];
 				auto&	plane_info	= bind_plane_info [plane];
@@ -280,6 +299,39 @@ namespace AE::Graphics
 			}
 			return true;
 		}
+	}
+
+/*
+=================================================
+	AllocStorage
+=================================================
+*/
+	bool  VGFXALLOC::AllocStorage (Bytes storageSize, VkBufferUsageFlagBits2 usage, OUT Storage_t &data) __NE___
+	{
+		static constexpr VkBufferUsageFlagBits2		supported_usage =
+			VK_BUFFER_USAGE_2_ACCELERATION_STRUCTURE_STORAGE_BIT_KHR | VK_BUFFER_USAGE_2_MICROMAP_STORAGE_BIT_EXT;
+
+		CHECK_ERR( storageSize > 0 );
+		CHECK_ERR( AnyBits( usage, supported_usage ));
+		CHECK_ERR( NoBits( usage, ~supported_usage ));
+
+		VGfxMemAllocatorUtils::RTASMemRequirements  mem_req = _rtasStorageMemReq.load();
+
+		// init once
+		if_unlikely( mem_req.memTypeBits == 0 )
+		{
+			CHECK_ERR( VGfxMemAllocatorUtils::GetRTASStorageMemRequirements( INOUT _rtasStorageMemReq ));
+			mem_req = _rtasStorageMemReq.load();
+		}
+
+		const EFlags	flags = EFlags::Buffer | EFlags::ShaderAddress | EFlags::CreateBuffer;
+
+		// allocate memory
+		auto&	mem_data = _CastStorage( data );
+		auto&	dev		 = GraphicsScheduler().GetDevice();
+		CHECK_ERR( _Allocate( dev, storageSize, mem_req.align, mem_req.memTypeBits, flags, OUT mem_data ));
+
+		return true;
 	}
 
 } // AE::Graphics

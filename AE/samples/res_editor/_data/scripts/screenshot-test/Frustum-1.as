@@ -64,6 +64,8 @@
 		if ( i < 6 )
 		{
 			col = Abs( ref_fr.planes[i] - test_fr.planes[i] ) * scale;
+			col.rgb += col.a;
+			col.a = 1.0;
 		}
 		else
 		{

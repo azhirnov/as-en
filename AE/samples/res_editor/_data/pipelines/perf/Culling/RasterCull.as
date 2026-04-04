@@ -65,7 +65,7 @@
 	void Main ()
 	{
 		ObjectTransform	obj	= un_Transform.elements[ gl.InstanceIndex ];
-		float3			pos = un_Geometry.positions[ gl.VertexIndex ];
+		float3			pos = un_Geometry.position[ gl.VertexIndex ];
 
 		pos *= obj.scale;
 		pos += obj.position;

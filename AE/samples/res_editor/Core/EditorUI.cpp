@@ -372,6 +372,18 @@ namespace
 
 		dst->lines = RVRef(in);
 	}
+
+/*
+=================================================
+	NewScriptLoaded
+=================================================
+*/
+	void  UIInteraction::NewScriptLoaded ()
+	{
+		auto	sh_asserts = shaderAsserts.WriteLock();
+		sh_asserts->clearTimer.Restart();
+		sh_asserts->lines.clear();
+	}
 //-----------------------------------------------------------------------------
 
 
@@ -543,13 +555,13 @@ namespace
 
 			const Bytes	data_size = width * height * 4 * SizeOf<ubyte>;
 
-			copy_ctx.ImageBarrier( t._res.fontImg, EResourceState::Invalidate, EResourceState::CopyDst );
+			copy_ctx.ResourceBarrier( t._res.fontImg, EResourceState::Invalidate, EResourceState::CopyDst );
 			copy_ctx.CommitBarriers();
 
 			CHECK( copy_ctx.UploadImage( t._res.fontImg, upload, ArrayView<ubyte>{ pixels, usize{data_size} }) == data_size );
 			t._uploaded.store( true );
 
-			copy_ctx.ImageBarrier( t._res.fontImg, EResourceState::CopyDst, EResourceState::FragmentShader | EResourceState::ShaderSample );
+			copy_ctx.ResourceBarrier( t._res.fontImg, EResourceState::CopyDst, EResourceState::FragmentShader | EResourceState::ShaderSample );
 			copy_ctx.CommitBarriers();
 
 			imgui->ctx->IO.Fonts->SetTexID( BitCast<ImTextureID>( 0ull ));
@@ -642,16 +654,16 @@ namespace
 			{
 			#if RE_PROFILING
 				// only transit to final state
-				tctx.ImageBarrier( rt.imageId, rt.initialState | EResourceState::Invalidate, rt.finalState );
+				tctx.ResourceBarrier( rt.imageId, rt.initialState | EResourceState::Invalidate, rt.finalState );
 				tctx.CommitBarriers();
 			#else
 				// clear screen
-				tctx.ImageBarrier( rt.imageId, rt.initialState | EResourceState::Invalidate, EResourceState::ClearDst );
+				tctx.ResourceBarrier( rt.imageId, rt.initialState | EResourceState::Invalidate, EResourceState::ClearDst );
 				tctx.CommitBarriers();
 
 				tctx.ClearColorImage( rt.imageId, RGBA8u{20, 0, 60, 255}, {ImageSubresourceRange{ EImageAspect::Color }} );
 
-				tctx.ImageBarrier( rt.imageId, EResourceState::ClearDst, rt.finalState );
+				tctx.ResourceBarrier( rt.imageId, EResourceState::ClearDst, rt.finalState );
 				tctx.CommitBarriers();
 			#endif
 			}
@@ -991,7 +1003,12 @@ namespace
 				ImGui::Button( label, ImVec2{h,h} );
 				ImGui::PopStyleColor(3);
 			}};
-			const auto	sp = s_UIInteraction.selectedPixel.Read();
+			const auto	sp	= s_UIInteraction.selectedPixel.Read();
+			const auto	cs	= s_UIInteraction.cameraStats.Read();
+
+			ImGui::Text( "camera pos:  %s", ToString( cs.pos ).c_str() );
+			ImGui::Text( "camera view: %s", ToString( cs.viewDir ).c_str() );
+			ImGui::Separator();
 
 			ImGui::Text( "mouse pos:   %s", ToString( sp.pos ).c_str() );
 			ImGui::Text( "mouse unorm: %s", ToString( Saturate( sp.pendingPos ), 2u, False{} ).c_str() );
@@ -999,7 +1016,9 @@ namespace
 			ImGui::Text( "raw color:   %s", ToString( sp.color, 3 ).c_str() );
 			ImGui::SameLine();
 			ColoredButton( sp.color, "##RawPixelColor" );
+
 			ImGui::Separator();
+			ImGui::NewLine();
 
 			RGBA32f	col1 = ApplySRGBCurve( Saturate( sp.color ));
 			ImGui::Text( "apply sRGB:  %s", ToString( col1, 3 ).c_str() );
@@ -1486,15 +1505,23 @@ namespace
 */
 	void  EditorUI::DrawTask::_UpdateAssertsWindow ()
 	{
-		const auto	wnd_flags	= ImGuiWindowFlags_NoSavedSettings;
-		ImGuiIO &	io			= ImGui::GetIO();
+		ImGuiWindowFlags	wnd_flags	= ImGuiWindowFlags_NoSavedSettings;
+		ImGuiIO &			io			= ImGui::GetIO();
 
-		ImGui::SetNextWindowPos( ImVec2{io.DisplaySize.x - wnd2_width, 30.f}, ImGuiCond_Once );
+		ImGui::SetNextWindowPos( ImVec2{io.DisplaySize.x - wnd2_width - 10.f, 30.f}, ImGuiCond_Once );
 		ImGui::SetNextWindowSizeConstraints( ImVec2{wnd2_width, wnd2_height}, io.DisplaySize );
+		ImGui::SetNextWindowCollapsed( true, ImGuiCond_Once );
+
+		auto	sh_asserts	= UIInteraction::Instance().shaderAsserts.WriteLock();
+
+		if ( sh_asserts->clearTimer.Tick() )
+			sh_asserts->lines.clear();
+
+		if ( not sh_asserts->lines.empty() )
+			wnd_flags |= ImGuiWindowFlags_NoCollapse;
 
 		if ( ImGui::Begin( "ShaderAsserts", null, wnd_flags ))
 		{
-			auto			sh_asserts	= UIInteraction::Instance().shaderAsserts.ReadLock();
 			const usize		max_lines	= 200;
 			const usize		count		= Min( max_lines, sh_asserts->lines.size() );
 			bool			clicked		= false;
@@ -1722,7 +1749,7 @@ namespace
 				auto [state, undef] = rs_tracker.GetDefaultState( id );
 				CHECK_MSG( not undef, "resource must not be in undefined state" );
 
-				ctx.ImageBarrier( id, state, EResourceState::ShaderSample | EResourceState::FragmentShader );
+				ctx.ResourceBarrier( id, state, EResourceState::ShaderSample | EResourceState::FragmentShader );
 
 				dbgViewDstState[i] = { id, state };
 			}
@@ -1755,7 +1782,7 @@ namespace
 		{
 			if ( id == Default ) continue;
 
-			ctx.ImageBarrier( id, EResourceState::ShaderSample | EResourceState::FragmentShader, state );
+			ctx.ResourceBarrier( id, EResourceState::ShaderSample | EResourceState::FragmentShader, state );
 		}
 		ctx.CommitBarriers();
 	}
@@ -2164,7 +2191,7 @@ namespace
 				case IA.UI_Char :
 				{
 					auto	str = reader.Data< IInputActions::Chars >( hdr.offset );
-					CHECK( Utf32ToUtf8( OUT imgui->inputChars, U32StringView{ str.chars, str.length }));
+					CHECK( ConvertString( OUT imgui->inputChars, U32StringView{ str.chars, str.length }));
 					break;
 				}
 

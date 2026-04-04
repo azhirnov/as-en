@@ -36,6 +36,8 @@
 
 namespace AE::Graphics
 {
+	enum class EResourceState : uint;
+
 
 	//
 	// Feature Set
@@ -275,7 +277,6 @@ namespace AE::Graphics
 		_visitorF_( EFeature,			shaderSampleRateInterpolationFunctions,	: 2 )\
 		_visitorF_( EFeature,			shaderStencilExport,					: 2 )	/* VK_EXT_shader_stencil_export, GL_ARB_shader_stencil_export						*/\
 		_visitorF_( EFeature,			shaderExpectAssume,						: 2 )	/* VK_KHR_shader_expect_assume, GL_EXT_expect_assume								*/\
-		_visitorF_( EFeature,			clipSpaceWScalingNV,					: 2 )	/* VK_NV_clip_space_w_scaling														*/\
 		/* array dynamic indexing */\
 		_visitorF_( EFeature,			shaderSampledImageArrayDynamicIndexing,			: 2 )\
 		_visitorF_( EFeature,			shaderStorageBufferArrayDynamicIndexing,		: 2 )\
@@ -291,12 +292,7 @@ namespace AE::Graphics
 		_visitorF_( EFeature,			shaderStorageImageArrayNonUniformIndexing,			: 2 )	/*-|-- GL_EXT_nonuniform_qualifier										*/\
 		_visitorF_( EFeature,			shaderInputAttachmentArrayNonUniformIndexing,		: 2 )	/*-|																	*/\
 		_visitorF_( EFeature,			shaderUniformTexelBufferArrayNonUniformIndexing,	: 2 )	/*-|																	*/\
-		_visitorF_( EFeature,			shaderStorageTexelBufferArrayNonUniformIndexing,	: 2 )	/*-|																	*/\
-		_visitorF_( EFeature,			shaderUniformBufferArrayNonUniformIndexingNative,	: 2 )	/*-|\																	*/\
-		_visitorF_( EFeature,			shaderSampledImageArrayNonUniformIndexingNative,	: 2 )	/*-|-|																	*/\
-		_visitorF_( EFeature,			shaderStorageBufferArrayNonUniformIndexingNative,	: 2 )	/*-|-|-- without native support 'waterfall loop' will be used			*/\
-		_visitorF_( EFeature,			shaderStorageImageArrayNonUniformIndexingNative,	: 2 )	/*-|-|																	*/\
-		_visitorF_( EFeature,			shaderInputAttachmentArrayNonUniformIndexingNative, : 2 )	/*/-/																	*/\
+		_visitorF_( EFeature,			shaderStorageTexelBufferArrayNonUniformIndexing,	: 2 )	/*-/																	*/\
 		_visitorF_( EFeature,			quadDivergentImplicitLod,							: 2 )	/* derivative calculation for non-uniform image 						*/\
 		/* storage image format */\
 		_visitorF_( EFeature,			shaderStorageImageMultisample,						: 2 )\
@@ -351,6 +347,12 @@ namespace AE::Graphics
 		_visitorF_( EFeature,			rayTraversalPrimitiveCulling,			: 2 )	/* GL_EXT_ray_flags_primitive_culling												*/\
 		_visitor2_( ushort,				maxRayRecursionDepth,						)\
 		/*_visitor2_( KiBytes,			maxRayHitAttributeSize,						)*/\
+		/* opacity micromap */\
+		_visitorF_( EFeature,			opacityMicromap,						: 2 )	/*-\																				*/\
+		_visitor2_( ushort,				maxOpacity2StateSubdivisionLevel,			)	/*-|-- VK_EXT_opacity_micromap														*/\
+		_visitor2_( ushort,				maxOpacity4StateSubdivisionLevel,			)	/*-/																				*/\
+		_visitorF_( EFeature,			displacementMicromap,					: 2 )	/*-\___	VK_NV_displacement_micromap													*/\
+		_visitor2_( ushort,				maxDisplacementMicromapSubdivisionLevel,	)	/*-/																				*/\
 		/* shader version */\
 		_visitor2_( ShaderVersion,		maxShaderVersion,							)\
 		/* draw indirect */\
@@ -475,7 +477,6 @@ namespace AE::Graphics
 		_visitorF_( EFeature,			samplerMirrorClampToEdge,				: 2 )	/* VK_KHR_sampler_mirror_clamp_to_edge												*/\
 		_visitorF_( EFeature,			samplerFilterMinmax,					: 2 )\
 		_visitorF_( EFeature,			filterMinmaxImageComponentMapping,		: 2 )\
-		/*_visitorF_( EFeature,			filterMinmaxSingleComponentFormats,		: 2 )*/\
 		_visitorF_( EFeature,			samplerMipLodBias,						: 2 )\
 		_visitorF_( EFeature,			samplerYcbcrConversion,					: 2 )	/* VK_KHR_sampler_ycbcr_conversion													*/\
 		_visitorF_( EFeature,			ycbcr2Plane444,							: 2 )	/* VK_EXT_ycbcr_2plane_444_formats													*/\
@@ -498,6 +499,15 @@ namespace AE::Graphics
 		\
 	/*---- render pass ----*/\
 		_visitorF_( EFeature,			variableMultisampleRate,				: 2 )\
+		_visitorF_( EFeature,			separateDepthStencilRW,					: 2 )	/* VK_KHR_maintenance2 or Vulkan 1.1												*/\
+		\
+		\
+	/*---- indirect command buffer ----*/\
+		_visitorF_( EFeature,			deviceGeneratedCommands,				: 2 )			/*-\ 																		*/\
+		_visitorF_( EFeature,			deviceGeneratedCommandsMultiDrawIndirectCount, :2)		/*-|																		*/\
+		_visitor2_( EShaderStages,		supportedIndirectCommandsShaderStages,		)			/*-|-- VK_EXT_device_generated_commands										*/\
+		_visitor2_( EShaderStages,		supportedIndirectCommandsShaderStagesPipelineBinding,)	/*-|																		*/\
+		_visitor2_( ushort,				maxIndirectPipelineCount,					)			/*-/																		*/\
 		\
 		\
 	/*---- android ----*/\
@@ -551,6 +561,7 @@ namespace AE::Graphics
 		ND_ bool  IsSupported (const BufferDesc &desc, const BufferViewDesc &view)	C_NE___;
 		ND_ bool  IsSupported (const ImageDesc &desc)								C_NE___;
 		ND_ bool  IsSupported (const ImageDesc &desc, const ImageViewDesc &view)	C_NE___;
+		ND_ bool  IsSupported (EResourceState state)								C_NE___;
 
 			void  MergeMin (const FeatureSet &rhs)									__NE___;
 			void  MergeMax (const FeatureSet &rhs)									__NE___;
@@ -585,7 +596,7 @@ namespace AE::Graphics
 		template <bool Mutable>
 		bool  _Validate ()															__NE___;
 	};
-	StaticAssert( sizeof(FeatureSet) == 616 );
+	StaticAssert( sizeof(FeatureSet) == 632 );
 
 
 	__CxIn uint  FeatureSet::GetFeatureCount () __NE___

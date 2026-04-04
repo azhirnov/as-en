@@ -20,6 +20,8 @@
 
 namespace AE::Graphics
 {
+	class IStateCommandBuffer;
+
 
 	struct ImageSubresourceLayers
 	{
@@ -260,6 +262,72 @@ namespace AE::Graphics
 
 		DrawMeshTasksIndirectCountCmd () __NE___ = default;
 	};
+
+
+	struct PreprocessGeneratedCommandsCmd
+	{
+		IndirectExecutionSetID		indirectExecutionSet;						// contains pipelines
+		IndirectCommandsLayoutID	indirectCommandsLayout;						// contains tokens
+
+		DeviceAddress				preprocessAddress			= Default;		// must be created with 'EBufferUsage::ICB_Preprocess'
+																				// preprocessing access: 'EResourceState::ICB_Preprocess_Write'
+																				// execution access: 'EResourceState::IndirectBuffer'.
+		Bytes						preprocessSize;
+
+		DeviceAddress				indirectAddress				= Default;		// contain sequences for tokens in 'indirectCommandsLayout',
+																				// see 'IndirectCommandsLayoutDesc::ETokenType' description.
+																				// preprocessing access: 'EResourceState::ICB_Preprocess_Read'
+																				// execution access: 'EResourceState::IndirectBuffer'.
+		Bytes						indirectAddressSize;
+
+		DeviceAddress				sequenceCountAddress		= Default;		// pointer to 'uint' value.
+																				// if not null, then 'count = Min( maxSequenceCount, *sequenceCountAddress )'.
+																				// value must be <= 'DeviceProperties::maxIndirectSequenceCount'.
+																				// must be created with 'EBufferUsage::Indirect'
+																				// preprocessing access: 'EResourceState::ICB_Preprocess_Read'
+																				// execution access: 'EResourceState::IndirectBuffer'.
+
+		uint						maxSequenceCount			= 1;			// how many times tokens will be executed for different data in 'indirectAddress'.
+		uint						maxDrawCount				= 0;			// only for ETokenType: DrawCount, DrawIndexedCount, DrawMeshTasksCount.
+		EShaderStages				shaderStages				= Default;		// mask of shader stages used by the commands,
+																				// must be combination of supported stages from 'FeatureSet::supportedIndirectCommandsShaderStages'.
+
+		IStateCommandBuffer const*	preprocessStates			= null;			// For preprocessing: contains command buffer with bound pipeline, descriptors and dynamic states.
+																				//
+																				// For execution: states will be copied to current context.
+																				// Use preprocessing if 'indirectCommandsLayout' created with 'EIndirectCommandsLayoutUsage::ExplicitPreprocess'
+																				// or if already called 'PreprocessGeneratedCommands()'.
+																				// Function may write to the preprocess buffer, no matter the isPreprocess parameter,
+																				// driver will insert appropriate synchronization automatically.
+	};
+
+
+	struct PreprocessGeneratedCommands2Cmd
+	{
+		IndirectExecutionSetID		indirectExecutionSet;
+		IndirectCommandsLayoutID	indirectCommandsLayout;
+
+		BufferID					preprocessBuffer;							// used range: [preprocessBufferOffset,		preprocessBufferOffset + preprocessSize]
+		BufferID					indirectBuffer;								// used range: [indirectBufferOffset,		indirectBufferOffset + indirectSize]
+		BufferID					sequenceCountBuffer;						// used range: [sequenceCountBufferOffset,	sequenceCountBufferOffset + 4]
+
+		uint						maxSequenceCount			= 1;
+		uint						maxDrawCount				= 0;
+		EShaderStages				shaderStages				= Default;
+
+		Bytes						preprocessBufferOffset;
+		Bytes						indirectBufferOffset;
+		Bytes						sequenceCountBufferOffset;
+
+		Bytes						preprocessSize				= UMax;			// remaining size
+		Bytes						indirectSize				= UMax;			// remaining size
+
+		IStateCommandBuffer const*	preprocessStates			= null;
+	};
+
+
+	struct ExecuteGeneratedCommandsCmd  : PreprocessGeneratedCommandsCmd {};
+	struct ExecuteGeneratedCommands2Cmd : PreprocessGeneratedCommands2Cmd {};
 //-----------------------------------------------------------------------------
 
 
@@ -319,20 +387,20 @@ namespace AE::Graphics
 	struct TraceRayIndirectCommand2
 	{
 	  #ifdef AE_ENABLE_VULKAN
-		VkDeviceAddress		raygenShaderRecordAddress;			// non-null
-		VkDeviceSize		raygenShaderRecordSize;				// == shaderGroupHandleSize
+		DeviceAddress		raygenShaderRecordAddress;			// non-null
+		Bytes				raygenShaderRecordSize;				// == shaderGroupHandleSize
 
-		VkDeviceAddress		missShaderBindingTableAddress;		// optional
-		VkDeviceSize		missShaderBindingTableSize;			// multiple of 'missShaderBindingTableStride'
-		VkDeviceSize		missShaderBindingTableStride;		// >= shaderGroupHandleSize
+		DeviceAddress		missShaderBindingTableAddress;		// optional
+		Bytes				missShaderBindingTableSize;			// multiple of 'missShaderBindingTableStride'
+		Bytes				missShaderBindingTableStride;		// >= shaderGroupHandleSize
 
-		VkDeviceAddress		hitShaderBindingTableAddress;		// optional
-		VkDeviceSize		hitShaderBindingTableSize;			// multiple of 'hitShaderBindingTableStride'
-		VkDeviceSize		hitShaderBindingTableStride;		// >= shaderGroupHandleSize
+		DeviceAddress		hitShaderBindingTableAddress;		// optional
+		Bytes				hitShaderBindingTableSize;			// multiple of 'hitShaderBindingTableStride'
+		Bytes				hitShaderBindingTableStride;		// >= shaderGroupHandleSize
 
-		VkDeviceAddress		callableShaderBindingTableAddress;	// optional
-		VkDeviceSize		callableShaderBindingTableSize;		// multiple of 'callableShaderBindingTableStride'
-		VkDeviceSize		callableShaderBindingTableStride;	// >= shaderGroupHandleSize
+		DeviceAddress		callableShaderBindingTableAddress;	// optional
+		Bytes				callableShaderBindingTableSize;		// multiple of 'callableShaderBindingTableStride'
+		Bytes				callableShaderBindingTableStride;	// >= shaderGroupHandleSize
 
 		//	'width', 'height', 'depth' must be <= 'DeviceProperties::RayTracingProperties::maxThreadCount'.
 		//	'width x height x depth' must be <= 'DeviceProperties::RayTracingProperties::maxDispatchInvocations'.
@@ -368,6 +436,36 @@ namespace AE::Graphics
 	StaticAssert( sizeof(ASBuildIndirectCommand) == 16 );
 	StaticAssert( alignof(ASBuildIndirectCommand) == 4 );
 
+
+	struct BindIndexBufferIndirectCommand
+	{
+		DeviceAddress	bufferAddress;		// 'EResourceState::IndexBuffer', must be aligned to index size
+		Bytes32u		bufferSize;			// index buffer size
+		uint			indexType;			// 'VkIndexType'
+	};
+	StaticAssert( sizeof(BindIndexBufferIndirectCommand) == 16 );
+
+
+	struct BindVertexBufferIndirectCommand
+	{
+		DeviceAddress	bufferAddress;		// 'EResourceState::VertexBuffer'
+		Bytes32u		bufferSize;			// vertex buffer size
+		Bytes32u		stride;				// vertex size with padding
+	};
+	StaticAssert( sizeof(BindVertexBufferIndirectCommand) == 16 );
+
+
+	struct DrawIndirectCountIndirectCommand
+	{
+		// buffer layout:
+		//	[uint]   [uint]   [uint]  -- drawCmdCount [commandCount]
+		//	| stride | stride |
+
+		DeviceAddress	bufferAddress;		// 'EResourceState::IndirectBuffer'
+		Bytes32u		stride;				// stride for the command arguments
+		uint			commandCount;		// number of commands to execute
+	};
+	StaticAssert( sizeof(DrawIndirectCountIndirectCommand) == 16 );
 
 //-----------------------------------------------------------------------------
 
@@ -593,10 +691,71 @@ namespace AE::Graphics
 
 
 	//
+	// Video Begin Coding command
+	//
+	struct VideoBeginCodingCmd
+	{
+		VideoSessionID		session;
+		// TODO: reference slots
+
+		VideoBeginCodingCmd () __NE___ = default;
+	};
+
+
+	//
+	// Video Picture Resource
+	//
+	struct VideoPictureResource
+	{
+		VideoImageDim_t		codedOffset;
+		VideoImageDim_t		codedExtent			{ushort{UMax}};
+		ImageLayer			baseArrayLayer;
+		VideoImageID		imageViewBinding;
+	};
+
+
+	//
 	// Video Decode command
 	//
 	struct VideoDecodeCmd
 	{
+	// types
+		struct H264
+		{
+			VideoH264::EPictureType		picType		= Default;
+		};
+
+		struct H265
+		{
+			VideoH265::EPictureType		picType		= Default;
+		};
+
+		struct AV1
+		{
+			VideoAV1::EFrameType		frameType	= Default;
+		};
+
+		struct VP9
+		{
+			VideoAV1::EFrameType		frameType	= Default;
+		};
+
+		using Specialization_t = Union< NullUnion, H264, H265, AV1, VP9 >;
+
+
+	// variables
+		VideoBufferID			srcBuffer;							// usage 'EVideoBufferUsage::EncodeSrc', access 'EResourceState::VideoEncode_Read'
+		Bytes					srcBufferOffset;
+		Bytes					srcBufferSize		= UMax;
+
+		VideoPictureResource	dstPicture;							// usage: 'EVideoImageUsage::EncodeDst', access 'EResourceState::VideoEncode_Write'
+
+		// TODO: reference slots
+
+		Specialization_t		spec;
+
+
+	// methods
 		VideoDecodeCmd () __NE___ = default;
 	};
 
@@ -606,7 +765,72 @@ namespace AE::Graphics
 	//
 	struct VideoEncodeCmd
 	{
+	// types
+		struct H264
+		{
+			VideoH264::EPictureType		picType		= Default;
+		};
+
+		struct H265
+		{
+			VideoH265::EPictureType		picType		= Default;
+		};
+
+		struct AV1
+		{
+			VideoAV1::EFrameType		frameType	= Default;
+		};
+
+		using Specialization_t = Union< NullUnion, H264, H265, AV1 >;
+
+
+	// variables
+		VideoBufferID			dstBuffer;							// usage 'EVideoBufferUsage::EncodeDst', access 'EResourceState::VideoEncode_Write'
+		Bytes					dstBufferOffset;
+		Bytes					dstBufferSize		= UMax;
+
+		VideoPictureResource	srcPicture;							// usage: 'EVideoImageUsage::EncodeSrc', access 'EResourceState::VideoEncode_Read'
+
+		// TODO: reference slots
+
+		Bytes32u				precedingExternallyEncodedBytes;	// is the number of bytes externally encoded by the application to
+																	// the video bitstream and is used to update the internal state of the implementation’s rate control
+																	// algorithm to account for the bitrate budget consumed by these externally encoded bytes.
+		Specialization_t		spec;
+
+
+	// methods
 		VideoEncodeCmd () __NE___ = default;
+	};
+
+
+	//
+	// Video Encoding Control command
+	//
+	struct VideoEncodingControlCmd
+	{
+
+
+		VideoEncodingControlCmd () __NE___ = default;
+	};
+
+
+	//
+	// Video End Coding command
+	//
+	struct VideoEndCodingCmd
+	{
+	// types
+		using H264				= VideoEncodeCmd::H264;
+		using H265				= VideoEncodeCmd::H265;
+		using AV1				= VideoEncodeCmd::AV1;
+		using Specialization_t	= VideoEncodeCmd::Specialization_t;
+
+	// variables
+		Specialization_t		spec;
+
+	// methods
+		VideoEndCodingCmd () __NE___ = default;
 	};
 //-----------------------------------------------------------------------------
 

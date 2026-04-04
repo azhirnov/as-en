@@ -115,6 +115,7 @@ namespace
 		CHECK_ERR( end->Status() == ETaskStatus::Completed );
 
 		CHECK_ERR( rg.WaitAll( c_MaxTimeout ));
+		CHECK_ERR( t.result );
 
 		CHECK_ERR( Scheduler().Wait( {t.result}, c_MaxTimeout ));
 		CHECK_ERR( t.result->Status() == ETaskStatus::Completed );
@@ -126,7 +127,7 @@ namespace
 } // namespace
 
 
-bool RGTest::Test_CopyImage2 ()
+RGTest::ECode  RGTest::Test_CopyImage2 ()
 {
 	bool	result = true;
 
@@ -135,6 +136,10 @@ bool RGTest::Test_CopyImage2 ()
 
 	RG_CHECK( _CompareDumps( TEST_NAME ));
 
-	AE_LOGI( TEST_NAME << " - passed" );
-	return result;
+	if ( result )
+	{
+		AE_LOGI( TEST_NAME << " - passed" );
+		return ECode::Passed;
+	}
+	return ECode::Failed;
 }

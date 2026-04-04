@@ -55,11 +55,7 @@ extern void UnitTest_TypeTraits ();
 #endif
 
 
-#ifdef AE_PLATFORM_ANDROID
-extern "C" AE_DLL_EXPORT int Tests_Base (const char* path)
-#else
-int main (const int argc, char* argv[])
-#endif
+TEST_ENTRY()
 {
 	BEGIN_TEST();
 
@@ -75,56 +71,56 @@ int main (const int argc, char* argv[])
 		"\n\tMemory page size: "s << ToString(PlatformUtils::GetMemoryPageInfo().pageSize)
 	);
 
-	UnitTest_Array();
-	UnitTest_Atomic();
-	UnitTest_ChunkList();
-	UnitTest_Color();
-	UnitTest_Cast();
-	UnitTest_Date();
-	UnitTest_DataSource( curr );
-	UnitTest_EnumSet();
-	UnitTest_Iterators();
-	UnitTest_FileSystem( curr );
-	UnitTest_FileWatch( curr );
-	UnitTest_FixedArray();
-	UnitTest_FixedMap();
-	UnitTest_FixedSet();
-	UnitTest_FixedString();
-	UnitTest_FixedTupleArray();
-	UnitTest_FlatHashMap();
-	UnitTest_HashMap();
-	UnitTest_FlatHashSet();
-	UnitTest_HashSet();
-	UnitTest_FunctionInfo();
-	UnitTest_LinearAllocator();
-	UnitTest_Math();
-	UnitTest_Math_BitMath();
-	UnitTest_Math_Fractional();
-	UnitTest_Math_Frustum();
-	UnitTest_Math_Matrix();
-	UnitTest_Math_PhysicalQuantity();
-	UnitTest_Math_Rectangle();
-	UnitTest_Math_SIMD();
-	UnitTest_Math_SimdVector();
-	UnitTest_Math_Transformation();
-	UnitTest_Math_Vec();
-	UnitTest_MemChunkList();
-	UnitTest_NamedID();
-	UnitTest_NtStringView();
-	UnitTest_RingBuffer();
-	UnitTest_RC();
-	UnitTest_StackAllocator();
-	UnitTest_Parser();
-	UnitTest_SourceLoc();
-	UnitTest_StructView();
-	UnitTest_StringUtils();
-	UnitTest_ToString();
-	UnitTest_TypeList();
-	UnitTest_TypeTraits();
-	UnitTest_CPUInfo();
+	RUN_TEST( UnitTest_Array );
+	RUN_TEST( UnitTest_Atomic );
+	RUN_TEST( UnitTest_ChunkList );
+	RUN_TEST( UnitTest_Color );
+	RUN_TEST( UnitTest_Cast );
+	RUN_TEST( UnitTest_Date );
+	RUN_TEST( UnitTest_DataSource, curr );
+	RUN_TEST( UnitTest_EnumSet );
+	RUN_TEST( UnitTest_Iterators );
+	RUN_TEST( UnitTest_FileSystem, curr );
+	RUN_TEST( UnitTest_FileWatch, curr );
+	RUN_TEST( UnitTest_FixedArray );
+	RUN_TEST( UnitTest_FixedMap );
+	RUN_TEST( UnitTest_FixedSet );
+	RUN_TEST( UnitTest_FixedString );
+	RUN_TEST( UnitTest_FixedTupleArray );
+	RUN_TEST( UnitTest_FlatHashMap );
+	RUN_TEST( UnitTest_HashMap );
+	RUN_TEST( UnitTest_FlatHashSet );
+	RUN_TEST( UnitTest_HashSet );
+	RUN_TEST( UnitTest_FunctionInfo );
+	RUN_TEST( UnitTest_LinearAllocator );
+	RUN_TEST( UnitTest_Math );
+	RUN_TEST( UnitTest_Math_BitMath );
+	RUN_TEST( UnitTest_Math_Fractional );
+	RUN_TEST( UnitTest_Math_Frustum );
+	RUN_TEST( UnitTest_Math_Matrix );
+	RUN_TEST( UnitTest_Math_PhysicalQuantity );
+	RUN_TEST( UnitTest_Math_Rectangle );
+	RUN_TEST( UnitTest_Math_SIMD );
+	RUN_TEST( UnitTest_Math_SimdVector );
+	RUN_TEST( UnitTest_Math_Transformation );
+	RUN_TEST( UnitTest_Math_Vec );
+	RUN_TEST( UnitTest_MemChunkList );
+	RUN_TEST( UnitTest_NamedID );
+	RUN_TEST( UnitTest_NtStringView );
+	RUN_TEST( UnitTest_RingBuffer );
+	RUN_TEST( UnitTest_RC );
+	RUN_TEST( UnitTest_StackAllocator );
+	RUN_TEST( UnitTest_Parser );
+	RUN_TEST( UnitTest_SourceLoc );
+	RUN_TEST( UnitTest_StructView );
+	RUN_TEST( UnitTest_StringUtils );
+	RUN_TEST( UnitTest_ToString );
+	RUN_TEST( UnitTest_TypeList );
+	RUN_TEST( UnitTest_TypeTraits );
+	RUN_TEST( UnitTest_CPUInfo );
 
 	#ifdef AE_EXPERIMENTAL
-		UnitTest_Crypto ();
+		RUN_TEST( UnitTest_Crypto );
 	#endif
 
 	AE_LOGI( "Tests.Base finished" );

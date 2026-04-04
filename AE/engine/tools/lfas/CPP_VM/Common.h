@@ -19,6 +19,7 @@ namespace LFAS
 	using AE::uint;
 	using AE::ulong;
 	using AE::usize;
+	using AE::null;
 	using AE::Base::Bytes;
 	using AE::Base::operator "" _b;
 	using AE::Base::String;

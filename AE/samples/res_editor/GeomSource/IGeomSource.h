@@ -105,6 +105,7 @@ namespace AE::ResEditor
 	public:
 			virtual void  StateTransition (IGSMaterials &, DirectCtx::Graphics &)	__Th___	= 0;
 			virtual void  StateTransition (DirectCtx::RayTracing &)					__Th___	{}
+			virtual void  StateTransition (DirectCtx::Compute &)					__Th___	{}
 
 		ND_ virtual bool  Draw (const DrawData &)									__Th___ = 0;
 		ND_ virtual bool  PostProcess (const DrawData &)							__Th___ { return false; }

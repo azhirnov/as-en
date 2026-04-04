@@ -33,6 +33,6 @@ void ASmain ()
 	// specialization
 	{
 		RC<ComputePipelineSpec>		spec = ppln.AddSpecialization( "rquery1.def" );
-		spec.AddToRenderTech( "RayQueryTestRT", "RayTrace_1" );
+		spec.AddToRenderTech( "RayQuery.RTech", "RayTrace_1" );
 	}
 }

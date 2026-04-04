@@ -1,10 +1,9 @@
 # Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
 # External dependencies
-set( AE_ENABLE_BREAKPAD			ON  CACHE BOOL "use breakpad" )
+set( AE_ENABLE_BREAKPAD			OFF CACHE BOOL "use breakpad" )
 set( AE_ENABLE_COMPRESSONATOR	ON  CACHE BOOL "use Compressonator" )
 set( AE_ENABLE_DEVIL			ON  CACHE BOOL "use DevIL" )
-set( AE_ENABLE_FFMPEG			ON  CACHE BOOL "use FFmpeg (GPL or LGPL)" )
 set( AE_ENABLE_NVIDIA_API		ON  CACHE BOOL "use NVPerf & NVAPI" )
 set( AE_ENABLE_OPENVR			OFF CACHE BOOL "use OpenVR" )
 
@@ -24,21 +23,17 @@ endif()
 
 if (${AE_ENABLE_OPENVR})
 	add_subdirectory( "OpenVR" )
-endif ()
-
-if (${AE_ENABLE_FFMPEG})
-	add_subdirectory( "ffmpeg" )
-endif ()
+endif()
 
 if (${AE_ENABLE_BREAKPAD})
 #	add_subdirectory( "breakpad" )
-endif ()
+endif()
 
 if (${AE_ENABLE_DEVIL})
 	add_subdirectory( "DevIL" )
-endif ()
+endif()
 
 if (${AE_ENABLE_NVIDIA_API})
 	add_subdirectory( "NvAPI" )
 	add_subdirectory( "NvPerf" )
-endif ()
+endif()

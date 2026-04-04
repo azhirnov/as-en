@@ -25,6 +25,13 @@ namespace InputActions
 			UI_Screenshot  = 0x96bf9eb7u,  // InputActionName{"UI.Screenshot"}
 			UI_ShowHide  = 0xbebd792fu,  // InputActionName{"UI.ShowHide"}
 		};
+		static constexpr struct _GLFW {
+			static constexpr uint  actionCount = 2;
+			enum Bindings : uint {
+				CustomKey3  = 0xcdef4b29u,  // InputActionName{"CustomKey3"}
+				CustomKey4  = 0x538bde8au,  // InputActionName{"CustomKey4"}
+			};
+		} GLFW = {};
 	} Controller_Camera3D = {};
 
 	static constexpr struct _Controller_FPSCamera
@@ -49,6 +56,13 @@ namespace InputActions
 			UI_Screenshot  = 0x96bf9eb7u,  // InputActionName{"UI.Screenshot"}
 			UI_ShowHide  = 0xbebd792fu,  // InputActionName{"UI.ShowHide"}
 		};
+		static constexpr struct _GLFW {
+			static constexpr uint  actionCount = 2;
+			enum Bindings : uint {
+				CustomKey3  = 0xcdef4b29u,  // InputActionName{"CustomKey3"}
+				CustomKey4  = 0x538bde8au,  // InputActionName{"CustomKey4"}
+			};
+		} GLFW = {};
 	} Controller_FPSCamera = {};
 
 	static constexpr struct _Controller_FPVCamera
@@ -73,6 +87,13 @@ namespace InputActions
 			UI_Screenshot  = 0x96bf9eb7u,  // InputActionName{"UI.Screenshot"}
 			UI_ShowHide  = 0xbebd792fu,  // InputActionName{"UI.ShowHide"}
 		};
+		static constexpr struct _GLFW {
+			static constexpr uint  actionCount = 2;
+			enum Bindings : uint {
+				CustomKey3  = 0xcdef4b29u,  // InputActionName{"CustomKey3"}
+				CustomKey4  = 0x538bde8au,  // InputActionName{"CustomKey4"}
+			};
+		} GLFW = {};
 	} Controller_FPVCamera = {};
 
 	static constexpr struct _Controller_FlightCamera
@@ -98,6 +119,13 @@ namespace InputActions
 			UI_Screenshot  = 0x96bf9eb7u,  // InputActionName{"UI.Screenshot"}
 			UI_ShowHide  = 0xbebd792fu,  // InputActionName{"UI.ShowHide"}
 		};
+		static constexpr struct _GLFW {
+			static constexpr uint  actionCount = 2;
+			enum Bindings : uint {
+				CustomKey3  = 0xcdef4b29u,  // InputActionName{"CustomKey3"}
+				CustomKey4  = 0x538bde8au,  // InputActionName{"CustomKey4"}
+			};
+		} GLFW = {};
 	} Controller_FlightCamera = {};
 
 	static constexpr struct _Controller_Orbital
@@ -122,6 +150,13 @@ namespace InputActions
 			UI_Screenshot  = 0x96bf9eb7u,  // InputActionName{"UI.Screenshot"}
 			UI_ShowHide  = 0xbebd792fu,  // InputActionName{"UI.ShowHide"}
 		};
+		static constexpr struct _GLFW {
+			static constexpr uint  actionCount = 2;
+			enum Bindings : uint {
+				CustomKey3  = 0xcdef4b29u,  // InputActionName{"CustomKey3"}
+				CustomKey4  = 0x538bde8au,  // InputActionName{"CustomKey4"}
+			};
+		} GLFW = {};
 	} Controller_Orbital = {};
 
 	static constexpr struct _Controller_RemoteCamera
@@ -145,8 +180,10 @@ namespace InputActions
 			UI_ShowHide  = 0xbebd792fu,  // InputActionName{"UI.ShowHide"}
 		};
 		static constexpr struct _GLFW {
-			static constexpr uint  actionCount = 2;
+			static constexpr uint  actionCount = 4;
 			enum Bindings : uint {
+				CustomKey3  = 0xcdef4b29u,  // InputActionName{"CustomKey3"}
+				CustomKey4  = 0x538bde8au,  // InputActionName{"CustomKey4"}
 				RmCamera_Gravity  = 0x392564b3u,  // InputActionName{"RmCamera.Gravity"}
 				RmCamera_Rotate  = 0x9a49f11u,  // InputActionName{"RmCamera.Rotate"}
 			};
@@ -174,6 +211,13 @@ namespace InputActions
 			UI_Screenshot  = 0x96bf9eb7u,  // InputActionName{"UI.Screenshot"}
 			UI_ShowHide  = 0xbebd792fu,  // InputActionName{"UI.ShowHide"}
 		};
+		static constexpr struct _GLFW {
+			static constexpr uint  actionCount = 2;
+			enum Bindings : uint {
+				CustomKey3  = 0xcdef4b29u,  // InputActionName{"CustomKey3"}
+				CustomKey4  = 0x538bde8au,  // InputActionName{"CustomKey4"}
+			};
+		} GLFW = {};
 	} Controller_ScaleBias = {};
 
 	static constexpr struct _Controller_TopDown
@@ -199,6 +243,13 @@ namespace InputActions
 			UI_Screenshot  = 0x96bf9eb7u,  // InputActionName{"UI.Screenshot"}
 			UI_ShowHide  = 0xbebd792fu,  // InputActionName{"UI.ShowHide"}
 		};
+		static constexpr struct _GLFW {
+			static constexpr uint  actionCount = 2;
+			enum Bindings : uint {
+				CustomKey3  = 0xcdef4b29u,  // InputActionName{"CustomKey3"}
+				CustomKey4  = 0x538bde8au,  // InputActionName{"CustomKey4"}
+			};
+		} GLFW = {};
 	} Controller_TopDown = {};
 
 	static constexpr struct _Main_UI
@@ -228,6 +279,13 @@ namespace InputActions
 			UI_StartStopRecording  = 0xd679d80cu,  // InputActionName{"UI.StartStopRecording"}
 			UI_SwitchInputMode  = 0xb3d19d69u,  // InputActionName{"UI.SwitchInputMode"}
 		};
+		static constexpr struct _GLFW {
+			static constexpr uint  actionCount = 2;
+			enum Bindings : uint {
+				CustomKey3  = 0xcdef4b29u,  // InputActionName{"CustomKey3"}
+				CustomKey4  = 0x538bde8au,  // InputActionName{"CustomKey4"}
+			};
+		} GLFW = {};
 	} Main_UI = {};
 
 	static constexpr struct _Shared
@@ -247,6 +305,13 @@ namespace InputActions
 			UI_Screenshot  = 0x96bf9eb7u,  // InputActionName{"UI.Screenshot"}
 			UI_ShowHide  = 0xbebd792fu,  // InputActionName{"UI.ShowHide"}
 		};
+		static constexpr struct _GLFW {
+			static constexpr uint  actionCount = 2;
+			enum Bindings : uint {
+				CustomKey3  = 0xcdef4b29u,  // InputActionName{"CustomKey3"}
+				CustomKey4  = 0x538bde8au,  // InputActionName{"CustomKey4"}
+			};
+		} GLFW = {};
 	} Shared = {};
 
 	static constexpr struct _SwitchInputMode
@@ -267,6 +332,13 @@ namespace InputActions
 			UI_Screenshot  = 0x96bf9eb7u,  // InputActionName{"UI.Screenshot"}
 			UI_ShowHide  = 0xbebd792fu,  // InputActionName{"UI.ShowHide"}
 		};
+		static constexpr struct _GLFW {
+			static constexpr uint  actionCount = 2;
+			enum Bindings : uint {
+				CustomKey3  = 0xcdef4b29u,  // InputActionName{"CustomKey3"}
+				CustomKey4  = 0x538bde8au,  // InputActionName{"CustomKey4"}
+			};
+		} GLFW = {};
 	} SwitchInputMode = {};
 
 }

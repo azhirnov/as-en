@@ -133,6 +133,7 @@ namespace AE::ResEditor
 		using EPass = IPass::EPassType;
 
 		_UpdateDynSliders();
+		_UpdateStats();
 
 		auto&	rg		= RenderGraph();
 		auto	batch	= rg.Render( "RenderPasses" );
@@ -152,7 +153,12 @@ namespace AE::ResEditor
 		// update timers
 		{
 			constexpr auto	max_dt	= nanoseconds{seconds{1}} / 30;
-			const auto		dt		= Min( _frameClock.Tick(), max_dt );
+			nanoseconds		dt		= Min( _frameClock.Tick(), max_dt );
+
+			if ( auto capture = UIInteraction::Instance().capture.Read();  capture.video )
+			{
+				dt = TimeCast<nanoseconds>( secondsf{1} / float(capture.frameRate) );
+			}
 
 			update_pd.frameTime	= secondsf{dt};
 			update_pd.totalTime	= secondsf{_totalTime};
@@ -312,7 +318,7 @@ namespace AE::ResEditor
 		if ( _shaderDebugger and pass_debugger.IsEnabled() )
 		{
 			out_deps.push_back( rg.UI().Task(
-					_ReadShaderTrace( pass_debugger.mode == IPass::EDebugMode::Asserts ),
+					_ReadShaderTrace( GetRC<Renderer>(), pass_debugger.mode == IPass::EDebugMode::Asserts ),
 					{"Read shader debugger output"} )
 				.Run( Tuple{deps_ref} ) );
 		}
@@ -519,9 +525,11 @@ namespace AE::ResEditor
 	_ReadShaderTrace
 =================================================
 */
-	RenderCoro  Renderer::_ReadShaderTrace (bool shaderAsserts) __Th___
+	RenderCoro  Renderer::_ReadShaderTrace (RC<Renderer> self, bool shaderAsserts) __Th___
 	{
-		if ( not _shaderDebugger->HasPendingRequests() )
+		auto&	debugger = *self->_shaderDebugger;
+
+		if ( not debugger.HasPendingRequests() )
 		{
 			RenderCoro_SkipCommands();
 			co_return;
@@ -532,7 +540,7 @@ namespace AE::ResEditor
 		if ( shaderAsserts )
 		{
 			CreateInlineRev(
-				_shaderDebugger->ReadAll( ctx, ShaderDebugger::ELogFormat::FileURL ),
+				debugger.ReadAll( ctx, ShaderDebugger::ELogFormat::FileURL ),
 				[](Promise<Array<String>> readOp) -> InlineCoro<ETaskQueue::Background>
 				{
 					Array<String>  output = co_await readOp;
@@ -549,8 +557,8 @@ namespace AE::ResEditor
 		#endif
 
 			CreateInlineRev(
-				_shaderDebugger->ReadAll( ctx, log_fmt ),
-				GetRC<Renderer>(),
+				debugger.ReadAll( ctx, log_fmt ),
+				self,
 				[](Promise<Array<String>> readOp, RC<Renderer> self) -> InlineCoro<ETaskQueue::Background>
 				{
 					Array<String>  output = co_await readOp;
@@ -629,6 +637,24 @@ namespace AE::ResEditor
 				);
 			}
 		}
+	}
+
+/*
+=================================================
+	_UpdateStats
+=================================================
+*/
+	void  Renderer::_UpdateStats ()
+	{
+		UIInteraction::CameraStats	stats;
+
+		if ( _controller )
+		{
+			stats.pos		= _controller->GetPosition();
+			stats.viewDir	= _controller->GetInvViewProj().AxisZ();
+		}
+
+		UIInteraction::Instance().cameraStats.Write( stats );
 	}
 
 /*

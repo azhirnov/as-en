@@ -220,7 +220,7 @@ namespace AE::App
 } // AE::App
 
 
-extern std::unique_ptr<AE::App::IApplication::IAppListener>  AE_OnAppCreated ();
+extern std::unique_ptr<AE::App::IApplication::IAppListener>  AE_OnAppCreated (const int argc, char const* argv[]);
 extern void													 AE_OnAppDestroyed ();
 
 

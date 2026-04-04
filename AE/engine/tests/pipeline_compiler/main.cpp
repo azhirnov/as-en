@@ -17,23 +17,23 @@ extern void  UnitTest_VertexBufferInput_HLSL ();
 extern void  UnitTest_VertexBufferInput_MSL ();
 
 
-int main (const int argc, char* argv[])
+TEST_ENTRY()
 {
 	BEGIN_TEST();
 
-	UnitTest_StructType();
+	RUN_TEST( UnitTest_StructType );
 
-	UnitTest_DSLayout_GLSL();
-	UnitTest_DSLayout_HLSL();
-	UnitTest_DSLayout_MSL();
+	RUN_TEST( UnitTest_DSLayout_GLSL );
+	RUN_TEST( UnitTest_DSLayout_HLSL );
+	RUN_TEST( UnitTest_DSLayout_MSL );
 
-	UnitTest_PipelineLayout_GLSL();
-	UnitTest_PipelineLayout_HLSL();
-	UnitTest_PipelineLayout_MSL();
+	RUN_TEST( UnitTest_PipelineLayout_GLSL );
+	RUN_TEST( UnitTest_PipelineLayout_HLSL );
+	RUN_TEST( UnitTest_PipelineLayout_MSL );
 
-	UnitTest_VertexBufferInput_GLSL();
-	UnitTest_VertexBufferInput_HLSL();
-	UnitTest_VertexBufferInput_MSL();
+	RUN_TEST( UnitTest_VertexBufferInput_GLSL );
+	RUN_TEST( UnitTest_VertexBufferInput_HLSL );
+	RUN_TEST( UnitTest_VertexBufferInput_MSL );
 
 	AE_LOGI( "Tests.PipelineCompiler finished" );
 

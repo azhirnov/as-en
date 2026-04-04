@@ -34,21 +34,18 @@
 
 		// setup sphere
 		{
-			RC<Buffer>				geom_data	= Buffer();
-			RC<UnifiedGeometry>		geometry	= UnifiedGeometry();
+			RC<Mesh>	mesh = Mesh();
+			mesh.SetAttributes( EAttribute::Position );
+			mesh.AddSphericalCube( lod );
 
-			array<float3>	positions;
-			array<uint>		indices;
-			GetSphericalCube( lod, OUT positions, OUT indices );
-
-			geom_data.FloatArray(	"positions",	positions );
-			geom_data.UIntArray(	"indices",		indices );
+			RC<Buffer>	geom_data = mesh.ToBuffer();
 			geom_data.LayoutName( "GeometrySBlock" );
 
 			UnifiedGeometry_DrawIndexed	cmd;
-			cmd.indexCount = indices.size();
+			cmd.indexCount = mesh.IndexCount();
 			cmd.IndexBuffer( geom_data, "indices" );
 
+			RC<UnifiedGeometry>		geometry = UnifiedGeometry();
 			geometry.Draw( cmd );
 			geometry.ArgIn(	"un_Geometry",	geom_data );
 			geometry.ArgIn( "un_CubeMap",	cubemap_view, Sampler_LinearMipmapClamp );
@@ -60,8 +57,8 @@
 		{
 			RC<SceneGraphicsPass>	draw = scene.AddGraphicsPass( "draw sphere" );
 			draw.AddPipeline( "sphere/SphericalCube-1.as" );	// [src](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/pipelines/sphere/SphericalCube-1.as)
-			draw.Output( "out_Color", rt, RGBA32f(0.0) );
-			draw.Output( ds, DepthStencil(1.f, 0) );
+			draw.Output( "out_Color",	rt,		RGBA32f(0.0) );
+			draw.Output(				ds,		DepthStencil(1.f, 0) );
 			draw.Slider( "iAreaScale",	40.0f,	60.f,	45.f );
 			draw.Slider( "iProj",		0,		6,		1 );
 			draw.Slider( "iRadius",		0.0f,	2.5f,	0.f );	// used to measure triangle size

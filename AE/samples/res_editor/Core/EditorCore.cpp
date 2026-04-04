@@ -26,7 +26,6 @@ namespace AE::ResEditor
 namespace
 {
 	static ResEditorAppConfig		s_REConfig;
-	static constexpr auto			c_WindowMode	= EWindowMode::Resizable;
 
 /*
 =================================================
@@ -87,7 +86,7 @@ namespace
 		{
 			cfg.window.title	= "ResourceEditor";
 			cfg.window.size		= uint2{ s_REConfig.screenWidth, s_REConfig.screenHeight };
-			cfg.window.mode		= c_WindowMode;
+			cfg.window.mode		= s_REConfig.windowMode;
 			cfg.window.monitorId = Monitor::ID( s_REConfig.monitorId );
 		}
 
@@ -393,6 +392,7 @@ namespace
 			"TestFolder '"s << ToString(path) << "' must be existed folder" );
 
 		self.testFolders.push_back( FileSystem::ToAbsolute( path ));
+		self.windowMode = EWindowMode::NonResizable;
 	}
 
 /*
@@ -530,7 +530,7 @@ namespace
 
 			src.name			= ToString( filename.stem() );
 			src.dbgLocation		= {};
-			src.usePreprocessor	= false;
+			src.usePreprocessor	= true;
 			CHECK_ERR( file.Read( file.RemainingSize(), OUT src.script ));
 		}
 
@@ -673,6 +673,7 @@ void main (Config &out cfg)
 	// uncomment to run tests on start
 	cfg.screenWidth  = 1600;
 	cfg.screenHeight = 900;
+	cfg.enableRenderDoc = false;
 	cfg.TestOutput( test_ref_path );
 	cfg.TestFolder( "screenshot-test" );
 	cfg.TestFolder( "tests" );
@@ -682,22 +683,27 @@ void main (Config &out cfg)
 	cfg.TestFolder( "compute" );
 	cfg.TestFolder( "games" );
 	cfg.TestFolder( "gbuffer-classify" );
+	cfg.TestFolder( "gen-geom" );
+	cfg.TestFolder( "geom-cull" );
 	cfg.TestFolder( "light-cull" );
+	cfg.TestFolder( "light-refl" );
 	cfg.TestFolder( "light-tech" );
 	cfg.TestFolder( "neural-shader" );
-	cfg.TestFolder( "neural-shader/mlp-training" );
 	cfg.TestFolder( "nonuniform" );
 	cfg.TestFolder( "packing" );
 	cfg.TestFolder( "particles" );
 	cfg.TestFolder( "perf" );
 	cfg.TestFolder( "planets" );
 	cfg.TestFolder( "posteffects" );
+	cfg.TestFolder( "projections" );
 	cfg.TestFolder( "ray-trace" );
 	cfg.TestFolder( "samples-2d" );
 	cfg.TestFolder( "samples-3d" );
 	cfg.TestFolder( "shadows" );
 	cfg.TestFolder( "tools" );
 	cfg.TestFolder( "vfx" );
+	cfg.TestFolder( "video" );
+	cfg.TestFolder( "voxels" );
 	//*/
 }
 )";
@@ -1017,8 +1023,12 @@ void main (Config &out cfg)
 			{
 				for (auto& entry : FileSystem::EnumRecursive( folder ))
 				{
-					if ( entry.IsFile() and entry.Get().extension() == ".as" )
+					if ( entry.IsFile()										and
+						 entry.Get().extension() == ".as"					and
+						 not StartsWith( entry.Get().stem().string(), "wip-" ))
+					{
 						_test.scripts.push_back( entry.Get() );
+					}
 				}
 			}
 
@@ -1076,7 +1086,7 @@ void main (Config &out cfg)
 	  #endif
 
 		_window = &wnd;
-		return _ui.Init( wnd.GetSurface(), c_WindowMode, wnd.GetMonitor().uiScale );
+		return _ui.Init( wnd.GetSurface(), s_REConfig.windowMode, wnd.GetMonitor().uiScale );
 	}
 
 /*
@@ -1186,6 +1196,7 @@ void main (Config &out cfg)
 				self->_ui.SetHelpText( renderer->GetHelpText() );
 				self->_ui.SetSurfaceFormat( renderer->GetSurfaceFormat() );
 				self->_mainLoop->renderer = RVRef(renderer);
+				UIInteraction::Instance().NewScriptLoaded();
 				co_return;
 			}));
 
@@ -1476,8 +1487,10 @@ using namespace AE::ResEditor;
 	AE_OnAppCreated
 =================================================
 */
-Unique<IApplication::IAppListener>  AE_OnAppCreated ()
+Unique<IApplication::IAppListener>  AE_OnAppCreated (const int argc, char const* argv[])
 {
+	Unused( argc, argv );
+
 #if AE_PORTABLE_APP
 	StaticLogger::Initialize();
 	StaticLogger::AddLogger( ILogger::CreateConsoleOutput() );

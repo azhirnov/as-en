@@ -1,6 +1,6 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 /*
-	results in [GeometryCulling paper](https://github.com/azhirnov/as-en/blob/dev/AE/docs/papers/GeometryCulling-ru.md)
+	results in [GeometryCulling paper](https://github.com/azhirnov/as-en/blob/dev/AE/papers/graphics/GeometryCulling-ru.md)
 */
 #ifdef __INTELLISENSE__
 # 	include <res_editor.as>
@@ -84,8 +84,8 @@
 
 		obj_buf.ArrayLayout(
 			"ObjectTransform",
-			"	float3	position;" +
-			"	float	scale;" +
+			"	float3	position;"
+			"	float	scale;"
 			"	uint	color;",
 			count );
 
@@ -122,18 +122,14 @@
 
 		// create geometry
 		{
-			array<float3>	positions;
-			array<float2>	uvs;
-			array<uint>		indices;
-			GetSphere( (low_detail ? 3 : 8), OUT positions, OUT uvs, OUT indices );
-			index_count = indices.size();
+			RC<Mesh>	mesh = Mesh();
+			mesh.SetAttributes( EAttribute::Position | EAttribute::Texcoord2D );
+			mesh.AddSphere( low_detail ? 3 : 8 );
 
+			index_count = mesh.IndexCount();
 			@tris_count = count.Mul( index_count/3 );
 
-			RC<Buffer>		geom_data = Buffer();
-			geom_data.FloatArray( "positions",	positions );
-			geom_data.FloatArray( "uvs",		uvs );
-			geom_data.UIntArray(  "indices",	indices );
+			RC<Buffer>	geom_data = mesh.ToBuffer();
 			geom_data.LayoutName( "GeometryData" );
 
 			{
@@ -182,13 +178,11 @@
 
 		// create AABB
 		{
-			array<float3>	positions, normals;
-			array<uint>		indices;
-			GetCube( OUT positions, OUT normals, OUT indices );
+			RC<Mesh>	mesh = Mesh();
+			mesh.SetAttributes( EAttribute::Position );
+			mesh.AddCube();
 
-			RC<Buffer>		geom_data = Buffer();
-			geom_data.FloatArray( "positions",	positions );
-			geom_data.UIntArray(  "indices",	indices );
+			RC<Buffer>		geom_data = mesh.ToBuffer();
 			geom_data.LayoutName( "GeometryData" );
 
 			RC<UnifiedGeometry>		geometry = UnifiedGeometry();
@@ -196,7 +190,7 @@
 			geometry.ArgIn( "un_Transform",	obj_buf );
 
 			UnifiedGeometry_DrawIndexed	cmd;
-			cmd.indexCount	= indices.size();
+			cmd.indexCount	= mesh.IndexCount();
 			cmd.IndexBuffer( geom_data, "indices" );
 			cmd.InstanceCount( count );
 			geometry.Draw( cmd );
@@ -687,12 +681,12 @@
 		if ( sphere_center.z - sphere_radius < znear )
 			return true;  // too close to camera
 
-		float4	aabb = Sphere_FastProject( Sphere_Create( sphere_center, sphere_radius ), un_PerPass.camera.proj[0][0], un_PerPass.camera.proj[1][1] );
+		Rect	aabb = Sphere_FastProject( Sphere_Create( sphere_center, sphere_radius ), un_PerPass.camera.proj[0][0], un_PerPass.camera.proj[1][1] );
 				aabb = ToUNorm( aabb );	// to uv space
 
 		// see [DepthPyramidCulling test](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/scripts/geom-cull/test-DepthPyramidCulling.as)
-		float2	size		= float2( aabb.z - aabb.x, aabb.w - aabb.y ) * iPyramidDim;
-		float2	center		= (aabb.xy + aabb.zw) * 0.5;
+		float2	size		= Rect_Size( aabb ) * iPyramidDim;
+		float2	center		= Rect_Center( aabb );
 		float	level		= Ceil( Log2( MaxOf( size )));
 
 	  #if USE_REDUCTION

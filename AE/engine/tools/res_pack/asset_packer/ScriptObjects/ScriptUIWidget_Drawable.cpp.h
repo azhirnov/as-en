@@ -136,7 +136,7 @@ namespace AE::AssetPacker
 		auto	result = widget.Create< UI::RectangleDrawable >();
 		CHECK_THROW( result );
 
-		Unused( result->SetStyle( UI::StyleName{_styleName} ));
+		result->SetStyleName( UI::StyleName{_styleName} );
 		return result;
 	}
 //-----------------------------------------------------------------------------
@@ -166,7 +166,7 @@ namespace AE::AssetPacker
 		auto	result = widget.Create< UI::ImageDrawable >();
 		CHECK_THROW( result );
 
-		Unused( result->SetStyle( UI::StyleName{_styleName} ));
+		result->SetStyleName( UI::StyleName{_styleName} );
 		return result;
 	}
 

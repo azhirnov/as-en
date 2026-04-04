@@ -3,7 +3,6 @@
 #pragma once
 
 #ifdef AE_ENABLE_VULKAN
-
 # include "graphics_rhi/Public/IDs.h"
 # include "graphics_rhi/Public/Queue.h"
 # include "graphics_rhi/Public/ResourceEnums.h"
@@ -58,7 +57,7 @@ namespace AE::Graphics
 	struct VulkanBufferDesc
 	{
 		VkBuffer					buffer				= Default;
-		VkBufferUsageFlagBits		usage				= VkBufferUsageFlagBits(0);
+		VkBufferUsageFlagBits2		usage				= Zero;
 		Bytes						size;
 		EQueueMask					queues				= Default;
 		VkMemoryPropertyFlagBits	memFlags			= Zero;
@@ -86,6 +85,7 @@ namespace AE::Graphics
 	struct VulkanMemoryObjInfo
 	{
 		VkDeviceMemory				memory				= Default;
+		VkBuffer					buffer				= Default;	// used as acceleration structure storage
 		VkMemoryPropertyFlagBits	flags				= Zero;
 		Bytes						offset;
 		Bytes						size;

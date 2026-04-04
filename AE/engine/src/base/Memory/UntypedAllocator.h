@@ -19,6 +19,24 @@ namespace AE::Base
 	// types
 	public:
 		static constexpr bool	IsThreadSafe = true;
+
+		template <typename T>
+		struct Deleter
+		{
+			void  operator () (T* ptr) __NE___
+			{
+				if constexpr( not IsVoid<T> )
+				{
+					StaticAssert( IsTrivial<T> );
+					StaticAssert( alignof(T) <= DefaultAllocatorAlign );
+				}
+				UntypedAllocator::Deallocate( ptr );
+			}
+		};
+
+		template <typename T>
+		using UPtr = Unique< T, Deleter<T> >;
+
 	private:
 		using Helper_t = AllocatorHelper< EAllocatorType::Global >;
 
@@ -70,6 +88,11 @@ namespace AE::Base
 			::operator delete( ptr, usize(sizeAndAlign.size), std::align_val_t(usize(sizeAndAlign.align)) );
 			CheckNothrow( IsNoExcept( ::operator delete( ptr, 0, std::align_val_t{0} )));
 		}
+
+
+		template <typename T>
+		ND_ static UPtr<T>		AllocateUPtr (usize count = 1)					__NE___	{ return UPtr<T>{ Cast<T>( Allocate( SizeOf<T> * count ))}; }
+		ND_ static UPtr<void>	AllocateUPtr (Bytes size)						__NE___	{ return UPtr<void>{ Allocate( size )}; }
 
 		ND_ bool  operator == (const UntypedAllocator &)						C_NE___
 		{
@@ -137,6 +160,7 @@ namespace AE::Base
 	// On Stack Allocator
 	//
 
+	// TODO: prefer to use InPlaceLinearAllocator
 #ifdef AE_COMPILER_MSVC
 # if 0 //def AE_ENABLE_EXCEPTIONS
 #	define AllocateOnStack2( _outPtr_, _sizeInBytes_ )												\

@@ -76,12 +76,12 @@
 			Quat			rot			= QFrom2Normals( float3(0.0, 1.0, 0.0), // origin direction
 														 cone.dir );			// new direction
 
-			const float3	vert_pos	= cone.origin + QMul( rot, (un_Geometry.positions[ gl.VertexIndex ] * float3(radius, radius, cone.height)).xzy );
+			const float3	vert_pos	= cone.origin + QMul( rot, (un_Geometry.position[ gl.VertexIndex ] * float3(radius, radius, cone.height)).xzy );
 
 		#else
 			const Sphere	sp			= Sphere_Create( light_pos, un_Params.sphereRadius );
 
-			const float3	vert_pos	= sp.center + (un_Geometry.positions[ gl.VertexIndex ] * sp.radius);
+			const float3	vert_pos	= sp.center + (un_Geometry.position[ gl.VertexIndex ] * sp.radius);
 		#endif
 
 		gl.Position		= WorldPosToClipSpace( float4( vert_pos, 1.0 ));

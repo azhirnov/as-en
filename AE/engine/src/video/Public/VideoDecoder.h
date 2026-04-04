@@ -107,43 +107,43 @@ namespace AE::Video
 
 	// interface
 	public:
-		virtual ~IVideoDecoder ()												__NE___	{}
+		virtual ~IVideoDecoder ()															__NE___	{}
 
-		ND_ virtual bool  Begin (const Config &cfg, const Path &filename)		__NE___	= 0;
-		ND_ virtual bool  Begin (const Config &cfg, RC<RStream> stream)			__NE___	= 0;
+		ND_ virtual bool  Begin (const Config &cfg, const Path &filename)					__NE___	= 0;
+		ND_ virtual bool  Begin (const Config &cfg, RC<RStream> stream)						__NE___	= 0;
 
-		ND_ virtual bool  SeekTo (ulong frameIdx)								__NE___ = 0;
-		ND_ virtual bool  SeekTo (Seconds timestamp)							__NE___ = 0;
+		ND_ virtual bool  SeekTo (ulong frameIdx)											__NE___ = 0;
+		ND_ virtual bool  SeekTo (Seconds timestamp)										__NE___ = 0;
 
-		ND_ virtual bool  GetVideoFrame (INOUT ImageMemViewArr& memView,
-										 OUT FrameInfo &		info)			__NE___ = 0;
+		ND_ virtual EResult  GetVideoFrame (INOUT ImageMemViewArr&,
+											OUT FrameInfo &)								__NE___ = 0;
 
-		ND_ virtual bool  GetAudioVideoFrame (INOUT ImageMemViewArr &,
-											  INOUT AudioSampleArr &,
-											  OUT FrameInfo &)					__NE___ = 0;
+		ND_ virtual EResult  GetAudioVideoFrame (INOUT ImageMemViewArr &,
+												 INOUT AudioSampleArr &,
+												 OUT FrameInfo &)							__NE___ = 0;
 
-		ND_ virtual bool  End ()												__NE___	= 0;
+		ND_ virtual bool  End ()															__NE___	= 0;
 
-		ND_ virtual Config		GetConfig ()									C_NE___ = 0;
-		ND_ virtual Properties	GetProperties ()								C_NE___ = 0;
-
-
-		ND_ bool  GetVideoFrame (INOUT ImageMemView&	memView,
-								 OUT FrameInfo &		info)					__NE___;
-
-		ND_ bool  GetVideoFrame (INOUT ImagePlanesMemView&	memView,
-								 OUT FrameInfo &			info)				__NE___;
-
-		ND_ bool  GetAudioVideoFrame (INOUT ImageMemView &,
-									  INOUT AudioSampleView &,
-									  OUT FrameInfo &)							__NE___;
-
-		ND_ bool  GetAudioVideoFrame (INOUT ImagePlanesMemView &,
-									  INOUT AudioSampleView &,
-									  OUT FrameInfo &)							__NE___;
+		ND_ virtual Config		GetConfig ()												C_NE___ = 0;
+		ND_ virtual Properties	GetProperties ()											C_NE___ = 0;
 
 
-		// stateless
+		ND_ EResult  GetVideoFrame (INOUT ImageMemView&	memView,
+									OUT FrameInfo &		info)								__NE___;
+
+		ND_ EResult  GetVideoFrame (INOUT ImagePlanesMemView&	memView,
+									OUT FrameInfo &				info)						__NE___;
+
+		ND_ EResult  GetAudioVideoFrame (INOUT ImageMemView &,
+										 INOUT AudioSampleView &,
+										 OUT FrameInfo &)									__NE___;
+
+		ND_ EResult  GetAudioVideoFrame (INOUT ImagePlanesMemView &,
+										 INOUT AudioSampleView &,
+										 OUT FrameInfo &)									__NE___;
+
+
+	// stateless //
 		ND_ virtual Properties	GetFileProperties (const Path        &filename,
 												   const CodecConfig &cfg		= Default)	C_NE___ = 0;
 		ND_ virtual Properties	GetFileProperties (RC<RStream>        stream,
@@ -157,40 +157,63 @@ namespace AE::Video
 		ND_ virtual String		PrintCodecs (EVideoCodec codec)								C_Th___ = 0;
 
 
-		// helpers
-		ND_ static bool  AllocMemView (const Config			&cfg,
-									   OUT ImageMemView		&memView,
-									   IAllocator			&allocator,
-									   Bytes				minAlign = 1_b)		__NE___;
+	// helpers //
+
+		// Allocate memory for ImageMemView.
+		// Destructor is not needed, you can use 'allocator.Discard()' if supported.
+		//
+		ND_ static bool  AllocMemView (const Config				&cfg,
+									   OUT ImageMemView			&memView,
+									   IAllocator				&allocator,
+									   Bytes					minAlign = 1_b)				__NE___	{ return AllocMemView( OUT memView, cfg.dstFormat, cfg.dstDim, allocator, minAlign ); }
 
 		ND_ static bool  AllocMemView (const Config				&cfg,
 									   OUT ImagePlanesMemView	&memView,
 									   IAllocator				&allocator,
-									   Bytes					minAlign = 1_b)	__NE___;
+									   Bytes					minAlign = 1_b)				__NE___	{ return AllocMemView( OUT memView, cfg.dstFormat, cfg.dstDim, allocator, minAlign ); }
+
+		ND_ static bool  AllocMemView (OUT ImageMemView			&memView,
+									   EPixelFormat				format,
+									   const uint2				&dim,
+									   IAllocator				&allocator,
+									   Bytes					minAlign = 1_b)				__NE___;
+
+		ND_ static bool  AllocMemView (OUT ImagePlanesMemView	&memView,
+									   EPixelFormat				format,
+									   const uint2				&dim,
+									   IAllocator				&allocator,
+									   Bytes					minAlign = 1_b)				__NE___;
+
+			static void  DeallocMemView (INOUT ImageMemView			&memView,
+										 IAllocator					&allocator)				__NE___;
+
+			static void  DeallocMemView (INOUT ImagePlanesMemView	&memView,
+										 IAllocator					&allocator)				__NE___;
+
 	};
 
 
 
-	inline bool  IVideoDecoder::GetVideoFrame (INOUT ImageMemView &memView, OUT FrameInfo &info) __NE___
+	inline EResult  IVideoDecoder::GetVideoFrame (INOUT ImageMemView &memView, OUT FrameInfo &info) __NE___
 	{
 		ImageMemViewArr		arr {memView};
 		return GetVideoFrame( INOUT arr, OUT info );
 	}
 
-	inline bool  IVideoDecoder::GetVideoFrame (INOUT ImagePlanesMemView &memView, OUT FrameInfo &info) __NE___
+	inline EResult  IVideoDecoder::GetVideoFrame (INOUT ImagePlanesMemView &memView, OUT FrameInfo &info) __NE___
 	{
 		ImageMemViewArr		arr {memView};
 		return GetVideoFrame( INOUT arr, OUT info );
 	}
 
-	inline bool  IVideoDecoder::GetAudioVideoFrame (INOUT ImageMemView &memView, INOUT AudioSampleView &sampleView, OUT FrameInfo &info) __NE___
+	inline EResult  IVideoDecoder::GetAudioVideoFrame (INOUT ImageMemView &memView, INOUT AudioSampleView &sampleView, OUT FrameInfo &info) __NE___
 	{
 		ImageMemViewArr		img_arr		{memView};
 		AudioSampleArr		samp_arr	{sampleView};
 		return GetAudioVideoFrame( INOUT img_arr, INOUT samp_arr, OUT info );
 	}
 
-	inline bool  IVideoDecoder::GetAudioVideoFrame (INOUT ImagePlanesMemView &memView, INOUT AudioSampleView &sampleView, OUT FrameInfo &info) __NE___
+	inline EResult  IVideoDecoder::GetAudioVideoFrame (INOUT ImagePlanesMemView &memView, INOUT AudioSampleView &sampleView, OUT FrameInfo &info) __NE___
 	{
 		ImageMemViewArr		img_arr		{memView};
 		AudioSampleArr		samp_arr	{sampleView};

@@ -105,15 +105,19 @@ void  InitMeshPipelineLayout ()
 }
 
 
-void  InitRayTracingPipelineLayout ()
+void  InitRayTracingPipelineLayout (bool rayQuery)
 {
 	// uniforms hardcoded in [src](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/GeomSource/ModelGeomSource.cpp)
 
+	const string	prefix	= rayQuery ? "rq-model" : "rt-model";
+
 	// descriptor set
 	{
-		const uint	stages	= EShaderStages::RayClosestHit | EShaderStages::RayCallable | EShaderStages::RayGen;
+		const uint	stages	= rayQuery ?
+								EShaderStages::Compute :
+								EShaderStages::RayClosestHit | EShaderStages::RayCallable | EShaderStages::RayGen;
 
-		RC<DescriptorSetLayout>	ds = DescriptorSetLayout( "rt-model.mtr.ds" );
+		RC<DescriptorSetLayout>	ds = DescriptorSetLayout( prefix+".mtr.ds" );
 		ds.StorageBuffer( stages, "un_RTInstances",	"ModelRTInstances",		EResourceState::ShaderStorage_Read );
 		ds.StorageBuffer( stages, "un_Materials",	"ModelMaterial_Array",	EResourceState::ShaderStorage_Read );
 		ds.StorageBuffer( stages, "un_Lights",		"SceneLights",			EResourceState::ShaderStorage_Read );
@@ -123,9 +127,9 @@ void  InitRayTracingPipelineLayout ()
 
 	// pipeline layout
 	{
-		RC<PipelineLayout>		pl = PipelineLayout( "rt-model.pl" );
+		RC<PipelineLayout>		pl = PipelineLayout( prefix+".pl" );
 		pl.DSLayout( "pass",	 0, "pass.ds" );
-		pl.DSLayout( "material", 1, "rt-model.mtr.ds" );
+		pl.DSLayout( "material", 1, prefix+".mtr.ds" );
 		pl.Define( "DISABLE_un_PerObject" );
 	}
 }
@@ -139,15 +143,15 @@ void  BufferTypes (bool withFS, bool hasRT)
 	{
 		RC<ShaderStructType>	st = ShaderStructType( "ModelNode" );
 		st.Set( EStructLayout::Compatible_Std430,
-				"float4x4			transform;"		+
-				"float3x3			normalMat;"		+
-				"uint				meshIdx;"		+
+				"float4x4			transform;"
+				"float3x3			normalMat;"
+				"uint				meshIdx;"
 				"uint				materialIdx;"	);
 		st.AddUsage( ShaderStructTypeUsage::BufferLayout );		// enable c++ reflection
 	}{
 		RC<ShaderStructType>	st = ShaderStructType( "ModelNode_Array" );
 		st.Set( EStructLayout::Compatible_Std430,
-				"uint				instanceCount;" +
+				"uint				instanceCount;"
 				"ModelNode			elements [];" );
 		st.AddUsage( ShaderStructTypeUsage::BufferLayout );		// enable c++ reflection
 	}
@@ -159,18 +163,18 @@ void  BufferTypes (bool withFS, bool hasRT)
 			RC<ShaderStructType>	st = ShaderStructType( "ModelRTMesh" );
 			if ( withFS ) st.AddFeatureSet( "MinRecursiveRayTracing" );
 			st.Set( EStructLayout::Std430,
-					"packed_float3 *	positions;"	+	// [index_count]
-					"packed_float3 *	normals;"	+	// [index_count]
-					"float2 *			texcoords;"	+	// [index_count]
+					"packed_float3 *	positions;"		// [index_count]
+					"packed_float3 *	normals;"		// [index_count]
+					"float2 *			texcoords;"		// [index_count]
 					"uint *				indices;"	);	// [primitive_count * 3]
 			st.AddUsage( ShaderStructTypeUsage::BufferLayout );		// enable c++ reflection
 		}{
 			// only 4 instance types, see [ERTGeometryType](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/GeomSource/IGeomSource.h)
 			RC<ShaderStructType>	st = ShaderStructType( "ModelRTInstances" );
 			st.Set( EStructLayout::Std430,
-					"ModelRTMesh &		meshesPerInstance [4];"		+	// address to ModelRTMesh[]
-					"uint *				materialsPerInstance [4];"	+
-					"float3x3 *			normalMatPerInstance [4];"	+
+					"ModelRTMesh &		meshesPerInstance [4];"		// address to ModelRTMesh[]
+					"uint *				materialsPerInstance [4];"
+					"float3x3 *			normalMatPerInstance [4];"
 					"float4x4 *			modelMatPerInstance [4];"	);
 			st.AddUsage( ShaderStructTypeUsage::BufferLayout );		// enable c++ reflection
 		}
@@ -180,11 +184,11 @@ void  BufferTypes (bool withFS, bool hasRT)
 	{
 		RC<ShaderStructType>	st = ShaderStructType( "ModelMaterial" );
 		st.Set( EStructLayout::Compatible_Std430,
-				"uint				flags;"			+
-				"uint				albedoMap;"		+	// packed mapIdx, samplerIdx	// base color
-				"uint				normalMap;"		+	// packed mapIdx, samplerIdx
-				"uint				albedoRGBM;"	+
-				"uint				emissiveRGBM;"	+
+				"uint				flags;"
+				"uint				albedoMap;"			// packed mapIdx, samplerIdx	// base color
+				"uint				normalMap;"			// packed mapIdx, samplerIdx
+				"uint				albedoRGBM;"
+				"uint				emissiveRGBM;"
 				"uint				specularRGBM;"	);
 		st.AddUsage( ShaderStructTypeUsage::BufferLayout );		// enable c++ reflection
 	}{
@@ -197,35 +201,35 @@ void  BufferTypes (bool withFS, bool hasRT)
 	{
 		RC<ShaderStructType>	st = ShaderStructType( "SceneDirectionalLight" );
 		st.Set( EStructLayout::Compatible_Std430,
-				"float3				direction;"		+
-				"float3				attenuation;"	+
+				"float3				direction;"
+				"float3				attenuation;"
 				"uint				colorRGBM;"		);
 		st.AddUsage( ShaderStructTypeUsage::BufferLayout );		// enable c++ reflection
 	}{
 		RC<ShaderStructType>	st = ShaderStructType( "SceneConeLight" );
 		st.Set( EStructLayout::Compatible_Std430,
-				"float3				position;"		+
-				"float3				direction;"		+
-				"float3				attenuation;"	+
-				"float2				cone;"			+
+				"float3				position;"
+				"float3				direction;"
+				"float3				attenuation;"
+				"float2				cone;"
 				"uint				colorRGBM;"		);
 		st.AddUsage( ShaderStructTypeUsage::BufferLayout );		// enable c++ reflection
 	}{
 		RC<ShaderStructType>	st = ShaderStructType( "SceneOmniLight" );
 		st.Set( EStructLayout::Compatible_Std430,
-				"float3				position;"		+
-				"float3				attenuation;"	+
+				"float3				position;"
+				"float3				attenuation;"
 				"uint				colorRGBM;"		);
 		st.AddUsage( ShaderStructTypeUsage::BufferLayout );		// enable c++ reflection
 	}{
 		RC<ShaderStructType>	st = ShaderStructType( "SceneLights" );
 		st.Set( EStructLayout::Compatible_Std430,
-				"uint					directionalCount;"						+
-				"uint					coneCount;"								+
-				"uint					omniCount;"								+
-				"SceneDirectionalLight	directional [" + maxDirLights + "];"	+
-				"SceneConeLight			cone [" + maxConeLights + "];"			+
-				"SceneOmniLight			omni [" + maxOmniLights + "];"			);
+				"uint					directionalCount;"
+				"uint					coneCount;"
+				"uint					omniCount;"
+				"SceneDirectionalLight	directional [" + maxDirLights + "];"
+				"SceneConeLight			cone [" + maxConeLights + "];"
+				"SceneOmniLight			omni [" + maxOmniLights + "];" );
 		st.AddUsage( ShaderStructTypeUsage::BufferLayout );		// enable c++ reflection
 	}
 }

@@ -25,52 +25,39 @@ static void  GraphicsPerfTests (RC<VFS::IVirtualFileStorage> assetStorage)
 }
 
 
-#ifdef AE_PLATFORM_ANDROID
+extern "C" AE_DLL_EXPORT int Perf_Graphics (VFS::IVirtualFileStorage* assetStorage)
+{
+	StaticLogger::LoggerScope log{};
 
-	extern "C" AE_DLL_EXPORT int Perf_Graphics (const char* path)
-	{
-		BEGIN_TEST();
+	GraphicsPerfTests( RC{assetStorage} );
+	return 0;
+}
 
-		GraphicsPerfTests( VFS::VirtualFileStorageFactory::CreateStaticFolder( path, Default ));
-		return 0;
-	}
 
-	extern "C" AE_DLL_EXPORT int Perf_Graphics2 (VFS::IVirtualFileStorage* assetStorage)
-	{
-		StaticLogger::LoggerScope log{};
+TEST_ENTRY()
+{
+	BEGIN_TEST();
 
-		GraphicsPerfTests( RC{assetStorage} );
-		return 0;
-	}
+	Unused( PlatformUtils::SetSystemSleepState( ESystemSleepState::DisplayAlwaysOn ));
 
-#else
+	#ifdef AE_CI_BUILD_TEST
+	const Path	asset_path	= curr;
 
-	int  main (const int argc, char* argv[])
-	{
-		BEGIN_TEST();
+	#elif defined(AE_ENABLE_METAL)
+	const Path	asset_path	{AE_RES_PACK_FOLDER};
 
-		Unused( PlatformUtils::SetSystemSleepState( ESystemSleepState::DisplayAlwaysOn ));
+	#elif defined(AE_ENABLE_VULKAN)
+	const Path	asset_path	{AE_RES_PACK_FOLDER};
 
-	  #ifdef AE_CI_BUILD_TEST
-		const Path	asset_path	= curr;
+	#elif defined(AE_ENABLE_REMOTE_GRAPHICS)
+	const Path	asset_path	{AE_RES_PACK_FOLDER};
 
-	  #elif defined(AE_ENABLE_METAL)
-		const Path	asset_path	{AE_RES_PACK_FOLDER};
+	#else
+	#	error not implemented
+	#endif
 
-	  #elif defined(AE_ENABLE_VULKAN)
-		const Path	asset_path	{AE_RES_PACK_FOLDER};
+	auto	asset_storage = VFS::VirtualFileStorageFactory::CreateStaticFolder( asset_path, Default );
 
-	  #elif defined(AE_ENABLE_REMOTE_GRAPHICS)
-		const Path	asset_path	{AE_RES_PACK_FOLDER};
-
-	  #else
-	  #	error not implemented
-	  #endif
-
-		auto	asset_storage = VFS::VirtualFileStorageFactory::CreateStaticFolder( asset_path, Default );
-
-		GraphicsPerfTests( asset_storage );
-		return 0;
-	}
-
-#endif
+	GraphicsPerfTests( asset_storage );
+	return 0;
+}

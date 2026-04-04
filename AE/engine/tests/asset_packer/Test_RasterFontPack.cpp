@@ -20,16 +20,19 @@ namespace
 		const Path			output			{"font1.bin"};
 		const Path			temp_file		{"temp.bin"};
 		const Path			output_script	{ AE_SHARED_DATA "/scripts/asset_packer.as" };
+		CharType const*		res_folders[]	= { TXT("") };	// current dir
 
 		FileSystem::DeleteFile( output );
 		FileSystem::DeleteFile( temp_file );
 
-		AssetInfo		info	= {};
-		info.inFiles			= files;
-		info.inFileCount		= CountOf(files);
-		info.outputArchive		= Cast<CharType>(output.c_str());
-		info.tempFile			= Cast<CharType>(temp_file.c_str());
-		info.outputScriptFile	= Cast<CharType>(output_script.c_str());
+		AssetInfo		info		= {};
+		info.inFiles				= files;
+		info.inFileCount			= CountOf(files);
+		info.outputArchive			= Cast<CharType>(output.c_str());
+		info.inResourceFolders		= res_folders;
+		info.inResourceFolderCount	= CountOf(res_folders);
+		info.tempFile				= Cast<CharType>(temp_file.c_str());
+		info.outputScriptFile		= Cast<CharType>(output_script.c_str());
 
 		TEST( pack_assets( &info ));
 
@@ -57,16 +60,19 @@ namespace
 		const Path			output			{"font2.bin"};
 		const Path			temp_file		{"temp.bin"};
 		const Path			output_script	{ AE_SHARED_DATA "/scripts/asset_packer.as" };
+		CharType const*		res_folders[]	= { TXT("") };	// current dir
 
 		FileSystem::DeleteFile( output );
 		FileSystem::DeleteFile( temp_file );
 
-		AssetInfo		info	= {};
-		info.inFiles			= files;
-		info.inFileCount		= CountOf(files);
-		info.outputArchive		= Cast<CharType>(output.c_str());
-		info.tempFile			= Cast<CharType>(temp_file.c_str());
-		info.outputScriptFile	= Cast<CharType>(output_script.c_str());
+		AssetInfo		info		= {};
+		info.inFiles				= files;
+		info.inFileCount			= CountOf(files);
+		info.inResourceFolders		= res_folders;
+		info.inResourceFolderCount	= CountOf(res_folders);
+		info.outputArchive			= Cast<CharType>(output.c_str());
+		info.tempFile				= Cast<CharType>(temp_file.c_str());
+		info.outputScriptFile		= Cast<CharType>(output_script.c_str());
 
 		TEST( pack_assets( &info ));
 
@@ -94,16 +100,19 @@ namespace
 		const Path			output			{"font3.bin"};
 		const Path			temp_file		{"temp.bin"};
 		const Path			output_script	{ AE_SHARED_DATA "/scripts/asset_packer.as" };
+		CharType const*		res_folders[]	= { TXT("") };	// current dir
 
 		FileSystem::DeleteFile( output );
 		FileSystem::DeleteFile( temp_file );
 
-		AssetInfo		info	= {};
-		info.inFiles			= files;
-		info.inFileCount		= CountOf(files);
-		info.outputArchive		= Cast<CharType>(output.c_str());
-		info.tempFile			= Cast<CharType>(temp_file.c_str());
-		info.outputScriptFile	= Cast<CharType>(output_script.c_str());
+		AssetInfo		info		= {};
+		info.inFiles				= files;
+		info.inFileCount			= CountOf(files);
+		info.inResourceFolders		= res_folders;
+		info.inResourceFolderCount	= CountOf(res_folders);
+		info.outputArchive			= Cast<CharType>(output.c_str());
+		info.tempFile				= Cast<CharType>(temp_file.c_str());
+		info.outputScriptFile		= Cast<CharType>(output_script.c_str());
 
 		TEST( pack_assets( &info ));
 
@@ -131,16 +140,19 @@ namespace
 		const Path			output			{"font4.bin"};
 		const Path			temp_file		{"temp.bin"};
 		const Path			output_script	{ AE_SHARED_DATA "/scripts/asset_packer.as" };
+		CharType const*		res_folders[]	= { TXT("") };	// current dir
 
 		FileSystem::DeleteFile( output );
 		FileSystem::DeleteFile( temp_file );
 
-		AssetInfo		info	= {};
-		info.inFiles			= files;
-		info.inFileCount		= CountOf(files);
-		info.outputArchive		= Cast<CharType>(output.c_str());
-		info.tempFile			= Cast<CharType>(temp_file.c_str());
-		info.outputScriptFile	= Cast<CharType>(output_script.c_str());
+		AssetInfo		info		= {};
+		info.inFiles				= files;
+		info.inFileCount			= CountOf(files);
+		info.inResourceFolders		= res_folders;
+		info.inResourceFolderCount	= CountOf(res_folders);
+		info.outputArchive			= Cast<CharType>(output.c_str());
+		info.tempFile				= Cast<CharType>(temp_file.c_str());
+		info.outputScriptFile		= Cast<CharType>(output_script.c_str());
 
 		TEST( pack_assets( &info ));
 

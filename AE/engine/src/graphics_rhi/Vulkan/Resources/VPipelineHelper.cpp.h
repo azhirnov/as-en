@@ -325,6 +325,7 @@ namespace
 
 			cons_raster_state->sType							= VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_CONSERVATIVE_STATE_CREATE_INFO_EXT;
 			cons_raster_state->pNext							= null;
+			cons_raster_state->flags							= 0;
 			cons_raster_state->conservativeRasterizationMode	= VEnumCast( inState.conservativeRasterMode );
 			cons_raster_state->extraPrimitiveOverestimationSize	= 0.f;
 

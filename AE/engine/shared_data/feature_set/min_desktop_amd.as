@@ -303,5 +303,6 @@ void ASmain ()
 	fset.framebufferDepthSampleCounts({ 1, 2, 4, 8 });
 	fset.maxFramebufferLayers (1 << 10);
 	fset.variableMultisampleRate (True);
+	fset.separateDepthStencilRW (True);
 	fset.supportedQueues(EQueueMask( EQueueMask::Graphics | EQueueMask::AsyncCompute ));
 }

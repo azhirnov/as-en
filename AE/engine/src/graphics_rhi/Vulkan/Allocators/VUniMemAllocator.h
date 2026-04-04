@@ -43,6 +43,7 @@ namespace AE::Graphics
 	  // IGfxMemAllocator //
 		bool  AllocForImage (VkImage image, const ImageDesc &desc, OUT Storage_t &data)			__NE_OV;
 		bool  AllocForBuffer (VkBuffer buffer, const BufferDesc &desc, OUT Storage_t &data)		__NE_OV;
+		bool  AllocStorage (Bytes, VkBufferUsageFlagBits2, OUT Storage_t &)						__NE_OV	{ return false; }
 
 		bool  Dealloc (INOUT Storage_t &data)													__NE_OV;
 

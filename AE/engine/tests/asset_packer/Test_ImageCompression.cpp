@@ -14,15 +14,18 @@ namespace
 		const PathParams	files[]			= { {TXT("img_comp.as")} };
 		const Path			output			{"img_comp.bin"};
 		const Path			temp_file		{"temp.bin"};
+		CharType const*		res_folders[]	= { TXT("") };	// current dir
 
 		FileSystem::DeleteFile( output );
 		FileSystem::DeleteFile( temp_file );
 
-		AssetInfo		info	= {};
-		info.inFiles			= files;
-		info.inFileCount		= CountOf(files);
-		info.outputArchive		= Cast<CharType>(output.c_str());
-		info.tempFile			= Cast<CharType>(temp_file.c_str());
+		AssetInfo		info		= {};
+		info.inFiles				= files;
+		info.inFileCount			= CountOf(files);
+		info.inResourceFolders		= res_folders;
+		info.inResourceFolderCount	= CountOf(res_folders);
+		info.outputArchive			= Cast<CharType>(output.c_str());
+		info.tempFile				= Cast<CharType>(temp_file.c_str());
 
 		TEST( pack_assets( &info ));
 

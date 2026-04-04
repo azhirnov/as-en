@@ -2,10 +2,9 @@
 
 #pragma once
 
-#include "graphics_rhi/Public/Common.h"
-
 namespace AE::Graphics
 {
+	using namespace AE::Base;
 
 	enum class EMemoryType : ubyte
 	{
@@ -49,6 +48,12 @@ namespace AE::Graphics
 		ASBuild_Scratch		= 1 << 12,		// scratch buffer for building acceleration structures
 		RTAS_Storage		= 1 << 13,		// store acceleration structure
 
+		// micromap
+		MMBuild_Scratch		= ASBuild_Scratch,	// scratch buffer for building micromap
+		MMBuild_ReadOnly	= 1 << 14,			// triangles, data, etc
+
+		ICB_Preprocess		= 1 << 15,			// indirect command buffer preprocessing buffer
+
 		_Last,
 		All					= ((_Last-1) << 1) - 1,
 		Transfer			= TransferDst | TransferSrc,
@@ -57,7 +62,8 @@ namespace AE::Graphics
 
 	static constexpr EBufferUsage	EBufferUsage_AllowBufferView	= EBufferUsage::UniformTexel | EBufferUsage::StorageTexel;
 	static constexpr EBufferUsage	EBufferUsage_RequireDevAddress	= EBufferUsage::ShaderAddress | EBufferUsage::ShaderBindingTable | EBufferUsage::ASBuild_ReadOnly |
-																	  EBufferUsage::ASBuild_Scratch | EBufferUsage::RTAS_Storage;
+																	  EBufferUsage::ASBuild_Scratch | EBufferUsage::RTAS_Storage | EBufferUsage::ICB_Preprocess |
+																	  EBufferUsage::MMBuild_Scratch | EBufferUsage::MMBuild_ReadOnly;
 	static constexpr EBufferUsage	EBufferUsage_RequireDeviceLocal	= EBufferUsage::Storage | EBufferUsage::UniformTexel |
 																	  EBufferUsage::StorageTexel | EBufferUsage::ShaderBindingTable |
 																	  EBufferUsage_RequireDevAddress;
@@ -177,6 +183,8 @@ namespace AE::Graphics
 		Subsampled					= 1 << 18,		// intermediate attachments to use with fragment density map,
 													// when used fragment density map all other attachments in render pass
 													// must be created with this flag.
+
+		SeparatePlanes				= 1 << 19,		// only for multiplanar formats, put each plane in separate memory, may add sampling cost
 
 		//DepthComparison	// TODO
 

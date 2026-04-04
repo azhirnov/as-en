@@ -77,7 +77,7 @@
 	#ifdef DRAW_BOXES
 		float3			pos		= un_Clusters.elements[ gl.InstanceIndex ].points[ idx ];
 	#else
-		float3			pos		= un_Geometry.positions[idx];
+		float3			pos		= un_Geometry.position[idx];
 		float4			sp		= un_Clusters.elements[ gl.InstanceIndex ].sp;
 						pos		= sp.xyz + pos * sp.w;
 	#endif

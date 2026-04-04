@@ -359,13 +359,14 @@ using namespace AE::Base;
 */
 extern int  AE_AppEntry ()
 {
-	return App::ApplicationWinAPI::Run( AE_OnAppCreated() );
+	return App::ApplicationWinAPI::Run( AE_OnAppCreated( __argc, const_cast<char const**>(__argv) ));
 }
 
-extern int  main (const int, char* argv[])
+extern int  main (const int argc, char const* argv[])
 {
 	FileSystem::SetCurrentPath( Path{argv[0]}.parent_path() );
-	return App::ApplicationWinAPI::Run( AE_OnAppCreated() );
+
+	return App::ApplicationWinAPI::Run( AE_OnAppCreated( argc, argv ));
 }
 
 # ifdef AE_PLATFORM_WINDOWS
@@ -376,7 +377,10 @@ extern int  WinMain (HINSTANCE	hInstance,
 {
 	Unused( hInstance, hPrevInstance, lpCmdLine, nShowCmd );
 
-	return App::ApplicationWinAPI::Run( AE_OnAppCreated() );
+	if ( __argc > 0 )
+		FileSystem::SetCurrentPath( Path{__argv[0]}.parent_path() );
+
+	return App::ApplicationWinAPI::Run( AE_OnAppCreated( __argc, const_cast<char const**>(__argv) ));
 }
 # endif
 

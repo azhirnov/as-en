@@ -43,7 +43,7 @@
 #	pragma message("GLSL-Trace library is missing, shader debugging and profiling will be disabled")
 #endif
 
-#if GLSLANG_VERSION_MAJOR != 15 or GLSLANG_VERSION_MINOR != 4
+#if GLSLANG_VERSION_MAJOR != 16 or GLSLANG_VERSION_MINOR != 2
 #	pragma message("invalid glslang version")
 #endif
 
@@ -972,7 +972,7 @@ namespace AE::PipelineCompiler
 					CHECK( error_info.line <= lines_count );
 
 					usize	line_pos = 0;
-					CHECK( Parser::MoveToLine( cur_source, INOUT line_pos, error_info.line-1 ));
+					CHECK( Parser::MoveToLine( cur_source, INOUT line_pos, SubSat( error_info.line, 1u )));
 
 					StringView	line_str;
 					Parser::ReadLineToEnd( cur_source, INOUT line_pos, OUT line_str );
@@ -1005,7 +1005,7 @@ namespace AE::PipelineCompiler
 							StringView		line_str;
 
 							CHECK( local_line < lines_count );
-							CHECK( Parser::MoveToLine( src, INOUT line_pos, local_line-1 ));
+							CHECK( Parser::MoveToLine( src, INOUT line_pos, SubSat( local_line, 1u ) ));
 
 							Parser::ReadLineToEnd( src, INOUT line_pos, OUT line_str );
 
@@ -1180,6 +1180,7 @@ namespace AE::PipelineCompiler
 			case TBasicType::EbtNumTypes :
 			case TBasicType::EbtSpirvType :
 			case TBasicType::EbtHitObjectNV :
+			case TBasicType::EbtHitObjectEXT :
 			case TBasicType::EbtCoopmat :
 			case TBasicType::EbtFunction :
 			case TBasicType::EbtTensorLayoutNV :
@@ -1189,6 +1190,7 @@ namespace AE::PipelineCompiler
 			case TBasicType::EbtFloatE5M2 :
 			case TBasicType::EbtFloatE4M3 :
 			case TBasicType::EbtTensorARM :
+			case TBasicType::EbtLongVector :
 			default :
 				COMP_RETURN_ERR( "unknown basic type!" );
 		}
@@ -1469,6 +1471,7 @@ namespace AE::PipelineCompiler
 			case TBasicType::EbtNumTypes :
 			case TBasicType::EbtSpirvType :
 			case TBasicType::EbtHitObjectNV :
+			case TBasicType::EbtHitObjectEXT :
 			case TBasicType::EbtCoopmat :
 			case TBasicType::EbtFunction :
 			case TBasicType::EbtTensorLayoutNV :
@@ -1478,6 +1481,7 @@ namespace AE::PipelineCompiler
 			case TBasicType::EbtFloatE5M2 :
 			case TBasicType::EbtFloatE4M3 :
 			case TBasicType::EbtTensorARM :
+			case TBasicType::EbtLongVector :
 			default :						COMP_RETURN_ERR( "unsupported basic type!" );
 		}
 		switch_end

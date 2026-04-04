@@ -222,7 +222,7 @@ using namespace AE::CICD;
 	}
 
 
-	int  main (const int argc, char* argv[])
+	int  main (const int argc, char const* argv[])
 	{
 		// where store logs
 		if ( argc >= 3 ){

@@ -55,7 +55,7 @@ Notes:
 
 # Scalar operation between SIMD
 
-[source code line:107](https://github.com/azhirnov/as-en/blob/dev/AE/engine/performance/base/Perf_SIMD3.cpp)
+[source code](https://github.com/azhirnov/as-en/blob/dev/AE/engine/performance/base/Perf_SIMD3.cpp#L107)
 
 Scalar instruction between SIMD may cause 5x performance lost if have memory dependency with SIMD result.
 

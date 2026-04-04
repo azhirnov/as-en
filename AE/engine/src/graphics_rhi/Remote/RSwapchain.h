@@ -86,7 +86,7 @@ namespace AE::Graphics
 		ND_ bool				IsInitialized ()								C_NE___;
 
 		ND_ RmSemaphoreID		GetImageAvailableSemaphore ()					C_NE___	{ return _imageAvailableSem[ GetCurrentSemaphoreIndex() ]; }
-		ND_ RmSemaphoreID		GetRenderFinishedSemaphore ()					C_NE___	{ return _renderFinishedSem[ GetCurrentSemaphoreIndex() ]; }
+		ND_ RmSemaphoreID		GetRenderFinishedSemaphore ()					C_NE___	{ return _renderFinishedSem[ GetCurrentImageIndex() ]; }
 
 		ND_ SwapchainDesc		GetDescription ()								C_NE___	{ SHAREDLOCK( _guard );  return _desc; }
 

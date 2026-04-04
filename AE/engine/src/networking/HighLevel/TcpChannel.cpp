@@ -559,7 +559,7 @@ namespace {
 
 		DEBUG_ONLY(
 			if ( dbgName.empty() ) dbgName = "TCP client";
-		result->_socket.SetDebugName( String{dbgName} );
+			result->_socket.SetDebugName( String{dbgName} );
 		)
 		Unused( dbgName );
 

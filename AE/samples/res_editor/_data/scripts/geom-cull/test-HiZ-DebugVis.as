@@ -40,8 +40,8 @@
 
 		obj_buf.ArrayLayout(
 			"ObjectTransform",
-			"	float3	position;" +
-			"	float	scale;" +
+			"	float3	position;"
+			"	float	scale;"
 			"	uint	color;",
 			count );
 
@@ -68,16 +68,14 @@
 
 		// create geometry
 		{
-			array<float3>	positions;
-			array<uint>		indices;
-			GetSphere( 8, OUT positions, OUT indices );
-			index_count = indices.size();
+			RC<Mesh>	mesh = Mesh();
+			mesh.SetAttributes( EAttribute::Position | EAttribute::Texcoord2D );
+			mesh.AddSphere( 8 );
 
+			index_count = mesh.IndexCount();
 			@tris_count = count.Mul( index_count/3 );
 
-			RC<Buffer>		geom_data = Buffer();
-			geom_data.FloatArray( "positions",	positions );
-			geom_data.UIntArray(  "indices",	indices );
+			RC<Buffer>	geom_data = mesh.ToBuffer();
 			geom_data.LayoutName( "GeometryData" );
 
 			RC<UnifiedGeometry>		geometry = UnifiedGeometry();
@@ -250,12 +248,12 @@
 		if ( sphere_center.z - sphere_radius < znear )
 			return true;  // too close to camera
 
-		float4	aabb = Sphere_FastProject( Sphere_Create( sphere_center, sphere_radius ), un_PerPass.camera.proj[0][0], un_PerPass.camera.proj[1][1] );
+		Rect	aabb = Sphere_FastProject( Sphere_Create( sphere_center, sphere_radius ), un_PerPass.camera.proj[0][0], un_PerPass.camera.proj[1][1] );
 				aabb = ToUNorm( aabb );	// to uv space
 
 		// see [DepthPyramidCulling test](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/scripts/geom-cull/test-DepthPyramidCulling.as)
-		float2	size		= float2( aabb.z - aabb.x, aabb.w - aabb.y ) * iPyramidDim;
-		float2	center		= (aabb.xy + aabb.zw) * 0.5;
+		float2	size		= Rect_Size( aabb ) * iPyramidDim;
+		float2	center		= Rect_Center( aabb );
 		float	level		= Ceil( Log2( MaxOf( size )));
 
 	  #if USE_REDUCTION
@@ -351,11 +349,11 @@
 			return;
 		}
 
-		float4	aabb = Sphere_FastProject( Sphere_Create( sphere_center, sphere_radius ), un_PerPass.camera.proj[0][0], un_PerPass.camera.proj[1][1] );
+		Rect	aabb = Sphere_FastProject( Sphere_Create( sphere_center, sphere_radius ), un_PerPass.camera.proj[0][0], un_PerPass.camera.proj[1][1] );
 				aabb = ToUNorm( aabb );	// uv space
 
-		float2	size		= float2( aabb.z - aabb.x, aabb.w - aabb.y );
-		float2	center		= (aabb.xy + aabb.zw) * 0.5;
+		float2	size		= Rect_Size( aabb );
+		float2	center		= Rect_Center( aabb );
 		float	level		= Ceil( Log2( MaxOf( size * iPyramidDim )));
 
 		float	depth		= gl.texture.SampleLod( un_DepthPyramid2, uv, level ).r;

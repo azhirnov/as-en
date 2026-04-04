@@ -63,7 +63,7 @@
 
 	void Main ()
 	{
-		float2	pos = un_VBuffer.vertices[gl.VertexIndex];
+		float2	pos = un_VBuffer.uv[ gl.VertexIndex ];
 
 		gl.Position	= float4(ToSNorm(pos), 0.0, 1.0);
 		Out.uv		= pos;

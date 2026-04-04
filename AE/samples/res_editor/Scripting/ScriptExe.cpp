@@ -100,7 +100,7 @@ namespace {
 			{
 				ObjectStorage::SetInstance( &obj_storage );
 
-				ScriptFeatureSetPtr	fs {new ScriptFeatureSet{ "InitialFS" }};
+				ScriptFeatureSetPtr	fs = ScriptFeatureSet::Create( "InitialFS" );
 				fs->fs = ScriptResourceApi::GetFeatureSet();
 
 				obj_storage.target				= ECompilationTarget::Vulkan;
@@ -862,6 +862,22 @@ namespace {
 
 /*
 =================================================
+	_BuildRTMicromap
+=================================================
+*/
+	void  ScriptExe::_BuildRTMicromap (const ScriptRTMicromapPtr &micromap) __Th___
+	{
+		CHECK_THROW_MSG( micromap );
+		micromap->AllowUpdate();
+
+		auto&	data = _GetTempData();
+		CHECK_THROW_MSG( data.passGroup );
+
+		data.passGroup->Add( ScriptBasePassPtr{ new ScriptBuildRTMicromap{ micromap }});
+	}
+
+/*
+=================================================
 	_DbgView*
 =================================================
 */
@@ -1466,6 +1482,7 @@ namespace {
 
 		_Bind_DbgViewFlags( se );
 		_Bind_PassGroupFlags( se );
+		ScriptTransform::Bind( se );
 		ScriptDynamicUInt::Bind( se );
 		ScriptDynamicUInt2::Bind( se );
 		ScriptDynamicUInt3::Bind( se );
@@ -1483,7 +1500,10 @@ namespace {
 
 		ScriptImage::Bind( se );
 		ScriptVideoImage::Bind( se );
+		ScriptBufferView::Bind( se );
 		ScriptBuffer::Bind( se );
+		ScriptMesh::Bind( se );
+		ScriptRTMicromap::Bind( se );
 		ScriptRTGeometry::Bind( se );
 		ScriptRTScene::Bind( se );
 
@@ -1512,6 +1532,7 @@ namespace {
 		ScriptRayTracingPass::Bind( se );
 		ScriptSceneGraphicsPass::Bind( se );
 		ScriptSceneRayTracingPass::Bind( se );
+		ScriptSceneRayQueryPass::Bind( se );
 		ScriptScene::Bind( se );
 
 		PipelineCompiler::ScriptFeatureSet::Bind( se );
@@ -1562,33 +1583,37 @@ namespace {
 		AS_GLOBAL_FN( se, ScriptExe::_ExportBuffer2,			"Export",					{"buffer", "prefix", "offset", "size"} );
 	//	AS_GLOBAL_FN( se, ScriptExe::_ExportGeometry,			"Export",					{"geometry", "prefix"},	"Readback the geometry data (images, buffers, etc) and save it to a file in glTF format. Rendering will be paused until the readback is completed." );
 
-		AS_GLOBAL_FN( se, ScriptExe::_BuildRTGeometry,			"BuildRTGeometry",			{},		"Pass to build RTGeometry, executed every frame."			);
-		AS_GLOBAL_FN( se, ScriptExe::_BuildRTGeometryIndirect,	"BuildRTGeometryIndirect",	{},		"Pass to indirect build RTGeometry, executed every frame."	);
+		AS_GLOBAL_FN( se, ScriptExe::_BuildRTGeometry,			"BuildRTGeometry",			{},		"Pass that build RTGeometry, executed every frame."				);
+		AS_GLOBAL_FN( se, ScriptExe::_BuildRTGeometryIndirect,	"BuildRTGeometryIndirect",	{},		"Pass that indirect build RTGeometry, executed every frame."	);
 
-		AS_GLOBAL_FN( se, ScriptExe::_BuildRTScene,				"BuildRTScene",				{},		"Pass to build RTScene, executed every frame."				);
-		AS_GLOBAL_FN( se, ScriptExe::_BuildRTSceneIndirect,		"BuildRTSceneIndirect",		{},		"Pass to indirect build RTScene, executed every frame."		);
+		AS_GLOBAL_FN( se, ScriptExe::_BuildRTScene,				"BuildRTScene",				{},		"Pass that build RTScene, executed every frame."				);
+		AS_GLOBAL_FN( se, ScriptExe::_BuildRTSceneIndirect,		"BuildRTSceneIndirect",		{},		"Pass that indirect build RTScene, executed every frame."		);
 
-		AS_GLOBAL_FN( se, ScriptExe::_GetCube2,					"GetCube",					{"positions", "normals", "indices"} );
-		AS_GLOBAL_FN( se, ScriptExe::_GetCube3,					"GetCube",					{"positions", "normals", "tangents", "bitangents", "texcoords2d", "indices"} );
-		AS_GLOBAL_FN( se, ScriptExe::_GetCube4,					"GetCube",					{"positions", "normals", "tangents", "bitangents", "cubemapTexcoords", "indices"} );
-		AS_GLOBAL_FN( se, ScriptExe::_GetGrid1,					"GetGrid",					{"size", "unorm2Positions", "indices"},					"Returns (size * size) grid" );
-		AS_GLOBAL_FN( se, ScriptExe::_GetGrid2,					"GetGrid",					{"size", "unorm3Positions", "indices"},					"Returns (size * size) grid in XY space." );
-		AS_GLOBAL_FN( se, ScriptExe::_GetSphere1,				"GetSphere",				{"lod", "positions", "indices"},						"Returns spherical cube" );
-		AS_GLOBAL_FN( se, ScriptExe::_GetSphere5,				"GetSphere",				{"lod", "positions", "texcoords2d", "indices"},			"Returns spherical cube with 2D UV" );
-		AS_GLOBAL_FN( se, ScriptExe::_GetSphere2,				"GetSphere",				{"lod", "positions", "cubemapTexcoords", "indices"},	"Returns spherical cube" );
-		AS_GLOBAL_FN( se, ScriptExe::_GetSphere3,				"GetSphere",				{"lod", "positions", "normals", "tangents", "bitangents", "cubemapTexcoords", "indices"},	"Returns spherical cube with tangential projection for cubemap." );
-		AS_GLOBAL_FN( se, ScriptExe::_GetSphere4,				"GetSphere",				{"lod", "positions", "normals", "tangents", "bitangents", "texcoords2d", "indices"},		"Returns spherical cube" );
-		AS_GLOBAL_FN( se, ScriptExe::_GetCylinder1,				"GetCylinder",				{"segmentCount", "isInner", "positions", "texcoords", "indices"},										"Returns cylinder" );
-		AS_GLOBAL_FN( se, ScriptExe::_GetCylinder2,				"GetCylinder",				{"segmentCount", "isInner", "positions", "normals", "tangents", "bitangents", "texcoords", "indices"},	"Returns cylinder" );
-		AS_GLOBAL_FN( se, ScriptExe::_GetCone1,					"GetCone",					{"segmentCount", "radius", "height", "positions", "indices"},													"Returns cone, apex in +Z" );
-		AS_GLOBAL_FN( se, ScriptExe::_GetCone2,					"GetCone",					{"segmentCount", "radius", "height", "positions", "normals", "texcoords", "indices"},							"Returns cone, apex in +Z" );
-		AS_GLOBAL_FN( se, ScriptExe::_GetCone3,					"GetCone",					{"segmentCount", "radius", "height", "positions", "normals", "tangents", "bitangents", "texcoords", "indices"},	"Returns cone, apex in +Z" );
+		AS_GLOBAL_FN( se, ScriptExe::_BuildRTMicromap,			"BuildRTMicromap",			{},		"Pass that build RTMicromap, executed every frame."				);
+
+		// deprecated
+	//	AS_GLOBAL_FN( se, ScriptExe::_GetCube2,					"GetCube",					{"positions", "normals", "indices"} );
+	//	AS_GLOBAL_FN( se, ScriptExe::_GetCube3,					"GetCube",					{"positions", "normals", "tangents", "bitangents", "texcoords2d", "indices"} );
+	//	AS_GLOBAL_FN( se, ScriptExe::_GetCube4,					"GetCube",					{"positions", "normals", "tangents", "bitangents", "cubemapTexcoords", "indices"} );
+	//	AS_GLOBAL_FN( se, ScriptExe::_GetGrid1,					"GetGrid",					{"size", "unorm2Positions", "indices"},					"Returns (size * size) grid" );
+	//	AS_GLOBAL_FN( se, ScriptExe::_GetGrid2,					"GetGrid",					{"size", "unorm3Positions", "indices"},					"Returns (size * size) grid in XY space." );
+	//	AS_GLOBAL_FN( se, ScriptExe::_GetSphere1,				"GetSphere",				{"lod", "positions", "indices"},						"Returns spherical cube" );
+	//	AS_GLOBAL_FN( se, ScriptExe::_GetSphere5,				"GetSphere",				{"lod", "positions", "texcoords2d", "indices"},			"Returns spherical cube with 2D UV" );
+	//	AS_GLOBAL_FN( se, ScriptExe::_GetSphere2,				"GetSphere",				{"lod", "positions", "cubemapTexcoords", "indices"},	"Returns spherical cube" );
+	//	AS_GLOBAL_FN( se, ScriptExe::_GetSphere3,				"GetSphere",				{"lod", "positions", "normals", "tangents", "bitangents", "cubemapTexcoords", "indices"},	"Returns spherical cube with tangential projection for cubemap." );
+	//	AS_GLOBAL_FN( se, ScriptExe::_GetSphere4,				"GetSphere",				{"lod", "positions", "normals", "tangents", "bitangents", "texcoords2d", "indices"},		"Returns spherical cube" );
+	//	AS_GLOBAL_FN( se, ScriptExe::_GetCylinder1,				"GetCylinder",				{"segmentCount", "isInner", "positions", "texcoords", "indices"},										"Returns cylinder" );
+	//	AS_GLOBAL_FN( se, ScriptExe::_GetCylinder2,				"GetCylinder",				{"segmentCount", "isInner", "positions", "normals", "tangents", "bitangents", "texcoords", "indices"},	"Returns cylinder" );
+	//	AS_GLOBAL_FN( se, ScriptExe::_GetCone1,					"GetCone",					{"segmentCount", "radius", "height", "positions", "indices"},													"Returns cone, apex in +Z" );
+	//	AS_GLOBAL_FN( se, ScriptExe::_GetCone2,					"GetCone",					{"segmentCount", "radius", "height", "positions", "normals", "texcoords", "indices"},							"Returns cone, apex in +Z" );
+	//	AS_GLOBAL_FN( se, ScriptExe::_GetCone3,					"GetCone",					{"segmentCount", "radius", "height", "positions", "normals", "tangents", "bitangents", "texcoords", "indices"},	"Returns cone, apex in +Z" );
 		AS_GLOBAL_FN( se, ScriptExe::_GetFrustumIndices,		"GetFrustumIndices",		{} );
+	//	AS_GLOBAL_FN( se, ScriptExe::_TBNtoQuat,				"TBNtoQuat",				{"tangents", "bitangents", "normals", "indices", "tbnQuat"} );
 
-		AS_GLOBAL_FN( se, ScriptExe::_GetSphericalCube1,		"GetSphericalCube",			{"lod", "positions", "indices"},						"Returns spherical cube without projection and face rotation.\nIn 'positions': xy - pos on face, z - face index." );
+	//	AS_GLOBAL_FN( se, ScriptExe::_GetSphericalCube1,		"GetSphericalCube",			{"lod", "positions", "indices"},						"Returns spherical cube without projection and face rotation.\nIn 'positions': xy - pos on face, z - face index." );
 
-		AS_GLOBAL_FN( se, ScriptExe::_IndicesToPrimitives,		"IndicesToPrimitives",		{"indices", "primitives"},		"Helper function to convert array of indices to array of uint3 indices per triangle" );
-		AS_GLOBAL_FN( se, ScriptExe::_MergeMesh,				"MergeMesh",				{"srcIndices", "srcVertexCount", "indicesToAdd"} );
+	//	AS_GLOBAL_FN( se, ScriptExe::_IndicesToPrimitives,		"IndicesToPrimitives",		{"indices", "primitives"},		"Helper function to convert array of indices to array of uint3 indices per triangle" );
+	//	AS_GLOBAL_FN( se, ScriptExe::_MergeMesh,				"MergeMesh",				{"srcIndices", "srcVertexCount", "indicesToAdd"} );
 
 		#ifdef AE_ENABLE_CDT
 		AS_GLOBAL_FN( se, ScriptExe::_ExtrudeAndMerge,			"Extrude",					{"lineStrip", "height", "positions", "indices"},					"Output is a TriangleList, front face: CCW" );
@@ -1839,6 +1864,7 @@ namespace {
 		ScriptRayTracingPass::GetShaderTypes( INOUT data );
 		ScriptSceneGraphicsPass::GetShaderTypes( INOUT data );
 		ScriptSceneRayTracingPass::GetShaderTypes( INOUT data );
+		ScriptSceneRayQueryPass::GetShaderTypes( INOUT data );
 
 		ScriptSphericalCube::GetShaderTypes( INOUT data );
 		ScriptUniGeometry::GetShaderTypes( INOUT data );
@@ -2269,7 +2295,7 @@ namespace {
 
 				ObjectStorage::SetInstance( &obj_storage );
 
-				ScriptFeatureSetPtr	fs {new ScriptFeatureSet{ obj_storage.defaultFeatureSet }};
+				ScriptFeatureSetPtr	fs = ScriptFeatureSet::Create( obj_storage.defaultFeatureSet );
 				fs->fs = ScriptResourceApi::GetFeatureSet();
 
 				PipelineCompiler::ScriptConfig	cfg;
@@ -2403,46 +2429,46 @@ namespace {
 		auto&	fs = GraphicsScheduler().GetFeatureSet();
 
 		{
-			ScriptSamplerPtr	samp{new ScriptSampler{_sampConsts->NearestClamp}};
+			ScriptSamplerPtr	samp = ScriptSampler::Create( _sampConsts->NearestClamp );
 			samp->SetFilter( EFilter::Nearest, EFilter::Nearest, EMipmapFilter::Nearest );
 			samp->SetAddressMode( EAddressMode::ClampToEdge, EAddressMode::ClampToEdge, EAddressMode::ClampToEdge );
 		}{
-			ScriptSamplerPtr	samp{new ScriptSampler{_sampConsts->NearestRepeat}};
+			ScriptSamplerPtr	samp = ScriptSampler::Create( _sampConsts->NearestRepeat );
 			samp->SetFilter( EFilter::Nearest, EFilter::Nearest, EMipmapFilter::Nearest );
 			samp->SetAddressMode( EAddressMode::Repeat, EAddressMode::Repeat, EAddressMode::Repeat );
 		}{
-			ScriptSamplerPtr	samp{new ScriptSampler{_sampConsts->NearestMirrorRepeat}};
+			ScriptSamplerPtr	samp = ScriptSampler::Create( _sampConsts->NearestMirrorRepeat );
 			samp->SetFilter( EFilter::Nearest, EFilter::Nearest, EMipmapFilter::Nearest );
 			samp->SetAddressMode( EAddressMode::MirrorRepeat, EAddressMode::MirrorRepeat, EAddressMode::MirrorRepeat );
 		}{
-			ScriptSamplerPtr	samp{new ScriptSampler{_sampConsts->LinearClamp}};
+			ScriptSamplerPtr	samp = ScriptSampler::Create( _sampConsts->LinearClamp );
 			samp->SetFilter( EFilter::Linear, EFilter::Linear, EMipmapFilter::Nearest );
 			samp->SetAddressMode( EAddressMode::ClampToEdge, EAddressMode::ClampToEdge, EAddressMode::ClampToEdge );
 		}{
-			ScriptSamplerPtr	samp{new ScriptSampler{_sampConsts->LinearRepeat}};
+			ScriptSamplerPtr	samp = ScriptSampler::Create( _sampConsts->LinearRepeat );
 			samp->SetFilter( EFilter::Linear, EFilter::Linear, EMipmapFilter::Nearest );
 			samp->SetAddressMode( EAddressMode::Repeat, EAddressMode::Repeat, EAddressMode::Repeat );
 		}{
-			ScriptSamplerPtr	samp{new ScriptSampler{_sampConsts->LinearMirrorRepeat}};
+			ScriptSamplerPtr	samp = ScriptSampler::Create( _sampConsts->LinearMirrorRepeat );
 			samp->SetFilter( EFilter::Linear, EFilter::Linear, EMipmapFilter::Nearest );
 			samp->SetAddressMode( EAddressMode::MirrorRepeat, EAddressMode::MirrorRepeat, EAddressMode::MirrorRepeat );
 		}{
-			ScriptSamplerPtr	samp{new ScriptSampler{_sampConsts->LinearMipmapClamp}};
+			ScriptSamplerPtr	samp = ScriptSampler::Create( _sampConsts->LinearMipmapClamp );
 			samp->SetFilter( EFilter::Linear, EFilter::Linear, EMipmapFilter::Linear );
 			samp->SetAddressMode( EAddressMode::ClampToEdge, EAddressMode::ClampToEdge, EAddressMode::ClampToEdge );
 		}{
-			ScriptSamplerPtr	samp{new ScriptSampler{_sampConsts->LinearMipmapRepeat}};
+			ScriptSamplerPtr	samp = ScriptSampler::Create( _sampConsts->LinearMipmapRepeat );
 			samp->SetFilter( EFilter::Linear, EFilter::Linear, EMipmapFilter::Linear );
 			samp->SetAddressMode( EAddressMode::Repeat, EAddressMode::Repeat, EAddressMode::Repeat );
 		}{
-			ScriptSamplerPtr	samp{new ScriptSampler{_sampConsts->LinearMipmapMirrorRepeat}};
+			ScriptSamplerPtr	samp = ScriptSampler::Create( _sampConsts->LinearMipmapMirrorRepeat );
 			samp->SetFilter( EFilter::Linear, EFilter::Linear, EMipmapFilter::Linear );
 			samp->SetAddressMode( EAddressMode::MirrorRepeat, EAddressMode::MirrorRepeat, EAddressMode::MirrorRepeat );
 		}
 
 		if ( fs.samplerMirrorClampToEdge == FeatureSet::EFeature::RequireTrue )
 		{
-			ScriptSamplerPtr	samp{new ScriptSampler{_sampConsts->LinearMipmapMirrorClamp}};
+			ScriptSamplerPtr	samp = ScriptSampler::Create( _sampConsts->LinearMipmapMirrorClamp );
 			samp->SetFilter( EFilter::Linear, EFilter::Linear, EMipmapFilter::Linear );
 			samp->SetAddressMode( EAddressMode::MirrorClampToEdge, EAddressMode::MirrorClampToEdge, EAddressMode::MirrorClampToEdge );
 		}
@@ -2452,17 +2478,17 @@ namespace {
 			if ( fs.maxSamplerAnisotropy >= 8.0f )
 			{
 				{
-					ScriptSamplerPtr	samp{new ScriptSampler{_sampConsts->Anisotropy8Repeat}};
+					ScriptSamplerPtr	samp = ScriptSampler::Create( _sampConsts->Anisotropy8Repeat );
 					samp->SetFilter( EFilter::Linear, EFilter::Linear, EMipmapFilter::Linear );
 					samp->SetAddressMode( EAddressMode::Repeat, EAddressMode::Repeat, EAddressMode::Repeat );
 					samp->SetAnisotropy( 8.0f );
 				}{
-					ScriptSamplerPtr	samp{new ScriptSampler{_sampConsts->Anisotropy8MirrorRepeat}};
+					ScriptSamplerPtr	samp = ScriptSampler::Create( _sampConsts->Anisotropy8MirrorRepeat );
 					samp->SetFilter( EFilter::Linear, EFilter::Linear, EMipmapFilter::Linear );
 					samp->SetAddressMode( EAddressMode::MirrorRepeat, EAddressMode::MirrorRepeat, EAddressMode::MirrorRepeat );
 					samp->SetAnisotropy( 8.0f );
 				}{
-					ScriptSamplerPtr	samp{new ScriptSampler{_sampConsts->Anisotropy8Clamp}};
+					ScriptSamplerPtr	samp = ScriptSampler::Create( _sampConsts->Anisotropy8Clamp );
 					samp->SetFilter( EFilter::Linear, EFilter::Linear, EMipmapFilter::Linear );
 					samp->SetAddressMode( EAddressMode::ClampToEdge, EAddressMode::ClampToEdge, EAddressMode::ClampToEdge );
 					samp->SetAnisotropy( 8.0f );
@@ -2471,17 +2497,17 @@ namespace {
 			if ( fs.maxSamplerAnisotropy >= 8.0f )
 			{
 				{
-					ScriptSamplerPtr	samp{new ScriptSampler{_sampConsts->Anisotropy16Repeat}};
+					ScriptSamplerPtr	samp = ScriptSampler::Create( _sampConsts->Anisotropy16Repeat );
 					samp->SetFilter( EFilter::Linear, EFilter::Linear, EMipmapFilter::Linear );
 					samp->SetAddressMode( EAddressMode::Repeat, EAddressMode::Repeat, EAddressMode::Repeat );
 					samp->SetAnisotropy( 16.0f );
 				}{
-					ScriptSamplerPtr	samp{new ScriptSampler{_sampConsts->Anisotropy16MirrorRepeat}};
+					ScriptSamplerPtr	samp = ScriptSampler::Create( _sampConsts->Anisotropy16MirrorRepeat );
 					samp->SetFilter( EFilter::Linear, EFilter::Linear, EMipmapFilter::Linear );
 					samp->SetAddressMode( EAddressMode::MirrorRepeat, EAddressMode::MirrorRepeat, EAddressMode::MirrorRepeat );
 					samp->SetAnisotropy( 16.0f );
 				}{
-					ScriptSamplerPtr	samp{new ScriptSampler{_sampConsts->Anisotropy16Clamp}};
+					ScriptSamplerPtr	samp = ScriptSampler::Create( _sampConsts->Anisotropy16Clamp );
 					samp->SetFilter( EFilter::Linear, EFilter::Linear, EMipmapFilter::Linear );
 					samp->SetAddressMode( EAddressMode::ClampToEdge, EAddressMode::ClampToEdge, EAddressMode::ClampToEdge );
 					samp->SetAnisotropy( 16.0f );
@@ -2491,7 +2517,7 @@ namespace {
 
 		if ( fs.fragmentDensityMap == FeatureSet::EFeature::RequireTrue )
 		{
-			ScriptSamplerPtr	samp{new ScriptSampler{_sampConsts->NearestClampSubsampled}};
+			ScriptSamplerPtr	samp = ScriptSampler::Create( _sampConsts->NearestClampSubsampled );
 			samp->SetFilter( EFilter::Nearest, EFilter::Nearest, EMipmapFilter::Nearest );
 			samp->SetAddressMode( EAddressMode::ClampToEdge, EAddressMode::ClampToEdge, EAddressMode::ClampToEdge );
 			samp->SetOptions( ESamplerOpt::Subsampled );
@@ -2501,12 +2527,12 @@ namespace {
 		if ( fs.samplerFilterMinmax == FeatureSet::EFeature::RequireTrue )
 		{
 			{
-				ScriptSamplerPtr	samp{new ScriptSampler{_sampConsts->MaxLinearClamp}};
+				ScriptSamplerPtr	samp = ScriptSampler::Create( _sampConsts->MaxLinearClamp );
 				samp->SetFilter( EFilter::Linear, EFilter::Linear, EMipmapFilter::Nearest );
 				samp->SetAddressMode( EAddressMode::ClampToEdge, EAddressMode::ClampToEdge, EAddressMode::ClampToEdge );
 				samp->SetReductionMode( EReductionMode::Max );
 			}{
-				ScriptSamplerPtr	samp{new ScriptSampler{_sampConsts->MinLinearClamp}};
+				ScriptSamplerPtr	samp = ScriptSampler::Create( _sampConsts->MinLinearClamp );
 				samp->SetFilter( EFilter::Linear, EFilter::Linear, EMipmapFilter::Nearest );
 				samp->SetAddressMode( EAddressMode::ClampToEdge, EAddressMode::ClampToEdge, EAddressMode::ClampToEdge );
 				samp->SetReductionMode( EReductionMode::Min );
@@ -2528,7 +2554,7 @@ namespace {
 
 		if ( not obj_storage.structTypes.contains( "CameraData" ))
 		{
-			ShaderStructTypePtr	st{ new ShaderStructType{"CameraData"}};
+			ShaderStructTypePtr	st = ShaderStructType::Create( "CameraData" );
 			st->Set( EStructLayout::Compatible_Std140, R"#(
 					float4x4	viewProj;
 					float4x4	invViewProj;
@@ -2544,7 +2570,7 @@ namespace {
 
 		/*if ( not obj_storage.structTypes.contains( "CameraSet" ))
 		{
-			ShaderStructTypePtr	st{ new ShaderStructType{"CameraSet"}};
+			ShaderStructTypePtr	st = ShaderStructType::Create( "CameraSet" );
 			st->Set( EStructLayout::Compatible_Std140, R"#(
 					float		ipd;		// for VR video
 					float3		globalPos;	// actual position: 'globalPos + data[0].localPos'
@@ -2555,7 +2581,7 @@ namespace {
 
 		if ( not obj_storage.structTypes.contains( "AccelStructInstance" ))
 		{
-			ShaderStructTypePtr	st{ new ShaderStructType{"AccelStructInstance"}};
+			ShaderStructTypePtr	st = ShaderStructType::Create( "AccelStructInstance" );
 			st->Set( EStructLayout::Compatible_Std430, R"#(
 					float3x4	transform;							// 3x4 row-major
 					uint		instanceCustomIndex24_mask8;
@@ -2567,7 +2593,7 @@ namespace {
 
 		if ( not obj_storage.structTypes.contains( "ASBuildIndirectCommand" ))
 		{
-			ShaderStructTypePtr	st{ new ShaderStructType{"ASBuildIndirectCommand"}};
+			ShaderStructTypePtr	st = ShaderStructType::Create( "ASBuildIndirectCommand" );
 			st->Set( EStructLayout::Compatible_Std430, R"#(
 					uint		primitiveCount;
 					uint		primitiveOffset;
@@ -2579,7 +2605,7 @@ namespace {
 
 		if ( not obj_storage.structTypes.contains( "TraceRayIndirectCommand" ))
 		{
-			ShaderStructTypePtr	st{ new ShaderStructType{"TraceRayIndirectCommand"}};
+			ShaderStructTypePtr	st = ShaderStructType::Create( "TraceRayIndirectCommand" );
 			st->Set( EStructLayout::Compatible_Std430, R"#(
 					packed_uint3	dim;
 				)#");
@@ -2588,7 +2614,7 @@ namespace {
 
 		if ( not obj_storage.structTypes.contains( "DispatchIndirectCommand" ))
 		{
-			ShaderStructTypePtr	st{ new ShaderStructType{"DispatchIndirectCommand"}};
+			ShaderStructTypePtr	st = ShaderStructType::Create( "DispatchIndirectCommand" );
 			st->Set( EStructLayout::Compatible_Std430, R"#(
 					packed_uint3	groupCount;
 				)#");
@@ -2597,7 +2623,7 @@ namespace {
 
 		if ( not obj_storage.structTypes.contains( "DrawIndirectCommand" ))
 		{
-			ShaderStructTypePtr	st{ new ShaderStructType{"DrawIndirectCommand"}};
+			ShaderStructTypePtr	st = ShaderStructType::Create( "DrawIndirectCommand" );
 			st->Set( EStructLayout::Compatible_Std430, R"#(
 					uint	vertexCount;
 					uint	instanceCount;
@@ -2609,7 +2635,7 @@ namespace {
 
 		if ( not obj_storage.structTypes.contains( "DrawIndexedIndirectCommand" ))
 		{
-			ShaderStructTypePtr	st{ new ShaderStructType{"DrawIndexedIndirectCommand"}};
+			ShaderStructTypePtr	st = ShaderStructType::Create( "DrawIndexedIndirectCommand" );
 			st->Set( EStructLayout::Compatible_Std430, R"#(
 					uint	indexCount;
 					uint	instanceCount;
@@ -2622,12 +2648,27 @@ namespace {
 
 		if ( not obj_storage.structTypes.contains( "DrawMeshTasksIndirectCommand" ))
 		{
-			ShaderStructTypePtr	st{ new ShaderStructType{"DrawMeshTasksIndirectCommand"}};
+			ShaderStructTypePtr	st = ShaderStructType::Create( "DrawMeshTasksIndirectCommand" );
 			st->Set( EStructLayout::Compatible_Std430, R"#(
 					packed_uint3	taskCount;
 				)#");
 			CHECK( st->StaticSize() == SizeOf<DrawMeshTasksIndirectCommand> );
 		}
+
+		if ( not obj_storage.structTypes.contains( "MicromapTriangle" ))
+		{
+			ShaderStructTypePtr	st = ShaderStructType::Create( "MicromapTriangle" );
+			st->Set( EStructLayout::Compatible_Std430, R"#(
+					uint	dataOffset;
+					uint	subdivisionLevel_format;
+				)#");
+			CHECK( st->StaticSize() == SizeOf<RTMicromapBuild::Triangle> );
+		}
+
+		// TODO:
+		//	BindIndexBufferIndirectCommand
+		//	BindVertexBufferIndirectCommand
+		//	DrawIndirectCountIndirectCommand
 	}
 
 /*

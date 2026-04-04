@@ -36,13 +36,17 @@ namespace AE::ResEditor
 	class IController;
 	class IPass;
 
+	struct ScriptTransform;
+
 	using ScriptRCBase					= ScriptRC< EnableScriptRC >;
 
 	using ScriptBufferPtr				= ScriptRC< class ScriptBuffer >;
+	using ScriptBufferViewPtr			= ScriptRC< class ScriptBufferView >;
 	using ScriptImagePtr				= ScriptRC< class ScriptImage >;
 	using ScriptVideoImagePtr			= ScriptRC< class ScriptVideoImage >;
 	using ScriptRTGeometryPtr			= ScriptRC< class ScriptRTGeometry >;
 	using ScriptRTScenePtr				= ScriptRC< class ScriptRTScene >;
+	using ScriptRTMicromapPtr			= ScriptRC< class ScriptRTMicromap >;
 
 	using ScriptPostprocessPtr			= ScriptRC< class ScriptPostprocess >;
 	using ScriptComputePassPtr			= ScriptRC< class ScriptComputePass >;
@@ -65,6 +69,7 @@ namespace AE::ResEditor
 	using ScriptDynamicFloat4Ptr		= ScriptRC< class ScriptDynamicFloat4 >;
 	using ScriptDynamicULongPtr			= ScriptRC< class ScriptDynamicULong >;
 	using ScriptCollectionPtr			= ScriptRC< class ScriptCollection >;
+	using ScriptMeshPtr					= ScriptRC< class ScriptMesh >;
 
 	using ScriptBaseControllerPtr		= ScriptRC< class ScriptBaseController >;
 	using ScriptGeomSourcePtr			= ScriptRC< class ScriptGeomSource >;
@@ -72,6 +77,7 @@ namespace AE::ResEditor
 	using ScriptSceneGraphicsPassPtr	= ScriptRC< class ScriptSceneGraphicsPass >;
 	using ScriptSceneGraphicsSubpassPtr	= ScriptRC< class ScriptSceneGraphicsSubpass >;
 	using ScriptSceneRayTracingPassPtr	= ScriptRC< class ScriptSceneRayTracingPass >;
+	using ScriptSceneRayQueryPassPtr	= ScriptRC< class ScriptSceneRayQueryPass >;
 	using ScriptScenePtr				= ScriptRC< class ScriptScene >;
 
 
@@ -94,16 +100,19 @@ namespace AE::ResEditor
 		VertexInput				= 1 << 9,
 		IndirectBuffer			= 1 << 10,
 		ASBuild					= 1 << 11,
-		ShaderAddress			= 1 << 12,
+		MMBuild					= 1 << 12,
+		ShaderAddress			= 1 << 13,
 
-		WithHistory				= 1 << 13,
-		Transfer				= 1 << 14,
+		WithHistory				= 1 << 14,
+		Transfer				= 1 << 15,
 
-		InputAttachment			= 1 << 15,
+		InputAttachment			= 1 << 16,
 
-		FragShadingRate			= 1 << 16,
-		FragDensityMap			= 1 << 17,
-		SubsampledAttachment	= 1 << 18,
+		FragShadingRate			= 1 << 17,
+		FragDensityMap			= 1 << 18,
+		SubsampledAttachment	= 1 << 19,
+
+		TexelStorage			= 1 << 20,
 
 		Unknown					= 0,
 		_BITOPS_
@@ -116,8 +125,12 @@ namespace AE::ResEditor
 AE_DECL_SCRIPT_OBJ_RC(	AE::ResEditor::ScriptImage,						"Image"				);
 AE_DECL_SCRIPT_OBJ_RC(	AE::ResEditor::ScriptVideoImage,				"VideoImage"		);
 AE_DECL_SCRIPT_OBJ_RC(	AE::ResEditor::ScriptBuffer,					"Buffer"			);
+AE_DECL_SCRIPT_OBJ_RC(	AE::ResEditor::ScriptBufferView,				"BufferView"		);
 AE_DECL_SCRIPT_OBJ_RC(	AE::ResEditor::ScriptRTGeometry,				"RTGeometry"		);
 AE_DECL_SCRIPT_OBJ_RC(	AE::ResEditor::ScriptRTScene,					"RTScene"			);
+AE_DECL_SCRIPT_OBJ_RC(	AE::ResEditor::ScriptRTMicromap,				"RTMicromap"		);
+AE_DECL_SCRIPT_OBJ_RC(	AE::ResEditor::ScriptMesh,						"Mesh"				);
+
 AE_DECL_SCRIPT_OBJ_RC(	AE::ResEditor::ScriptDynamicDim,				"DynamicDim"		);
 AE_DECL_SCRIPT_OBJ_RC(	AE::ResEditor::ScriptDynamicUInt,				"DynamicUInt"		);
 AE_DECL_SCRIPT_OBJ_RC(	AE::ResEditor::ScriptDynamicUInt2,				"DynamicUInt2"		);
@@ -134,3 +147,5 @@ AE_DECL_SCRIPT_OBJ_RC(	AE::ResEditor::ScriptDynamicFloat4,				"DynamicFloat4"		)
 AE_DECL_SCRIPT_OBJ_RC(	AE::ResEditor::ScriptDynamicULong,				"DynamicULong"		);
 //AE_DECL_SCRIPT_OBJ_RC(AE::ResEditor::ScriptDynamicMatrix4x4,			"DynamicMat4x4"		);
 AE_DECL_SCRIPT_OBJ_RC(	AE::ResEditor::ScriptCollection,				"Collection"		);
+
+AE_DECL_SCRIPT_OBJ(		AE::ResEditor::ScriptTransform,					"Transform"			);

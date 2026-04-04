@@ -27,7 +27,7 @@ extern bool ClockMap_Test2 (TestDevice& vulkan);
 extern bool ShaderAssert_Test1 (TestDevice& vulkan);
 
 
-int main (const int argc, char* argv[])
+TEST_ENTRY()
 {
 	BEGIN_TEST();
 	log.checkMemLeaks = false; // disable because of false positive in glslang

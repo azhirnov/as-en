@@ -4,10 +4,10 @@
 #include "graphics_rhi/Private/EnumUtils.h"
 
 #undef  TEST
-#define TEST	CHECK_ERR
+#define TEST( _expr_ )	CHECK_ERR( _expr_, ECode::Failed )
 
 
-bool RGTest::Test_FeatureSets ()
+RGTest::ECode  RGTest::Test_FeatureSets ()
 {
 	// test swapchain feature set parts
 	#if 0
@@ -195,5 +195,5 @@ bool RGTest::Test_FeatureSets ()
 	#endif
 
 	AE_LOGI( TEST_NAME << " - passed" );
-	return true;
+	return ECode::Passed;
 }

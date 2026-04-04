@@ -2,7 +2,7 @@
 /*
 	Find difference between texture array and array of texture.
 
-	results in [Bindless paper](https://github.com/azhirnov/as-en/blob/dev/AE/docs/papers/Bindless-ru.md)
+	results in [Bindless paper](https://github.com/azhirnov/as-en/blob/dev/AE/papers/graphics/Bindless-ru.md)
 */
 #ifdef __INTELLISENSE__
 # 	include <res_editor.as>
@@ -67,10 +67,10 @@
 
 		obj_buf.ArrayLayout(
 			"ObjectTransform",
-			"	float4	rotation;" +
-			"	float3	position;" +
-			"	uint	color;" +
-			"	float2	scale;" +
+			"	float4	rotation;"
+			"	float3	position;"
+			"	uint	color;"
+			"	float2	scale;"
 			"	uint	texId;",
 			count );
 

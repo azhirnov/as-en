@@ -14,6 +14,7 @@
 #endif
 //-----------------------------------------------------------------------------
 
+	using ResMngrApi = ResourceManager::RenderTaskSchedulerApi;
 
 /*
 =================================================
@@ -207,6 +208,38 @@
 
 /*
 =================================================
+	GetResourceManager
+=================================================
+*/
+	ResourceManager&  RenderTaskScheduler::GetResourceManager () __NE___
+	{
+		ASSERT( _resMngr );
+		return *_resMngr;
+	}
+
+/*
+=================================================
+	GetQueryManager
+=================================================
+*/
+	RenderTaskScheduler::QueryManager_t&  RenderTaskScheduler::GetQueryManager () __NE___
+	{
+		return GetResourceManager().GetQueryManager();
+	}
+
+/*
+=================================================
+	GetFeatureSet
+=================================================
+*/
+	FeatureSet const&  RenderTaskScheduler::GetFeatureSet () C_NE___
+	{
+		ASSERT( _resMngr );
+		return _resMngr->GetFeatureSet();
+	}
+
+/*
+=================================================
 	_EndFrameRun
 =================================================
 */
@@ -256,7 +289,7 @@
 			q.pending.fill( Default );
 		}
 
-		ResMngrApi::OnEndFrame( *rts._resMngr, frameId );
+		ResMngrApi::OnEndFrame( rts.GetResourceManager(), frameId );
 
 		CHECK_ERR_MSG( rts._status.Set( EStatus::RecordFrame, EStatus::Idle ),
 			"Incorrect render task scheduler status, must be 'EStatus::RecordFrame'" );
@@ -429,7 +462,7 @@
 
 		if ( _resMngr )
 		{
-			ResMngrApi::Deinitialize( *_resMngr );
+			ResMngrApi::Deinitialize( GetResourceManager() );
 			_resMngr = null;
 		}
 
@@ -521,7 +554,7 @@
 		MemoryManager().GetGraphicsFrameAllocator().BeginFrame( frame_id );
 
 		// staging buffer host-visible memory invalidated here
-		ResMngrApi::OnBeginFrame( *_resMngr, frame_id, cfg );
+		ResMngrApi::OnBeginFrame( GetResourceManager(), frame_id, cfg );
 
 		// allow to run tasks which depends on 'OnFrameNextCycle'
 		_nextCycleDepMngr->OnNextFrame( frame_id );
@@ -866,7 +899,7 @@
 			//----
 
 			// staging buffer host-visible memory invalidated here
-			_resMngr->GetStagingManager().InvalidateMappedMemory( frame_id );
+			GetResourceManager().GetStagingManager().InvalidateMappedMemory( frame_id );
 
 			// allow to run tasks which depends on 'OnFrameNextCycle'
 			_nextCycleDepMngr->OnNextFrame( frame_id );
@@ -977,3 +1010,41 @@
 		}
 	}
 #endif // AE_DEBUG
+//-----------------------------------------------------------------------------
+
+
+/*
+=================================================
+	GAutorelease::_ReleaseRef
+=================================================
+*/
+	template <usize IndexSize, usize GenerationSize, uint UID>
+	void  GAutorelease< HandleTmpl< IndexSize, GenerationSize, UID >>::_ReleaseRef () __NE___
+	{
+		if ( _id )
+			GraphicsScheduler().GetResourceManager().DelayedRelease( INOUT _id );
+
+		ASSERT( not _id.IsValid() );
+	}
+
+	template struct GAutorelease< GraphicsPipelineID >;
+	template struct GAutorelease< MeshPipelineID >;
+	template struct GAutorelease< ComputePipelineID >;
+	template struct GAutorelease< RayTracingPipelineID >;
+	template struct GAutorelease< TilePipelineID >;
+	template struct GAutorelease< PipelineCacheID >;
+	template struct GAutorelease< PipelinePackID >;
+	template struct GAutorelease< DescriptorSetID >;
+	template struct GAutorelease< DescriptorSetLayoutID >;
+	template struct GAutorelease< BufferID >;
+	template struct GAutorelease< ImageID >;
+	template struct GAutorelease< BufferViewID >;
+	template struct GAutorelease< ImageViewID >;
+	template struct GAutorelease< RTGeometryID >;
+	template struct GAutorelease< RTSceneID >;
+	template struct GAutorelease< RTShaderBindingID >;
+	template struct GAutorelease< RTMicromapID >;
+	template struct GAutorelease< IndirectCommandsLayoutID >;
+	template struct GAutorelease< VideoSessionID >;
+	template struct GAutorelease< VideoBufferID >;
+	template struct GAutorelease< VideoImageID >;

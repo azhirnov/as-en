@@ -4,20 +4,6 @@
 
 namespace
 {
-	static void  Test_ToAnsi ()
-	{
-		Path	a1{"aa/bbb/cc/dd.111"};
-		String	b1 = ToAnsiString<char>( a1.native() );
-		TEST_Eq( b1, "aa/bbb/cc/dd.111" );
-
-	#if 0 //ndef AE_PLATFORM_ANDROID
-		Path	a2{u8"aa/путь/к/файлу.ttt"};
-		String	b2 = ToAnsiString<char>( a2.native() );
-		TEST_Eq( b2, "aa/????/?/?????.ttt" );
-	#endif
-	}
-
-
 	static void  Test_FormatAlignedI ()
 	{
 		String	a1 = FormatAlignedI<10>( 12, 3, '0' );
@@ -99,7 +85,6 @@ namespace
 
 extern void UnitTest_ToString ()
 {
-	Test_ToAnsi();
 	Test_FormatAlignedI();
 	Test_AppendToString();
 	Test_DivStringByStep();

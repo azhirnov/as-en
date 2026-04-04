@@ -257,7 +257,7 @@ namespace
 } // namespace
 
 
-bool RGTest::Test_ImageFormat ()
+RGTest::ECode  RGTest::Test_ImageFormat ()
 {
 	bool	result = true;
 
@@ -266,6 +266,10 @@ bool RGTest::Test_ImageFormat ()
 	RG_CHECK( ImageFormatTest3() );
 	RG_CHECK( ImageFormatTest4() );
 
-	AE_LOGI( TEST_NAME << " - passed" );
-	return result;
+	if ( result )
+	{
+		AE_LOGI( TEST_NAME << " - passed" );
+		return ECode::Passed;
+	}
+	return ECode::Failed;
 }

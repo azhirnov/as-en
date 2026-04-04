@@ -16,6 +16,7 @@
 namespace AE::PipelineCompiler
 {
 	struct CompatibleRenderPassDesc;
+	using CompatibleRenderPassDescPtr = ScriptRC< CompatibleRenderPassDesc >;
 
 
 	//
@@ -60,27 +61,27 @@ namespace AE::PipelineCompiler
 
 
 	// methods
-		RPAttachment () {}
-		RPAttachment (AttachmentName::Ref name, const CompatibleRenderPassDesc* compat, uint idx) :
+		RPAttachment ()																							__NE___	{}
+		RPAttachment (AttachmentName::Ref name, const CompatibleRenderPassDesc* compat, uint idx)				__NE___ :
 			index{idx}, _name{name}, _compat{compat} {}
 
-		void  AddUsage (const String &subpassName, EAttachment type)												__Th___;
-		void  AddUsage2 (const String &subpassName, EAttachment type, const ShaderIO &inOrOut)						__Th___;
-		void  AddUsage3 (const String &subpassName, EAttachment type, const ShaderIO &in, const ShaderIO &out)		__Th___;
-		void  AddUsage4 (const String &subpassName, EAttachment type, const packed_uint2 &texelSize)				__Th___;
+		void  AddUsage (const String &subpassName, EAttachment type)											__Th___;
+		void  AddUsage2 (const String &subpassName, EAttachment type, const ShaderIO &inOrOut)					__Th___;
+		void  AddUsage3 (const String &subpassName, EAttachment type, const ShaderIO &in, const ShaderIO &out)	__Th___;
+		void  AddUsage4 (const String &subpassName, EAttachment type, const packed_uint2 &texelSize)			__Th___;
 
-		ND_ bool	Validate ()																						const;
+		ND_ bool	Validate ()																					const;
 
-			void	Print ()																						const;
-		ND_ String	ToString (StringView padding)																	const;
+			void	Print ()																					const;
+		ND_ String	ToString (StringView padding)																const;
 
-		ND_ bool	IsColor ()																						const;
-		ND_ bool	HasDepth ()																						const;
-		ND_ bool	HasStencil ()																					const;
+		ND_ bool	IsColor ()																					const;
+		ND_ bool	HasDepth ()																					const;
+		ND_ bool	HasStencil ()																				const;
 
 	private:
-		void  _AddUsage (const String &subpassName, EAttachment type, Optional<ShaderIO> in, Optional<ShaderIO> out,
-						 const packed_uint2 &texelSize)																__Th___;
+		void  _AddUsage (const String &subpassName, EAttachment type, Optional<ShaderIO> in,
+						 Optional<ShaderIO> out, const packed_uint2 &texelSize)									__Th___;
 	};
 	using RPAttachmentPtr = ScriptRC< RPAttachment >;
 
@@ -110,8 +111,8 @@ namespace AE::PipelineCompiler
 
 
 	// methods
-		RPAttachmentSpec () {}
-		RPAttachmentSpec (AttachmentName::Ref name, const CompatibleRenderPassDesc* compat) : _compat{compat}, _name{name}  {}
+		RPAttachmentSpec ()																	__NE___	{}
+		RPAttachmentSpec (AttachmentName::Ref name, const CompatibleRenderPassDesc* compat)	__NE___	: _compat{compat}, _name{name}  {}
 
 		void  AddLayout (const String &subpassName, EResourceState state)					__Th___;
 		void  AddLayout2 (const String &subpassName, uint state)							__Th___;
@@ -150,18 +151,18 @@ namespace AE::PipelineCompiler
 
 
 	// methods
-		RenderPassSpec () {}
-		RenderPassSpec (RenderPassName::Ref name, const CompatibleRenderPassDesc* compat) : _name{name}, _compat{compat} {}
+		RenderPassSpec ()																	__NE___	{}
+		RenderPassSpec (RenderPassName::Ref name, const CompatibleRenderPassDesc* compat)	__NE___	: _name{name}, _compat{compat} {}
 
-		ND_ RPAttachmentSpec*	AddAttachment (const String &attachmentName)	__Th___;
-		ND_ RPAttachmentSpecPtr	AddAttachment2 (const String &attachmentName)	__Th___;
+		ND_ RPAttachmentSpec*	AddAttachment (const String &attachmentName)				__Th___;
+		ND_ RPAttachmentSpecPtr	AddAttachment2 (const String &attachmentName)				__Th___;
 
-			void	GenOptimalLayouts ()										__Th___;
+			void	GenOptimalLayouts ()													__Th___;
 
-		ND_ bool	Validate ()													const;
+		ND_ bool	Validate ()																const;
 
-			void	Print ()													const;
-		ND_ String	ToString (StringView padding)								const;
+			void	Print ()																const;
+		ND_ String	ToString (StringView padding)											const;
 	};
 	using RenderPassSpecPtr = ScriptRC< RenderPassSpec >;
 
@@ -174,6 +175,7 @@ namespace AE::PipelineCompiler
 	struct CompatibleRenderPassDesc final : public EnableScriptRC
 	{
 	// types
+	public:
 		using AttachBits_t = BitSet< GraphicsConfig::MaxAttachments >;
 
 		struct ViewMask
@@ -223,7 +225,8 @@ namespace AE::PipelineCompiler
 
 
 	// variables
-		const CompatRenderPassName		_name;
+	public:
+		CompatRenderPassName			_name;
 		EState							_state			= EState::Initial;
 		Attachments_t					_attachments;
 		Subpasses_t						_subpasses;
@@ -234,8 +237,8 @@ namespace AE::PipelineCompiler
 
 
 	// methods
-		CompatibleRenderPassDesc ();
-		explicit CompatibleRenderPassDesc (const String &name)					__Th___;
+	public:
+		ND_ static CompatibleRenderPassDescPtr  Create (const String &name)		__Th___;
 
 		ND_ RenderPassSpec*		AddSpecialization (const String &rpName)		__Th___;
 		ND_ RenderPassSpecPtr	AddSpecialization2 (const String &rpName)		__Th___;
@@ -250,6 +253,8 @@ namespace AE::PipelineCompiler
 		ND_ RenderPassSpecPtr	GetRenderPass (RenderPassName::Ref name)		const;
 		ND_ bool				IsFirstSubpass (SubpassName::Ref name)			const;
 
+		ND_ ArrayView<ScriptFeatureSetPtr>  GetFeatures ()						C_NE___	{ return _features; }
+
 			void	AddFeatureSet (const String &name)							__Th___;
 
 			void	AddMultiViewCorrelatedViewMask (uint bits)					__Th___;
@@ -260,8 +265,10 @@ namespace AE::PipelineCompiler
 		ND_ String	ToString (StringView padding)								const;
 
 		static void  Bind (const ScriptEnginePtr &se)							__Th___;
+
+	private:
+		CompatibleRenderPassDesc ()												__NE___ {}
 	};
-	using CompatibleRenderPassDescPtr = ScriptRC< CompatibleRenderPassDesc >;
 
 
 } // AE::PipelineCompiler

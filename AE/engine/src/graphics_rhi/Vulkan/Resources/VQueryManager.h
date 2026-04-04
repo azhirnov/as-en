@@ -103,12 +103,12 @@ namespace AE::Graphics
 		ND_ bool  SupportsCalibratedTimestamps ()																	C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _calibratedTs; }
 
 			bool  GetTimestamp (const IQuery &, OUT ulong* result, Bytes resultSize)								C_NE_OV;	// raw
-			bool  GetTimestamp (const IQuery &, OUT double* result, Bytes resultSize)								C_NE_OV;	// nanoseconds in GPU-space
-			bool  GetTimestamp (const IQuery &, OUT nanosecondsd* result, Bytes resultSize)							C_NE_OV;	// nanoseconds in GPU-space
+			bool  GetTimestamp (const IQuery &, OUT double* result, Bytes resultSize)								C_NE_OV;	// nanoseconds on GPU-space
+			bool  GetTimestamp (const IQuery &, OUT nanosecondsd* result, Bytes resultSize)							C_NE_OV;	// nanoseconds on GPU-space
 
-			bool  GetTimestampCalibrated (const IQuery &, OUT ulong* result, OUT ulong* maxDeviation, Bytes resultSize)					C_NE_OV;	// nanoseconds in CPU-space
-			bool  GetTimestampCalibrated (const IQuery &, OUT double* result, OUT double* maxDeviation, Bytes resultSize)				C_NE_OV;	// nanoseconds in CPU-space
-			bool  GetTimestampCalibrated (const IQuery &, OUT nanosecondsd* result, OUT nanosecondsd* maxDeviation, Bytes resultSize)	C_NE_OV;	// nanoseconds in CPU-space
+			bool  GetTimestampCalibrated (const IQuery &, OUT ulong* result, OUT ulong* maxDeviation, Bytes resultSize)					C_NE_OV;	// nanoseconds on CPU-space
+			bool  GetTimestampCalibrated (const IQuery &, OUT double* result, OUT double* maxDeviation, Bytes resultSize)				C_NE_OV;	// nanoseconds on CPU-space
+			bool  GetTimestampCalibrated (const IQuery &, OUT nanosecondsd* result, OUT nanosecondsd* maxDeviation, Bytes resultSize)	C_NE_OV;	// nanoseconds on CPU-space
 
 		//	bool  GetPerformanceCounter (const Query &q, OUT VkPerformanceCounterResultKHR* result, Bytes resultSize)	C_NE___;
 			bool  GetPipelineStatistic (const IQuery &, OUT GraphicsPipelineStatistic* result, Bytes resultSize)		C_NE_OV;

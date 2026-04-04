@@ -15,7 +15,7 @@ namespace AE::ResEditor
 =================================================
 	_GetCube*
 =================================================
-*/
+*
 	void  ScriptExe::_GetCube2 (OUT ScriptArray<packed_float3>	&positions,
 								OUT ScriptArray<packed_float3>	&normals,
 								OUT ScriptArray<uint>			&indices) __Th___
@@ -104,7 +104,7 @@ namespace AE::ResEditor
 =================================================
 	_GetSphere*
 =================================================
-*/
+*
 	void  ScriptExe::_GetSphere1 (const uint						lod,
 								  OUT ScriptArray<packed_float3>	&positions,
 								  OUT ScriptArray<uint>				&indices) __Th___
@@ -284,7 +284,7 @@ namespace AE::ResEditor
 =================================================
 	_GetGrid*
 =================================================
-*/
+*
 	void  ScriptExe::_GetGrid1 (const uint						size,
 								OUT ScriptArray<packed_float2>	&positions,
 								OUT ScriptArray<uint>			&indices) __Th___
@@ -333,7 +333,7 @@ namespace AE::ResEditor
 =================================================
 	_GetCylinder*
 =================================================
-*/
+*
 	void  ScriptExe::_GetCylinder1 (const uint						segments,
 									const bool						inner,
 									OUT ScriptArray<packed_float3>	&positions,
@@ -402,7 +402,7 @@ namespace AE::ResEditor
 =================================================
 	_IndicesToPrimitives
 =================================================
-*/
+*
 	void  ScriptExe::_IndicesToPrimitives (const ScriptArray<uint>			&indices,
 										   OUT ScriptArray<packed_uint3>	&primitives) __Th___
 	{
@@ -418,7 +418,7 @@ namespace AE::ResEditor
 =================================================
 	_MergeMesh
 =================================================
-*/
+*
 	void  ScriptExe::_MergeMesh (INOUT ScriptArray<uint>	&srcIndices,
 								 const uint					srcVertexCount,
 								 const ScriptArray<uint>	&indicesToAdd) __Th___
@@ -699,7 +699,7 @@ namespace AE::ResEditor
 =================================================
 	_GetSphericalCube1
 =================================================
-*/
+*
 	void  ScriptExe::_GetSphericalCube1 (uint							lod,
 										 OUT ScriptArray<packed_float3>	&positions,
 										 OUT ScriptArray<uint>			&indices) __Th___
@@ -753,7 +753,7 @@ namespace AE::ResEditor
 =================================================
 	_GetCone
 =================================================
-*/
+*
 	void  ScriptExe::_GetCone1 (const uint						segmentCount,
 								const float						radius,
 								const float						height,
@@ -879,5 +879,52 @@ namespace AE::ResEditor
 			indices[i] = c_Indices[i];
 		}
 	}
+
+/*
+=================================================
+	_TBNtoQuat
+=================================================
+*
+	void  ScriptExe::_TBNtoQuat (const ScriptArray<packed_float3>	&tangents,
+							     const ScriptArray<packed_float3>	&bitangents,
+							     const ScriptArray<packed_float3>	&normals,
+							     const ScriptArray<uint>			&indices,
+							     OUT   ScriptArray<packed_float4>	&tbnQuat) __Th___
+	{
+		CHECK_THROW( tangents.size() == bitangents.size() );
+		CHECK_THROW( tangents.size() == normals.size() );
+
+		tbnQuat.resize( tangents.size() );  // throw
+
+		for (usize i = 0, cnt = tangents.size(); i < cnt; ++i)
+		{
+			float	handedness	= Dot( Cross( tangents[i], bitangents[i] ), normals[i] );
+			CHECK_THROW( IsZero( handedness + 1.f ));
+
+			// -B -- fix for left-handed TBN
+			float3x3	mat {tangents[i], -bitangents[i], normals[i]};
+			Quat		q	{mat.Transpose()};
+
+			tbnQuat[i] = packed_float4{ q.x, q.y, q.z, q.w };
+		}
+
+		const float	eps = 1.0e-5f;
+
+		for (usize i = 0; i < indices.size(); i += 3)
+		{
+			uint	i0	= indices[i+0];
+			uint	i1	= indices[i+1];
+			uint	i2	= indices[i+2];
+
+			Quat	q0	{ tbnQuat[i0].w, tbnQuat[i0].x, tbnQuat[i0].y, tbnQuat[i0].z };
+			Quat	q1	{ tbnQuat[i1].w, tbnQuat[i1].x, tbnQuat[i1].y, tbnQuat[i1].z };
+			Quat	q2	{ tbnQuat[i2].w, tbnQuat[i2].x, tbnQuat[i2].y, tbnQuat[i2].z };
+
+			CHECK_THROW( Dot( q0, q1 ) > eps );
+			CHECK_THROW( Dot( q0, q2 ) > eps );
+			CHECK_THROW( Dot( q1, q2 ) > eps );
+		}
+	}
+*/
 
 } // AE::ResEditor

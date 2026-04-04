@@ -10,6 +10,8 @@
 # include "graphics_rhi/Vulkan/Allocators/VBlockMemAllocator.h"
 # include "graphics_rhi/Vulkan/Allocators/VDedicatedMemAllocator.h"
 
+# include "graphics_rhi/Vulkan/Commands/VPreprocessingStateCommandPool.h"
+
 # include "graphics_rhi/Vulkan/Descriptors/VDefaultDescriptorAllocator.h"
 
 namespace AE::Graphics
@@ -62,6 +64,16 @@ namespace AE::Graphics
 	Create*
 =================================================
 */
+	Strong<ImageID>  ResourceManager::CreateImage (const VulkanImageDesc2 &desc, StringView dbgName, GfxMemAllocatorPtr allocator) __NE___
+	{
+		return _CreateResource<ImageID>( ERR_MSG( "failed when creating image", dbgName ), *this, desc, RVRef(allocator), dbgName );
+	}
+
+	Strong<ImageViewID>  ResourceManager::CreateImageView (const VulkanImageViewDesc2 &desc, ImageID image, StringView dbgName) __NE___
+	{
+		return _CreateResource<ImageViewID>( ERR_MSG( "failed when creating image view", dbgName ), *this, desc, image, dbgName );
+	}
+
 	Strong<MemoryID>  ResourceManager::CreateMemoryObj (VkBuffer buffer, const BufferDesc &desc, GfxMemAllocatorPtr allocator, StringView dbgName) __NE___
 	{
 		return _CreateResource<MemoryID>( ERR_MSG( "failed when creating memory object", dbgName ), buffer, desc, _ChooseMemAllocator( RVRef(allocator) ), dbgName );
@@ -70,6 +82,11 @@ namespace AE::Graphics
 	Strong<MemoryID>  ResourceManager::CreateMemoryObj (VkImage image, const ImageDesc &desc, GfxMemAllocatorPtr allocator, StringView dbgName) __NE___
 	{
 		return _CreateResource<MemoryID>( ERR_MSG( "failed when creating memory object", dbgName ), image, desc, _ChooseMemAllocator( RVRef(allocator) ), dbgName );
+	}
+
+	Strong<MemoryID>  ResourceManager::CreateMemoryObj (Bytes storageSize, VkBufferUsageFlagBits2 usage, GfxMemAllocatorPtr allocator, StringView dbgName) __NE___
+	{
+		return _CreateResource<MemoryID>( ERR_MSG( "failed when creating memory object", dbgName ), storageSize, usage, _ChooseMemAllocator( RVRef(allocator) ), dbgName );
 	}
 
 	Strong<RenderPassID>  ResourceManager::CreateRenderPass (const SerializableRenderPassInfo &info, const SerializableVkRenderPass &vkInfo, RenderPassID compatId, StringView dbgName) __NE___
@@ -121,7 +138,6 @@ namespace AE::Graphics
 		return created;
 	}
 //-----------------------------------------------------------------------------
-
 
 
 /*
@@ -330,15 +346,78 @@ namespace AE::Graphics
 //-----------------------------------------------------------------------------
 
 
+/*
+=================================================
+	GetPreprocessingBufferSize
+=================================================
+*/
+	SizeAndAlign  ResourceManager::GetPreprocessingBufferSize (const GeneratedCommandsMemoryRequirementsDesc &desc) __NE___
+	{
+		auto*	exec_set	= GetResource( desc.indirectExecutionSet, False{"don't inc RC"}, True{"quiet"} );
+		auto*	cmd_layout	= GetResource( desc.indirectCommandsLayout, False{"don't inc RC"}, True{"quiet"} );
+		auto&	icb_props	= _device.GetDeviceProperties().icb;
+
+		CHECK_ERR( cmd_layout != null );
+		CHECK_ERR( desc.maxSequenceCount <= icb_props.maxIndirectSequenceCount );
+		CHECK_ERR( desc.maxSequenceCount * desc.maxDrawCount < (1u<<24) );
+
+		VkGeneratedCommandsMemoryRequirementsInfoEXT	info	= {};
+		VkMemoryRequirements2							mem_req	= {};
+
+		mem_req.sType = VK_STRUCTURE_TYPE_MEMORY_REQUIREMENTS_2;
+
+		info.sType					= VK_STRUCTURE_TYPE_GENERATED_COMMANDS_MEMORY_REQUIREMENTS_INFO_EXT;
+		info.indirectExecutionSet	= exec_set ? exec_set->Handle() : Default;
+		info.indirectCommandsLayout	= cmd_layout->Handle();
+		info.maxSequenceCount		= desc.maxSequenceCount;
+		info.maxDrawCount			= desc.maxDrawCount;
+
+		_device.vkGetGeneratedCommandsMemoryRequirementsEXT( _device.GetVkDevice(), &info, OUT &mem_req );
+
+		return SizeAndAlign{ mem_req.memoryRequirements.size, mem_req.memoryRequirements.alignment };
+	}
+
+/*
+=================================================
+	CreateIndirectExecutionSet
+=================================================
+*/
+	Strong<IndirectExecutionSetID>  ResourceManager::CreateIndirectExecutionSet (const VIndirectExecutionSet::CreateInfo &desc) __NE___
+	{
+		return _CreateResource<IndirectExecutionSetID>(
+					ERR_MSG( "failed when creating indirect execution set", desc.dbgName ),
+					*this, desc );
+	}
+
+/*
+=================================================
+	CreatePreprocessingStateCommandPool
+=================================================
+*/
+	RC<IPreprocessingStateCommandPool>  ResourceManager::CreatePreprocessingStateCommandPool (EQueueType queueType) __NE___
+	{
+		CHECK_ERR( AnyEqual( queueType, EQueueType::Graphics, EQueueType::AsyncCompute ));
+
+		auto&	dev		= GetDevice();
+		auto	queue	= dev.GetQueue( queueType );
+		CHECK_ERR( queue );
+
+		auto	result	= MakeRC<Graphics::_hidden_::VPreprocessingStateCommandPool>( dev, queue );
+		CHECK_ERR( result->IsCreated() );
+
+		return	result;
+	}
+//-----------------------------------------------------------------------------
+
 
 /*
 =================================================
 	Create***Allocator
 =================================================
 */
-	GfxMemAllocatorPtr  ResourceManager::CreateLinearGfxMemAllocator (Bytes pageSize) C_NE___
+	GfxMemAllocatorPtr  ResourceManager::CreateLinearGfxMemAllocator (Bytes pageSize, Bytes padding) C_NE___
 	{
-		return MakeRC<VLinearMemAllocator>( pageSize );
+		return MakeRC<VLinearMemAllocator>( pageSize, padding );
 	}
 
 	GfxMemAllocatorPtr  ResourceManager::CreateBlockGfxMemAllocator (Bytes blockSize, Bytes pageSize) C_NE___

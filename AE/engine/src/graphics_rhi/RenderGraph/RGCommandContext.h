@@ -1,5 +1,7 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
+// TODO: for DeviceAddress always add memory barrier?
+
 #pragma once
 
 #include "graphics_rhi/RenderGraph/RGCommandBatch.h"
@@ -12,20 +14,22 @@ namespace AE::RG::_hidden_
 
 #define RG_INHERIT_BARRIERS \
 	private: \
-		void  BufferBarrier (BufferID buffer, EResourceState srcState, EResourceState dstState)									__Th_OV { return _ctx.BufferBarrier( buffer, srcState, dstState ); } \
+		void  ResourceBarrier (BufferID      id, EResourceState srcState, EResourceState dstState)								__Th_OV { _ctx.ResourceBarrier( id, srcState, dstState ); } \
+		void  ResourceBarrier (BufferViewID  id, EResourceState srcState, EResourceState dstState)								__Th_OV { _ctx.ResourceBarrier( id, srcState, dstState ); } \
+		void  ResourceBarrier (ImageID       id, EResourceState srcState, EResourceState dstState)								__Th_OV { _ctx.ResourceBarrier( id, srcState, dstState ); } \
+		void  ResourceBarrier (ImageViewID   id, EResourceState srcState, EResourceState dstState)								__Th_OV { _ctx.ResourceBarrier( id, srcState, dstState ); } \
+		void  ResourceBarrier (RTGeometryID  id, EResourceState srcState, EResourceState dstState)								__Th_OV { _ctx.ResourceBarrier( id, srcState, dstState ); } \
+		void  ResourceBarrier (RTSceneID     id, EResourceState srcState, EResourceState dstState)								__Th_OV { _ctx.ResourceBarrier( id, srcState, dstState ); } \
+		void  ResourceBarrier (RTMicromapID  id, EResourceState srcState, EResourceState dstState)								__Th_OV { _ctx.ResourceBarrier( id, srcState, dstState ); } \
+		void  ResourceBarrier (VideoImageID  id, EResourceState srcState, EResourceState dstState)								__Th_OV { _ctx.ResourceBarrier( id, srcState, dstState ); } \
+		void  ResourceBarrier (VideoBufferID id, EResourceState srcState, EResourceState dstState)								__Th_OV { _ctx.ResourceBarrier( id, srcState, dstState ); } \
+		void  ResourceBarrier (ImageID id, EResourceState srcState, EResourceState dstState, const ImageSubresourceRange &subRes)__Th_OV{ _ctx.ResourceBarrier( id, srcState, dstState, subRes ); } \
 		\
-		void  BufferViewBarrier (BufferViewID view, EResourceState srcState, EResourceState dstState)							__Th_OV { return _ctx.BufferViewBarrier( view, srcState, dstState ); } \
+		void  AcquireBufferOwnership (BufferID buffer, EQueueType srcQueue, EResourceState srcState, EResourceState dstState)	__Th_OV { _ctx.AcquireBufferOwnership( buffer, srcQueue, srcState, dstState ); } \
+		void  ReleaseBufferOwnership (BufferID buffer, EResourceState srcState, EResourceState dstState, EQueueType dstQueue)	__Th_OV { _ctx.ReleaseBufferOwnership( buffer, srcState, dstState, dstQueue ); } \
 		\
-		void  ImageBarrier (ImageID img, EResourceState srcState, EResourceState dstState)										__Th_OV { return _ctx.ImageBarrier( img, srcState, dstState ); } \
-		void  ImageBarrier (ImageID img, EResourceState srcState, EResourceState dstState, const ImageSubresourceRange &subRes)	__Th_OV { return _ctx.ImageBarrier( img, srcState, dstState, subRes ); } \
-		\
-		void  ImageViewBarrier (ImageViewID view, EResourceState srcState, EResourceState dstState)								__Th_OV { return _ctx.ImageViewBarrier( view, srcState, dstState ); } \
-		\
-		void  AcquireBufferOwnership (BufferID buffer, EQueueType srcQueue, EResourceState srcState, EResourceState dstState)	__Th_OV { return _ctx.AcquireBufferOwnership( buffer, srcQueue, srcState, dstState ); } \
-		void  ReleaseBufferOwnership (BufferID buffer, EResourceState srcState, EResourceState dstState, EQueueType dstQueue)	__Th_OV { return _ctx.ReleaseBufferOwnership( buffer, srcState, dstState, dstQueue ); } \
-		\
-		void  AcquireImageOwnership (ImageID image, EQueueType srcQueue, EResourceState srcState, EResourceState dstState)		__Th_OV { return _ctx.AcquireImageOwnership( image, srcQueue, srcState, dstState ); } \
-		void  ReleaseImageOwnership (ImageID image, EResourceState srcState, EResourceState dstState, EQueueType dstQueue)		__Th_OV { return _ctx.ReleaseImageOwnership( image, srcState, dstState, dstQueue ); } \
+		void  AcquireImageOwnership (ImageID image, EQueueType srcQueue, EResourceState srcState, EResourceState dstState)		__Th_OV { _ctx.AcquireImageOwnership( image, srcQueue, srcState, dstState ); } \
+		void  ReleaseImageOwnership (ImageID image, EResourceState srcState, EResourceState dstState, EQueueType dstQueue)		__Th_OV { _ctx.ReleaseImageOwnership( image, srcState, dstState, dstQueue ); } \
 		\
 		ND_ CommandBatch &					_Batch ()																			__NE___ { return _ctx._GetBarrierMngr().GetBatch(); } \
 		ND_ RGCommandBatchPtr::RGBatchData&	_RGBatch ()																			__NE___ { return *Cast<RGCommandBatchPtr::RGBatchData>( _Batch().GetUserData() ); } \
@@ -33,19 +37,19 @@ namespace AE::RG::_hidden_
 		ND_ auto&							_ResMngr ()																			C_NE___ { return _ctx._GetBarrierMngr().GetResourceManager(); } \
 		\
 	public: \
-		void  CommitBarriers ()																									__Th_OV { return _ctx.CommitBarriers(); } \
+		void  CommitBarriers ()																									__Th_OV { _ctx.CommitBarriers(); } \
 		\
-		void  MemoryBarrier (EResourceState srcState, EResourceState dstState)													__NE_OV { return _ctx.MemoryBarrier( srcState, dstState ); } \
-		void  MemoryBarrier (EPipelineScope srcScope, EPipelineScope dstScope)													__NE_OV { return _ctx.MemoryBarrier( srcScope, dstScope ); } \
-		void  MemoryBarrier ()																									__NE_OV { return _ctx.MemoryBarrier(); } \
+		void  MemoryBarrier (EResourceState srcState, EResourceState dstState)													__NE_OV { _ctx.MemoryBarrier( srcState, dstState ); } \
+		void  MemoryBarrier (EPipelineScope srcScope, EPipelineScope dstScope)													__NE_OV { _ctx.MemoryBarrier( srcScope, dstScope ); } \
+		void  MemoryBarrier ()																									__NE_OV { _ctx.MemoryBarrier(); } \
 		\
-		void  ExecutionBarrier (EResourceState srcState, EResourceState dstState)												__NE_OV { return _ctx.ExecutionBarrier( srcState, dstState ); } \
-		void  ExecutionBarrier (EPipelineScope srcScope, EPipelineScope dstScope)												__NE_OV { return _ctx.ExecutionBarrier( srcScope, dstScope ); } \
-		void  ExecutionBarrier ()																								__NE_OV { return _ctx.ExecutionBarrier(); } \
+		void  ExecutionBarrier (EResourceState srcState, EResourceState dstState)												__NE_OV { _ctx.ExecutionBarrier( srcState, dstState ); } \
+		void  ExecutionBarrier (EPipelineScope srcScope, EPipelineScope dstScope)												__NE_OV { _ctx.ExecutionBarrier( srcScope, dstScope ); } \
+		void  ExecutionBarrier ()																								__NE_OV { _ctx.ExecutionBarrier(); } \
 		\
-		void  DebugMarker (DebugLabel dbg)																						__Th_OV { return _ctx.DebugMarker( dbg ); } \
-		void  PushDebugGroup (DebugLabel dbg)																					__Th_OV { return _ctx.PushDebugGroup( dbg ); } \
-		void  PopDebugGroup ()																									__Th_OV { return _ctx.PopDebugGroup(); } \
+		void  DebugMarker (DebugLabel dbg)																						__Th_OV { _ctx.DebugMarker( dbg ); } \
+		void  PushDebugGroup (DebugLabel dbg)																					__Th_OV { _ctx.PushDebugGroup( dbg ); } \
+		void  PopDebugGroup ()																									__Th_OV { _ctx.PopDebugGroup(); } \
 		\
 		ND_ FrameUID								GetFrameId ()																C_NE_OF { return _ctx.GetFrameId(); } \
 		\
@@ -62,6 +66,7 @@ namespace AE::RG::_hidden_
 		void  ResourceState (BufferViewID  id, EResourceState state)															__Th___ { auto& v = _ResMngr().GetResourcesOrThrow( id );  _RGBatch().ResourceState( _ExeIdx(), _ctx, v.BufferId(), state ); } \
 		void  ResourceState (RTSceneID     id, EResourceState state)															__Th___ { _RGBatch().ResourceState( _ExeIdx(), _ctx, id, state ); } \
 		void  ResourceState (RTGeometryID  id, EResourceState state)															__Th___ { _RGBatch().ResourceState( _ExeIdx(), _ctx, id, state ); } \
+		void  ResourceState (RTMicromapID  id, EResourceState state)															__Th___	{ _RGBatch().ResourceState( _ExeIdx(), _ctx, id, state ); } \
 		void  ResourceState (VideoBufferID id, EResourceState state)															__Th___ { auto& v = _ResMngr().GetResourcesOrThrow( id );  _RGBatch().ResourceState( _ExeIdx(), _ctx, v.GetBufferID(), state ); } \
 		void  ResourceState (VideoImageID  id, EResourceState state)															__Th___ { auto& v = _ResMngr().GetResourcesOrThrow( id );  _RGBatch().ResourceState( _ExeIdx(), _ctx, v.GetImageID(), state ); } \
 		\
@@ -232,11 +237,19 @@ namespace AE::RG::_hidden_
 		void  Dispatch (const uint3 &groupCount)																			__Th_OV	{ return _ctx.Dispatch( groupCount ); }
 		void  DispatchIndirect (BufferID buffer, Bytes offset)																__Th_OV;
 
+		void  BindInitialPipeline (IndirectExecutionSetID)																	__Th_OV;
+
+		void  ExecuteGeneratedCommands (const ExecuteGeneratedCommandsCmd &)												__Th_OV;
+		void  ExecuteGeneratedCommands (const ExecuteGeneratedCommands2Cmd &)												__Th_OV;
+
 	  #if defined(AE_ENABLE_VULKAN) or defined(AE_ENABLE_REMOTE_GRAPHICS)
 		void  WriteTimestamp (const IQueryManager::IQuery &q, uint index, EPipelineScope srcScope)							__Th_OV	{ return _ctx.WriteTimestamp( q, index, srcScope ); }
 
 		void  ConvertCooperativeVectorMatrix (ArrayView<ConvertCoopMatrixCmd> cmds)											__Th_OV	{ _ctx.ConvertCooperativeVectorMatrix( cmds ); }
 		void  ConvertCooperativeVectorMatrix (ArrayView<ConvertCoopMatrixCmd2> cmds)										__Th_OV;
+
+		void  PreprocessGeneratedCommands (const PreprocessGeneratedCommandsCmd &)											__Th_OV;
+		void  PreprocessGeneratedCommands (const PreprocessGeneratedCommands2Cmd &)											__Th_OV;
 	  #endif
 
 		RG_INHERIT_BARRIERS
@@ -304,7 +317,6 @@ namespace AE::RG::_hidden_
 		void  SetStencilWriteMask (uint writeMask)																			__Th_OV	{ return _ctx.SetStencilWriteMask( writeMask ); }
 		void  SetStencilWriteMask (uint frontWriteMask, uint backWriteMask)													__Th_OV	{ return _ctx.SetStencilWriteMask( frontWriteMask, backWriteMask ); }
 		void  SetFragmentShadingRate (EShadingRate rate, EShadingRateCombinerOp primitiveOp, EShadingRateCombinerOp textureOp)__Th_OV { return _ctx.SetFragmentShadingRate( rate, primitiveOp, textureOp ); }
-		void  SetViewportWScaling (ArrayView<packed_float2> scaling)														__Th_OV	{ return _ctx.SetViewportWScaling( scaling ); }
 	  #endif
 
 	// draw commands //
@@ -318,6 +330,7 @@ namespace AE::RG::_hidden_
 		using IDrawContext::DrawIndexed;
 		using IDrawContext::DrawIndirect;
 		using IDrawContext::DrawIndexedIndirect;
+		using IDrawContext::DrawMeshTasksIndirect;
 
 		void  Draw (uint vertexCount,
 					uint instanceCount	= 1,
@@ -356,7 +369,6 @@ namespace AE::RG::_hidden_
 		using IDrawContextVk::DrawIndirectCount;
 		using IDrawContextVk::DrawIndexedIndirectCount;
 		using IDrawContextVk::DrawMeshTasksIndirectCount;
-		using IDrawContextVk::DrawMeshTasksIndirect;
 
 		void  DrawIndirectCount (BufferID	indirectBuffer,
 								 Bytes		indirectBufferOffset,
@@ -379,6 +391,11 @@ namespace AE::RG::_hidden_
 										  uint		maxDrawCount,
 										  Bytes		stride)																	__Th_OV;
 	  #endif
+
+		void  BindInitialPipeline (IndirectExecutionSetID)																	__Th_OV;
+
+		void  ExecuteGeneratedCommands (const ExecuteGeneratedCommandsCmd &)												__Th_OV;
+		void  ExecuteGeneratedCommands (const ExecuteGeneratedCommands2Cmd &)												__Th_OV;
 
 		// for debugging //
 		void  DebugMarker (DebugLabel dbg)																					__Th_OV	{ return _ctx.DebugMarker( dbg ); }
@@ -529,12 +546,20 @@ namespace AE::RG::_hidden_
 
 		void  TraceRaysIndirect2 (BufferID indirectBuffer, Bytes indirectBufferOffset)										__Th_OV;
 
+		void  BindInitialPipeline (IndirectExecutionSetID)																	__Th_OV;
+
+		void  ExecuteGeneratedCommands (const ExecuteGeneratedCommandsCmd &)												__Th_OV;
+		void  ExecuteGeneratedCommands (const ExecuteGeneratedCommands2Cmd &)												__Th_OV;
+
 	  #if defined(AE_ENABLE_VULKAN) or defined(AE_ENABLE_REMOTE_GRAPHICS)
 		// warning: state tracking is not supported for 'DeviceAddress'
 		void  TraceRaysIndirectAddress (const RTShaderBindingTable &sbt, DeviceAddress address)								__Th_OV	{ _ctx.TraceRaysIndirectAddress( sbt, address ); }
 		void  TraceRaysIndirectAddress2 (DeviceAddress address)																__Th_OV	{ _ctx.TraceRaysIndirectAddress2( address ); }
 
 		void  WriteTimestamp (const IQueryManager::IQuery &q, uint index, EPipelineScope srcScope)							__Th_OV	{ return _ctx.WriteTimestamp( q, index, srcScope ); }
+
+		void  PreprocessGeneratedCommands (const PreprocessGeneratedCommandsCmd &)											__Th_OV;
+		void  PreprocessGeneratedCommands (const PreprocessGeneratedCommands2Cmd &)											__Th_OV;
 	  #endif
 
 		RG_INHERIT_BARRIERS
@@ -615,6 +640,18 @@ namespace AE::RG::_hidden_
 
 		void  BuildClusterIndirect (const RTClusterBuild &cmd)																__Th_OV;
 		void  BuildPartitionedIndirect (const RTPartitionedSceneBuild &cmd)													__Th_OV;
+
+		void  Build (const RTMicromapBuild &cmd, RTMicromapID dst)															__Th_OV;
+		void  Copy (RTMicromapID src, RTMicromapID dst, ERTASCopyMode mode = ERTASCopyMode::Clone)							__Th_OV;
+
+		void  WriteProperty (ERTASProperty property, RTMicromapID micromap, BufferID dstBuffer, Bytes offset, Bytes size = UMax) __Th_OV;
+		Promise<Bytes>  ReadProperty (ERTASProperty property, RTMicromapID micromap)										__Th_OV;
+
+		void  SerializeToMemory (RTMicromapID src, DeviceAddress dst)														__Th_OV;
+		void  SerializeToMemory (RTMicromapID src, BufferID dst, Bytes dstOffset)											__Th_OV;
+
+		void  DeserializeFromMemory (DeviceAddress src, RTMicromapID dst)													__Th_OV;
+		void  DeserializeFromMemory (BufferID src, Bytes srcOffset, RTMicromapID dst)										__Th_OV;
 	  #endif
 
 		RG_INHERIT_BARRIERS
@@ -740,13 +777,13 @@ namespace AE::RG::_hidden_
 			ResourceState( srcImage, state );
 
 			for (auto& range : ranges) {
-				_ctx.ImageBarrier( dstImage, state, EResourceState::CopyDst, ImageSubresourceRange{range.dstSubres} );
+				_ctx.ResourceBarrier( dstImage, state, EResourceState::CopyDst, ImageSubresourceRange{range.dstSubres} );
 			}
 			_ctx.CommitBarriers();
 			_ctx.CopyImage( srcImage, dstImage, ranges );
 
 			for (auto& range : ranges) {
-				_ctx.ImageBarrier( dstImage, EResourceState::CopyDst, state, ImageSubresourceRange{range.dstSubres} );
+				_ctx.ResourceBarrier( dstImage, EResourceState::CopyDst, state, ImageSubresourceRange{range.dstSubres} );
 			}
 			_ctx.CommitBarriers();
 		}
@@ -954,13 +991,13 @@ namespace AE::RG::_hidden_
 			ResourceState( srcImage, state );
 
 			for (auto& range : regions) {
-				_ctx.ImageBarrier( dstImage, state, EResourceState::BlitDst, ImageSubresourceRange{range.dstSubres} );
+				_ctx.ResourceBarrier( dstImage, state, EResourceState::BlitDst, ImageSubresourceRange{range.dstSubres} );
 			}
 			_ctx.CommitBarriers();
 			_ctx.BlitImage( srcImage, dstImage, filter, regions );
 
 			for (auto& range : regions) {
-				_ctx.ImageBarrier( dstImage, EResourceState::BlitDst, state, ImageSubresourceRange{range.dstSubres} );
+				_ctx.ResourceBarrier( dstImage, EResourceState::BlitDst, state, ImageSubresourceRange{range.dstSubres} );
 			}
 			_ctx.CommitBarriers();
 		}
@@ -1015,13 +1052,13 @@ namespace AE::RG::_hidden_
 			ResourceState( srcImage, state );
 
 			for (auto& range : regions) {
-				_ctx.ImageBarrier( dstImage, state, EResourceState::BlitDst, ImageSubresourceRange{range.dstSubres} );
+				_ctx.ResourceBarrier( dstImage, state, EResourceState::BlitDst, ImageSubresourceRange{range.dstSubres} );
 			}
 			_ctx.CommitBarriers();
 			_ctx.ResolveImage( srcImage, dstImage, regions );
 
 			for (auto& range : regions) {
-				_ctx.ImageBarrier( dstImage, EResourceState::BlitDst, state, ImageSubresourceRange{range.dstSubres} );
+				_ctx.ResourceBarrier( dstImage, EResourceState::BlitDst, state, ImageSubresourceRange{range.dstSubres} );
 			}
 			_ctx.CommitBarriers();
 		}
@@ -1045,15 +1082,63 @@ namespace AE::RG::_hidden_
 		_ctx.DispatchIndirect( buffer, offset );
 	}
 
+#if defined(AE_ENABLE_VULKAN) or defined(AE_ENABLE_REMOTE_GRAPHICS)
+
 	template <typename C>
 	void  ComputeContext<C>::ConvertCooperativeVectorMatrix (ArrayView<ConvertCoopMatrixCmd2> cmds) __Th___
 	{
 		for (auto& cmd : cmds) {
-			ResourceState( cmd.srcBuffer, EResourceState::ShaderAddress_Read  | EResourceState::CoopVecConvertStage );
-			ResourceState( cmd.dstBuffer, EResourceState::ShaderAddress_Write | EResourceState::CoopVecConvertStage );
+			ResourceState( cmd.srcBuffer, EResourceState::CoopVecConvert_Read );
+			ResourceState( cmd.dstBuffer, EResourceState::CoopVecConvert_Write );
 		}
 		_ctx.CommitBarriers();
 		_ctx.ConvertCooperativeVectorMatrix( cmds );
+	}
+
+	template <typename C>
+	void  ComputeContext<C>::PreprocessGeneratedCommands (const PreprocessGeneratedCommandsCmd &cmd) __Th___
+	{
+		// state transition is not supported for device address
+		_ctx.CommitBarriers();
+		_ctx.PreprocessGeneratedCommands( cmd );
+	}
+
+	template <typename C>
+	void  ComputeContext<C>::PreprocessGeneratedCommands (const PreprocessGeneratedCommands2Cmd &cmd) __Th___
+	{
+		ResourceState( cmd.preprocessBuffer, EResourceState::ICB_Preprocess_Write );
+		ResourceState( cmd.indirectBuffer, EResourceState::ICB_Preprocess_Read );
+		if ( cmd.sequenceCountBuffer )
+			ResourceState( cmd.sequenceCountBuffer, EResourceState::ICB_Preprocess_Read );
+		_ctx.CommitBarriers();
+		_ctx.PreprocessGeneratedCommands( cmd );
+	}
+
+#endif // AE_ENABLE_VULKAN
+
+	template <typename C>
+	void  ComputeContext<C>::BindInitialPipeline (IndirectExecutionSetID id) __Th___
+	{
+		_ctx.BindInitialPipeline( id );
+	}
+
+	template <typename C>
+	void  ComputeContext<C>::ExecuteGeneratedCommands (const ExecuteGeneratedCommandsCmd &cmd) __Th___
+	{
+		// state transition is not supported for device address
+		_ctx.CommitBarriers();
+		_ctx.ExecuteGeneratedCommands( cmd );
+	}
+
+	template <typename C>
+	void  ComputeContext<C>::ExecuteGeneratedCommands (const ExecuteGeneratedCommands2Cmd &cmd) __Th___
+	{
+		ResourceState( cmd.preprocessBuffer, EResourceState::IndirectBuffer );
+		ResourceState( cmd.indirectBuffer, EResourceState::IndirectBuffer );
+		if ( cmd.sequenceCountBuffer )
+			ResourceState( cmd.sequenceCountBuffer, EResourceState::IndirectBuffer );
+		_ctx.CommitBarriers();
+		_ctx.ExecuteGeneratedCommands( cmd );
 	}
 //-----------------------------------------------------------------------------
 
@@ -1120,6 +1205,7 @@ namespace AE::RG::_hidden_
 	}
 
 #if defined(AE_ENABLE_VULKAN) or defined(AE_ENABLE_REMOTE_GRAPHICS)
+
 	template <typename C>
 	void  DrawContext<C>::DrawIndirectCount (BufferID	indirectBuffer,
 											 Bytes		indirectBufferOffset,
@@ -1158,7 +1244,34 @@ namespace AE::RG::_hidden_
 		CHECK( CheckResourceState( countBuffer, EResourceState::IndirectBuffer ));
 		_ctx.DrawMeshTasksIndirectCount( indirectBuffer, indirectBufferOffset, countBuffer, countBufferOffset, maxDrawCount, stride );
 	}
-#endif
+
+#endif // AE_ENABLE_VULKAN
+
+
+	template <typename C>
+	void  DrawContext<C>::BindInitialPipeline (IndirectExecutionSetID id) __Th___
+	{
+		_ctx.BindInitialPipeline( id );
+	}
+
+	template <typename C>
+	void  DrawContext<C>::ExecuteGeneratedCommands (const ExecuteGeneratedCommandsCmd &cmd) __Th___
+	{
+		// state transition is not supported for device address
+		_ctx.CommitBarriers();
+		_ctx.ExecuteGeneratedCommands( cmd );
+	}
+
+	template <typename C>
+	void  DrawContext<C>::ExecuteGeneratedCommands (const ExecuteGeneratedCommands2Cmd &cmd) __Th___
+	{
+		CHECK( CheckResourceState( cmd.preprocessBuffer, EResourceState::IndirectBuffer ));
+		CHECK( CheckResourceState( cmd.indirectBuffer, EResourceState::IndirectBuffer ));
+		if ( cmd.sequenceCountBuffer )
+			CHECK( CheckResourceState( cmd.sequenceCountBuffer, EResourceState::IndirectBuffer ));
+		_ctx.CommitBarriers();
+		_ctx.ExecuteGeneratedCommands( cmd );
+	}
 
 	template <typename C>
 	bool  DrawContext<C>::AllocVStream (Bytes size, OUT VertexStream &result) __Th___
@@ -1265,6 +1378,54 @@ namespace AE::RG::_hidden_
 		_ctx.CommitBarriers();
 		_ctx.TraceRaysIndirect2( indirectBuffer, indirectBufferOffset );
 	}
+
+#if defined(AE_ENABLE_VULKAN) or defined(AE_ENABLE_REMOTE_GRAPHICS)
+
+	template <typename C>
+	void  RayTracingContext<C>::PreprocessGeneratedCommands (const PreprocessGeneratedCommandsCmd &cmd) __Th___
+	{
+		// state transition is not supported for device address
+		_ctx.CommitBarriers();
+		_ctx.PreprocessGeneratedCommands( cmd );
+	}
+
+	template <typename C>
+	void  RayTracingContext<C>::PreprocessGeneratedCommands (const PreprocessGeneratedCommands2Cmd &cmd) __Th___
+	{
+		ResourceState( cmd.preprocessBuffer, EResourceState::ICB_Preprocess_Write );
+		ResourceState( cmd.indirectBuffer, EResourceState::ICB_Preprocess_Read );
+		if ( cmd.sequenceCountBuffer )
+			ResourceState( cmd.sequenceCountBuffer, EResourceState::ICB_Preprocess_Read );
+		_ctx.CommitBarriers();
+		_ctx.PreprocessGeneratedCommands( cmd );
+	}
+
+#endif // AE_ENABLE_VULKAN
+
+	template <typename C>
+	void  RayTracingContext<C>::BindInitialPipeline (IndirectExecutionSetID id) __Th___
+	{
+		_ctx.BindInitialPipeline( id );
+	}
+
+	template <typename C>
+	void  RayTracingContext<C>::ExecuteGeneratedCommands (const ExecuteGeneratedCommandsCmd &cmd) __Th___
+	{
+		// state transition is not supported for device address
+		_ctx.CommitBarriers();
+		_ctx.ExecuteGeneratedCommands( cmd );
+	}
+
+	template <typename C>
+	void  RayTracingContext<C>::ExecuteGeneratedCommands (const ExecuteGeneratedCommands2Cmd &cmd) __Th___
+	{
+		ResourceState( cmd.preprocessBuffer, EResourceState::IndirectBuffer );
+		ResourceState( cmd.indirectBuffer, EResourceState::IndirectBuffer );
+		if ( cmd.sequenceCountBuffer )
+			ResourceState( cmd.sequenceCountBuffer, EResourceState::IndirectBuffer );
+		_ctx.CommitBarriers();
+		_ctx.ExecuteGeneratedCommands( cmd );
+	}
 //-----------------------------------------------------------------------------
 
 
@@ -1272,6 +1433,8 @@ namespace AE::RG::_hidden_
 	template <typename C>
 	void  ASBuildContext<C>::_RTGeometryBuildBarriers (const RTGeometryBuild &cmd)
 	{
+		StaticAssert64( sizeof(RTGeometryBuild) == 88 );
+
 		auto	triangles = cmd.triangles.get< RTGeometryBuild::TrianglesData >();
 		for (auto& item : triangles) {
 			ResourceState( item.vertexData,		EResourceState::BuildRTAS_Read );
@@ -1282,6 +1445,11 @@ namespace AE::RG::_hidden_
 		auto	aabbs = cmd.aabbs.get< RTGeometryBuild::AABBsData >();
 		for (auto& item : aabbs) {
 			ResourceState( item.data, EResourceState::BuildRTAS_Read );
+		}
+
+		for (auto& item : cmd.micromaps) {
+			ResourceState( item.micromapId,  EResourceState::BuildRTAS_Read );
+			ResourceState( item.indexBuffer, EResourceState::BuildRTAS_Read );
 		}
 
 		ResourceState( cmd.scratch.id, EResourceState::BuildRTAS_ScratchBuffer );
@@ -1527,7 +1695,79 @@ namespace AE::RG::_hidden_
 		_ctx.CommitBarriers();
 		_ctx.DeserializeFromMemory( src, dst );
 	}
-#endif
+
+	template <typename C>
+	void  ASBuildContext<C>::Build (const RTMicromapBuild &cmd, RTMicromapID dst) __Th___
+	{
+		ResourceState( dst,					EResourceState::BuildMicromap_Write );
+		ResourceState( cmd.scratch.id,		EResourceState::BuildMicromap_ScratchBuffer );
+		ResourceState( cmd.data.id,			EResourceState::BuildMicromap_Read );
+		ResourceState( cmd.triangleArray.id,EResourceState::BuildMicromap_Read );
+		_ctx.CommitBarriers();
+		_ctx.Build( cmd, dst );
+	}
+
+	template <typename C>
+	void  ASBuildContext<C>::Copy (RTMicromapID src, RTMicromapID dst, ERTASCopyMode mode) __Th___
+	{
+		ResourceState( src, EResourceState::BuildMicromap_Read );
+		ResourceState( dst, EResourceState::BuildMicromap_Write );
+		_ctx.CommitBarriers();
+		_ctx.Copy( src, dst, mode );
+	}
+
+	template <typename C>
+	void  ASBuildContext<C>::WriteProperty (ERTASProperty property, RTMicromapID micromap, BufferID dstBuffer, Bytes offset, Bytes size) __Th___
+	{
+		ResourceState( micromap,  EResourceState::BuildMicromap_Read );
+		ResourceState( dstBuffer, EResourceState::CopyDst );
+		_ctx.CommitBarriers();
+		_ctx.WriteProperty( property, micromap, dstBuffer, offset, size );
+	}
+
+	template <typename C>
+	Promise<Bytes>  ASBuildContext<C>::ReadProperty (ERTASProperty property, RTMicromapID micromap) __Th___
+	{
+		ResourceState( micromap, EResourceState::BuildMicromap_Read );
+		_ctx.CommitBarriers();
+		return _ctx.ReadProperty( property, micromap );
+	}
+
+	template <typename C>
+	void  ASBuildContext<C>::SerializeToMemory (RTMicromapID src, DeviceAddress dst) __Th___
+	{
+		ResourceState( src, EResourceState::BuildMicromap_Read );
+		_ctx.CommitBarriers();
+		_ctx.SerializeToMemory( src, dst );
+	}
+
+	template <typename C>
+	void  ASBuildContext<C>::SerializeToMemory (RTMicromapID src, BufferID dst, Bytes dstOffset) __Th___
+	{
+		ResourceState( src, EResourceState::BuildMicromap_Read );
+		ResourceState( dst,	EResourceState::BuildMicromap_Write );
+		_ctx.CommitBarriers();
+		_ctx.SerializeToMemory( src, dst, dstOffset );
+	}
+
+	template <typename C>
+	void  ASBuildContext<C>::DeserializeFromMemory (DeviceAddress src, RTMicromapID dst) __Th___
+	{
+		ResourceState( dst, EResourceState::BuildMicromap_Write );
+		_ctx.CommitBarriers();
+		_ctx.DeserializeFromMemory( src, dst );
+	}
+
+	template <typename C>
+	void  ASBuildContext<C>::DeserializeFromMemory (BufferID src, Bytes srcOffset, RTMicromapID dst) __Th___
+	{
+		ResourceState( src, EResourceState::BuildMicromap_Read );
+		ResourceState( dst, EResourceState::BuildMicromap_Write );
+		_ctx.CommitBarriers();
+		_ctx.DeserializeFromMemory( src, srcOffset, dst );
+	}
+
+#endif // AE_ENABLE_VULKAN
 //-----------------------------------------------------------------------------
 
 

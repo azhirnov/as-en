@@ -41,51 +41,26 @@
 
 		// create geometry
 		{
-			RC<Buffer>		geom_data	= Buffer();
-			RC<Buffer>		light_data	= Buffer();
+			RC<Mesh>	mesh = Mesh();
+			mesh.SetAttributes( EAttribute::Position | EAttribute::Normal );
 
-			array<float3>	positions;
-			array<uint>		indices;
-			GetSphere( 3, OUT positions, OUT indices );
+			mesh.AddSphere( 3, Transform().Position(0.f, -1.0f, 4.f) );
+			mesh.AddGridXZ( 1, Transform().Position(0.f, 1.f, 0.f).Scale(sm_size) );	// ground
 
-			array<float3>	normals = positions;
-
-			// move sphere
-			for (uint i = 0; i < positions.size(); ++i) {
-				positions[i] += float3(0.f, -1.0f, 4.f);
-			}
-
-			// add ground
-			{
-				array<float2>	plane_pos;
-				array<uint>		plane_indices;
-				GetGrid( 2, OUT plane_pos, OUT plane_indices );
-
-				MergeMesh( indices, positions.size(), plane_indices );
-				for (uint i = 0; i < plane_pos.size(); ++i)
-				{
-					positions.push_back( float3( ToSNorm(plane_pos[i].x) * sm_size, 1.f, ToSNorm(plane_pos[i].y) * sm_size ));
-					normals.push_back( float3( 0.f, -1.f, 0.f ));	// up
-				}
-			}
-
-			geom_data.FloatArray(	"positions",	positions );
-			geom_data.FloatArray(	"normals",		normals );
-			geom_data.UIntArray(	"indices",		indices );
+			RC<Buffer>	geom_data = mesh.ToBuffer();
 			geom_data.LayoutName( "GeometrySBlock" );
 
+			RC<Buffer>	light_data	= Buffer();
 			light_data.Float(		"lightDir",		light_dir );
 			light_data.Float(		"shadowVP",		sm_vp );
 			light_data.Float(		"invShadowDim",	float2(1.f) / float2(sm.Dimension2()) );
 			light_data.LayoutName( "LightsSBlock" );
 
-
-			RC<UnifiedGeometry>		geometry = UnifiedGeometry();
-
 			UnifiedGeometry_DrawIndexed	cmd;
-			cmd.indexCount = indices.size();
+			cmd.indexCount	= mesh.IndexCount();
 			cmd.IndexBuffer( geom_data, "indices" );
 
+			RC<UnifiedGeometry>		geometry = UnifiedGeometry();
 			geometry.Draw( cmd );
 			geometry.ArgIn(	"un_Geometry",	geom_data );
 			geometry.ArgIn(	"un_Lights",	light_data );

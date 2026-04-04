@@ -27,7 +27,7 @@ namespace
 		GfxMemAllocatorPtr			gfxAlloc;
 	};
 
-	static constexpr auto&	RTech = RenderTechs::DrawTestRT;
+	static constexpr auto&	RTech = RenderTechs::DrawTest_RTech;
 
 	static const ShaderTypes::Vertex_draw2	vertices[] = {
 		{ float2{-1.0f, -1.0f}, HtmlColor::Red },
@@ -99,7 +99,7 @@ namespace
 			ctx.AccumBarriers()
 				.MemoryBarrier( EResourceState::CopyDst, EResourceState::VertexBuffer )
 				.MemoryBarrier( EResourceState::CopyDst, EResourceState::IndexBuffer )
-				.ImageBarrier( t.img, EResourceState::Invalidate, img_state );
+				.ResourceBarrier( t.img, EResourceState::Invalidate, img_state );
 
 			draw_batch	= ctx.BeginMtRenderPass( rp_desc, {"DrawTest.Draw_1"} );
 			cmdbuf		= ctx.ReleaseCommandBuffer();
@@ -131,7 +131,7 @@ namespace
 			ctx.EndMtRenderPass();
 
 			ctx.AccumBarriers()
-				.ImageBarrier( t.img, img_state, EResourceState::CopySrc );
+				.ResourceBarrier( t.img, img_state, EResourceState::CopySrc );
 
 			RenderCoro_Execute( ctx );
 		}
@@ -206,6 +206,7 @@ namespace
 		CHECK_ERR( end->Status() == ETaskStatus::Completed );
 
 		CHECK_ERR( rts.WaitAll( c_MaxTimeout ));
+		CHECK_ERR( t.result );
 
 		CHECK_ERR( Scheduler().Wait( {t.result}, c_MaxTimeout ));
 		CHECK_ERR( t.result->Status() == ETaskStatus::Completed );
@@ -217,11 +218,11 @@ namespace
 } // namespace
 
 
-bool RGTest::Test_DrawAsync1 ()
+RGTest::ECode  RGTest::Test_DrawAsync1 ()
 {
-	#ifdef AE_ENABLE_REMOTE_GRAPHICS
-		return true;	// skip
-	#endif
+#ifdef AE_ENABLE_REMOTE_GRAPHICS
+	return ECode::Skipped;	// skip
+#else
 
 	auto	img_cmp = _LoadReference( TEST_NAME );
 	bool	result	= true;
@@ -234,6 +235,11 @@ bool RGTest::Test_DrawAsync1 ()
 
 	RG_CHECK( _CompareDumps( TEST_NAME ));
 
-	AE_LOGI( TEST_NAME << " - passed" );
-	return result;
+	if ( result )
+	{
+		AE_LOGI( TEST_NAME << " - passed" );
+		return ECode::Passed;
+	}
+	return ECode::Failed;
+#endif
 }

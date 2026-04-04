@@ -240,24 +240,24 @@ bool  SampleShadow_IsValidCoord (quad_uniform float4 shadowCoord)
 
 float  SampleShadow (gl::CombinedTex2D<float> tex, quad_uniform float4 shadowCoord)
 {
-	float	d = gl.texture.Sample( tex, shadowCoord.xy ).r;
+	float	d = gl.texture.SampleLod( tex, shadowCoord.xy, 0.0 ).r;
 	return	GreaterF( d, shadowCoord.z );
 }
 
 float  SampleShadow (gl::CombinedTex2DArray<float> tex, quad_uniform float4 shadowCoord, float layer)
 {
-	float	d = gl.texture.Sample( tex, float3( shadowCoord.xy, layer )).r;
+	float	d = gl.texture.SampleLod( tex, float3( shadowCoord.xy, layer ), 0.0 ).r;
 	return	GreaterF( d, shadowCoord.z );
 }
 
 float  SampleShadowRevZ (gl::CombinedTex2D<float> tex, quad_uniform float4 shadowCoord)
 {
-	float	d = gl.texture.Sample( tex, shadowCoord.xy ).r;
+	float	d = gl.texture.SampleLod( tex, shadowCoord.xy, 0.0 ).r;
 	return	LessF( d, shadowCoord.z );
 }
 
 float  SampleShadowRevZ (gl::CombinedTex2DArray<float> tex, quad_uniform float4 shadowCoord, float layer)
 {
-	float	d = gl.texture.Sample( tex, float3( shadowCoord.xy, layer )).r;
+	float	d = gl.texture.SampleLod( tex, float3( shadowCoord.xy, layer ), 0.0 ).r;
 	return	LessF( d, shadowCoord.z );
 }

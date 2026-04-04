@@ -440,4 +440,6 @@ namespace AE::Graphics
 
 } // AE::Graphics
 
+# include "graphics_rhi/Private/TransferContextImpl.cpp.h"
+
 #endif // AE_ENABLE_REMOTE_GRAPHICS

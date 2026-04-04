@@ -8,7 +8,7 @@ namespace AE::PipelineCompiler
 namespace
 {
 	static PipelineLayout*  PipelineLayout_Ctor (const String &name) {
-		return PipelineLayoutPtr{ new PipelineLayout{ name }}.Detach();
+		return PipelineLayout::Create( name ).Detach();
 	}
 
 /*
@@ -36,13 +36,43 @@ namespace
 	constructor
 =================================================
 */
-	PipelineLayout::PipelineLayout (const String &name) __Th___ :
+	PipelineLayout::PipelineLayout (const String &name) __NE___ :
 		_features{ ObjectStorage::Instance()->GetDefaultFeatureSets() },
 		_name{ name }
+	{}
+
+	PipelineLayoutPtr  PipelineLayout::Create (const String &name) __Th___
 	{
+		PipelineLayoutPtr	result{ new PipelineLayout{ name }};
+
 		ObjectStorage::Instance()->AddName<PipelineLayoutName>( name );
-		CHECK_THROW_MSG( ObjectStorage::Instance()->pplnLayouts.emplace( _name, PipelineLayoutPtr{this} ).second,
+		CHECK_THROW_MSG( ObjectStorage::Instance()->pplnLayouts.emplace( result->_name, result ).second,
 			"PipelineLayout with name '"s << name << "' is already defined" );
+
+		return result;
+	}
+
+/*
+=================================================
+	constructor
+=================================================
+*/
+	PipelineLayout::PipelineLayout (const String &name, const PipelineLayout &other) __NE___ :
+		_dsLayouts{ other._dsLayouts },		_pushConstants{ other._pushConstants },
+		_features{ other._features },		_name{ name },
+		_dbgInfo{ other._dbgInfo },			_defines{ other._defines }
+		// skip: _desc, _uid
+	{}
+
+	PipelineLayoutPtr  PipelineLayout::Create (const String &name, const PipelineLayout &other)	__Th___
+	{
+		PipelineLayoutPtr	result{ new PipelineLayout{ name, other }};
+
+		ObjectStorage::Instance()->AddName<PipelineLayoutName>( name );
+		CHECK_THROW_MSG( ObjectStorage::Instance()->pplnLayouts.emplace( result->_name, result ).second,
+			"PipelineLayout with name '"s << name << "' is already defined" );
+
+		return result;
 	}
 
 /*
@@ -107,7 +137,7 @@ namespace
 		return AddDSLayout4( String{dsPtr->Name()}, index, dsPtr );
 	}
 
-	void  PipelineLayout::AddDSLayout4 (const String &name, uint index, const DescriptorSetLayoutPtr &dsPtr) __Th___
+	void  PipelineLayout::AddDSLayout4 (const String &name, const uint index, const DescriptorSetLayoutPtr &dsPtr) __Th___
 	{
 		CHECK_THROW_MSG( dsPtr );
 
@@ -323,6 +353,7 @@ namespace
 		if ( ds_it == ds_layouts.end() )
 		{
 			ds_ptr = DescriptorSetLayoutPtr{ new DescriptorSetLayout{ name }};
+			ds_ptr->_features = this->_features;
 			ds_ptr->AddDebugStorageBuffer( EShaderStages(inStages), static_size, array_stride );
 			CHECK_THROW_MSG( ds_ptr->Build() );
 		}else{
@@ -528,7 +559,7 @@ namespace
 	void  PipelineLayout::Bind (const ScriptEnginePtr &se) __Th___
 	{
 		ClassBinder<PipelineLayout>	binder{ se };
-		binder.CreateRef();
+		binder.CreateRef( 0, False{} );
 
 		binder.Comment( "Create pipeline template.\n"
 						"Name is used only in script." );
@@ -720,6 +751,30 @@ namespace
 			}
 		}
 		CHECK_THROW_MSG( false, msg );
+		return false;
+	}
+
+/*
+=================================================
+	HasDynamicBuffers
+=================================================
+*/
+	bool  PipelineLayout::HasDynamicBuffers () const
+	{
+		for (auto& ds : _dsLayouts)
+		{
+			if ( auto ptr = ds.Get<0>() )
+			{
+				for (auto& [name, un] : ptr->GetUniforms() )
+				{
+					if ( AnyEqual( un.type, EDescriptorType::UniformBuffer, EDescriptorType::StorageBuffer ) and
+						 un.buffer.HasDynamicOffset() )
+					{
+						return true;
+					}
+				}
+			}
+		}
 		return false;
 	}
 

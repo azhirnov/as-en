@@ -70,6 +70,9 @@ namespace AE::Base
 		NdCx__ Self		LShift (uint rhs)							C_NE___	{ return Self{PowerOfTwo( _pot + rhs )}; }
 		NdCx__ Self		RShift (uint rhs)							C_NE___	{ return Self{PowerOfTwo( Max( int(_pot) - int(rhs), 0 ))}; }
 
+		NdCx__ Self		Next ()										C_NE___	{ return LShift( 1 ); }
+		NdCx__ Self		Prev ()										C_NE___	{ return RShift( 1 ); }
+
 		NdCx__ int		GetPOT ()									C_NE___	{ return _pot; }
 		NdCx__ bool		IsInvalid ()								C_NE___	{ return _pot == -1; }
 

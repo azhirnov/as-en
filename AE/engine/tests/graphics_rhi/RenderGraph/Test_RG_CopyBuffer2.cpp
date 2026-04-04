@@ -24,7 +24,7 @@ namespace
 
 		CHECK_CE( ctx.UploadBuffer( t.buf_1, 0_b, t.buffer_data ));
 
-		ctx.AccumBarriers().BufferBarrier( t.buf_1, EResourceState::CopyDst, EResourceState::CopySrc );
+		ctx.AccumBarriers().ResourceBarrier( t.buf_1, EResourceState::CopyDst, EResourceState::CopySrc );
 
 		ctx.CopyBuffer( t.buf_1, t.buf_2, {BufferCopy{ 0_b, 0_b, t.buf_size }} );
 
@@ -35,7 +35,7 @@ namespace
 								t->isOK = (view == t->buffer_data);
 							});
 
-		ctx.AccumBarriers().BufferBarrier( t.buf_2, EResourceState::CopyDst, EResourceState::Host_Read );
+		ctx.AccumBarriers().ResourceBarrier( t.buf_2, EResourceState::CopyDst, EResourceState::Host_Read );
 
 		RenderCoro_Execute( ctx );
 	}
@@ -84,6 +84,7 @@ namespace
 		CHECK_ERR( end->Status() == ETaskStatus::Completed );
 
 		CHECK_ERR( rts.WaitAll( c_MaxTimeout ));
+		CHECK_ERR( t.result );
 
 		CHECK_ERR( Scheduler().Wait( {t.result}, c_MaxTimeout ));
 		CHECK_ERR( t.result->Status() == ETaskStatus::Completed );
@@ -95,7 +96,7 @@ namespace
 } // namespace
 
 
-bool RGTest::Test_CopyBuffer2 ()
+RGTest::ECode  RGTest::Test_CopyBuffer2 ()
 {
 	bool	result = true;
 
@@ -104,6 +105,10 @@ bool RGTest::Test_CopyBuffer2 ()
 
 	RG_CHECK( _CompareDumps( TEST_NAME ));
 
-	AE_LOGI( TEST_NAME << " - passed" );
-	return result;
+	if ( result )
+	{
+		AE_LOGI( TEST_NAME << " - passed" );
+		return ECode::Passed;
+	}
+	return ECode::Failed;
 }

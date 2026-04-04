@@ -24,6 +24,12 @@ namespace AE::App
 
 		static constexpr uint	_Version = SerializableInputActionsGLFW::_Version;
 
+		struct JoystickData
+		{
+			ubyte	buttons [15]	= {};
+		};
+		using JoystickMap_t		= FixedMap< int, JoystickData, PlatformConfig::MaxJoysticks >;
+
 
 	// variables
 	private:
@@ -35,6 +41,8 @@ namespace AE::App
 		bool					_touchEnd			: 1;
 
 		GestureRecognizer		_gestureRecognizer;
+
+		JoystickMap_t			_joystickMap;
 
 
 	// methods
@@ -49,6 +57,7 @@ namespace AE::App
 		void  SetMonitor (const uint2 &surfaceSize, const Monitor &)				__NE___;
 		void  CursorPosChanged (float2 pos)											__NE___	{ _cursorPosPx = pos; }
 		void  AddChar (CharUtf32 c)													__NE___	{ _AddChar( c ); }
+		void  InitJoystick ()														__NE___;
 
 		// api for external input
 		void  SetSensor1f (EInputType type, float value)							__NE___	{ _Update1F( type, EGestureType::Move, ControllerID::Sensor, value, EGestureState::Update ); }
@@ -70,6 +79,10 @@ namespace AE::App
 
 	private:
 		bool  _ValidateForVREmulation ()											__NE___;
+
+		void  _UpdateJoysticks (Duration_t timeSinceStart)							__NE___;
+
+		static void  _GLFW_JoystickCallback (int jid, int event)					__NE___;
 	};
 
 

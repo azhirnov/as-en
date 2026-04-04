@@ -25,19 +25,18 @@
 		RC<DynamicUInt>		obj_count		= DynamicUInt();
 		RC<DynamicUInt2>	count2d			= obj_count.XX().Mul( local_size );
 		RC<DynamicUInt>		count			= count2d.Area();
-		const bool			rev_z			= true;
+		const bool			rev_z			= true;		// better precision
 
 		obj_buf.ArrayLayout(
 			"ObjectTransform",
-			"	float3	position;" +
-			"	float2	scale;" +
+			"	float3	position;"
+			"	float2	scale;"
 			"	uint	color;",
 			count );
 
 		// setup camera
 		{
 			if ( rev_z ){
-				// better precision
 				camera.ReverseZ( true );
 				camera.ClipPlanes( 0.5f );	// infinite projection
 			}else{
@@ -56,13 +55,11 @@
 
 		// create scene with AABBs
 		{
-			array<float3>	positions, normals;
-			array<uint>		indices;
-			GetCube( OUT positions, OUT normals, OUT indices );
+			RC<Mesh>	mesh = Mesh();
+			mesh.SetAttributes( EAttribute::Position );
+			mesh.AddCube();
 
-			RC<Buffer>		geom_data = Buffer();
-			geom_data.FloatArray( "positions",	positions );
-			geom_data.UIntArray(  "indices",	indices );
+			RC<Buffer>	geom_data = mesh.ToBuffer();
 			geom_data.LayoutName( "GeometryData" );
 
 			RC<UnifiedGeometry>		geometry = UnifiedGeometry();
@@ -70,7 +67,7 @@
 			geometry.ArgIn( "un_Transform",	obj_buf );
 
 			UnifiedGeometry_DrawIndexed	cmd;
-			cmd.indexCount	= indices.size();
+			cmd.indexCount	= mesh.IndexCount();
 			cmd.IndexBuffer( geom_data, "indices" );
 			cmd.InstanceCount( count );
 			cmd.PipelineHint( rev_z ? "GEqual" : "LEqual" );

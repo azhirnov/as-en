@@ -18,8 +18,8 @@ namespace AE::Graphics
 	public:
 		using DrawCtx		= RDrawContext;
 	private:
-		using AccumBar		= Graphics::_hidden_::RAccumBarriers< RGraphicsContext >;
-		using DeferredBar	= Graphics::_hidden_::RAccumDeferredBarriersForCtx< RGraphicsContext >;
+		using AccumBar		= Graphics::_hidden_::AccumBarriers< RGraphicsContext >;
+		using DeferredBar	= Graphics::_hidden_::AccumDeferredBarriersForCtx< RGraphicsContext >;
 		using Validator_t	= Graphics::_hidden_::GraphicsContextValidation;
 
 

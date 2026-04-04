@@ -117,7 +117,7 @@ namespace
 				compatible = false;
 			}
 
-			ShaderStructTypePtr	st{ new ShaderStructType{ "VecTest"s << ToString(idx++) }};
+			ShaderStructTypePtr	st = ShaderStructType::Create( "VecTest"s << ToString(idx++) );
 
 			String	str = String{t.name} << " val";
 			if ( arraySize > 1 )
@@ -220,7 +220,7 @@ namespace
 				compatible = false;
 			}
 
-			ShaderStructTypePtr	st{ new ShaderStructType{ "MatTest"s << ToString(idx++) }};
+			ShaderStructTypePtr	st = ShaderStructType::Create( "MatTest"s << ToString(idx++) );
 
 			try{
 				st->Set( layout, String{t.name} << " val;" );
@@ -282,7 +282,7 @@ namespace
 
 	static void  StructType_Test4 ()
 	{
-		ShaderStructTypePtr	st1{ new ShaderStructType{ "StType1" }};
+		ShaderStructTypePtr	st1 = ShaderStructType::Create( "StType1" );
 		st1->Set( EStructLayout::Compatible_Std140,
 				 "float4	ff;"
 				 "uint2		uu;"
@@ -294,7 +294,7 @@ namespace
 		TEST_Eq( st1->Align(),			16_b );
 
 
-		ShaderStructTypePtr	st2{ new ShaderStructType{ "StType2" }};
+		ShaderStructTypePtr	st2 = ShaderStructType::Create( "StType2" );
 		st2->Set( EStructLayout::Compatible_Std140,
 				 "StType1	st;"
 				 "uint4		ua [4];" );
@@ -436,7 +436,7 @@ struct StType2
 
 	static void  StructType_Test5 ()
 	{
-		ShaderStructTypePtr	st1{ new ShaderStructType{ "StType3" }};
+		ShaderStructTypePtr	st1 = ShaderStructType::Create( "StType3" );
 		st1->Set( EStructLayout::Compatible_Std430,
 				  "float			f;"
 				  "packed_uint3		u;"
@@ -450,7 +450,7 @@ struct StType2
 		TEST_Eq( st1->Align(),			4_b );
 
 
-		ShaderStructTypePtr	st2{ new ShaderStructType{ "StType4" }};
+		ShaderStructTypePtr	st2 = ShaderStructType::Create( "StType4" );
 		st2->Set( EStructLayout::Compatible_Std430,
 				 "packed_half3	h3;"
 				 "StType3		st;"		// offset 8
@@ -686,7 +686,7 @@ struct StType4
 
 	static void  StructType_Test6 ()
 	{
-		ShaderStructTypePtr	st{ new ShaderStructType{ "StType5" }};
+		ShaderStructTypePtr	st = ShaderStructType::Create( "StType5" );
 		st->Set( EStructLayout::Compatible_Std140,
 				 "packed_float3		Position;"
 				 "packed_float3		Normal;"
@@ -794,7 +794,7 @@ struct StType5
 
 	static void  StructType_Test7 ()
 	{
-		ShaderStructTypePtr	st{ new ShaderStructType{ "StType6" }};
+		ShaderStructTypePtr	st = ShaderStructType::Create( "StType6" );
 		st->Set( EStructLayout::Compatible_Std430,
 				 "uint				Count;"
 				 "packed_float2		Positions [3];"
@@ -982,7 +982,7 @@ struct StType6
 
 	static void  StructType_Test8 ()
 	{
-		ShaderStructTypePtr	st{ new ShaderStructType{ "StType8" }};
+		ShaderStructTypePtr	st = ShaderStructType::Create( "StType8" );
 		st->Set( EStructLayout::Compatible_Std140,
 				 "float4	pos [];" );
 
@@ -1047,19 +1047,19 @@ struct StType8
 
 	static void  StructType_Test9 ()
 	{
-		ShaderStructTypePtr	st1{ new ShaderStructType{ "StType9A" }};
+		ShaderStructTypePtr	st1 = ShaderStructType::Create( "StType9A" );
 		st1->AddUsage( ShaderStructType::EUsage::BufferReference );
 		st1->Set( EStructLayout::Compatible_Std140,
 				  "float4	pos;"
 				  "float3	norm;" );
 
-		ShaderStructTypePtr	st2{ new ShaderStructType{ "StType9B" }};
+		ShaderStructTypePtr	st2 = ShaderStructType::Create( "StType9B" );
 		st2->AddUsage( ShaderStructType::EUsage::BufferReference );
 		st2->Set( EStructLayout::Compatible_Std140,
 				  "float2	a;"
 				  "int		b;" );
 
-		ShaderStructTypePtr	st{ new ShaderStructType{ "StType9" }};
+		ShaderStructTypePtr	st = ShaderStructType::Create( "StType9" );
 		st->Set( EStructLayout::Compatible_Std140,
 				 "StType9A &	ref;"			// reference to single object
 				 "float2 *		arr;"			// dynamic array of 'float2'
@@ -1259,7 +1259,7 @@ struct StType9
 
 	static void  StructType_Test10 ()
 	{
-		ShaderStructTypePtr	st{ new ShaderStructType{ "StType.10" }};
+		ShaderStructTypePtr	st = ShaderStructType::Create( "StType.10" );
 		st->Set( EStructLayout::Compatible_Std140,
 				 "float4	pos;" );
 
@@ -1329,7 +1329,7 @@ struct StType_10
 
 	static void  StructType_Test11 ()
 	{
-		ShaderStructTypePtr	st{ new ShaderStructType{ "StType11" }};
+		ShaderStructTypePtr	st = ShaderStructType::Create( "StType11" );
 		st->Set( EStructLayout::Compatible_Std140,
 				 "float4x4	transform;"
 				 "uint		meshIdx;"
@@ -1418,7 +1418,7 @@ struct StType11
 
 	static void  StructType_Test12 ()
 	{
-		ShaderStructTypePtr	st{ new ShaderStructType{ "StType12" }};
+		ShaderStructTypePtr	st = ShaderStructType::Create( "StType12" );
 		st->Set( EStructLayout::Compatible_Std430,
 				 "uint		count;"
 				 "float4	arr [];");
@@ -1492,14 +1492,14 @@ struct StType12
 
 	static void  StructType_Test13 ()
 	{
-		ShaderStructTypePtr	st1{ new ShaderStructType{ "StType13A" }};
+		ShaderStructTypePtr	st1 = ShaderStructType::Create( "StType13A" );
 		st1->AddUsage( ShaderStructType::EUsage::BufferReference );
 		st1->Set( EStructLayout::Compatible_Std140,
 				  "float4	pos;"
 				  "float3	norm;"
 				  "ulong	l;" );
 
-		ShaderStructTypePtr	st{ new ShaderStructType{ "StType13" }};
+		ShaderStructTypePtr	st = ShaderStructType::Create( "StType13" );
 		st->Set( EStructLayout::Compatible_Std430,
 				 "DeviceAddress *	untypedAddrArr;"
 				 "DeviceAddress *	untypedAddrArrArr [8];"
@@ -1669,7 +1669,7 @@ struct StType13
 
 	static void  StructType_Test14 ()
 	{
-		ShaderStructTypePtr	st{ new ShaderStructType{ "StType14" }};
+		ShaderStructTypePtr	st = ShaderStructType::Create( "StType14" );
 		st->Set( EStructLayout::Compatible_Std430,
 				 "packed_float3 *	normals;" );
 
@@ -1764,12 +1764,12 @@ struct StType14
 
 	static void  StructType_Test15 ()
 	{
-		ShaderStructTypePtr	st1{ new ShaderStructType{ "StType15A" }};
+		ShaderStructTypePtr	st1 = ShaderStructType::Create( "StType15A" );
 		st1->Set( EStructLayout::Compatible_Std430,
 				  "uint3 	a;"
 				  "float	b;" );
 
-		ShaderStructTypePtr	st{ new ShaderStructType{ "StType15" }};
+		ShaderStructTypePtr	st = ShaderStructType::Create( "StType15" );
 		st->Set( EStructLayout::Compatible_Std430,
 				 "StType15A	arr [8];" );
 
@@ -1892,13 +1892,13 @@ struct StType15
 
 	static void  StructType_Test16 ()
 	{
-		ShaderStructTypePtr	st1{ new ShaderStructType{ "StType16A" }};
+		ShaderStructTypePtr	st1 = ShaderStructType::Create( "StType16A" );
 		st1->Set( EStructLayout::Compatible_Std430,
 				  "float	a;"
 				  "float	b;"
 				  "float	c;" );
 
-		ShaderStructTypePtr	st{ new ShaderStructType{ "StType16" }};
+		ShaderStructTypePtr	st = ShaderStructType::Create( "StType16" );
 		st->Set( EStructLayout::Compatible_Std430,
 				 "float2	aa;"
 				 "float2	bb;"
@@ -2032,7 +2032,7 @@ struct StType16
 
 	static void  StructType_Test17 ()
 	{
-		ShaderStructTypePtr	st{ new ShaderStructType{ "StType17" }};
+		ShaderStructTypePtr	st = ShaderStructType::Create( "StType17" );
 		st->Set( EStructLayout::InternalIO,
 				 "float2		a;"
 				 "half2			b;"
@@ -2091,7 +2091,7 @@ in FragmentInput {
 
 	static void  StructType_Test18 ()
 	{
-		ShaderStructTypePtr	st{ new ShaderStructType{ "StType18" }};
+		ShaderStructTypePtr	st = ShaderStructType::Create( "StType18" );
 		st->Set( EStructLayout::Std430,
 				 "float3		a;"		// size: 16
 				 "float			b;"		// size: 4		offset: 16
@@ -2240,7 +2240,7 @@ struct StType18
 
 	static void  StructType_Test19 ()
 	{
-		ShaderStructTypePtr	st{ new ShaderStructType{ "StType19" }};
+		ShaderStructTypePtr	st = ShaderStructType::Create( "StType19" );
 		st->Set( EStructLayout::Compatible_Std430,
 				 "float3		a;"
 				 "float			b;"
@@ -2363,7 +2363,7 @@ struct StType19
 
 	static void  StructType_Test20 ()
 	{
-		ShaderStructTypePtr	st1{ new ShaderStructType{ "StType20A" }};
+		ShaderStructTypePtr	st1 = ShaderStructType::Create( "StType20A" );
 		st1->Set( EStructLayout::Std430,
 				 "float3		a;"		// size: 16
 				 "float			b;"		// size: 4		offset: 16
@@ -2380,7 +2380,7 @@ struct StType19
 				// end									offset: 132
 				);
 
-		ShaderStructTypePtr	st{ new ShaderStructType{ "StType20" }};
+		ShaderStructTypePtr	st = ShaderStructType::Create( "StType20" );
 		st->Set( EStructLayout::Std430,
 				 "StType20A		a;"
 				 "uint			b;"
@@ -2554,17 +2554,17 @@ Buffer {
 
 	static void  StructType_Test21 ()
 	{
-		ShaderStructTypePtr	st1{ new ShaderStructType{ "StType21A" }};
+		ShaderStructTypePtr	st1 = ShaderStructType::Create( "StType21A" );
 		st1->Set( EStructLayout::Compatible_Std430,
 				  "uint			a;"
 				  "uint2		b;" );
 
-		ShaderStructTypePtr	st2{ new ShaderStructType{ "StType21B" }};
+		ShaderStructTypePtr	st2 = ShaderStructType::Create( "StType21B" );
 		st2->Set( EStructLayout::Compatible_Std430,
 				  "StType21A	a;"
 				  "uint			b;" );
 
-		ShaderStructTypePtr	st{ new ShaderStructType{ "StType21" }};
+		ShaderStructTypePtr	st = ShaderStructType::Create( "StType21" );
 		st->Set( EStructLayout::Compatible_Std430,
 				 "uint			a;"
 				 "StType21B		arr [4];" );
@@ -2744,7 +2744,7 @@ struct StType21
 
 	static void  StructType_Test22 ()
 	{
-		ShaderStructTypePtr	st{ new ShaderStructType{ "StType22" }};
+		ShaderStructTypePtr	st = ShaderStructType::Create( "StType22" );
 		st->Set( EStructLayout::Compatible_Std430,
 				 "uint			a;"
 				 "Atomic<uint>	atomic;"
@@ -2827,30 +2827,111 @@ struct StType22
 //-----------------------------------------------------------------------------
 
 
+	static void  StructType_Test23 ()
+	{
+		ShaderStructTypePtr	st = ShaderStructType::Create( "StType23" );
+		st->Set( EStructLayout::Compatible_Std430,
+				 "uint			a [2];"
+				 "float			aa [3][7];"
+				 "int			aaa [3][7][100];"
+				 "int			d [];" );
+
+		const String	glsl = ToGLSL( st );
+		const String	msl  = ToMSL( st );
+		const String	cpp  = ToCPP( st );
+
+		const String	ref_glsl = R"#(
+Buffer {
+	layout(offset=0, align=4)     uint   a [2];            // size: 8
+	layout(offset=8, align=4)     float  aa [3][7];        // size: 84
+	layout(offset=92, align=4)    int    aaa [3][7][100];  // size: 8400
+	layout(offset=8492, align=4)  int    d [];
+}
+)#";
+		const String	ref_msl = R"#(
+struct StType23
+{
+	uint         a [2];            // offset: 0, align: 4, size: 8
+	float        aa [3][7];        // offset: 8, align: 4, size: 84
+	int          aaa [3][7][100];  // offset: 92, align: 4, size: 8400
+	device int*  d;                // offset: 8492, align: 4, size: 4
+};
+
+)#";
+		const String	ref_cpp = R"#(
+#ifndef StType23_DEFINED
+#	define StType23_DEFINED
+	// size: 8492, align: 4
+	struct StType23
+	{
+		static constexpr auto   TypeName = ShaderStructName{HashVal32{0xb2f28b1bu}};
+		static constexpr size_t SizeOf (size_t count)  { return 8492 + (4 * count); }
+
+		StaticArray< uint, 2 >    a;
+		float                     aa [3][7];
+		int                       aaa [3][7][100];
+	//	int                       d [];
+	};
+#endif
+	StaticAssert( offsetof(StType23, a) == 0 );
+	StaticAssert( offsetof(StType23, aa) == 8 );
+	StaticAssert( offsetof(StType23, aaa) == 92 );
+	StaticAssert( sizeof(StType23) == 8492 );
+
+)#";
+		const String	ref_hlsl = R"#()#";
+
+		TEST( glsl == ref_glsl );
+		TEST( msl == ref_msl );
+		TEST( cpp == ref_cpp );
+		TEST_PASSED();
+	}
+
+#ifndef StType23_DEFINED
+#	define StType23_DEFINED
+	// size: 8492, align: 4
+	struct StType23
+	{
+		static constexpr auto   TypeName = ShaderStructName{HashVal32{0xb2f28b1bu}};
+		static constexpr size_t SizeOf (size_t count)  { return 8492 + (4 * count); }
+
+		StaticArray< uint, 2 >    a;
+		float                     aa [3][7];
+		int                       aaa [3][7][100];
+	//	int                       d [];
+	};
+#endif
+	StaticAssert( offsetof(StType23, a) == 0 );
+	StaticAssert( offsetof(StType23, aa) == 8 );
+	StaticAssert( offsetof(StType23, aaa) == 92 );
+	StaticAssert( sizeof(StType23) == 8492 );
+//-----------------------------------------------------------------------------
+
+
 	static void  StructType_TestLayoutCompatibility ()
 	{
-		ShaderStructTypePtr	st430{ new ShaderStructType{ "StType21_std430" }};
+		ShaderStructTypePtr	st430 = ShaderStructType::Create( "StType21_std430" );
 		st430->Set( EStructLayout::Std430, "float  a;" );
 
-		ShaderStructTypePtr	st140{ new ShaderStructType{ "StType21_std140" }};
+		ShaderStructTypePtr	st140 = ShaderStructType::Create( "StType21_std140" );
 		st140->Set( EStructLayout::Std140, "float  a;" );
 
-		ShaderStructTypePtr	stC430{ new ShaderStructType{ "StType21_C430" }};
+		ShaderStructTypePtr	stC430 = ShaderStructType::Create( "StType21_C430" );
 		stC430->Set( EStructLayout::Compatible_Std430, "float  a;" );
 
-		ShaderStructTypePtr	stC140{ new ShaderStructType{ "StType21_C140" }};
+		ShaderStructTypePtr	stC140 = ShaderStructType::Create( "StType21_C140" );
 		stC140->Set( EStructLayout::Compatible_Std140, "float  a;" );
 
-		ShaderStructTypePtr	stMtl{ new ShaderStructType{ "StType21_mtl" }};
+		ShaderStructTypePtr	stMtl = ShaderStructType::Create( "StType21_mtl" );
 		stMtl->Set( EStructLayout::Metal, "float  a;" );
 
-		ShaderStructTypePtr	stIO{ new ShaderStructType{ "StType21_IO" }};
+		ShaderStructTypePtr	stIO = ShaderStructType::Create( "StType21_IO" );
 		stIO->Set( EStructLayout::InternalIO, "float  a;" );
 
-		ShaderStructTypePtr	stHLSLc{ new ShaderStructType{ "StType21_hlslC" }};
+		ShaderStructTypePtr	stHLSLc = ShaderStructType::Create( "StType21_hlslC" );
 		stHLSLc->Set( EStructLayout::HLSL_Const, "float  a;" );
 
-		ShaderStructTypePtr	stHLSLsb{ new ShaderStructType{ "StType21_hlslSB" }};
+		ShaderStructTypePtr	stHLSLsb = ShaderStructType::Create( "StType21_hlslSB" );
 		stHLSLsb->Set( EStructLayout::HLSL_Struct, "float  a;" );
 
 		StaticAssert( uint(EStructLayout::_Count) == 8 );
@@ -2859,45 +2940,45 @@ struct StType22
 		{
 			// error
 			try{
-				ShaderStructTypePtr	st{ new ShaderStructType{ "StType21_std140_std430" }};
+				ShaderStructTypePtr	st = ShaderStructType::Create( "StType21_std140_std430" );
 				st->Set( EStructLayout::Std140, "StType21_std430  a;" );
 				TEST(false);
 			}catch(...) {}
 			try{
-				ShaderStructTypePtr	st{ new ShaderStructType{ "StType21_std140_C430" }};
+				ShaderStructTypePtr	st = ShaderStructType::Create( "StType21_std140_C430" );
 				st->Set( EStructLayout::Std140, "StType21_C430  a;" );
 				TEST(false);
 			}catch(...) {}
 			try{
-				ShaderStructTypePtr	st{ new ShaderStructType{ "StType21_std140_mtl" }};
+				ShaderStructTypePtr	st = ShaderStructType::Create( "StType21_std140_mtl" );
 				st->Set( EStructLayout::Std140, "StType21_mtl  a;" );
 				TEST(false);
 			}catch(...) {}
 			try{
-				ShaderStructTypePtr	st{ new ShaderStructType{ "StType21_std140_IO" }};
+				ShaderStructTypePtr	st = ShaderStructType::Create( "StType21_std140_IO" );
 				st->Set( EStructLayout::Std140, "StType21_IO  a;" );
 				TEST(false);
 			}catch(...) {}
 			try{
-				ShaderStructTypePtr	st{ new ShaderStructType{ "StType21_std140_hlslC" }};
+				ShaderStructTypePtr	st = ShaderStructType::Create( "StType21_std140_hlslC" );
 				st->Set( EStructLayout::Std140, "StType21_hlslC  a;" );
 				TEST(false);
 			}catch(...) {}
 			try{
-				ShaderStructTypePtr	st{ new ShaderStructType{ "StType21_std140_hlslSB" }};
+				ShaderStructTypePtr	st = ShaderStructType::Create( "StType21_std140_hlslSB" );
 				st->Set( EStructLayout::Std140, "StType21_hlslSB  a;" );
 				TEST(false);
 			}catch(...) {}
 
 			// ok
 			try{
-				ShaderStructTypePtr	st{ new ShaderStructType{ "StType21_std140_C140" }};
+				ShaderStructTypePtr	st = ShaderStructType::Create( "StType21_std140_C140" );
 				st->Set( EStructLayout::Std140, "StType21_C140  a;" );
 			}catch(...){
 				TEST(false);
 			}
 			try{
-				ShaderStructTypePtr	st{ new ShaderStructType{ "StType21_std140_std140" }};
+				ShaderStructTypePtr	st = ShaderStructType::Create( "StType21_std140_std140" );
 				st->Set( EStructLayout::Std140, "StType21_std140  a;" );
 			}catch(...){
 				TEST(false);
@@ -2908,45 +2989,45 @@ struct StType22
 		{
 			// error
 			try{
-				ShaderStructTypePtr	st{ new ShaderStructType{ "StType21_std430_std140" }};
+				ShaderStructTypePtr	st = ShaderStructType::Create( "StType21_std430_std140" );
 				st->Set( EStructLayout::Std430, "StType21_std140  a;" );
 				TEST(false);
 			}catch(...) {}
 			try{
-				ShaderStructTypePtr	st{ new ShaderStructType{ "StType21_std430_C140" }};
+				ShaderStructTypePtr	st = ShaderStructType::Create( "StType21_std430_C140" );
 				st->Set( EStructLayout::Std430, "StType21_C140  a;" );
 				TEST(false);
 			}catch(...) {}
 			try{
-				ShaderStructTypePtr	st{ new ShaderStructType{ "StType21_std430_mtl" }};
+				ShaderStructTypePtr	st = ShaderStructType::Create( "StType21_std430_mtl" );
 				st->Set( EStructLayout::Std430, "StType21_mtl  a;" );
 				TEST(false);
 			}catch(...) {}
 			try{
-				ShaderStructTypePtr	st{ new ShaderStructType{ "StType21_std430_IO" }};
+				ShaderStructTypePtr	st = ShaderStructType::Create( "StType21_std430_IO" );
 				st->Set( EStructLayout::Std430, "StType21_IO  a;" );
 				TEST(false);
 			}catch(...) {}
 			try{
-				ShaderStructTypePtr	st{ new ShaderStructType{ "StType21_std430_hlslC" }};
+				ShaderStructTypePtr	st = ShaderStructType::Create( "StType21_std430_hlslC" );
 				st->Set( EStructLayout::Std430, "StType21_hlslC  a;" );
 				TEST(false);
 			}catch(...) {}
 			try{
-				ShaderStructTypePtr	st{ new ShaderStructType{ "StType21_std430_hlslSB" }};
+				ShaderStructTypePtr	st = ShaderStructType::Create( "StType21_std430_hlslSB" );
 				st->Set( EStructLayout::Std430, "StType21_hlslSB  a;" );
 				TEST(false);
 			}catch(...) {}
 
 			// ok
 			try{
-				ShaderStructTypePtr	st{ new ShaderStructType{ "StType21_std430_std430" }};
+				ShaderStructTypePtr	st = ShaderStructType::Create( "StType21_std430_std430" );
 				st->Set( EStructLayout::Std430, "StType21_std430  a;" );
 			}catch(...){
 				TEST(false);
 			}
 			try{
-				ShaderStructTypePtr	st{ new ShaderStructType{ "StType21_std430_C430" }};
+				ShaderStructTypePtr	st = ShaderStructType::Create( "StType21_std430_C430" );
 				st->Set( EStructLayout::Std430, "StType21_C430  a;" );
 			}catch(...){
 				TEST(false);
@@ -2957,44 +3038,44 @@ struct StType22
 		{
 			// error
 			try{
-				ShaderStructTypePtr	st{ new ShaderStructType{ "StType21_C140_std430" }};
+				ShaderStructTypePtr	st = ShaderStructType::Create( "StType21_C140_std430" );
 				st->Set( EStructLayout::Compatible_Std140, "StType21_std430  a;" );
 				TEST(false);
 			}catch(...) {}
 			try{
-				ShaderStructTypePtr	st{ new ShaderStructType{ "StType21_C140_C430" }};
+				ShaderStructTypePtr	st = ShaderStructType::Create( "StType21_C140_C430" );
 				st->Set( EStructLayout::Compatible_Std140, "StType21_C430  a;" );
 				TEST(false);
 			}catch(...) {}
 			try{
-				ShaderStructTypePtr	st{ new ShaderStructType{ "StType21_C140_mtl" }};
+				ShaderStructTypePtr	st = ShaderStructType::Create( "StType21_C140_mtl" );
 				st->Set( EStructLayout::Compatible_Std140, "StType21_mtl  a;" );
 				TEST(false);
 			}catch(...) {}
 			try{
-				ShaderStructTypePtr	st{ new ShaderStructType{ "StType21_C140_IO" }};
+				ShaderStructTypePtr	st = ShaderStructType::Create( "StType21_C140_IO" );
 				st->Set( EStructLayout::Compatible_Std140, "StType21_IO  a;" );
 				TEST(false);
 			}catch(...) {}
 			try{
-				ShaderStructTypePtr	st{ new ShaderStructType{ "StType21_C140_std140" }};
+				ShaderStructTypePtr	st = ShaderStructType::Create( "StType21_C140_std140" );
 				st->Set( EStructLayout::Compatible_Std140, "StType21_std140  a;" );
 				TEST(false);
 			}catch(...) {}
 			try{
-				ShaderStructTypePtr	st{ new ShaderStructType{ "StType21_C140_hlslC" }};
+				ShaderStructTypePtr	st = ShaderStructType::Create( "StType21_C140_hlslC" );
 				st->Set( EStructLayout::Compatible_Std140, "StType21_hlslC  a;" );
 				TEST(false);
 			}catch(...) {}
 			try{
-				ShaderStructTypePtr	st{ new ShaderStructType{ "StType21_C140_hlslSB" }};
+				ShaderStructTypePtr	st = ShaderStructType::Create( "StType21_C140_hlslSB" );
 				st->Set( EStructLayout::Compatible_Std140, "StType21_hlslSB  a;" );
 				TEST(false);
 			}catch(...) {}
 
 			// ok
 			try{
-				ShaderStructTypePtr	st{ new ShaderStructType{ "StType21_C140_C140" }};
+				ShaderStructTypePtr	st = ShaderStructType::Create( "StType21_C140_C140" );
 				st->Set( EStructLayout::Compatible_Std140, "StType21_C140  a;" );
 			}catch(...){
 				TEST(false);
@@ -3005,44 +3086,44 @@ struct StType22
 		{
 			// error
 			try{
-				ShaderStructTypePtr	st{ new ShaderStructType{ "StType21_C430_std140" }};
+				ShaderStructTypePtr	st = ShaderStructType::Create( "StType21_C430_std140" );
 				st->Set( EStructLayout::Compatible_Std430, "StType21_std140  a;" );
 				TEST(false);
 			}catch(...) {}
 			try{
-				ShaderStructTypePtr	st{ new ShaderStructType{ "StType21_C430_C140" }};
+				ShaderStructTypePtr	st = ShaderStructType::Create( "StType21_C430_C140" );
 				st->Set( EStructLayout::Compatible_Std430, "StType21_C140  a;" );
 				TEST(false);
 			}catch(...) {}
 			try{
-				ShaderStructTypePtr	st{ new ShaderStructType{ "StType21_C430_mtl" }};
+				ShaderStructTypePtr	st = ShaderStructType::Create( "StType21_C430_mtl" );
 				st->Set( EStructLayout::Compatible_Std430, "StType21_mtl  a;" );
 				TEST(false);
 			}catch(...) {}
 			try{
-				ShaderStructTypePtr	st{ new ShaderStructType{ "StType21_C430_IO" }};
+				ShaderStructTypePtr	st = ShaderStructType::Create( "StType21_C430_IO" );
 				st->Set( EStructLayout::Compatible_Std430, "StType21_IO  a;" );
 				TEST(false);
 			}catch(...) {}
 			try{
-				ShaderStructTypePtr	st{ new ShaderStructType{ "StType21_C430_std430" }};
+				ShaderStructTypePtr	st = ShaderStructType::Create( "StType21_C430_std430" );
 				st->Set( EStructLayout::Compatible_Std430, "StType21_std430  a;" );
 				TEST(false);
 			}catch(...) {}
 			try{
-				ShaderStructTypePtr	st{ new ShaderStructType{ "StType21_C430_hlslC" }};
+				ShaderStructTypePtr	st = ShaderStructType::Create( "StType21_C430_hlslC" );
 				st->Set( EStructLayout::Compatible_Std430, "StType21_hlslC  a;" );
 				TEST(false);
 			}catch(...) {}
 			try{
-				ShaderStructTypePtr	st{ new ShaderStructType{ "StType21_C430_hlslSB" }};
+				ShaderStructTypePtr	st = ShaderStructType::Create( "StType21_C430_hlslSB" );
 				st->Set( EStructLayout::Compatible_Std430, "StType21_hlslSB  a;" );
 				TEST(false);
 			}catch(...) {}
 
 			// ok
 			try{
-				ShaderStructTypePtr	st{ new ShaderStructType{ "StType21_C430_C430" }};
+				ShaderStructTypePtr	st = ShaderStructType::Create( "StType21_C430_C430" );
 				st->Set( EStructLayout::Compatible_Std430, "StType21_C430  a;" );
 			}catch(...){
 				TEST(false);
@@ -3053,44 +3134,44 @@ struct StType22
 		{
 			// error
 			try{
-				ShaderStructTypePtr	st{ new ShaderStructType{ "StType21_Mtl_std140" }};
+				ShaderStructTypePtr	st = ShaderStructType::Create( "StType21_Mtl_std140" );
 				st->Set( EStructLayout::Metal, "StType21_std140  a;" );
 				TEST(false);
 			}catch(...) {}
 			try{
-				ShaderStructTypePtr	st{ new ShaderStructType{ "StType21_Mtl_C140" }};
+				ShaderStructTypePtr	st = ShaderStructType::Create( "StType21_Mtl_C140" );
 				st->Set( EStructLayout::Metal, "StType21_C140  a;" );
 				TEST(false);
 			}catch(...) {}
 			try{
-				ShaderStructTypePtr	st{ new ShaderStructType{ "StType21_Mtl_C430" }};
+				ShaderStructTypePtr	st = ShaderStructType::Create( "StType21_Mtl_C430" );
 				st->Set( EStructLayout::Metal, "StType21_C430  a;" );
 				TEST(false);
 			}catch(...) {}
 			try{
-				ShaderStructTypePtr	st{ new ShaderStructType{ "StType21_Mtl_IO" }};
+				ShaderStructTypePtr	st = ShaderStructType::Create( "StType21_Mtl_IO" );
 				st->Set( EStructLayout::Metal, "StType21_IO  a;" );
 				TEST(false);
 			}catch(...) {}
 			try{
-				ShaderStructTypePtr	st{ new ShaderStructType{ "StType21_Mtl_std430" }};
+				ShaderStructTypePtr	st = ShaderStructType::Create( "StType21_Mtl_std430" );
 				st->Set( EStructLayout::Metal, "StType21_std430  a;" );
 				TEST(false);
 			}catch(...) {}
 			try{
-				ShaderStructTypePtr	st{ new ShaderStructType{ "StType21_Mtl_hlslC" }};
+				ShaderStructTypePtr	st = ShaderStructType::Create( "StType21_Mtl_hlslC" );
 				st->Set( EStructLayout::Metal, "StType21_hlslC  a;" );
 				TEST(false);
 			}catch(...) {}
 			try{
-				ShaderStructTypePtr	st{ new ShaderStructType{ "StType21_Mtl_hlslSB" }};
+				ShaderStructTypePtr	st = ShaderStructType::Create( "StType21_Mtl_hlslSB" );
 				st->Set( EStructLayout::Metal, "StType21_hlslSB  a;" );
 				TEST(false);
 			}catch(...) {}
 
 			// ok
 			try{
-				ShaderStructTypePtr	st{ new ShaderStructType{ "StType21_Mtl_mtl" }};
+				ShaderStructTypePtr	st = ShaderStructType::Create( "StType21_Mtl_mtl" );
 				st->Set( EStructLayout::Metal, "StType21_mtl  a;" );
 			}catch(...){
 				TEST(false);
@@ -3101,44 +3182,44 @@ struct StType22
 		{
 			// error
 			try{
-				ShaderStructTypePtr	st{ new ShaderStructType{ "StType21_IO_std140" }};
+				ShaderStructTypePtr	st = ShaderStructType::Create( "StType21_IO_std140" );
 				st->Set( EStructLayout::InternalIO, "StType21_std140  a;" );
 				TEST(false);
 			}catch(...) {}
 			try{
-				ShaderStructTypePtr	st{ new ShaderStructType{ "StType21_IO_C140" }};
+				ShaderStructTypePtr	st = ShaderStructType::Create( "StType21_IO_C140" );
 				st->Set( EStructLayout::InternalIO, "StType21_C140  a;" );
 				TEST(false);
 			}catch(...) {}
 			try{
-				ShaderStructTypePtr	st{ new ShaderStructType{ "StType21_IO_mtl" }};
+				ShaderStructTypePtr	st = ShaderStructType::Create( "StType21_IO_mtl" );
 				st->Set( EStructLayout::InternalIO, "StType21_mtl  a;" );
 				TEST(false);
 			}catch(...) {}
 			try{
-				ShaderStructTypePtr	st{ new ShaderStructType{ "StType21_IO_C430" }};
+				ShaderStructTypePtr	st = ShaderStructType::Create( "StType21_IO_C430" );
 				st->Set( EStructLayout::InternalIO, "StType21_C430  a;" );
 				TEST(false);
 			}catch(...) {}
 			try{
-				ShaderStructTypePtr	st{ new ShaderStructType{ "StType21_IO_std430" }};
+				ShaderStructTypePtr	st = ShaderStructType::Create( "StType21_IO_std430" );
 				st->Set( EStructLayout::InternalIO, "StType21_std430  a;" );
 				TEST(false);
 			}catch(...) {}
 			try{
-				ShaderStructTypePtr	st{ new ShaderStructType{ "StType21_IO_hlslC" }};
+				ShaderStructTypePtr	st = ShaderStructType::Create( "StType21_IO_hlslC" );
 				st->Set( EStructLayout::InternalIO, "StType21_hlslC  a;" );
 				TEST(false);
 			}catch(...) {}
 			try{
-				ShaderStructTypePtr	st{ new ShaderStructType{ "StType21_IO_hlslSB" }};
+				ShaderStructTypePtr	st = ShaderStructType::Create( "StType21_IO_hlslSB" );
 				st->Set( EStructLayout::InternalIO, "StType21_hlslSB  a;" );
 				TEST(false);
 			}catch(...) {}
 
 			// ok
 			try{
-				ShaderStructTypePtr	st{ new ShaderStructType{ "StType21_IO_IO" }};
+				ShaderStructTypePtr	st = ShaderStructType::Create( "StType21_IO_IO" );
 				st->Set( EStructLayout::InternalIO, "StType21_IO  a;" );
 			}catch(...){
 				TEST(false);
@@ -3149,45 +3230,45 @@ struct StType22
 		{
 			// error
 			try{
-				ShaderStructTypePtr	st{ new ShaderStructType{ "StType21_hlslC_std140" }};
+				ShaderStructTypePtr	st = ShaderStructType::Create( "StType21_hlslC_std140" );
 				st->Set( EStructLayout::HLSL_Const, "StType21_std140  a;" );
 				TEST(false);
 			}catch(...) {}
 			try{
-				ShaderStructTypePtr	st{ new ShaderStructType{ "StType21_hlslC_mtl" }};
+				ShaderStructTypePtr	st = ShaderStructType::Create( "StType21_hlslC_mtl" );
 				st->Set( EStructLayout::HLSL_Const, "StType21_mtl  a;" );
 				TEST(false);
 			}catch(...) {}
 			try{
-				ShaderStructTypePtr	st{ new ShaderStructType{ "StType21_hlslC_C430" }};
+				ShaderStructTypePtr	st = ShaderStructType::Create( "StType21_hlslC_C430" );
 				st->Set( EStructLayout::HLSL_Const, "StType21_C430  a;" );
 				TEST(false);
 			}catch(...) {}
 			try{
-				ShaderStructTypePtr	st{ new ShaderStructType{ "StType21_hlslC_std430" }};
+				ShaderStructTypePtr	st = ShaderStructType::Create( "StType21_hlslC_std430" );
 				st->Set( EStructLayout::HLSL_Const, "StType21_std430  a;" );
 				TEST(false);
 			}catch(...) {}
 			try{
-				ShaderStructTypePtr	st{ new ShaderStructType{ "StType21_hlslC_IO" }};
+				ShaderStructTypePtr	st = ShaderStructType::Create( "StType21_hlslC_IO" );
 				st->Set( EStructLayout::HLSL_Const, "StType21_IO  a;" );
 				TEST(false);
 			}catch(...) {}
 			try{
-				ShaderStructTypePtr	st{ new ShaderStructType{ "StType21_hlslC_hlslSB" }};
+				ShaderStructTypePtr	st = ShaderStructType::Create( "StType21_hlslC_hlslSB" );
 				st->Set( EStructLayout::HLSL_Const, "StType21_hlslSB  a;" );
 				TEST(false);
 			}catch(...) {}
 
 			// ok
 			try{
-				ShaderStructTypePtr	st{ new ShaderStructType{ "StType21_hlslC_hlslC" }};
+				ShaderStructTypePtr	st = ShaderStructType::Create( "StType21_hlslC_hlslC" );
 				st->Set( EStructLayout::HLSL_Const, "StType21_hlslC  a;" );
 			}catch(...){
 				TEST(false);
 			}
 			try{
-				ShaderStructTypePtr	st{ new ShaderStructType{ "StType21_hlslC_C140" }};
+				ShaderStructTypePtr	st= ShaderStructType::Create( "StType21_hlslC_C140" );
 				st->Set( EStructLayout::HLSL_Const, "StType21_C140  a;" );
 			}catch(...){
 				TEST(false);
@@ -3198,45 +3279,45 @@ struct StType22
 		{
 			// error
 			try{
-				ShaderStructTypePtr	st{ new ShaderStructType{ "StType21_hlslSB_std140" }};
+				ShaderStructTypePtr	st = ShaderStructType::Create( "StType21_hlslSB_std140" );
 				st->Set( EStructLayout::HLSL_Struct, "StType21_std140  a;" );
 				TEST(false);
 			}catch(...) {}
 			try{
-				ShaderStructTypePtr	st{ new ShaderStructType{ "StType21_hlslSB_mtl" }};
+				ShaderStructTypePtr	st = ShaderStructType::Create( "StType21_hlslSB_mtl" );
 				st->Set( EStructLayout::HLSL_Struct, "StType21_mtl  a;" );
 				TEST(false);
 			}catch(...) {}
 			try{
-				ShaderStructTypePtr	st{ new ShaderStructType{ "StType21_hlslSB_C140" }};
+				ShaderStructTypePtr	st = ShaderStructType::Create( "StType21_hlslSB_C140" );
 				st->Set( EStructLayout::HLSL_Struct, "StType21_C140  a;" );
 				TEST(false);
 			}catch(...) {}
 			try{
-				ShaderStructTypePtr	st{ new ShaderStructType{ "StType21_hlslSB_std430" }};
+				ShaderStructTypePtr	st = ShaderStructType::Create( "StType21_hlslSB_std430" );
 				st->Set( EStructLayout::HLSL_Struct, "StType21_std430  a;" );
 				TEST(false);
 			}catch(...) {}
 			try{
-				ShaderStructTypePtr	st{ new ShaderStructType{ "StType21_hlslSB_IO" }};
+				ShaderStructTypePtr	st = ShaderStructType::Create( "StType21_hlslSB_IO" );
 				st->Set( EStructLayout::HLSL_Struct, "StType21_IO  a;" );
 				TEST(false);
 			}catch(...) {}
 			try{
-				ShaderStructTypePtr	st{ new ShaderStructType{ "StType21_hlslSB_hlslC" }};
+				ShaderStructTypePtr	st = ShaderStructType::Create( "StType21_hlslSB_hlslC" );
 				st->Set( EStructLayout::HLSL_Struct, "StType21_hlslC  a;" );
 				TEST(false);
 			}catch(...) {}
 
 			// ok
 			try{
-				ShaderStructTypePtr	st{ new ShaderStructType{ "StType21_hlslSB_hlslSB" }};
+				ShaderStructTypePtr	st = ShaderStructType::Create( "StType21_hlslSB_hlslSB" );
 				st->Set( EStructLayout::HLSL_Struct, "StType21_hlslSB  a;" );
 			}catch(...){
 				TEST(false);
 			}
 			try{
-				ShaderStructTypePtr	st{ new ShaderStructType{ "StType21_hlslSB_C430" }};
+				ShaderStructTypePtr	st = ShaderStructType::Create( "StType21_hlslSB_C430" );
 				st->Set( EStructLayout::HLSL_Struct, "StType21_C430  a;" );
 			}catch(...){
 				TEST(false);
@@ -3266,7 +3347,7 @@ extern void  UnitTest_StructType ()
 		obj.slangCompiler = MakeUnique<SLangCompiler>( ArrayView<Path>{} );
 	#endif
 
-	ScriptFeatureSetPtr	fs {new ScriptFeatureSet{ "DefaultFS" }};
+	ScriptFeatureSetPtr	fs = ScriptFeatureSet::Create( "DefaultFS" );
 	fs->fs.Init( FeatureSet::EFeature::RequireTrue );
 
 	try {
@@ -3292,6 +3373,7 @@ extern void  UnitTest_StructType ()
 		StructType_Test20();
 		StructType_Test21();
 		StructType_Test22();
+		StructType_Test23();
 		StructType_TestLayoutCompatibility();
 	} catch(...) {
 		TEST( false );

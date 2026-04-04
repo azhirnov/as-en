@@ -102,7 +102,7 @@ namespace AE::PipelineCompiler
 		{
 			String				name;
 			ShaderStructTypePtr	stType;
-			uint				arraySize	= 0;		// 0 - non-array, UMax - dynamic
+			ulong				arraySize	= 0;		// 0 - non-array, UMax - dynamic, for array of arrays see 'arraySizeChain'
 			EValueType			type		= Default;
 			ubyte				rows		= 0;
 			ubyte				cols		= 0;
@@ -110,6 +110,7 @@ namespace AE::PipelineCompiler
 			Bytes				size;
 			Bytes				align;
 			Bytes				offset;
+			FixedArray<uint,4>	arraySizeChain;
 
 			Field () {}
 
@@ -189,8 +190,7 @@ namespace AE::PipelineCompiler
 
 	// methods
 	public:
-		ShaderStructType () {}
-		explicit ShaderStructType (const String &name)													__Th___;
+		ND_ static ShaderStructTypePtr  Create (const String &name)										__Th___;
 
 		void  AddFeatureSet (const String &name)														__Th___;
 		void  Set (EStructLayout layout, const String &fields)											__Th___;
@@ -243,6 +243,8 @@ namespace AE::PipelineCompiler
 		static void  Bind (const ScriptEnginePtr &se)													__Th___;
 
 	private:
+		explicit ShaderStructType (const String &name)													__NE___;
+
 		ND_ uint	_StaticSize ()																		const	{ return uint(StaticSize()); }
 		ND_ uint	_ArrayStride ()																		const	{ return uint(ArrayStride()); }
 

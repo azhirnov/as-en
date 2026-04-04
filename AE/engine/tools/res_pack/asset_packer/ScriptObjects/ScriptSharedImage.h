@@ -1,4 +1,7 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+/*
+	SharedImage contains data with same pixel format from multiple sources: Atlas, Font.
+*/
 
 #pragma once
 

@@ -266,15 +266,20 @@ namespace AE::ResEditor
 
 				[&ctx, fid] (const DrawIndirectCountCmd2 &src)
 				{
+				#if defined(AE_ENABLE_VULKAN) or defined(AE_ENABLE_REMOTE_GRAPHICS)
 					Graphics::DrawIndirectCountCmd	cmd = src;
 					cmd.indirectBuffer	= src.indirectBufferPtr->GetBufferId( fid );
 					cmd.countBuffer		= src.countBufferPtr->GetBufferId( fid );
 					cmd.maxDrawCount	= src.dynMaxDrawCount ? src.dynMaxDrawCount->Get() : src.maxDrawCount;
 					ctx.DrawIndirectCount( cmd );
+				#else
+					CHECK_MSG( false, "DrawIndirectCount is not supported" );
+				#endif
 				},
 
 				[&ctx, fid] (const DrawIndexedIndirectCountCmd2 &src)
 				{
+				#if defined(AE_ENABLE_VULKAN) or defined(AE_ENABLE_REMOTE_GRAPHICS)
 					ctx.BindIndexBuffer( src.indexBufferPtr->GetBufferId( fid ), src.indexBufferOffset, src.indexType );
 
 					Graphics::DrawIndexedIndirectCountCmd	cmd = src;
@@ -282,15 +287,22 @@ namespace AE::ResEditor
 					cmd.countBuffer		= src.countBufferPtr->GetBufferId( fid );
 					cmd.maxDrawCount	= src.dynMaxDrawCount ? src.dynMaxDrawCount->Get() : src.maxDrawCount;
 					ctx.DrawIndexedIndirectCount( cmd );
+				#else
+					CHECK_MSG( false, "DrawIndexedIndirectCount is not supported" );
+				#endif
 				},
 
 				[&ctx, fid] (const DrawMeshTasksIndirectCountCmd2 &src)
 				{
+				#if defined(AE_ENABLE_VULKAN) or defined(AE_ENABLE_REMOTE_GRAPHICS)
 					Graphics::DrawMeshTasksIndirectCountCmd	cmd = src;
 					cmd.indirectBuffer	= src.indirectBufferPtr->GetBufferId( fid );
 					cmd.countBuffer		= src.countBufferPtr->GetBufferId( fid );
 					cmd.maxDrawCount	= src.dynMaxDrawCount ? src.dynMaxDrawCount->Get() : src.maxDrawCount;
 					ctx.DrawMeshTasksIndirectCount( cmd );
+				#else
+					CHECK_MSG( false, "DrawMeshTasksIndirectCount is not supported" );
+				#endif
 				});
 		}
 

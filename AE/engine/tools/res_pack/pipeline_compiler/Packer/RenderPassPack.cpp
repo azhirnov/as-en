@@ -1049,13 +1049,13 @@ namespace
 			//<< "\nci.pNext          " << (_ci.pNext == null ? " = null" : "!= null")
 			<< "\nci.flags           = " << VkRenderPassCreateFlagsToString( _ci.flags );
 
-		for (auto* next = Cast<VkBaseInStructure>(_ci.pNext); next != null; next = next->pNext)
+		for (auto& ext : VNextRange{ _ci })
 		{
-			switch ( next->sType )
+			switch ( ext.Type() )
 			{
 				case VK_STRUCTURE_TYPE_RENDER_PASS_FRAGMENT_DENSITY_MAP_CREATE_INFO_EXT :
 				{
-					auto&	fdm = *Cast<VkRenderPassFragmentDensityMapCreateInfoEXT>(next);
+					auto&	fdm = ext.As< VkRenderPassFragmentDensityMapCreateInfoEXT >();
 					str << "\nci.fragmentDensityMapAttachment = { "
 						<< Base::ToString( fdm.fragmentDensityMapAttachment.attachment ) << ", "
 						<< VkImageLayoutToString( fdm.fragmentDensityMapAttachment.layout ) << " }";
@@ -1159,13 +1159,13 @@ namespace
 					str << " }";
 				}
 
-				for (auto* next = Cast<VkBaseInStructure>(sp.pNext); next != null; next = next->pNext)
+				for (auto& ext : VNextRange{ sp })
 				{
-					switch ( next->sType )
+					switch ( ext.Type() )
 					{
 						case VK_STRUCTURE_TYPE_FRAGMENT_SHADING_RATE_ATTACHMENT_INFO_KHR :
 						{
-							auto&	sra = *Cast<VkFragmentShadingRateAttachmentInfoKHR>(next);
+							auto&	sra = ext.As< VkFragmentShadingRateAttachmentInfoKHR >();
 							str << "\n  ["s << Base::ToString(i) << "].fragmentShadingRateAttachment = {";
 							AttachmentRefsToString( "\n    ", sra.pFragmentShadingRateAttachment, 1, false );
 							str << "\n    .shadingRateAttachmentTexelSize = {" << Base::ToString( sra.shadingRateAttachmentTexelSize.width )
@@ -1278,16 +1278,16 @@ namespace
 		// serialize extensions
 		{
 			uint	count = 0;
-			for (auto* next = Cast<VkBaseInStructure>(_ci.pNext); next != null; next = next->pNext, ++count) {}
+			for (auto& ext : VNextRange{ _ci }) { Unused( ext );  ++count; }
 			result &= ser( count );
 		}
 
-		for (auto* next = Cast<VkBaseInStructure>(_ci.pNext); next != null; next = next->pNext)
+		for (auto& ext : VNextRange{ _ci })
 		{
-			switch ( next->sType )
+			switch ( ext.Type() )
 			{
 				case VK_STRUCTURE_TYPE_RENDER_PASS_FRAGMENT_DENSITY_MAP_CREATE_INFO_EXT :
-					result &= SerFragDensityMapAtt( *Cast<VkRenderPassFragmentDensityMapCreateInfoEXT>(next), ser );
+					result &= SerFragDensityMapAtt( ext.As<VkRenderPassFragmentDensityMapCreateInfoEXT>(), ser );
 					break;
 
 				default :
@@ -1353,16 +1353,16 @@ namespace
 			// serialize extensions
 			{
 				uint	count = 0;
-				for (auto* next = Cast<VkBaseInStructure>(sp.pNext); next != null; next = next->pNext, ++count) {}
+				for (auto& ext : VNextRange{ sp }) { Unused( ext );  ++count; }
 				result &= ser( count );
 			}
 
-			for (auto* next = Cast<VkBaseInStructure>(sp.pNext); next != null; next = next->pNext)
+			for (auto& ext : VNextRange{ sp })
 			{
-				switch ( next->sType )
+				switch ( ext.Type() )
 				{
 					case VK_STRUCTURE_TYPE_FRAGMENT_SHADING_RATE_ATTACHMENT_INFO_KHR :
-						result &= SerFragShadingRateAtt( *Cast<VkFragmentShadingRateAttachmentInfoKHR>(next), ser );
+						result &= SerFragShadingRateAtt( ext.As<VkFragmentShadingRateAttachmentInfoKHR>(), ser );
 						break;
 
 					default :

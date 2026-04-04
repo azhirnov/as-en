@@ -21,14 +21,14 @@ AVX2, MSVC
 	time:			0.12s
 	str size:		131 KB			- L2 cache
 	instructions:	410M			= 131'176 * 100'000 / 32
-	inst/s:			3.42 GInst/s	= ~3.4 GHz  - used 2 instruction (cmpeq, movemask) on 4.2GHz, its ~1.6 inst/cy
+	inst/s:			3.42 GInst/s	= ~3.4 GHz  - used 2 instruction (cmpeq, movemask) on 4.2GHz, it's ~1.6 inst/cy
 
 AVX2, Clang
 	bandwidth:		131.6GB/s
 	time:			99.67ms
 	str size:		131 KB			- L2 cache
 	instructions:	410M			= 131'176 * 100'000 / 32
-	inst/s:			4.11 GInst/s	= ~4.1 GHz  - used 2 instruction (cmpeq, movemask) on 4.2GHz, its near to 2 inst/cy
+	inst/s:			4.11 GInst/s	= ~4.1 GHz  - used 2 instruction (cmpeq, movemask) on 4.2GHz, it's near to 2 inst/cy
 ```
 
 
@@ -76,7 +76,7 @@ AVX2, MSVC
 	time:			0.1 s
 	str size:		131 KB			- L2 cache
 	instructions:	410M			= 131'176 * 100'000 / 32
-	inst/s:			4.11 GInst/s	- used 2 instruction (cmpeq, movemask) on 5.1GHz, its 1.6 inst/cy
+	inst/s:			4.11 GInst/s	- used 2 instruction (cmpeq, movemask) on 5.1GHz, it's 1.6 inst/cy
 
 AVX2, Clang
 	str size:		131 KB			- L2 cache
@@ -86,17 +86,17 @@ AVX2, Clang
 		clock:			5.1 GHz
 		bandwidth:		153.4 GB/s
 		time:			85.5 ms
-		inst/s:			4.8 GInst/s		- used 2 instruction (cmpeq, movemask), its 1.9 inst/cy
+		inst/s:			4.8 GInst/s		- used 2 instruction (cmpeq, movemask), it's 1.9 inst/cy
 
 	E-core:
 		clock:			4.4 GHz
 		bandwidth:		115.2 GB/s
 		time:			110 ms
-		inst/s:			3.73 GInst/s	- used 2 instruction (cmpeq, movemask), its 1.7 inst/cy
+		inst/s:			3.73 GInst/s	- used 2 instruction (cmpeq, movemask), it's 1.7 inst/cy
 
 	LP E-core:
 		clock:			2.5 GHz
 		bandwidth:		48.5 GB/s
 		time:			270 ms
-		inst/s:			1.52 GInst/s	- used 2 instruction (cmpeq, movemask), its 1.2 inst/cy
+		inst/s:			1.52 GInst/s	- used 2 instruction (cmpeq, movemask), it's 1.2 inst/cy
 ```

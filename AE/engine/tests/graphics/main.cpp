@@ -10,10 +10,10 @@ extern void UnitTest_FormattedText ();
 extern void UnitTest_UI_Layouts ();
 extern void UnitTest_SurfaceDimensions ();
 
-extern void Test_DrawTests (RC<VFS::IVirtualFileStorage> assetStorage, RC<VFS::IVirtualFileStorage> refStorage);
+extern void Test_DrawTests (RC<VFS::IVirtualFileStorage> assetStorage, RC<VFS::IVirtualFileStorage> refStorage, StringView);
 
 
-static void  GraphicsTests (RC<VFS::IVirtualFileStorage> assetStorage, RC<VFS::IVirtualFileStorage> refStorage)
+static void  GraphicsTests (RC<VFS::IVirtualFileStorage> assetStorage, RC<VFS::IVirtualFileStorage> refStorage, StringView test_name)
 {
 	CHECK_FATAL( assetStorage and refStorage );
 
@@ -25,11 +25,11 @@ static void  GraphicsTests (RC<VFS::IVirtualFileStorage> assetStorage, RC<VFS::I
 	CHECK_FATAL( Networking::SocketService::Instance().Initialize() );
 
 
-	UnitTest_FormattedText();
-	UnitTest_SurfaceDimensions();
-	UnitTest_UI_Layouts();
+	RUN_TEST( UnitTest_FormattedText );
+	RUN_TEST( UnitTest_SurfaceDimensions );
+	RUN_TEST( UnitTest_UI_Layouts );
 
-	Test_DrawTests( assetStorage, refStorage );
+	Test_DrawTests( assetStorage, refStorage, test_name );
 
 
 	Networking::SocketService::Instance().Deinitialize();
@@ -40,66 +40,59 @@ static void  GraphicsTests (RC<VFS::IVirtualFileStorage> assetStorage, RC<VFS::I
 }
 
 
-#ifdef AE_PLATFORM_ANDROID
+extern "C" AE_DLL_EXPORT int Tests_Graphics (VFS::IVirtualFileStorage* assetStorage,
+											 VFS::IVirtualFileStorage* refStorage)
+{
+	StaticLogger::LoggerScope log{};
 
-	extern "C" AE_DLL_EXPORT int Tests_Graphics2 (VFS::IVirtualFileStorage* assetStorage,
-												  VFS::IVirtualFileStorage* refStorage)
-	{
-		StaticLogger::LoggerScope log{};
+	GraphicsTests( RC{assetStorage}, RC{refStorage}, {} );
+	return 0;
+}
 
-		GraphicsTests( RC{assetStorage}, RC{refStorage} );
-		return 0;
-	}
 
-	extern "C" AE_DLL_EXPORT int Tests_Graphics (const char* path)
-	{
-		BEGIN_TEST();
+TEST_ENTRY()
+{
+	BEGIN_TEST();
 
-	  #ifdef AE_CI_BUILD_TEST
-		const Path	ref_path	= Path{path} / AE_REF_IMG_PATH;
-		AE_LOGI( "ref_path: "s << ToString(ref_path) );
-	  #else
-		const Path	ref_path	= Path{path} / AE_REF_IMG_PATH "vulkan";
-	  #endif
+	Path	ref_path;
+	Path	asset_path;
 
-		auto	ref_storage		= VFS::VirtualFileStorageFactory::CreateDynamicFolder( ref_path, Default, True{"createFolder"} );
-		auto	asset_storage	= VFS::VirtualFileStorageFactory::CreateStaticFolder( path, Default );
+	#ifdef AE_CI_BUILD_TEST
+		ref_path	= curr / "tests_graphics_ref";
+		asset_path	= curr;
 
-		GraphicsTests( asset_storage, ref_storage );
-		return 0;
-	}
+	#else
+		#if defined(AE_PLATFORM_WINDOWS) or defined(AE_PLATFORM_LINUX) or defined(AE_PLATFORM_MACOS)
+		{
+			Path	data_path = curr;
+			for (uint i = 0; i < 10; ++i)
+			{
+				if ( FileSystem::IsDirectory( data_path / "AE-Data" ))
+				{
+					ref_path	= data_path / "AE-Data/tests/graphics";
+					asset_path	= data_path / "AE-Temp/engine/graphics";
+					break;
+				}
 
-#else
+				data_path = data_path.parent_path();
+			}
+		}
+		#endif
 
-	int main (const int argc, char* argv[])
-	{
-		BEGIN_TEST();
+		#if defined(AE_ENABLE_METAL)
+			ref_path /= "metal";
+		#elif defined(AE_ENABLE_VULKAN)
+			ref_path /= "vulkan";
+		#elif defined(AE_ENABLE_REMOTE_GRAPHICS)
+			ref_path /= "remote";
+		#else
+		#	error not implemented
+		#endif
+	#endif
 
-	  #ifdef AE_CI_BUILD_TEST
-		const Path	ref_path	= curr / AE_REF_IMG_PATH;
-		const Path	asset_path	= curr;
+	auto	ref_storage		= VFS::VirtualFileStorageFactory::CreateDynamicFolder( ref_path, Default, True{"createFolder"} );
+	auto	asset_storage	= VFS::VirtualFileStorageFactory::CreateStaticFolder( asset_path, Default );
 
-	  #elif defined(AE_ENABLE_METAL)
-		const Path	ref_path	{AE_REF_IMG_PATH "metal"};
-		const Path	asset_path	{AE_RES_PACK_FOLDER};
-
-	  #elif defined(AE_ENABLE_VULKAN)
-		const Path	ref_path	{AE_REF_IMG_PATH "vulkan"};
-		const Path	asset_path	{AE_RES_PACK_FOLDER};
-
-	  #elif defined(AE_ENABLE_REMOTE_GRAPHICS)
-		const Path	ref_path	{AE_REF_IMG_PATH "remote"};
-		const Path	asset_path	{AE_RES_PACK_FOLDER};
-
-	  #else
-	  #	error not implemented
-	  #endif
-
-		auto	ref_storage		= VFS::VirtualFileStorageFactory::CreateDynamicFolder( ref_path, Default, True{"createFolder"} );
-		auto	asset_storage	= VFS::VirtualFileStorageFactory::CreateStaticFolder( asset_path, Default );
-
-		GraphicsTests( asset_storage, ref_storage );
-		return 0;
-	}
-
-#endif // not AE_PLATFORM_ANDROID
+	GraphicsTests( asset_storage, ref_storage, test_name );
+	return 0;
+}

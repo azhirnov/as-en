@@ -88,6 +88,8 @@ private:
 /*
 =================================================
 	HalfToFloat
+----
+	same as FloatConversion::ConvertBits_Fast()
 =================================================
 */
 public:

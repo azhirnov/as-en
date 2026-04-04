@@ -38,6 +38,8 @@ void ASmain ()
 		{
 			RC<PipelineCompiler>	ppln = PipelineCompiler();
 			ppln.AddPipelineFolderRecursive( GetSharedFeatureSetPath() );
+
+			ppln.PipelineIncludeDir( GetSharedPipelinesPath() );
 			ppln.AddPipeline( "config_" + suffix[i] + ".as" );
 			ppln.AddPipeline( "rtech/render_passes.as" );
 			ppln.AddPipeline( "rtech/ren_tech.as" );
@@ -45,8 +47,11 @@ void ASmain ()
 			ppln.AddPipeline( GetCanvasVerticesPath() );
 			ppln.AddPipelineFolder( "layouts" );
 			ppln.AddPipelineFolder( "pipelines" );
-			ppln.AddShaderFolder( "shaders" );
+
 			ppln.ShaderIncludeDir( GetSharedShadersPath() );
+			ppln.ShaderIncludeDir( GetSharedPipelinesPath() );
+			ppln.AddShaderFolder( "shaders" );
+
 			ppln.SetOutputCPPFile( "cpp/" + suffix[i] + "_types.h",  "cpp/" + suffix[i] + "_names.h",  EReflectionFlags::All );
 
 			const string  fname = output_temp + suffix[i] + "/pipelines.bin";

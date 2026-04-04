@@ -5,8 +5,8 @@
 #ifdef AE_ENABLE_SCRIPTING
 # include "pch/Scripting.h"
 
-# include "graphics_rhi/Public/ResourceEnums.h"
 # include "graphics_rhi/Public/EResourceState.h"
+# include "graphics_rhi/Public/ResourceEnums.h"
 # include "graphics_rhi/Public/RenderState.h"
 # include "graphics_rhi/Public/FeatureSet.h"
 # include "graphics_rhi/Public/SamplerDesc.h"
@@ -84,6 +84,8 @@ AE_DECL_SCRIPT_TYPE( AE::Graphics::ECoopVecMatrixLayout,		"ECoopVecMatrixLayout"
 AE_DECL_SCRIPT_TYPE( AE::Graphics::ECoopMatrixCfg,				"ECoopMatrixCfg"		);
 AE_DECL_SCRIPT_TYPE( AE::Graphics::ECoopVecCfg,					"ECoopVecCfg"			);
 AE_DECL_SCRIPT_TYPE( AE::Graphics::EDeviceValidation,			"EDeviceValidation"		);
+AE_DECL_SCRIPT_TYPE( AE::Graphics::EMicromapType,				"EMicromapType"			);
+AE_DECL_SCRIPT_TYPE( AE::Graphics::EOpacityMicromapFormat,		"EOpacityMicromapFormat" );
 
 AE_DECL_SCRIPT_TYPE( AE::Graphics::EPipelineDynamicState,			"EPipelineDynamicState"			);
 AE_DECL_SCRIPT_TYPE( AE::Graphics::ESamplerChromaLocation,			"ESamplerChromaLocation"		);

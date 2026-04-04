@@ -46,9 +46,11 @@ namespace AE::Graphics
 		Transfer_Graphics,	// blit, clear, resolve requires graphics queue, include Transfer_Copy
 		Transfer_Copy,		// for async transfer queue
 		RayTracing,
-		RTAS_Build,
+		RTAS_Build,			// build acceleration structure
+		RTAS_Copy,			// copy acceleration structure
+		MM_Build,			// build micromap
 		Video,
-		//DeviceCommands,
+		ICB_Preprocess,		// indirect command buffer preprocessing
 		None,
 		All,
 		_Count
@@ -64,17 +66,17 @@ namespace AE::Graphics
 		enum class EFlags : ubyte
 		{
 			Unknown		= 0,
-			ResetQuery	= 1 << 0,
-			FrameEnd	= 1 << 1,
+			ResetQuery	= 1 << 0,		// used instead of host query reset
+			FrameEnd	= 1 << 1,		// when used frame boundary, batch with 'FrameEnd' will mark batch as end of frame
 			_BITOPS_
 		};
 
 	// variables
 		EQueueType		queue		= Default;
 		EFlags			flags		= Default;
-		uint			submitIdx	= UMax;
+		uint			submitIdx	= UMax;			// in which order batches must be submitted to GPU, must be unique per queue type
 		DebugLabel		dbg			= Default;
-		void *			userData	= null;
+		void *			userData	= null;			// used by RG, can be overriden if RG is not enabled
 		// TODO: ESubmitMode
 
 	// methods

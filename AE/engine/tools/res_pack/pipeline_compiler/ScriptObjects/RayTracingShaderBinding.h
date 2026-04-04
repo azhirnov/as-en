@@ -58,8 +58,7 @@ namespace AE::PipelineCompiler
 
 	// methods
 	public:
-		RayTracingShaderBinding ();
-		explicit RayTracingShaderBinding (const RayTracingPipelineSpecPtr &ptr, const String &name)			__Th___;
+		ND_ static RayTracingShaderBindingPtr  Create (const RayTracingPipelineSpecPtr &ptr, const String &name) __Th___;
 
 		void  MaxRayTypes (uint value)																		__Th___;
 		void  BindRayGen (const String &groupName)															__Th___;
@@ -78,6 +77,9 @@ namespace AE::PipelineCompiler
 		ND_ StringView			Name ()																		const	{ return _name; }
 		ND_ RTShaderBindingUID	UID ()																		const	{ return _uid.value_or( Default ); }
 		ND_ uint				GetMaxRayTypes ()															const	{ return _maxRayTypes; }
+
+	private:
+		explicit RayTracingShaderBinding (const RayTracingPipelineSpecPtr &ptr, const String &name)			__NE___;
 	};
 
 

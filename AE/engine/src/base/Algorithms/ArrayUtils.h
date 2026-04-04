@@ -96,6 +96,8 @@ namespace AE::Base
 /*
 =================================================
 	StringSizeOf
+----
+	does not include null symbol
 =================================================
 */
 	template <typename T, typename A>

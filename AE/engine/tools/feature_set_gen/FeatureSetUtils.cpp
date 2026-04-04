@@ -219,7 +219,7 @@ namespace
 =================================================
 	FS_ParseJSON_Str
 =================================================
-*/
+*
 	ND_ static StringView  FS_ParseJSON_Str (StringView json, StringView name)
 	{
 		usize	pos = json.find( name );
@@ -1225,7 +1225,7 @@ namespace
 */
 	bool  FeatureSetFromJSON (const Path &jsonFile, OUT FeatureSetExt &outFeatureSet, OUT String &outName)
 	{
-		StaticAssert( FeatureSet::GetFeatureCount() == 272 );
+		StaticAssert( FeatureSet::GetFeatureCount() == 277 );
 
 		String	json;
 		{
@@ -1253,7 +1253,8 @@ namespace
 			{ "perPipeline_maxStorageBuffersDynamic",	"maxDescriptorSetStorageBuffersDynamic"	},
 			{ "ycbcr2Plane444",							"ycbcr2plane444Formats"					},
 			{ "vertexDivisor",							"vertexAttributeInstanceRateDivisor"	},
-			{ "perPipeline_maxSubsampledSamplers",		"maxDescriptorSetSubsampledSamplers"	}
+			{ "perPipeline_maxSubsampledSamplers",		"maxDescriptorSetSubsampledSamplers"	},
+			{ "opacityMicromap",						"micromap"								}
 		};
 
 		const auto	ReplaceName = [&replace_names] (StringView key)
@@ -1315,7 +1316,10 @@ namespace
 			outFeatureSet.imageViewFormatList = EFeature::RequireTrue;
 
 		if ( HasSubString( json, "VK_KHR_maintenance2" ))
+		{
 			outFeatureSet.imageViewExtendedUsage = EFeature::RequireTrue;
+			outFeatureSet.separateDepthStencilRW = EFeature::RequireTrue;
+		}
 
 		if ( HasSubString( json, "VK_EXT_shader_stencil_export" ))
 			outFeatureSet.shaderStencilExport = EFeature::RequireTrue;
@@ -1427,6 +1431,28 @@ namespace
 			CHECK( All( outFeatureSet.fragmentShadingRateTexelSize.Min() == uint2{min.width, min.height} ));
 			CHECK( All( outFeatureSet.fragmentShadingRateTexelSize.Max() == uint2{max.width, max.height} ));
 			CHECK( outFeatureSet.fragmentShadingRateTexelSize.MaxAspectRatio() == aspect_ratio );
+		}
+
+		// on some devices ray tracing pipeline is supported but 'maxRayDispatchInvocationCount = 0' so disable this feature
+		if ( outFeatureSet.rayTracingPipeline == EFeature::RequireTrue )
+		{
+			if ( outFeatureSet.ext.maxRayDispatchInvocationCount == 0 or
+				 outFeatureSet.maxRayRecursionDepth <= 1 )
+			{
+				outFeatureSet.rayTracingPipeline = EFeature::Ignore;
+			}
+		}
+
+		// NV_device_generated_commands has some fields which match with EXT, check that EXT is supported
+		if ( outFeatureSet.deviceGeneratedCommands == EFeature::RequireTrue )
+		{
+			if ( not json.contains( "VK_EXT_device_generated_commands" ))
+			{
+				outFeatureSet.deviceGeneratedCommands								= EFeature::Ignore;
+				outFeatureSet.deviceGeneratedCommandsMultiDrawIndirectCount			= EFeature::Ignore;
+				outFeatureSet.supportedIndirectCommandsShaderStages					= Default;
+				outFeatureSet.supportedIndirectCommandsShaderStagesPipelineBinding	= Default;
+			}
 		}
 
 		// deviceID, vendorID

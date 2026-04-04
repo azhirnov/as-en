@@ -23,7 +23,7 @@ namespace AE::Graphics
 
 
 	//
-	// Next Chain (setter for Vulkan 'pNext' field)
+	// pNext Chain (setter for Vulkan 'pNext' field)
 	//
 
 	template <typename InitialType>
@@ -70,6 +70,65 @@ namespace AE::Graphics
 
 	template <typename T>
 	VNextChain (T &) -> VNextChain<T>;
+
+
+
+	//
+	// pNext Iterator
+	//
+
+	template <typename InitialType>
+	struct VNextIterator
+	{
+	private:
+		InitialType *	_next;
+
+	public:
+		template <typename T>
+		explicit VNextIterator (T &st)							__NE___	{ _next = static_cast< InitialType *>( st.pNext ); }
+
+		template <typename T>
+		ND_ auto&				As ()							C_NE___	{ NonNull( _next );  return *Cast<T>( _next ); }
+		ND_ VkStructureType		Type ()							C_NE___	{ NonNull( _next );  return _next->sType; }
+
+		ND_ bool				operator != (std::nullptr_t)	C_NE___	{ return _next != null; }
+		ND_ auto const&			operator * ()					C_NE___	{ return *this; }
+
+		ND_ InitialType*		operator -> ()					C_NE___	{ NonNull( _next );  return _next; }
+
+		VNextIterator&			operator ++ ()					__NE___
+		{
+			NonNull( _next );
+			_next = _next->pNext;
+			return *this;
+		}
+	};
+
+
+	template <typename InitialType>
+	struct VNextRange
+	{
+	private:
+		using Struct_t	= Conditional< IsMutableVkPNext<InitialType>, VkBaseOutStructure,
+							Conditional< IsConstVkPNext<InitialType>, const VkBaseInStructure, void >>;
+		StaticAssert( not IsSame< Struct_t, void >);
+
+		using Iterator = VNextIterator< Struct_t >;
+
+	private:
+		Iterator	_begin;
+
+	public:
+		template <typename T>
+		explicit VNextRange (T &st)			__NE___ : _begin{ st } {}
+
+		ND_ Iterator		begin ()		C_NE___	{ return _begin; }
+		ND_ std::nullptr_t	end ()			C_NE___	{ return {}; }
+	};
+
+
+	template <typename T>
+	VNextRange (T &) -> VNextRange<T>;
 
 
 } // AE::Graphics

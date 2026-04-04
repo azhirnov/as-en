@@ -15,28 +15,43 @@ namespace AE::Graphics::_hidden_
 {
 namespace
 {
-	static constexpr FeatureSet::EFeature	True = FeatureSet::EFeature::RequireTrue;
+	static constexpr FeatureSet::EFeature	FeatTrue = FeatureSet::EFeature::RequireTrue;
 
 
 	ND_ static FeatureSet const&  _GetFeatureSet () __NE___ {
 		return GraphicsScheduler().GetFeatureSet();
 	}
 
+	ND_ static DeviceProperties const&  _GetDeviceProps () __NE___ {
+		return GraphicsScheduler().GetDevice().GetDeviceProperties();
+	}
+
 /*
 =================================================
-	AccelerationStructureSupported
+	AccelerationStructureSupported / RayTracingCtxSupported
 =================================================
 */
 	ND_ static bool  AccelerationStructureSupported ()	__NE___ {
-		return _GetFeatureSet().accelerationStructure() == True;
+		return _GetFeatureSet().accelerationStructure() == FeatTrue;
 	}
 
 	ND_ static bool  RayTracingCtxSupported ()			__NE___ {
-		return _GetFeatureSet().rayTracingPipeline == True;
+		return _GetFeatureSet().rayTracingPipeline == FeatTrue;
 	}
 
+/*
+=================================================
+	VideoDecodeSupported / VideoEncodeSupported
+=================================================
+*/
+	// TODO: feature set?
+#ifdef AE_ENABLE_VULKAN
+	ND_ static bool  VideoDecodeSupported ()			__NE___	{ return GraphicsScheduler().GetDevice().GetVExtensions().videoDecodeQueue; }
+	ND_ static bool  VideoEncodeSupported ()			__NE___	{ return GraphicsScheduler().GetDevice().GetVExtensions().videoEncodeQueue; }
+#else
 	ND_ static bool  VideoDecodeSupported ()			__NE___	{ return false; }
 	ND_ static bool  VideoEncodeSupported ()			__NE___	{ return false; }
+#endif
 
 } // namespace
 //-----------------------------------------------------------------------------
@@ -124,24 +139,24 @@ namespace
 		GCTX_CHECK( subres.aspectMask == EPixelFormat_ToImageAspect( imgDesc.format ));
 	}
 
-	ND_ static bool  BuildIndirectSupported ()				__NE___	{ return _GetFeatureSet().accelerationStructureIndirectBuild == True; }
+	ND_ static bool  BuildIndirectSupported ()				__NE___	{ return _GetFeatureSet().accelerationStructureIndirectBuild == FeatTrue; }
 
-	ND_ static bool		MultiViewportSupported ()			__NE___	{ return _GetFeatureSet().multiViewport == True; }
-	ND_ static bool  DepthBiasClampSupported ()				__NE___	{ return _GetFeatureSet().depthBiasClamp == True; }
-	ND_ static bool  DepthBoundsSupported ()				__NE___	{ return _GetFeatureSet().depthBounds == True; }
+	ND_ static bool  MultiViewportSupported ()				__NE___	{ return _GetFeatureSet().multiViewport == FeatTrue; }
+	ND_ static bool  DepthBiasClampSupported ()				__NE___	{ return _GetFeatureSet().depthBiasClamp == FeatTrue; }
+	ND_ static bool  DepthBoundsSupported ()				__NE___	{ return _GetFeatureSet().depthBounds == FeatTrue; }
 
-	ND_ static bool  MeshShaderSupported ()					__NE___	{ return _GetFeatureSet().meshShader == True; }
-	ND_ static bool  TileShaderSupported ()					__NE___	{ return _GetFeatureSet().tileShader == True; }
+	ND_ static bool  MeshShaderSupported ()					__NE___	{ return _GetFeatureSet().meshShader == FeatTrue; }
+	ND_ static bool  TileShaderSupported ()					__NE___	{ return _GetFeatureSet().tileShader == FeatTrue; }
+
+	ND_ static bool  DevGenCmdsSupported ()					__NE___	{ return _GetFeatureSet().deviceGeneratedCommands == FeatTrue; }
 
 	ND_ static bool  FragmentShadingRateSupported ()		__NE___
 	{
 		auto&	fs = _GetFeatureSet();
-		return	fs.pipelineFragmentShadingRate		== True	or
-				fs.primitiveFragmentShadingRate		== True	or
-				fs.attachmentFragmentShadingRate	== True;
+		return	fs.pipelineFragmentShadingRate		== FeatTrue	or
+				fs.primitiveFragmentShadingRate		== FeatTrue	or
+				fs.attachmentFragmentShadingRate	== FeatTrue;
 	}
-
-	ND_ static bool  ViewportWScalingSupported ()			__NE___	{ return _GetFeatureSet().clipSpaceWScalingNV == True; }
 
 #ifdef AE_ENABLE_VULKAN
 	ND_ static auto const&  _GetDeviceExtensions () __NE___ {
@@ -159,6 +174,75 @@ namespace
 
 	ND_ static auto const&  _GetResourceProps () __NE___ {
 		return GraphicsScheduler().GetDevice().GetDeviceProperties().res;
+	}
+
+/*
+=================================================
+	Shared_ExecuteGeneratedCommands
+=================================================
+*/
+	void  Shared_ExecuteGeneratedCommands (const PreprocessGeneratedCommandsCmd &cmd, EIndirectCommandsLayoutUsage cmdLayoutUsage, Bool isPreprocess) __Th___
+	{
+		GCTX_CHECK( DevGenCmdsSupported() );
+
+		GCTX_CHECK( cmd.preprocessAddress != Default );
+		GCTX_CHECK( cmd.preprocessSize > 0 );
+		GCTX_CHECK( cmd.preprocessSize != UMax );
+
+		GCTX_CHECK( cmd.indirectAddress != Default );
+		GCTX_CHECK( IsMultipleOf( ulong(cmd.indirectAddress), 4 ));
+		GCTX_CHECK( cmd.indirectAddressSize > 0 );
+		GCTX_CHECK( cmd.indirectAddressSize != UMax );
+
+		GCTX_CHECK( cmd.maxSequenceCount > 0 );
+		GCTX_CHECK( cmd.maxSequenceCount * cmd.maxDrawCount < (1u<<24) );
+
+		// 'sequenceCountAddress' can be null
+		GCTX_CHECK( IsMultipleOf( ulong(cmd.sequenceCountAddress), 4 ));
+
+		auto&	fs = _GetFeatureSet();
+		GCTX_CHECK( AllBits( fs.supportedIndirectCommandsShaderStages, cmd.shaderStages ));
+
+		auto&	icb_props = _GetDeviceProps().icb;
+		GCTX_CHECK( cmd.maxSequenceCount <= icb_props.maxIndirectSequenceCount );
+
+		if ( isPreprocess )
+		{
+			GCTX_CHECK( AllBits( cmdLayoutUsage, EIndirectCommandsLayoutUsage::ExplicitPreprocess ));
+
+			GCTX_CHECK( cmd.preprocessStates != null );
+		}
+		else
+		{
+			bool	req_pp = AllBits( cmdLayoutUsage, EIndirectCommandsLayoutUsage::ExplicitPreprocess );
+			GCTX_CHECK( req_pp == (cmd.preprocessStates != null) );
+		}
+	}
+
+	void  Shared_ExecuteGeneratedCommands (const PreprocessGeneratedCommands2Cmd &cmd,
+										   const BufferDesc &preprocessBufferDesc,
+										   const BufferDesc &indirectBufferDesc,
+										   const BufferDesc &sequenceCountBufferDesc,
+										   Bool isPreprocess) __Th___
+	{
+		GCTX_CHECK( DevGenCmdsSupported() );
+
+		GCTX_CHECK( cmd.preprocessBufferOffset < preprocessBufferDesc.size );
+		GCTX_CHECK( cmd.preprocessSize == UMax or cmd.preprocessBufferOffset + cmd.preprocessSize <= preprocessBufferDesc.size );
+		GCTX_CHECK( AllBits( preprocessBufferDesc.usage, EBufferUsage::ICB_Preprocess ));
+
+		GCTX_CHECK( cmd.indirectBufferOffset < indirectBufferDesc.size );
+		GCTX_CHECK( cmd.indirectSize == UMax or cmd.indirectBufferOffset + cmd.indirectSize <= indirectBufferDesc.size );
+		GCTX_CHECK( AllBits( indirectBufferDesc.usage, EBufferUsage::ShaderAddress ));
+
+		if ( cmd.sequenceCountBuffer )
+		{
+			GCTX_CHECK( cmd.sequenceCountBufferOffset < sequenceCountBufferDesc.size );
+			GCTX_CHECK( cmd.sequenceCountBufferOffset + 4 <= sequenceCountBufferDesc.size );
+			GCTX_CHECK( AllBits( sequenceCountBufferDesc.usage, EBufferUsage::Indirect ));
+		}
+
+		Unused( isPreprocess );
 	}
 
 } // namespace
@@ -637,6 +721,9 @@ namespace
 		for (auto& range : ranges)
 		{
 			GCTX_CHECK( AllBits( imgDesc.options, EImageOpt::BlitSrc | EImageOpt::BlitDst ));
+			//GCTX_CHECK( AllBits( imgDesc.options, EImageOpt::SampledLinear ));
+			//GCTX_CHECK( AllBits( imgDesc.usage, EImageOpt::ColorAttachment ));
+
 			GCTX_CHECK( range.aspectMask == EPixelFormat_ToImageAspect( imgDesc.format ));
 			GCTX_CHECK( range.baseLayer.Get() < imgDesc.arrayLayers.Get() );
 			GCTX_CHECK( range.layerCount + range.baseLayer.Get() <= imgDesc.arrayLayers.Get() );
@@ -753,6 +840,44 @@ namespace
 		GCTX_CHECK( buffer != Default );
 	}
 # endif
+
+/*
+=================================================
+	PreprocessGeneratedCommands
+=================================================
+*/
+	void  ComputeContextValidation::PreprocessGeneratedCommands (const PreprocessGeneratedCommandsCmd &cmd, EIndirectCommandsLayoutUsage cmdLayoutUsage) __Th___
+	{
+		Shared_ExecuteGeneratedCommands( cmd, cmdLayoutUsage, True{"preprocess"} );
+	}
+
+	void  ComputeContextValidation::PreprocessGeneratedCommands (const PreprocessGeneratedCommands2Cmd &cmd,
+																 const BufferDesc &preprocessBufferDesc,
+																 const BufferDesc &indirectBufferDesc,
+																 const BufferDesc &sequenceCountBufferDesc) __Th___
+	{
+		Shared_ExecuteGeneratedCommands( cmd, preprocessBufferDesc, indirectBufferDesc, sequenceCountBufferDesc, True{"preprocess"} );
+	}
+
+/*
+=================================================
+	ExecuteGeneratedCommands
+=================================================
+*/
+	void  ComputeContextValidation::ExecuteGeneratedCommands (const ExecuteGeneratedCommandsCmd &cmd, EIndirectCommandsLayoutUsage cmdLayoutUsage) __Th___
+	{
+		GCTX_CHECK( cmd.shaderStages == EShaderStages::Compute );
+
+		Shared_ExecuteGeneratedCommands( cmd, cmdLayoutUsage, False{"execute"} );
+	}
+
+	void  ComputeContextValidation::ExecuteGeneratedCommands (const ExecuteGeneratedCommands2Cmd &cmd,
+															  const BufferDesc &preprocessBufferDesc,
+															  const BufferDesc &indirectBufferDesc,
+															  const BufferDesc &sequenceCountBufferDesc) __Th___
+	{
+		Shared_ExecuteGeneratedCommands( cmd, preprocessBufferDesc, indirectBufferDesc, sequenceCountBufferDesc, False{"execute"} );
+	}
 
 #endif
 //-----------------------------------------------------------------------------
@@ -1027,7 +1152,7 @@ namespace
 		auto&	fs = _GetFeatureSet();
 
 		ASSERT( maxDrawCount > 0 );
-		GCTX_CHECK( fs.drawIndirectCount == True );
+		GCTX_CHECK( fs.drawIndirectCount == FeatTrue );
 		GCTX_CHECK( maxDrawCount <= fs.maxDrawIndirectCount );
 
 		GCTX_CHECK( stride >= SizeOf<DrawIndirectCommand> );
@@ -1080,7 +1205,7 @@ namespace
 		auto&	fs = _GetFeatureSet();
 
 		ASSERT( maxDrawCount > 0 );
-		GCTX_CHECK( fs.drawIndirectCount == True );
+		GCTX_CHECK( fs.drawIndirectCount == FeatTrue );
 		GCTX_CHECK( maxDrawCount <= fs.maxDrawIndirectCount );
 
 		GCTX_CHECK( stride >= SizeOf<DrawIndexedIndirectCommand> );
@@ -1235,6 +1360,27 @@ namespace
 
 /*
 =================================================
+	ExecuteGeneratedCommands
+=================================================
+*/
+	void  DrawContextValidation::ExecuteGeneratedCommands (const ExecuteGeneratedCommandsCmd &cmd, EIndirectCommandsLayoutUsage cmdLayoutUsage) __Th___
+	{
+		GCTX_CHECK( AnyBits( cmd.shaderStages, EShaderStages::AllGraphics ));
+		GCTX_CHECK( NoBits( cmd.shaderStages, ~EShaderStages::AllGraphics ));
+
+		Shared_ExecuteGeneratedCommands( cmd, cmdLayoutUsage, False{"execute"} );
+	}
+
+	void  DrawContextValidation::ExecuteGeneratedCommands (const ExecuteGeneratedCommands2Cmd &cmd,
+														   const BufferDesc &preprocessBufferDesc,
+														   const BufferDesc &indirectBufferDesc,
+														   const BufferDesc &sequenceCountBufferDesc) __Th___
+	{
+		Shared_ExecuteGeneratedCommands( cmd, preprocessBufferDesc, indirectBufferDesc, sequenceCountBufferDesc, False{"execute"} );
+	}
+
+/*
+=================================================
 	SetDepthBias
 =================================================
 */
@@ -1308,19 +1454,6 @@ namespace
 
 	//	GCTX_CHECK( AllBits( dynState, EPipelineDynamicState::FragmentShadingRate ));
 		GCTX_CHECK( NoBits( rate, ~uint(EShadingRate::_SizeMask) ));	// only size
-	}
-
-/*
-=================================================
-	SetViewportWScaling
-=================================================
-*/
-	void  DrawContextValidation::SetViewportWScaling (EPipelineDynamicState dynState, ArrayView<packed_float2> scaling) __Th___
-	{
-		GCTX_CHECK( ViewportWScalingSupported() );
-		//GCTX_CHECK( AllBits( dynState, EPipelineDynamicState::ViewportWScaling ));
-
-		Unused( scaling );	// TODO
 	}
 
 #endif
@@ -1736,6 +1869,44 @@ namespace
 		GCTX_CHECK( _GetVkDeviceProperties().rayTracingMaintenance1Feats.rayTracingPipelineTraceRaysIndirect2 == VK_TRUE );	// TODO: use FS
 	}
 # endif
+
+/*
+=================================================
+	PreprocessGeneratedCommands
+=================================================
+*/
+	void  RayTracingContextValidation::PreprocessGeneratedCommands (const PreprocessGeneratedCommandsCmd &cmd, EIndirectCommandsLayoutUsage cmdLayoutUsage) __Th___
+	{
+		Shared_ExecuteGeneratedCommands( cmd, cmdLayoutUsage, True{"preprocess"} );
+	}
+
+	void  RayTracingContextValidation::PreprocessGeneratedCommands (const PreprocessGeneratedCommands2Cmd &cmd,
+																	const BufferDesc &preprocessBufferDesc,
+																	const BufferDesc &indirectBufferDesc,
+																	const BufferDesc &sequenceCountBufferDesc) __Th___
+	{
+		Shared_ExecuteGeneratedCommands( cmd, preprocessBufferDesc, indirectBufferDesc, sequenceCountBufferDesc, True{"preprocess"} );
+	}
+
+/*
+=================================================
+	ExecuteGeneratedCommands
+=================================================
+*/
+	void  RayTracingContextValidation::ExecuteGeneratedCommands (const ExecuteGeneratedCommandsCmd &cmd, EIndirectCommandsLayoutUsage cmdLayoutUsage) __Th___
+	{
+		GCTX_CHECK( AnyBits( cmd.shaderStages, EShaderStages::AllRayTracing ));
+
+		Shared_ExecuteGeneratedCommands( cmd, cmdLayoutUsage, False{"execute"} );
+	}
+
+	void  RayTracingContextValidation::ExecuteGeneratedCommands (const ExecuteGeneratedCommands2Cmd &cmd,
+																 const BufferDesc &preprocessBufferDesc,
+																 const BufferDesc &indirectBufferDesc,
+																 const BufferDesc &sequenceCountBufferDesc) __Th___
+	{
+		Shared_ExecuteGeneratedCommands( cmd, preprocessBufferDesc, indirectBufferDesc, sequenceCountBufferDesc, False{"execute"} );
+	}
 
 #endif
 //-----------------------------------------------------------------------------

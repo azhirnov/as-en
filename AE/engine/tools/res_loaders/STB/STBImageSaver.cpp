@@ -72,7 +72,7 @@ namespace
 		const int		y			= int(level.dimension.y);
 
 		CHECK_ERR( level.dimension.z == 1 );
-		CHECK_ERR( fmt_info.BitsPerPixel() == 32 );
+		CHECK_ERR( fmt_info.BitsPerChannel() == 8 );
 
 		//if ( flipY )
 		//	stbi__vertical_flip( data_ptr, x, y, comp * 8 );

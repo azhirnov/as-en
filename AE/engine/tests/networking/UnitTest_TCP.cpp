@@ -9,10 +9,8 @@ namespace
 
 
 	template <typename Address>
-	static void  TCP_Test_IPv ()
+	static void  TCP_Test_IPv (Address clientAddr, Address serverAddr)
 	{
-		LocalSocketMngr	mngr;
-
 		const char	send_data1[] = "12346ewiofdklijnskdn";
 		const char	send_data2[] = "woihfdifkhjnwopefjseoivnj";
 		const Bytes	send_data_size = Sizeof(send_data1) + Sizeof(send_data2);
@@ -22,7 +20,7 @@ namespace
 		StdThread	listener{ [&] ()
 			{{
 				TcpSocket	server;
-				TEST( server.Listen( Address::FromLocalhostTCP(c_Port) ));
+				TEST( server.Listen( serverAddr ));
 				TEST( server.IsOpen() );
 
 				sync.Wait();
@@ -44,6 +42,7 @@ namespace
 						AE_LOGI( "TCP: connected to "s << addr.ToString() );
 					}
 
+					// receive
 					if ( client.IsOpen() )
 					{
 						char	buf[128];
@@ -56,6 +55,7 @@ namespace
 
 							AE_LOGI( "TCP: received "s << ToString(recv) );
 
+							// send
 							auto [err2, sent] = client.Send( buf, recv );
 
 							if ( err2 > SocketSendError::_Error or sent != recv )
@@ -82,13 +82,14 @@ namespace
 		sync.Wait();
 
 		TcpSocket	client;		// on user side
-		TEST( client.Connect( Address::FromHostPortTCP( "localhost", c_Port ) ));
+		TEST( client.Connect( clientAddr ));
 		TEST( client.IsOpen() );
 
 		sync.Wait();
 
 		TEST( client.ConnectionStatus() == TcpSocket::EStatus::Connected );
 
+		// send
 		{
 			auto [err, sent] = client.Send( send_data1, Sizeof(send_data1) );
 
@@ -101,6 +102,7 @@ namespace
 			TEST( sent == Sizeof(send_data2) );
 		}
 
+		// receive
 		char	buf[128];
 		Bytes	total_recv;
 		for (; total_recv < send_data_size;)
@@ -121,14 +123,59 @@ namespace
 		client.Close();
 	}
 
+
+	template <typename Address>
+	static void  TCP_Test_IP ()
+	{
+		LocalSocketMngr	mngr;
+
+		// localhost
+		{
+			auto	client	= Address::FromHostPortTCP( "localhost", c_Port );
+			auto	server	= Address::FromLocalhostTCP( c_Port );
+
+			TCP_Test_IPv( client, server );
+		}
+
+		// local network
+		{
+			Address	server_addr;
+
+			if constexpr( IsSame< Address, IpAddress >)
+			{
+				if ( not mngr->GetSelfIPAddress( AE_ROUTER_IPv4, OUT server_addr ))
+				{
+					AE_LOGW( "GetSelfIPAddress failed for "s << AE_ROUTER_IPv4.ToString() );
+					return;
+				}
+			}
+			if constexpr( IsSame< Address, IpAddress6 >)
+			{
+				if ( not mngr->GetSelfIPAddress( AE_ROUTER_IPv6, OUT server_addr ))
+				{
+					AE_LOGW( "GetSelfIPAddress failed for "s << AE_ROUTER_IPv6.ToString() );
+					return;
+				}
+			}
+
+			auto	client	= server_addr;
+			auto	server	= Address::FromLocalPortTCP( c_Port );
+
+			client.SetPort( c_Port );
+
+			TCP_Test_IPv( client, server );
+		}
+	}
+
+
 	static void  TCP_Test1 ()
 	{
-		TCP_Test_IPv< IpAddress >();
+		TCP_Test_IP< IpAddress >();
 	}
 
 	static void  TCP_Test2 ()
 	{
-		TCP_Test_IPv< IpAddress6 >();
+		TCP_Test_IP< IpAddress6 >();
 	}
 	//-----------------------------------------------------
 }

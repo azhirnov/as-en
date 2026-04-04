@@ -28,18 +28,21 @@
 #	define GCTX_CHECK_MSG				CHECK_THROW_MSG
 #	define AE_VALIDATE_GCTX				1
 #	define GRES_CHECK					CHECK_ERR
+#	define GRES_CHECK_MSG				CHECK_ERR_MSG
 #else
 # if defined(AE_DEBUG) or defined(AE_CI_BUILD_TEST)
 #	define GCTX_CHECK					CHECK
 #	define GCTX_CHECK_MSG				CHECK_MSG
 #	define AE_VALIDATE_GCTX				1
 #	define GRES_CHECK					CHECK
+#	define GRES_CHECK_MSG				CHECK_MSG
 # else
 	// disable validation
 #	define GCTX_CHECK( ... )			{}
 #	define GCTX_CHECK_MSG( ... )		{}
 #	define AE_VALIDATE_GCTX				0
 #	define GRES_CHECK( ... )			{}
+#	define GRES_CHECK_MSG				{}
 # endif
 #endif
 

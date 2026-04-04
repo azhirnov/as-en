@@ -82,7 +82,7 @@ namespace AE::Graphics
 			VkBufferCreateInfo		buf_info = {};
 			buf_info.sType			= VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
 			buf_info.flags			= 0;
-			buf_info.usage			= VEnumCast( EBufferUsage::Transfer );
+			buf_info.usage			= VkBufferUsageFlags( VEnumCast( EBufferUsage::Transfer ));
 			buf_info.size			= 1 << 10;
 			buf_info.sharingMode	= VK_SHARING_MODE_EXCLUSIVE;
 
@@ -164,8 +164,8 @@ namespace AE::Graphics
 				CHECK_ERR( CreateStaticBuffer( OUT _static.buffersForRead[i],  INOUT _static.memoryForRead,  _static.readSize,  i, r_allocator, "SSRB" ));
 		}
 
-		CHECK( w_allocator->GetStatistic().pageCount == 1 );
-		CHECK( r_allocator->GetStatistic().pageCount == 1 );
+		CHECK_ERR( w_allocator->GetStatistic().pageCount == 1 );
+		CHECK_ERR( r_allocator->GetStatistic().pageCount == 1 );
 
 		return true;
 	}
@@ -193,7 +193,7 @@ namespace AE::Graphics
 			VkBufferCreateInfo		buf_info = {};
 			buf_info.sType			= VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
 			buf_info.flags			= 0;
-			buf_info.usage			= VEnumCast( desc.usage );
+			buf_info.usage			= VkBufferUsageFlags( VEnumCast( desc.usage ));
 			buf_info.size			= 1 << 10;
 			buf_info.sharingMode	= VK_SHARING_MODE_EXCLUSIVE;
 
@@ -226,7 +226,7 @@ namespace AE::Graphics
 			vb.mapped		= mem_info.mappedPtr;
 		}
 
-		CHECK( allocator->GetStatistic().pageCount == 1 );
+		CHECK_ERR( allocator->GetStatistic().pageCount == 1 );
 		return true;
 	}
 

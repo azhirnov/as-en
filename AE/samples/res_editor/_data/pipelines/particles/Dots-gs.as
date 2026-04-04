@@ -15,12 +15,12 @@
 		{
 			RC<ShaderStructType>	st = ShaderStructType( "io.vs_gs" );
 			st.Set( EStructLayout::InternalIO,
-					"float4		color;" +
+					"float4		color;"
 					"float		size;" );
 		}{
 			RC<ShaderStructType>	st = ShaderStructType( "io.gs_fs" );
 			st.Set( EStructLayout::InternalIO,
-					"float2		uv;" +
+					"float2		uv;"
 					"float4		color;" );
 		}{
 			RC<DescriptorSetLayout>	ds = DescriptorSetLayout( "mtr.ds" );

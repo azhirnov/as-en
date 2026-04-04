@@ -21,10 +21,12 @@ namespace AE::Video
 	{
 	public:
 		ND_ static RC<IVideoEncoder>  CreateFFmpegEncoder ()		__NE___;
-		ND_ static RC<IVideoEncoder>  CreateGraphicsHWEncoder ()	__NE___;
+		ND_ static RC<IVideoEncoder>  CreateAndroidEncoder ()		__NE___;
+	//	ND_ static RC<IVideoEncoder>  CreateGraphicsHWEncoder ()	__NE___;
 
 		ND_ static RC<IVideoDecoder>  CreateFFmpegDecoder ()		__NE___;
-		ND_ static RC<IVideoDecoder>  CreateGraphicsHWDecoder ()	__NE___;
+		ND_ static RC<IVideoDecoder>  CreateAndroidDecoder ()		__NE___;
+	//	ND_ static RC<IVideoDecoder>  CreateGraphicsHWDecoder ()	__NE___;
 	};
 
 

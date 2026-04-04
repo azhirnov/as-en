@@ -3,7 +3,6 @@
 #pragma once
 
 #ifdef AE_ENABLE_REMOTE_GRAPHICS
-# include "graphics_rhi/Remote/REnumCast.h"
 # include "graphics_rhi/Remote/Commands/RBaseContext.h"
 # include "graphics_rhi/Remote/Commands/RAccumBarriers.h"
 
@@ -18,8 +17,8 @@ namespace AE::Graphics
 	{
 	// types
 	private:
-		using AccumBar		= Graphics::_hidden_::RAccumBarriers< RRayTracingContext >;
-		using DeferredBar	= Graphics::_hidden_::RAccumDeferredBarriersForCtx< RRayTracingContext >;
+		using AccumBar		= Graphics::_hidden_::AccumBarriers< RRayTracingContext >;
+		using DeferredBar	= Graphics::_hidden_::AccumDeferredBarriersForCtx< RRayTracingContext >;
 		using Validator_t	= Graphics::_hidden_::RayTracingContextValidation;
 
 
@@ -58,6 +57,15 @@ namespace AE::Graphics
 		// Vulkan only
 		void  TraceRaysIndirectAddress (const RTShaderBindingTable &sbt, DeviceAddress address)								__Th_OV;
 		void  TraceRaysIndirectAddress2 (DeviceAddress address)																__Th_OV;
+
+		// indirect commands //
+		void  PreprocessGeneratedCommands (const PreprocessGeneratedCommandsCmd &)											__Th_OV	{}	// TODO
+		void  PreprocessGeneratedCommands (const PreprocessGeneratedCommands2Cmd &)											__Th_OV	{}
+
+		void  BindInitialPipeline (IndirectExecutionSetID)																	__Th_OV	{}
+
+		void  ExecuteGeneratedCommands (const ExecuteGeneratedCommandsCmd &)												__Th_OV	{}
+		void  ExecuteGeneratedCommands (const ExecuteGeneratedCommands2Cmd &)												__Th_OV	{}
 
 		ND_ RmCommandBufferID	EndCommandBuffer ()																			__Th___	{ return _EndCommandBuffer( ECtxType::RayTracing ); }
 		ND_ CmdBuf_t			ReleaseCommandBuffer ()																		__Th___	{ return _ReleaseCommandBuffer( ECtxType::RayTracing ); }

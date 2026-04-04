@@ -1,4 +1,8 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+/*
+	Switch callable shader by 'iCallable' slider.
+	Each shader fill screen with unique color.
+*/
 #ifdef __INTELLISENSE__
 # 	include <res_editor.as>
 #	define SH_RAY_GEN

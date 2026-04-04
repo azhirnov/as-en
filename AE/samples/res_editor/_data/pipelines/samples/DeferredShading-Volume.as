@@ -60,8 +60,9 @@
 			}
 			rs.depth.test					= true;
 			rs.depth.write					= false;
-			rs.depth.compareOp				= ECompareOp::GEqual;
+			rs.depth.compareOp				= ECompareOp::GEqual;	// reverseZ
 
+			/*
 			// 0 - sky
 			rs.stencil.enabled				= true;
 			rs.stencil.CompareOp( ECompareOp::NotEqual );
@@ -72,6 +73,7 @@
 			rs.stencil.StencilFailOp( EStencilOp::Keep );
 			rs.stencil.DepthFailOp	( EStencilOp::Keep );
 			rs.stencil.PassOp		( EStencilOp::Keep );
+			*/
 
 			rs.inputAssembly.topology		= EPrimitive::TriangleList;
 
@@ -97,7 +99,7 @@
 		const Quat		rot		= QFrom2Normals( float3(0.0, 1.0, 0.0), // origin direction
 												 obj.dir );				// new direction
 
-		const float3	vpos	= QMul( rot, (un_Geometry.positions[ gl.VertexIndex ] * float3(radius, radius, obj.height)).xzy );
+		const float3	vpos	= QMul( rot, (un_Geometry.position[ gl.VertexIndex ] * float3(radius, radius, obj.height)).xzy );
 		const float3	wpos	= cone.origin + vpos;
 
 		gl.Position		= WorldPosToClipSpace( wpos );
@@ -114,18 +116,21 @@
 #ifdef SH_FRAG
 	#include "PBR.glsl"
 	#include "Matrix.glsl"
+	#include "CodeTemplates.glsl"
 
 	void Main ()
 	{
+	#ifdef OVERDRAW
+		out_Overdraw.r = 1.0 + float(HelperInvocationCountPerQuad()) / 4.0;
+	#else
+
 		float3		albedo		= gl.texture.Fetch( un_Albedo, int2(gl.FragCoord.xy), 0 ).rgb;
 		float3		norm		= ToSNorm( gl.texture.Fetch( un_Normal, int2(gl.FragCoord.xy), 0 ).rgb );	// world space
 		float		depth		= gl.texture.Fetch( un_Depth, int2(gl.FragCoord.xy), 0 ).r;					// non-linear
 
-		#if 0
-			// if not used stencil test
-			if ( depth < 0.0001 )
-				gl.Discard;
-		#endif
+		// if not used stencil test
+		if ( depth < 0.0001 )
+			gl.Discard;
 
 		float2		uv			= gl.FragCoord.xy * un_PerPass.invResolution;
 		float3		scene_wpos	= UnProjectNDC( un_PerPass.camera.invViewProj, float3( ToSNorm(uv), depth ));
@@ -149,6 +154,7 @@
 
 		out_Color.rgb = (res.diffuse + res.specular) * In.color * atten;
 		out_Color.a = 1.0;
+	#endif
 	}
 
 #endif

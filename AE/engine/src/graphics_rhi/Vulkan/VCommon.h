@@ -38,11 +38,14 @@ namespace AE::Graphics
 	class VDevice;
 	class VRenderPass;
 	class VFramebuffer;
+	class VQueryManager;
 	class VCommandPoolManager;
+	class VStagingBufferManager;
 
 
 	GFX_DBG_ONLY(
-		using DebugName_t = FixedString<64>;
+		using DebugName_t = FixedString<63>;
+		StaticAssert( sizeof(DebugName_t) == 64 );
 	)
 
 	// Used for temporary allocations.
@@ -98,7 +101,21 @@ namespace AE::Graphics
 	VULKAN_ENUM_BIT_OPERATORS( VkSamplerCreateFlagBits );
 	VULKAN_ENUM_BIT_OPERATORS( VkClusterAccelerationStructureAddressResolutionFlagBitsNV );
 	VULKAN_ENUM_BIT_OPERATORS( VkPartitionedAccelerationStructureInstanceFlagBitsNV );
+	VULKAN_ENUM_BIT_OPERATORS( VkIndirectCommandsLayoutUsageFlagBitsEXT );
+	VULKAN_ENUM_BIT_OPERATORS( VkBuildMicromapFlagBitsEXT );
 #undef VULKAN_ENUM_BIT_OPERATORS
+
+
+	//
+	// Buffer Sub Range
+	//
+	struct BufferSubRange
+	{
+		VkBuffer	buffer	= Default;
+		Bytes		offset;
+		Bytes		size;
+	};
+
 
 } // AE::Graphics
 

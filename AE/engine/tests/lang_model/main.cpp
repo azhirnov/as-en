@@ -4,6 +4,7 @@
 
 extern void  UnitTest_LLama ();
 extern void  UnitTest_RemoteLLama ();
+extern void  UnitTest_StableDiffusion (const Path &dstFolder);
 
 
 extern const char*  GetGGMLModelName()
@@ -13,16 +14,13 @@ extern const char*  GetGGMLModelName()
 }
 
 
-#ifdef AE_PLATFORM_ANDROID
-extern "C" AE_DLL_EXPORT int Tests_LangModel (const char* path)
-#else
-int main (const int argc, char* argv[])
-#endif
+TEST_ENTRY()
 {
 	BEGIN_TEST();
 
-	UnitTest_LLama();
-	UnitTest_RemoteLLama();
+	RUN_TEST( UnitTest_LLama );
+	RUN_TEST( UnitTest_RemoteLLama );
+	RUN_TEST( UnitTest_StableDiffusion, curr );
 
 	AE_LOGI( "Tests.LangModel finished" );
 	return 0;

@@ -77,7 +77,7 @@
 	  #endif
 
 		float2	pos =	pos_scale.xy +
-						un_VBuffer.positions[gl.VertexIndex] * pos_scale.z;
+						un_VBuffer.position[gl.VertexIndex] * pos_scale.z;
 
 		gl.Position = float4( pos, 0.0, 1.0 );
 		Out.color	= DHash32( pos * 222.0 );

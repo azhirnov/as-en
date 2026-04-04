@@ -40,6 +40,10 @@ namespace
 
 extern void UnitTest_CPUInfo ()
 {
+	AE_LOGI( "\nCache line: "s << ToString(AE_CACHE_LINE) <<
+			 "\nhardware_destructive_interference_size: " << ToString(std::hardware_destructive_interference_size) <<
+			 "\nhardware_constructive_interference_size: " << ToString(std::hardware_constructive_interference_size) );
+
 	Test_CpuArchInfo();
 
   #ifndef AE_PLATFORM_APPLE

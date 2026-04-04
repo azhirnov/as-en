@@ -3,7 +3,7 @@
 #pragma once
 
 #ifdef AE_ENABLE_VULKAN
-# include "graphics_rhi/Vulkan/VResourceManager.h"
+# include "graphics_rhi/Vulkan/VResourceManager.h"		// TODO: remove
 # include "graphics_rhi/Vulkan/Commands/VCommandPoolManager.h"
 # include "graphics_rhi/Vulkan/Commands/VDrawCommandBatch.h"
 

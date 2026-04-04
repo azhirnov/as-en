@@ -110,7 +110,7 @@ namespace AE::RG::_hidden_
 		_semToBatch.insert_or_assign( ulong(cmd_batch->GetSemaphore().semaphore), cmd_batch );
 
 	  #elif defined(AE_ENABLE_METAL)
-		_semToBatch.insert_or_assign( ulong(cmd_batch->GetSemaphore().event.Ptr()), cmd_batch );
+		_semToBatch.insert_or_assign( ulong(cmd_batch->GetSemaphore().semaphore.Ptr()), cmd_batch );
 
 	  #elif defined(AE_ENABLE_REMOTE_GRAPHICS)
 		_semToBatch.insert_or_assign( BitCastRlx<ulong>(cmd_batch->GetSemaphore().semaphore), cmd_batch );
@@ -225,7 +225,7 @@ namespace AE::RG::_hidden_
 			auto	batch_it = _rg._semToBatch.find( ulong(old_state.lastBatch.semaphore) );
 
 		  #elif defined(AE_ENABLE_METAL)
-			auto	batch_it = _rg._semToBatch.find( ulong(old_state.lastBatch.event.Ptr()) );
+			auto	batch_it = _rg._semToBatch.find( ulong(old_state.lastBatch.semaphore.Ptr()) );
 
 		  #elif defined(AE_ENABLE_REMOTE_GRAPHICS)
 			auto	batch_it = _rg._semToBatch.find( BitCastRlx<ulong>( old_state.lastBatch.semaphore ));
@@ -294,7 +294,7 @@ namespace AE::RG::_hidden_
 		// additional state transition if expected state differs from default state
 		if_likely( key.IsImage() ){
 			if ( EResourceState_RequireImageBarrier( prev_state, initial, True{"relaxed"} ))
-				rg_batch._initialBarriers->ImageBarrier( key.AsImage(), prev_state, initial );
+				rg_batch._initialBarriers->ResourceBarrier( key.AsImage(), prev_state, initial );
 		}else{
 			if ( EResourceState_RequireMemoryBarrier( prev_state, initial, True{"relaxed"} ))
 				rg_batch._initialBarriers->MemoryBarrier( prev_state, initial );

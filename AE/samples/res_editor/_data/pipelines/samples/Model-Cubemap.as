@@ -14,9 +14,9 @@
 		{
 			RC<ShaderStructType>	st = ShaderStructType( prefix+"io.vs-fs" );
 			st.Set( EStructLayout::InternalIO,
-					"float3		worldNormal;" +
-					"float3		worldPos;" +
-					"float2		texcoord;" +
+					"float3		worldNormal;"
+					"float3		worldPos;"
+					"float2		texcoord;"
 					"uint		materialIdx;" );
 		}
 		{

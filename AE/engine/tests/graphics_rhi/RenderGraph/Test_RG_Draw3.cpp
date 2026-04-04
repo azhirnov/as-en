@@ -26,7 +26,7 @@ namespace
 		GfxMemAllocatorPtr			gfxAlloc;
 	};
 
-	static constexpr auto&	RTech = RenderTechs::DrawTestRT;
+	static constexpr auto&	RTech = RenderTechs::DrawTest_RTech;
 
 	static const float4		vertices[] = {
 		float4{ 0.0f, -0.5f, BitCast<float>(HtmlColor::Red),	1.f},
@@ -46,7 +46,7 @@ namespace
 		typename CtxType::Graphics	ctx{ RenderCoro_Get() };
 
 		ctx.AccumBarriers()
-			.ImageBarrier( t.img, EResourceState::Invalidate, img_state );
+			.ResourceBarrier( t.img, EResourceState::Invalidate, img_state );
 
 		// draw
 		{
@@ -65,7 +65,7 @@ namespace
 		}
 
 		ctx.AccumBarriers()
-			.ImageBarrier( t.img, img_state, EResourceState::CopySrc );
+			.ResourceBarrier( t.img, img_state, EResourceState::CopySrc );
 
 		RenderCoro_Execute( ctx );
 	}
@@ -137,6 +137,7 @@ namespace
 		CHECK_ERR( end->Status() == ETaskStatus::Completed );
 
 		CHECK_ERR( rts.WaitAll( c_MaxTimeout ));
+		CHECK_ERR( t.result );
 
 		CHECK_ERR( Scheduler().Wait( {t.result}, c_MaxTimeout ));
 		CHECK_ERR( t.result->Status() == ETaskStatus::Completed );
@@ -148,7 +149,7 @@ namespace
 } // namespace
 
 
-bool RGTest::Test_Draw3 ()
+RGTest::ECode  RGTest::Test_Draw3 ()
 {
 	auto	img_cmp = _LoadReference( TEST_NAME );
 	bool	result	= true;
@@ -161,6 +162,10 @@ bool RGTest::Test_Draw3 ()
 
 	RG_CHECK( _CompareDumps( TEST_NAME ));
 
-	AE_LOGI( TEST_NAME << " - passed" );
-	return result;
+	if ( result )
+	{
+		AE_LOGI( TEST_NAME << " - passed" );
+		return ECode::Passed;
+	}
+	return ECode::Failed;
 }

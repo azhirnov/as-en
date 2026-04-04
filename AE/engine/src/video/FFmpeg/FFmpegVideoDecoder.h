@@ -58,12 +58,12 @@ namespace AE::Video
 		bool  SeekTo (ulong frameIdx)										__NE_OV;
 		bool  SeekTo (Seconds timestamp)									__NE_OV;
 
-		bool  GetVideoFrame (INOUT ImageMemViewArr&	memView,
-							 OUT FrameInfo &		info)					__NE_OV;
+		EResult  GetVideoFrame (INOUT ImageMemViewArr&	memView,
+								OUT FrameInfo &			info)				__NE_OV;
 
-		bool  GetAudioVideoFrame (INOUT ImageMemViewArr &,
-								  INOUT AudioSampleArr &,
-								  OUT FrameInfo &)							__NE_OV;
+		EResult  GetAudioVideoFrame (INOUT ImageMemViewArr &,
+									 INOUT AudioSampleArr &,
+									 OUT FrameInfo &)						__NE_OV;
 
 		bool  End ()														__NE_OV;
 
@@ -97,12 +97,12 @@ namespace AE::Video
 		ND_ Properties	_ReadProperties (AVFormatContext* formatCtx,
 										 const CodecConfig &)				C_NE___;
 
-		ND_ bool  _GetVideoFrame (INOUT ImageMemViewArr&	memView,
-								  OUT FrameInfo &			info)			__NE___;
-		ND_ bool  _GetAudioSamples (INOUT AudioSampleArr &)					__NE___;
+		ND_ EResult  _GetVideoFrame (INOUT ImageMemViewArr&	memView,
+									 OUT FrameInfo &		info)			__NE___;
+		ND_ EResult  _GetAudioSamples (INOUT AudioSampleArr &)				__NE___;
 
-		ND_ bool  _ScaleFrame1 (INOUT ImageMemView &	memView)			__NE___;
-		ND_ bool  _ScaleFrame2 (INOUT ImageMemViewArr &	memView)			__NE___;
+		ND_ EResult  _ScaleFrame1 (INOUT ImageMemView &)					__NE___;
+		ND_ EResult  _ScaleFrame2 (INOUT ImageMemViewArr &)					__NE___;
 
 		template <typename ConfigType, typename CreateFn1, typename CreateFn2>
 		ND_ bool  _ChooseVideoCodec (const ConfigType &cfg,

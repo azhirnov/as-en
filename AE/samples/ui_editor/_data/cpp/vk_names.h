@@ -7,6 +7,7 @@ namespace RenderTechs
 	using PipelineName_t        = AE::Graphics::PipelineName;
 	using RTShaderBindingName_t = AE::Graphics::RTShaderBindingName;
 	using DSLayoutName_t        = AE::Graphics::DSLayoutName;
+	using ExecutionSetName_t    = AE::Graphics::IndirectExecutionSetName;
 
 	static constexpr struct _UI_RTech
 	{
@@ -18,7 +19,7 @@ namespace RenderTechs
 			constexpr operator RenderTechPassName_t () const { return RenderTechPassName_t{Hash_t{0x1f1a625au}};}  // 'Main'
 			static constexpr DSLayoutName_t  dsLayout {Hash_t{0x15599318u}};  // 'ui.global.ds'
 
-			// RenderPass 'UIPass' subpass 'Main'
+			// RenderPass 'UI.RenderPass' subpass 'Main'
 
 			static constexpr uint  attachmentsCount = 1;
 			static constexpr AttachmentName_t  att_Color {Hash_t{0xa79767edu}};  // 'Color'

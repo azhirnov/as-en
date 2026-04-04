@@ -93,12 +93,6 @@
 #endif // ND_
 
 
-// null pointer
-#ifndef null
-#	define null					nullptr
-#endif
-
-
 // force inline
 #ifndef forceinline
 # if defined(AE_CFG_DEBUG)
@@ -402,6 +396,7 @@
 
 // cache line size
 #ifdef __cpp_lib_hardware_interference_size
+	// TODO: on Android it returns 256 to support multiple CPUs and prefetchers which touch near cache lines too
 #	define AE_CACHE_LINE	std::hardware_destructive_interference_size
 
 #elif defined(AE_PLATFORM_APPLE) and defined(AE_CPU_ARCH_ARM_BASED)
@@ -570,6 +565,9 @@
 #ifndef AE_SIMD_SVE
 #	define AE_SIMD_SVE			0
 #endif
+#ifndef AE_SIMD_SME
+#	define AE_SIMD_SME			0
+#endif
 #ifndef AE_SIMD_FMA
 #	define AE_SIMD_FMA			0
 #endif
@@ -577,7 +575,7 @@
 #	define AE_SIMD_F16C			0
 #endif
 
-#define AE_HAS_SIMD				(AE_SIMD_AVX | AE_SIMD_SSE | AE_SIMD_NEON)
+#define AE_HAS_SIMD				(AE_SIMD_AVX | AE_SIMD_SSE | AE_SIMD_NEON | AE_SIMD_SVE)
 
 
 // allow to use 'offsetof()' in 'static_assert()'

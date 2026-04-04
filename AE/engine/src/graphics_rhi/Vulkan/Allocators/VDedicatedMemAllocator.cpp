@@ -1,6 +1,7 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
 #ifdef AE_ENABLE_VULKAN
+# include "graphics_rhi/Private/EnumUtils.h"
 # include "graphics_rhi/Vulkan/Allocators/VDedicatedMemAllocator.h"
 # include "graphics_rhi/Vulkan/Allocators/VAutoreleaseMemory.h"
 # include "graphics_rhi/Vulkan/VRenderTaskScheduler.h"
@@ -135,9 +136,6 @@ namespace AE::Graphics
 		CHECK_ERR( buffer != Default );
 		CHECK_ERR( desc.memType != Default );
 
-		constexpr auto	dev_addr_mask = EBufferUsage::ShaderAddress | EBufferUsage::ShaderBindingTable |
-										EBufferUsage::ASBuild_ReadOnly | EBufferUsage::ASBuild_Scratch;
-
 		auto&	dev = GraphicsScheduler().GetDevice();
 
 		// get memory requirements
@@ -185,7 +183,7 @@ namespace AE::Graphics
 		{
 			next.Add( dedicated );
 		}
-		if ( AnyBits( desc.usage, dev_addr_mask ))
+		if ( AnyBits( desc.usage, EBufferUsage_RequireDevAddress ))
 		{
 			next.Add( mem_flag );
 		}

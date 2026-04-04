@@ -204,7 +204,7 @@ public class BaseActivity
 //-----------------------------------------------------------------------------
 // Battery
 
-	private static final int	_batUpdateFreq		= 10;	// update Battery each X frames
+	private static final int	_batUpdateFreq		= 60;	// update Battery each X frames
 	private int					_batSkipUpdates		= 0;
 
 	private void  _UpdateBattery ()

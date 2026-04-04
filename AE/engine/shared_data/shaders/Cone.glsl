@@ -35,6 +35,7 @@ ND_ float3	Cone_BaseCenter (const Cone c);
 ND_ float	Cone_SlantLength (const Cone c);
 ND_ float	Cone_Volume (const Cone c);
 
+//  AABB	Cone_ToBoundingBox (const Cone c);
 ND_ Sphere	Cone_ToBoundingSphere (const Cone c);
 //-----------------------------------------------------------------------------
 

@@ -367,7 +367,8 @@ namespace _hidden_
 */
 	Nd__In String  ToString (const Path &path) __Th___
 	{
-		String	str = ToAnsiString<char>( path.lexically_normal().native() );
+		String	str;
+		Unused( ConvertString( OUT str, BasicStringView{path.lexically_normal().native()} ));
 		FindAndReplace( INOUT str, '\\', '/' );
 		return str;
 	}
@@ -379,17 +380,23 @@ namespace _hidden_
 */
 	Nd__In String  ToString (const U8String &str) __Th___
 	{
-		return ToAnsiString<char>( str );
+		String	dst;
+		Unused( ConvertString( OUT dst, BasicStringView{str} ));
+		return dst;
 	}
 
 	Nd__In String  ToString (const U8StringView &str) __Th___
 	{
-		return ToAnsiString<char>( str );
+		String	dst;
+		Unused( ConvertString( OUT dst, str ));
+		return dst;
 	}
 
 	Nd__In String  ToString (const CharUtf8* str) __Th___
 	{
-		return ToAnsiString<char>( U8StringView{str} );
+		String	dst;
+		Unused( ConvertString( OUT dst, BasicStringView{str} ));
+		return dst;
 	}
 
 /*
@@ -400,17 +407,23 @@ namespace _hidden_
 #ifdef AE_PLATFORM_WINDOWS
 	Nd__In String  ToString (const WString &str) __Th___
 	{
-		return ToAnsiString<char>( str );
+		String	dst;
+		Unused( ConvertString( OUT dst, BasicStringView{str} ));
+		return dst;
 	}
 
 	Nd__In String  ToString (const WStringView &str) __Th___
 	{
-		return ToAnsiString<char>( str );
+		String	dst;
+		Unused( ConvertString( OUT dst, BasicStringView{str} ));
+		return dst;
 	}
 
 	Nd__In String  ToString (const wchar_t* str) __Th___
 	{
-		return ToAnsiString<char>( WStringView{str} );
+		String	dst;
+		Unused( ConvertString( OUT dst, BasicStringView{str} ));
+		return dst;
 	}
 #endif
 

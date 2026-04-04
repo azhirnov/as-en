@@ -475,7 +475,7 @@ namespace {
 		auto&	rts	= GraphicsScheduler();
 		auto	q	= rts.GetDevice().GetQueue( presentQueue );
 
-		CHECK_CE( surface._swapchain.Present( q, Default, frameId ));
+		CHECK_CE( surface._swapchain.Present( q, frameId ));
 	}
 //-----------------------------------------------------------------------------
 

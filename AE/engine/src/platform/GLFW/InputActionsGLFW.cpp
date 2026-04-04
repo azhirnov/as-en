@@ -30,6 +30,9 @@ namespace AE::App
 	{
 		DRC_EXLOCK( _drCheck );
 
+		ASSERT( AnyEqual( state, EGestureState::Begin, EGestureState::End ));
+		ASSERT( key >= GLFW_KEY_SPACE and key <= GLFW_KEY_LAST );
+
 		if_unlikely( _curMode == null )
 			return;
 
@@ -40,12 +43,15 @@ namespace AE::App
 =================================================
 	SetMouseButton
 ----
-	buttons in range [GLFW_MOUSE_BUTTON_LEFT .. GLFW_MOUSE_BUTTON_8]
+	buttons in range [GLFW_MOUSE_BUTTON_LEFT .. GLFW_MOUSE_BUTTON_LAST]
 =================================================
 */
 	void  InputActionsGLFW::SetMouseButton (int button, EGestureState state, Duration_t timestamp) __NE___
 	{
 		DRC_EXLOCK( _drCheck );
+
+		ASSERT( AnyEqual( state, EGestureState::Begin, EGestureState::End ));
+		ASSERT( button >= GLFW_MOUSE_BUTTON_LEFT and button <= GLFW_MOUSE_BUTTON_LAST );
 
 		if_unlikely( _curMode == null )
 			return;
@@ -122,6 +128,7 @@ namespace AE::App
 */
 	void  InputActionsGLFW::Update (Duration_t timeSinceStart) __NE___
 	{
+		DRC_EXLOCK( _drCheck );
 		InputActionsBase::Update( timeSinceStart );
 
 		if_unlikely( _touchActive | _touchBegin | _touchEnd )
@@ -135,6 +142,8 @@ namespace AE::App
 		_touchEnd	= false;
 
 		_gestureRecognizer.Update( timeSinceStart, *this );
+
+		_UpdateJoysticks( timeSinceStart );
 	}
 
 /*
@@ -229,6 +238,101 @@ namespace AE::App
 			}
 		}
 		return true;
+	}
+
+/*
+=================================================
+	InitJoystick
+=================================================
+*/
+namespace {
+	static InputActionsGLFW*	s_CurrentInputActions	= null;
+}
+
+	void  InputActionsGLFW::InitJoystick () __NE___
+	{
+		s_CurrentInputActions = this;
+		glfwSetJoystickCallback( &_GLFW_JoystickCallback );
+
+		for (int jid = 0; jid < GLFW_JOYSTICK_LAST; ++jid)
+		{
+			if ( glfwJoystickPresent( jid ) == GLFW_TRUE )
+			{
+				_joystickMap.emplace( jid, JoystickData{} );
+			}
+		}
+	}
+
+/*
+=================================================
+	_GLFW_JoystickCallback
+=================================================
+*/
+	void  InputActionsGLFW::_GLFW_JoystickCallback (int jid, int event) __NE___
+	{
+		switch ( event )
+		{
+			case GLFW_CONNECTED :
+			{
+				s_CurrentInputActions->_joystickMap.emplace( jid, JoystickData{} );
+				break;
+			}
+			case GLFW_DISCONNECTED :
+				s_CurrentInputActions->_joystickMap.EraseByKey( jid );
+				break;
+		}
+	}
+
+/*
+=================================================
+	_UpdateJoysticks
+=================================================
+*/
+	void  InputActionsGLFW::_UpdateJoysticks (Duration_t timestamp) __NE___
+	{
+		const float		axis_dead_zone		= 0.1f;
+		const float		trigger_dead_zone	= -0.9f;
+
+		for (auto [jid, prevState] : _joystickMap)
+		{
+			if_likely( glfwJoystickIsGamepad( jid ))
+			{
+				GLFWgamepadstate	state;
+				if ( not glfwGetGamepadState( jid, OUT &state ))
+					continue;
+
+				auto	id = ControllerID(uint(ControllerID::Gamepad) + jid);
+
+				for (uint i = 0; i < GLFW_GAMEPAD_BUTTON_LAST; ++i)
+				{
+					if ( state.buttons[i] == prevState.buttons[i] )
+						continue;
+
+					EGestureState	btn_state = state.buttons[i] == GLFW_RELEASE ? EGestureState::End : EGestureState::Begin;
+
+					_UpdateKey( EInputType(uint(EInputType::GamepadButtonBegin) + i), btn_state, id, timestamp );
+				}
+
+				for (uint i = 0; i < GLFW_GAMEPAD_AXIS_LAST; ++i)
+				{
+					float	dead_zone = i < GLFW_GAMEPAD_AXIS_LEFT_TRIGGER ? axis_dead_zone : trigger_dead_zone;
+
+					if ( Abs(state.axes[i]) < dead_zone )
+						continue;
+
+					_Update1F( EInputType(uint(EInputType::GamepadAxisBegin) + i), EGestureType::Move, id, state.axes[i], EGestureState::Update );
+				}
+
+				StaticAssert( sizeof(JoystickData::buttons) == sizeof(GLFWgamepadstate::buttons) );
+				MemCopy( OUT prevState.buttons, state.buttons, sizeof(state.buttons) );
+			}
+			else
+			{
+				//glfwGetJoystickButtons
+				//glfwGetJoystickHats
+				//glfwGetJoystickAxes
+			}
+		}
 	}
 
 

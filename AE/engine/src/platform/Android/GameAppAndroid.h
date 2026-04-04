@@ -91,7 +91,7 @@ namespace AE::App
 		static void  _HandleCmd (void* app, int32_t cmd)										__NE___;
 
 	public:
-		friend void  ::android_main (android_app* app);
+		//friend void  ::android_main (android_app* app);
 	};
 
 

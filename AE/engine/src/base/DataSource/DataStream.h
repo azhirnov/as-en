@@ -97,7 +97,7 @@ namespace AE::Base
 		template <typename T> requires( IsTriviallySerializable<T> )
 		ND_ bool  Read (OUT T &data)													__NE___;
 
-		ND_ bool  Read (Bytes size, OUT MemChunkList &mem)							__NE___;
+		ND_ bool  Read (Bytes size, OUT MemChunkList &mem)								__NE___;
 	};
 
 
@@ -125,6 +125,13 @@ namespace AE::Base
 		// Returns 'true' on success.
 		//
 			virtual bool	SeekFwd (Bytes offset)										__NE___ = 0;
+
+
+		// Move file position to 'pos'.
+		// Returns 'true' on success.
+		// Requires 'RandomAccess' in 'GetSourceType()'.
+		//
+			virtual bool	UpdateAt (Bytes pos)										__NE___ = 0;
 
 
 		// Returns size of written data or zero on error.

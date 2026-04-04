@@ -15,6 +15,7 @@ namespace AE::ResEditor
 =================================================
 */
 	RTGeometry::RTGeometry (TriangleMeshes_t	triangleMeshes,
+							Micromaps_t			micromaps,
 							RC<Buffer>			indirectBuffer,
 							Renderer &			renderer,
 							StringView			dbgName,
@@ -22,6 +23,7 @@ namespace AE::ResEditor
 		IResource{ renderer },
 		_indirectBuffer{ RVRef(indirectBuffer) },
 		_triangleMeshes{ RVRef(triangleMeshes) },
+		_micromaps{ RVRef(micromaps) },
 		_isMutable{ isMutable },
 		_dbgName{ dbgName }
 	{}
@@ -38,12 +40,13 @@ namespace AE::ResEditor
 =================================================
 */
 	RC<RTGeometry>  RTGeometry::Create (TriangleMeshes_t	triangleMeshes,
+										Micromaps_t			micromaps,
 										RC<Buffer>			indirectBuffer,
 										Renderer &			renderer,
 										StringView			dbgName,
 										Bool				allowUpdate) __Th___
 	{
-		RC<RTGeometry>	res { new RTGeometry{ RVRef(triangleMeshes), RVRef(indirectBuffer), renderer, dbgName, allowUpdate }};
+		RC<RTGeometry>	res { new RTGeometry{ RVRef(triangleMeshes), RVRef(micromaps), RVRef(indirectBuffer), renderer, dbgName, allowUpdate }};
 		res->_Init1();  // throw
 		return res;
 	}
@@ -77,10 +80,21 @@ namespace AE::ResEditor
 			tri_infos.push_back( src );
 		}
 
+		Array<RTGeometryBuild::MicromapInfo>	micromaps;
+		if ( not _micromaps.empty() )
+		{
+			for (auto& src : _micromaps)
+			{
+				auto&	dst = micromaps.emplace_back( src );
+				dst.micromapId = src.micromap->GetMicromapID(0);
+			}
+			build.SetMicromaps( micromaps );
+		}
+
 		build.options	= _options;
 		build.triangles = RTGeometryBuild::Triangles{ tri_infos, Default };
 
-		const auto	sizes			= res_mngr.GetRTGeometrySizes( build );
+		const auto	sizes			= res_mngr.GetResourceManager().GetRTGeometrySizes( build );
 		const auto	CreateGeometry	= [&res_mngr, &sizes, this] ()
 		{{
 			return res_mngr.CreateRTGeometry( RTGeometryDesc{ sizes.rtasSize, _options }, _dbgName,
@@ -203,6 +217,14 @@ namespace AE::ResEditor
 			failed   |= (v_status == EUploadStatus::Canceled)  or  (i_status == EUploadStatus::Canceled);
 		}
 
+		for (auto& mm : _micromaps)
+		{
+			EUploadStatus	mm_status	= mm.micromap->GetStatus();
+
+			complete &= (mm_status == EUploadStatus::Completed);
+			failed   |= (mm_status == EUploadStatus::Canceled);
+		}
+
 		if ( failed )
 		{
 			_SetUploadStatus( EUploadStatus::Canceled );
@@ -241,23 +263,31 @@ namespace AE::ResEditor
 			case EBuildMode::Direct :
 			{
 				RTGeometryBuild		tris_geom;
-				CHECK_ERR( _GetTriangles( OUT tris_geom, ctx.GetFrameId(), alloc ));
+				CHECK_ERR( _GetTriangles( INOUT tris_geom, ctx.GetFrameId(), alloc ));
 				tris_geom.SetScratchBuffer( _scratchBuffer );
+				tris_geom.options = _options;
 
 				ctx.Build( tris_geom, _geomId );
 				break;
 			}
+
 			case EBuildMode::Indirect :
 			{
+			  #if defined(AE_ENABLE_VULKAN) or defined(AE_ENABLE_REMOTE_GRAPHICS)
 				CHECK_ERR( _indirectBuffer );
 
 				RTGeometryBuild		tris_geom;
-				CHECK_ERR( _GetTriangles( OUT tris_geom, ctx.GetFrameId(), alloc ));
+				CHECK_ERR( _GetTriangles( INOUT tris_geom, ctx.GetFrameId(), alloc ));
 				tris_geom.SetScratchBuffer( _scratchBuffer );
+				tris_geom.options = _options;
 
 				ctx.BuildIndirect( tris_geom, _geomId, _indirectBuffer->GetBufferId( ctx.GetFrameId() ));
+			  #else
+				CHECK_MSG( false, "BuildIndirect is not supported" );
+			  #endif
 				break;
 			}
+
 			case EBuildMode::IndirectEmulated :
 				CHECK_ERR( _BuildIndirectEmulated( ctx, _geomId, alloc ));
 				break;
@@ -316,6 +346,9 @@ namespace AE::ResEditor
 			++indirect;
 		}
 
+		// TODO: micromap
+		ASSERT( _micromaps.empty() );
+
 		RTGeometryBuild		tris_geom{
 								ArrayView<RTGeometryBuild::TrianglesInfo>{ triangle_info_arr, _triangleMeshes.size() },
 								ArrayView<RTGeometryBuild::TrianglesData>{ triangle_data_arr, _triangleMeshes.size() },
@@ -345,13 +378,13 @@ namespace AE::ResEditor
 	_GetTriangles
 =================================================
 */
-	bool  RTGeometry::_GetTriangles (OUT RTGeometryBuild &buildInfo, FrameUID fid, Allocator_t &alloc) const
+	bool  RTGeometry::_GetTriangles (INOUT RTGeometryBuild &buildInfo, FrameUID fid, Allocator_t &alloc) C_NE___
 	{
 		auto*	triangle_info_arr	= alloc.Allocate<RTGeometryBuild::TrianglesInfo>( _triangleMeshes.size() );
 		auto*	triangle_data_arr	= alloc.Allocate<RTGeometryBuild::TrianglesData>( _triangleMeshes.size() );
 		CHECK_ERR( triangle_info_arr != null and triangle_data_arr != null );
 
-		for (usize i = 0; i < _triangleMeshes.size(); ++i)
+		for (usize i : IndicesOnly( _triangleMeshes ))
 		{
 			auto&	tri_mesh		= _triangleMeshes[i];
 			auto&	info			= triangle_info_arr[i];
@@ -368,13 +401,27 @@ namespace AE::ResEditor
 
 			ASSERT( info.maxPrimitives > 0 );
 			ASSERT( info.maxVertex > 0 );
+			ASSERT( info.micromapIndex == UMax or info.micromapIndex < _micromaps.size() );
 		}
 
-		buildInfo = RTGeometryBuild{
-						ArrayView<RTGeometryBuild::TrianglesInfo>{ triangle_info_arr, _triangleMeshes.size() },
-						ArrayView<RTGeometryBuild::TrianglesData>{ triangle_data_arr, _triangleMeshes.size() },
-						Default, Default,
-						_options };
+		ASSERT( buildInfo.triangles.empty() );
+		buildInfo.SetTriangles({ triangle_info_arr, _triangleMeshes.size() }, { triangle_data_arr, _triangleMeshes.size() });
+
+		if ( not _micromaps.empty() )
+		{
+			auto*	micromap_arr = alloc.Allocate<RTGeometryBuild::MicromapInfo>( _micromaps.size() );
+			CHECK_ERR( micromap_arr != null );
+
+			for (usize i : IndicesOnly( _micromaps ))
+			{
+				auto&	src = _micromaps[i];
+				auto&	dst = micromap_arr[i];
+
+				dst = src;
+				dst.micromapId = src.micromap->GetMicromapID( fid );
+			}
+			buildInfo.SetMicromaps({ micromap_arr, _micromaps.size() });
+		}
 		return true;
 	}
 //-----------------------------------------------------------------------------
@@ -420,38 +467,39 @@ namespace AE::ResEditor
 			_uniqueGeometries.emplace( inst.geometry, 0 );
 		}
 
-		auto&		res_mngr		= RenderGraph().GetStateTracker();
-		const auto	sizes			= res_mngr.GetRTSceneSizes( RTSceneBuild{ uint(_instances.size()), _options });
-		const auto	CreateRTScene	= [&res_mngr, &sizes, this] ()
-		{{
-			return res_mngr.CreateRTScene( RTSceneDesc{ sizes.rtasSize, _options }, _dbgName,
-										   _Renderer().ChooseAllocator( False{"static"}, sizes.rtasSize ));
-		}};
+		auto&		res_mngr	= RenderGraph().GetStateTracker();
+		const auto	sizes		= res_mngr.GetResourceManager().GetRTSceneSizes( RTSceneBuild{ uint(_instances.size()), _options });
 
-		_sceneId		= CreateRTScene();
+		_sceneId		= res_mngr.CreateRTScene( RTSceneDesc{ sizes.rtasSize, _options }, _dbgName,
+												  _Renderer().ChooseAllocator( False{"static"}, sizes.rtasSize ));
 		_scratchBuffer	= res_mngr.CreateBuffer( BufferDesc{ sizes.buildScratchSize, EBufferUsage::ASBuild_Scratch },
 												 _dbgName + "-Scratch",
 												 _Renderer().ChooseAllocator( Bool{_isMutable}, sizes.buildScratchSize ));
-
 		CHECK_THROW( _scratchBuffer and _sceneId );
 
-		if ( _indirectBuffer and
-			 res_mngr.GetFeatureSet().accelerationStructureIndirectBuild != FeatureSet::EFeature::RequireTrue )
+		if ( _indirectBuffer )
 		{
-			CHECK_THROW( _indirectBuffer->HasHistory() );
-			CHECK_THROW( _instanceBuffer->HasHistory() );
+			if ( res_mngr.GetFeatureSet().accelerationStructureIndirectBuild != FeatureSet::EFeature::RequireTrue )
+			{
+				CHECK_THROW( _indirectBuffer->HasHistory() );
+				CHECK_THROW( _instanceBuffer->HasHistory() );
 
-			_indirectBufferHostVis = res_mngr.CreateBuffer( BufferDesc{ SizeOf<ASBuildIndirectCommand> * GraphicsConfig::MaxFrames,
-																		EBufferUsage::TransferDst }
-																.SetMemory( EMemoryType::HostCached ),
-															_dbgName + "-InstHost", _Renderer().GetStaticAllocator() );
-			CHECK_THROW( _indirectBufferHostVis );
+				_indirectBufferHostVis = res_mngr.CreateBuffer( BufferDesc{ SizeOf<ASBuildIndirectCommand> * GraphicsConfig::MaxFrames,
+																			EBufferUsage::TransferDst }
+																	.SetMemory( EMemoryType::HostCached ),
+																_dbgName + "-InstHost", _Renderer().GetStaticAllocator() );
+				CHECK_THROW( _indirectBufferHostVis );
 
-			ResourceManager::NativeMemObjInfo_t	mem_obj;
-			CHECK_THROW( res_mngr.GetMemoryInfo( _indirectBufferHostVis, OUT mem_obj ));
+				ResourceManager::NativeMemObjInfo_t	mem_obj;
+				CHECK_THROW( res_mngr.GetMemoryInfo( _indirectBufferHostVis, OUT mem_obj ));
 
-			_indirectBufferMem = Cast<ASBuildIndirectCommand>( mem_obj.mappedPtr );
-			CHECK_THROW( _indirectBufferMem != null );
+				_indirectBufferMem = Cast<ASBuildIndirectCommand>( mem_obj.mappedPtr );
+				CHECK_THROW( _indirectBufferMem != null );
+			}
+			else
+			{
+				CHECK_THROW( _indirectBuffer->GetDeviceAddress(0) != 0 );
+			}
 		}
 	}
 
@@ -620,8 +668,12 @@ namespace AE::ResEditor
 				break;
 
 			case EBuildMode::Indirect :
+			  #if defined(AE_ENABLE_VULKAN) or defined(AE_ENABLE_REMOTE_GRAPHICS)
 				CHECK_ERR( _indirectBuffer );
 				ctx.BuildIndirect( scene_build, _sceneId, _indirectBuffer->GetBufferId( fid ));
+			  #else
+				CHECK_MSG( false, "BuildIndirect is not supported" );
+			  #endif
 				break;
 
 			case EBuildMode::IndirectEmulated :
@@ -682,6 +734,158 @@ namespace AE::ResEditor
 		{
 			CHECK_Eq( geom->GetVersion(fid), ver );
 		}*/
+	}
+//-----------------------------------------------------------------------------
+
+
+
+
+/*
+=================================================
+	constructor
+=================================================
+*/
+	RTMicromap::RTMicromap (BuildData	info,
+							Renderer &	renderer,
+							StringView	dbgName,
+							Bool		allowUpdate) __NE___ :
+		IResource{ renderer },
+		_info{ RVRef(info) },
+		_isMutable{ allowUpdate },
+		_dbgName{ dbgName }
+	{}
+
+/*
+=================================================
+	_Init
+=================================================
+*/
+	void  RTMicromap::_Init () __Th___
+	{
+		CHECK_THROW( _info.data );
+		CHECK_THROW( _info.triangleArray );
+
+		_uploadStatus.store( EUploadStatus::InProgress );
+
+		_DtTrQueue().EnqueueForUpload( GetRC() );
+
+		RTMicromapInfo		mm_info;
+		mm_info.type		= _info.type;
+		mm_info.buildFlags	= _info.buildFlags;
+		mm_info.usage		= _info.usage;
+
+		auto&		res_mngr	= RenderGraph().GetStateTracker();
+		const auto	sizes		= res_mngr.GetResourceManager().GetRTMicromapSizes( mm_info );
+
+		_micromapId		= res_mngr.CreateRTMicromap( RTMicromapDesc{ sizes.micromapSize, _info.type }, _dbgName,
+													 _Renderer().ChooseAllocator( False{"static"}, sizes.micromapSize ));
+		_scratchBuffer	= res_mngr.CreateBuffer( BufferDesc{ sizes.buildScratchSize, EBufferUsage::MMBuild_Scratch },
+												 _dbgName + "-Scratch",
+												 _Renderer().ChooseAllocator( Bool{_isMutable}, sizes.buildScratchSize ));
+		CHECK_THROW( _scratchBuffer and _micromapId );
+	}
+
+/*
+=================================================
+	Create
+=================================================
+*/
+	RC<RTMicromap>  RTMicromap::Create (BuildData	info,
+										Renderer &	renderer,
+										StringView	dbgName,
+										Bool		allowUpdate) __Th___
+	{
+		RC<RTMicromap>	res { new RTMicromap{ RVRef(info), renderer, dbgName, allowUpdate }};
+		res->_Init();  // throw
+		return res;
+	}
+
+/*
+=================================================
+	destructor
+=================================================
+*/
+	RTMicromap::~RTMicromap () __NE___
+	{
+		auto&	res_mngr = RenderGraph().GetStateTracker();
+		res_mngr.ReleaseResources( _scratchBuffer, _micromapId );
+	}
+
+/*
+=================================================
+	Build
+=================================================
+*/
+	bool  RTMicromap::Build (DirectCtx::ASBuild &ctx) __Th___
+	{
+		CHECK_ERR( _scratchBuffer );
+
+		const uint		fid = ctx.GetFrameId().Index();
+		RTMicromapBuild	cmd;
+
+		cmd.type					= _info.type;
+		cmd.buildFlags				= _info.buildFlags;
+		cmd.usage					= _info.usage;
+		cmd.data.id					= _info.data->GetBufferId( fid );
+		cmd.data.offset				= _info.dataOffset;
+		cmd.triangleArray.id		= _info.triangleArray->GetBufferId( fid );
+		cmd.triangleArray.offset	= _info.triangleArrayOffset;
+		cmd.triangleArray.stride	= SizeOf< RTMicromapBuild::Triangle >;
+		cmd.scratch.id				= _scratchBuffer;
+
+		ctx.Build( cmd, _micromapId );
+		return true;
+	}
+
+/*
+=================================================
+	Upload
+=================================================
+*/
+	IResource::EUploadStatus  RTMicromap::Upload (TransferCtx_t &ctx) __Th___
+	{
+		if ( auto stat = _uploadStatus.load();  stat != EUploadStatus::InProgress )
+			return stat;
+
+		bool	complete	= true;
+		bool	failed		= false;
+
+		{
+			EUploadStatus	status	= _info.data->GetStatus();
+
+			complete &= (status == EUploadStatus::Completed);
+			failed   |= (status == EUploadStatus::Canceled);
+		}{
+			EUploadStatus	status	= _info.triangleArray->GetStatus();
+
+			complete &= (status == EUploadStatus::Completed);
+			failed   |= (status == EUploadStatus::Canceled);
+		}
+
+		if ( failed )
+			_SetUploadStatus( EUploadStatus::Canceled );
+		else
+		if ( complete and _isMutable )
+		{
+			// will build from BuildRTMicromap pass
+			_SetUploadStatus( EUploadStatus::Completed );
+		}
+		else
+		if ( complete )
+		{
+			DirectCtx::ASBuild	as_ctx{ ctx.GetRenderTask(), ctx.ReleaseCommandBuffer() };
+
+			if ( not Build( as_ctx ))
+				_SetUploadStatus( EUploadStatus::Canceled );
+
+			if ( not _isMutable )
+				RenderGraph().GetStateTracker().ReleaseResource( INOUT _scratchBuffer );
+
+			Reconstruct( INOUT ctx, as_ctx.GetRenderTask(), as_ctx.ReleaseCommandBuffer() );
+			_SetUploadStatus( EUploadStatus::Completed );
+		}
+
+		return _uploadStatus.load();
 	}
 
 

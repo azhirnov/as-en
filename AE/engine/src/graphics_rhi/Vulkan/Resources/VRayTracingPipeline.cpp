@@ -48,16 +48,19 @@ namespace AE::Graphics
 		VkRayTracingPipelineCreateInfoKHR		pipeline_info		= {};
 		VkPipelineDynamicStateCreateInfo		dynamic_state_info	= {};
 		VkPipelineRobustnessCreateInfoEXT		robustness_ci;
-		//VkPipelineCreateFlags2CreateInfoKHR	flags_ci;
+		VkPipelineCreateFlags2CreateInfoKHR		flags2_ci			= {};
 		VNextChain								p_next				{pipeline_info};
 
 		const uint	group_count	= uint(ci.templCI.generalShaders.size() + ci.templCI.triangleGroups.size() + ci.templCI.proceduralGroups.size());
 		auto*		groups		= ci.tempAllocator->Allocate<VkRayTracingShaderGroupCreateInfoKHR>( group_count );
 		CHECK_ERR( groups != null );
 
+		flags2_ci.sType				= VK_STRUCTURE_TYPE_PIPELINE_CREATE_FLAGS_2_CREATE_INFO;
+		flags2_ci.flags				= VEnumCast( ci.specCI.options );
+
 		pipeline_info.sType			= VK_STRUCTURE_TYPE_RAY_TRACING_PIPELINE_CREATE_INFO_KHR;
 		pipeline_info.layout		= _layout;
-		pipeline_info.flags			= VEnumCast( ci.specCI.options );
+		pipeline_info.flags			= VkPipelineCreateFlags( flags2_ci.flags );
 		pipeline_info.groupCount	= group_count;
 		pipeline_info.pGroups		= groups;
 		pipeline_info.pDynamicState	= &dynamic_state_info;
@@ -69,19 +72,23 @@ namespace AE::Graphics
 		CHECK_ERR( SetDynamicState( OUT dynamic_state_info, ci.specCI.dynamicState, false, *ci.tempAllocator ));
 		CHECK_ERR( SetShaderStages( OUT pipeline_info.pStages, OUT pipeline_info.stageCount, ci.shaders, ci.specCI.specialization, *ci.tempAllocator ));
 
+		if ( AllBits( ci.specCI.options, EPipelineOpt::OpacityMicromap ))
+		{
+			flags2_ci.flags |= VK_PIPELINE_CREATE_2_RAY_TRACING_OPACITY_MICROMAP_BIT_EXT;
+		}
+
+		if ( ext.maintenance5 ){
+			p_next.Add( flags2_ci );
+		}else{
+			CHECK_ERR_MSG( flags2_ci.flags == pipeline_info.flags,
+				"Some pipeline creation flags requires 'maintenance5' extension" );
+		}
+
 		if ( ext.pipelineRobustness )
 		{
 			p_next.Add( robustness_ci );
 			SetRobustness( OUT robustness_ci );
 		}
-
-		/*if ( ext.maintenance5 )
-		{
-			p_next.Add( flags_ci );
-
-			flags_ci.sType	= VK_STRUCTURE_TYPE_PIPELINE_CREATE_FLAGS_2_CREATE_INFO;
-			flags_ci.flags	= 0;	// TODO
-		}*/
 
 		VkRayTracingPipelineClusterAccelerationStructureCreateInfoNV	cluster;
 		if ( AllBits( ci.specCI.options, EPipelineOpt::RT_AllowClusterAccelStruct ))

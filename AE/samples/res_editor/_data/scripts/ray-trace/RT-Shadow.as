@@ -43,87 +43,57 @@
 
 		// create plane
 		{
-			RC<RTGeometry>	geom	= RTGeometry();
-			RC<Buffer>		plane	= Buffer();
+			RC<Mesh>	plane = Mesh();
+			plane.SetAttributes( EAttribute::Position | EAttribute::Normal );
+			plane.AddGridXZ( 2, Transform().Scale( 10.f ) );
 
-			array<float2>	texcoords;
-			array<uint>		indices;
-			GetGrid( 4, OUT texcoords, OUT indices );
-
-			array<float3>	positions;
-			array<float3>	normals;
-
-			for (uint i = 0; i < texcoords.size(); ++i) {
-				positions.push_back( float3( ToSNorm(texcoords[i].x), 0.f, ToSNorm(texcoords[i].y) ) * 10.f );
-				normals.push_back( float3( 0.f, -1.f, 0.f ));
-			}
-
-			uint	pos_off		= plane.FloatArray(	"positions",	positions );
-			uint	norm_off	= plane.FloatArray(	"normals",		normals );
-			uint	idx_off		= plane.UIntArray(	"indices",		indices );
-
-			geom.AddIndexedTriangles( plane, plane );
+			RC<RTGeometry>	geom = RTGeometry();
+			geom.AddIndexedTriangles( plane );
 
 			scene.AddInstance( geom, float3(0.f, 0.5f, 0.f) );
 
-			normals_addr.push_back( plane.DeviceAddress() + norm_off );
-			indices_addr.push_back( plane.DeviceAddress() + idx_off );
-			geom_data.AddReference( plane );
+			normals_addr.push_back( plane.DeviceAddress( EAttribute::Normal ));
+			indices_addr.push_back( plane.DeviceAddress( EAttribute(0) ));
+			geom_data.AddReference( plane.ToBuffer() );
 		}
 
 		// create cube
 		{
-			RC<RTGeometry>	geom	= RTGeometry();
-			RC<Buffer>		cube	= Buffer();
+			RC<Mesh>	cube = Mesh();
+			cube.SetAttributes( EAttribute::Position | EAttribute::Normal );
+			cube.AddCube();
 
-			array<float3>	positions;
-			array<float3>	normals;
-			array<uint>		indices;
-			GetCube( OUT positions, OUT normals, OUT indices );
-
-			uint	pos_off		= cube.FloatArray(	"positions",	positions );
-			uint	norm_off	= cube.FloatArray(	"normals",		normals );
-			uint	idx_off		= cube.UIntArray(	"indices",		indices );
-
-			geom.AddIndexedTriangles( cube, cube );
+			RC<RTGeometry>	geom = RTGeometry();
+			geom.AddIndexedTriangles( cube );
 
 			for (int i = 0; i < 4; ++i)
 			{
 				scene.AddInstance( geom, float3(-2.f + 4.f * (i%2), -0.5f, -2.f - 4.f * (i/2)) );
 
-				normals_addr.push_back( cube.DeviceAddress() + norm_off );
-				indices_addr.push_back( cube.DeviceAddress() + idx_off );
+				normals_addr.push_back( cube.DeviceAddress( EAttribute::Normal ));
+				indices_addr.push_back( cube.DeviceAddress( EAttribute(0) ));
 			}
-			geom_data.AddReference( cube );
+			geom_data.AddReference( cube.ToBuffer() );
 		}
 
 		// create sphere
 		{
-			RC<RTGeometry>	geom	= RTGeometry();
-			RC<Buffer>		sphere	= Buffer();
 
-			array<float3>	positions;
-			array<float3>	normals;
-			array<float3>	tangents;
-			array<float3>	bitangents;
-			array<float3>	texcoords;
-			array<uint>		indices;
-			GetSphere( 4, OUT positions, OUT normals, OUT tangents, OUT bitangents, OUT texcoords, OUT indices );
+			RC<Mesh>	sphere = Mesh();
+			sphere.SetAttributes( EAttribute::Position | EAttribute::Normal );
+			sphere.AddSphere( 4 );
 
-			uint	pos_off		= sphere.FloatArray(	"positions",	positions );
-			uint	norm_off	= sphere.FloatArray(	"normals",		normals );
-			uint	idx_off		= sphere.UIntArray(		"indices",		indices );
-
-			geom.AddIndexedTriangles( sphere, sphere );
+			RC<RTGeometry>	geom = RTGeometry();
+			geom.AddIndexedTriangles( sphere );
 
 			for (int i = 0; i < 4; ++i)
 			{
 				scene.AddInstance( geom, float3(-2.f + 4.f * (i%2), -0.5f, 2.f + 4.f * (i/2)) );
 
-				normals_addr.push_back( sphere.DeviceAddress() + norm_off );
-				indices_addr.push_back( sphere.DeviceAddress() + idx_off );
+				normals_addr.push_back( sphere.DeviceAddress( EAttribute::Normal ));
+				indices_addr.push_back( sphere.DeviceAddress( EAttribute(0) ));
 			}
-			geom_data.AddReference( sphere );
+			geom_data.AddReference( sphere.ToBuffer() );
 		}
 
 		// create geometry data

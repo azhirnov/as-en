@@ -25,7 +25,7 @@ namespace
 		Ctx		ctx{ RenderCoro_Get() };
 
 		ctx.AccumBarriers()
-			.ImageBarrier( t.img_1, EResourceState::Invalidate, EResourceState::CopyDst );
+			.ResourceBarrier( t.img_1, EResourceState::Invalidate, EResourceState::CopyDst );
 
 		UploadImageDesc	upload;
 		upload.aspectMask	= EImageAspect::Color;
@@ -39,8 +39,8 @@ namespace
 				  copied == t.img_view.Image2DSize() );
 
 		ctx.AccumBarriers()
-			.ImageBarrier( t.img_1, EResourceState::CopyDst, EResourceState::CopySrc )
-			.ImageBarrier( t.img_2, EResourceState::Invalidate, EResourceState::CopyDst );
+			.ResourceBarrier( t.img_1, EResourceState::CopyDst, EResourceState::CopySrc )
+			.ResourceBarrier( t.img_2, EResourceState::Invalidate, EResourceState::CopyDst );
 
 		ImageCopy	copy;
 		copy.srcOffset				= uint3{ t.src_offset, 0u };
@@ -50,7 +50,7 @@ namespace
 		copy.dstSubres.aspectMask	= EImageAspect::Color;
 		ctx.CopyImage( t.img_1, t.img_2, {copy} );
 
-		ctx.AccumBarriers().ImageBarrier( t.img_2, EResourceState::CopyDst, EResourceState::CopySrc );
+		ctx.AccumBarriers().ResourceBarrier( t.img_2, EResourceState::CopyDst, EResourceState::CopySrc );
 
 		ReadbackImageDesc	read;
 		read.imageOffset	= ImageDim_t{copy.dstOffset};	// TODO: must be same type
@@ -122,6 +122,7 @@ namespace
 		CHECK_ERR( end->Status() == ETaskStatus::Completed );
 
 		CHECK_ERR( rts.WaitAll( c_MaxTimeout ));
+		CHECK_ERR( t.result );
 
 		CHECK_ERR( Scheduler().Wait( {t.result}, c_MaxTimeout ));
 		CHECK_ERR( t.result->Status() == ETaskStatus::Completed );
@@ -133,7 +134,7 @@ namespace
 } // namespace
 
 
-bool RGTest::Test_CopyImage1 ()
+RGTest::ECode  RGTest::Test_CopyImage1 ()
 {
 	bool	result = true;
 
@@ -142,6 +143,10 @@ bool RGTest::Test_CopyImage1 ()
 
 	RG_CHECK( _CompareDumps( TEST_NAME ));
 
-	AE_LOGI( TEST_NAME << " - passed" );
-	return result;
+	if ( result )
+	{
+		AE_LOGI( TEST_NAME << " - passed" );
+		return ECode::Passed;
+	}
+	return ECode::Failed;
 }

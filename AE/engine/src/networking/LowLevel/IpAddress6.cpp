@@ -69,7 +69,7 @@ namespace
 */
 	bool  IpAddress6::IsValid () C_NE___
 	{
-		return	((_address.p0 | _address.p1 | _address.p2 | _address.p3 | _address.p4 | _address.p5 | _address.p6 | _address.p7) != 0) and
+		return	((_address.p0 | _address.p1 | _address.p2 | _address.p3 | _address.p4 | _address.p5 | _address.p6 | _address.p7) != 0) or
 				(_port != 0);
 	}
 
@@ -214,6 +214,8 @@ namespace
 */
 	IpAddress6  IpAddress6::FromNative (AnyTypeCRef inAddr) __NE___
 	{
+		CHECK_ERR( inAddr.Is< sockaddr_in6 >() );
+
 		const auto&		addr = inAddr.As< sockaddr_in6 >();
 		IpAddress6		result;
 

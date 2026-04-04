@@ -214,7 +214,7 @@ namespace AE::Threading
 
 		bool			CancelAllRequests ()												__NE_OV;
 
-		ReqAlign		OffsetAlign ()														C_NE_OV	{ return _align; }
+		ReqAlign		DirectAccessAlign ()												C_NE_OV	{ return _align; }
 
 		using AsyncRDataSource::ReadBlock;
 	};
@@ -275,7 +275,7 @@ namespace AE::Threading
 		bool			CancelAllRequests ()												__NE_OV;
 		RC<SharedMem>	Alloc (SizeAndAlign)												__NE_OV;
 
-		ReqAlign		OffsetAlign ()														C_NE_OV	{ return _align; }
+		ReqAlign		DirectAccessAlign ()												C_NE_OV	{ return _align; }
 
 		using AsyncWDataSource::WriteBlock;
 	};

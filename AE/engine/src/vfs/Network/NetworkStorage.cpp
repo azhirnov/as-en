@@ -103,7 +103,7 @@ namespace AE::VFS
 	CreateUniqueFile
 =================================================
 */
-	bool  NetworkStorage::CreateUniqueFile (OUT FileName &, INOUT Path &) C_NE___
+	bool  NetworkStorage::CreateUniqueFile (OUT FileName &, INOUT Path &, OUT Path*) C_NE___
 	{
 		// TODO ?
 		return false;

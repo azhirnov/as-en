@@ -126,7 +126,7 @@ namespace AE::Base
 		return "";
 	}
 
-	ND_ StringView  ToString (const FeatureSet::PerDescriptorSet &ds)
+	ND_ String  ToString (const FeatureSet::PerDescriptorSet &ds)
 	{
 		return	"\n    maxInputAttachments: "s << Base::ToString( ds.maxInputAttachments ) <<
 				"\n    maxSampledImages:    " << Base::ToString( ds.maxSampledImages ) <<
@@ -793,6 +793,7 @@ namespace
 		res.maxUniformBuffers	= FS_MergeMax( lhs.maxUniformBuffers,	rhs.maxUniformBuffers,		"maxUniformBuffers"		);
 		res.maxAccelStructures	= FS_MergeMax( lhs.maxAccelStructures,	rhs.maxAccelStructures,		"maxAccelStructures"	);
 		res.maxTotalResources	= FS_MergeMax( lhs.maxTotalResources,	rhs.maxTotalResources,		"maxTotalResources"		);
+		StaticAssert( sizeof(FeatureSet::PerDescriptorSet) == sizeof(uint)*8 );
 		return res;
 	}
 
@@ -839,6 +840,7 @@ namespace
 */
 	bool  FeatureSet::PerDescriptorSet::operator == (const PerDescriptorSet &rhs) C_NE___
 	{
+		StaticAssert( sizeof(FeatureSet::PerDescriptorSet) == sizeof(uint)*8 );
 		return	maxInputAttachments	== rhs.maxInputAttachments	and
 				maxSampledImages	== rhs.maxSampledImages		and
 				maxSamplers			== rhs.maxSamplers			and
@@ -856,6 +858,7 @@ namespace
 */
 	bool  FeatureSet::PerDescriptorSet::operator >= (const PerDescriptorSet &rhs) C_NE___
 	{
+		StaticAssert( sizeof(FeatureSet::PerDescriptorSet) == sizeof(uint)*8 );
 		return	maxInputAttachments	>= rhs.maxInputAttachments	and
 				maxSampledImages	>= rhs.maxSampledImages		and
 				maxSamplers			>= rhs.maxSamplers			and
@@ -873,6 +876,7 @@ namespace
 */
 	HashVal  FeatureSet::PerDescriptorSet::CalcHash () C_NE___
 	{
+		StaticAssert( sizeof(FeatureSet::PerDescriptorSet) == sizeof(uint)*8 );
 		return	HashOf( maxInputAttachments ) + HashOf( maxSampledImages ) + HashOf( maxSamplers ) +
 				HashOf( maxStorageBuffers ) + HashOf( maxStorageImages ) + HashOf( maxUniformBuffers ) +
 				HashOf( maxTotalResources );
@@ -1274,23 +1278,33 @@ namespace
 			 chEqual( samplerYcbcrConversion, True );
 		}
 
+		if ( fEqual( deviceGeneratedCommands, True ))
+		{
+			CHECK_ERR( AllBits( supportedIndirectCommandsShaderStages, EShaderStages::Vertex | EShaderStages::Fragment | EShaderStages::Compute ));
+			// 'supportedIndirectCommandsShaderStagesPipelineBinding' can be zero
+			CHECK_ERR( maxIndirectPipelineCount > 0 );
+		}
+		else
+		{
+			chNotEqual2( deviceGeneratedCommandsMultiDrawIndirectCount,		True, neg_feat );
+			chEqual( supportedIndirectCommandsShaderStages,					Default );
+			chEqual( supportedIndirectCommandsShaderStagesPipelineBinding,	Default );
+			chEqual( maxIndirectPipelineCount,								0 );
+		}
+
+		if ( fEqual( opacityMicromap, True ))
+		{
+			CHECK_ERR( maxOpacity2StateSubdivisionLevel > 0 );
+			CHECK_ERR( maxOpacity4StateSubdivisionLevel > 0 );
+		}
+		else
+		{
+			chEqual( maxOpacity2StateSubdivisionLevel,	0 );
+			chEqual( maxOpacity4StateSubdivisionLevel,	0 );
+		}
+
 		chNotEqual2( queues.supported, EQueueMask::Unknown, EQueueMask::Graphics );
 		chEqual2(	 AnyBits( queues.required, ~queues.supported ),  false,  queues.required &= queues.supported );
-
-		if ( fEqual( shaderUniformBufferArrayNonUniformIndexingNative, True ))
-			chEqual( shaderUniformBufferArrayNonUniformIndexing, True );
-
-		if ( fEqual( shaderSampledImageArrayNonUniformIndexingNative, True ))
-			chEqual( shaderSampledImageArrayNonUniformIndexing, True );
-
-		if ( fEqual( shaderStorageBufferArrayNonUniformIndexingNative, True ))
-			chEqual( shaderStorageBufferArrayNonUniformIndexing, True );
-
-		if ( fEqual( shaderStorageImageArrayNonUniformIndexingNative, True ))
-			chEqual( shaderStorageImageArrayNonUniformIndexing, True );
-
-		if ( fEqual( shaderInputAttachmentArrayNonUniformIndexingNative, True ))
-			chEqual( shaderInputAttachmentArrayNonUniformIndexing, True );
 
 		chGreaterEq( maxDrawIndirectCount, 1 );
 
@@ -1304,6 +1318,41 @@ namespace
 
 	bool  FeatureSet::IsValid ()	C_NE___	{ return ConstCast<FeatureSet>(this)->_Validate<false>(); }
 	void  FeatureSet::Validate ()	__NE___	{ _Validate<true>(); }
+
+/*
+=================================================
+	IsSupported (EResourceState)
+=================================================
+*/
+	bool  FeatureSet::IsSupported (const EResourceState state) C_NE___
+	{
+		const auto	True	= EFeature::RequireTrue;
+		const auto	st		= ToEResState( state );
+
+		if ( state == EResourceState::_InvalidState )
+			return true;
+
+		if ( AnyEqual( st, _EResState::DepthTest_StencilRW, _EResState::DepthRW_StencilTest, _EResState::DepthTest_DepthSample_StencilRW ))
+			return separateDepthStencilRW == True;
+
+		if ( st == _EResState::RTShaderBindingTable or AnyBits( state, EResourceState::RayTracingShaders ))
+			return rayTracingPipeline == True;
+
+		if ( AnyEqual( st, _EResState::ShaderRTAS, _EResState::CopyRTAS_Read, _EResState::CopyRTAS_Write,
+						   _EResState::BuildRTAS_Read, _EResState::BuildRTAS_RW, _EResState::BuildRTAS_IndirectBuffer ))
+			return accelerationStructure() == True;
+
+		if ( AnyEqual( st, _EResState::BuildRTAS_MicromapRead, _EResState::BuildMicromap_Read, _EResState::BuildMicromap_RW ))
+			return opacityMicromap == True;
+
+		if ( AnyEqual( st, _EResState::CoopVecConvert_Read, _EResState::CoopVecConvert_Write ))
+			return cooperativeVector == True;
+
+		if ( AnyBits( state, EResourceState::MeshTaskShader ))
+			return taskShader == True;
+
+		return true;
+	}
 
 /*
 =================================================
@@ -1475,7 +1524,7 @@ namespace
 */
 	bool  FeatureSet::IsSupported (const BufferDesc &desc, const BufferViewDesc &view) C_NE___
 	{
-		StaticAssert( uint(EBufferUsage::All) == 0x3FFF );
+		StaticAssert( uint(EBufferUsage::All) == 0xFFFF );
 		StaticAssert( uint(EBufferOpt::All) == 0x1F );
 
 		bool	result = true;
@@ -1601,6 +1650,7 @@ namespace
 				case EImageOpt::FragmentPplnStore :			result &= (vertexPipelineStoresAndAtomics	== EFeature::RequireTrue);	break;
 				case EImageOpt::Subsampled :				result &= (fragmentDensityMap				== EFeature::RequireTrue);	break;
 				case EImageOpt::ExtendedUsage :				break;
+				case EImageOpt::SeparatePlanes :			break;
 
 				case EImageOpt::_Last :
 				case EImageOpt::SparseResidencyAliased :
@@ -1962,7 +2012,7 @@ namespace {
 */
 	HashVal64  FeatureSet::GetHashOfFS_Precalculated () __NE___
 	{
-		return HashVal64{0x8960393fe035dfe9ull};
+		return HashVal64{0x96e9152f88a7be58ull};
 	}
 
 

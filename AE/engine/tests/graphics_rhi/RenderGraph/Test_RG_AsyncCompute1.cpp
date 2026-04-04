@@ -45,7 +45,7 @@ namespace
 		GfxMemAllocatorPtr				gfxAlloc;
 	};
 
-	static constexpr auto&	RTech = RenderTechs::AsyncCompTestRT;
+	static constexpr auto&	RTech = RenderTechs::AsyncComp_RTech;
 
 	const auto	img_gfx_state	= EResourceState::ShaderSample | EResourceState::FragmentShader;
 	const auto	img_comp_state	= EResourceState::ShaderStorage_RW | EResourceState::ComputeShader;
@@ -63,7 +63,7 @@ namespace
 		typename CtxTypes::Graphics		ctx{ RenderCoro_Get() };
 
 		ctx.AccumBarriers()
-			.ImageBarrier( t.image[fi], EResourceState::Invalidate, img_gfx_state );
+			.ResourceBarrier( t.image[fi], EResourceState::Invalidate, img_gfx_state );
 
 		// draw
 		{
@@ -81,7 +81,7 @@ namespace
 		}
 
 		ctx.AccumBarriers()
-			.ImageBarrier( t.image[fi], img_gfx_state, img_comp_state );
+			.ResourceBarrier( t.image[fi], img_gfx_state, img_comp_state );
 
 		RenderCoro_Execute( ctx );
 	}
@@ -115,8 +115,8 @@ namespace
 		Ctx		ctx{ RenderCoro_Get() };
 
 		ctx.AccumBarriers()
-			.ImageBarrier( t.image[0], img_comp_state, EResourceState::CopySrc )
-			.ImageBarrier( t.image[1], img_comp_state, EResourceState::CopySrc );
+			.ResourceBarrier( t.image[0], img_comp_state, EResourceState::CopySrc )
+			.ResourceBarrier( t.image[1], img_comp_state, EResourceState::CopySrc );
 
 		ReadbackImageDesc	readback;
 		readback.heapType = EStagingHeapType::Dynamic;
@@ -264,6 +264,7 @@ namespace
 		CHECK_ERR( rts.WaitAll( c_MaxTimeout ));
 
 		CHECK_ERR( t.frameIdx.load() == 4 );
+		CHECK_ERR( t.result[0] and t.result[1] );
 
 		CHECK_ERR( Scheduler().Wait( List{t.result[0], t.result[1]}, c_MaxTimeout ));
 		CHECK_ERR( t.result[0]->Status() == ETaskStatus::Completed );
@@ -277,12 +278,12 @@ namespace
 } // namespace
 
 
-bool RGTest::Test_AsyncCompute1 ()
+RGTest::ECode  RGTest::Test_AsyncCompute1 ()
 {
 	if ( not AllBits( GraphicsScheduler().GetDevice().GetAvailableQueues(), EQueueMask::Graphics | EQueueMask::AsyncCompute ))
 	{
 		AE_LOGI( TEST_NAME << " - skipped" );
-		return true;
+		return ECode::Skipped;
 	}
 
 	auto	img_cmp = _LoadReference( TEST_NAME );
@@ -293,6 +294,10 @@ bool RGTest::Test_AsyncCompute1 ()
 
 	RG_CHECK( _CompareDumps( TEST_NAME ));
 
-	AE_LOGI( TEST_NAME << " - passed" );
-	return result;
+	if ( result )
+	{
+		AE_LOGI( TEST_NAME << " - passed" );
+		return ECode::Passed;
+	}
+	return ECode::Failed;
 }

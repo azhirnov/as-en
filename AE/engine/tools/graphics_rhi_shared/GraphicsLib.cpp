@@ -61,12 +61,19 @@ namespace
 
 
 		// IBaseContext //
-		void  BufferBarrier (BufferID buffer, EResourceState srcState, EResourceState dstState)										__Th_OV	{ _ctx.BufferBarrier( buffer, srcState, dstState ); }
-		void  BufferViewBarrier (BufferViewID view, EResourceState srcState, EResourceState dstState)								__Th_OV	{ _ctx.BufferViewBarrier( view, srcState, dstState ); }
+		void  ResourceBarrier (BufferID buffer, EResourceState srcState, EResourceState dstState)									__Th_OV	{ _ctx.ResourceBarrier( buffer, srcState, dstState ); }
+		void  ResourceBarrier (BufferViewID view, EResourceState srcState, EResourceState dstState)									__Th_OV	{ _ctx.ResourceBarrier( view, srcState, dstState ); }
 
-		void  ImageBarrier (ImageID image, EResourceState srcState, EResourceState dstState)										__Th_OV	{ _ctx.ImageBarrier( image, srcState, dstState ); }
-		void  ImageBarrier (ImageID image, EResourceState srcState, EResourceState dstState, const ImageSubresourceRange &subRes)	__Th_OV	{ _ctx.ImageBarrier( image, srcState, dstState, subRes ); }
-		void  ImageViewBarrier (ImageViewID view, EResourceState srcState, EResourceState dstState)									__Th_OV	{ _ctx.ImageViewBarrier( view, srcState, dstState ); }
+		void  ResourceBarrier (ImageID image, EResourceState srcState, EResourceState dstState)										__Th_OV	{ _ctx.ResourceBarrier( image, srcState, dstState ); }
+		void  ResourceBarrier (ImageID image, EResourceState srcState, EResourceState dstState, const ImageSubresourceRange &subRes)__Th_OV	{ _ctx.ResourceBarrier( image, srcState, dstState, subRes ); }
+		void  ResourceBarrier (ImageViewID view, EResourceState srcState, EResourceState dstState)									__Th_OV	{ _ctx.ResourceBarrier( view, srcState, dstState ); }
+
+		void  ResourceBarrier (RTGeometryID id, EResourceState srcState, EResourceState dstState)									__Th_OV	{ _ctx.ResourceBarrier( id, srcState, dstState ); }
+		void  ResourceBarrier (RTSceneID    id, EResourceState srcState, EResourceState dstState)									__Th_OV	{ _ctx.ResourceBarrier( id, srcState, dstState ); }
+		void  ResourceBarrier (RTMicromapID id, EResourceState srcState, EResourceState dstState)									__Th_OV	{ _ctx.ResourceBarrier( id, srcState, dstState ); }
+
+		void  ResourceBarrier (VideoBufferID id, EResourceState srcState, EResourceState dstState)									__Th_OV	{ _ctx.ResourceBarrier( id, srcState, dstState ); }
+		void  ResourceBarrier (VideoImageID  id, EResourceState srcState, EResourceState dstState)									__Th_OV	{ _ctx.ResourceBarrier( id, srcState, dstState ); }
 
 		void  MemoryBarrier (EResourceState srcState, EResourceState dstState)														__Th_OV	{ _ctx.MemoryBarrier( srcState, dstState ); }
 		void  MemoryBarrier (EPipelineScope srcScope, EPipelineScope dstScope)														__Th_OV	{ _ctx.MemoryBarrier( srcScope, dstScope ); }
@@ -172,12 +179,19 @@ namespace
 
 
 		// IBaseContext //
-		void  BufferBarrier (BufferID buffer, EResourceState srcState, EResourceState dstState)										__Th_OV	{ _ctx.BufferBarrier( buffer, srcState, dstState ); }
-		void  BufferViewBarrier (BufferViewID view, EResourceState srcState, EResourceState dstState)								__Th_OV	{ _ctx.BufferViewBarrier( view, srcState, dstState ); }
+		void  ResourceBarrier (BufferID buffer, EResourceState srcState, EResourceState dstState)									__Th_OV	{ _ctx.ResourceBarrier( buffer, srcState, dstState ); }
+		void  ResourceBarrier (BufferViewID view, EResourceState srcState, EResourceState dstState)									__Th_OV	{ _ctx.ResourceBarrier( view, srcState, dstState ); }
 
-		void  ImageBarrier (ImageID image, EResourceState srcState, EResourceState dstState)										__Th_OV	{ _ctx.ImageBarrier( image, srcState, dstState ); }
-		void  ImageBarrier (ImageID image, EResourceState srcState, EResourceState dstState, const ImageSubresourceRange &subRes)	__Th_OV	{ _ctx.ImageBarrier( image, srcState, dstState, subRes ); }
-		void  ImageViewBarrier (ImageViewID view, EResourceState srcState, EResourceState dstState)									__Th_OV	{ _ctx.ImageViewBarrier( view, srcState, dstState ); }
+		void  ResourceBarrier (ImageID image, EResourceState srcState, EResourceState dstState)										__Th_OV	{ _ctx.ResourceBarrier( image, srcState, dstState ); }
+		void  ResourceBarrier (ImageID image, EResourceState srcState, EResourceState dstState, const ImageSubresourceRange &subRes)__Th_OV	{ _ctx.ResourceBarrier( image, srcState, dstState, subRes ); }
+		void  ResourceBarrier (ImageViewID view, EResourceState srcState, EResourceState dstState)									__Th_OV	{ _ctx.ResourceBarrier( view, srcState, dstState ); }
+
+		void  ResourceBarrier (RTGeometryID id, EResourceState srcState, EResourceState dstState)									__Th_OV	{ _ctx.ResourceBarrier( id, srcState, dstState ); }
+		void  ResourceBarrier (RTSceneID    id, EResourceState srcState, EResourceState dstState)									__Th_OV	{ _ctx.ResourceBarrier( id, srcState, dstState ); }
+		void  ResourceBarrier (RTMicromapID id, EResourceState srcState, EResourceState dstState)									__Th_OV	{ _ctx.ResourceBarrier( id, srcState, dstState ); }
+
+		void  ResourceBarrier (VideoBufferID id, EResourceState srcState, EResourceState dstState)									__Th_OV	{ _ctx.ResourceBarrier( id, srcState, dstState ); }
+		void  ResourceBarrier (VideoImageID  id, EResourceState srcState, EResourceState dstState)									__Th_OV	{ _ctx.ResourceBarrier( id, srcState, dstState ); }
 
 		void  MemoryBarrier (EResourceState srcState, EResourceState dstState)														__Th_OV	{ _ctx.MemoryBarrier( srcState, dstState ); }
 		void  MemoryBarrier (EPipelineScope srcScope, EPipelineScope dstScope)														__Th_OV	{ _ctx.MemoryBarrier( srcScope, dstScope ); }
@@ -236,14 +250,25 @@ namespace
 		void  Dispatch (const uint3 &groupCount)																					__Th_OV	{ _ctx.Dispatch( groupCount ); }
 		void  DispatchIndirect (BufferID buffer, Bytes offset)																		__Th_OV	{ _ctx.DispatchIndirect( buffer, offset ); }
 
+		void  BindInitialPipeline (IndirectExecutionSetID id)																		__Th_OV	{ _ctx.BindInitialPipeline( id ); }
+
+		void  ExecuteGeneratedCommands (const ExecuteGeneratedCommandsCmd &cmd)														__Th_OV	{ _ctx.ExecuteGeneratedCommands( cmd ); }
+		void  ExecuteGeneratedCommands (const ExecuteGeneratedCommands2Cmd &cmd)													__Th_OV	{ _ctx.ExecuteGeneratedCommands( cmd ); }
 
 		// IBaseContext //
-		void  BufferBarrier (BufferID buffer, EResourceState srcState, EResourceState dstState)										__Th_OV	{ _ctx.BufferBarrier( buffer, srcState, dstState ); }
-		void  BufferViewBarrier (BufferViewID view, EResourceState srcState, EResourceState dstState)								__Th_OV	{ _ctx.BufferViewBarrier( view, srcState, dstState ); }
+		void  ResourceBarrier (BufferID buffer, EResourceState srcState, EResourceState dstState)									__Th_OV	{ _ctx.ResourceBarrier( buffer, srcState, dstState ); }
+		void  ResourceBarrier (BufferViewID view, EResourceState srcState, EResourceState dstState)									__Th_OV	{ _ctx.ResourceBarrier( view, srcState, dstState ); }
 
-		void  ImageBarrier (ImageID image, EResourceState srcState, EResourceState dstState)										__Th_OV	{ _ctx.ImageBarrier( image, srcState, dstState ); }
-		void  ImageBarrier (ImageID image, EResourceState srcState, EResourceState dstState, const ImageSubresourceRange &subRes)	__Th_OV	{ _ctx.ImageBarrier( image, srcState, dstState, subRes ); }
-		void  ImageViewBarrier (ImageViewID view, EResourceState srcState, EResourceState dstState)									__Th_OV	{ _ctx.ImageViewBarrier( view, srcState, dstState ); }
+		void  ResourceBarrier (ImageID image, EResourceState srcState, EResourceState dstState)										__Th_OV	{ _ctx.ResourceBarrier( image, srcState, dstState ); }
+		void  ResourceBarrier (ImageID image, EResourceState srcState, EResourceState dstState, const ImageSubresourceRange &subRes)__Th_OV	{ _ctx.ResourceBarrier( image, srcState, dstState, subRes ); }
+		void  ResourceBarrier (ImageViewID view, EResourceState srcState, EResourceState dstState)									__Th_OV	{ _ctx.ResourceBarrier( view, srcState, dstState ); }
+
+		void  ResourceBarrier (RTGeometryID id, EResourceState srcState, EResourceState dstState)									__Th_OV	{ _ctx.ResourceBarrier( id, srcState, dstState ); }
+		void  ResourceBarrier (RTSceneID    id, EResourceState srcState, EResourceState dstState)									__Th_OV	{ _ctx.ResourceBarrier( id, srcState, dstState ); }
+		void  ResourceBarrier (RTMicromapID id, EResourceState srcState, EResourceState dstState)									__Th_OV	{ _ctx.ResourceBarrier( id, srcState, dstState ); }
+
+		void  ResourceBarrier (VideoBufferID id, EResourceState srcState, EResourceState dstState)									__Th_OV	{ _ctx.ResourceBarrier( id, srcState, dstState ); }
+		void  ResourceBarrier (VideoImageID  id, EResourceState srcState, EResourceState dstState)									__Th_OV	{ _ctx.ResourceBarrier( id, srcState, dstState ); }
 
 		void  MemoryBarrier (EResourceState srcState, EResourceState dstState)														__Th_OV	{ _ctx.MemoryBarrier( srcState, dstState ); }
 		void  MemoryBarrier (EPipelineScope srcScope, EPipelineScope dstScope)														__Th_OV	{ _ctx.MemoryBarrier( srcScope, dstScope ); }
@@ -266,6 +291,9 @@ namespace
 		void  PopDebugGroup ()																										__Th_OV	{ _ctx.PopDebugGroup(); }
 
 		VULKAN_ONLY(
+		void  PreprocessGeneratedCommands (const PreprocessGeneratedCommandsCmd &cmd)												__Th_OV	{ _ctx.PreprocessGeneratedCommands( cmd ); }
+		void  PreprocessGeneratedCommands (const PreprocessGeneratedCommands2Cmd &cmd)												__Th_OV	{ _ctx.PreprocessGeneratedCommands( cmd ); }
+
 		void  WriteTimestamp (const IQueryManager::IQuery &q, uint index, EPipelineScope srcScope)									__Th_OV	{ _ctx.WriteTimestamp( q, index, srcScope ); }
 		)
 
@@ -304,6 +332,7 @@ namespace
 		bool						IsSupported (const RTSceneBuild &build)																C_NE_OV	{ return _rm->IsSupported( build ); }
 		bool						IsSupported (const RTPartitionedSceneInfo &info)													C_NE_OV	{ return _rm->IsSupported( info ); }
 		bool						IsSupported (const RTClusterInfo &info)																C_NE_OV	{ return _rm->IsSupported( info ); }
+		bool						IsSupported (const RTMicromapInfo &info)															C_NE_OV	{ return _rm->IsSupported( info ); }
 
 		Strong<ImageID>				CreateImage (const ImageDesc &desc, StringView dbgName, GfxMemAllocatorPtr allocator)				__NE_OV	{ return _rm->CreateImage( desc, dbgName, RVRef(allocator) ); }
 		Strong<BufferID>			CreateBuffer (const BufferDesc &desc, StringView dbgName, GfxMemAllocatorPtr allocator)				__NE_OV	{ return _rm->CreateBuffer( desc, dbgName, RVRef(allocator) ); }
@@ -319,12 +348,14 @@ namespace
 
 		Strong<RTGeometryID>		CreateRTGeometry (const RTGeometryDesc &desc, StringView dbgName, GfxMemAllocatorPtr allocator)		__NE_OV	{ return _rm->CreateRTGeometry( desc, dbgName, RVRef(allocator) ); }
 		Strong<RTSceneID>			CreateRTScene (const RTSceneDesc &desc, StringView dbgName, GfxMemAllocatorPtr allocator)			__NE_OV	{ return _rm->CreateRTScene( desc, dbgName, RVRef(allocator) ); }
+		Strong<RTMicromapID>		CreateRTMicromap (const RTMicromapDesc &desc, StringView dbgName, GfxMemAllocatorPtr allocator)		__NE_OV	{ return _rm->CreateRTMicromap( desc, dbgName, RVRef(allocator) ); }
 
-		Bytes						GetShaderGroupStackSize (RayTracingPipelineID ppln, ArrayView<RayTracingGroupName> names, ERTShaderGroup type) __NE_OV { return _rm->GetShaderGroupStackSize( ppln, names, type ); }
-		RTASBuildSizes				GetRTGeometrySizes (const RTGeometryBuild &desc)													__NE_OV	{ return _rm->GetRTGeometrySizes( desc ); }
-		RTASBuildSizes				GetRTSceneSizes (const RTSceneBuild &desc)															__NE_OV	{ return _rm->GetRTSceneSizes( desc ); }
-		RTASBuildSizes				GetRTClusterSizes (const RTClusterInfo &info)														__NE_OV	{ return _rm->GetRTClusterSizes( info ); }
-		RTASBuildSizes				GetRTPartitionedSceneSizes (const RTPartitionedSceneInfo &info)										__NE_OV	{ return _rm->GetRTPartitionedSceneSizes( info ); }
+		Bytes						GetShaderGroupStackSize (RayTracingPipelineID ppln, ArrayView<RayTracingGroupName> names, ERTShaderGroup type) C_NE_OV { return _rm->GetShaderGroupStackSize( ppln, names, type ); }
+		RTASBuildSizes				GetRTGeometrySizes (const RTGeometryBuild &desc)													C_NE_OV	{ return _rm->GetRTGeometrySizes( desc ); }
+		RTASBuildSizes				GetRTSceneSizes (const RTSceneBuild &desc)															C_NE_OV	{ return _rm->GetRTSceneSizes( desc ); }
+		RTASBuildSizes				GetRTClusterSizes (const RTClusterInfo &info)														C_NE_OV	{ return _rm->GetRTClusterSizes( info ); }
+		RTASBuildSizes				GetRTPartitionedSceneSizes (const RTPartitionedSceneInfo &info)										C_NE_OV	{ return _rm->GetRTPartitionedSceneSizes( info ); }
+		RTMicromapBuildSizes		GetRTMicromapSizes (const RTMicromapInfo &info)														C_NE_OV	{ return _rm->GetRTMicromapSizes( info ); }
 
 		DeviceAddress				GetDeviceAddress (BufferID		id)																	C_NE_OV	{ return _rm->GetDeviceAddress( id ); }
 		DeviceAddress				GetDeviceAddress (RTGeometryID	id)																	C_NE_OV	{ return _rm->GetDeviceAddress( id ); }
@@ -355,6 +386,10 @@ namespace
 
 		Strong<PipelineCacheID>		CreatePipelineCache (RC<RStream> data, StringView dbgName)			__NE_OV	{ return _rm->CreatePipelineCache( RVRef(data), dbgName ); }
 		bool						SerializePipelineCache (PipelineCacheID id, RC<WStream> dst)		C_NE_OV	{ return _rm->SerializePipelineCache( id, RVRef(dst) ); }
+
+		Strong<IndirectCommandsLayoutID>	CreateIndirectCommandsLayout (const IndirectCommandsLayoutDesc &desc, StringView dbgName)	__NE_OV	{ return _rm->CreateIndirectCommandsLayout( desc, dbgName ); }
+		SizeAndAlign						GetPreprocessingBufferSize (const GeneratedCommandsMemoryRequirementsDesc &desc)			__NE_OV	{ return _rm->GetPreprocessingBufferSize( desc ); }
+		RC<IPreprocessingStateCommandPool>	CreatePreprocessingStateCommandPool (EQueueType type)										__NE_OV	{ return _rm->CreatePreprocessingStateCommandPool( type ); }
 
 		bool						InitializeResources (Strong<PipelinePackID> defaultPackId)			__NE_OV	{ return _rm->InitializeResources( RVRef(defaultPackId) ); }
 		Strong<PipelinePackID>		LoadPipelinePack (const PipelinePackDesc &desc)						__NE_OV	{ return _rm->LoadPipelinePack( desc ); }
@@ -387,7 +422,7 @@ namespace
 		StagingBufferStat			GetStagingBufferFrameStat (FrameUID frameId)						C_NE_OV	{ return _rm->GetStagingBufferFrameStat( frameId ); }
 		FeatureSet const&			GetFeatureSet ()													C_NE_OV	{ return _rm->GetFeatureSet(); }
 
-		GfxMemAllocatorPtr			CreateLinearGfxMemAllocator (Bytes pageSize)						C_NE_OV	{ return _rm->CreateLinearGfxMemAllocator( pageSize ); }
+		GfxMemAllocatorPtr			CreateLinearGfxMemAllocator (Bytes pageSize, Bytes padding)			C_NE_OV	{ return _rm->CreateLinearGfxMemAllocator( pageSize, padding ); }
 		GfxMemAllocatorPtr			CreateBlockGfxMemAllocator (Bytes blockSize, Bytes pageSize)		C_NE_OV	{ return _rm->CreateBlockGfxMemAllocator( blockSize, pageSize ); }
 		GfxMemAllocatorPtr			CreateUnifiedGfxMemAllocator (Bytes pageSize)						C_NE_OV	{ return _rm->CreateUnifiedGfxMemAllocator( pageSize ); }
 		GfxMemAllocatorPtr			CreateLargeSizeGfxMemAllocator ()									C_NE_OV	{ return _rm->CreateLargeSizeGfxMemAllocator(); }
@@ -397,7 +432,8 @@ namespace
 
 
 		// IResourceManager2 //
-		IDevice const&  GetDevice () __NE_OV	{ return _rm->GetDevice(); }
+		IQueryManager&				GetQueryManager ()													__NE_OV	{ return _rm->GetQueryManager(); }
+		IDevice const&				GetDevice ()														C_NE_OV	{ return _rm->GetDevice(); }
 
 		bool  _DelayedRelease (ulong id, uint type) __NE_OV
 		{

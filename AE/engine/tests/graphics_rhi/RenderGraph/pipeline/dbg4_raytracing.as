@@ -54,7 +54,7 @@ void ASmain ()
 	{
 		RC<RayTracingPipelineSpec>	spec = ppln.AddSpecialization( "dbg4_rtrace1.def" );
 
-		spec.AddToRenderTech( "RayTracingTestRT", "RayTrace_1" );
+		spec.AddToRenderTech( "RayTracing.RTech", "RayTrace_1" );
 
 		// shader binding table
 		{

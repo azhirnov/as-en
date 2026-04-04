@@ -211,6 +211,10 @@ namespace AE::ResEditor
 		void  ArgBufferOut (const String &name, const ScriptBufferPtr &buf)								__Th___	{ _args.ArgBufferOut( name, buf ); }
 		void  ArgBufferInOut (const String &name, const ScriptBufferPtr &buf)							__Th___	{ _args.ArgBufferInOut( name, buf ); }
 
+		void  ArgBufferViewIn (const String &name, const ScriptBufferViewPtr &buf)						__Th___	{ _args.ArgBufferViewIn( name, buf ); }
+		void  ArgBufferViewOut (const String &name, const ScriptBufferViewPtr &buf)						__Th___	{ _args.ArgBufferViewOut( name, buf ); }
+		void  ArgBufferViewInOut (const String &name, const ScriptBufferViewPtr &buf)					__Th___	{ _args.ArgBufferViewInOut( name, buf ); }
+
 		void  ArgImageIn (const String &name, const ScriptImagePtr &img)								__Th___	{ _args.ArgImageIn( name, img ); }
 		void  ArgImageOut (const String &name, const ScriptImagePtr &img)								__Th___	{ _args.ArgImageOut( name, img ); }
 		void  ArgImageInOut (const String &name, const ScriptImagePtr &img)								__Th___	{ _args.ArgImageInOut( name, img ); }
@@ -260,7 +264,7 @@ namespace AE::ResEditor
 		template <typename B>
 		static void  _BindBase (B &binder, Bool withArgs)												__Th___;
 
-		virtual void  _OnAddArg (INOUT ScriptPassArgs::Argument &arg)									C_Th___ = 0;
+		virtual void  _OnAddArg (INOUT ScriptPassArgs::Argument &arg)									__Th___ { Unused( arg ); }
 
 		static void  _AddDefines (StringView defines, INOUT String &header)								__Th___;
 

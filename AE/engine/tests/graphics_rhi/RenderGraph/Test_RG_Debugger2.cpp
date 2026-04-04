@@ -28,7 +28,7 @@ namespace
 		GfxMemAllocatorPtr			gfxAlloc;
 	};
 
-	static constexpr auto&	RTech = RenderTechs::DebugDrawTestRT;
+	static constexpr auto&	RTech = RenderTechs::DebugDraw_RTech;
 
 
 	template <typename CtxType>
@@ -47,7 +47,7 @@ namespace
 		typename CtxType::Graphics	ctx{ RenderCoro_Get(), copy_ctx.ReleaseCommandBuffer() };
 
 		ctx.AccumBarriers()
-			.ImageBarrier( t.img, EResourceState::Invalidate, img_state );
+			.ResourceBarrier( t.img, EResourceState::Invalidate, img_state );
 
 		// draw
 		{
@@ -66,7 +66,7 @@ namespace
 		}
 
 		ctx.AccumBarriers()
-			.ImageBarrier( t.img, img_state, EResourceState::CopySrc );
+			.ResourceBarrier( t.img, img_state, EResourceState::CopySrc );
 
 		RenderCoro_Execute( ctx );
 	}
@@ -200,6 +200,7 @@ no source
 		CHECK_ERR( end->Status() == ETaskStatus::Completed );
 
 		CHECK_ERR( rts.WaitAll( c_MaxTimeout ));
+		CHECK_ERR( t.result );
 
 		CHECK_ERR( Scheduler().Wait( {t.result}, c_MaxTimeout ));
 		CHECK_ERR( t.result->Status() == ETaskStatus::Completed );
@@ -211,12 +212,12 @@ no source
 } // namespace
 
 
-bool RGTest::Test_Debugger2 ()
+RGTest::ECode  RGTest::Test_Debugger2 ()
 {
 	if ( not _dbgPipelines )
 	{
 		AE_LOGI( TEST_NAME << " - skipped" );
-		return true;
+		return ECode::Skipped;
 	}
 
 	auto	img_cmp = _LoadReference( TEST_NAME );
@@ -226,8 +227,12 @@ bool RGTest::Test_Debugger2 ()
 
 	RG_CHECK( _CompareDumps( TEST_NAME ));
 
-	AE_LOGI( TEST_NAME << " - passed" );
-	return result;
+	if ( result )
+	{
+		AE_LOGI( TEST_NAME << " - passed" );
+		return ECode::Passed;
+	}
+	return ECode::Failed;
 }
 
 #endif // AE_TEST_SHADER_DEBUGGER

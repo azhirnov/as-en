@@ -1,7 +1,6 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
 #include "Scripting/ScriptExe.h"
-#include "Resources/Buffer.h"
 #include "Scripting/PipelineCompiler.inl.h"
 
 namespace AE::ResEditor
@@ -208,10 +207,10 @@ namespace
 	{
 		CHECK_THROW_MSG( NoBits( usage, EResourceUsage::ColorAttachment ));
 		CHECK_THROW_MSG( NoBits( usage, EResourceUsage::DepthStencil ));
-		CHECK_THROW_MSG( NoBits( usage, EResourceUsage::Sampled ));
 		CHECK_THROW_MSG( NoBits( usage, EResourceUsage::GenMipmaps ));
 
 		// 'UploadedData' is compatible with any shader write usage.
+		// allow 'Sampled' and 'TexelStorage' usage for texel buffer.
 
 		auto&	fs = ScriptExe::ScriptResourceApi::GetFeatureSet();
 
@@ -578,10 +577,10 @@ namespace
 
 /*
 =================================================
-	Float*Array (vec)
+	Float*Array2 (vec)
 =================================================
 */
-	uint  ScriptBuffer::Float1Array (const String &name, const ScriptArray<float> &arr) __Th___
+	uint  ScriptBuffer::Float1Array2 (StringView name, ArrayView<float> arr) __Th___
 	{
 		CHECK_THROW_MSG( not arr.empty() );
 		_InitConstDataFromScriptLayout();
@@ -594,7 +593,7 @@ namespace
 		return result;
 	}
 
-	uint  ScriptBuffer::Float2Array (const String &name, const ScriptArray<packed_float2> &arr) __Th___
+	uint  ScriptBuffer::Float2Array2 (StringView name, ArrayView<packed_float2> arr) __Th___
 	{
 		CHECK_THROW_MSG( not arr.empty() );
 		_InitConstDataFromScriptLayout();
@@ -607,7 +606,7 @@ namespace
 		return result;
 	}
 
-	uint  ScriptBuffer::Float3Array (const String &name, const ScriptArray<packed_float3> &arr) __Th___
+	uint  ScriptBuffer::Float3Array2 (StringView name, ArrayView<packed_float3> arr) __Th___
 	{
 		CHECK_THROW_MSG( not arr.empty() );
 		_InitConstDataFromScriptLayout();
@@ -620,7 +619,7 @@ namespace
 		return result;
 	}
 
-	uint  ScriptBuffer::Float4Array (const String &name, const ScriptArray<packed_float4> &arr) __Th___
+	uint  ScriptBuffer::Float4Array2 (StringView name, ArrayView<packed_float4> arr) __Th___
 	{
 		CHECK_THROW_MSG( not arr.empty() );
 		_InitConstDataFromScriptLayout();
@@ -757,10 +756,10 @@ namespace
 
 /*
 =================================================
-	Int*Array
+	Int*Array2
 =================================================
 */
-	uint  ScriptBuffer::Int1Array (const String &name, const ScriptArray<int> &arr) __Th___
+	uint  ScriptBuffer::Int1Array2 (StringView name, ArrayView<int> arr) __Th___
 	{
 		CHECK_THROW_MSG( not arr.empty() );
 		_InitConstDataFromScriptLayout();
@@ -773,7 +772,7 @@ namespace
 		return result;
 	}
 
-	uint  ScriptBuffer::Int2Array (const String &name, const ScriptArray<packed_int2> &arr) __Th___
+	uint  ScriptBuffer::Int2Array2 (StringView name, ArrayView<packed_int2> arr) __Th___
 	{
 		CHECK_THROW_MSG( not arr.empty() );
 		_InitConstDataFromScriptLayout();
@@ -786,7 +785,7 @@ namespace
 		return result;
 	}
 
-	uint  ScriptBuffer::Int3Array (const String &name, const ScriptArray<packed_int3> &arr) __Th___
+	uint  ScriptBuffer::Int3Array2 (StringView name, ArrayView<packed_int3> arr) __Th___
 	{
 		CHECK_THROW_MSG( not arr.empty() );
 		_InitConstDataFromScriptLayout();
@@ -799,7 +798,7 @@ namespace
 		return result;
 	}
 
-	uint  ScriptBuffer::Int4Array (const String &name, const ScriptArray<packed_int4> &arr) __Th___
+	uint  ScriptBuffer::Int4Array2 (StringView name, ArrayView<packed_int4> arr) __Th___
 	{
 		CHECK_THROW_MSG( not arr.empty() );
 		_InitConstDataFromScriptLayout();
@@ -814,10 +813,10 @@ namespace
 
 /*
 =================================================
-	UInt*Array
+	UInt*Array2
 =================================================
 */
-	uint  ScriptBuffer::UInt1Array (const String &name, const ScriptArray<uint> &arr) __Th___
+	uint  ScriptBuffer::UInt1Array2 (StringView name, ArrayView<uint> arr) __Th___
 	{
 		CHECK_THROW_MSG( not arr.empty() );
 		_InitConstDataFromScriptLayout();
@@ -830,7 +829,7 @@ namespace
 		return result;
 	}
 
-	uint  ScriptBuffer::UInt2Array (const String &name, const ScriptArray<packed_uint2> &arr) __Th___
+	uint  ScriptBuffer::UInt2Array2 (StringView name, ArrayView<packed_uint2> arr) __Th___
 	{
 		CHECK_THROW_MSG( not arr.empty() );
 		_InitConstDataFromScriptLayout();
@@ -843,7 +842,7 @@ namespace
 		return result;
 	}
 
-	uint  ScriptBuffer::UInt3Array (const String &name, const ScriptArray<packed_uint3> &arr) __Th___
+	uint  ScriptBuffer::UInt3Array2 (StringView name, ArrayView<packed_uint3> arr) __Th___
 	{
 		CHECK_THROW_MSG( not arr.empty() );
 		_InitConstDataFromScriptLayout();
@@ -856,7 +855,7 @@ namespace
 		return result;
 	}
 
-	uint  ScriptBuffer::UInt4Array (const String &name, const ScriptArray<packed_uint4> &arr) __Th___
+	uint  ScriptBuffer::UInt4Array2 (StringView name, ArrayView<packed_uint4> arr) __Th___
 	{
 		CHECK_THROW_MSG( not arr.empty() );
 		_InitConstDataFromScriptLayout();
@@ -871,10 +870,10 @@ namespace
 
 /*
 =================================================
-	ULong*Array
+	ULong*Array2
 =================================================
 */
-	uint  ScriptBuffer::ULong1Array (const String &name, const ScriptArray<ulong> &arr) __Th___
+	uint  ScriptBuffer::ULong1Array2 (StringView name, ArrayView<ulong> arr) __Th___
 	{
 		CHECK_THROW_MSG( not arr.empty() );
 		_InitConstDataFromScriptLayout();
@@ -1083,13 +1082,16 @@ namespace
 
 				case EResourceUsage::IndirectBuffer :	_desc.usage |= EBufferUsage::Indirect;									break;
 				case EResourceUsage::ASBuild :			_desc.usage |= EBufferUsage::ASBuild_ReadOnly;							break;
+				case EResourceUsage::MMBuild :			_desc.usage |= EBufferUsage::MMBuild_ReadOnly;							break;
 				case EResourceUsage::ShaderAddress :	_desc.usage |= EBufferUsage::ShaderAddress;								break;
 
 				case EResourceUsage::WithHistory :		flags |= Buffer::EBufferFlags::WithHistory;								break;
 				case EResourceUsage::Transfer :			_desc.usage |= EBufferUsage::Transfer;									break;
 
+				case EResourceUsage::Sampled :			_desc.usage |= EBufferUsage::UniformTexel;								break;
+				case EResourceUsage::TexelStorage :		_desc.usage |= EBufferUsage::StorageTexel;								break;
+
 				case EResourceUsage::Unknown :
-				case EResourceUsage::Sampled :
 				case EResourceUsage::GenMipmaps :
 				case EResourceUsage::ColorAttachment :
 				case EResourceUsage::DepthStencil :
@@ -1214,9 +1216,16 @@ namespace
 			ref_buffers.push_back( src->ToResource() );
 		}
 
+		Array<RC<BufferView>>	views;
+		views.reserve( _views.size() );
+
+		for (auto& src : _views) {
+			views.push_back( src->ToResource() );
+		}
+
 		_resource = Buffer::Create( RVRef(buf_ids), _desc, static_size, elem_size, RVRef(load_op), struct_type,
 									renderer, (_inDynCount ? _inDynCount->Get() : null), (_outDynCount ? _outDynCount->Get() : null),
-									_dbgName, flags, RVRef(ref_buffers) );  // throw
+									_dbgName, flags, RVRef(ref_buffers), RVRef(views) );  // throw
 		return _resource;
 	}
 
@@ -1251,10 +1260,10 @@ namespace
 				// compare 'source' with existing structure
 				if ( not source.empty() )
 				{
-					ShaderStructTypePtr		tmp{ new ShaderStructType{ tmp_typename }};
+					ShaderStructTypePtr		tmp = ShaderStructType::Create( tmp_typename );
 					tmp->Set( EStructLayout::Compatible_Std430, source );
 
-					CHECK_MSG( it->second->Compare( *tmp ),
+					CHECK_THROW_MSG( it->second->Compare( *tmp ),
 						"Typename '"s << typeName << "' is already defined with different layout" );
 
 					st_types.erase( tmp_typename );
@@ -1265,7 +1274,7 @@ namespace
 			if ( source.empty() and srcIsOptional )
 				return;
 
-			ShaderStructTypePtr		st{ new ShaderStructType{ typeName }};
+			ShaderStructTypePtr		st = ShaderStructType::Create( typeName );
 			st->Set( EStructLayout::Compatible_Std430, source );
 		}};
 
@@ -1624,5 +1633,31 @@ namespace
 		ASSERT_Eq( _layout._data.size(), usize{elem_size * _staticCount} );
 	}
 
+/*
+=================================================
+	CreateView*
+=================================================
+*/
+	ScriptBufferView*  ScriptBuffer::CreateView1 (EPixelFormat format) __Th___
+	{
+		CHECK_THROW_MSG( not _resource,
+			"Resource is already created, can not create view" );
+
+		CHECK_THROW_MSG( not HasLayout() );
+
+		CHECK_THROW_MSG( format != Default );
+
+		auto&	fmt_info = EPixelFormat_GetInfo( format );
+		CHECK_THROW_MSG( fmt_info.IsColor() );
+		CHECK_THROW_MSG( not fmt_info.IsCompressed() );
+		CHECK_THROW_MSG( not fmt_info.IsMultiPlanar() );
+		CHECK_THROW_MSG( fmt_info.channels != 3 );
+
+		ScriptBufferViewPtr	result {new ScriptBufferView{ ScriptBufferPtr{this}, format, _dbgName }};  // throw
+
+		_views.push_back( result );
+
+		return result.Detach();
+	}
 
 } // AE::ResEditor

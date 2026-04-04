@@ -71,8 +71,8 @@
 	void Main ()
 	{
 		const uint		idx		= gl.VertexIndex;
-		const float2	coord	= un_Geometry.positions[idx].xy;
-		const int		face	= int(un_Geometry.positions[idx].z);
+		const float2	coord	= un_Geometry.position[idx].xy;
+		const int		face	= int(un_Geometry.position[idx].z);
 		float3			uvw		= float3(0.0);
 
 		switch ( iProj )
@@ -141,12 +141,14 @@
 		out_Color.a = In.area * iAreaScale;
 
 		// wireframe
+		#ifdef AE_fragment_shader_barycentric
 		{
 			const float		thickness	= 1.0;	// pixels
 			const float		falloff		= 1.0;	// pixels
 
 			out_Color.rgb *= FSBarycentricWireframe( thickness, falloff ).x;
 		}
+		#endif
 
 		// screen space quad/circle
 		{

@@ -26,6 +26,7 @@ namespace AE::ResEditor
 			IndirectEmulated,
 		};
 
+
 		struct TriangleMesh : RTGeometryBuild::TrianglesInfo
 		{
 			RC<Buffer>		vbuffer;
@@ -37,6 +38,16 @@ namespace AE::ResEditor
 			void  operator = (const RTGeometryBuild::TrianglesInfo &rhs)	{ TrianglesInfo::operator = (rhs); }
 		};
 		using TriangleMeshes_t	= Array< TriangleMesh >;
+
+
+		struct MicromapData : RTGeometryBuild::MicromapInfo
+		{
+			RC<RTMicromap>	micromap;
+		//	RC<Buffer>		ibuffer;
+
+			void  operator = (const RTGeometryBuild::MicromapInfo &rhs)		{ MicromapInfo::operator = (rhs); }
+		};
+		using Micromaps_t		= Array< MicromapData >;
 
 	private:
 		using Allocator_t		= LinearAllocator<>;
@@ -52,6 +63,7 @@ namespace AE::ResEditor
 		ASBuildIndirectCommand const*	_indirectBufferMem		= null;
 
 		TriangleMeshes_t				_triangleMeshes;
+		Micromaps_t						_micromaps;
 
 		ContentVersion					_version;
 		const bool						_isMutable				= false;
@@ -63,6 +75,7 @@ namespace AE::ResEditor
 	// methods
 	private:
 		RTGeometry (TriangleMeshes_t	triangleMeshes,
+					Micromaps_t			micromaps,
 					RC<Buffer>			indirectBuffer,
 					Renderer &			renderer,
 					StringView			dbgName,
@@ -78,6 +91,7 @@ namespace AE::ResEditor
 		~RTGeometry ()																__NE_OV;
 
 		ND_ static RC<RTGeometry>  Create (TriangleMeshes_t	triangleMeshes,
+										   Micromaps_t		micromaps,
 										   RC<Buffer>		indirectBuffer,
 										   Renderer &		renderer,
 										   StringView		dbgName,
@@ -87,6 +101,7 @@ namespace AE::ResEditor
 										   StringView		dbgName)				__Th___;
 
 		ND_ RTGeometryID	GetGeometryId (FrameUID)								const	{ return _geomId.Get(); }
+		ND_ RTGeometryID	GetGeometryId (uint)									const	{ return _geomId.Get(); }
 
 		ND_ ulong			GetVersion (uint fid)									const	{ return _version.Get( fid ); }
 		ND_ ulong			GetVersion (FrameUID fid)								const	{ return _version.Get( fid ); }
@@ -107,7 +122,7 @@ namespace AE::ResEditor
 
 
 	private:
-		ND_	bool  _GetTriangles (OUT RTGeometryBuild &, FrameUID, Allocator_t &)			const;
+		ND_	bool  _GetTriangles (INOUT RTGeometryBuild &, FrameUID, Allocator_t &)			C_NE___;
 
 		ND_	bool  _BuildIndirectEmulated (DirectCtx::ASBuild &, RTGeometryID, Allocator_t &) const;
 	};
@@ -198,6 +213,71 @@ namespace AE::ResEditor
 		ND_ bool		_UploadInstances (TransferCtx_t &);
 
 		ND_ bool		_BuildIndirectEmulated (DirectCtx::ASBuild &, RTSceneBuild &, RTSceneID) const;
+	};
+
+
+
+	//
+	// RayTracing Micromap
+	//
+
+	class RTMicromap final : public IResource
+	{
+	// types
+	public:
+		struct BuildData
+		{
+			using Usage = RTMicromapInfo::Usage;
+
+			EMicromapType			type			= Default;
+			EBuildMicromapFlags		buildFlags		= Default;
+			Array<Usage>			usage;
+
+			RC<Buffer>				data;
+			Bytes					dataOffset;
+
+			RC<Buffer>				triangleArray;
+			Bytes					triangleArrayOffset;
+		};
+		StaticAssert64( sizeof(RTMicromapInfo) == 24 );
+
+
+	// variables
+	private:
+		Strong<RTMicromapID>	_micromapId;
+		Strong<BufferID>		_scratchBuffer;
+
+		const BuildData			_info;
+		const bool				_isMutable			= false;
+		const String			_dbgName;
+
+
+	// methods
+	private:
+		RTMicromap (BuildData	info,
+					Renderer &	renderer,
+					StringView	dbgName,
+					Bool		allowUpdate)									__NE___;
+		void  _Init ()															__Th___;
+
+	public:
+		~RTMicromap ()															__NE_OV;
+
+		ND_ static RC<RTMicromap>  Create (BuildData	info,
+										   Renderer &	renderer,
+										   StringView	dbgName,
+										   Bool			allowUpdate)			__Th___;
+
+		ND_	bool		Build (DirectCtx::ASBuild &)							__Th___;
+
+		ND_ RTMicromapID	GetMicromapID (FrameUID)							const	{ return _micromapId.Get(); }
+		ND_ RTMicromapID	GetMicromapID (uint)								const	{ return _micromapId.Get(); }
+
+	// IResource //
+		bool			Resize (TransferCtx_t &)								__Th_OV	{ return true; }
+		bool			RequireResize ()										C_Th_OV	{ return false; }
+		EUploadStatus	Upload (TransferCtx_t &)								__Th_OV;
+		EUploadStatus	Readback (TransferCtx_t &)								__Th_OV	{ return EUploadStatus::Completed; }
 	};
 
 

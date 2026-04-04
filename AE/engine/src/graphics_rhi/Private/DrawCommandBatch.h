@@ -39,7 +39,7 @@ namespace AE::Graphics
 		using Scissor_t		= VkRect2D;
 
 	  #elif defined(AE_ENABLE_METAL)
-		using CmdBufPool	= MCommandBatch::CmdBufPool;
+		using CmdBufPool	= CommandBatch::CmdBufPool;
 		using Encoder_t		= MetalParallelRenderCommandEncoderRC;
 		using Viewport_t	= Viewport;
 		using Scissor_t		= RectI;

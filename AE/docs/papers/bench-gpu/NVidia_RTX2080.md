@@ -121,9 +121,10 @@ Workgroup size: 8x8, image size: 102x53, gl_SMCountNV: 46. First set (from red t
 ### Register count
 
 * SM supports limited number of registers, but must run multiple warps to hide memory latency.
-* On low register count only one SM used per tile, it increase concurrency - 46 SM will fill 16x16 pixels (11.7K pixels).
-* On high register count 4 SMs used per tile, so it 4 times decrease concurrency.
-* Warp occupancy is same for any register count, so tile size is not changed.
+* On low register count and when fragment count equal to pixel count only one SM is used per tile., it increase concurrency - 46 SM will fill 16x16 pixels (11.7K pixels total).
+* On high register count and when fragment count equal to pixel count 4 SMs used per tile, so it 4 times decrease concurrency.
+* If fragment count or register count increases then multiple SM us used (work stealing?).
+* Warp occupancy is same for any register count, so tile size is not changed like in TBDR.
 
 test source: [[17](../GPU_Benchmarks.md#17-tile-size)]
 ![](img/hw-tile-size/nv-turing.png)

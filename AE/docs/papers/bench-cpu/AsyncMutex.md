@@ -10,3 +10,4 @@ Results of 10'000 AM calls
 | 2    | Max M1             |
 | 4.5  | Android            |
 | 5.6  | Intel N150 3.6GHz  |
+| 2.55 | Realme 8i 2GHz		|

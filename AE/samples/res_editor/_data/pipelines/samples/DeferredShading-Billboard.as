@@ -56,13 +56,12 @@
 			}
 			rs.depth.test					= true;
 			rs.depth.write					= false;
-			rs.depth.compareOp				= ECompareOp::GEqual;
+			rs.depth.compareOp				= ECompareOp::GEqual;	// reverseZ
 
 			rs.inputAssembly.topology		= EPrimitive::TriangleStrip;
 
 			rs.rasterization.frontFaceCCW	= true;
 			rs.rasterization.cullMode		= ECullMode::Back;
-		//	rs.rasterization.polygonMode	= EPolygonMode::Line;
 
 			spec.SetRenderState( rs );
 		}
@@ -140,10 +139,14 @@
 #ifdef SH_FRAG
 	#include "PBR.glsl"
 	#include "Matrix.glsl"
+	#include "CodeTemplates.glsl"
 
 	void Main ()
 	{
-	#if 1
+	#ifdef OVERDRAW
+		out_Overdraw.r = 1.0 + float(HelperInvocationCountPerQuad()) / 4.0;
+	#else
+
 		float		depth		= gl.texture.Fetch( un_Depth, int2(gl.FragCoord.xy), 0 ).r;	// non-linear
 
 		if ( depth < 0.0001 )
@@ -174,8 +177,7 @@
 
 		out_Color.rgb = (res.diffuse + res.specular) * In.color * atten;
 		out_Color.a = 1.0;
-	#else
-		out_Color.rgb = In.color;
+
 	#endif
 	}
 

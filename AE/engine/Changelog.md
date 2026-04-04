@@ -1,9 +1,23 @@
+## 26.02.311
+
+- Graphics|Vulkan: VK_KHR_video_queue, VK_KHR_video_encode_queue, VK_KHR_video_decode_queue
+- Graphics|Vulkan: add VK_EXT_device_generated_commands, VK_EXT_opacity_micromap, VK_ARM_pipeline_opacity_micromap
+- Graphics|Vulkan: remove VK_NV_clip_space_w_scaling
+- Graphics|Vulkan: fixed unoptimal barriers for some extensions
+- Graphics: rename ImageBarrier/BufferBarrier to ResourceBarrier
+- Graphics|Remote: fixed async compute test, add target Tests.RemoteGraphics
+- LangModel: add stable-diffusion.cpp
+- Video|FFmpeg: update to 8.0
+- Platform|GLFW: joystick support
+- Platform|Video: screen capture test
+- Platform: send input test
+
 
 ## 26.01.302
 
 - Graphics|Vulkan: add VK_NV_shader_subgroup_partitioned, VK_KHR_shader_subgroup_rotate, VK_EXT_conservative_rasterization
 - Base: rename BitScanReverse -> HighBitIndex, BitScanForward -> LowBitIndex
-- Base: add DataSource::OffsetAlign() for Direct file access
+- Base: add DataSource::DirectAccessAlign() for Direct file access
 - ShaderTrace: enable asserts in shader
 
 

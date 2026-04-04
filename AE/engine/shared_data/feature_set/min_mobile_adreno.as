@@ -9,10 +9,14 @@ void ASmain ()
 	//	Adreno-660-1.1.128
 	//	Adreno-660-1.1.276
 	//	Adreno-660-1.1.295
+	//	Adreno-730-1.4.295
 	//	Adreno-740-1.3.128
 	//	Adreno-740-1.3.295
 	//	Adreno-830-1.3.284
 	//	Adreno-830-1.4.295
+	//	AdrenoX1-45-Win-1.3.295
+	//	AdrenoX1-85-Linux-1.4.305
+	//	AdrenoX1-85-Win-1.3.295
 	//	Turnip-Adreno-650-1.3.328
 
 	const EFeature  True = EFeature::RequireTrue;
@@ -189,5 +193,6 @@ void ASmain ()
 	fset.framebufferColorSampleCounts({ 1, 2, 4 });
 	fset.framebufferDepthSampleCounts({ 1, 2, 4 });
 	fset.maxFramebufferLayers (1 << 10);
+	fset.separateDepthStencilRW (True);
 	fset.supportedQueues(EQueueMask( EQueueMask::Graphics ));
 }

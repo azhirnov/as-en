@@ -1,26 +1,22 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
-#include "base/Containers/InPlace.h"
-#include "base/DataSource/File.h"
+#include "pch/Base.h"
 #include "threading/TaskSystem/TaskScheduler.h"
 #include "../tests/shared/UnitTest_Shared.h"
 
 #if defined(AE_ENABLE_GLFW)
-#	define ENABLE_TEST	1
+#	define ENABLE_TEST
 #	include "platform/GLFW/ApplicationGLFW.h"
 	using Application_t = AE::App::ApplicationGLFW;
 
 #elif defined(AE_PLATFORM_WINDOWS)
-#	define ENABLE_TEST	1
+#	define ENABLE_TEST
 #	include "platform/WinAPI/ApplicationWinAPI.h"
 	using Application_t = AE::App::ApplicationWinAPI;
-
-#elif defined(AE_PLATFORM_ANDROID)
-#	define ENABLE_TEST	0
-
 #endif
 
-#if ENABLE_TEST
+
+#ifdef ENABLE_TEST
 
 using namespace AE::App;
 using namespace AE::Threading;

@@ -116,10 +116,13 @@ namespace AE::ResEditor
 					}
 
 					if ( subpass->_shadingRate )
+					{
+					  #if defined(AE_ENABLE_VULKAN) or defined(AE_ENABLE_REMOTE_GRAPHICS)
 						dctx.SetFragmentShadingRate( subpass->_shadingRate.rate, subpass->_shadingRate.primitiveOp, subpass->_shadingRate.textureOp );
-
-					if ( not subpass->_wScaling.empty() )
-						dctx.SetViewportWScaling( subpass->_wScaling );
+					  #else
+						CHECK_MSG( false, "SetFragmentShadingRate is not supported" );
+					  #endif
+					}
 
 					decltype(&IGeomSource::Draw)	draw_fn = null;
 					switch_enum( subpass->_renderLayer )
@@ -376,21 +379,8 @@ namespace AE::ResEditor
 
 		// update uniform buffer
 		{
-			ShaderTypes::SceneRayTracingPassUB	ub_data;
-
-			ub_data.time		= pd.totalTime.count();
-			ub_data.timeDelta	= pd.frameTime.count();
-			ub_data.frame		= pd.frameId;
-			ub_data.seed		= pd.seed;
-			ub_data.customKeys	= float2{ pd.customKeys[0], pd.customKeys[1] };
-			ub_data.pixPerMm	= pd.pixPerMm;
-			ub_data.mmPerPix	= pd.mmPerPix;
-
-			if ( _controller )
-				_controller->CopyTo( OUT ub_data.camera );
-
-			_CopySliders( OUT ub_data.floatSliders, OUT ub_data.intSliders, OUT ub_data.colors );
-			_CopyConstants( _shConst, OUT ub_data.floatConst, OUT ub_data.intConst );
+			ShaderTypes::ComputePassUB	ub_data;
+			_UpdateComputeUB( INOUT ub_data, pd );
 
 			CHECK_ERR( ctx.UploadBuffer( _ubuffer, 0_b, Sizeof(ub_data), &ub_data ));
 		}
@@ -402,7 +392,7 @@ namespace AE::ResEditor
 
 			// per pass
 			CHECK_ERR( updater.Set( ds, EDescUpdateMode::Partialy ));
-			CHECK_ERR( updater.BindBuffer< ShaderTypes::SceneRayTracingPassUB >( UniformName{"un_PerPass"}, _ubuffer ));
+			CHECK_ERR( updater.BindBuffer< ShaderTypes::ComputePassUB >( UniformName{"un_PerPass"}, _ubuffer ));
 			CHECK_ERR( _resources.Bind( ctx.GetFrameId(), updater ));
 
 			// per object
@@ -439,6 +429,198 @@ namespace AE::ResEditor
 =================================================
 */
 	SceneRayTracingPass::~SceneRayTracingPass ()
+	{
+		auto&	res_mngr = GraphicsScheduler().GetResourceManager();
+		res_mngr.ReleaseResourceArray( INOUT _passDescSets );
+		res_mngr.ReleaseResourceArray( INOUT _objDescSets );
+		res_mngr.ReleaseResource( INOUT _ubuffer );
+	}
+//-----------------------------------------------------------------------------
+
+
+
+/*
+=================================================
+	Execute
+=================================================
+*/
+	bool  SceneRayQueryPass::Execute (SyncPassData &pd) __Th___
+	{
+		if_unlikely( not _IsEnabled() )
+			return true;
+
+		CHECK_ERR( _scene );
+		CHECK_ERR( not _resources.Empty() );
+		CHECK_ERR( not _iterations.empty() );
+
+		ShaderDebugger::Result	dbg;
+		ComputePipelineID		ppln;
+
+		if ( pd.dbg.IsEnabled( this ))
+		{
+			auto	it = _pipelines.find( pd.dbg.mode );
+
+			if ( it != _pipelines.end()							and
+				 AnyBits( pd.dbg.stage, EShaderStages::Compute ))
+			{
+				ppln = it->second;
+
+				DirectCtx::Transfer		tctx{ pd.rtask, RVRef(pd.cmdbuf) };
+
+				if ( pd.dbg.mode == EDebugMode::Asserts )
+				{
+					CHECK( pd.dbg.debugger->AllocForAsserts( OUT dbg, tctx, ppln ));
+				}
+				else
+				{
+					// TODO: dispatch indirect?
+					const uint2		dim		= uint2{Iteration::FindMaxConstThreadCount( _iterations, _localSize )};
+					const uint3		coord	= pd.dbg.exactCoord.has_value() ?
+												*pd.dbg.exactCoord :
+												uint3{ pd.dbg.coord * float2(dim-1u), 0u };
+
+					CHECK( pd.dbg.debugger->AllocForCompute( OUT dbg, tctx, ppln, coord ));
+				}
+
+				pd.cmdbuf = tctx.ReleaseCommandBuffer();
+			}
+		}
+
+		if ( not dbg )
+			ppln = _pipelines.find( IPass::EDebugMode::Unknown )->second;
+
+		for (uint i = 0, cnt = _GetRepeatCount(); i < cnt; ++i)
+		{
+			DirectCtx::Compute	ctx{ pd.rtask, RVRef(pd.cmdbuf), DebugLabel{_dbgName, _dbgColor} };
+			const uint			fid			= ctx.GetFrameId().Index();
+			const auto&			instances	= _scene->_geomInstances;
+
+			if ( i == 0 ) _BeginTimeQuery( ctx );
+
+			// state transition
+			{
+				for (auto& inst : instances) {
+					inst.geometry->StateTransition( ctx );
+				}
+				_resources.SetStates( ctx, Default );
+				ctx.ResourceState( _ubuffer, EResourceState::UniformRead | EResourceState::RayTracingShaders );
+				if ( cnt > 1 ) ctx.MemoryBarrier( EPipelineScope::All, EPipelineScope::All );	// disable overlapping, only for profiling!
+				ctx.CommitBarriers();
+			}
+
+			ctx.BindPipeline( ppln );
+			ctx.BindDescriptorSet( _passDSIndex, _passDescSets[fid] );
+			ctx.BindDescriptorSet( _objDSIndex,  _objDescSets[fid] );
+			if ( dbg ) ctx.BindDescriptorSet( dbg.DSIndex(), dbg.DescSet() );
+
+			uint	dispatch_id = 0;
+			for (const auto& it : _iterations)
+			{
+				// memory barrier between dispatches
+				if ( dispatch_id > 0 )
+				{
+					ctx.ExecutionBarrier( EPipelineScope::Compute, EPipelineScope::Compute );
+					ctx.CommitBarriers();
+				}
+
+				const uint3	group_count = it.GroupCount( _localSize );	// TODO: indirect dispatch ?
+
+				ShaderTypes::ComputePassPC	pc;
+				pc.wgCount_dispatchIndex = uint4{ group_count, dispatch_id };
+
+				ctx.PushConstant( _pcIndex, pc );
+				++dispatch_id;
+
+				if ( it.indirect ){
+					ctx.DispatchIndirect( it.indirect->GetBufferId( ctx.GetFrameId() ), it.indirectOffset );
+				}else{
+					ctx.Dispatch( group_count );
+				}
+			}
+
+			if ( i+1 == cnt ) _EndTimeQuery( ctx );
+
+			pd.cmdbuf = ctx.ReleaseCommandBuffer();
+		}
+		return true;
+	}
+
+/*
+=================================================
+	Update
+=================================================
+*/
+	bool  SceneRayQueryPass::Update (TransferCtx_t &ctx, const UpdatePassData &pd) __Th___
+	{
+		CHECK_ERR( _scene );
+		CHECK_ERR( not _resources.Empty() );
+		CHECK_ERR( not _iterations.empty() );
+
+		// update uniform buffer
+		{
+			ShaderTypes::ComputePassUB	ub_data;
+
+			ub_data.time		= pd.totalTime.count();
+			ub_data.timeDelta	= pd.frameTime.count();
+			ub_data.frame		= pd.frameId;
+			ub_data.seed		= pd.seed;
+			ub_data.customKeys	= float2{ pd.customKeys[0], pd.customKeys[1] };
+			ub_data.pixPerMm	= pd.pixPerMm;
+			ub_data.mmPerPix	= pd.mmPerPix;
+
+			if ( _controller )
+				_controller->CopyTo( OUT ub_data.camera );
+
+			_CopySliders( OUT ub_data.floatSliders, OUT ub_data.intSliders, OUT ub_data.colors );
+			_CopyConstants( _shConst, OUT ub_data.floatConst, OUT ub_data.intConst );
+
+			CHECK_ERR( ctx.UploadBuffer( _ubuffer, 0_b, Sizeof(ub_data), &ub_data ));
+		}
+
+		// update descriptors
+		{
+			DescriptorUpdater	updater;
+			DescriptorSetID		ds	= _passDescSets[ ctx.GetFrameId().Index() ];
+
+			// per pass
+			CHECK_ERR( updater.Set( ds, EDescUpdateMode::Partialy ));
+			CHECK_ERR( updater.BindBuffer< ShaderTypes::ComputePassUB >( UniformName{"un_PerPass"}, _ubuffer ));
+			CHECK_ERR( _resources.Bind( ctx.GetFrameId(), updater ));
+
+			// per object
+			ds = _objDescSets[ ctx.GetFrameId().Index() ];
+			CHECK_ERR( updater.Set( ds, EDescUpdateMode::Partialy ));
+
+			// update objects
+			for (auto& inst : _scene->_geomInstances)
+			{
+				CHECK_ERR( inst.geometry->RTUpdate( IGeomSource::UpdateRTData{ updater }));
+			}
+			CHECK_ERR( updater.Flush() );
+		}
+
+		_ReadTimeQuery( ctx.GetFrameId() );
+		return true;
+	}
+
+/*
+=================================================
+	GetResourcesToResize
+=================================================
+*/
+	void  SceneRayQueryPass::GetResourcesToResize (INOUT Array<RC<IResource>> &resources) __NE___
+	{
+		_resources.GetResourcesToResize( INOUT resources );
+
+		// TODO: _scene->_geomInstances ?
+	}
+
+/*
+=================================================
+	destructor
+=================================================
+*/
+	SceneRayQueryPass::~SceneRayQueryPass ()
 	{
 		auto&	res_mngr = GraphicsScheduler().GetResourceManager();
 		res_mngr.ReleaseResourceArray( INOUT _passDescSets );

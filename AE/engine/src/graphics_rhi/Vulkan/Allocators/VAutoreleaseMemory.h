@@ -16,6 +16,7 @@ namespace AE::Graphics
 	{
 	private:
 		VkDeviceMemory		_mem	= Default;
+		VkBuffer			_buf	= Default;
 		VDevice const&		_dev;
 
 	public:
@@ -26,9 +27,12 @@ namespace AE::Graphics
 		{
 			if ( _mem != Default )
 				_dev.vkFreeMemory( _dev.GetVkDevice(), _mem, null );
+
+			if ( _buf != Default )
+				_dev.vkDestroyBuffer( _dev.GetVkDevice(), _buf, null );
 		}
 
-		ND_ VkDeviceMemory  Release ()						__NE___
+		ND_ VkDeviceMemory		Release ()						__NE___
 		{
 			CHECK( _mem != Default );
 			VkDeviceMemory	res = _mem;
@@ -39,6 +43,15 @@ namespace AE::Graphics
 		ND_ VkDeviceMemory*		operator & ()				__NE___ { CHECK( _mem == Default );  return &_mem; }
 		ND_ VkDeviceMemory		Get ()						C_NE___	{ return _mem; }
 		ND_ VkDeviceMemory&		Ref ()						__NE___	{ return _mem; }
+
+		ND_ VkBuffer&			BufferRef ()				__NE___	{ return _buf; }
+		ND_ VkBuffer			ReleaseBuffer ()			__NE___
+		{
+			VkBuffer	res = _buf;
+			_buf = Default;
+			return res;
+		}
+
 	};
 
 

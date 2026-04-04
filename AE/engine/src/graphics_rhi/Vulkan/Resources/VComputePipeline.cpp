@@ -56,12 +56,15 @@ namespace AE::Graphics
 		VkComputePipelineCreateInfo							pipeline_info	= {};
 		VkPipelineShaderStageRequiredSubgroupSizeCreateInfo	subgroup_size_ci;
 		VkPipelineRobustnessCreateInfoEXT					robustness_ci;
-		//VkPipelineCreateFlags2CreateInfoKHR				flags_ci;
+		VkPipelineCreateFlags2CreateInfoKHR					flags2_ci		= {};
 		VNextChain											p_next			{pipeline_info};
+
+		flags2_ci.sType				= VK_STRUCTURE_TYPE_PIPELINE_CREATE_FLAGS_2_CREATE_INFO;
+		flags2_ci.flags				= VEnumCast( ci.specCI.options );
 
 		pipeline_info.sType			= VK_STRUCTURE_TYPE_COMPUTE_PIPELINE_CREATE_INFO;
 		pipeline_info.layout		= _layout;
-		pipeline_info.flags			= VEnumCast( ci.specCI.options );
+		pipeline_info.flags			= VkPipelineCreateFlags( flags2_ci.flags );
 
 		pipeline_info.stage.sType	= VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
 		pipeline_info.stage.flags	= 0;
@@ -104,13 +107,17 @@ namespace AE::Graphics
 			SetRobustness( OUT robustness_ci );
 		}
 
-		/*if ( ext.maintenance5 )
+		if ( ext.rayQueryMicromapARM and NoBits( ci.specCI.options, EPipelineOpt::OpacityMicromap ))
 		{
-			p_next.Add( flags_ci );
+			flags2_ci.flags |= VK_PIPELINE_CREATE_2_DISALLOW_OPACITY_MICROMAP_BIT_ARM;
+		}
 
-			flags_ci.sType	= VK_STRUCTURE_TYPE_PIPELINE_CREATE_FLAGS_2_CREATE_INFO;
-			flags_ci.flags	= 0;	// TODO
-		}*/
+		if ( ext.maintenance5 ){
+			p_next.Add( flags2_ci );
+		}else{
+			CHECK_ERR_MSG( flags2_ci.flags == pipeline_info.flags,
+				"Some pipeline creation flags requires 'maintenance5' extension" );
+		}
 
 		const auto	AddCustomSpec = [&ci, this] (VkShaderStageFlagBits, VkSpecializationMapEntry* entryArr, uint* dataArr, OUT uint &count) __NE___
 		{{
