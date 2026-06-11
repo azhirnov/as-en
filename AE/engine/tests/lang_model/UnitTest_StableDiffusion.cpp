@@ -78,7 +78,7 @@ namespace
 
 			SD::ImageGenParams	params;
 			params.dim				= dim;
-			params.prompt			= "landscape with rocks and river in realistic style";
+			params.prompt			= u8"landscape with rocks and river in realistic style";
 
 			params.seed				= Random{}.Uniform<uint>();
 			params.resultCount		= 5;
@@ -98,7 +98,7 @@ namespace
 
 			SD::ImageGenParams	params;
 			params.dim				= dim;
-			params.prompt			= "old city in painting style";
+			params.prompt			= u8"old city in painting style";
 
 			params.seed				= Random{}.Uniform<uint>();
 			params.resultCount		= 1;
@@ -119,7 +119,7 @@ namespace
 
 			SD::ImageGenParams	params;
 			params.dim				= dim;
-			params.prompt			= "convert to realistic style and add more details";
+			params.prompt			= u8"convert to realistic style and add more details";
 
 			params.seed				= Random{}.Uniform<uint>();
 			params.resultCount		= 5;
@@ -141,7 +141,7 @@ namespace
 
 			SD::ImageGenParams	params;
 			params.dim				= dim;
-			params.prompt			= "convert to futuristic city, add neon, fliying cars";
+			params.prompt			= u8"convert to futuristic city, add neon, fliying cars";
 
 			params.seed				= Random{}.Uniform<uint>();
 			params.resultCount		= 5;

@@ -97,7 +97,7 @@
 		for (; count < gl.subgroup.Size; ++count)
 		{
 			// get unique ID per subgroup
-			uniform int		id = gl.subgroup.BroadcastFirst( src_id );
+			sg_uniform int		id = gl.subgroup.BroadcastFirst( src_id );
 
 			if ( id == src_id )
 				break;

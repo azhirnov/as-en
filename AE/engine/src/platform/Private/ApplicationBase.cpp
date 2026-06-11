@@ -6,6 +6,8 @@
 #include "platform/OpenXR/VRSessionOpenXR.h"
 #include "platform/Private/VRDeviceEmulator.h"
 
+#include "platform/WinAPI/UtilsWinAPI.h"
+
 namespace AE::App
 {
 
@@ -214,6 +216,26 @@ namespace AE::App
 	void  ApplicationBase::_AddWindow (SharedPtr<WindowBase> wnd) __NE___
 	{
 		_windows.emplace_back( wnd );
+	}
+
+/*
+=================================================
+	_GetStoragePrefix
+=================================================
+*/
+	StringView  ApplicationBase::_GetStoragePrefix (EAppStorage type) __NE___
+	{
+		switch_enum( type )
+		{
+			case EAppStorage::Builtin :			return "builtin/";
+			case EAppStorage::Cache :			return "cache/";
+			case EAppStorage::ExternalCache :	return "ext-cache/";
+			case EAppStorage::UserData :		return "user-data/";
+			case EAppStorage::SharedData :		return "shared-data/";
+			case EAppStorage::_Count :
+			default :							return {};
+		}
+		switch_end
 	}
 //-----------------------------------------------------------------------------
 

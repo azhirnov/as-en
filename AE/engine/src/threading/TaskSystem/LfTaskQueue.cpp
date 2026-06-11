@@ -50,6 +50,8 @@ namespace AE::Threading
 
 				for (usize i = 0, cnt = prev.pack.count; i < cnt; ++i)
 				{
+					AE_LOG_DBG( "Task '"s << chunk_ptr->array[i]->DbgName() << "' will not be executed" );
+
 					chunk_ptr->array[i].~AsyncTask();
 				}
 
@@ -390,10 +392,91 @@ namespace AE::Threading
 =================================================
 	CancelAll
 =================================================
-*/
-	void  LfTaskQueue::CancelAll () __NE___
+*
+	LfTaskQueue::CancelAllResult  LfTaskQueue::CancelAll () __NE___
 	{
-		// TODO
+		DEBUG_ONLY(
+			const auto	start_time = TimePoint_t::clock::now();
+		)
+
+		CancelAllResult	result;
+
+		for (usize j = 0; j < MaxChunks; ++j)
+		{
+			Chunk*	chunk_ptr = _chunks[ (j + usize(seed)) % MaxChunks ];
+
+			for (; chunk_ptr != null; chunk_ptr = chunk_ptr->next.load())
+			{
+				PackedBits	packed	= chunk_ptr->packed.load();
+
+				if ( packed.pack.count == 0 )
+					continue;
+
+				// try to acquire spinlock
+				bool	locked	= false;
+				for (uint i = 0; i < SpinlockWaitCount; ++i)
+				{
+					if ( packed.IsLocked() )
+						break; // locked by another thread
+
+					if_likely( chunk_ptr->packed.CAS( INOUT packed, packed.Lock() ))
+					{
+						locked = true;
+						break;
+					}
+
+					ThreadUtils::Pause();
+				}
+
+				// if spin-lock is acquired
+				if_unlikely( not locked )
+				{
+					++ result.skippedChunks;
+					continue;
+				}
+
+				// load changes in 'Chunk::array'
+				MemoryBarrier( EMemoryOrder::Acquire );
+				ASSERT( not packed.IsLocked() );
+
+				const PackedBits	old_packed	= packed.Lock();
+				usize				count		= packed.pack.count;
+				usize				pos			= packed.pack.pos;
+
+				// TODO
+
+				packed.pack.pos		= pos;
+				packed.pack.count	= count;
+
+				const bool	array_changed	= (old_packed.pack.count != count);
+				const auto	order			=
+					(array_changed and task != null) ?	EMemoryOrder::AcquireRelease :	// both
+					array_changed					 ?	EMemoryOrder::Release :			// flush changes in 'Chunk::array'
+														EMemoryOrder::Relaxed;
+
+				// unlock
+				const PackedBits	prev_packed = chunk_ptr->packed.exchange( packed, order );
+				CHECK( old_packed == prev_packed );
+
+				DEBUG_ONLY(
+					_taskCount.Sub( old_packed.pack.count - packed.pack.count );
+					_totalProcessed.fetch_add( old_packed.pack.count - packed.pack.count );
+				)
+
+				if ( task != null )
+				{
+					DEBUG_ONLY(
+						_searchTime += (TimePoint_t::clock::now() - start_time).count();
+					)
+					return task;
+				}
+			}
+		}
+
+		DEBUG_ONLY(
+			_searchTime += (TimePoint_t::clock::now() - start_time).count();
+		)
+		return result;
 	}
 
 /*

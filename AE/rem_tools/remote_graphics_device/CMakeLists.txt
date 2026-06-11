@@ -3,7 +3,7 @@
 if ( (${AE_ENABLE_METAL} OR ${AE_ENABLE_VULKAN}) AND (TARGET "GraphicsRHI") )
 	file( GLOB_RECURSE SOURCES "*.*" )
 
-	set( RG_PATH "${CMAKE_CURRENT_SOURCE_DIR}/../../src/graphics_rhi/Remote" )
+	set( RG_PATH "${MAIN_SOURCE_DIR}/engine/src/graphics_rhi/Remote" )
 	set( RG_FILES "${RG_PATH}/RConnection.h" "${RG_PATH}/RConnection.cpp" "${RG_PATH}/RMessages.h" "${RG_PATH}/RMessages.cpp" "${RG_PATH}/RMessages.cpp.h" )
 
 	if (ANDROID)
@@ -37,7 +37,7 @@ if ( (${AE_ENABLE_METAL} OR ${AE_ENABLE_VULKAN}) AND (TARGET "GraphicsRHI") )
 	endif()
 
 	target_include_directories( "RemoteGraphicsDevice" PUBLIC ".." )
-	set_property( TARGET "RemoteGraphicsDevice" PROPERTY FOLDER "Engine/ToolApps" )
+	set_property( TARGET "RemoteGraphicsDevice" PROPERTY FOLDER "RemoteTools" )
 
 	UseEnginePCH2( "RemoteGraphicsDevice" )
 endif()

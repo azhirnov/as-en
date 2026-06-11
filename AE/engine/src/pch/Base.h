@@ -48,6 +48,7 @@
 #include "base/Pointers/AlignedPtr.h"
 #include "base/Pointers/PackedRC.h"
 #include "base/Pointers/ComPtr.h"
+#include "base/Pointers/AtomicUnique.h"
 
 // DataSource
 #include "base/DataSource/DataSource.h"

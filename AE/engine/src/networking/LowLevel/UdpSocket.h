@@ -1,4 +1,7 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+/*
+	Thread-safe: no, see BaseSocket description
+*/
 
 #pragma once
 
@@ -29,9 +32,16 @@ namespace AE::Networking
 		ND_ bool  Open (const IpAddress &addr, const Config &cfg = Default)			__NE___;
 		ND_ bool  Open (const IpAddress6 &addr, const Config &cfg = Default)		__NE___;
 
+		// Send single UDP datagram per call.
+		// Single datagram can be fragmented and reassembled on destination,
+		// use 'NetConfig::UDP_MaxMsgSize' to send non-fragmented datagrams.
+		//
 		ND_	auto  Send (const IpAddress &addr, const void* data, Bytes dataSize)	C_NE___ -> Tuple< SocketSendError, Bytes >;
 		ND_	auto  Send (const IpAddress6 &addr, const void* data, Bytes dataSize)	C_NE___ -> Tuple< SocketSendError, Bytes >;
 
+		// Receive single UDP datagram per call.
+		// If 'dataSize' is too small for whole datagram, then the rest of datagram will be discarded.
+		//
 		ND_	auto  Receive (OUT IpAddress &addr, OUT void* data, Bytes dataSize)		C_NE___ -> Tuple< SocketReceiveError, Bytes >;
 		ND_	auto  Receive (OUT IpAddress6 &addr, OUT void* data, Bytes dataSize)	C_NE___ -> Tuple< SocketReceiveError, Bytes >;
 

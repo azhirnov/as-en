@@ -83,6 +83,7 @@ namespace
 				[this] (auto memView, auto frameInfo, auto err)
 				{
 					ReadImage( memView, frameInfo, err );
+					return true;  // continue
 				});
 		}
 

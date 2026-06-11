@@ -108,7 +108,7 @@ namespace AE::Base
 			#endif
 
 			// shared features
-			str	<< "\n  CmpXchg16:         " << ToString( feats.CmpXchg16 );
+			str	<< "\n  CmpXchg16: . . . . " << ToString( feats.CmpXchg16 );
 
 			str << "\n--------------------"
 				<< "\nCPU info:"

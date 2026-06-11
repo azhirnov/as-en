@@ -189,6 +189,23 @@
 #endif
 
 
+// check function return value and return error code
+#if 1
+#	define AE_PRIVATE_CHECK_WARN2( _expr_, _ret_, _text_ )	\
+		{cold_if_not( _expr_ ){								\
+			AE_LOGW( _text_ );								\
+			return (_ret_);									\
+		}}
+
+#	define AE_PRIVATE_CHECK_WARN( _expr_, _ret_ )					\
+		AE_PRIVATE_CHECK_WARN2( _expr_, _ret_, AE_TOSTRING( _expr_ ))
+
+#	define CHECK_WARN( /* expr, return_if_false */... )					\
+		AE_PRIVATE_CHECK_WARN(	AE_PRIVATE_GETARG_0( __VA_ARGS__, ),	\
+								AE_PRIVATE_GETARG_1( __VA_ARGS__, AE::Base::Default, ))
+#endif
+
+
 // check function return value and exit
 #if 1
 #	define CHECK_FATAL_MSG( _expr_, _text_ )	\

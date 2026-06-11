@@ -131,7 +131,7 @@ namespace AE::Graphics
 			StringView				engineName		= AE_ENGINE_NAME;
 			uint					appVer			= 0;
 			uint					engineVer		= 0;
-			Networking::IpAddress	deviceAddr;
+			Networking::IpAddress	deviceAddr;				// must include first port, connection will use range [port, port + RmNetConfig::socketCount)
 			StringView				graphicsLibPath;
 		};
 

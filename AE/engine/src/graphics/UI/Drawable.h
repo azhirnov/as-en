@@ -5,6 +5,8 @@
 #include "graphics/Canvas/Canvas.h"
 #include "graphics/Canvas/Primitives.h"
 
+#include "graphics/Resources/FormattedText.h"
+
 #include "graphics/UI/LayoutEnums.h"
 #include "graphics/UI/StyleCollection.h"
 
@@ -275,15 +277,30 @@ namespace AE::UI
 	{
 	// types
 	public:
+		using FontStylePtr	= Ptr< const StyleCollection::FontStyle >;
+
 		struct Data
 		{
 			Material		mtr;
+			EStyleIndex		styleIdx		= EStyleIndex::Enabled;
+			RGBA8u			currColor;
+			float			currScale		= 1.f;
+			float			factor			= 2.0f;
+
+			// accessed in cold branch
+			RGBA8u			prevColor;
+			float			prevScale		= 1.f;
+			FontStylePtr	stylePtr;
 		};
+
 
 	// variables
 	private:
-		StyleName::Optimized_t	_style;
-		Data					_data;
+		StyleName::Optimized_t		_style;
+		Data						_data;
+	//	Graphics::FormattedText		_text;
+		U8String					_text;
+
 
 	// methods
 	public:
@@ -291,6 +308,8 @@ namespace AE::UI
 
 		ND_ bool  SetStyle (StyleName::Ref name)									__NE___;
 			void  SetStyleName (StyleName::Ref name)								__NE___	{ _style = name; }
+
+			void  SetText (U8String text)											__NE___	{ _text = RVRef(text); }
 
 		// IDrawable //
 		void	Draw (const DrawParams &params, Canvas &canvas, DrawContext_t &ctx)	__Th_OV;

@@ -22,7 +22,7 @@ namespace AE::Base
 		{
 			None			= 0,
 			NoWindow		= 1 << 0,
-			ReadOutput		= 1 << 1,	// optional for sync execution, not compatible with 'NoWindow' flag
+			ReadOutput		= 1 << 1,
 			Unknown			= None,
 			_BITOPS_
 		};

@@ -12,7 +12,7 @@ using namespace AE::Video;
 using namespace AE::App;
 
 
-#ifdef AE_PLATFORM_ANDROID
+#if 0 //def AE_PLATFORM_ANDROID
 
 namespace
 {

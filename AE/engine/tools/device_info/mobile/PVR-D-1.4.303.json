@@ -1,10 +1,10 @@
 {
     "$schema": "https://schema.khronos.org/vulkan/profiles-0.8-latest.json#",
     "profiles": {
-        "VP_GPUINFO_Google_Pixel_10_1_634_2906_android_16_0": {
+        "VP_GPUINFO_Google_Pixel_10_Pro_XL_1_634_2906_android_16_0": {
             "version": 1,
             "api-version": "1.4.303",
-            "label": "Google Pixel 10 driver 1.634.2906 on Android 16.0",
+            "label": "Google Pixel 10 Pro XL driver 1.634.2906 on Android 16.0",
             "description": "Exported from https://vulkan.gpuinfo.org",
             "contributors": {
                 "Sascha Willems": {
@@ -15,7 +15,7 @@
             "history": [
                 {
                     "revision": 1,
-                    "date": "2025-11-23",
+                    "date": "2026-01-29",
                     "author": "Sascha Willems",
                     "comment": "Automated export from https://vulkan.gpuinfo.org"
                 }
@@ -164,6 +164,9 @@
                     "dynamicRendering": true,
                     "shaderIntegerDotProduct": true,
                     "maintenance4": true
+                },
+                "VkPhysicalDeviceExternalFormatResolveFeaturesANDROID": {
+                    "externalFormatResolve": true
                 },
                 "VkPhysicalDeviceTransformFeedbackFeaturesEXT": {
                     "transformFeedback": true,
@@ -531,11 +534,11 @@
                         0,
                         188,
                         0,
-                        5,
-                        59,
-                        193,
-                        145,
-                        73
+                        212,
+                        32,
+                        226,
+                        225,
+                        2
                     ],
                     "sparseProperties": {
                         "residencyAlignedMipSize": false,
@@ -995,11 +998,11 @@
                         0,
                         188,
                         0,
-                        5,
-                        59,
-                        193,
-                        145,
-                        73
+                        212,
+                        32,
+                        226,
+                        225,
+                        2
                     ],
                     "pCopyDstLayouts": [
                         "VK_IMAGE_LAYOUT_GENERAL",
@@ -1075,6 +1078,11 @@
                 },
                 "VkPhysicalDeviceExtendedDynamicState3PropertiesEXT": {
                     "dynamicPrimitiveTopologyUnrestricted": true
+                },
+                "VkPhysicalDeviceExternalFormatResolvePropertiesANDROID": {
+                    "externalFormatResolveChromaOffsetX": "VK_CHROMA_LOCATION_MIDPOINT",
+                    "externalFormatResolveChromaOffsetY": "VK_CHROMA_LOCATION_MIDPOINT",
+                    "nullColorAttachmentWithExternalFormatResolve": true
                 },
                 "VkPhysicalDeviceFragmentShadingRatePropertiesKHR": {
                     "fragmentShadingRateNonTrivialCombinerOps": true,

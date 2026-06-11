@@ -166,7 +166,7 @@ namespace AE::Samples::Demo
 */
 	AsyncCoro  AudioSample::_ProcessInputTask (RC<AudioSample> t, ActionQueueReader reader) __NE___
 	{
-		t->imgui.mouseLBDown	= false;
+		t->imgui.mouseBtnDown	= {};
 		t->imgui.mouseWheel		= {};
 
 		ActionQueueReader::Header	hdr;
@@ -181,7 +181,10 @@ namespace AE::Samples::Demo
 					t->imgui.mouseWheel = reader.Data<packed_float2>( hdr.offset );	break;
 
 				case IA.Desktop.MouseLBDown :
-					t->imgui.mouseLBDown = true;									break;
+					t->imgui.mouseBtnDown[0] = true;								break;
+
+				case IA.Desktop.UI_Char :
+					break;
 			}
 			switch_end
 			switch_IA( hdr.name )
@@ -192,7 +195,7 @@ namespace AE::Samples::Demo
 
 				case IA.Touch_Click :
 					t->imgui.mousePos    = reader.Data<packed_float2>( hdr.offset );
-					t->imgui.mouseLBDown = true;									break;
+					t->imgui.mouseBtnDown[0] = true;								break;
 			}
 			switch_end
 		}

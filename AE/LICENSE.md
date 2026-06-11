@@ -4,8 +4,6 @@
 The source code (including scripts, cmake files, shader code) with the header `Copyright (c) Zhirnov Andrey` is licensed under Apache-2.0.<br/>
 See `Apache2-license.txt` or https://www.apache.org/licenses/LICENSE-2.0.txt.
 
-**Warning**: AI processing is not allowed! This code is completely written by an organic programmer specially for organic users.
-
 The final license depends on third-party libraries. The build system contains definitions of which licenses are used in attached libs (`AE_LICENSE_*`).<br/>
 Add the following code to your project to determine which license you can use.
 ```cpp

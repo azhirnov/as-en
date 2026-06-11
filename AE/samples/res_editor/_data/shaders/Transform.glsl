@@ -1,11 +1,12 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 /*
-	local_pos * model_mat	= world_pos (world space)
-	world_pos * view_mat	= view_pos  (view space)
-	view_pos  * proj_mat	= clip_pos  (clip space)			- before /W
-	norm( clip_pos )		= ndc_pos	(NDC, norm clip space)	- after /W:  XY range [-1,+1], Z range [0, +1]
-	norm( ndc_pos )			= unorm_scr	(unorm screen pos)		- range [0,1]
-	unorm_scr * viewport	= scr_pos   (screen space in px)	- happens before FS
+	local_pos * model_mat		= world_pos  (world space)
+	world_pos - camera_offset	= camera_pos (world space, camera relative coords)
+	camera_pos * view_mat		= view_pos   (view space)
+	view_pos  * proj_mat		= clip_pos   (clip space)			- before /W
+	norm( clip_pos )			= ndc_pos	 (NDC, norm clip space)	- after /W:  XY range [-1,+1], Z range [0, +1]
+	norm( ndc_pos )				= unorm_scr	 (unorm screen pos)		- range [0,1]
+	unorm_scr * viewport		= scr_pos    (screen space in px)	- happens before FS
 */
 
 #include "Math.glsl"

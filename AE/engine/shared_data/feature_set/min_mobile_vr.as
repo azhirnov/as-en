@@ -46,8 +46,6 @@ void ASmain ()
 		EShaderStages::Compute
 	));
 	fset.requiredSubgroupSizeStages(EShaderStages(
-		EShaderStages::Vertex | 
-		EShaderStages::Fragment | 
 		EShaderStages::Compute
 	));
 	fset.minSubgroupSize (64);

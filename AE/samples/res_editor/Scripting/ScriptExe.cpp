@@ -1591,29 +1591,7 @@ namespace {
 
 		AS_GLOBAL_FN( se, ScriptExe::_BuildRTMicromap,			"BuildRTMicromap",			{},		"Pass that build RTMicromap, executed every frame."				);
 
-		// deprecated
-	//	AS_GLOBAL_FN( se, ScriptExe::_GetCube2,					"GetCube",					{"positions", "normals", "indices"} );
-	//	AS_GLOBAL_FN( se, ScriptExe::_GetCube3,					"GetCube",					{"positions", "normals", "tangents", "bitangents", "texcoords2d", "indices"} );
-	//	AS_GLOBAL_FN( se, ScriptExe::_GetCube4,					"GetCube",					{"positions", "normals", "tangents", "bitangents", "cubemapTexcoords", "indices"} );
-	//	AS_GLOBAL_FN( se, ScriptExe::_GetGrid1,					"GetGrid",					{"size", "unorm2Positions", "indices"},					"Returns (size * size) grid" );
-	//	AS_GLOBAL_FN( se, ScriptExe::_GetGrid2,					"GetGrid",					{"size", "unorm3Positions", "indices"},					"Returns (size * size) grid in XY space." );
-	//	AS_GLOBAL_FN( se, ScriptExe::_GetSphere1,				"GetSphere",				{"lod", "positions", "indices"},						"Returns spherical cube" );
-	//	AS_GLOBAL_FN( se, ScriptExe::_GetSphere5,				"GetSphere",				{"lod", "positions", "texcoords2d", "indices"},			"Returns spherical cube with 2D UV" );
-	//	AS_GLOBAL_FN( se, ScriptExe::_GetSphere2,				"GetSphere",				{"lod", "positions", "cubemapTexcoords", "indices"},	"Returns spherical cube" );
-	//	AS_GLOBAL_FN( se, ScriptExe::_GetSphere3,				"GetSphere",				{"lod", "positions", "normals", "tangents", "bitangents", "cubemapTexcoords", "indices"},	"Returns spherical cube with tangential projection for cubemap." );
-	//	AS_GLOBAL_FN( se, ScriptExe::_GetSphere4,				"GetSphere",				{"lod", "positions", "normals", "tangents", "bitangents", "texcoords2d", "indices"},		"Returns spherical cube" );
-	//	AS_GLOBAL_FN( se, ScriptExe::_GetCylinder1,				"GetCylinder",				{"segmentCount", "isInner", "positions", "texcoords", "indices"},										"Returns cylinder" );
-	//	AS_GLOBAL_FN( se, ScriptExe::_GetCylinder2,				"GetCylinder",				{"segmentCount", "isInner", "positions", "normals", "tangents", "bitangents", "texcoords", "indices"},	"Returns cylinder" );
-	//	AS_GLOBAL_FN( se, ScriptExe::_GetCone1,					"GetCone",					{"segmentCount", "radius", "height", "positions", "indices"},													"Returns cone, apex in +Z" );
-	//	AS_GLOBAL_FN( se, ScriptExe::_GetCone2,					"GetCone",					{"segmentCount", "radius", "height", "positions", "normals", "texcoords", "indices"},							"Returns cone, apex in +Z" );
-	//	AS_GLOBAL_FN( se, ScriptExe::_GetCone3,					"GetCone",					{"segmentCount", "radius", "height", "positions", "normals", "tangents", "bitangents", "texcoords", "indices"},	"Returns cone, apex in +Z" );
 		AS_GLOBAL_FN( se, ScriptExe::_GetFrustumIndices,		"GetFrustumIndices",		{} );
-	//	AS_GLOBAL_FN( se, ScriptExe::_TBNtoQuat,				"TBNtoQuat",				{"tangents", "bitangents", "normals", "indices", "tbnQuat"} );
-
-	//	AS_GLOBAL_FN( se, ScriptExe::_GetSphericalCube1,		"GetSphericalCube",			{"lod", "positions", "indices"},						"Returns spherical cube without projection and face rotation.\nIn 'positions': xy - pos on face, z - face index." );
-
-	//	AS_GLOBAL_FN( se, ScriptExe::_IndicesToPrimitives,		"IndicesToPrimitives",		{"indices", "primitives"},		"Helper function to convert array of indices to array of uint3 indices per triangle" );
-	//	AS_GLOBAL_FN( se, ScriptExe::_MergeMesh,				"MergeMesh",				{"srcIndices", "srcVertexCount", "indicesToAdd"} );
 
 		#ifdef AE_ENABLE_CDT
 		AS_GLOBAL_FN( se, ScriptExe::_ExtrudeAndMerge,			"Extrude",					{"lineStrip", "height", "positions", "indices"},					"Output is a TriangleList, front face: CCW" );

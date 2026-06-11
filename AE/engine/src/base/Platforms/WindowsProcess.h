@@ -21,7 +21,7 @@ namespace AE::Base
 		{
 			None				= 0,
 			NoWindow			= 1 << 0,
-			ReadOutput			= 1 << 1,	// optional for sync execution, not compatible with 'NoWindow' flag
+			ReadOutput			= 1 << 1,	// optional for sync execution
 			UseCommandPrompt	= 1 << 2,
 			UsePowerShell		= 1 << 3,
 		//	UseWSL				= 1 << 4,	// windows subsystem for linux	// TODO

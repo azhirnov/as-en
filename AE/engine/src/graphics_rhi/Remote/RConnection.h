@@ -8,7 +8,6 @@ namespace AE::RemoteGraphics
 {
 	struct RmNetConfig
 	{
-		static constexpr ushort		serverPort	= AE_RMG_PORT;
 		static constexpr uint		socketCount	= 3;
 	};
 

@@ -610,9 +610,10 @@ namespace AE::App
 	_GLFW_KeyCallback
 =================================================
 */
-	void  WindowGLFW::_GLFW_KeyCallback (GLFWwindow* wnd, int key, int, int action, int) __NE___
+	void  WindowGLFW::_GLFW_KeyCallback (GLFWwindow* wnd, int key, int scancode, int action, int mods) __NE___
 	{
-		if_likely( key <= GLFW_KEY_LAST and (action == GLFW_PRESS or action == GLFW_RELEASE) )
+		if_likely( (key >= GLFW_KEY_SPACE and key <= GLFW_KEY_LAST)	and
+				   (action == GLFW_PRESS or action == GLFW_RELEASE) )
 		{
 			auto*	self = Cast<WindowGLFW>( glfwGetWindowUserPointer( wnd ));
 			DRC_EXLOCK( self->_drCheck );
@@ -622,6 +623,7 @@ namespace AE::App
 								 action == GLFW_RELEASE ? EGestureState::End : EGestureState::Begin,
 								 self->_app.GetTimeSinceStart() );
 		}
+		Unused( scancode, mods );
 	}
 
 /*
@@ -631,7 +633,8 @@ namespace AE::App
 */
 	void  WindowGLFW::_GLFW_MouseButtonCallback (GLFWwindow* wnd, int button, int action, int) __NE___
 	{
-		if_likely( button <= GLFW_MOUSE_BUTTON_LAST and (action == GLFW_PRESS or action == GLFW_RELEASE) )
+		if_likely( (button >= GLFW_MOUSE_BUTTON_1 and button <= GLFW_MOUSE_BUTTON_LAST) and
+				   (action == GLFW_PRESS or action == GLFW_RELEASE) )
 		{
 			auto*	self = Cast<WindowGLFW>( glfwGetWindowUserPointer( wnd ));
 			DRC_EXLOCK( self->_drCheck );

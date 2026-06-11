@@ -2522,13 +2522,15 @@ namespace {
 				switch ( rows ) {
 					case 1 :	src << "r8snorm<half>";			return true;
 					case 2 :	src << "rg8snorm<half2>";		return true;
+					case 3 :	src << "rgb8snorm<half3>";		return true;
 					case 4 :	src << "rgba8snorm<half4>";		return true;
 				}
 				break;
 			case EValueType::UInt8_Norm :
 				switch ( rows ) {
 					case 1 :	src << "r8unorm<half>";			return true;
-					case 2 :	src << "rg8unorm<half3>";		return true;
+					case 2 :	src << "rg8unorm<half2>";		return true;
+					case 3 :	src << "rgb8unorm<half3>";		return true;
 					case 4 :	src << "rgba8unorm<half4>";		return true;
 				}
 				break;
@@ -2536,13 +2538,15 @@ namespace {
 				switch ( rows ) {
 					case 1 :	src << "r16snorm<float>";		return true;
 					case 2 :	src << "rg16snorm<float2>";		return true;
+					case 3 :	src << "rgb16snorm<float3>";	return true;
 					case 4 :	src << "rgba16snorm<float4>";	return true;
 				}
 				break;
 			case EValueType::UInt16_Norm :
 				switch ( rows ) {
 					case 1 :	src << "r16unorm<float>";		return true;
-					case 2 :	src << "rg16unorm<float>";		return true;
+					case 2 :	src << "rg16unorm<float2>";		return true;
+					case 3 :	src << "rgb16unorm<float3>";	return true;
 					case 4 :	src << "rgba16unorm<float4>";	return true;
 				}
 				break;

@@ -18,6 +18,7 @@ namespace AE::Networking
 		ConnectionResetByPeer,					// WSAECONNRESET	| ECONNRESET
 		NotConnected,							// WSAENOTCONN		| ENOTCONN
 		UDP_MessageTooLong,						// WSAEMSGSIZE		| EMSGSIZE
+		UnreachableNetwork,						// WSAENETUNREACH	| ENETUNREACH
 		NoSocket,
 		UnknownError,
 	};

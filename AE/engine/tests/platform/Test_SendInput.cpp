@@ -55,15 +55,33 @@ namespace
 			_sendInput = app.CreateInputSender();
 			CHECK_FATAL( _sendInput );
 
-			CHECK( _sendInput->SetKeyState( ushort(EInputType::Key_L_Win), EGestureState::Begin ));	// down
-			CHECK( _sendInput->SetKeyState( ushort(EInputType::Key_L_Win), EGestureState::End ));	// up
+			const bool	down	= true;
+			const bool	up		= false;
 
 			#if 0
 				CHECK( _sendInput->SetCursorPos( int2{ 1352, 24 }));
 
-				CHECK( _sendInput->SetKeyState( ushort(EInputType::MouseBtn0), EGestureState::Begin ));	// down
-				CHECK( _sendInput->SetKeyState( ushort(EInputType::MouseBtn0), EGestureState::End ));	// up
+				CHECK( _sendInput->SetKeyState( ushort(EInputType::MouseBtn0), down ));
+				CHECK( _sendInput->SetKeyState( ushort(EInputType::MouseBtn0), up ));
 			#endif
+
+			#if 0
+				CHECK( _sendInput->SetCursorPos( int2{ 2076, 512 }));
+
+				CHECK( _sendInput->SetKeyState( ushort(EInputType::MouseBtn0), down ));
+				CHECK( _sendInput->SetKeyState( ushort(EInputType::MouseBtn0), up ));
+
+				CHECK( _sendInput->ClipboardPut( u8"test clipboard" ));
+
+				CHECK( _sendInput->SetKeyState( ushort(EInputType::Key_L_Control), down ));
+				CHECK( _sendInput->SetKeyState( ushort(EInputType::Key_V), down ));
+
+				CHECK( _sendInput->SetKeyState( ushort(EInputType::Key_L_Control), up ));
+				CHECK( _sendInput->SetKeyState( ushort(EInputType::Key_V), up ));
+			#endif
+
+			CHECK( _sendInput->SetKeyState( ushort(EInputType::Key_L_Win), down ));
+			CHECK( _sendInput->SetKeyState( ushort(EInputType::Key_L_Win), up ));
 		}
 
 		void  OnStop (IApplication &) __NE_OV

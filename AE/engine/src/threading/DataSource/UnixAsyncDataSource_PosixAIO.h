@@ -98,10 +98,15 @@ namespace AE::Threading
 			return true;	// goes async
 		}
 
+		AE_LOG_DBG( "AIO error: "s << ToString(ret) );
+
 		ssize_t	size = ::aio_return( &cb );
 		bool	ok   = (ret == 0);
 
-		_Complete( Bytes{usize(Max( size, 0u ))}, ok );
+		if ( ok and size > 0 )
+		{
+			_Complete( Bytes{usize(size)}, true );
+		}
 		return ok;
 	}
 
@@ -169,10 +174,15 @@ namespace AE::Threading
 			return true;	// goes async
 		}
 
+		AE_LOG_DBG( "AIO error: "s << ToString(ret) );
+
 		ssize_t	size = ::aio_return( &cb );
 		bool	ok   = (ret == 0);
 
-		_Complete( Bytes{usize(Max( size, 0u ))}, ok );
+		if ( ok and size > 0 )
+		{
+			_Complete( Bytes{usize(size)}, true );
+		}
 		return ok;
 	}
 

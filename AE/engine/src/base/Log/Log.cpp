@@ -84,31 +84,6 @@ namespace
 		return res;
 	}
 
-/*
-=================================================
-	SetDebugReportHook
-----
-	without hook CI will stall on error dialog
-=================================================
-*/
-#if defined(AE_PLATFORM_WINDOWS) and (defined(AE_CI_BUILD_TEST) or defined(AE_CI_BUILD_PERF)) and defined(_DEBUG)
-
-	static int __CRTDECL CrtReportHook (int type, char* msg, int* ret)
-	{
-		AE_LOGE( msg );
-		AE_PRIVATE_EXIT();
-		return true;
-	}
-
-	static void  SetDebugReportHook ()
-	{
-		::_CrtSetReportHook( &CrtReportHook );
-	}
-
-#else
-	static void  SetDebugReportHook () {}
-#endif
-
 } // namespace
 
 
@@ -123,8 +98,6 @@ namespace
 
 		++s_refCounter;
 		s_loggers.emplace();
-
-		SetDebugReportHook();
 	}
 
 /*

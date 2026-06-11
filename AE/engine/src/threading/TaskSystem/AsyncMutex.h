@@ -77,7 +77,7 @@ namespace AE::Threading
 					// not locked
 					_cur = null;
 
-					return _Coro_::CoroAwaiterImpl::AwaitSuspendImpl( curCoro, RVRef(other) );
+					return _Coro_::CoroAwaiterImpl::AwaitSuspendImpl( curCoro.promise(), RVRef(other) );
 				}
 
 				return false;  // resume

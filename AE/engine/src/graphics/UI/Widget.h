@@ -96,7 +96,7 @@ namespace AE::UI
 			void  DrawPass2 (const Draw2Params &params, Canvas &canvas, DrawContext_t &ctx)			__Th___;	// draw content with stencil test
 			void  DbgDrawLayouts (Canvas &canvas)													__NE___;
 
-			void  SetActionBindings (const ActionMap_t &actions)									__NE___;
+			void  SetActionBindingsRef (const ActionMap_t &actions)									__NE___;
 
 		ND_ ILayout*			GetRoot ()															__NE___	{ return _root.get(); }
 

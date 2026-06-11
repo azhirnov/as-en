@@ -40,7 +40,7 @@ namespace
 
 extern void UnitTest_CPUInfo ()
 {
-	AE_LOGI( "\nCache line: "s << ToString(AE_CACHE_LINE) <<
+	AE_LOGI( "\nAE_CACHE_LINE: "s << ToString(AE_CACHE_LINE) <<
 			 "\nhardware_destructive_interference_size: " << ToString(std::hardware_destructive_interference_size) <<
 			 "\nhardware_constructive_interference_size: " << ToString(std::hardware_constructive_interference_size) );
 

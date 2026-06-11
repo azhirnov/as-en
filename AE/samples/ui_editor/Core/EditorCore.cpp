@@ -41,7 +41,7 @@ namespace
 		{
 			cfg.threading.maxThreads			= 1;
 			cfg.threading.maxIOAccessThreads	= 1;
-			cfg.threading.mask					= { EThread::PerFrame, EThread::Renderer, EThread::Background, EThread::FileIO };
+			cfg.threading.mask					= { EThread::PerFrame, EThread::Renderer, EThread::Background, EThread::IO };
 		}
 
 		// graphics
@@ -720,7 +720,7 @@ namespace
 		auto&	imgui		= ui_sync->imgui;
 		bool	switch_mode = false;
 
-		imgui.mouseLBDown	= false;
+		imgui.mouseBtnDown	= {};
 		imgui.mouseWheel	= {};
 
 		ActionQueueReader::Header	hdr;
@@ -735,7 +735,7 @@ namespace
 					imgui.mouseWheel = reader.Data<packed_float2>( hdr.offset );	break;
 
 				case IA.UI_MouseLBDown :
-					imgui.mouseLBDown = true;										break;
+					imgui.mouseBtnDown[0] = true;									break;
 
 				case IA.UI_ReloadScript :
 					ui_sync->reloadScript = true;									break;

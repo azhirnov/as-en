@@ -8,6 +8,7 @@
 
 	void Main ()
 	{
+		// 'in_Position' in pixels
 		gl.Position	= float4( FusedMulAdd( in_Position, globalUB.posScale, globalUB.posBias ), 0.0, 1.0 );
 		Out.uv		= in_UV;
 		Out.color	= in_Color;

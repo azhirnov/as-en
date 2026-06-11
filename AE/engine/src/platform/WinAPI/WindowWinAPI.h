@@ -48,15 +48,21 @@ namespace AE::App
 	public:
 		~WindowWinAPI ()													__NE_OV;
 
-	// IWindow //
-		void		Close ()												__NE_OV;
 
-		uint2		GetSurfaceSize ()										C_NE_OV;
-		Monitor		GetMonitor ()											C_NE_OV;
+	// IWindow //
+		void  Close ()														__NE_OV;
+
+		bool  SetBrightness (Percent)										__NE_OV	{ return false; }
+		bool  SetColorSpace (EColorSpace value)								C_NE_OV;
+		bool  SetDisplayMode (EWindowDisplayMode)							__NE_OV;
+
+		uint2			GetSurfaceSize ()									C_NE_OV;
+		Monitor			GetMonitor ()										C_NE_OV;
 
 		IInputActions&	InputActions ()										__NE_OV	{ return _input; }
 		NativeWindow	GetNative ()										C_NE_OV;
 
+	// IDesktopWindow //
 		void  SetSize (const uint2 &size)									__NE_OV;
 		void  SetPosition (const int2 &pos)									__NE_OV;
 		void  SetPosition (Monitor::ID monitor, const int2 &pos)			__NE_OV;
@@ -64,9 +70,7 @@ namespace AE::App
 		void  SetFocus ()													C_NE_OV;
 		bool  SetMode (EWindowMode mode, Monitor::ID monitor)				__NE_OV;
 
-		bool  SetBrightness (Percent)										__NE_OV	{ return false; }
-
-		bool  SetColorSpace (EColorSpace value)								C_NE_OV;
+		IDesktopWindow*  AsDesktopWindow ()									__NE_OV	{ return this; }
 
 
 	private:

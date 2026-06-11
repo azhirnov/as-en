@@ -1,10 +1,10 @@
 {
     "$schema": "https://schema.khronos.org/vulkan/profiles-0.8-latest.json#",
     "profiles": {
-        "VP_GPUINFO_Xiaomi_24122RKC7C_512_842_6_android_16_0": {
+        "VP_GPUINFO_OnePlus_PKR110_512_849_1_android_16_0": {
             "version": 1,
             "api-version": "1.4.295",
-            "label": "Xiaomi 24122RKC7C driver 512.842.6 on Android 16.0",
+            "label": "OnePlus PKR110 driver 512.849.1 on Android 16.0",
             "description": "Exported from https://vulkan.gpuinfo.org",
             "contributors": {
                 "Sascha Willems": {
@@ -15,7 +15,7 @@
             "history": [
                 {
                     "revision": 1,
-                    "date": "2025-11-23",
+                    "date": "2026-01-23",
                     "author": "Sascha Willems",
                     "comment": "Automated export from https://vulkan.gpuinfo.org"
                 }
@@ -165,6 +165,9 @@
                     "shaderIntegerDotProduct": true,
                     "maintenance4": true
                 },
+                "VkPhysicalDeviceExternalFormatResolveFeaturesANDROID": {
+                    "externalFormatResolve": true
+                },
                 "VkPhysicalDeviceTransformFeedbackFeaturesEXT": {
                     "transformFeedback": true,
                     "geometryStreams": true
@@ -233,6 +236,11 @@
                 "VkPhysicalDeviceShaderImageAtomicInt64FeaturesEXT": {
                     "shaderImageInt64Atomics": true,
                     "sparseImageInt64Atomics": false
+                },
+                "VkPhysicalDeviceFragmentShaderInterlockFeaturesEXT": {
+                    "fragmentShaderSampleInterlock": true,
+                    "fragmentShaderPixelInterlock": true,
+                    "fragmentShaderShadingRateInterlock": false
                 },
                 "VkPhysicalDeviceProvokingVertexFeaturesEXT": {
                     "provokingVertexLast": true,
@@ -308,6 +316,13 @@
                 "VkPhysicalDeviceGraphicsPipelineLibraryFeaturesEXT": {
                     "graphicsPipelineLibrary": true
                 },
+                "VkPhysicalDeviceMeshShaderFeaturesEXT": {
+                    "taskShader": true,
+                    "meshShader": true,
+                    "multiviewMeshShader": true,
+                    "primitiveFragmentShadingRateMeshShader": true,
+                    "meshShaderQueries": true
+                },
                 "VkPhysicalDeviceFragmentDensityMap2FeaturesEXT": {
                     "fragmentDensityMapDeferred": true
                 },
@@ -316,6 +331,9 @@
                 },
                 "VkPhysicalDeviceImageCompressionControlFeaturesEXT": {
                     "imageCompressionControl": true
+                },
+                "VkPhysicalDeviceAttachmentFeedbackLoopLayoutFeaturesEXT": {
+                    "attachmentFeedbackLoopLayout": true
                 },
                 "VkPhysicalDevice4444FormatsFeaturesEXT": {
                     "formatA4R4G4B4": true,
@@ -373,6 +391,9 @@
                 },
                 "VkPhysicalDeviceDepthClampZeroOneFeaturesEXT": {
                     "depthClampZeroOne": true
+                },
+                "VkPhysicalDeviceNonSeamlessCubeMapFeaturesEXT": {
+                    "nonSeamlessCubeMap": true
                 },
                 "VkPhysicalDeviceImageCompressionControlSwapchainFeaturesEXT": {
                     "imageCompressionControlSwapchain": true
@@ -502,6 +523,9 @@
                 "VkPhysicalDeviceSynchronization2FeaturesKHR": {
                     "synchronization2": true
                 },
+                "VkPhysicalDeviceFragmentShaderBarycentricFeaturesKHR": {
+                    "fragmentShaderBarycentric": true
+                },
                 "VkPhysicalDeviceShaderSubgroupUniformControlFlowFeaturesKHR": {
                     "shaderSubgroupUniformControlFlow": true
                 },
@@ -526,6 +550,14 @@
                 },
                 "VkPhysicalDeviceRayTracingPositionFetchFeaturesKHR": {
                     "rayTracingPositionFetch": true
+                },
+                "VkPhysicalDeviceCooperativeMatrixFeaturesKHR": {
+                    "cooperativeMatrix": true,
+                    "cooperativeMatrixRobustBufferAccess": true
+                },
+                "VkPhysicalDeviceComputeShaderDerivativesFeaturesNV": {
+                    "computeDerivativeGroupQuads": true,
+                    "computeDerivativeGroupLinear": true
                 },
                 "VkPhysicalDeviceOpticalFlowFeaturesNV": {
                     "opticalFlow": true
@@ -562,16 +594,16 @@
                     "vendorID": 20803,
                     "apiVersion": 4210983,
                     "pipelineCacheUUID": [
-                        105,
-                        207,
-                        87,
-                        9,
+                        41,
+                        26,
+                        42,
+                        10,
                         67,
                         81,
-                        0,
-                        0,
-                        0,
-                        0,
+                        160,
+                        107,
+                        98,
+                        24,
                         1,
                         0,
                         5,
@@ -828,7 +860,7 @@
                 "VkPhysicalDeviceVulkan12Properties": {
                     "driverID": "VK_DRIVER_ID_QUALCOMM_PROPRIETARY",
                     "driverName": "Qualcomm Technologies Inc. Adreno Vulkan Driver",
-                    "driverInfo": "Driver Build: 957cf69fc5, Iab8da11f92, 1756381958\nDate: 08/28/25\nCompiler Version: E031.50.19.01\nDriver Branch: \n",
+                    "driverInfo": "Driver Build: a2a1a29a71, Icb4aa5a425, 1758706229\nDate: 09/24/25\nCompiler Version: E031.50.26.00\nDriver Branch: \n",
                     "conformanceVersion": {
                         "major": 1,
                         "minor": 4,
@@ -943,9 +975,9 @@
                     "integerDotProductAccumulatingSaturating64BitSignedAccelerated": false,
                     "integerDotProductAccumulatingSaturating64BitMixedSignednessAccelerated": false,
                     "storageTexelBufferOffsetAlignmentBytes": 64,
-                    "storageTexelBufferOffsetSingleTexelAlignment": false,
+                    "storageTexelBufferOffsetSingleTexelAlignment": true,
                     "uniformTexelBufferOffsetAlignmentBytes": 64,
-                    "uniformTexelBufferOffsetSingleTexelAlignment": false,
+                    "uniformTexelBufferOffsetSingleTexelAlignment": true,
                     "maxBufferSize": 4294897663
                 },
                 "VkPhysicalDeviceDescriptorBufferPropertiesEXT": {
@@ -1014,7 +1046,7 @@
                         "subminor": 0
                     },
                     "driverID": "VK_DRIVER_ID_QUALCOMM_PROPRIETARY",
-                    "driverInfo": "Driver Build: 957cf69fc5, Iab8da11f92, 1756381958\nDate: 08/28/25\nCompiler Version: E031.50.19.01\nDriver Branch: \n",
+                    "driverInfo": "Driver Build: a2a1a29a71, Icb4aa5a425, 1758706229\nDate: 09/24/25\nCompiler Version: E031.50.26.00\nDriver Branch: \n",
                     "driverName": "Qualcomm Technologies Inc. Adreno Vulkan Driver"
                 },
                 "VkPhysicalDeviceConservativeRasterizationPropertiesEXT": {
@@ -1027,6 +1059,12 @@
                     "maxExtraPrimitiveOverestimationSize": 0.5,
                     "primitiveOverestimationSize": 0.50390625,
                     "primitiveUnderestimation": true
+                },
+                "VkPhysicalDeviceCooperativeMatrixPropertiesKHR": {
+                    "cooperativeMatrixSupportedStages": [
+                        "VK_SHADER_STAGE_COMPUTE_BIT",
+                        "VK_SHADER_STAGE_ALL"
+                    ]
                 },
                 "VkPhysicalDeviceHostImageCopyPropertiesEXT": {
                     "copyDstLayoutCount": 17,
@@ -1121,6 +1159,11 @@
                     "nonStrictSinglePixelWideLinesUseParallelogram": true,
                     "nonStrictWideLinesUseParallelogram": true,
                     "polygonModePointSize": true
+                },
+                "VkPhysicalDeviceExternalFormatResolvePropertiesANDROID": {
+                    "externalFormatResolveChromaOffsetX": "VK_CHROMA_LOCATION_COSITED_EVEN",
+                    "externalFormatResolveChromaOffsetY": "VK_CHROMA_LOCATION_COSITED_EVEN",
+                    "nullColorAttachmentWithExternalFormatResolve": true
                 },
                 "VkPhysicalDeviceSamplerFilterMinmaxPropertiesEXT": {
                     "filterMinmaxImageComponentMapping": true,
@@ -1314,6 +1357,52 @@
                     "maxMemoryAllocationSize": 1073741824,
                     "maxPerSetDescriptors": 4294967295
                 },
+                "VkPhysicalDeviceMeshShaderPropertiesEXT": {
+                    "maxMeshMultiviewViewCount": 6,
+                    "maxMeshOutputComponents": 128,
+                    "maxMeshOutputLayers": 256,
+                    "maxMeshOutputMemorySize": 32768,
+                    "maxMeshOutputPrimitives": 256,
+                    "maxMeshOutputVertices": 256,
+                    "maxMeshPayloadAndOutputMemorySize": 49152,
+                    "maxMeshPayloadAndSharedMemorySize": 32768,
+                    "maxMeshSharedMemorySize": 32768,
+                    "maxMeshWorkGroupCount": [
+                        65535,
+                        65535,
+                        65535
+                    ],
+                    "maxMeshWorkGroupInvocations": 256,
+                    "maxMeshWorkGroupSize": [
+                        256,
+                        256,
+                        256
+                    ],
+                    "maxMeshWorkGroupTotalCount": 4194304,
+                    "maxPreferredMeshWorkGroupInvocations": 256,
+                    "maxPreferredTaskWorkGroupInvocations": 1024,
+                    "maxTaskPayloadAndSharedMemorySize": 49152,
+                    "maxTaskPayloadSize": 16384,
+                    "maxTaskSharedMemorySize": 32768,
+                    "maxTaskWorkGroupCount": [
+                        65535,
+                        65535,
+                        65535
+                    ],
+                    "maxTaskWorkGroupInvocations": 1024,
+                    "maxTaskWorkGroupSize": [
+                        1024,
+                        1024,
+                        1024
+                    ],
+                    "maxTaskWorkGroupTotalCount": 4194304,
+                    "meshOutputPerPrimitiveGranularity": 256,
+                    "meshOutputPerVertexGranularity": 256,
+                    "prefersCompactPrimitiveOutput": true,
+                    "prefersCompactVertexOutput": true,
+                    "prefersLocalInvocationPrimitiveOutput": true,
+                    "prefersLocalInvocationVertexOutput": true
+                },
                 "VkPhysicalDeviceMultiDrawPropertiesEXT": {
                     "maxMultiDrawCount": 1024
                 },
@@ -1382,16 +1471,16 @@
                 },
                 "VkPhysicalDeviceShaderModuleIdentifierPropertiesEXT": {
                     "shaderModuleIdentifierAlgorithmUUID": [
-                        105,
-                        207,
-                        87,
-                        9,
+                        41,
+                        26,
+                        42,
+                        10,
                         67,
                         81,
-                        0,
-                        0,
-                        0,
-                        0,
+                        160,
+                        107,
+                        98,
+                        24,
                         1,
                         0,
                         5,
@@ -1405,6 +1494,9 @@
                     "storageTexelBufferOffsetSingleTexelAlignment": true,
                     "uniformTexelBufferOffsetAlignmentBytes": 64,
                     "uniformTexelBufferOffsetSingleTexelAlignment": true
+                },
+                "VkPhysicalDeviceFragmentShaderBarycentricPropertiesKHR": {
+                    "triStripVertexOrderIndependentOfProvokingVertex": true
                 },
                 "VkPhysicalDeviceSubgroupProperties": {
                     "subgroupSize": 64,
@@ -1465,6 +1557,7 @@
                 "VK_EXT_sample_locations": 1,
                 "VK_EXT_shader_stencil_export": 1,
                 "VK_EXT_hdr_metadata": 3,
+                "VK_EXT_external_memory_dma_buf": 1,
                 "VK_EXT_global_priority": 2,
                 "VK_EXT_conservative_rasterization": 1,
                 "VK_KHR_multiview": 1,
@@ -1486,15 +1579,19 @@
                 "VK_KHR_shader_float16_int8": 1,
                 "VK_KHR_shader_float_controls": 4,
                 "VK_KHR_swapchain_mutable_format": 1,
+                "VK_NV_compute_shader_derivatives": 1,
                 "VK_EXT_transform_feedback": 1,
                 "VK_EXT_calibrated_timestamps": 2,
                 "VK_EXT_scalar_block_layout": 1,
+                "VK_EXT_memory_budget": 1,
                 "VK_EXT_depth_clip_enable": 1,
                 "VK_EXT_host_query_reset": 1,
                 "VK_EXT_pipeline_creation_feedback": 1,
                 "VK_EXT_fragment_density_map": 2,
                 "VK_KHR_uniform_buffer_standard_layout": 1,
                 "VK_EXT_separate_stencil_usage": 1,
+                "VK_EXT_fragment_shader_interlock": 1,
+                "VK_EXT_full_screen_exclusive": 4,
                 "VK_EXT_shader_demote_to_helper_invocation": 1,
                 "VK_EXT_texel_buffer_alignment": 1,
                 "VK_KHR_imageless_framebuffer": 1,
@@ -1530,6 +1627,7 @@
                 "VK_EXT_device_memory_report": 2,
                 "VK_EXT_shader_image_atomic_int64": 1,
                 "VK_KHR_copy_commands2": 1,
+                "VK_EXT_image_drm_format_modifier": 2,
                 "VK_KHR_fragment_shading_rate": 2,
                 "VK_KHR_shader_terminate_invocation": 1,
                 "VK_KHR_acceleration_structure": 13,
@@ -1561,10 +1659,14 @@
                 "VK_EXT_graphics_pipeline_library": 1,
                 "VK_EXT_image_2d_view_of_3d": 1,
                 "VK_KHR_ray_tracing_maintenance1": 1,
+                "VK_EXT_non_seamless_cube_map": 1,
+                "VK_KHR_fragment_shader_barycentric": 1,
                 "VK_EXT_shader_module_identifier": 1,
                 "VK_EXT_pipeline_robustness": 1,
                 "VK_EXT_multisampled_render_to_single_sampled": 1,
+                "VK_EXT_attachment_feedback_loop_layout": 1,
                 "VK_EXT_rasterization_order_attachment_access": 1,
+                "VK_EXT_mesh_shader": 1,
                 "VK_EXT_image_compression_control": 1,
                 "VK_EXT_depth_clamp_zero_one": 1,
                 "VK_EXT_mutable_descriptor_type": 1,
@@ -1581,6 +1683,7 @@
                 "VK_KHR_map_memory2": 1,
                 "VK_KHR_ray_tracing_position_fetch": 1,
                 "VK_QCOM_multiview_per_view_render_areas": 1,
+                "VK_KHR_cooperative_matrix": 2,
                 "VK_KHR_maintenance5": 1,
                 "VK_EXT_host_image_copy": 1,
                 "VK_EXT_external_memory_acquire_unmodified": 1,

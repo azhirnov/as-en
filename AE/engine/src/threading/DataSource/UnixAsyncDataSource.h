@@ -268,6 +268,7 @@ namespace AE::Threading
 		Handle_t		_file		= -1;
 		const Bytes		_fileSize;
 		const EMode		_mode;
+		const ReqAlign	_align;
 
 		DEBUG_ONLY( const Path  _filename;)
 
@@ -298,7 +299,7 @@ namespace AE::Threading
 
 		bool			CancelAllRequests ()												__NE_OV;
 
-		ReqAlign		DirectAccessAlign ()												C_NE_OV	{ return Default; }		// TODO
+		ReqAlign		DirectAccessAlign ()												C_NE_OV	{ return _align; }
 
 		using AsyncRDataSource::ReadBlock;
 	};
@@ -323,6 +324,7 @@ namespace AE::Threading
 	// variables
 	private:
 		Handle_t		_file		= -1;
+		const ReqAlign	_align;
 
 		DEBUG_ONLY( const Path  _filename;)
 
@@ -350,7 +352,7 @@ namespace AE::Threading
 		bool			CancelAllRequests ()												__NE_OV;
 		RC<SharedMem>	Alloc (SizeAndAlign)												__NE_OV;
 
-		ReqAlign		DirectAccessAlign ()												C_NE_OV	{ return Default; }		// TODO
+		ReqAlign		DirectAccessAlign ()												C_NE_OV	{ return _align; }
 
 		using AsyncWDataSource::WriteBlock;
 	};

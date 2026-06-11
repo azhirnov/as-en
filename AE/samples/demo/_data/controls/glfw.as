@@ -44,6 +44,9 @@ void ASmain (GLFW_ActionBindings& bindings)
 				  ActionInfo( "Touch.Click", EValueType::Float2, EGestureType::Click ));
 		bind.Add( GLFW_Input::TouchPos,
 				  ActionInfo( "Touch.Move", EValueType::Float2, EGestureType::Move ));
+
+		bind.Add( GLFW_Input::RawChar,
+				  ActionInfo( "UI.Char", EValueType::Chars ));
 	}
 
 	// Camera3D bindings

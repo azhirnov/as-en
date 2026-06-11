@@ -13,7 +13,8 @@
 void ASmain ()
 {
 	// include:
-	//	Mali-G1U-1.3.305
+	//	Mali-G1-1.3.305-Oppo
+	//	Mali-G1-1.3.305-Vivo
 	//	Mali-G52-1.1.191
 	//	Mali-G52-1.3.278
 	//	Mali-G52.1.1.149

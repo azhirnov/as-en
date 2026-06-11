@@ -285,7 +285,7 @@ namespace AE::Scripting
 												asFUNCTION( &AngelScriptHelper::CopyConstructor<T> ), asCALL_GENERIC ));
 
 				if_unlikely( _genHeader )
-					_header << '\t' << _name << " (const " << _name << "&);\n";
+					_header << "\t" << _name << " (const " << _name << "&);\n";
 			}
 		}else{
 			CHECK_THROW( not AllBits( flags, asOBJ_APP_CLASS_COPY_CONSTRUCTOR ));
@@ -325,7 +325,7 @@ namespace AE::Scripting
 =================================================
 */
 	template <typename T> template <typename Fn>
-	void  ClassBinder<T>::AddConstructor (Fn ctorPtr, ArgNames_t argNames) __Th___
+	void  ClassBinder<T>::AddConstructor (Fn ctorPtr, ArgNames_t argNames, Bool isExplicit) __Th___
 	{
 		using namespace AngelScript;
 
@@ -338,7 +338,8 @@ namespace AE::Scripting
 		String	signature("void f ");
 		GlobalFunction<Fn>::GetArgs( INOUT signature, 1 );	// skip	(void *)
 
-		signature << " explicit";
+		if ( isExplicit )
+			signature << " explicit";
 
 		AS_CHECK_THROW( GetASEngine()->RegisterObjectBehaviour( _name.c_str(), asBEHAVE_CONSTRUCT,
 										signature.c_str(), asFUNCTION( *ctorPtr ), asCALL_CDECL_OBJFIRST ));
@@ -352,9 +353,9 @@ namespace AE::Scripting
 	}
 
 	template <typename T> template <typename ...Args>
-	void  ClassBinder<T>::AddConstructor (ArgNames_t argNames) __Th___
+	void  ClassBinder<T>::AddConstructor (ArgNames_t argNames, Bool isExplicit) __Th___
 	{
-		AddConstructor( &AngelScriptHelper::FactoryCreate2< T, Args... >, argNames );
+		AddConstructor( &AngelScriptHelper::FactoryCreate2< T, Args... >, argNames, isExplicit );
 	}
 
 /*

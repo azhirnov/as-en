@@ -6,16 +6,20 @@ void ASmain ()
 	// include:
 	//	Lin-AMD-RDNA3-780M-1.4.313
 	//	Lin-NV-RTX2000-1.4.312
+	//	Mesa-Adreno-X1-85-1.4.305
 	//	Mesa-AMD-RDNA3-780M-1.4.328
+	//	Mesa-AMD-RDNA3.5-1.4.340-8060S
 	//	Mesa-AMD-RDNA3.5-890M-1.4.318
 	//	Mesa-AMD-RDNA4-1.4.328
 	//	Mesa-Intel-Arc-1.4.318
 	//	Mesa-Intel-Xe1-1.4.328
 	//	Mesa-Intel-Xe2-1.4.318
+	//	Win-Adreno-X1-45-1.3.295
 	//	Win-Adreno-X1-85-1.3.295
 	//	Win-AMD-RDNA2-1.4.315
 	//	Win-AMD-RDNA2-610M-1.4.315
 	//	Win-AMD-RDNA3-1.4.315
+	//	Win-AMD-RDNA3-780M-1.3.237
 	//	Win-AMD-RDNA3-780M-1.4.329
 	//	Win-AMD-RDNA3.5-8060S-1.4.325
 	//	Win-AMD-RDNA3.5-890M-1.4.329
@@ -26,20 +30,25 @@ void ASmain ()
 	//	Win-Intel-Xe2-1.4.325
 	//	Win-Intel-Xe2-LPG-1.4.323
 	//	Win-llvmpipe-1.4.328
+	//	Win-NV-RTX2000-1.2.168
+	//	Win-NV-RTX2000-1.3.224
 	//	Win-NV-RTX2000-1.4.312
 	//	Win-NV-RTX3000-1.4.328
 	//	Win-NV-RTX4000-1.4.328
 	//	Win-NV-RTX5000-1.4.319
+	//	Win-NV-RTX5000-1.4.325
 	//	Adreno-730-1.4.295
 	//	Adreno-740-1.3.128
 	//	Adreno-740-1.3.295
 	//	Adreno-830-1.3.284
+	//	Adreno-830-1.4.295-MS
 	//	Adreno-830-1.4.295
 	//	AdrenoX1-45-Win-1.3.295
 	//	AdrenoX1-85-Linux-1.4.305
 	//	AdrenoX1-85-Win-1.3.295
 	//	Maleoon935-1.3.309
-	//	Mali-G1U-1.3.305
+	//	Mali-G1-1.3.305-Oppo
+	//	Mali-G1-1.3.305-Vivo
 	//	Mali-G615-1.3.247
 	//	Mali-G720-1.3.247
 	//	Mali-G720-1.3.278
@@ -145,7 +154,7 @@ void ASmain ()
 	fset.maxTexelOffset (7);
 	fset.maxTexelGatherOffset (7);
 	fset.maxFragmentOutputAttachments (8);
-	fset.maxFragmentCombinedOutputResources (104);
+	fset.maxFragmentCombinedOutputResources (16);
 	fset.maxPushConstantsSize (128);
 	fset.maxComputeSharedMemorySize (32 << 10);
 	fset.maxComputeWorkGroupInvocations (1 << 10);
@@ -156,18 +165,16 @@ void ASmain ()
 	fset.maxVertexAttributes (29);
 	fset.maxVertexBuffers (31);
 	fset.AddVertexFormats({
-		EVertexType::Byte, EVertexType::Byte2, EVertexType::Byte3, EVertexType::Byte4, 
-		EVertexType::UByte, EVertexType::UByte2, EVertexType::UByte3, EVertexType::UByte4, 
-		EVertexType::Short, EVertexType::Short2, EVertexType::Short4, EVertexType::UShort, 
-		EVertexType::UShort2, EVertexType::UShort4, EVertexType::Int, EVertexType::Int2, 
-		EVertexType::Int3, EVertexType::Int4, EVertexType::UInt, EVertexType::UInt2, 
-		EVertexType::UInt3, EVertexType::UInt4, EVertexType::Half, EVertexType::Half2, 
-		EVertexType::Half4, EVertexType::Float, EVertexType::Float2, EVertexType::Float3, 
-		EVertexType::Float4, EVertexType::Byte_Norm, EVertexType::Byte2_Norm, EVertexType::Byte3_Norm, 
-		EVertexType::Byte4_Norm, EVertexType::UByte_Norm, EVertexType::UByte2_Norm, EVertexType::UByte3_Norm, 
-		EVertexType::UByte4_Norm, EVertexType::Short_Norm, EVertexType::Short2_Norm, EVertexType::Short3_Norm, 
-		EVertexType::Short4_Norm, EVertexType::UShort_Norm, EVertexType::UShort2_Norm, EVertexType::UShort3_Norm, 
-		EVertexType::UShort4_Norm, EVertexType::UInt_2_10_10_10_Norm
+		EVertexType::Byte, EVertexType::Byte2, EVertexType::Byte4, EVertexType::UByte, 
+		EVertexType::UByte2, EVertexType::UByte4, EVertexType::Short, EVertexType::Short2, 
+		EVertexType::Short4, EVertexType::UShort, EVertexType::UShort2, EVertexType::UShort4, 
+		EVertexType::Int, EVertexType::Int2, EVertexType::Int3, EVertexType::Int4, 
+		EVertexType::UInt, EVertexType::UInt2, EVertexType::UInt3, EVertexType::UInt4, 
+		EVertexType::Half, EVertexType::Half2, EVertexType::Half4, EVertexType::Float, 
+		EVertexType::Float2, EVertexType::Float3, EVertexType::Float4, EVertexType::Byte_Norm, 
+		EVertexType::Byte2_Norm, EVertexType::Byte4_Norm, EVertexType::UByte_Norm, EVertexType::UByte2_Norm, 
+		EVertexType::UByte4_Norm, EVertexType::Short_Norm, EVertexType::Short2_Norm, EVertexType::Short4_Norm, 
+		EVertexType::UShort_Norm, EVertexType::UShort2_Norm, EVertexType::UShort4_Norm, EVertexType::UInt_2_10_10_10_Norm
 	});
 	fset.AddTexelFormats( EFormatFeature::UniformTexelBuffer, {
 		EPixelFormat::RGBA16_SNorm, EPixelFormat::RGBA8_SNorm, EPixelFormat::RG16_SNorm, EPixelFormat::RG8_SNorm, 

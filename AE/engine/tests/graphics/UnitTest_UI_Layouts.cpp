@@ -95,7 +95,7 @@ namespace
 		TEST( w->Initialize( lt_0 ));
 
 		auto	action_map = IController::ActionMapBuilder{}.Build();
-		w->SetActionBindings( action_map );
+		w->SetActionBindingsRef( action_map );
 
 		const RectF	region_0 {  0.f,  0.f, 100.f, 100.f };
 		const RectF	region_1 {  5.f,  8.f,  25.f,  28.f };
@@ -140,7 +140,7 @@ namespace
 		TEST( w->Initialize( lt_0 ));
 
 		auto	action_map = IController::ActionMapBuilder{}.Build();
-		w->SetActionBindings( action_map );
+		w->SetActionBindingsRef( action_map );
 
 		const RectF	base_region { 5.f, 9.f, 100.f, 100.f };
 
@@ -178,7 +178,7 @@ namespace
 		TEST( w->Initialize( lt_0 ));
 
 		auto	action_map = IController::ActionMapBuilder{}.Build();
-		w->SetActionBindings( action_map );
+		w->SetActionBindingsRef( action_map );
 
 		const RectF	base_region { 0.f, 0.f, 100.f, 100.f };
 
@@ -216,7 +216,7 @@ namespace
 		TEST( w->Initialize( lt_0 ));
 
 		auto	action_map = IController::ActionMapBuilder{}.Build();
-		w->SetActionBindings( action_map );
+		w->SetActionBindingsRef( action_map );
 
 		const RectF	base_region { 0.f, 0.f, 100.f, 100.f };
 
@@ -259,7 +259,7 @@ namespace
 		TEST( w->Initialize( lt_0 ));
 
 		auto	action_map = IController::ActionMapBuilder{}.Build();
-		w->SetActionBindings( action_map );
+		w->SetActionBindingsRef( action_map );
 
 		const RectF	base_region { 0.f, 0.f, 100.f, 100.f };
 

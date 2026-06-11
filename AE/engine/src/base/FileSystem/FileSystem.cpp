@@ -390,10 +390,6 @@ namespace {
 		return Path{ WStringView{ buf, len }};
 	}
 
-// TODO:
-// 	SHGetKnownFolderPath
-//  https://learn.microsoft.com/en-us/windows/win32/shell/knownfolderid
-
 #endif // AE_PLATFORM_WINDOWS
 
 

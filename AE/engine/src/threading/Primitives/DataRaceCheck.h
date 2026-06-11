@@ -1,4 +1,9 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+/*
+	DataRaceCheck	- similar to recursive mutex.
+
+	RWDataRaceCheck	- similar to recursive read/write lock.
+*/
 
 #pragma once
 
@@ -29,7 +34,7 @@ namespace AE::Threading
 	{
 	// variables
 	private:
-		mutable Atomic<usize>	_tid  {0};
+		mutable Atomic<usize>	_tid  {0};		// 0 - unlocked
 
 
 	// methods
@@ -46,7 +51,11 @@ namespace AE::Threading
 				if ( curr == id )
 					return false; // recursive lock, don't call 'Unlock'
 
-				DATA_RACE_ERR( curr == 0 );		// locked by another thread - race condition detected!
+				if_unlikely( curr != 0 )
+				{
+					_tid.store( UMax );			// trigger error on another thread too
+					DATA_RACE_ERR( false );		// locked by another thread - race condition detected!
+				}
 
 				if_likely( _tid.CAS( INOUT curr, id ))
 					return true;
@@ -58,7 +67,8 @@ namespace AE::Threading
 		void  Unlock ()			C_NE___
 		{
 			usize	prev = _tid.exchange( 0 );
-			CHECK( prev == ThreadUtils::GetIntID() );	// must be unlocked in the same thread
+			CHECK_MSG( prev != UMax, "data race on another thread" );
+			CHECK( prev == ThreadUtils::GetIntID() );					// must be unlocked in the same thread
 		}
 
 		ND_ bool  IsLocked ()	C_NE___
@@ -105,7 +115,11 @@ namespace AE::Threading
 					if ( curr == id )
 						break; // recursive lock
 
-					DATA_RACE_ERR( curr == 0 );		// locked by another thread - race condition detected!
+					if_unlikely( curr != 0 )
+					{
+						_lockWrite.store( UMax );	// trigger error on another thread too
+						DATA_RACE_ERR( false );		// locked by another thread - race condition detected!
+					}
 
 					if_likely( _lockWrite.CAS( INOUT curr, id ))
 						break;
@@ -117,7 +131,11 @@ namespace AE::Threading
 			// check that there is no readers
 			for (int expected = _readCounter.load();;)
 			{
-				DATA_RACE_ERR( expected <= 0 );		// has read lock(s) - race condition detected!
+				if_unlikely( expected > 0 )
+				{
+					_readCounter.store( 0 );	// trigger error on another thread too
+					DATA_RACE_ERR( false );		// has read lock(s) - race condition detected!
+				}
 
 				if_likely( _readCounter.CAS( INOUT expected, expected - 1 ))	// 0 -> -1
 					break;
@@ -159,7 +177,11 @@ namespace AE::Threading
 				if ( expected < 0 and _lockWrite.load() == id )
 					return false;	// don't call 'UnlockShared'
 
-				DATA_RACE_ERR( expected >= 0 );		// has write lock(s) - race condition detected!
+				if_unlikely( expected < 0 )
+				{
+					_readCounter.store( 0 );	// trigger error on another thread too
+					DATA_RACE_ERR( false );		// has write lock(s) - race condition detected!
+				}
 
 				if_likely( _readCounter.CAS( INOUT expected, expected + 1 )) // 0 -> 1
 					break;
@@ -171,8 +193,10 @@ namespace AE::Threading
 
 		void  UnlockShared ()			C_NE___
 		{
-			auto	prev_read = _readCounter.fetch_sub( 1 );	// 1 -> 0
+			usize	tid			= _lockWrite.load();
+			auto	prev_read	= _readCounter.fetch_sub( 1 );	// 1 -> 0
 			CHECK( prev_read > 0 );
+			CHECK_MSG( tid != UMax, "data race on another thread" );
 		}
 
 		ND_ bool  IsSharedLocked ()		C_NE___

@@ -1,3 +1,10 @@
+## 26.03.xxx
+
+- Threading: improve data race checks
+- Networking: SocketDependency
+- Networking: TcpStream2 - same as TcpStream but uses coroutines
+
+
 ## 26.02.311
 
 - Graphics|Vulkan: VK_KHR_video_queue, VK_KHR_video_encode_queue, VK_KHR_video_decode_queue

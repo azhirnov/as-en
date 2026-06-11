@@ -138,6 +138,11 @@ namespace AE::App
 		ND_ bool				 IsFullScreenMode ()								C_NE___	{ return EWindowMode_IsFullScreen( GetCurrentMode() ); }
 		ND_ bool				 IsWindowedMode ()									C_NE___	{ return not IsFullScreenMode(); }
 
+		// Allow to hide window from screen capture tools.
+		//   Thread safe: no
+		//
+		ND_ virtual bool  SetDisplayMode (EWindowDisplayMode)						__NE___ { return false; }
+
 
 	// surface api
 

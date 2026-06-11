@@ -102,7 +102,7 @@ namespace AE::Graphics
 		TRY{
 			const auto	ToGroupIndex = [] (auto* lhs, auto* rhs) __NE___
 			{{
-				ssize	d = Distance( lhs, rhs );
+				ssize	d = PtrDistance( lhs, rhs );
 				return CheckCast{ d };
 			}};
 

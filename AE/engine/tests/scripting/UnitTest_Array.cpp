@@ -178,6 +178,9 @@ namespace
 				arr.push_back( float2x2( float2(1.1, 2.2), float2(3.3, 4.4) ));
 				arr.push_back( float2x2( float2(5.5, 6.6), float2(7.7, 8.8) ));
 				CheckArray( arr );
+
+				float2x2 t;
+				arr[0] = t * arr[1];
 			}
 		)#";
 		TEST_NOTHROW(

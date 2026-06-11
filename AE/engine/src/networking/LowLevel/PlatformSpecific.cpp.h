@@ -102,9 +102,10 @@ namespace AE::Networking
 			CASE( WSAECONNRESET,	ECONNRESET,		ConnectionResetByPeer );
 			CASE( WSAENOTCONN,		ENOTCONN,		NotConnected );
 			CASE( WSAEMSGSIZE,		EMSGSIZE,		UDP_MessageTooLong );
+			CASE( WSAENETUNREACH,	ENETUNREACH,	UnreachableNetwork )
 		}
 		#undef CASE
-		StaticAssert( uint(SocketSendError::UnknownError) == 9 );
+		StaticAssert( uint(SocketSendError::UnknownError) == 10 );
 		return SocketSendError::UnknownError;
 	}
 

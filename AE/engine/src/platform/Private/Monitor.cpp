@@ -15,18 +15,18 @@ namespace AE::App
 	#ifdef AE_ENABLE_LOGS
 		TRY{
 			String	str;
-			str << "\nMonitor:      '"s << StringView{name} << "'"
-				<< "\nID:           " << ToString( uint(id) )
-				<< "\nworkArea:     " << ToString( workArea.pixels ) << " pix"
-				<< "\nregion:       " << ToString( region.pixels ) << " pix"
-				<< "\nphysicalSize: " << ToString( physicalSize.meters ) << " meters"
-				<< "\ndensity:      " << ToString( ppi ) << " pix/inch, " << ToString( PixelsPerMillimeter() ) << " pix/mm"
-				<< "\npixel size:   " << ToString( MillimetersPerPixel() * 1000.0f ) << " um"
-				<< "\nPPD on 1m:    " << ToString( MaxPixelsPerDegree( 1.f )) << " pix/deg"
-				<< "\nFOV on 1m:    " << ToString( FieldOfViewDeg( 1.f )) << " deg"
-				<< "\nfrequency:    " << ToString( freq ) << " Hz"
-				<< "\nexternal:     " << ToString( isExternal )
-				<< "\norientation:  ";
+			str << "\n  Monitor:      '"s << StringView{name} << "'"
+				<< "\n  ID:           " << ToString( uint(id) )
+				<< "\n  workArea:     " << ToString( workArea.pixels ) << " pix"
+				<< "\n  region:       " << ToString( region.pixels ) << " pix"
+				<< "\n  physicalSize: " << ToString( physicalSize.meters ) << " meters"
+				<< "\n  density:      " << ToString( ppi ) << " pix/inch, " << ToString( PixelsPerMillimeter() ) << " pix/mm"
+				<< "\n  pixel size:   " << ToString( MillimetersPerPixel() * 1000.0f ) << " um"
+				<< "\n  PPD on 1m:    " << ToString( MaxPixelsPerDegree( 1.f )) << " pix/deg"
+				<< "\n  FOV on 1m:    " << ToString( FieldOfViewDeg( 1.f )) << " deg"
+				<< "\n  frequency:    " << ToString( freq ) << " Hz"
+				<< "\n  external:     " << ToString( isExternal )
+				<< "\n  orientation:  ";
 
 			switch_enum( orient )
 			{
@@ -41,7 +41,7 @@ namespace AE::App
 
 			if ( not cutout.empty() )
 			{
-				str << "\ncutout: {";
+				str << "\n  cutout: {";
 				for (auto& r : cutout) {
 					str << ToString( r.pixels ) << ", ";
 				}
@@ -51,14 +51,14 @@ namespace AE::App
 			}
 
 			// HDRConfig
-			str << "\nhdr.red:      (" << ToString( hdr.red.x   ) << ", " << ToString( hdr.red.y   ) << ")"
-				<< "\nhdr.green:    (" << ToString( hdr.green.x ) << ", " << ToString( hdr.green.y ) << ")"
-				<< "\nhdr.blue:     (" << ToString( hdr.blue.x  ) << ", " << ToString( hdr.blue.y  ) << ")"
-				<< "\nhdr.white:    (" << ToString( hdr.white.x ) << ", " << ToString( hdr.white.y ) << ")";
-			str << "\nhdr.luminance: (avr: " << ToString( hdr.luminance.avr.GetNonScaled() ) << " max: "
+			str << "\n  hdr.red:      (" << ToString( hdr.red.x   ) << ", " << ToString( hdr.red.y   ) << ")"
+				<< "\n  hdr.green:    (" << ToString( hdr.green.x ) << ", " << ToString( hdr.green.y ) << ")"
+				<< "\n  hdr.blue:     (" << ToString( hdr.blue.x  ) << ", " << ToString( hdr.blue.y  ) << ")"
+				<< "\n  hdr.white:    (" << ToString( hdr.white.x ) << ", " << ToString( hdr.white.y ) << ")";
+			str << "\n  hdr.luminance: (avr: " << ToString( hdr.luminance.avr.GetNonScaled() ) << " max: "
 					<< ToString( hdr.luminance.max.GetNonScaled() ) << " min: "
 					<< ToString( hdr.luminance.min.GetNonScaled() ) << ") cd/m2";
-			str << "\nisTrueHDR:    " << ToString( hdr.IsTrueHDR() );
+			str << "\n  isTrueHDR:    " << ToString( hdr.IsTrueHDR() );
 
 			AE_LOGI( str );
 		}

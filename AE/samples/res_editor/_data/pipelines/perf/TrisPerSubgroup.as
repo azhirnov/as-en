@@ -76,7 +76,7 @@
 		uint	count = 0;
 		for (; count < gl.subgroup.Size; ++count)
 		{
-			uniform uint  id = gl.subgroup.BroadcastFirst( gl.InstanceIndex );
+			sg_uniform uint  id = gl.subgroup.BroadcastFirst( gl.InstanceIndex );
 
 			if ( id == gl.InstanceIndex )
 				break;
@@ -208,7 +208,7 @@
 		uint	count = 0;
 		for (; count < gl.subgroup.Size; ++count)
 		{
-			uniform int  id = gl.subgroup.BroadcastFirst( gl.PrimitiveID );
+			sg_uniform int  id = gl.subgroup.BroadcastFirst( gl.PrimitiveID );
 
 			if ( id == gl.PrimitiveID )
 				break;
@@ -233,7 +233,7 @@
 		uint	count = 0;
 		for (; count < gl.subgroup.Size; ++count)
 		{
-			uniform uint  id = gl.subgroup.BroadcastFirst( In.inst );
+			sg_uniform uint  id = gl.subgroup.BroadcastFirst( In.inst );
 
 			if ( id == In.inst )
 				break;

@@ -96,7 +96,7 @@ namespace AE::Base
 		--end;
 
 		// remove template specialization
-		#if defined(AE_COMPILER_MSVC) and not defined(AE_COMPILER_CLANG_CL)
+		#if 1 //defined(AE_COMPILER_MSVC) and not defined(AE_COMPILER_CLANG_CL)
 		if ( fnSign[end] == '>' )
 		{
 			int	br_count = 1;

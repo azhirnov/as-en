@@ -8,7 +8,7 @@ namespace
 {
 	using ESourceType	= IDataSource::ESourceType;
 
-	static const EThreadArray	c_ThreadArr	{ EThread::PerFrame, EThread::Background, EThread::FileIO };
+	static const EThreadArray	c_ThreadArr	{ EThread::PerFrame, EThread::Background, EThread::IO };
 
 	static constexpr ulong	c_RFileSize		= 32ull << 20;	// MiB
 	static constexpr uint	c_RBufSize		= 4u << 10;		// KiB

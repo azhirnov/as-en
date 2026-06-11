@@ -5,11 +5,14 @@ void ASmain ()
 {
 	// include:
 	//	Lin-NV-RTX2000-1.4.312
+	//	Win-NV-RTX2000-1.3.224
 	//	Win-NV-RTX2000-1.4.312
 	//	Win-NV-RTX3000-1.4.328
 	//	Win-NV-RTX4000-1.4.328
 	//	Win-NV-RTX5000-1.4.319
-	//	Mali-G1U-1.3.305
+	//	Win-NV-RTX5000-1.4.325
+	//	Mali-G1-1.3.305-Oppo
+	//	Mali-G1-1.3.305-Vivo
 	//	Mali-G925-1.3.278
 
 	const EFeature  True = EFeature::RequireTrue;

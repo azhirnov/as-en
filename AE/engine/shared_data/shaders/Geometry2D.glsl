@@ -757,6 +757,8 @@ float  Triangle_Area (const Triangle2d t)
 /*
 =================================================
 	Triangle_InnerCenterAndRadius
+----
+	calculates incenter and inradius, circle is always inside the triangle
 =================================================
 */
 Circle  Triangle_InnerCenterAndRadius (const Triangle2d t)
@@ -766,7 +768,7 @@ Circle  Triangle_InnerCenterAndRadius (const Triangle2d t)
 	float	d2		= Distance( t.c, t.a );
 	float	inv_s	= Rcp( d0 + d1 + d2 );
 
-	float2	center	= (d0 * t.a + d1 * t.b + d2 * t.c) * inv_s;
+	float2	center	= (d1 * t.a + d2 * t.b + d0 * t.c) * inv_s;
 	float	radius	= Triangle_Area( t ) * inv_s * 2.0;
 
 	return Circle_Create( center, radius );

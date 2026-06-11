@@ -18,26 +18,37 @@ namespace AE::App
 	{
 	// types
 	public:
-		using EInputType = SerializableInputActionsWinAPI::EInputType;
+		using EInputType	= SerializableInputActionsWinAPI::EInputType;
+		using KeyStates2_t	= ArrayView<Pair< EInputType, bool >>;
 
 
 	// variables
 	private:
 		ApplicationBase const&	_app;
 
+		int2					_min;
+		float2					_invSize;
+
 
 	// methods
 	public:
-		SendInputWinAPI (const ApplicationBase &app)				__NE___ : _app{app} {}
+		SendInputWinAPI (const ApplicationBase &app)		__NE___;
 
-		bool  SetCursorPos (int2 pos)								__NE_OV;
+		bool  SetCursorPos (int2 pos)						__NE_OV;
 
-		bool  SetCursorDelta (int2 delta)							__NE_OV;
+		bool  MoveCursor (int2 delta)						__NE_OV;
 
-		bool  SetKeyState (KeyCode_t key, EGestureState state)		__NE_OV;
-		bool  SetKeyState2 (EInputType key, EGestureState state)	__NE___;
+		bool  SetKeyState (KeyCode_t key, bool down)		__NE_OV;
+		bool  SetKeyState2 (EInputType key, bool down)		__NE___;
 
-		StringView	GetApiName ()									C_NE_OV	{ return "WinAPI"; }
+		bool  SetKeyStates (KeyStates_t states)				__NE_OV;
+		bool  SetKeyStates2 (KeyStates2_t states)			__NE___;
+
+		bool  ClipboardPut (U8StringView str)				__NE_OV;
+
+		bool  ProcessSequence (ArrayView<ushort>)			__NE_OV;
+
+		StringView	GetApiName ()							C_NE_OV	{ return "WinAPI"; }
 	};
 
 } // AE::App

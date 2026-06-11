@@ -40,6 +40,7 @@ namespace AE::App
 	{
 		CHECK( _dxDevice == null );
 		CHECK( not _looping.load() );
+		CHECK( _complete.load() );
 	}
 
 /*
@@ -47,7 +48,7 @@ namespace AE::App
 	_InitDX11
 =================================================
 */
-	bool  ScreenCaptureDXGI::_InitDX11 ()
+	bool  ScreenCaptureDXGI::_InitDX11 () __NE___
 	{
 		CHECK_ERR( _dxDevice == null );
 
@@ -151,7 +152,7 @@ namespace AE::App
 	_OpenDesktopInThread
 =================================================
 */
-	bool  ScreenCaptureDXGI::_OpenDesktopInThread ()
+	bool  ScreenCaptureDXGI::_OpenDesktopInThread () __NE___
 	{
 		HDESK	current_desktop = ::OpenInputDesktop( 0, FALSE, GENERIC_ALL );
 		CHECK_ERR( current_desktop != null );
@@ -174,7 +175,7 @@ namespace AE::App
 	_InitDuplication
 =================================================
 */
-	bool  ScreenCaptureDXGI::_InitDuplication ()
+	bool  ScreenCaptureDXGI::_InitDuplication () __NE___
 	{
 		CHECK_ERR( _dxDevice != null );
 		CHECK_ERR( _desktopDuplication == null );
@@ -270,6 +271,9 @@ namespace AE::App
 			{
 				RETURN_ERR( "There is already the maximum number of applications using the Desktop Duplication API running, please close one of those applications and then try again." );
 			}
+			if ( hr == E_ACCESSDENIED )
+				return false;
+
 			RETURN_ERR( "Failed to get duplicate output in DUPLICATIONMANAGER" );
 		}
 
@@ -298,17 +302,35 @@ namespace AE::App
 
 /*
 =================================================
+	_ReleaseDuplication
+=================================================
+*/
+	void  ScreenCaptureDXGI::_ReleaseDuplication () __NE___
+	{
+		if ( _desktopDuplication )
+		{
+			Cast<IDXGIOutputDuplication>(_desktopDuplication)->Release();
+			_desktopDuplication = null;
+		}
+	}
+
+/*
+=================================================
 	_GetFrame
 =================================================
 */
 	bool  ScreenCaptureDXGI::_GetFrame (OUT bool		&outTimeout,
+										OUT bool		&outRecreate,
 										OUT FrameInfo	&frameInfo,
-										milliseconds	timeout)
+										milliseconds	timeout) __NE___
 	{
 		StaticAssert( sizeof(MoveRect) == sizeof(DXGI_OUTDUPL_MOVE_RECT) );
 		StaticAssert( sizeof(RectI) == sizeof(RECT) );
 		StaticAssert( alignof(decltype(_tempBuffer)::value_type) == alignof(DXGI_OUTDUPL_MOVE_RECT) );
 		StaticAssert( alignof(decltype(_tempBuffer)::value_type) == alignof(RECT) );
+
+		outTimeout	= false;
+		outRecreate	= false;
 
 		CHECK_ERR( _desktopDuplication != null );
 
@@ -325,10 +347,12 @@ namespace AE::App
 			outTimeout = true;
 			return true;
 		}
-		outTimeout = false;
-
-		CHECK_ERR_MSG( SUCCEEDED(hr),
-			"AcquireNextFrame: failed to get desktop duplication resource" );
+		if ( FAILED(hr) )
+		{
+			AE_LOGW( "AcquireNextFrame: failed to get desktop duplication resource, code 0x"s << ToString<16>(hr) );
+			outRecreate = true;
+			return true;
+		}
 
 		hr = desktop_resource->QueryInterface(__uuidof(ID3D11Texture2D), OUT &_acquiredDesktopImage );
 		desktop_resource = null;
@@ -342,9 +366,16 @@ namespace AE::App
 		frameInfo.moveRects.clear();
 		frameInfo.dirtyRects.clear();
 
-		frameInfo.lastPresentTime		= WindowsUtils::QueryPerformanceCounterToTimePoint( dx_frame_info.LastPresentTime.QuadPart );
-		frameInfo.lastMouseUpdateTime	= WindowsUtils::QueryPerformanceCounterToTimePoint( dx_frame_info.LastMouseUpdateTime.QuadPart );
+		if ( dx_frame_info.LastPresentTime.QuadPart != 0 )
+			_lastPresentTime = WindowsUtils::QueryPerformanceCounterToTimePoint( dx_frame_info.LastPresentTime.QuadPart );
+
+		if ( dx_frame_info.LastMouseUpdateTime.QuadPart != 0 )
+			_lastMouseUpdateTime = WindowsUtils::QueryPerformanceCounterToTimePoint( dx_frame_info.LastMouseUpdateTime.QuadPart );
+
+		frameInfo.lastPresentTime		= _lastPresentTime;
+		frameInfo.lastMouseUpdateTime	= _lastMouseUpdateTime;
 		frameInfo.accumulatedFrames		= dx_frame_info.AccumulatedFrames;
+		frameInfo.pointerPos			= int2{ dx_frame_info.PointerPosition.Position.x, dx_frame_info.PointerPosition.Position.y };
 
 		// Get metadata
 		if ( dx_frame_info.TotalMetadataBufferSize != 0 )
@@ -390,7 +421,7 @@ namespace AE::App
 	 For performance reasons, we recommend that you release the frame just before you call the AcquireNextFrame method to acquire the next frame."
 =================================================
 */
-	void  ScreenCaptureDXGI::_ReleaseFrame ()
+	void  ScreenCaptureDXGI::_ReleaseFrame () __NE___
 	{
 		if ( _acquiredDesktopImage == null )
 			return;
@@ -403,7 +434,9 @@ namespace AE::App
 			_acquiredDesktopImage = null;
 		}
 
-		if ( hr != S_OK and hr != DXGI_ERROR_INVALID_CALL )
+		if ( hr != S_OK						and
+			 hr != DXGI_ERROR_INVALID_CALL	and
+			 hr != DXGI_ERROR_ACCESS_LOST	)
 		{
 			CHECK_MSG( SUCCEEDED(hr), "Failed ReleaseFrame()" );
 		}
@@ -414,15 +447,10 @@ namespace AE::App
 	_Destroy
 =================================================
 */
-	void  ScreenCaptureDXGI::_Destroy ()
+	void  ScreenCaptureDXGI::_Destroy () __NE___
 	{
 		_ReleaseFrame();
-
-		if ( _desktopDuplication )
-		{
-			Cast<IDXGIOutputDuplication>(_desktopDuplication)->Release();
-			_desktopDuplication = null;
-		}
+		_ReleaseDuplication();
 
 		if ( _dxContext )
 		{
@@ -491,12 +519,16 @@ namespace AE::App
 
 		// run in separate thread
 		_looping.store( true );
+		_complete.store( false );
 
 		Threading::SyncEvent	init;
 		bool					ok = false;
 
 		_dxThread = StdThread{ [this, &init, &ok] ()
 		{
+			auto	self = GetRC();		// keep alive
+			ThreadUtils::SetName( "ScreenCaptureDXGI_HostAccess" );
+
 			ok = _InitDX11();
 			Unused( _OpenDesktopInThread() );	// may fail if already attached
 			ok = ok and _InitDuplication();
@@ -513,6 +545,9 @@ namespace AE::App
 				return;
 
 			_ThreadFn();
+
+			_complete.store( true );
+			AE_LOGI( "ScreenCaptureDXGI_HostAccess thread finished" );
 		}};
 
 		init.Wait();
@@ -541,13 +576,49 @@ namespace AE::App
 */
 	void  ScreenCaptureDXGI_HostAccess::Finish () __NE___
 	{
-		DRC_EXLOCK( _app.GetSingleThreadCheck() );
+		_looping.store( false );
 
-		if ( _looping.load() )
+		_dxThread.join();
+	}
+
+	AsyncTask  ScreenCaptureDXGI_HostAccess::FinishAsync () __NE___
+	{
+		return _FinishTask( GetRC<ScreenCaptureDXGI_HostAccess>() );
+	}
+
+	auto  ScreenCaptureDXGI_HostAccess::_FinishTask (RC<ScreenCaptureDXGI_HostAccess> self) __NE___ -> InlineCoro<ETaskQueue::Background>
+	{
+		self->_looping.store( false );
+
+		for (; not self->_complete.load(); )
 		{
-			_looping.store( false );
-			_dxThread.join();
+			Coro_Continue();
 		}
+
+		// should not block
+		self->_dxThread.join();
+		self = null;
+	}
+
+/*
+=================================================
+	_RecreateDuplication
+=================================================
+*/
+	inline bool  ScreenCaptureDXGI_HostAccess::_RecreateDuplication () __NE___
+	{
+		for (uint i = 0; _looping.load(); ++i)
+		{
+			if ( i > 2 )
+				ThreadUtils::MicroSleep( milliseconds{ Min( 1000, i * 10 )});
+
+			if ( _InitDuplication() )
+			{
+				AE_LOGI( "duplication restarted" );
+				return true;
+			}
+		}
+		return false;
 	}
 
 /*
@@ -558,6 +629,7 @@ namespace AE::App
 	inline void  ScreenCaptureDXGI_HostAccess::_ThreadFn () __NE___
 	{
 		bool		is_timeout;
+		bool		recreate;
 		FrameInfo	frame_info;
 
 		{
@@ -567,7 +639,7 @@ namespace AE::App
 
 		for (; _looping.load();)
 		{
-			if_unlikely( not _GetFrame( OUT is_timeout, OUT frame_info, milliseconds{500} ))
+			if_unlikely( not _GetFrame( OUT is_timeout, OUT recreate, OUT frame_info, milliseconds{500} ))
 			{
 				_syncAccess->error = ErrorCode::Failed_Acquire;
 				break;
@@ -577,6 +649,17 @@ namespace AE::App
 			{
 				_syncAccess->error = ErrorCode::Timeout;
 				ThreadUtils::Sleep_15ms();
+				continue;
+			}
+
+			if_unlikely( recreate )
+			{
+				_syncAccess->error = ErrorCode::Error_NeedRecreate;
+				_ReleaseDuplication();
+				if ( not _RecreateDuplication() )
+					break;
+
+				_syncAccess->error = ErrorCode::OK;
 				continue;
 			}
 
@@ -596,6 +679,8 @@ namespace AE::App
 /*
 =================================================
 	_DestroyStagingImages
+----
+	used in separate thread
 =================================================
 */
 	void  ScreenCaptureDXGI_HostAccess::_DestroyStagingImages () __NE___
@@ -626,6 +711,8 @@ namespace AE::App
 /*
 =================================================
 	_CopyToStaging
+----
+	used in separate thread
 =================================================
 */
 	bool  ScreenCaptureDXGI_HostAccess::_CopyToStaging (const FrameInfo &srcFrameInfo) __NE___
@@ -696,6 +783,8 @@ namespace AE::App
 /*
 =================================================
 	_MapNextImage
+----
+	used in separate thread
 =================================================
 */
 	void  ScreenCaptureDXGI_HostAccess::_MapNextImage () __NE___
@@ -747,14 +836,20 @@ namespace AE::App
 			auto&			frame_info	= _frameInfos[i];
 			ImageMemView	mem_view	{ sync->mappedPtr, _rowPitch * _displayDim.y, uint3{}, uint3{_displayDim, 1u},
 										  _rowPitch, Default, _surfaceFormat, EImageAspect::Color };
+			bool			ok			= true;
 
 			TRY{
-				_syncRead( mem_view, frame_info, sync->error );
+				ok = _syncRead( mem_view, frame_info, sync->error );
 			}
 			CATCH_ALL(
+				ok = false;
+			)
+
+			if_unlikely( not ok )
+			{
 				sync->error = ErrorCode::Failed_UserException;
 				_looping.store( false );
-			)
+			}
 		}
 	}
 
@@ -793,6 +888,47 @@ namespace AE::App
 
 		_syncRead = RVRef(fn);
 		return true;
+	}
+
+/*
+=================================================
+	GetState
+=================================================
+*/
+	IScreenCapture::EState
+		ScreenCaptureDXGI_HostAccess::GetState () C_NE___
+	{
+		EState	result = Default;
+
+		if ( _complete.load() )
+		{
+			result = EState::Finished;
+		}else
+		if ( _looping.load() )
+		{
+			ErrorCode	err = ErrorCode::OK;
+			{
+				auto	sync = _syncAccess.ReadNoLock();
+				if ( sync.try_lock_shared() )
+				{
+					err = sync->error;
+					sync.unlock_shared();
+				}
+			}
+
+			if ( err == ErrorCode::Error_NeedRecreate )
+				result = EState::Paused;
+			else
+			if ( err == ErrorCode::OK )
+				result = EState::Active;
+			else
+				result = EState::ActiveWithError;
+		}
+		else
+		{
+			result = EState::WillFinish;
+		}
+		return result;
 	}
 
 /*
@@ -886,9 +1022,18 @@ namespace AE::App
 */
 	void  ScreenCaptureDXGI_Vulkan::Finish () __NE___
 	{
-		DRC_EXLOCK( _app.GetSingleThreadCheck() );
-
 		_Destroy();
+	}
+
+	AsyncTask  ScreenCaptureDXGI_Vulkan::FinishAsync () __NE___
+	{
+		return _FinishTask( GetRC<ScreenCaptureDXGI_Vulkan>() );
+	}
+
+	auto  ScreenCaptureDXGI_Vulkan::_FinishTask (RC<ScreenCaptureDXGI_Vulkan> self) __NE___ -> InlineCoro<ETaskQueue::Background>
+	{
+		self->_Destroy();
+		co_return;
 	}
 
 /*
@@ -932,11 +1077,16 @@ namespace AE::App
 		DRC_EXLOCK( _app.GetSingleThreadCheck() );
 
 		bool	is_timeout;
-		if_unlikely( not _GetFrame( OUT is_timeout, OUT frameInfo, timeout ))
+		bool	recreate;
+
+		if_unlikely( not _GetFrame( OUT is_timeout, OUT recreate, OUT frameInfo, timeout ))
 			return ErrorCode::Failed_Acquire;
 
 		if_unlikely( is_timeout )
 			return ErrorCode::Timeout;
+
+		if_unlikely( recreate )
+			return ErrorCode::Error_NeedRecreate;
 
 		SharedImage		shared_image;
 		if ( not _CreateVulkanImage( _acquiredDesktopImage, OUT shared_image ))
@@ -1128,6 +1278,32 @@ namespace AE::App
 		dev.vkFreeMemory( dev.GetVkDevice(), sharedImage.vkMemory, null );
 
 		::CloseHandle( sharedImage.dxHandle );
+	}
+
+/*
+=================================================
+	GetState
+=================================================
+*/
+	IScreenCapture::EState
+		ScreenCaptureDXGI_Vulkan::GetState () C_NE___
+	{
+		EState	result = Default;
+
+		if ( _complete.load() )
+		{
+			result = EState::Finished;
+		}else
+		if ( _looping.load() )
+		{
+			// TODO
+			result = EState::Active;
+		}
+		else
+		{
+			result = EState::WillFinish;
+		}
+		return result;
 	}
 
 /*

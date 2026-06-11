@@ -197,6 +197,7 @@ namespace AE::Base
 		ND_ static T	 FastUnProjectRevZInf (T zNear, T zw)								__NE___;
 
 		ND_ static Self  Rotate (Rad_t angle, const Vec3_t &axis)							__NE___;
+		ND_ static Self	 Euler (Rad_t yaw, Rad_t pich, Rad_t roll)							__NE___;
 
 		ND_ static Self  ReverseZTransform ()												__NE___;
 	#endif
@@ -350,7 +351,7 @@ namespace AE::Base
 		const Vec3_t	s = Normalize( Cross( up, dir ));
 		const Vec3_t	u = Cross( dir, s );
 
-		Self	result;
+		Self	result;			// TODO
 		result[0][0] = s.x;
 		result[1][0] = s.y;
 		result[2][0] = s.z;
@@ -451,6 +452,17 @@ namespace AE::Base
 	TMatrix<T, Columns, Rows, Q>  TMatrix<T, Columns, Rows, Q>::Rotate (Rad_t angle, const Vec3_t &axis) __NE___
 	{
 		return Self{ glm::rotate( _GLM_Mat_t{ T{1} }, T{angle}, axis )};
+	}
+
+/*
+=================================================
+	Euler
+=================================================
+*/
+	template <typename T, glm::qualifier Q>
+	TMatrix<T, Columns, Rows, Q>  TMatrix<T, Columns, Rows, Q>::Euler (Rad_t yaw, Rad_t pich, Rad_t roll) __NE___
+	{
+		return Self{ glm::yawPitchRoll( T{yaw}, T{pich}, T{roll} )};
 	}
 
 /*

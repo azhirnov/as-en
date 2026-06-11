@@ -57,3 +57,5 @@ endif()
 if (${AE_ENABLE_ENGINE_TESTS})
 	add_subdirectory( "tests" )
 endif()
+
+include( "cmake/rescan.cmake" )

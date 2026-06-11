@@ -14,6 +14,7 @@ namespace AE::Networking
 	template <typename NativeAddress, typename AddressType>
 	bool  UdpSocket::_Open (const AddressType &addr, const Config &cfg) __NE___
 	{
+		DRC_EXLOCK( _drCheck );
 		ASSERT( addr.IsValid() );
 		CHECK_ERR( not IsOpen() );
 
@@ -70,6 +71,8 @@ namespace AE::Networking
 		ASSERT( (data != null) and (dataSize > 0) );
 		ASSERT( addr.IsValid() );
 
+		DRC_EXLOCK( _drCheck );
+
 		if_unlikely( not IsOpen() )
 			return Tuple{ SocketSendError::NoSocket, 0_b };
 
@@ -108,6 +111,7 @@ namespace AE::Networking
 	auto  UdpSocket::_Receive (OUT AddressType &addr, OUT void* data, Bytes dataSize) C_NE___ -> Tuple< SocketReceiveError, Bytes >
 	{
 		ASSERT( (data != null) and (dataSize > 0) );
+		DRC_EXLOCK( _drCheck );
 
 		addr = Default;
 

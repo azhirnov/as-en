@@ -123,8 +123,6 @@ namespace AE::App
 		if ( disp_count == 0 )
 			return false;
 
-		uint	changed_disp = 0;
-
 		for (NvU32 i = 0; i < disp_count; ++i)
 		{
 			const auto	disp_id		= display_ids[i].displayId;
@@ -202,11 +200,8 @@ namespace AE::App
 			NVAPI_CHECK_ERR( NvAPI_Disp_HdrColorControl( disp_id, &hdr_data ));
 			NVAPI_CHECK_ERR( NvAPI_Disp_SetOutputMode( disp_id, &disp_mode ));
 			//NVAPI_CHECK_ERR( NvAPI_Disp_ColorControl( disp_id, &col_data ));
-
-			++changed_disp;
 		}
 
-		//CHECK( changed_disp > 0 );
 		return true;
 	}
 

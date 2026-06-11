@@ -7,6 +7,7 @@ extern void UnitTest_TCP ();
 extern void UnitTest_TcpChannel ();
 extern void UnitTest_UdpChannel ();
 extern void UnitTest_AsyncCSMessageProducer ();
+extern void UnitTest_SocketDep ();
 
 
 TEST_ENTRY()
@@ -17,6 +18,7 @@ TEST_ENTRY()
 	RUN_TEST( UnitTest_TCP );
 
 	RUN_TEST( UnitTest_AsyncCSMessageProducer );
+	RUN_TEST( UnitTest_SocketDep );
 
 	RUN_TEST( UnitTest_TcpChannel );
 	//RUN_TEST( UnitTest_UdpChannel );

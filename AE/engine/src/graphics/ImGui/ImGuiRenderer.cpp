@@ -97,6 +97,8 @@ namespace AE::Graphics
 			CHECK_ERR( _imguiCtx != null );
 
 			ImGui::StyleColorsDark();
+
+			_imguiCtx->IO.ConfigWindowsMoveFromTitleBarOnly = true;
 		}
 
 		// initialize font atlas
@@ -150,27 +152,77 @@ namespace AE::Graphics
 */
 	void  ImGuiRenderer::SetScale (float scale) __NE___
 	{
-		_scale = scale;
+		_scale		= scale;
+		_scaleType	= EScaleType::Fixed;
+
+		_pixToUI	= 1.f / _scale;
+		_uiToPix	= _scale;
 	}
 
+/*
+=================================================
+	SetAdaptiveScale
+=================================================
+*/
+	void  ImGuiRenderer::SetAdaptiveScale (float scale, bool round) __NE___
+	{
+		_scale		= scale;
+		_scaleType	= round ? EScaleType::Adaptive : EScaleType::AdaptiveFract;
+
+		// will be override in '_UpdateScale()'
+		_pixToUI	= 1.f;
+		_uiToPix	= 1.f;
+	}
+
+/*
+=================================================
+	DisableScale
+=================================================
+*/
+	void  ImGuiRenderer::DisableScale () __NE___
+	{
+		_scale		= -1.f;
+		_scaleType	= EScaleType::Unknown;
+
+		_pixToUI	= 1.f;
+		_uiToPix	= 1.f;
+	}
+
+/*
+=================================================
+	_UpdateScale
+=================================================
+*/
 	void  ImGuiRenderer::_UpdateScale (float pixToMm)
 	{
-		if ( _scale < 0.f )
-		{
-			_uiToPix = 1.f;
-			_pixToUI = 1.f;
-		}
-		else
-		{
-			// TODO
-			_pixToUI = ( pixToMm * _scale );
+		const float	mm_scale = 1.f;
 
-		//	auto	bits = BitCast<Float32Bits>( _pixToUI );
-		//	bits.m = 0;
-		//	_pixToUI = BitCast<float>( bits );		// round to power of 2
+		switch_enum( _scaleType )
+		{
+			case EScaleType::Unknown :
+			case EScaleType::Fixed :
+				break;
 
-			_uiToPix = 1.f / _pixToUI;
+			case EScaleType::Adaptive :
+			{
+				_pixToUI = mm_scale / (pixToMm * _scale);
+
+				auto	bits = BitCast<Float32Bits>( _pixToUI );
+				bits.m = 0;
+				_pixToUI = BitCast<float>( bits );		// round to power of 2
+
+				_uiToPix = 1.f / _pixToUI;
+				break;
+			}
+
+			case EScaleType::AdaptiveFract :
+			{
+				_pixToUI = mm_scale / (pixToMm * _scale);
+				_uiToPix = 1.f / _pixToUI;
+				break;
+			}
 		}
+		switch_end
 	}
 
 /*
@@ -392,11 +444,22 @@ namespace AE::Graphics
 		{
 			ZeroMem( OUT io.MouseDown );
 
-			io.MouseDown[0]	= mouseLBDown or touchActive;
+			io.MouseDown[0]	= mouseBtnDown[0] or touchActive;
+
+			StaticAssert( uint(ImGuiMouseButton_COUNT) == MouseDownBits{}.size() );
+			for (uint i = 1; i < mouseBtnDown.size(); ++i)
+				io.MouseDown[i] = mouseBtnDown[i];
+
 			io.MousePos		= ImVec2{ pos.x, pos.y };
-			io.MouseWheel	= mouseWheel.y;
-			io.MouseWheelH	= mouseWheel.x;
+			io.MouseWheel	= Clamp( mouseWheel.y, -1.f, 1.f );
+			io.MouseWheelH	= Clamp( mouseWheel.x, -1.f, 1.f );
 		}
+
+		for (auto [key, down] : keyStates)
+		{
+			io.AddKeyEvent( ImGuiKey(key), down );
+		}
+		keyStates.clear();
 
 		if ( not inputText.empty() )
 		{
@@ -410,7 +473,6 @@ namespace AE::Graphics
 			updateUI();
 
 		ImGui::Render();
-
 		return true;
 	}
 
@@ -599,7 +661,7 @@ namespace AE::Graphics
 =================================================
 */
 	ImGuiRenderer::StyleScope::StyleScope (ImGuiContext* ctx) __NE___ :
-		_imguiCtx{ ctx },
+		_imguiCtx{ ctx ? ctx : ImGui::GetCurrentContext() },
 		_stackSize{ _imguiCtx->ColorStack.size() }
 	{}
 
@@ -610,7 +672,7 @@ namespace AE::Graphics
 
 /*
 =================================================
-	AEStyleScope ctor
+	PushColor_*
 =================================================
 */
 namespace {
@@ -710,6 +772,54 @@ namespace {
 		PushStyleColor( ImGuiCol_ButtonHovered,	RGBA8u{160, 20, 180, 255} );
 		PushStyleColor( ImGuiCol_ButtonActive,	RGBA8u{200, 20, 220, 255} );
 	}
+
+
+/*
+=================================================
+	DrawCursor
+=================================================
+*/
+	void  ImGuiRenderer::DrawUtils::DrawCursor (float2 pos, float scale) __NE___
+	{
+		ImDrawList*	draw_list	= ImGui::GetForegroundDrawList();
+		ImVec2		points[]	=
+		{
+			ImVec2{ pos.x,					pos.y },
+			ImVec2{ pos.x +  0.0f * scale,	pos.y + 18.0f * scale },
+			ImVec2{ pos.x +  5.0f * scale,	pos.y + 14.0f * scale },
+			ImVec2{ pos.x +  8.0f * scale,	pos.y + 22.0f * scale },
+			ImVec2{ pos.x + 11.0f * scale,	pos.y + 21.0f * scale },
+			ImVec2{ pos.x +  8.0f * scale,	pos.y + 13.0f * scale },
+			ImVec2{ pos.x + 14.0f * scale,	pos.y + 13.0f * scale },
+		};
+
+		// outline
+		draw_list->AddPolyline(
+			points,
+			IM_ARRAYSIZE(points),
+			IM_COL32(0, 0, 0, 255),
+			ImDrawFlags_Closed,
+			3.0f * scale
+		);
+
+		// fill
+		draw_list->AddConvexPolyFilled(
+			points,
+			IM_ARRAYSIZE(points),
+			IM_COL32(255, 255, 255, 255)
+		);
+
+		// thin outline
+		draw_list->AddPolyline(
+			points,
+			IM_ARRAYSIZE(points),
+			IM_COL32(0, 0, 0, 255),
+			ImDrawFlags_Closed,
+			1.0f * scale
+		);
+
+	}
+
 
 } // AE::Graphics
 

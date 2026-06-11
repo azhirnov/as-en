@@ -72,10 +72,6 @@
 /shared/lavapipe/build
 /shared/lavapipe/temp
 
-/shared/libgit2/.gradle
-/shared/libgit2/build
-/shared/libgit2/temp
-
 /shared/llama/build
 /shared/llama/temp
 

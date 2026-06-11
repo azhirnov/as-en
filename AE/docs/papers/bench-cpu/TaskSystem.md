@@ -4,7 +4,7 @@
 
 # AMD Ryzen 3900X
 
-24 threads
+24 threads, 12 cores
 
 ## W=4 H=4
 
@@ -27,7 +27,7 @@ Total time: 0.59 s, final jobs: 1474560, task time: 6.25 us, overhead: 34.76 %
 
 # Intel N150
 
-4 threads
+4 threads, 4 cores
 
 ## W=4 H=4
 
@@ -70,7 +70,7 @@ Total time: 0.70 s, final jobs: 40960, task time: 66.26 us, overhead: 3.29 %
 
 # Realme 8i
 
-8 threads (2P + 6E)
+8 threads, 8 cores (2P + 6E)
 
 ## W=4 H=4
 
@@ -89,4 +89,28 @@ Total time: 0.55 s, final jobs: 163840, task time: 19.98 us, overhead: 26.11 %
 Total time: 1.34 s, final jobs: 163840, task time: 49.99 us, overhead: 23.54 %
 Total time: 0.57 s, final jobs: 163840, task time: 17.54 us, overhead: 36.52 %
 Total time: 0.56 s, final jobs: 163839, task time: 21.26 us, overhead: 22.13 %
+```
+
+
+# Pico 4 Ultra
+
+6 threads, 3 cores available (1P + 2E)
+
+## W=4 H=4
+
+```
+Total time: 0.48 s, final jobs: 349524, task time: 5.98 us, overhead: 27.06 %
+Total time: 0.47 s, final jobs: 349524, task time: 4.89 us, overhead: 39.61 %
+Total time: 0.48 s, final jobs: 349524, task time: 4.26 us, overhead: 48.02 %
+Total time: 0.47 s, final jobs: 349524, task time: 4.89 us, overhead: 39.18 %
+------------------------
+Total time: 0.64 s, final jobs: 349524, task time: 4.70 us, overhead: 56.93 %
+Total time: 0.68 s, final jobs: 349524, task time: 4.66 us, overhead: 59.86 %
+Total time: 0.54 s, final jobs: 349524, task time: 5.20 us, overhead: 43.76 %
+Total time: 0.55 s, final jobs: 349524, task time: 4.98 us, overhead: 47.44 %
+------------------------
+Total time: 0.10 s, final jobs: 92157, task time: 4.79 us, overhead: 28.27 %
+Total time: 0.12 s, final jobs: 92160, task time: 5.05 us, overhead: 36.47 %
+Total time: 0.11 s, final jobs: 92160, task time: 5.65 us, overhead: 22.89 %
+Total time: 0.12 s, final jobs: 92159, task time: 5.25 us, overhead: 31.04 %
 ```

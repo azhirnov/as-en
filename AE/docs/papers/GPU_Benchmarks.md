@@ -170,7 +170,6 @@ How match Mul and Matrix variants are slower than uniform Branch. [[12](#12-Bran
 | Clamp(x,-1,1) | -1 | -1 | -1 | -1 | 1 | -1 | 1 | -1 |
 | IsNaN | 1 | 1 | 1 | 1 | 0 | 0 | 0 | 0 |
 | IsInfinity | 0 | 0 | 0 | 0 | 1 | 1 | 0 | 0 |
-| bool(x) | 1 | 1 | 1 | 1 | 1 | 1 | 1 | 1 |
 | x != x |  |  |  |  | 0 | 0 | 0 | 0 |
 | Step(0,x) |  |  |  |  | 1 | 0 | 1 | 0 |
 | Step(x,0) |  |  |  |  | 0 | 1 | 0 | 1 |
@@ -291,7 +290,6 @@ How match Mul and Matrix variants are slower than uniform Branch. [[12](#12-Bran
 | Clamp(x,-1,1) | -1 | -1 | -1 | -1 | 1 | -1 | 1 | -1 |
 | IsNaN | 1 | 1 | 1 | 1 | 0 | 0 | 0 | 0 |
 | IsInfinity | 0 | 0 | 0 | 0 | 1 | 1 | 0 | 0 |
-| bool(x) | 1 | 1 | 1 | 1 | 1 | 1 | 1 | 1 |
 | x != x |  |  |  |  | 0 | 0 | 0 | 0 |
 | Step(0,x) |  |  |  |  | 1 | 0 | 1 | 0 |
 | Step(x,0) |  |  |  |  | 0 | 1 | 0 | 1 |
@@ -386,7 +384,6 @@ How match Mul and Matrix variants are slower than uniform Branch. [[12](#12-Bran
 | Clamp(x,-1,1) | -1 | -1 | -1 | -1 | 1 | -1 | 1 | -1 |
 | IsNaN | 1 | 1 | 1 | 1 | 0 | 0 | 0 | 0 |
 | IsInfinity | 0 | 0 | 0 | 0 | 1 | 1 | 0 | 0 |
-| bool(x) | 1 | 1 | 1 | 1 | 1 | 1 | 1 | 1 |
 | x != x |  |  |  |  | 0 | 0 | 0 | 0 |
 | Step(0,x) |  |  |  |  | 1 | 0 | 1 | 0 |
 | Step(x,0) |  |  |  |  | 0 | 1 | 0 | 1 |

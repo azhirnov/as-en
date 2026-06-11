@@ -48,7 +48,8 @@
 	TODO:
 	DeferPromise<>		- lazy promise, will start execution immediately when used with 'co_await'. Will be added to queue when use 'co_await' inside.
 
-	bool	Coro_IsCanceled
+	bool	Coro_IsCanceled				- cancelled coroutine will not resume (except UncancellableCoro), but if it cancelled on execution,
+										  then user must check 'Coro_IsCanceled' to stop execution as soon as possible using 'co_return' or 'Coro_Error()'.
 	UserApi	Coro_Get()
 	void	Coro_Error ()				- stop execution and set 'Error' state.
 	void	Coro_NextQueue (ETaskQueue)	- set queue type for next resume, has no effect if not suspended.
@@ -60,11 +61,13 @@
 										  will continue execution only when all strong dependencies are complete and
 										  all weak dependencies complete or cancelled, otherwise coroutine will be cancelled.
 										  Pointer to the dependency will be reset to null.
+										  Use 'co_await Tuple{...}' for non-task or mixed dependencies.
 	void	Coro_ContinueInQueue (ETaskQueue) - stop execution and add coroutine to another queue.
 
 	auto	Coro_WaitResultOrCancel (deps) - same as 'Coro_Continue', return promise result.
 
 	void	co_await task				- same as 'Coro_Continue(task)' but pointers are not changed.
+	void	co_await Tuple{...}			- instead of 'Coro_Continue(...)' supports non-task dependencies.
 	auto	co_await promise			- same as 'Coro_WaitResultOrCancel(promise)' but pointers are not changed.
 
 		-- with successfully complete bit --
@@ -423,6 +426,8 @@ namespace AE::_Coro_
 	public:
 		____IF explicit UserApi (AsyncTaskImpl const* ptr)	__NE___ : _self{*ptr} {}
 
+		Nd__IF operator AsyncTask ()						C_NE___	{ return const_cast<AsyncTaskImpl &>(_self).GetRC(); }
+
 		Nd__IF ETaskQueue	QueueType ()					C_NE___	{ return _self.QueueType(); }
 		Nd__IF EStatus		Status ()						C_NE___	{ return _self.Status(); }
 
@@ -680,15 +685,15 @@ namespace AE::_Coro_
 
 	// variables
 	private:
-		AsyncTaskImpl*	_coro	= null;
+		PackedPtr< AsyncTaskImpl >	_coro;
 
 	// methods
 	public:
-		explicit ScheduledInlineCoro (AsyncTaskImpl* ptr)				__NE___ : _coro{ ptr } {}
+		explicit ScheduledInlineCoro (AsyncTaskImpl* ptr)				__NE___	{ _coro.SetPtr( ptr ); }
 		~ScheduledInlineCoro ()											__NE___	{ _AddToScheduler(); }
 
-		operator BaseCoro<AsyncCoroImpl> ()								rvNE___	{ auto res = BaseCoro<AsyncCoroImpl>{_coro};  _AddToScheduler();  return res; }
-		operator AsyncTask ()											rvNE___	{ auto res = AsyncTask{_coro};  _AddToScheduler();  return res; }
+		operator BaseCoro<AsyncCoroImpl> ()								__NE___	{ _AddToScheduler();  return BaseCoro<AsyncCoroImpl>{ _coro.Ptr() }; }
+		operator AsyncTask ()											__NE___	{ _AddToScheduler();  return AsyncTask{ _coro.Ptr() }; }
 
 	private:
 		void  _AddToScheduler ()										__NE___;
@@ -847,15 +852,15 @@ namespace AE::_Coro_
 
 	// variables
 	private:
-		AsyncTaskImpl*	_coro	= null;
+		PackedPtr< AsyncTaskImpl >	_coro;
 
 
 	// methods
 	public:
-		explicit ScheduledInlinePromise (AsyncTaskImpl* ptr)		__NE___ : _coro{ ptr } {}
+		explicit ScheduledInlinePromise (AsyncTaskImpl* ptr)		__NE___ { _coro.SetPtr( ptr ); }
 		~ScheduledInlinePromise ()									__NE___	{ _AddToScheduler(); }
 
-		operator BasePromise_t ()									rvNE___	{ auto res = BasePromise_t{_coro};  _AddToScheduler();  return res; }
+		operator BasePromise_t ()									__NE___	{ _AddToScheduler();  return BasePromise_t{_coro.Ptr()}; }
 
 	private:
 		void  _AddToScheduler ()									__NE___;
@@ -1085,17 +1090,16 @@ namespace AE::_Coro_
 			return result;
 		}
 
-		template <typename P>
-		Nd__IF static bool  AwaitSuspendImpl (std::coroutine_handle<P> curCoro, const AsyncTask &dep, Bool defaultIsStrongDep = True{}) __NE___
+		Nd__IF static bool  AwaitSuspendImpl (AsyncTaskImpl &task, const AsyncTask &dep, Bool defaultIsStrongDep = True{}) __NE___
 		{
 			// compatible with all 'promise_type' which is inherited from 'AsyncTaskImpl'
-			StaticAssert( IsBaseOf< AsyncTaskImpl, P >);
+			//StaticAssert( IsBaseOf< AsyncTaskImpl, P >);
 
 			if ( dep and dep->IsCompleted() )
 				return false; // resume
 
 			// add new dependencies to the task, but doesn't add to queue
-			return AsyncTaskImpl::CoroutineApi::Continue( curCoro.promise(), Tuple{ dep }, defaultIsStrongDep );
+			return AsyncTaskImpl::CoroutineApi::Continue( task, Tuple{ dep }, defaultIsStrongDep );
 		}
 
 
@@ -1107,11 +1111,11 @@ namespace AE::_Coro_
 			return tmp.complete;
 		}
 
-		template <typename P, typename ...Deps>
-		Nd__IF static bool  AwaitSuspendImpl2 (std::coroutine_handle<P> curCoro, const Tuple<Deps...> &deps, Bool defaultIsStrongDep = True{}) __NE___
+		template <typename ...Deps>
+		Nd__IF static bool  AwaitSuspendImpl2 (AsyncTaskImpl &task, const Tuple<Deps...> &deps, Bool defaultIsStrongDep = True{}) __NE___
 		{
 			// compatible with all 'promise_type' which is inherited from 'AsyncTaskImpl'
-			StaticAssert( IsBaseOf< AsyncTaskImpl, P >);
+			//StaticAssert( IsBaseOf< AsyncTaskImpl, P >);
 
 			_IsCompleteVisitor< CountOf<Deps...>(), false >  tmp;
 			deps.Visit( INOUT tmp );
@@ -1120,7 +1124,7 @@ namespace AE::_Coro_
 				return false; // resume
 
 			// add new dependencies to the task, but doesn't add to queue
-			return AsyncTaskImpl::CoroutineApi::Continue( curCoro.promise(), deps, defaultIsStrongDep );
+			return AsyncTaskImpl::CoroutineApi::Continue( task, deps, defaultIsStrongDep );
 		}
 
 
@@ -1476,7 +1480,7 @@ namespace AE::_Coro_
 		template <typename P>
 		Nd__IA bool  await_suspend (std::coroutine_handle<P> curCoro)	__NE___
 		{
-			return CoroAwaiterImpl::AwaitSuspendImpl( curCoro, _dep );
+			return CoroAwaiterImpl::AwaitSuspendImpl( curCoro.promise(), _dep );
 		}
 	};
 
@@ -1500,7 +1504,7 @@ namespace AE::_Coro_
 		template <typename P>
 		Nd__IA bool  await_suspend (std::coroutine_handle<P> curCoro)	__NE___
 		{
-			return CoroAwaiterImpl::AwaitSuspendImpl2( curCoro, _deps );
+			return CoroAwaiterImpl::AwaitSuspendImpl2( curCoro.promise(), _deps );
 		}
 	};
 
@@ -1560,7 +1564,7 @@ namespace AE::_Coro_
 		template <typename P>
 		Nd__IA bool  await_suspend (std::coroutine_handle<P> curCoro)	__NE___
 		{
-			return CoroAwaiterImpl::AwaitSuspendImpl( curCoro, _dep );
+			return CoroAwaiterImpl::AwaitSuspendImpl( curCoro.promise(), _dep );
 		}
 	};
 
@@ -1584,7 +1588,7 @@ namespace AE::_Coro_
 		template <typename P>
 		Nd__IA bool  await_suspend (std::coroutine_handle<P> curCoro)	__NE___
 		{
-			return CoroAwaiterImpl::AwaitSuspendImpl2( curCoro, _deps );
+			return CoroAwaiterImpl::AwaitSuspendImpl2( curCoro.promise(), _deps );
 		}
 	};
 
@@ -1647,7 +1651,7 @@ namespace AE::_Coro_
 			ASSERT_MSG( not AsyncTaskImpl::CoroutineApi::IsRunCancelled( curCoro.promise() ),
 				"Unsafe use of 'co_await' or 'Coro_WaitResultOrCancel' inside coroutine which is uncancellable" );
 
-			return CoroAwaiterImpl::AwaitSuspendImpl2( curCoro, _deps, True{"strong dependency"} );
+			return CoroAwaiterImpl::AwaitSuspendImpl2( curCoro.promise(), _deps, True{"strong dependency"} );
 		}
 	};
 
@@ -1693,7 +1697,7 @@ namespace AE::_Coro_
 			ASSERT_MSG( not AsyncTaskImpl::CoroutineApi::IsRunCancelled( curCoro.promise() ),
 				"Unsafe use of 'co_await' or 'Coro_WaitResultOrCancel' inside coroutine which is uncancellable" );
 
-			return CoroAwaiterImpl::AwaitSuspendImpl2( curCoro, Tuple{ ArrayView<T>{ _deps }}, True{"strong dependency"} );
+			return CoroAwaiterImpl::AwaitSuspendImpl2( curCoro.promise(), Tuple{ ArrayView<T>{ _deps }}, True{"strong dependency"} );
 		}
 	};
 //-----------------------------------------------------------------------------
@@ -1739,7 +1743,7 @@ namespace AE::_Coro_
 		template <typename P>
 		Nd__IA bool  await_suspend (std::coroutine_handle<P> curCoro)	__NE___
 		{
-			return CoroAwaiterImpl::AwaitSuspendImpl2( curCoro, _deps, False{"weak dependency"} );
+			return CoroAwaiterImpl::AwaitSuspendImpl2( curCoro.promise(), _deps, False{"weak dependency"} );
 		}
 	};
 
@@ -1783,7 +1787,7 @@ namespace AE::_Coro_
 		template <typename P>
 		Nd__IA bool  await_suspend (std::coroutine_handle<P> curCoro)	__NE___
 		{
-			return CoroAwaiterImpl::AwaitSuspendImpl2( curCoro, _deps, False{"weak dependency"} );
+			return CoroAwaiterImpl::AwaitSuspendImpl2( curCoro.promise(), _deps, False{"weak dependency"} );
 		}
 	};
 
@@ -1832,7 +1836,7 @@ namespace AE::_Coro_
 		template <typename P>
 		Nd__IA bool  await_suspend (std::coroutine_handle<P> curCoro)	__NE___
 		{
-			return CoroAwaiterImpl::AwaitSuspendImpl2( curCoro, _deps, False{"weak dependency"} );
+			return CoroAwaiterImpl::AwaitSuspendImpl2( curCoro.promise(), _deps, False{"weak dependency"} );
 		}
 	};
 //-----------------------------------------------------------------------------
@@ -2017,16 +2021,9 @@ namespace AE::_Coro_
 		}
 	}
 
-	template <typename CoroCtor, typename ArgsTL>
-	__Ce__ void  SafeCoro_PrintError ()
+	template <ESafeCoroError err, int idx>
+	__Ce__ void  SafeCoro_PrintError2 ()
 	{
-		constexpr auto	err_idx = SafeCoro_CheckAll< CoroCtor, ArgsTL >();
-		constexpr auto	err		= err_idx.first;
-		constexpr auto	idx		= err_idx.second;
-
-		if constexpr( err == ESafeCoroError::OK )
-			return;
-
 		StaticAssertMsg( err != ESafeCoroError::LambdaWithCapture, "\n"
 			"used lambda with capture or non-empty class, this is unsafe:\n"
 			" - lambda capture lifetime does not match with coroutine lifetime\n"
@@ -2042,30 +2039,29 @@ namespace AE::_Coro_
 			"Used 'auto' or template arguments with reference.\n"
 			"Not allowed: 'auto&', 'auto&&', 'const auto&', same for template types." );
 
-		#if 0 //__cpp_static_assert >= 202306L
-			StaticAssertMsg( err != ESafeCoroError::ArgIsReference,
-				 std::format("\nargument {} with reference to the object is unsafe - lifetime of object may not match with coroutine lifetime", idx ));
+		StaticAssertMsg( err != ESafeCoroError::ArgIsReference, "\n"
+			"argument with reference to the object is unsafe - lifetime of object may not match with coroutine lifetime" );
 
-			StaticAssertMsg( err != ESafeCoroError::ArgIsPointer,
-				std::format("\nargument {} with pointer to the object is unsafe - lifetime of object may not match with coroutine lifetime\n"
-					"use smart pointers instead", idx ));
+		StaticAssertMsg( err != ESafeCoroError::ArgIsPointer, "\n"
+			"argument with pointer to the object is unsafe - lifetime of object may not match with coroutine lifetime\n"
+			"use smart pointers instead" );
 
-			StaticAssertMsg( err != ESafeCoroError::ArgIsView,
-				std::format("\nargument {} with view type is unsafe - lifetime of referenced memory may not match with coroutine lifetime", idx ));
+		StaticAssertMsg( err != ESafeCoroError::ArgIsView, "\n"
+			"argument with view type is unsafe - lifetime of referenced memory may not match with coroutine lifetime" );
+	}
 
-		#else
-			StaticAssert( idx == -1 );
 
-			StaticAssertMsg( err != ESafeCoroError::ArgIsReference, "\n"
-				"argument with reference to the object is unsafe - lifetime of object may not match with coroutine lifetime" );
+	template <typename CoroCtor, typename ArgsTL>
+	__Ce__ void  SafeCoro_PrintError ()
+	{
+		constexpr auto	err_idx = SafeCoro_CheckAll< CoroCtor, ArgsTL >();
+		constexpr auto	err		= err_idx.first;
+		constexpr auto	idx		= err_idx.second;
 
-			StaticAssertMsg( err != ESafeCoroError::ArgIsPointer, "\n"
-				"argument with pointer to the object is unsafe - lifetime of object may not match with coroutine lifetime\n"
-				"use smart pointers instead" );
+		if constexpr( err == ESafeCoroError::OK )
+			return;
 
-			StaticAssertMsg( err != ESafeCoroError::ArgIsView, "\n"
-				"argument with view type is unsafe - lifetime of referenced memory may not match with coroutine lifetime" );
-		#endif
+		SafeCoro_PrintError2< err, idx >();
 	}
 
 } // AE::_Coro_
@@ -2340,12 +2336,19 @@ namespace AE::Threading
 		return _Coro_::CoroAwaiter_WaitResultCopyOrCancel{ True{"copy"}, Promise<Result>{ RVRef(dep) }};
 	}
 
+	template <typename Result, ETaskQueue Queue>
+	Nd__IF auto  operator co_await (InlinePromise<Result, Queue> dep) __NE___
+	{
+		return _Coro_::CoroAwaiter_WaitResultCopyOrCancel{ True{"copy"}, Promise<Result>{ RVRef(dep) }};
+	}
+
 } // AE::Threading
 
 namespace AE::ImportCoroutines
 {
 	using AE::Threading::ETaskQueue;
 	using AE::Threading::AsyncTask;
+	using AE::Threading::AtomicTask;
 	using AE::Threading::AsyncCoro;
 	using AE::Threading::UncancellableCoro;
 	using AE::Threading::InlineCoro;

@@ -11,7 +11,7 @@ endif()
 
 add_library( "lz4-lib" INTERFACE )
 target_include_directories( "lz4-lib" INTERFACE "${LZ4_PATH}/include" )
-target_compile_definitions( "lz4-lib" INTERFACE "AE_ENABLE_LZ4" "AE_LICENSE_BSD_2" )
+target_compile_definitions( "lz4-lib" INTERFACE "AE_ENABLE_LZ4" "AE_LICENSE_BSD2" )
 install( FILES "${LZ4_PATH}/LICENSE" DESTINATION "3party_license" RENAME "lz4-LICENSE" )
 
 if (ANDROID)

@@ -59,7 +59,8 @@ namespace AE::UI
 		public:
 				IStyle ()												__NE___ {}
 				virtual ~IStyle ()										__NE___ {}
-			ND_ virtual UVScaleColor  Get (EStyleIndex idx)				C_NE___ = 0;
+			ND_ virtual UVScaleColor	Get (EStyleIndex idx)			C_NE___ = 0;
+			ND_ virtual TypeId			GetType ()						C_NE___	= 0;
 			ND_ virtual bool  Deserialize (const StyleCollection &,
 										   const Graphics::ResourceCache &,
 										   Serializing::Deserializer &)	__NE___ = 0;
@@ -74,8 +75,9 @@ namespace AE::UI
 
 		// methods
 		public:
-			ColorStyle () __NE___ {}
-			UVScaleColor  Get (EStyleIndex idx)		C_NE_OV	{ return UVScaleColor{ colors[ uint(idx) ] }; }
+			ColorStyle ()							__NE___ {}
+			UVScaleColor	Get (EStyleIndex idx)	C_NE_OV	{ return UVScaleColor{ colors[ uint(idx) ] }; }
+			TypeId			GetType ()				C_NE_OV	{ return TypeIdOf( *this ); }
 			bool  Deserialize (const StyleCollection &, const Graphics::ResourceCache &, Serializing::Deserializer &) __NE_OV;
 		};
 
@@ -89,8 +91,9 @@ namespace AE::UI
 
 		// methods
 		public:
-			ImageStyle () __NE___ {}
-			UVScaleColor  Get (EStyleIndex idx)		C_NE_OV	{ return UVScaleColor{ uv, scale_color[ uint(idx) ]}; }
+			ImageStyle ()							__NE___ {}
+			UVScaleColor	Get (EStyleIndex idx)	C_NE_OV	{ return UVScaleColor{ uv, scale_color[ uint(idx) ]}; }
+			TypeId			GetType ()				C_NE_OV	{ return TypeIdOf( *this ); }
 			bool  Deserialize (const StyleCollection &, const Graphics::ResourceCache &, Serializing::Deserializer &) __NE_OV;
 		};
 
@@ -103,24 +106,28 @@ namespace AE::UI
 
 		// methods
 		public:
-			ImageAnimationStyle () __NE___ {}
-			UVScaleColor  Get (EStyleIndex idx)		C_NE_OV	{ return uv_scale_color[ uint(idx) ]; }
+			ImageAnimationStyle ()					__NE___ {}
+			UVScaleColor	Get (EStyleIndex idx)	C_NE_OV	{ return uv_scale_color[ uint(idx) ]; }
+			TypeId			GetType ()				C_NE_OV	{ return TypeIdOf( *this ); }
 			bool  Deserialize (const StyleCollection &, const Graphics::ResourceCache &, Serializing::Deserializer &) __NE_OV;
 		};
 
 
-		/*class FontStyle final : public IStyle
+		class FontStyle final : public IStyle
 		{
 		// variables
 		public:
-			RC<RasterFont>		font;
+			RC<RasterFont>										font;
+			StaticArray< RGBA8u, uint(EStyleIndex::_Count) >	colors;
 
 		// methods
 		public:
-			FontStyle () __NE___ {}
-			UVScaleColor  Get (EStyleIndex idx)		C_NE_OV;
+			FontStyle ()							__NE___;
+			~FontStyle ()							__NE___;
+			UVScaleColor	Get (EStyleIndex idx)	C_NE_OV	{ return UVScaleColor{ colors[ uint(idx) ] }; }
+			TypeId			GetType ()				C_NE_OV	{ return TypeIdOf( *this ); }
 			bool  Deserialize (const StyleCollection &, const Graphics::ResourceCache &, Serializing::Deserializer &) __NE_OV;
-		};*/
+		};
 
 
 		struct AnimationSettings
@@ -197,7 +204,7 @@ namespace AE::UI
 
 		ND_ auto		GetStyle (StyleName::Ref id)						C_NE___ -> Ptr<const IStyle>;
 
-	//	ND_ Ptr<const FontStyle>	GetFontStyle (StyleName::Ref id)		C_NE___;
+		ND_ Ptr<const FontStyle>	GetFontStyle (StyleName::Ref id)		C_NE___;
 		ND_ GraphicsPipelineID		GetDebugDrawPipeline ()					C_NE___	{ return _dbgPpln; }
 
 		ND_ auto const&				GetSettings ()							C_NE___	{ return _settings; }

@@ -43,6 +43,7 @@ namespace AE::AppV2
 
 
 		// Process input and draw frame.
+		// Returns last task in chain: ProcessInput -> Draw -> Submit.
 		//  Thread-safe:  main thread only
 		//
 		ND_ virtual AsyncTask		Update (ActionQueueReader,
@@ -56,6 +57,15 @@ namespace AE::AppV2
 		//  Thread-safe:  main thread only
 		//
 		ND_ virtual InputModeName	GetInputMode ()						C_NE___ = 0;
+
+
+		// Notify view that app will be paused or will be resumed.
+		// View may free resources and stop background work when app is paused,
+		// then allocate resources again and start background work when app resumed.
+		// Some UI implementations may use it to switch between views.
+		// You don't need to save paused state and check it in 'Update()' because rendering is always paused.
+		//
+			virtual void			SetPaused (bool pause)				__NE___ { Unused( pause ); }
 	};
 
 

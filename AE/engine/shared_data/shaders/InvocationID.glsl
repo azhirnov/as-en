@@ -83,6 +83,10 @@ ND_ float4  GetGlobalRectSNormCorrected2 ();		// -X..X,	X may be > 1
 
 ND_ int3    GetGlobalCoordQuadCorrected ();			// 0..size-1	- for quad subgroup operations
 
+// global coordinate in millimeters
+ND_ float2	GetGlobalCoordMM (float mmPerPix);				// zero coord in top left corner
+ND_ float2	GetGlobalCoordFromCenterMM (float mmPerPix);	// zero coord in screen center
+
 
 //-----------------------------------------------------------------------------
 // subgroup helper
@@ -558,3 +562,15 @@ uint  BallotToQuadgroup (uint4 ballotMask)
 	return	bits[ idx_high ];
 }
 #endif
+
+
+// global coordinate in millimeters
+float2  GetGlobalCoordMM (float mmPerPix)
+{
+	return float2(GetGlobalCoord().xy) * mmPerPix;
+}
+
+float2  GetGlobalCoordFromCenterMM (float mmPerPix)
+{
+	return float2(GetGlobalCoordSI().xy) * mmPerPix;
+}

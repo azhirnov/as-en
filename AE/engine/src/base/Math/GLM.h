@@ -82,6 +82,7 @@
 #include "gtx/rotate_vector.hpp"
 #include "gtx/quaternion.hpp"
 #include "gtx/dual_quaternion.hpp"
+#include "gtx/euler_angles.hpp"
 
 #include "ext/quaternion_geometric.hpp"
 #include "ext/quaternion_relational.hpp"

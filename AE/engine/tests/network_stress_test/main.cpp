@@ -27,7 +27,7 @@ extern void  TcpMsgClientV4 (ArrayView<IpAddress> serverAddr);
 static IpAddress  GetSelfIPv4AddressFromRouter ()
 {
 	IpAddress	addr;
-	CHECK( SocketService::Instance().GetSelfIPAddress( AE_ROUTER_IPv4, OUT addr ));
+	CHECK( SocketService::Instance().GetSelfLocalIPAddress( OUT addr ));
 	return addr;
 }
 

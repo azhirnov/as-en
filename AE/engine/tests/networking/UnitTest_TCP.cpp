@@ -143,9 +143,9 @@ namespace
 
 			if constexpr( IsSame< Address, IpAddress >)
 			{
-				if ( not mngr->GetSelfIPAddress( AE_ROUTER_IPv4, OUT server_addr ))
+				if ( not mngr->GetSelfLocalIPAddress( OUT server_addr ))
 				{
-					AE_LOGW( "GetSelfIPAddress failed for "s << AE_ROUTER_IPv4.ToString() );
+					AE_LOGW( "GetSelfLocalIPAddress failed" );
 					return;
 				}
 			}

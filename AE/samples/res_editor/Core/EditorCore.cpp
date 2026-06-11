@@ -40,7 +40,7 @@ namespace
 		{
 			cfg.threading.maxThreads			= 2;
 			cfg.threading.maxIOAccessThreads	= 1;
-			cfg.threading.mask					= { EThread::PerFrame, EThread::Renderer, EThread::Background, EThread::FileIO };
+			cfg.threading.mask					= { EThread::PerFrame, EThread::Renderer, EThread::Background, EThread::IO };
 		}
 
 		// graphics
@@ -740,7 +740,7 @@ void main (Config &out cfg)
 			}
 		}
 		catch(...) {
-			CHECK_FATAL( !"failed to run initial script" );
+			CHECK_FATAL_MSG( false, "failed to run initial script" );
 		}
 	}
 
@@ -1478,7 +1478,11 @@ using namespace AE::Base;
 using namespace AE::App;
 using namespace AE::ResEditor;
 
-#define REQUIRE_LGPLv3
+#ifdef AE_ENABLE_CDT
+	#define REQUIRE_LGPLv3
+#else
+	#define REQUIRE_APACHE_2
+#endif
 #include "base/Defines/DetectLicense.inl.h"
 
 

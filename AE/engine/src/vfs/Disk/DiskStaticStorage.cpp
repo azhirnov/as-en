@@ -268,6 +268,8 @@ namespace AE::VFS
 */
 	RC<IVirtualFileStorage>  VirtualFileStorageFactory::CreateStaticFolder (const Path &folder, StringView prefix) __NE___
 	{
+		AE_LOG_DBG( "Mount static folder '"s << ToString(folder) << "' with prefix '" << prefix << "'" );
+
 		auto	result = RC<DiskStaticStorage>{ new DiskStaticStorage{}};
 		CHECK_ERR( result->_Create( folder, prefix ));
 		return result;

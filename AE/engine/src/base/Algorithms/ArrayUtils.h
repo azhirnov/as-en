@@ -120,25 +120,25 @@ namespace AE::Base
 
 /*
 =================================================
-	Distance
+	PtrDistance
 ----
 	rhs - lhs
 =================================================
 */
 	template <typename T>
-	NdCx__ ssize  Distance (T* lhs, T* rhs) __NE___
+	NdCx__ ssize  PtrDistance (T* lhs, T* rhs) __NE___
 	{
 		return std::distance< T *>( lhs, rhs );
 	}
 
 	template <typename T>
-	NdCx__ ssize  Distance (const T* lhs, T* rhs) __NE___
+	NdCx__ ssize  PtrDistance (const T* lhs, T* rhs) __NE___
 	{
 		return std::distance< T const *>( lhs, rhs );
 	}
 
 	template <typename T>
-	NdCx__ ssize  Distance (T* lhs, const T* rhs) __NE___
+	NdCx__ ssize  PtrDistance (T* lhs, const T* rhs) __NE___
 	{
 		return std::distance< T const *>( lhs, rhs );
 	}
@@ -348,6 +348,33 @@ namespace AE::Base
 	ND_ bool  ArrayContains (ArrayView<A> arr, const T &value) __NE___
 	{
 		return ArrayContains( arr.begin(), arr.end(), value );
+	}
+
+/*
+=================================================
+	ArrayElementIndex
+----
+	returns valid index or UMax
+=================================================
+*/
+	template <typename T>
+	ND_ usize  ArrayElementIndex (const T* begin, const T* end, const T* elementPtr) __NE___
+	{
+		ASSERT( elementPtr >= begin );
+		ASSERT( elementPtr <  end );
+
+		if ( elementPtr >= begin and
+			 elementPtr <  end   )
+		{
+			return usize(std::distance( begin, elementPtr ));
+		}
+		return UMax;
+	}
+
+	template <typename Container, typename T>
+	ND_ usize  ArrayElementIndex (const Container &container, const T *elementPtr) __NE___
+	{
+		return ArrayElementIndex( container.data(), container.data() + container.size(), elementPtr );
 	}
 
 /*

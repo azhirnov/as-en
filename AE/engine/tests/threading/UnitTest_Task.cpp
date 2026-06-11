@@ -121,27 +121,27 @@ namespace
 
 	class CoroArgClass;
 
-	static AsyncCoro  _CoroWithCopy1 (int i, String s, Tuple<bool, Array<float>>);
-	static AsyncCoro  _CoroWithCopy2 (AsyncTask, Unique<int>, std::shared_ptr<int>);
-	static AsyncCoro  _CoroWithRef1  (int &ref);
-	static AsyncCoro  _CoroWithRef2  (const String &ref);
-	static AsyncCoro  _CoroWithRef3  (String &&ref);
-	static AsyncCoro  _CoroWithRef4  (Ref<String> ref);
-	static AsyncCoro  _CoroWithRef5  (CoSafe<Ref<String>> ref);
-	static AsyncCoro  _CoroWithPtr1  (int* ptr);
-	static AsyncCoro  _CoroWithPtr2  (char const* const ptr);
-	static AsyncCoro  _CoroWithPtr3  (Ptr<int> ptr);
-	static AsyncCoro  _CoroWithGPtr1 (int (*)(float));
-	static AsyncCoro  _CoroWithMPtr1 (int CoroArgClass::*);
-	static AsyncCoro  _CoroWithMPtr2 (int (CoroArgClass::*)(float));
-	static AsyncCoro  _CoroWithView1 (StringView);
-	static AsyncCoro  _CoroWithView2 (ArrayView<int>);
-	static AsyncCoro  _CoroWithView3 (MutableArrayView<int>);
-	static AsyncCoro  _CoroWithView4 (std::span<int>);
-	static AsyncCoro  _CoroWithView5 (NtStringView);
-	static AsyncCoro  _CoroWithView6 (StructView<int>);
-	static AsyncCoro  _CoroWithView7 (TupleArrayView<int, float, bool>);
-	static AsyncCoro  _CoroWithTuple1 (Tuple<int, Ref<bool>>);
+	static AsyncCoro  _CoroWithCopy1 (int i, String s, Tuple<bool, Array<float>>)		{ co_return; }
+	static AsyncCoro  _CoroWithCopy2 (AsyncTask, Unique<int>, std::shared_ptr<int>)		{ co_return; }
+	static AsyncCoro  _CoroWithRef1  (int &ref)											{ co_return; }
+	static AsyncCoro  _CoroWithRef2  (const String &ref)								{ co_return; }
+	static AsyncCoro  _CoroWithRef3  (String &&ref)										{ co_return; }
+	static AsyncCoro  _CoroWithRef4  (Ref<String> ref)									{ co_return; }
+	static AsyncCoro  _CoroWithRef5  (CoSafe<Ref<String>> ref)							{ co_return; }
+	static AsyncCoro  _CoroWithPtr1  (int* ptr)											{ co_return; }
+	static AsyncCoro  _CoroWithPtr2  (char const* const ptr)							{ co_return; }
+	static AsyncCoro  _CoroWithPtr3  (Ptr<int> ptr);//									{ co_return; }
+	static AsyncCoro  _CoroWithGPtr1 (int (*)(float))									{ co_return; }
+	static AsyncCoro  _CoroWithMPtr1 (int CoroArgClass::*)								{ co_return; }
+	static AsyncCoro  _CoroWithMPtr2 (int (CoroArgClass::*)(float))						{ co_return; }
+	static AsyncCoro  _CoroWithView1 (StringView)										{ co_return; }
+	static AsyncCoro  _CoroWithView2 (ArrayView<int>)									{ co_return; }
+	static AsyncCoro  _CoroWithView3 (MutableArrayView<int>)							{ co_return; }
+	static AsyncCoro  _CoroWithView4 (std::span<int>);//								{ co_return; }
+	static AsyncCoro  _CoroWithView5 (NtStringView)										{ co_return; }
+	static AsyncCoro  _CoroWithView6 (StructView<int>)									{ co_return; }
+	static AsyncCoro  _CoroWithView7 (TupleArrayView<int, float, bool>)					{ co_return; }
+	static AsyncCoro  _CoroWithTuple1 (Tuple<int, Ref<bool>>)							{ co_return; }
 
 
 	static void  CoroutineTraits_Test3 ()
@@ -203,6 +203,13 @@ namespace
 
 		#undef UNSAFE_CORO
 		#undef SAFE_CORO
+
+		// check compile-time error message
+		#if 0
+
+			CreateAsync( _CoroWithPtr1, static_cast<int*>(null) );
+
+		#endif
 	}
 
 
@@ -1105,90 +1112,34 @@ namespace
 	}
 
 
-#if 0	// TODO
-	// ping-pong
-	//
 	static void  Task_Test14 ()
 	{
 		LocalTaskScheduler	scheduler {WorkerQueueCount(1)};
 
-		ExeOrder	value;	// access to value protected by internal synchronizations
-		AsyncTask	task1, task2;
+		AsyncTask	task0	= [] () -> AsyncCoro				{ co_return; }();
+		auto		task1	= [] () -> AsyncCoro				{ co_return; }();
+		auto		task2	= [] () -> ScheduledCoro<>			{ co_return; }();
+		auto		task3	= [] () -> UncancellableCoro		{ co_return; }();
+		auto		task4	= [] () -> InlineCoro<>				{ co_return; }();
 
-		task1 = [] (ExeOrder &val, AsyncTask &task2) -> AsyncCoro
-				{
-					// before first 'co_await' order of tasks is undefined
-					co_await task2;
-					{
-						DeferExLock  guard {val.guard};
-						TEST( guard.try_lock() );
+		auto		promise1 = []() -> Promise<String>			{ co_return "1"; }();
+		auto		promise2 = []() -> ScheduledPromise<String>	{ co_return "1"; }();
+		auto		promise3 = []() -> InlinePromise<String>	{ co_return "1"; }();
 
-						val.str += '2';
-					}
-					co_await task2;
-					{
-						DeferExLock  guard {val.guard};
-						TEST( guard.try_lock() );
+		auto		check = [&] () -> InlineCoro<>
+							{
+								co_await task0;
+								co_await task1;
+								co_await task2;
+								co_await task3;
+								co_await task4;
 
-						val.str += '4';
-					}
-					co_await task2;
-					{
-						DeferExLock  guard {val.guard};
-						TEST( guard.try_lock() );
-
-						val.str += '6';
-					}
-					co_return;
-				}( value, task2 );
-
-		task2 = [] (ExeOrder &val, AsyncTask &task1) -> AsyncCoro
-				{
-					{
-						DeferExLock  guard {val.guard};
-						TEST( guard.try_lock() );
-
-						val.str += '1';
-					}
-					co_await task1;
-					{
-						DeferExLock  guard {val.guard};
-						TEST( guard.try_lock() );
-
-						val.str += '3';
-					}
-					co_await task1;
-					{
-						DeferExLock  guard {val.guard};
-						TEST( guard.try_lock() );
-
-						val.str += '5';
-					}
-					co_await task1;
-					{
-						DeferExLock  guard {val.guard};
-						TEST( guard.try_lock() );
-
-						val.str += '7';
-					}
-					co_return;
-				}( value, task1 );
-
-		scheduler->Run( task1 );
-		scheduler->Run( task2 );
-
-		scheduler->AddThread( ThreadMngr::CreateThread( ThreadMngr::ThreadConfig{} ));
-
-		TEST( scheduler->Wait( List{ task1, task2 }, c_MaxTimeout ));
-		TEST( task1->Status() == ETaskStatus::Completed );
-		TEST( task2->Status() == ETaskStatus::Completed );
-
-		DeferExLock  guard {value.guard};
-		TEST( guard.try_lock() );
-		TEST( value.str == "01234567" );
+								String	s1 = co_await promise1;
+								String	s2 = co_await promise2;
+								String	s3 = co_await Promise<String>{ promise3 };	// TODO ?
+								co_return;
+							}();
 	}
-#endif
-
 }
 
 
@@ -1212,7 +1163,8 @@ extern void UnitTest_Task ()
 	Task_Test11();
 	Task_Test12();
 	Task_Test13();
-//	Task_Test14();	// not supported
+
+	Unused( &Task_Test14 );
 
 	TEST_PASSED();
 }

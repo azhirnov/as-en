@@ -1,6 +1,8 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 /*
-	Wrapper for std::filesystem that disable all exceptions except std::bad_alloc
+	Wrapper for std::filesystem that disable all exceptions.
+
+	Thread safe:  yes for independent paths
 */
 
 #pragma once

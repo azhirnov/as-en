@@ -349,6 +349,12 @@ namespace AE::App
 		_UpdateKey2< EGestureType::Down			>( ushort(type), state, id, timestamp );
 		_UpdateKey2< EGestureType::Click		>( ushort(type), state, id, timestamp );
 		_UpdateKey2< EGestureType::DoubleClick	>( ushort(type), state, id, timestamp );
+
+		auto	listener = _keyListener.load();
+		if_unlikely( listener )
+		{
+			listener->KeyEvent( type, state, id, timestamp );
+		}
 	}
 
 	template <EGestureType GestureType>

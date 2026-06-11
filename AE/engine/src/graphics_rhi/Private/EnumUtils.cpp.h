@@ -2192,7 +2192,7 @@ namespace AE::Graphics
 */
 	VideoFormatToPixelFormatResult  VideoFormatToPixelFormat (const EVideoFormat fmt) __NE___
 	{
-		constexpr ImageSwizzle	yuv	= "RGB1"_swizzle;
+	//	constexpr ImageSwizzle	yuv	= "RGB1"_swizzle;
 		constexpr ImageSwizzle	yvu	= "RBG1"_swizzle;	// swap U and V
 		#define ALT( _fmt_ )	_fmt_
 

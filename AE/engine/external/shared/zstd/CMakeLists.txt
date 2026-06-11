@@ -11,7 +11,7 @@ endif()
 
 add_library( "zstd-lib" INTERFACE )
 target_include_directories( "zstd-lib" INTERFACE "${ZSTD_PATH}/include" )
-target_compile_definitions( "zstd-lib" INTERFACE "AE_ENABLE_ZSTD" "AE_LICENSE_BSD_3" )
+target_compile_definitions( "zstd-lib" INTERFACE "AE_ENABLE_ZSTD" "AE_LICENSE_BSD3" )
 install( FILES "${ZSTD_PATH}/LICENSE" DESTINATION "3party_license" RENAME "zstd-LICENSE" )
 
 if (ANDROID)

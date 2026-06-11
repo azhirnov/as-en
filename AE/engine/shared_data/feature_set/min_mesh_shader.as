@@ -7,6 +7,7 @@ void ASmain ()
 	//	Lin-AMD-RDNA3-780M-1.4.313
 	//	Lin-NV-RTX2000-1.4.312
 	//	Mesa-AMD-RDNA3-780M-1.4.328
+	//	Mesa-AMD-RDNA3.5-1.4.340-8060S
 	//	Mesa-AMD-RDNA3.5-890M-1.4.318
 	//	Mesa-AMD-RDNA4-1.4.328
 	//	Mesa-Intel-Arc-1.4.318
@@ -26,11 +27,16 @@ void ASmain ()
 	//	Win-Intel-Xe2-LPG-1.4.323
 	//	Win-llvmpipe-1.4.328
 	//	Win-NV-GTX1600-1.4.312
+	//	Win-NV-RTX2000-1.2.168
+	//	Win-NV-RTX2000-1.3.224
 	//	Win-NV-RTX2000-1.4.312
 	//	Win-NV-RTX3000-1.4.328
 	//	Win-NV-RTX4000-1.4.328
 	//	Win-NV-RTX5000-1.4.319
+	//	Win-NV-RTX5000-1.4.325
 	//	Adreno-730-1.4.295
+	//	Adreno-830-1.4.295-MS
+	//	Adreno-830-1.4.295
 	//	Apple9
 	//	Apple8
 	//	Apple8_Mac
@@ -112,8 +118,6 @@ void ASmain ()
 	fset.shaderStorageImageReadWithoutFormat (True);
 	fset.shaderStorageImageWriteWithoutFormat (True);
 	fset.shaderDemoteToHelperInvocation (True);
-	fset.fragmentShaderSampleInterlock (True);
-	fset.fragmentShaderPixelInterlock (True);
 	fset.maxSpirvVersion (140);
 	fset.maxMetalVersion (300);
 	fset.drawIndirectFirstInstance (True);
@@ -145,7 +149,7 @@ void ASmain ()
 	fset.maxTexelGatherOffset (7);
 	fset.maxFragmentOutputAttachments (8);
 	fset.maxFragmentDualSrcAttachments (1);
-	fset.maxFragmentCombinedOutputResources (104);
+	fset.maxFragmentCombinedOutputResources (16);
 	fset.maxPushConstantsSize (256);
 	fset.maxComputeSharedMemorySize (32 << 10);
 	fset.maxComputeWorkGroupInvocations (1 << 10);

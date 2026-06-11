@@ -1,6 +1,4 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
-	
-#define AE_ROUTER_IPv4				(Networking::IpAddress::FromServiceUDP( "192.168.0.1", "8080" ))
 #ifdef AE_PLATFORM_APPLE
 # define AE_ROUTER_IPv6				(Networking::IpAddress6::FromServiceUDP( "TODO%en0", "80" ))
 #else

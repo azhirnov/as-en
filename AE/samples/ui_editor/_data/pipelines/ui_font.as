@@ -11,21 +11,14 @@
 		{
 			RC<ShaderStructType>	st = ShaderStructType( "font.io" );
 			st.Set( EStructLayout::InternalIO,
-					"float4		color;"
-					"float2		uv;" );
-		}{
-			RC<DescriptorSetLayout>	ds = DescriptorSetLayout( "font.ds" );
-			ds.CombinedImage( EShaderStages::Fragment, "un_Texture", EImageType::Float_2D, "LinearRepeat" );
-		}{
-			RC<PipelineLayout>		pl = PipelineLayout( "font.pl" );
-			pl.DSLayout( 0, "ui.global.ds" );
-			pl.DSLayout( 1, "font.ds" );
+					"mediump float4		color;"
+					"float2				uv;" );
 		}
 
 		RC<GraphicsPipeline>	ppln = GraphicsPipeline( "ui.font_alpha" );
 		ppln.SetVertexInput( "VB_Position_f2, VB_UVs2_SCs1_Col8" );
 		ppln.SetShaderIO( EShader::Vertex, EShader::Fragment, "font.io" );
-		ppln.SetLayout( "font.pl" );
+		ppln.SetLayout( "ui.pl" );
 		ppln.SetFragmentOutputFromRenderTech( "UI.RTech", "Main" );
 
 		{
@@ -78,7 +71,7 @@
 
 	void Main ()
 	{
-		out_Color = In.color * gl.texture.Sample( un_Texture, In.uv ).r;
+		out_Color = In.color * gl.texture.Sample( un_ImageAlpha, In.uv ).r;
 	}
 
 #endif

@@ -12,33 +12,46 @@ namespace AE::UI
 {
 	using namespace AE::Graphics;
 
+namespace {
 /*
 =================================================
 	UpdatePipeline
 =================================================
 */
-namespace {
 	ND_ static bool  UpdatePipeline (OUT GraphicsPipelineID &pipeline, PipelineName::Ref pplnName, const StyleCollection &styleCol) __NE___
 	{
 		pipeline = styleCol.GetRTech().GetGraphicsPipeline( pplnName );
 		CHECK_ERR( pipeline );
 		return true;
 	}
-}
+
 /*
 =================================================
 	UpdateImageUV
 =================================================
 */
-namespace {
 	ND_ static bool  UpdateImageUV (OUT StyleCollection::IStyle::UV_t &uv, CachedResourceName::Ref resName, ImageInAtlasName::Ref imgName, const ResourceCache &resCache) __NE___
 	{
 		auto	atlas = resCache.GetResource<StaticImageAtlas>( resName );
 		CHECK_ERR( atlas );
 		return atlas->Get( imgName, OUT uv );
 	}
-}
+
+/*
+=================================================
+	UpdateFont
+=================================================
+*/
+	ND_ static bool  UpdateFont (OUT RC<RasterFont> &font, CachedResourceName::Ref resName, const ResourceCache &resCache) __NE___
+	{
+		font = resCache.GetResource<RasterFont>( resName );
+		CHECK_ERR( font );
+		return true;
+	}
+
+} // namespace
 //-----------------------------------------------------------------------------
+
 
 
 /*
@@ -49,10 +62,11 @@ namespace {
 	bool  StyleCollection::ColorStyle::Deserialize (const StyleCollection &styleCol, const ResourceCache &, Serializing::Deserializer &des) __NE___
 	{
 		PipelineName	ppln_name;
-		return	des( OUT ppln_name, OUT colors ) and
+		return	des( OUT ppln_name, OUT colors )				and
 				UpdatePipeline( OUT pipeline, ppln_name, styleCol );
 	}
 //-----------------------------------------------------------------------------
+
 
 
 /*
@@ -67,10 +81,11 @@ namespace {
 		ImageInAtlasName	img_name;
 
 		return	des( OUT ppln_name, OUT atlas_name, OUT img_name, OUT scale_color ) and
-				UpdatePipeline( OUT pipeline, ppln_name, styleCol ) and
+				UpdatePipeline( OUT pipeline, ppln_name, styleCol )					and
 				UpdateImageUV( OUT uv, atlas_name, img_name, resCache );
 	}
 //-----------------------------------------------------------------------------
+
 
 
 /*
@@ -87,25 +102,24 @@ namespace {
 //-----------------------------------------------------------------------------
 
 
+
 /*
 =================================================
 	Deserialize
 =================================================
-*
-	bool  StyleCollection::FontStyle::Deserialize (const StyleCollection &styleCol, const ResourceCache &, Serializing::Deserializer &des) __NE___
+*/
+	bool  StyleCollection::FontStyle::Deserialize (const StyleCollection &styleCol, const ResourceCache &resCache, Serializing::Deserializer &des) __NE___
 	{
-		VFS::FileName::Optimized_t	font_name;
-		PipelineName				ppln_name;
+		CachedResourceName	font_name;
+		PipelineName		ppln_name;
 
-		CHECK_ERR(	des( OUT ppln_name ) and des( OUT font_name ) and
-					UpdatePipeline( OUT pipeline, ppln_name, styleCol ));
-
-		auto	it = styleCol._fontCache.find( font_name );
-		CHECK_ERR( it != styleCol._fontCache.end() );
-
-		font = it->second;
-		return true;
+		return	des( OUT ppln_name, OUT font_name, OUT colors )		and
+				UpdatePipeline( OUT pipeline, ppln_name, styleCol )	and
+				UpdateFont( OUT font, font_name, resCache );
 	}
+
+	StyleCollection::FontStyle::FontStyle () __NE___ {}
+	StyleCollection::FontStyle::~FontStyle () __NE___ {}
 //-----------------------------------------------------------------------------
 
 
@@ -156,6 +170,21 @@ namespace {
 		auto	it = _styleMap.find( id );
 		if_likely( it != _styleMap.end() )
 			return it->second.get();
+
+		return null;
+	}
+
+/*
+=================================================
+	GetFontStyle
+=================================================
+*/
+	Ptr<const StyleCollection::FontStyle>  StyleCollection::GetFontStyle (StyleName::Ref id) C_NE___
+	{
+		auto	style = GetStyle( id );
+
+		if ( style and style->GetType() == TypeIdOf<FontStyle>() )
+			return style;
 
 		return null;
 	}
@@ -340,7 +369,7 @@ namespace {
 				}
 				case EType::FontStyle :
 				{
-					auto	style = MakeUnique<ImageStyle>();
+					auto	style = MakeUnique<FontStyle>();
 					result &= style->Deserialize( *this, resCache, des ) and
 							  _styleMap.emplace( name, RVRef(style) ).second;	// throw
 					break;

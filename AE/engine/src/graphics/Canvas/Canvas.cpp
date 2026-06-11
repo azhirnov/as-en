@@ -150,6 +150,8 @@ namespace AE::Graphics
 	{
 		ASSERT( params.heightInPx > 0.0f );
 		ASSERT( regionInVP.IsValid() );
+		ASSERT( All( regionInVP.LeftTop() >= -1.f ));
+		ASSERT( All( regionInVP.RightBottom() <= 1.f ));
 
 		DEBUG_ONLY(
 			if ( _topology != Default )
@@ -259,6 +261,8 @@ namespace AE::Graphics
 	void  Canvas::DrawText (const PrecalculatedFormattedText &text, const RasterFont &font, const RectF &regionInVP) __NE___
 	{
 		ASSERT( regionInVP.IsValid() );
+		ASSERT( All( regionInVP.LeftTop() >= -1.f ));
+		ASSERT( All( regionInVP.RightBottom() <= 1.f ));
 
 		DEBUG_ONLY(
 			if ( _topology != Default )

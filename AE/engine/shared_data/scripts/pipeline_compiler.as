@@ -1,4 +1,4 @@
-//7eaeedb5
+//73b95a27
 #pragma once
 #include <vector>
 #include <string>
@@ -24,88 +24,88 @@ using array = std::vector<T>;
 
 using namespace std::string_literals;
 
-struct Shader;
-struct ShaderStructType;
-struct RenderState_RasterizationOrderAccess;
+struct RenderState_RasterizationState;
+struct ubyte2;
+struct RenderState_InputAssemblyState;
+struct ubyte3;
+struct ComputePipelineSpec;
+struct GlobalConfig;
+struct CompatibleRenderPass;
+struct ubyte4;
 struct RayIndex;
 struct FS_DirectoryIterator;
 struct RenderState_MultisampleState;
-struct bool2;
-struct bool3;
-struct RGBA32i;
-struct bool4;
-struct IndirectExecutionSet;
-struct RGBA32f;
+struct RenderState_RasterizationOrderAccess;
+struct Shader;
+struct ShaderStructType;
 struct HSVColor;
+struct RGBA32f;
 struct RenderState_ColorBuffer_ColorMask;
 struct MultiViewMask;
-struct ComputePipelineSpec;
-struct ubyte3;
-struct ubyte2;
-struct RenderState_InputAssemblyState;
-struct RenderState_RasterizationState;
-struct ubyte4;
-struct CompatibleRenderPass;
-struct GlobalConfig;
+struct IndirectExecutionSet;
+struct RGBA32i;
+struct bool4;
+struct bool3;
+struct bool2;
+struct Align;
+struct sbyte3;
+struct sbyte4;
+struct short3;
+struct ushort4;
+struct GraphicsPass;
+struct short2;
+struct float4;
+struct ComputePipeline;
 struct InstanceIndex;
-struct float2;
 struct float3;
-struct DescriptorSetLayout;
-struct RenderState_StencilBufferState;
+struct float2;
 struct MultiSamples;
-struct RayTracingPipeline;
 struct RayTracingShaderBinding;
 struct RenderTechnique;
-struct sbyte4;
-struct sbyte3;
-struct ushort4;
-struct short2;
-struct short3;
-struct Align;
-struct GraphicsPass;
-struct ComputePipeline;
-struct float4;
-struct TilePipeline;
-struct TilePipelineSpec;
-struct ImageLayer;
-struct int4;
-struct int3;
-struct ArraySize;
-struct int2;
-struct PipelineLayout;
-struct FS_RecursiveDirectoryIter;
-struct GraphicsPipelineSpec;
-struct short4;
-struct sbyte2;
-struct ushort3;
-struct ushort2;
-struct RenderState_ColorBuffer;
-struct RenderPass;
-struct AttachmentSpec;
+struct RayTracingPipeline;
+struct RenderState_StencilBufferState;
+struct DescriptorSetLayout;
+struct RayTracingPipelineSpec;
+struct RenderState_ColorBuffersState;
 struct RenderState;
 struct DepthStencil;
-struct RenderState_ColorBuffersState;
-struct RayTracingPipelineSpec;
+struct AttachmentSpec;
 struct MipmapLevel;
-struct MeshPipeline;
-struct ComputePass;
-struct NamedRenderState;
-struct FeatureSet;
-struct VertexDivisor;
-struct Sampler;
-struct GraphicsPipeline;
-struct MeshPipelineSpec;
-struct CallableIndex;
-struct VertexBufferInput;
-struct RGBA8u;
+struct TilePipelineSpec;
+struct TilePipeline;
+struct RenderState_ColorBuffer;
+struct RenderPass;
+struct short4;
+struct ushort2;
+struct sbyte2;
+struct ushort3;
+struct PipelineLayout;
+struct GraphicsPipelineSpec;
+struct FS_RecursiveDirectoryIter;
+struct int4;
+struct int2;
+struct ImageLayer;
+struct int3;
+struct ArraySize;
 struct RGBA32u;
 struct Attachment;
+struct VertexBufferInput;
+struct RGBA8u;
+struct uint4;
+struct RenderState_StencilFaceState;
+struct RenderState_DepthBufferState;
 struct uint2;
 struct ShaderIO;
 struct uint3;
-struct RenderState_DepthBufferState;
-struct RenderState_StencilFaceState;
-struct uint4;
+struct VertexDivisor;
+struct NamedRenderState;
+struct ComputePass;
+struct FeatureSet;
+struct MeshPipeline;
+struct CallableIndex;
+struct GraphicsPipeline;
+struct MeshPipelineSpec;
+struct Sampler;
 
 enum class EImage : uint8
 {
@@ -3668,6 +3668,8 @@ struct FeatureSet
 	bool  hasShaderStorageTexelBufferArrayNonUniformIndexing ();
 	void  quadDivergentImplicitLod (EFeature);
 	bool  hasQuadDivergentImplicitLod ();
+	void  descriptorHeap (EFeature);
+	bool  hasDescriptorHeap ();
 	void  shaderStorageImageMultisample (EFeature);
 	bool  hasShaderStorageImageMultisample ();
 	void  shaderStorageImageReadWithoutFormat (EFeature);
@@ -5165,6 +5167,18 @@ const string Sampler_NearestClampSubsampled;
 const string Sampler_MaxLinearClamp;
 const string Sampler_MinLinearClamp;
 template <>
+struct RC<ComputePipelineSpec> : ComputePipelineSpec
+{
+	RC (const ComputePipelineSpec &);
+};
+
+template <>
+struct RC<CompatibleRenderPass> : CompatibleRenderPass
+{
+	RC (const CompatibleRenderPass &);
+};
+
+template <>
 struct RC<Shader> : Shader
 {
 	RC (const Shader &);
@@ -5183,27 +5197,15 @@ struct RC<IndirectExecutionSet> : IndirectExecutionSet
 };
 
 template <>
-struct RC<ComputePipelineSpec> : ComputePipelineSpec
+struct RC<GraphicsPass> : GraphicsPass
 {
-	RC (const ComputePipelineSpec &);
+	RC (const GraphicsPass &);
 };
 
 template <>
-struct RC<CompatibleRenderPass> : CompatibleRenderPass
+struct RC<ComputePipeline> : ComputePipeline
 {
-	RC (const CompatibleRenderPass &);
-};
-
-template <>
-struct RC<DescriptorSetLayout> : DescriptorSetLayout
-{
-	RC (const DescriptorSetLayout &);
-};
-
-template <>
-struct RC<RayTracingPipeline> : RayTracingPipeline
-{
-	RC (const RayTracingPipeline &);
+	RC (const ComputePipeline &);
 };
 
 template <>
@@ -5219,15 +5221,33 @@ struct RC<RenderTechnique> : RenderTechnique
 };
 
 template <>
-struct RC<GraphicsPass> : GraphicsPass
+struct RC<RayTracingPipeline> : RayTracingPipeline
 {
-	RC (const GraphicsPass &);
+	RC (const RayTracingPipeline &);
 };
 
 template <>
-struct RC<ComputePipeline> : ComputePipeline
+struct RC<DescriptorSetLayout> : DescriptorSetLayout
 {
-	RC (const ComputePipeline &);
+	RC (const DescriptorSetLayout &);
+};
+
+template <>
+struct RC<RayTracingPipelineSpec> : RayTracingPipelineSpec
+{
+	RC (const RayTracingPipelineSpec &);
+};
+
+template <>
+struct RC<AttachmentSpec> : AttachmentSpec
+{
+	RC (const AttachmentSpec &);
+};
+
+template <>
+struct RC<TilePipelineSpec> : TilePipelineSpec
+{
+	RC (const TilePipelineSpec &);
 };
 
 template <>
@@ -5237,9 +5257,9 @@ struct RC<TilePipeline> : TilePipeline
 };
 
 template <>
-struct RC<TilePipelineSpec> : TilePipelineSpec
+struct RC<RenderPass> : RenderPass
 {
-	RC (const TilePipelineSpec &);
+	RC (const RenderPass &);
 };
 
 template <>
@@ -5255,33 +5275,15 @@ struct RC<GraphicsPipelineSpec> : GraphicsPipelineSpec
 };
 
 template <>
-struct RC<RenderPass> : RenderPass
+struct RC<Attachment> : Attachment
 {
-	RC (const RenderPass &);
+	RC (const Attachment &);
 };
 
 template <>
-struct RC<AttachmentSpec> : AttachmentSpec
+struct RC<VertexBufferInput> : VertexBufferInput
 {
-	RC (const AttachmentSpec &);
-};
-
-template <>
-struct RC<RayTracingPipelineSpec> : RayTracingPipelineSpec
-{
-	RC (const RayTracingPipelineSpec &);
-};
-
-template <>
-struct RC<MeshPipeline> : MeshPipeline
-{
-	RC (const MeshPipeline &);
-};
-
-template <>
-struct RC<ComputePass> : ComputePass
-{
-	RC (const ComputePass &);
+	RC (const VertexBufferInput &);
 };
 
 template <>
@@ -5291,15 +5293,21 @@ struct RC<NamedRenderState> : NamedRenderState
 };
 
 template <>
+struct RC<ComputePass> : ComputePass
+{
+	RC (const ComputePass &);
+};
+
+template <>
 struct RC<FeatureSet> : FeatureSet
 {
 	RC (const FeatureSet &);
 };
 
 template <>
-struct RC<Sampler> : Sampler
+struct RC<MeshPipeline> : MeshPipeline
 {
-	RC (const Sampler &);
+	RC (const MeshPipeline &);
 };
 
 template <>
@@ -5315,14 +5323,8 @@ struct RC<MeshPipelineSpec> : MeshPipelineSpec
 };
 
 template <>
-struct RC<VertexBufferInput> : VertexBufferInput
+struct RC<Sampler> : Sampler
 {
-	RC (const VertexBufferInput &);
-};
-
-template <>
-struct RC<Attachment> : Attachment
-{
-	RC (const Attachment &);
+	RC (const Sampler &);
 };
 

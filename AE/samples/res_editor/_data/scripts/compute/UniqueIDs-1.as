@@ -120,7 +120,7 @@
 		for (;;)
 		{
 			// get unique ID per subgroup
-			uniform int		id = gl.subgroup.BroadcastFirst( src_id );
+			sg_uniform int	id = gl.subgroup.BroadcastFirst( src_id );
 
 			// if current lane equal to unique ID
 			//[[branch]]  // by default all 'if' is a branch
@@ -144,7 +144,7 @@
 		for (;;)
 		{
 			// get unique ID per subgroup
-			uniform int		id = gl.subgroup.BroadcastFirst( src_id );
+			sg_uniform int	id = gl.subgroup.BroadcastFirst( src_id );
 
 			// fix for AMD, used Ballot() instead of Elect() in branch
 			uint4	active_threads	= gl.subgroup.Ballot( id == src_id );

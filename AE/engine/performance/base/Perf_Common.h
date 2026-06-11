@@ -36,7 +36,7 @@ inline void  ForEachCoreType (FN &&fn)
 								return;
 						}else{
 							bits = core->logicalBits.to_ullong(); // restart
-							CHECK_FATAL( i < 100 );
+							CHECK_FATAL( i < 100 );		// warning: on Android when display is turned off only E-cores are available, so this may fail
 						}
 					}
 				#else

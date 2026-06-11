@@ -34,7 +34,8 @@ namespace AE::Threading
 
 	ImportBitOperators;
 
-	using AsyncTask = RC< AE::_Coro_::AsyncTaskImpl >;
+	using AsyncTask		= RC< AE::_Coro_::AsyncTaskImpl >;
+	using AtomicTask	= AtomicRC< AE::_Coro_::AsyncTaskImpl >;
 
 	class IThread;
 	class LfTaskQueue;

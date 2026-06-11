@@ -41,4 +41,15 @@ namespace AE::App
 	};
 
 
+	enum class EAppStorage
+	{
+		Builtin,		// read-only
+		Cache,			// read / write / execute
+		ExternalCache,	// read / write
+		UserData,		// read / write
+		SharedData,		// read / write, shared between apps ('Documents' on Windows, '/sdcard' on Android)
+		//AppData
+		_Count
+	};
+
 } // AE::App

@@ -247,6 +247,8 @@ namespace AE::RemoteGraphics
 		PerFrameDevToHostCopy_t				_devToHostCopy;
 		Atomic<uint>						_lastSubmitIdx	{0};
 
+		const ushort						_serverPort;
+
 		struct {
 			GfxMemAllocatorPool_t				gfxMemAllocPool;
 			DescriptorAllocatorPool_t			dsAllocPool;
@@ -287,7 +289,7 @@ namespace AE::RemoteGraphics
 
 	// methods
 	public:
-		RmGAppListener ()							__NE___;
+		RmGAppListener (ushort serverPort)			__NE___;
 		~RmGAppListener ()							__NE_OV;
 
 		void  OnStart (IApplication &)				__NE_OV;

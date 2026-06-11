@@ -7,6 +7,7 @@
 #include "networking/LowLevel/TcpSocket.h"
 #include "networking/LowLevel/UdpSocket.h"
 #include "networking/LowLevel/SocketService.h"
+#include "networking/LowLevel/SocketDependency.h"
 
 // HighLevel
 #include "networking/HighLevel/Client.h"
@@ -14,6 +15,7 @@
 #include "networking/HighLevel/Messages.h"
 
 #include "networking/HighLevel/TcpStream.h"
+#include "networking/HighLevel/TcpStream2.h"
 
 // Utils
 #include "networking/Utils/AsyncCSMessageProducer.h"

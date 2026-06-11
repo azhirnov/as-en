@@ -304,6 +304,59 @@ namespace {
 
 /*
 =================================================
+	OpenStorage
+=================================================
+*/
+	RC<IVirtualFileStorage>  ApplicationGLFW::OpenStorage (EAppStorage type) __NE___
+	{
+		CHECK_ERR( type < EAppStorage::_Count );
+
+		auto	vfs = _storageCache[ uint(type) ].load();
+		if ( vfs )
+		{
+			// already created
+			return vfs;
+		}
+
+		StringView	prefix = _GetStoragePrefix( type );
+
+		Path	dir = GetStoragePath( type );
+		if ( dir.empty() )
+			return null;
+
+		auto	new_vfs = VFS::VirtualFileStorageFactory::CreateDynamicFolder( dir, prefix, True{"create folder"} );
+
+		if ( _storageCache[ uint(type) ].CAS_Loop( INOUT vfs, new_vfs ))
+			return new_vfs;
+		else
+			return vfs;
+	}
+
+/*
+=================================================
+	GetStoragePath
+=================================================
+*/
+	Path  ApplicationGLFW::GetStoragePath (EAppStorage type) __NE___
+	{
+		Path	path = UtilsWinAPI::GetStoragePath( type );
+		if ( not path.empty() )
+		{
+			CHECK_ERR( _listener );
+
+			switch ( type )
+			{
+				case EAppStorage::UserData :
+				case EAppStorage::SharedData :
+					path /= _listener->GetAppName();
+					break;
+			}
+		}
+		return path;
+	}
+
+/*
+=================================================
 	_MainLoop
 =================================================
 */

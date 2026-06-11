@@ -172,6 +172,7 @@ namespace
 		auto		tmp_pipelines			= Array<PathParams2>{ PathParams2{ AE_SHARED_DATA "/feature_set"s,				0u, EPathParamsFlags::Folder },
 																  PathParams2{ AE_UI_SCRIPT_FOLDER "/../config_vk.as",		1u },
 																  PathParams2{ AE_UI_SCRIPT_FOLDER "/../rtech/samplers.as",	2u },
+																  PathParams2{ AE_UI_SCRIPT_FOLDER "/../rtech/ren_pass.as",	2u },
 																  PathParams2{ AE_UI_SCRIPT_FOLDER "/../rtech/ren_tech.as",	3u },
 																  PathParams2{ AE_CANVAS_VERTS,								4u },
 																  PathParams2{ AE_UI_SCRIPT_FOLDER "/../pipelines"s,		5u, EPathParamsFlags::Folder }};

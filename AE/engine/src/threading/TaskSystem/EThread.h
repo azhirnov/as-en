@@ -41,7 +41,7 @@ namespace AE::Threading
 		Background		= ubyte(ETaskQueue::Background),
 		_Last			= ubyte(ETaskQueue::_Count),
 
-		FileIO,			// Thread can not process tasks.
+		IO,				// Thread can not process tasks.
 						// Used only to check if OS complete async IO and mark task dependency as complete.
 						// TODO: ExtrnalHighFreq, ExternalLowFreq
 		_Count
@@ -153,7 +153,7 @@ namespace AE::Base
 			case EThread::PerFrame :		return "PerFrame";
 			case EThread::Renderer :		return "Renderer";
 			case EThread::Background :		return "Background";
-			case EThread::FileIO :			return "FileIO";
+			case EThread::IO :				return "IO";
 			case EThread::_Last :
 			case EThread::_Count :			break;
 		}

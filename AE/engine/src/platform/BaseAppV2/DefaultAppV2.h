@@ -48,6 +48,7 @@ namespace AE::AppV2
 
 	protected:
 		using ViewModeName		= App::ViewModeName;
+
 	public:
 		class AppMainV2_Access
 		{
@@ -61,7 +62,7 @@ namespace AE::AppV2
 	private:
 		CurrentStateSync			_curState;
 
-		Threading::EThreadArray		_allowProcessInMain;	// initialized ctor
+		Threading::EThreadArray		_allowProcessInMain;	// initialized in ctor
 		const AppConfig				_config;
 
 		// TODO: UI
@@ -105,6 +106,8 @@ namespace AE::AppV2
 					void  WaitFrame ()												__NE___;
 			virtual void  RenderFrame ()											__NE___;
 
+			virtual void  OnStateChanged (IWindow &, IWindow::EState)				__NE___ {}
+
 
 	protected:
 	  #ifdef AE_PLATFORM_ANDROID
@@ -127,6 +130,8 @@ namespace AE::AppV2
 		ND_ virtual RC<IViewMode>	_CreateViewMode (ViewModeName::Ref)				__NE___ = 0;
 
 	private:
+		ND_	bool  _InitVFS2 ()														__NE___;
+
 			void  _StartRendering (IInputActions&, IOutputSurface&,
 								   IWindow::EState, IWindow*)						__NE___;
 	};
@@ -145,7 +150,13 @@ namespace AE::AppV2
 		using WindowArray_t	= FixedArray< WindowPtr, App::PlatformConfig::MaxWindows >;
 
 	public:
-		using AppCoreCtor_t	= Function< RC<AppCore> () >;
+		struct Callbacks
+		{
+			RC<AppCore> (*createApp)			()																		= null;
+			void		(*overrideGraphicsCfg)	(INOUT Graphics::GraphicsCreateInfo &)									= null;
+			void		(*overrideWindowCfg)	(INOUT App::WindowDesc &)												= null;
+			void		(*overrideVRDevice)		(INOUT bool &enableVR, INOUT Array<IVRSession::EDeviceType> &devices)	= null;
+		};
 
 
 	// variables
@@ -167,26 +178,29 @@ namespace AE::AppV2
 		VRDevicePtr					_vrDevice;
 		RC<AppCore>					_core;
 
+		const Callbacks				_callbacks;
+
 
 	// methods
 	public:
-		explicit AppMainV2 (RC<AppCore>)				__NE___;
-		explicit AppMainV2 (AppCoreCtor_t)				__NE___;
-		~AppMainV2 ()									__NE_OV;
+		explicit AppMainV2 (const Callbacks &cb)						__NE___;
+		~AppMainV2 ()													__NE_OV;
 
 
 	// IAppListener //
-		void  OnStart (IApplication &)					__NE_OV;
-		void  OnStop  (IApplication &)					__NE_OV;
+		void  OnStart (IApplication &)									__NE_OV;
+		void  OnStop  (IApplication &)									__NE_OV;
 
-		void  BeforeWndUpdate (IApplication &)			__NE_OV;
-		void  AfterWndUpdate (IApplication &)			__NE_OV;
+		void  BeforeWndUpdate (IApplication &)							__NE_OV;
+		void  AfterWndUpdate (IApplication &)							__NE_OV;
 
 
 	private:
-		ND_ bool  _CreateWindow (IApplication &)		__NE___;
-		ND_ bool  _InitGraphics (IApplication &)		__NE___;
-			void  _DestroyGraphics ()					__NE___;
+		ND_ bool  _CreateWindow (IApplication &)						__NE___;
+		ND_ bool  _InitGraphics (IApplication &)						__NE___;
+			void  _DestroyGraphics ()									__NE___;
+			void  _CreateVRDevice (IApplication &,
+								   ArrayView<IVRSession::EDeviceType>)	__NE___;
 	};
 
 

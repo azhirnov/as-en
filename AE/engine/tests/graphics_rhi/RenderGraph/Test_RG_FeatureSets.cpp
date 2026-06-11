@@ -103,6 +103,9 @@ RGTest::ECode  RGTest::Test_FeatureSets ()
 			case EGPUVendor::Mesa :
 				TEST( _pipelines->FeatureSetSupported( FeatureSetName{"MinDesktop"} ));
 				break;
+			case EGPUVendor::Huawei :
+				TEST( _pipelines->FeatureSetSupported( FeatureSetName{"MinMaleoon"} ));
+				break;
 		}
 
 		if ( (dev >= EGraphicsDeviceID::Adreno_500			and dev <= EGraphicsDeviceID::_Adreno_End)	or
@@ -130,6 +133,14 @@ RGTest::ECode  RGTest::Test_FeatureSets ()
 
 		if ( _device.GetVExtensions().meshShader )
 			TEST( _pipelines->FeatureSetSupported( FeatureSetName{"MinMeshShader"} ));
+
+		if ( _device.GetVExtensions().deviceGeneratedCommands )
+			TEST( _pipelines->FeatureSetSupported( FeatureSetName{"MinIndirectCmds"} ));
+
+		if ( _device.GetVExtensions().opacityMicromap )
+			TEST( _pipelines->FeatureSetSupported( FeatureSetName{"MinOpacityMicromap"} ));
+
+		// TODO: detect VR device
 
 	#elif defined(AE_ENABLE_METAL)
 		StringView	dev_name = _device.GetDeviceName();
@@ -186,6 +197,9 @@ RGTest::ECode  RGTest::Test_FeatureSets ()
 
 		if ( _device.GetFeatures().meshShader )
 			TEST( _pipelines->FeatureSetSupported( FeatureSetName{"MinMeshShader"} ));
+
+		if ( _device.GetFeatures().deviceGeneratedCommands )
+			TEST( _pipelines->FeatureSetSupported( FeatureSetName{"MinIndirectCmds"} ));
 
 	#elif defined(AE_ENABLE_REMOTE_GRAPHICS)
 		// do nothing

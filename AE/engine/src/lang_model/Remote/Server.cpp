@@ -249,7 +249,7 @@ namespace AE::LangModel
 		using namespace AE::Networking;
 
 		IpAddress	server_addr;
-		CHECK( SocketService::Instance().GetSelfIPAddress( AE_ROUTER_IPv4, OUT server_addr ));
+		CHECK( SocketService::Instance().GetSelfLocalIPAddress( OUT server_addr ));
 
 		server_addr.SetPort( port );
 

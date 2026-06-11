@@ -19,8 +19,11 @@ namespace AE::App
 	public:
 		using Monitors_t	= FixedArray< Monitor, PlatformConfig::MaxMonitors >;
 
+	protected:
 		using WindowWPtr	= WeakPtr< WindowBase >;
 		using WindowArray_t	= FixedArray< WindowWPtr, PlatformConfig::MaxWindows >;
+
+		using StorageCache_t = StaticArray< AtomicRC<IVirtualFileStorage>, uint(EAppStorage::_Count) >;
 
 
 	// variables
@@ -36,6 +39,8 @@ namespace AE::App
 	  #ifdef AE_PLATFORM_WINDOWS
 		NvAPILib				_nvapi;
 	  #endif
+
+		StorageCache_t			_storageCache;
 
 		DRC_ONLY(
 			mutable SingleThreadCheck	_stCheck;
@@ -54,6 +59,8 @@ namespace AE::App
 
 		void  _Destroy ()																		__NE___;
 
+		static StringView	_GetStoragePrefix (EAppStorage)										__NE___;
+
 		virtual void  _AddWindow (SharedPtr<WindowBase>)										__NE___;
 
 	public:
@@ -64,7 +71,7 @@ namespace AE::App
 		Monitor::ID  GetMonitor (int2 pos)														C_NE_OF;
 		Monitor::ID  GetMonitorFromNative (Monitor::NativeMonitor_t)							C_NE_OF;
 
-		void  Terminate ()																		__NE_OV;
+		void		 Terminate ()																__NE_OV;
 
 		DRC_ONLY( ND_ SingleThreadCheck&	GetSingleThreadCheck ()								C_NE___	{ return _stCheck; })
 

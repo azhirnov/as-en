@@ -24,6 +24,8 @@ Performance per thread.
 * [ARM Cortex A53 (Samsung Exynos 7870)](#ARM-Cortex-A53-Samsung-Exynos-7870)
 * [ARM Cortex A53, P-core (Snapdragon 439)](#ARM-Cortex-A53-P-core-Snapdragon-439)
 * [ARM Cortex A53, E-core (Snapdragon 439)](#ARM-Cortex-A53-E-core-Snapdragon-439)
+* [Pico 4 Ultra P-core](#Pico-4-Ultra-P-core)
+* [Pico 4 Ultra E-core](#Pico-4-Ultra-E-core)
 
 # AMD Ryzen 9 3900X
 
@@ -284,72 +286,19 @@ Simd Double2 - Mul         : 0.84 s  +8913.7%    - 477.6MFLOPS    ???
 * Theoretical performance (FMA):
 	- 2 FLOPS * 4*2 Op/cy * 2.8 GHz = 44.8 GFLOPS per core
 
-## Float SIMD
+## Float SIMD (single thread)
 
-```
-Scalar Float4 - seq1 MulAdd: 33.01 ms           - 38.8GFLOPS,  19.4GB/s
-Scalar Float4 - Mul        : 58.01 ms  +75.8%   - 22.1GFLOPS,  11.0GB/s
-Scalar Float4 - AddMul     : 77.54 ms  +134.9%  - 16.5GFLOPS,  8.3GB/s
-Scalar Float4 - Add        : 82.08 ms  +148.7%  - 15.6GFLOPS,  7.8GB/s
-Scalar Float4 - AddMul2    : 95.38 ms  +189.0%  - 13.4GFLOPS,  6.7GB/s
-Scalar Float4 - MulAdd     : 0.12 s  +266.3%    - 10.6GFLOPS,  5.3GB/s
-Scalar Float4 - FMA        : 0.13 s  +283.4%    - 10.1GFLOPS,  5.1GB/s
-Scalar Float4 - seq1 Add   : 0.13 s  +294.7%    - 9.8GFLOPS,   4.9GB/s
-Scalar Float4 - Div        : 0.20 s  +492.9%    - 3.3GFLOPS,   3.3GB/s
-Scalar Float4 - Sqrt       : 0.22 s  +577.3%    - 2.9GFLOPS,   2.9GB/s
-Scalar Float4 - seq1 Div   : 0.42 s  +1162.4%   - 1.5GFLOPS,   1.5GB/s
-
-Simd Float4 - Add        : 33.19 ms             - 38.6GFLOPS,  19.3GB/s
-Simd Float4 - FMA        : 42.80 ms  +29.0%     - 29.9GFLOPS,  15.0GB/s
-Simd Float4 - Mul        : 43.92 ms  +32.3%     - 29.1GFLOPS,  14.6GB/s
-Simd Float4 - seq1 MulAdd: 52.74 ms  +58.9%     - 24.3GFLOPS,  12.1GB/s
-Simd Float4 - AddMul2    : 85.00 ms  +156.1%    - 15.1GFLOPS,  7.5GB/s
-Simd Float4 - AddMul     : 97.69 ms  +194.4%    - 13.1GFLOPS,  6.6GB/s
-Simd Float4 - MulAdd     : 0.13 s  +288.8%      - 9.9GFLOPS,   5.0GB/s
-Simd Float4 - seq1 Add   : 0.15 s  +349.7%      - 8.6GFLOPS,   4.3GB/s
-Simd Float4 - Sqrt       : 0.17 s  +405.3%      - 3.8GFLOPS,   3.8GB/s
-Simd Float4 - Div        : 0.19 s  +482.1%      - 3.3GFLOPS,   3.3GB/s
-Simd Float4 - seq1 Div   : 0.40 s  +1094.3%     - 1.6GFLOPS,   1.6GB/s
-```
-
-## Double SIMD
-
-```
-Scalar Double2 - seq1 MulAdd: 32.31 ms             - 19.8GFLOPS,  19.8GB/s
-Scalar Double4 - MulAdd     : 35.04 ms  +8.4%      - 18.3GFLOPS,  18.3GB/s
-Scalar Double2 - Add        : 40.72 ms  +26.0%     - 15.7GFLOPS,  15.7GB/s
-Scalar Double4 - seq1 MulAdd: 40.76 ms  +26.1%     - 15.7GFLOPS,  15.7GB/s
-Scalar Double4 - seq1 Add   : 57.33 ms  +77.4%     - 11.2GFLOPS,  11.2GB/s
-Scalar Double2 - Mul        : 58.07 ms  +79.7%     - 11.0GFLOPS,  11.0GB/s
-Scalar Double4 - AddMul2    : 65.01 ms  +101.2%    - 9.8GFLOPS,  9.8GB/s
-Scalar Double2 - MulAdd     : 66.10 ms  +104.6%    - 9.7GFLOPS,  9.7GB/s
-Scalar Double4 - Add        : 68.88 ms  +113.2%    - 9.3GFLOPS,  9.3GB/s
-Scalar Double4 - Mul        : 80.68 ms  +149.7%    - 7.9GFLOPS,  7.9GB/s
-Scalar Double4 - FMA        : 96.49 ms  +198.6%    - 6.6GFLOPS,  6.6GB/s
-Scalar Double2 - AddMul2    : 99.52 ms  +208.0%    - 6.4GFLOPS,  6.4GB/s
-Scalar Double2 - AddMul     : 99.76 ms  +208.7%    - 6.4GFLOPS,  6.4GB/s
-Scalar Double4 - AddMul     : 0.10 s  +220.1%      - 6.2GFLOPS,  6.2GB/s
-Scalar Double2 - FMA        : 0.13 s  +296.8%      - 5.0GFLOPS,  5.0GB/s
-Scalar Double2 - seq1 Add   : 0.13 s  +312.7%      - 4.8GFLOPS,  4.8GB/s
-Scalar Double4 - seq1 Div   : 0.20 s  +527.0%      - 1.6GFLOPS,  3.2GB/s
-Scalar Double4 - Div        : 0.27 s  +747.1%      - 1.2GFLOPS,  2.3GB/s
-Scalar Double2 - Div        : 0.29 s  +787.0%      - 1.1GFLOPS,  2.2GB/s
-Scalar Double4 - Sqrt       : 0.42 s  +1210.4%     - 0.8GFLOPS,  1.5GB/s
-Scalar Double2 - Sqrt       : 0.42 s  +1211.9%     - 0.8GFLOPS,  1.5GB/s
-Scalar Double2 - seq1 Div   : 0.42 s  +1212.8%     - 0.8GFLOPS,  1.5GB/s
-
-Simd Double2 - Add        : 38.06 ms             - 16.8GFLOPS,  16.8GB/s
-Simd Double2 - seq1 MulAdd: 43.18 ms  +13.5%     - 14.8GFLOPS,  14.8GB/s
-Simd Double2 - FMA        : 62.19 ms  +63.4%     - 10.3GFLOPS,  10.3GB/s
-Simd Double2 - AddMul     : 71.79 ms  +88.6%     - 8.9GFLOPS,  8.9GB/s
-Simd Double2 - Mul        : 77.54 ms  +103.8%    - 8.3GFLOPS,  8.3GB/s
-Simd Double2 - AddMul2    : 0.11 s  +192.9%    - 5.7GFLOPS,  5.7GB/s
-Simd Double2 - MulAdd     : 0.12 s  +205.4%    - 5.5GFLOPS,  5.5GB/s
-Simd Double2 - seq1 Add   : 0.15 s  +284.5%    - 4.4GFLOPS,  4.4GB/s
-Simd Double2 - Sqrt       : 0.16 s  +321.7%    - 2.0GFLOPS,  4.0GB/s
-Simd Double2 - Div        : 0.29 s  +652.8%    - 1.1GFLOPS,  2.2GB/s
-Simd Double2 - seq1 Div   : 0.40 s  +941.5%    - 0.8GFLOPS,  1.6GB/s
-```
+| | FLOPS | SOL |
+|-------------------------------|----------------|
+| Simd Float4 - FMA ilp8        | 31.4GFLOPS     |
+| Simd Float4 - FMA ilp7        | 28.8GFLOPS     |
+| Simd Float4 - FMA ilp6        | 25.6GFLOPS     |
+| Simd Float4 - FMA ilp16       | 25.0GFLOPS     |
+| Simd Float4 - FMA ilp5        | 23.3GFLOPS     |
+| Simd Float4 - FMA ilp4        | 18.9GFLOPS     |
+| Simd Float4 - Fast Sqrt       | 7.63GFLOPS     |
+| Simd Float4 - Fast Div        | 6.70GFLOPS     |
+| Simd Float4 - Precise Sqrt    | 2.21GFLOPS     |
 
 
 # ARM Cortex A78 (Snapdragon 888)
@@ -360,72 +309,32 @@ Simd Double2 - seq1 Div   : 0.40 s  +941.5%    - 0.8GFLOPS,  1.6GB/s
 * Theoretical performance (FMA):
 	- 2 FLOPS * 2*4 Op/cy * 2.4 GHz = 38.4 GFLOPS per core
 
-## Float SIMD
+## Float SIMD (single thread)
 
-```
-Scalar Float4 - seq1 MulAdd: 58.87 ms           - 21.7GFLOPS,  10.9GB/s
-Scalar Float4 - Mul        : 82.22 ms  +39.7%   - 15.6GFLOPS,  7.8GB/s
-Scalar Float4 - AddMul     : 84.04 ms  +42.7%   - 15.2GFLOPS,  7.6GB/s
-Scalar Float4 - AddMul2    : 84.08 ms  +42.8%   - 15.2GFLOPS,  7.6GB/s
-Scalar Float4 - Add        : 92.37 ms  +56.9%   - 13.9GFLOPS,  6.9GB/s
-Scalar Float4 - FMA        : 0.12 s  +99.3%     - 10.9GFLOPS,  5.5GB/s
-Scalar Float4 - MulAdd     : 0.12 s  +108.2%    - 10.4GFLOPS,  5.2GB/s
-Scalar Float4 - seq1 Add   : 0.13 s  +126.7%    - 9.6GFLOPS,  4.8GB/s
-Scalar Float4 - Div        : 0.40 s  +578.6%    - 1.6GFLOPS,  1.6GB/s
-Scalar Float4 - seq1 Div   : 0.47 s  +691.6%    - 1.4GFLOPS,  1.4GB/s
-Scalar Float4 - Sqrt       : 0.47 s  +691.9%    - 1.4GFLOPS,  1.4GB/s
+| | FLOPS | SOL |
+|-------------------------------|----------------|
+| Simd Float4 - FMA ilp4        | 19.2GFLOPS     |
+| Simd Float4 - FMA ilp5        | 16.9GFLOPS     |
+| Simd Float4 - FMA ilp16       | 16.9GFLOPS     |
+| Simd Float4 - FMA ilp8        | 15.9GFLOPS     |
+| Simd Float4 - FMA ilp6        | 15.5GFLOPS     |
+| Simd Float4 - FMA ilp7        | 15.4GFLOPS     |
+| Simd Float4 - MulAdd          | 15.5GFLOPS     |
+| Simd Float4 - Fast Sqrt       | 4.80GFLOPS     |
+| Simd Float4 - Fast Div        | 4.79GFLOPS     |
+| Simd Float4 - Precise Sqrt    | 1.37GFLOPS     |
 
-Simd Float4 - FMA        : 48.00 ms             - 26.7GFLOPS,  13.3GB/s
-Simd Float4 - seq1 MulAdd: 51.31 ms  +6.9%      - 24.9GFLOPS,  12.5GB/s
-Simd Float4 - Mul        : 52.92 ms  +10.3%     - 24.2GFLOPS,  12.1GB/s
-Simd Float4 - Add        : 59.83 ms  +24.7%     - 21.4GFLOPS,  10.7GB/s
-Simd Float4 - AddMul     : 83.87 ms  +74.7%     - 15.3GFLOPS,  7.6GB/s
-Simd Float4 - AddMul2    : 83.89 ms  +74.8%     - 15.3GFLOPS,  7.6GB/s
-Simd Float4 - MulAdd     : 0.12 s  +155.5%      - 10.4GFLOPS,  5.2GB/s
-Simd Float4 - seq1 Add   : 0.13 s  +178.0%      - 9.6GFLOPS,  4.8GB/s
-Simd Float4 - Sqrt       : 0.19 s  +298.3%      - 3.3GFLOPS,  3.3GB/s
-Simd Float4 - Div        : 0.40 s  +732.4%      - 1.6GFLOPS,  1.6GB/s
-Simd Float4 - seq1 Div   : 0.47 s  +870.9%      - 1.4GFLOPS,  1.4GB/s
-```
+## Float SIMD (3 threads, 3 cores)
 
-## Double SIMD
+| | FLOPS per thread | SOL |
+|------------------------------|------------|
+| Simd Float4 - FMA ilp4       | 18.8GFLOPS |
+| Simd Float4 - FMA ilp5       | 16.5GFLOPS |
+| Simd Float4 - FMA ilp16      | 16.5GFLOPS |
+| Simd Float4 - FMA ilp8       | 15.6GFLOPS |
+| Simd Float4 - FMA ilp6       | 15.3GFLOPS |
+| Simd Float4 - FMA ilp7       | 15.2GFLOPS |
 
-```
-Scalar Double2 - seq1 MulAdd: 40.67 ms           - 15.7GFLOPS,  15.7GB/s
-Scalar Double4 - seq1 MulAdd: 40.78 ms  +0.3%    - 15.7GFLOPS,  15.7GB/s
-Scalar Double4 - MulAdd     : 67.64 ms  +66.3%   - 9.5GFLOPS,   9.5GB/s
-Scalar Double4 - seq1 Add   : 67.78 ms  +66.6%   - 9.4GFLOPS,   9.4GB/s
-Scalar Double2 - Mul        : 77.98 ms  +91.7%   - 8.2GFLOPS,   8.2GB/s
-Scalar Double2 - Add        : 81.28 ms  +99.8%   - 7.9GFLOPS,   7.9GB/s
-Scalar Double4 - Mul        : 82.30 ms  +102.4%  - 7.8GFLOPS,   7.8GB/s
-Scalar Double2 - MulAdd     : 83.62 ms  +105.6%  - 7.7GFLOPS,   7.7GB/s
-Scalar Double4 - Add        : 92.19 ms  +126.6%  - 6.9GFLOPS,   6.9GB/s
-Scalar Double4 - FMA        : 0.10 s  +147.5%    - 6.4GFLOPS,   6.4GB/s
-Scalar Double2 - FMA        : 0.13 s  +215.5%    - 5.0GFLOPS,   5.0GB/s
-Scalar Double2 - seq1 Add   : 0.13 s  +228.1%    - 4.8GFLOPS,   4.8GB/s
-Scalar Double4 - AddMul     : 0.14 s  +249.0%    - 4.5GFLOPS,   4.5GB/s
-Scalar Double4 - AddMul2    : 0.14 s  +249.3%    - 4.5GFLOPS,   4.5GB/s
-Scalar Double2 - AddMul     : 0.15 s  +269.3%    - 4.3GFLOPS,   4.3GB/s
-Scalar Double2 - AddMul2    : 0.15 s  +269.5%    - 4.3GFLOPS,   4.3GB/s
-Scalar Double4 - seq1 Div   : 0.40 s  +882.4%    - 0.8GFLOPS,   1.6GB/s
-Scalar Double2 - seq1 Div   : 0.47 s  +1046.0%   - 0.7GFLOPS,   1.4GB/s
-Scalar Double4 - Div        : 0.53 s  +1211.3%   - 0.6GFLOPS,   1.2GB/s
-Scalar Double2 - Div        : 0.53 s  +1213.0%   - 0.6GFLOPS,   1.2GB/s
-Scalar Double2 - Sqrt       : 0.93 s  +2191.7%   - 343.3MFLOPS, 0.7GB/s
-Scalar Double4 - Sqrt       : 0.93 s  +2192.3%   - 343.2MFLOPS, 0.7GB/s
-
-Simd Double2 - FMA        : 47.95 ms             - 13.3GFLOPS,  13.3GB/s
-Simd Double2 - seq1 MulAdd: 51.48 ms  +7.3%      - 12.4GFLOPS,  12.4GB/s
-Simd Double2 - Mul        : 53.06 ms  +10.7%     - 12.1GFLOPS,  12.1GB/s
-Simd Double2 - Add        : 59.54 ms  +24.2%     - 10.7GFLOPS,  10.7GB/s
-Simd Double2 - AddMul     : 83.93 ms  +75.0%     - 7.6GFLOPS,   7.6GB/s
-Simd Double2 - AddMul2    : 83.97 ms  +75.1%     - 7.6GFLOPS,   7.6GB/s
-Simd Double2 - MulAdd     : 0.12 s  +156.4%      - 5.2GFLOPS,   5.2GB/s
-Simd Double2 - seq1 Add   : 0.13 s  +178.6%      - 4.8GFLOPS,   4.8GB/s
-Simd Double2 - Sqrt       : 0.15 s  +213.3%      - 2.1GFLOPS,   4.3GB/s
-Simd Double2 - seq1 Div   : 0.47 s  +872.0%      - 0.7GFLOPS,   1.4GB/s
-Simd Double2 - Div        : 0.53 s  +1011.6%     - 0.6GFLOPS,   1.2GB/s
-```
 
 # ARM Cortex A78 (MediaTek Dimensity 7020)
 
@@ -708,72 +617,33 @@ Simd Double2 - Div     : 2.07 s  +467.7%    - 309.7MFLOPS
 * Theoretical performance (FMA):
 	- 2 FLOPS * 4 Op/cy * 1.8 GHz = 14.4 GFLOPS per core
 
-## Float SIMD
+## Float SIMD (single thread)
 
-```
-Scalar Float4 - seq1 MulAdd: 0.21 s             - 6.1GFLOPS,  3.1GB/s
-Scalar Float4 - Mul        : 0.24 s  +13.5%     - 5.4GFLOPS,  2.7GB/s
-Scalar Float4 - Add        : 0.29 s  +37.6%     - 4.4GFLOPS,  2.2GB/s
-Scalar Float4 - AddMul     : 0.31 s  +49.3%     - 4.1GFLOPS,  2.0GB/s
-Scalar Float4 - AddMul2    : 0.31 s  +49.9%     - 4.1GFLOPS,  2.0GB/s
-Scalar Float4 - FMA        : 0.36 s  +74.1%     - 3.5GFLOPS,  1.8GB/s
-Scalar Float4 - MulAdd     : 0.43 s  +103.3%    - 3.0GFLOPS,  1.5GB/s
-Scalar Float4 - seq1 Add   : 0.54 s  +157.9%    - 2.4GFLOPS,  1.2GB/s
-Scalar Float4 - seq1 Div   : 0.84 s  +299.5%    - 0.8GFLOPS,  0.8GB/s
-Scalar Float4 - Div        : 0.84 s  +299.6%    - 0.8GFLOPS,  0.8GB/s
-Scalar Float4 - Sqrt       : 0.93 s  +342.9%    - 0.7GFLOPS,  0.7GB/s
 
-Simd Float4 - FMA        : 0.22 s             - 5.8GFLOPS,  2.9GB/s
-Simd Float4 - AddMul     : 0.31 s  +39.8%     - 4.1GFLOPS,  2.1GB/s
-Simd Float4 - AddMul2    : 0.31 s  +39.9%     - 4.1GFLOPS,  2.1GB/s
-Simd Float4 - Add        : 0.33 s  +49.8%     - 3.9GFLOPS,  1.9GB/s
-Simd Float4 - Mul        : 0.33 s  +50.0%     - 3.8GFLOPS,  1.9GB/s
-Simd Float4 - seq1 MulAdd: 0.36 s  +62.6%     - 3.6GFLOPS,  1.8GB/s
-Simd Float4 - MulAdd     : 0.42 s  +90.4%     - 3.0GFLOPS,  1.5GB/s
-Simd Float4 - Sqrt       : 0.49 s  +121.3%    - 1.3GFLOPS,  1.3GB/s
-Simd Float4 - seq1 Add   : 0.54 s  +141.6%    - 2.4GFLOPS,  1.2GB/s
-Simd Float4 - Div        : 0.83 s  +274.2%    - 0.8GFLOPS,  0.8GB/s
-Simd Float4 - seq1 Div   : 0.83 s  +274.6%    - 0.8GFLOPS,  0.8GB/s
-```
+| | FLOPS | SOL |
+|-------------------------------|----------------|
+| Simd Float4 - MulAdd          | 7.04GFLOPS     |
+| Simd Float4 - FMA ilp4        | 7.03GFLOPS     |
+| Simd Float4 - FMA ilp8        | 7.03GFLOPS     |
+| Simd Float4 - FMA ilp6        | 7.03GFLOPS     |
+| Simd Float4 - FMA ilp7        | 7.02GFLOPS     |
+| Simd Float4 - FMA ilp5        | 7.03GFLOPS     |
+| Simd Float4 - FMA ilp16       | 6.43GFLOPS     |
+| Simd Float4 - Fast Div        | 3.51GFLOPS     |
+| Simd Float4 - Fast Sqrt       | 2.74GFLOPS     |
+| Simd Float4 - Precise Sqrt    | 781.1MFLOPS    |
 
-## Double SIMD
+## Float SIMD (4 threads, 4 cores)
 
-```
-Scalar Double4 - seq1 MulAdd: 0.18 s             - 3.5GFLOPS,    3.5GB/s
-Scalar Double2 - seq1 MulAdd: 0.21 s  +13.5%     - 3.1GFLOPS,    3.1GB/s
-Scalar Double2 - MulAdd     : 0.22 s  +20.5%     - 2.9GFLOPS,    2.9GB/s
-Scalar Double2 - Mul        : 0.24 s  +30.2%     - 2.7GFLOPS,    2.7GB/s
-Scalar Double4 - Mul        : 0.24 s  +30.4%     - 2.7GFLOPS,    2.7GB/s
-Scalar Double4 - MulAdd     : 0.24 s  +31.2%     - 2.7GFLOPS,    2.7GB/s
-Scalar Double2 - AddMul     : 0.29 s  +56.7%     - 2.2GFLOPS,    2.2GB/s
-Scalar Double2 - AddMul2    : 0.29 s  +56.8%     - 2.2GFLOPS,    2.2GB/s
-Scalar Double2 - Add        : 0.29 s  +57.6%     - 2.2GFLOPS,    2.2GB/s
-Scalar Double4 - Add        : 0.29 s  +59.0%     - 2.2GFLOPS,    2.2GB/s
-Scalar Double4 - AddMul     : 0.31 s  +70.1%     - 2.1GFLOPS,    2.1GB/s
-Scalar Double4 - AddMul2    : 0.31 s  +70.3%     - 2.1GFLOPS,    2.1GB/s
-Scalar Double4 - seq1 Add   : 0.34 s  +87.2%     - 1.9GFLOPS,    1.9GB/s
-Scalar Double4 - FMA        : 0.35 s  +89.6%     - 1.8GFLOPS,    1.8GB/s
-Scalar Double2 - FMA        : 0.39 s  +115.1%    - 1.6GFLOPS,    1.6GB/s
-Scalar Double2 - seq1 Add   : 0.54 s  +193.5%    - 1.2GFLOPS,    1.2GB/s
-Scalar Double2 - seq1 Div   : 1.10 s  +502.4%    - 290.9MFLOPS,  0.6GB/s
-Scalar Double4 - seq1 Div   : 1.14 s  +523.1%    - 281.2MFLOPS,  0.6GB/s
-Scalar Double2 - Div        : 2.37 s  +1197.2%   - 135.1MFLOPS,  270.2MB/s
-Scalar Double4 - Div        : 2.39 s  +1210.9%   - 133.7MFLOPS,  267.3MB/s
-Scalar Double2 - Sqrt       : 3.54 s  +1836.0%   - 90.5MFLOPS,   181.0MB/s
-Scalar Double4 - Sqrt       : 3.59 s  +1865.1%   - 89.2MFLOPS,   178.3MB/s
+| | FLOPS per thread | SOL |
+|------------------------------|------------|
+| Simd Float4 - FMA ilp6       | 6.94GFLOPS |
+| Simd Float4 - FMA ilp7       | 6.96GFLOPS |
+| Simd Float4 - FMA ilp8       | 6.96GFLOPS |
+| Simd Float4 - FMA ilp4       | 6.86GFLOPS |
+| Simd Float4 - FMA ilp5       | 6.98GFLOPS |
+| Simd Float4 - FMA ilp16      | 6.71GFLOPS |
 
-Simd Double2 - FMA        : 0.22 s             - 2.9GFLOPS,    2.9GB/s
-Simd Double2 - AddMul2    : 0.31 s  +40.3%     - 2.1GFLOPS,    2.1GB/s
-Simd Double2 - AddMul     : 0.31 s  +41.6%     - 2.0GFLOPS,    2.0GB/s
-Simd Double2 - Add        : 0.34 s  +51.5%     - 1.9GFLOPS,    1.9GB/s
-Simd Double2 - Mul        : 0.34 s  +51.7%     - 1.9GFLOPS,    1.9GB/s
-Simd Double2 - seq1 MulAdd: 0.36 s  +62.7%     - 1.8GFLOPS,    1.8GB/s
-Simd Double2 - MulAdd     : 0.43 s  +92.5%     - 1.5GFLOPS,    1.5GB/s
-Simd Double2 - Sqrt       : 0.49 s  +121.6%    - 0.7GFLOPS,    1.3GB/s
-Simd Double2 - seq1 Add   : 0.54 s  +144.4%    - 1.2GFLOPS,    1.2GB/s
-Simd Double2 - seq1 Div   : 0.83 s  +274.6%    - 385.7MFLOPS,  0.8GB/s
-Simd Double2 - Div        : 1.24 s  +458.7%    - 258.7MFLOPS,  0.5GB/s
-```
 
 # ARM Cortex A53 (Samsung Exynos 7870)
 
@@ -1490,3 +1360,80 @@ Simd Float8 FMA ilp8 test.
 | 13 | P  | 113.0GFLOPS | 69% |
 | 14 | LP | 39.7GFLOPS  | 99% |
 | 15 | LP | 39.4GFLOPS  | 99% |
+
+
+
+# Pico 4 Ultra P-core
+
+* Arch: ARM Cortex A78C
+* Clock: 2.36 GHz
+* Cores: 4
+* Theoretical performance (FMA):
+	- 2 FMA/cy, SIMD size: 4, 8 FMA/cy total
+	- 2.36 G * 2 * 4 = 19 GFLOPS
+* Results:
+	- only 1 P-core is available
+
+## Float SIMD (single thread)
+
+| | FLOPS | SOL |
+|-------------------------------|----------------|
+| Simd Float4 - FMA ilp4        | 18.7GFLOPS     | 98% |
+| Simd Float4 - FMA ilp5        | 16.5GFLOPS     |
+| Simd Float4 - FMA ilp16       | 16.5GFLOPS     |
+| Simd Float4 - FMA ilp8        | 15.5GFLOPS     |
+| Simd Float4 - MulAdd          | 15.3GFLOPS     |
+| Simd Float4 - FMA ilp6        | 15.2GFLOPS     |
+| Simd Float4 - FMA ilp7        | 15.0GFLOPS     |
+| Simd Float4 - Fast Sqrt       | 4.68GFLOPS     |
+| Simd Float4 - Fast Div        | 4.68GFLOPS     |
+| Simd Float4 - Precise Sqrt    | 1.34GFLOPS     |
+
+## Float SIMD (4 threads, 4 cores)
+
+| | FLOPS per thread | SOL |
+|------------------------------|------------|
+| Simd Float4 - FMA ilp4       | 4.99GFLOPS | 25% (100% for single thread) |
+| Simd Float4 - FMA ilp5       | 4.40GFLOPS |
+| Simd Float4 - FMA ilp16      | 4.35GFLOPS |
+| Simd Float4 - FMA ilp8       | 4.11GFLOPS |
+| Simd Float4 - FMA ilp6       | 4.06GFLOPS |
+| Simd Float4 - FMA ilp7       | 4.04GFLOPS |
+
+
+# Pico 4 Ultra E-core
+
+* Arch: ARM Cortex A78C
+* Clock: 2.0 GHz
+* Cores: 2
+* Theoretical performance (FMA):
+	- 2 FMA/cy, SIMD size: 4, 8 FMA/cy total
+	- 2.0 G * 2 * 4 = 16 GFLOPS
+* Results:
+	- all 2 E-cores are available
+
+## Float SIMD (single thread)
+
+| | FLOPS | SOL |
+|-------------------------------|----------------|
+| Simd Float4 - FMA ilp4        | 15.2GFLOPS     | 95% |
+| Simd Float4 - FMA ilp5        | 13.4GFLOPS     |
+| Simd Float4 - FMA ilp16       | 13.4GFLOPS     |
+| Simd Float4 - FMA ilp8        | 12.6GFLOPS     |
+| Simd Float4 - MulAdd          | 12.4GFLOPS     |
+| Simd Float4 - FMA ilp6        | 12.3GFLOPS     |
+| Simd Float4 - FMA ilp7        | 12.2GFLOPS     |
+| Simd Float4 - Fast Div        | 3.81GFLOPS     |
+| Simd Float4 - Fast Sqrt       | 3.80GFLOPS     |
+| Simd Float4 - Precise Sqrt    | 1.09GFLOPS     |
+
+## Float SIMD (2 threads, 2 cores)
+
+| | FLOPS per thread | SOL |
+|------------------------------|------------|
+| Simd Float4 - FMA ilp4       | 14.7GFLOPS | 92% |
+| Simd Float4 - FMA ilp5       | 13.1GFLOPS |
+| Simd Float4 - FMA ilp16      | 13.0GFLOPS |
+| Simd Float4 - FMA ilp8       | 12.3GFLOPS |
+| Simd Float4 - FMA ilp6       | 11.9GFLOPS |
+| Simd Float4 - FMA ilp7       | 11.8GFLOPS |

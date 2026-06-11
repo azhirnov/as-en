@@ -14,7 +14,9 @@ namespace AE::App
 
 	struct UtilsWinAPI
 	{
-		static void  SetMonitorNames (INOUT ApplicationBase::Monitors_t &monitors)	__NE___;
+			static void		SetMonitorNames (INOUT ApplicationBase::Monitors_t &monitors)	__NE___;
+
+		ND_ static Path		GetStoragePath (EAppStorage)									__NE___;
 	};
 
 

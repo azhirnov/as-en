@@ -69,7 +69,7 @@
 		switch ( iProj )
 		{
 			case 0 :
-				fov = Min( fov, float_Pi*0.6 );
+				fov = Min( fov, float_Pi*0.66 );
 				ray = Ray_Perspective( origin, fov, z_near, uv );  break;
 
 			case 1 :

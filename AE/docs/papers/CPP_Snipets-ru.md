@@ -441,6 +441,31 @@ concept AllowBitOperators = is_enum_v<T> and requires{ T::_BITOPS_ };
 Может возникнуть проблема с пространствами имен.
 Если операторы определены в одном пространсве, а используются в другом, в котором уже есть глобальные битовые операторы, то компилятор их не найдет, нужно добавить подсказку с `using EnumBitOperatorsNS::operator |;`.
 
+
+### Проверяем наличие поля или метода
+
+```cpp
+template <typename T>
+  requires( requires{ &T::fieldA; })
+void Foo (T a);
+
+template <typename T>
+  requires( requires{ &T::fieldB; })
+void Foo (T b);
+```
+
+Добавляем проверку типа:
+
+```cpp
+template <typename T>
+  requires( requires{ { &T::fieldA } -> same_as< int T::* >; })
+void Foo (T a);
+
+template <typename T>
+  requires( requires{ { &T::methodB } -> same_as< float (T::*) () >; })
+void Foo (T b);
+```
+
 ## Constexpr
 
 ### is_constant_evaluated

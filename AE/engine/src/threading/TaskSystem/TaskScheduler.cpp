@@ -325,6 +325,8 @@ DEBUG_ONLY(
 	{
 		ASSERT( not _isRunning.load() );
 
+		AE_LOG_DBG( "Cancel task '"s << DbgName() << "'" );
+
 		EXLOCK( _output );	// TODO: move inside branch ?
 
 		// Pending/InProgress -> Cancellation
@@ -710,7 +712,32 @@ namespace AE::Threading
 			_fileIOService = RC<UnixIOService>{ new UnixIOService{ cfg.maxIOAccessThreads }};
 		#endif
 
+		if ( _fileIOService )
+			AddIOService( _fileIOService );
+
 		return true;
+	}
+
+/*
+=================================================
+	AddIOService
+=================================================
+*/
+	void  TaskScheduler::AddIOService (RC<IOService> ptr) __NE___
+	{
+		CHECK_ERRV( ptr );
+
+		_ioServices->insert( ptr );
+	}
+
+/*
+=================================================
+	RemoveIOService
+=================================================
+*/
+	void  TaskScheduler::RemoveIOService (RC<IOService> ptr) __NE___
+	{
+		_ioServices->erase( ptr );
 	}
 
 /*
@@ -739,11 +766,10 @@ namespace AE::Threading
 
 		// free dependency managers
 		{
-			EXLOCK( _taskDepsMngrsGuard );
-			_taskDepsMngrs.clear();
+			_taskDepsMngrs->clear();
+			_ioServices->clear();
+			_fileIOService = null;
 		}
-
-		_fileIOService = null;
 
 		ASSERT_Eq( TaskApi::AsyncTaskTotalCount(), 0 );
 
@@ -809,15 +835,19 @@ namespace AE::Threading
 
 /*
 =================================================
-	ProcessFileIO
+	ProcessIO
 =================================================
 */
-	bool  TaskScheduler::ProcessFileIO () __NE___
+	bool  TaskScheduler::ProcessIO () __NE___
 	{
-		if_likely( auto io_service = GetFileIOService() )
-			return (io_service->ProcessEvents() > 0);
+		auto	io_services = _ioServices.ReadLock();
+		usize	count		= 0;
 
-		return false;
+		for (auto& serv : *io_services) {
+			count += serv->ProcessEvents();
+		}
+
+		return count > 0;
 	}
 
 /*
@@ -846,8 +876,8 @@ namespace AE::Threading
 				processed |= i;
 			}
 			else
-			if ( tt == EThread::FileIO )
-				processed |= uint(ProcessFileIO());
+			if ( tt == EThread::IO )
+				processed |= uint(ProcessIO());
 			else
 				DBG_WARNING( "unknown thread type" );
 		}
@@ -876,12 +906,31 @@ namespace AE::Threading
 				for (; (processed < maxTasks) and ProcessTask( ETaskQueue(*tt), seed ); ++processed) {}
 			}
 			else
-			if ( *tt == EThread::FileIO )
-				processed |= uint(ProcessFileIO());
+			if ( *tt == EThread::IO )
+				processed |= uint(ProcessIO());
 			else
 				DBG_WARNING( "unknown thread type" );
 		}
 		return processed != 0;
+	}
+
+/*
+=================================================
+	CancelAll
+=================================================
+*
+	usize  TaskScheduler::CancelAll () __NE___
+	{
+		for (auto& q : _queues)
+		{
+			for (;;)
+			{
+				auto	res = q.ptr->CancelAll();
+
+				if ( res.skippedChunks == 0 )
+					break;
+			}
+		}
 	}
 
 /*
@@ -962,8 +1011,8 @@ namespace AE::Threading
 				if_likely( *tt < EThread::_Last )
 					for (; (processed < maxTasksPerTick) and ProcessTask( ETaskQueue(*tt), seed ); ++processed) {}
 				else
-				if ( *tt == EThread::FileIO )
-					processed |= uint(ProcessFileIO());
+				if ( *tt == EThread::IO )
+					processed |= uint(ProcessIO());
 				else
 					DBG_WARNING( "unknown thread type" );
 			}
@@ -995,11 +1044,16 @@ namespace AE::Threading
 		if_unlikely( task == null )
 			return false;
 
+		return Cancel( *task, fastCancel );
+	}
+
+	bool  TaskScheduler::Cancel (Task &task, Bool fastCancel) __NE___
+	{
 		if ( fastCancel )
-			return TaskApi::SetCancellationState( *task );
+			return TaskApi::SetCancellationState( task );
 		else{
-			TaskApi::CancelAsDependency( *task );
-			return task->Status() < ETaskStatus::_Finished;
+			TaskApi::CancelAsDependency( task );
+			return task.Status() < ETaskStatus::_Finished;
 		}
 	}
 
@@ -1251,8 +1305,8 @@ namespace AE::Threading
 		}};
 
 		{
-			SHAREDLOCK( _taskDepsMngrsGuard );
-			for (auto& mngr : _taskDepsMngrs) {
+			auto	dep_mngrs = _taskDepsMngrs.ReadLock();
+			for (auto& mngr : *dep_mngrs) {
 				mngr.second->DbgDetectDeadlock( CheckTask2 );
 			}
 		}

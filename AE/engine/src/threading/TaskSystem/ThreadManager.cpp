@@ -258,7 +258,7 @@ namespace
 		CHECK_ERR( (cfg.maxRenderQueues > 0) == mask.contains( EThread::Renderer ));
 		CHECK_ERR( (cfg.maxPerFrameQueues > 0) == mask.contains( EThread::PerFrame ));
 		CHECK_ERR( (cfg.maxBackgroundQueues > 0) == mask.contains( EThread::Background ));
-		CHECK_ERR( (cfg.maxIOAccessThreads > 0) == mask.contains( EThread::FileIO ));
+		CHECK_ERR( (cfg.maxIOAccessThreads > 0) == mask.contains( EThread::IO ));
 
 		auto&	cpu_info = CpuArchInfo::Get();
 		AE_LOG_DBG( cpu_info.Print() );
@@ -282,7 +282,7 @@ namespace
 										const uint					 maxThreads,
 										OUT EThreadArray			&allowProcessInMain) __NE___
 	{
-		// Main thread can execute all tasks except 'Background' and 'FileIO'.
+		// Main thread can execute all tasks except 'Background' and 'IO'.
 		// Second thread can execute all tasks except 'Main'.
 		EThreadArray	threads;
 		for (auto tmp = mask;;)
@@ -359,6 +359,8 @@ namespace
 			ee_core_bits	= ee_core->logicalBits;
 		}
 
+		DEBUG_ONLY( String	str = "Created threads:\n";)
+
 		uint	worker_only_threads			= 0;
 		uint	render_only_threads			= 0;
 		uint	background_only_threads		= 0;
@@ -392,6 +394,8 @@ namespace
 		}};
 		cfg.mainThreadCoreId = GetPCoreId();
 
+		DEBUG_ONLY( str << "  main (" << ToString(uint(cfg.mainThreadCoreId)) << ")"; )
+
 		auto&	scheduler = Scheduler();
 		CHECK_ERR( scheduler.Setup( cfg ));
 
@@ -399,26 +403,41 @@ namespace
 		{
 			for (uint i = 0; i < worker_only_threads; ++i)
 			{
+				ECpuCoreId	core_id = GetPCoreId();
+				String		name	= "pf"s << (worker_only_threads > 1 ? '|' + ToString(i) : ""s);
+
+				DEBUG_ONLY( str << "  " << name << " (" << ToString(uint(core_id)) << ")\n"; )
+
 				scheduler.AddThread( ThreadMngr::CreateThread( ThreadConfig{
 						EThreadArray{ EThread::PerFrame },
-						"pf"s << (worker_only_threads > 1 ? '|' + ToString(i) : ""s)
-					}), GetPCoreId() );
+						RVRef(name)
+					}), core_id );
 			}
 
 			for (uint i = 0; i < render_only_threads; ++i)
 			{
+				ECpuCoreId	core_id = GetPCoreId();
+				String		name	= "rt"s << (render_only_threads > 1 ? '|' + ToString(i) : ""s);
+
+				DEBUG_ONLY( str << "  " << name << " (" << ToString(uint(core_id)) << ")\n"; )
+
 				scheduler.AddThread( ThreadMngr::CreateThread( ThreadConfig{
 						EThreadArray{ EThread::Renderer },
-						"rt"s << (render_only_threads > 1 ? '|' + ToString(i) : ""s)
-					}), GetPCoreId() );
+						RVRef(name)
+					}), core_id );
 			}
 
 			for (uint i = 0; i < worker_render_threads; ++i)
 			{
+				ECpuCoreId	core_id = GetPCoreId();
+				String		name	= "rt|pf"s << (worker_render_threads > 1 ? '|' + ToString(i) : ""s);
+
+				DEBUG_ONLY( str << "  " << name << " (" << ToString(uint(core_id)) << ")\n"; )
+
 				scheduler.AddThread( ThreadMngr::CreateThread( ThreadConfig{
 						EThreadArray{ EThread::Renderer, EThread::PerFrame },
-						"rt|pf"s << (worker_render_threads > 1 ? '|' + ToString(i) : ""s)
-					}), GetPCoreId() );
+						RVRef(name)
+					}), core_id );
 			}
 		}
 
@@ -440,23 +459,45 @@ namespace
 
 			for (uint i = 0; i < worker_background_threads; ++i)
 			{
+				ECpuCoreId	core_id = GetEECoreId();
+				String		name	= "pf|bg|io"s << (worker_background_threads > 1 ? '|' + ToString(i) : ""s);
+
+				DEBUG_ONLY( str << "  " << name << " (" << ToString(uint(core_id)) << ")\n"; )
+
 				scheduler.AddThread( ThreadMngr::CreateThread( ThreadConfig{
-						EThreadArray{ EThread::PerFrame, EThread::Background, EThread::FileIO },
-						"pf|bg|io"s << (worker_background_threads > 1 ? '|' + ToString(i) : ""s)
-					}), GetEECoreId() );
+						EThreadArray{ EThread::PerFrame, EThread::Background, EThread::IO },
+						RVRef(name)
+					}), core_id );
 			}
 
 			for (uint i = 0; i < background_only_threads; ++i)
 			{
+				ECpuCoreId	core_id = GetEECoreId();
+				String		name	= "bg|io"s << (background_only_threads > 1 ? '|' + ToString(i) : ""s);
+
+				DEBUG_ONLY( str << "  " << name << " (" << ToString(uint(core_id)) << ")\n"; )
+
 				scheduler.AddThread( ThreadMngr::CreateThread( ThreadConfig{
-						EThreadArray{ EThread::Background, EThread::FileIO },
-						"bg|io"s << (background_only_threads > 1 ? '|' + ToString(i) : ""s)
-					}), GetEECoreId() );
+						EThreadArray{ EThread::Background, EThread::IO },
+						RVRef(name)
+					}), core_id );
 			}
 		}
 
+		AE_LOG_DBG( str );
 		return true;
 	}
 
+/*
+=================================================
+	DefaultMask
+=================================================
+*/
+	EThreadArray  ThreadMngr::DefaultMask () __NE___
+	{
+		StaticAssert( uint(EThread::_Count) == 6 );
+		return EThreadArray{ EThread::Main, EThread::PerFrame, EThread::Renderer,
+							 EThread::Background, EThread::IO };
+	}
 
 } // AE::Threading

@@ -168,7 +168,7 @@ namespace AE::PipelineCompiler
 */
 	String  ObjectStorage::GetShaderExtensionsGLSL (INOUT Version2 &spirvVer, const EShaderStages stage, bool hasDebugInfo, ArrayView<ScriptFeatureSetPtr> features) __Th___
 	{
-		StaticAssert( Graphics::FeatureSet::GetFeatureCount() == 277 );
+		StaticAssert( Graphics::FeatureSet::GetFeatureCount() == 278 );
 
 		ASSERT( IsSingleBitSet( stage ));
 
@@ -996,6 +996,18 @@ namespace AE::PipelineCompiler
 			if ( supported.IsTrue() ) {
 				ext << "#extension GL_NV_shader_atomic_fp16_vector                 : require\n";
 				def << "#define AE_shader_atomic_fp16_vector 1\n";
+			}
+		}
+
+		// descriptor heap
+		{
+			FeatureSetCounter	supported;
+			for (auto& ptr : features) {
+				supported.Add( ptr->fs.descriptorHeap );
+			}
+			if ( supported.IsTrue() ) {
+				ext << "#extension GL_EXT_descriptor_heap                          : require\n";
+				def << "#define AE_descriptor_heap 1\n";
 			}
 		}
 

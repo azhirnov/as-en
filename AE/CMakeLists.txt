@@ -18,7 +18,7 @@ endif()
 #----------------------------------------------------------
 
 project( "AE"
-		 VERSION 26.2.311	# year, release per year, version
+		 VERSION 26.2.312	# year, release per year, version
 		 LANGUAGES C CXX
 		 DESCRIPTION "async game engine"
 		)
@@ -74,6 +74,7 @@ else()
 	add_subdirectory( "docs" )
 	add_subdirectory( "engine" )
 	add_subdirectory( "llm_tools" )
+	add_subdirectory( "rem_tools" )
 	add_subdirectory( "samples" )
 
 endif()

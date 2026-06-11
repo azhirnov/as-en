@@ -58,31 +58,35 @@ namespace AE::AppV1
 
 	// methods
 	protected:
-		explicit AppCoreV1 (const AppConfig &, RC<IBaseApp>)__NE___;
+		explicit AppCoreV1 (const AppConfig &, RC<IBaseApp>)			__NE___;
 	public:
-		~AppCoreV1 ()										__NE_OV;
+		~AppCoreV1 ()													__NE_OV;
 
-		ND_ AppConfig const&	GetConfig ()				C_NE___	{ return _config; }
-		ND_ IBaseApp &			GetBaseApp ()				__NE___	{ return *_impl; }
+		ND_ AppConfig const&	GetConfig ()							C_NE___	{ return _config; }
+		ND_ IBaseApp &			GetBaseApp ()							__NE___	{ return *_impl; }
 
-		ND_ auto const&			GetMainThreadMask ()		C_NE___	{ return _allowProcessInMain; }
+		ND_ auto const&			GetMainThreadMask ()					C_NE___	{ return _allowProcessInMain; }
 
 
 	// IAppListener //
-		void  OnStart (IApplication &)						__NE_OV;
-		void  OnStop  (IApplication &)						__NE_OV;
+		void  OnStart (IApplication &)									__NE_OV;
+		void  OnStop  (IApplication &)									__NE_OV;
 
-		void  BeforeWndUpdate (IApplication &)				__NE_OV;
-		void  AfterWndUpdate (IApplication &)				__NE_OV;
+		void  BeforeWndUpdate (IApplication &)							__NE_OV;
+		void  AfterWndUpdate (IApplication &)							__NE_OV;
 
 
 	protected:
-		ND_ bool  _OnStartImpl (IApplication &)				__NE___;
-			void  _CreateVRDevice (IApplication &)			__NE___;
+		ND_ bool  _OnStartImpl (IApplication &)							__NE___;
+
+			void  _CreateVRDevice (IApplication &,
+								   ArrayView<IVRSession::EDeviceType>)	__NE___;
+
+		ND_ bool  _InitGraphics (IApplication &,
+								 const Graphics::GraphicsCreateInfo &)	__NE___;
 
 	private:
-		ND_ bool  _InitGraphics (IApplication &)			__NE___;
-			void  _DestroyGraphics ()						__NE___;
+			void  _DestroyGraphics ()									__NE___;
 	};
 
 

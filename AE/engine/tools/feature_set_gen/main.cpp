@@ -531,6 +531,13 @@ static bool  GenMinMeshShader (ArrayView<FeatureSetInfo> fsInfo)
 */
 static bool  GenMinIndirectCommands (ArrayView<FeatureSetInfo> fsInfo)
 {
+	#define FS_LIST( _visitor_ ) \
+		_visitor_( deviceGeneratedCommands								)\
+		_visitor_( deviceGeneratedCommandsMultiDrawIndirectCount		)\
+		_visitor_( supportedIndirectCommandsShaderStages				)\
+		_visitor_( supportedIndirectCommandsShaderStagesPipelineBinding	)\
+		_visitor_( maxIndirectPipelineCount								)\
+
 	FeatureSet	min_fs;
 	String		comment;
 	bool		init	= false;
@@ -560,12 +567,12 @@ static bool  GenMinIndirectCommands (ArrayView<FeatureSetInfo> fsInfo)
 
 		if ( init )
 		{
-			min_fs.MergeMin( fs );
+			FS_LIST( FS_MERGE );
 		}
 		else
 		{
-			min_fs	= fs;
-			init	= true;
+			FS_LIST( FS_INIT );
+			init = true;
 		}
 
 		comment << "\t//\t" << info.name << "\n";
@@ -584,8 +591,8 @@ static bool  GenMinIndirectCommands (ArrayView<FeatureSetInfo> fsInfo)
 	//CHECK_ERR( init );
 
 	ValidateFS( INOUT min_fs );
-	min_fs.Validate();
-	IsValidFS( min_fs );
+	//min_fs.Validate();
+	//IsValidFS( min_fs );
 
 	comment << "\n";
 
@@ -594,6 +601,8 @@ static bool  GenMinIndirectCommands (ArrayView<FeatureSetInfo> fsInfo)
 
 	CHECK_ERR( FeatureSetToScript( dst_path, "MinIndirectCmds", min_fs, comment ));
 	return true;
+
+#undef FS_LIST
 }
 
 /*
@@ -923,6 +932,58 @@ static bool  GenMinMobilePowerVR (ArrayView<FeatureSetInfo> fsInfo)
 	dst_path.append( "min_mobile_pvr.as" );
 
 	CHECK_ERR( FeatureSetToScript( dst_path, "MinMobilePowerVR", min_fs, comment ));
+	return true;
+}
+
+/*
+=================================================
+	GenMinMobileMaleoon
+=================================================
+*/
+static bool  GenMinMobileMaleoon (ArrayView<FeatureSetInfo> fsInfo)
+{
+	FeatureSet	min_fs;
+	String		comment;
+	bool		init	= false;
+
+	min_fs.Init( EFeature::Ignore );
+
+	comment << "\t// include:\n";
+
+	for (auto& info : fsInfo)
+	{
+		const auto&	fs = info.fs;
+
+		if ( info.type != EType::Mobile or not fs.vendorIds.include.contains( EGPUVendor::Huawei ))
+			continue;
+
+		if ( init )
+		{
+			min_fs.MergeMin( fs );
+		}
+		else
+		{
+			min_fs	= fs;
+			init	= true;
+		}
+
+		comment << "\t//\t" << info.name << "\n";
+	}
+
+	CHECK_ERR( init );
+
+	min_fs.maxShaderVersion.metal = 0;
+
+	ValidateFS( INOUT min_fs );
+	min_fs.Validate();
+	IsValidFS( min_fs );
+
+	comment << "\n";
+
+	Path	dst_path = FEATURE_SET_FOLDER;
+	dst_path.append( "min_mobile_maleoon.as" );
+
+	CHECK_ERR( FeatureSetToScript( dst_path, "MinMobileMaleoon", min_fs, comment ));
 	return true;
 }
 
@@ -1708,6 +1769,7 @@ int main ()
 	CHECK_ERR( GenMinMobileAdreno			( fs_infos ),	-10 );
 	CHECK_ERR( GenMinMobilePowerVR			( fs_infos ),	-10 );
 	CHECK_ERR( GenMinApple					( fs_infos ),	-10 );
+	CHECK_ERR( GenMinMobileMaleoon			( fs_infos ),	-10 );
 	CHECK_ERR( GenMinMobileVR				( fs_infos ),	-10 );
 
 	// TODO:

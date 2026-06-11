@@ -120,7 +120,7 @@ namespace
 		}
 
 		Scheduler().AddThread( ThreadMngr::CreateThread( ThreadMngr::ThreadConfig{
-				EThreadArray{ EThread::PerFrame, EThread::Background, EThread::FileIO },
+				EThreadArray{ EThread::PerFrame, EThread::Background, EThread::IO },
 				"vfs"
 			}));
 

@@ -181,10 +181,10 @@ namespace AE::UI
 
 /*
 =================================================
-	SetActionBindings
+	SetActionBindingsRef
 =================================================
 */
-	void  Widget::SetActionBindings (const ActionMap_t &actions) __NE___
+	void  Widget::SetActionBindingsRef (const ActionMap_t &actions) __NE___
 	{
 		_actionMap = &actions;
 	}

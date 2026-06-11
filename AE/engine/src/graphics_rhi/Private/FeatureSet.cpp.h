@@ -941,14 +941,14 @@ namespace
 		const auto	neg_feat		= EFeature::Ignore;
 		const auto	invalid_pot		= POTValue::Invalid();
 
-		EShaderStages	all_stages = EShaderStages::All;
-		if ( fNotEq( computeShader,		 True ))	all_stages &= ~EShaderStages::Compute;
-		if ( fNotEq( geometryShader,	 True ))	all_stages &= ~EShaderStages::Geometry;
-		if ( fNotEq( tessellationShader, True ))	all_stages &= ~(EShaderStages::TessControl | EShaderStages::TessEvaluation);
-		if ( fNotEq( tileShader,		 True ))	all_stages &= ~EShaderStages::Tile;
-		if ( fNotEq( taskShader,		 True ))	all_stages &= ~EShaderStages::MeshTask;
-		if ( fNotEq( meshShader,		 True ))	all_stages &= ~EShaderStages::Mesh;
-		if ( fNotEq( rayTracingPipeline, True ))	all_stages &= ~EShaderStages::AllRayTracing;
+		EShaderStages	all_stages = EShaderStages::Fragment | EShaderStages::Vertex;
+		if ( fEqual( computeShader,		 True ))	all_stages |= EShaderStages::Compute;
+		if ( fEqual( geometryShader,	 True ))	all_stages |= EShaderStages::Geometry;
+		if ( fEqual( tessellationShader, True ))	all_stages |= EShaderStages::TessControl | EShaderStages::TessEvaluation;
+		if ( fEqual( tileShader,		 True ))	all_stages |= EShaderStages::Tile;
+		if ( fEqual( taskShader,		 True ))	all_stages |= EShaderStages::MeshTask;
+		if ( fEqual( meshShader,		 True ))	all_stages |= EShaderStages::Mesh;
+		if ( fEqual( rayTracingPipeline, True ))	all_stages |= EShaderStages::AllRayTracing;
 
 		if ( fEqual( subgroup, True ))
 		{
@@ -2012,7 +2012,7 @@ namespace {
 */
 	HashVal64  FeatureSet::GetHashOfFS_Precalculated () __NE___
 	{
-		return HashVal64{0x96e9152f88a7be58ull};
+		return HashVal64{0xef015e30145bf56aull};
 	}
 
 

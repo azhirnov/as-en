@@ -13,6 +13,7 @@ void ASmain ()
 	//	Adreno-740-1.3.128
 	//	Adreno-740-1.3.295
 	//	Adreno-830-1.3.284
+	//	Adreno-830-1.4.295-MS
 	//	Adreno-830-1.4.295
 	//	AdrenoX1-45-Win-1.3.295
 	//	AdrenoX1-85-Linux-1.4.305
@@ -30,7 +31,8 @@ void ASmain ()
 	//	Maleoon920-1.3.275
 	//	Maleoon920-1.3.309
 	//	Maleoon935-1.3.309
-	//	Mali-G1U-1.3.305
+	//	Mali-G1-1.3.305-Oppo
+	//	Mali-G1-1.3.305-Vivo
 	//	Mali-G52-1.1.191
 	//	Mali-G52-1.3.278
 	//	Mali-G52.1.1.149

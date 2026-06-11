@@ -56,6 +56,7 @@ namespace AE::Networking
 			IpAddress	addr;
 			if ( _client.Accept( _server, OUT addr ))
 			{
+				AE_LOGI( "connected "s << addr.ToString() );
 				return true;
 			}
 			ThreadUtils::MilliSleep( seconds{1} );
@@ -106,8 +107,10 @@ namespace AE::Networking
 		for (;;)
 		{
 			if ( _client.Connect( addr ))
+			{
+				AE_LOGI( "connected to server "s << addr.ToString() );
 				break;
-
+			}
 			ThreadUtils::MilliSleep( seconds{1} );
 		}
 		return _Init( bufferSize, factory );

@@ -1861,6 +1861,8 @@ namespace
 			const SimdHalf8		a3	= v.ToHalf();		Unused( a3 );
 		  #endif
 		}
+		TEST_PASSED();
+
 	#else
 		StaticAssert( not HasSimdType<SimdFloat4> );
 		AE_LOGI( "SimdFloat4 - not supported" );
@@ -1886,6 +1888,8 @@ namespace
 			const SimdInt4		a2	= SimdInt4{v.ToInt()};	Unused( a2 );
 		  #endif
 		}
+		TEST_PASSED();
+
 	#else
 		StaticAssert( not HasSimdType<SimdDouble2> );
 		AE_LOGI( "SimdDouble2 - not supported" );
@@ -1905,6 +1909,7 @@ namespace
 		Test_All< SimdByte8 >();
 		Test_All< SimdUByte8 >();
 
+		TEST_PASSED();
 	#else
 		StaticAssert( not HasSimdType<SimdByte8> );
 		StaticAssert( not HasSimdType<SimdUByte8> );
@@ -1925,6 +1930,7 @@ namespace
 		Test_All< SimdShort4 >();
 		Test_All< SimdUShort4 >();
 
+		TEST_PASSED();
 	#else
 		StaticAssert( not HasSimdType<SimdShort4> );
 		StaticAssert( not HasSimdType<SimdUShort4> );
@@ -1945,6 +1951,7 @@ namespace
 		Test_All< SimdInt2 >();
 		Test_All< SimdUInt2 >();
 
+		TEST_PASSED();
 	#else
 		StaticAssert( not HasSimdType<SimdInt2> );
 		StaticAssert( not HasSimdType<SimdUInt2> );
@@ -2000,6 +2007,8 @@ namespace
 			const SimdLong2		e7 = v.ToLong<7>();			Unused( e0, e1, e2, e3, e4, e5, e6, e7 );
 		}
 		#endif
+
+		TEST_PASSED();
 	#else
 		StaticAssert( not HasSimdType<SimdByte16> );
 		StaticAssert( not HasSimdType<SimdUByte16> );
@@ -2041,6 +2050,8 @@ namespace
 			const SimdLong2		e3 = v.ToLong<3>();			Unused( e0, e1, e2, e3 );
 		}
 		#endif
+
+		TEST_PASSED();
 	#else
 		StaticAssert( not HasSimdType<SimdShort8> );
 		StaticAssert( not HasSimdType<SimdUShort8> );
@@ -2081,6 +2092,7 @@ namespace
 			TEST(All( packed_ulong2{b1} == packed_ulong2{9, 12} ));
 		}*/
 
+		TEST_PASSED();
 	#else
 		StaticAssert( not HasSimdType<SimdInt4> );
 		StaticAssert( not HasSimdType<SimdUInt4> );
@@ -2119,6 +2131,7 @@ namespace
 			TEST(All( packed_ulong2{a5} == packed_ulong2{y, y} ));
 		}
 
+		TEST_PASSED();
 	#else
 		StaticAssert( not HasSimdType<SimdLong2> );
 		StaticAssert( not HasSimdType<SimdULong2> );
@@ -2147,6 +2160,8 @@ namespace
 			const SimdDouble4	a2 = v.ToDouble<0>();
 			const SimdDouble4	a3 = v.ToDouble<1>();		Unused( a2, a3 );
 		}
+
+		TEST_PASSED();
 	#else
 		StaticAssert( not HasSimdType<SimdFloat8> );
 		AE_LOGI( "SimdFloat8 - not supported" );
@@ -2172,6 +2187,8 @@ namespace
 			const SimdInt4		a1 = v.ToInt();			Unused( a1 );
 		  #endif
 		}
+
+		TEST_PASSED();
 	#else
 		StaticAssert( not HasSimdType<SimdDouble4> );
 		AE_LOGI( "SimdDouble4 - not supported" );
@@ -2226,6 +2243,8 @@ namespace
 			const SimdLong4		e7 = v.ToLong<7>();			Unused( e0, e1, e2, e3, e4, e5, e6, e7 );
 		}
 		#endif
+
+		TEST_PASSED();
 	#else
 		StaticAssert( not HasSimdType<SimdByte32> );
 		StaticAssert( not HasSimdType<SimdUByte32> );
@@ -2267,6 +2286,8 @@ namespace
 			const SimdLong4		e3 = v.ToLong<3>();			Unused( e0, e1, e2, e3 );
 		}
 		#endif
+
+		TEST_PASSED();
 	#else
 		StaticAssert( not HasSimdType<SimdShort16> );
 		StaticAssert( not HasSimdType<SimdUShort16> );
@@ -2300,6 +2321,8 @@ namespace
 			const SimdLong4		e1 = v.ToLong<1>();			Unused( e0, e1 );
 		  #endif
 		}
+
+		TEST_PASSED();
 	#else
 		StaticAssert( not HasSimdType<SimdInt8> );
 		StaticAssert( not HasSimdType<SimdUInt8> );
@@ -2320,6 +2343,7 @@ namespace
 		Test_All< SimdLong4 >();
 		Test_All< SimdULong4 >();
 
+		TEST_PASSED();
 	#else
 		StaticAssert( not HasSimdType<SimdLong4> );
 		StaticAssert( not HasSimdType<SimdULong4> );
@@ -2338,6 +2362,7 @@ namespace
 
 		Test_All< SimdHalf4 >();
 
+		TEST_PASSED();
 	#else
 		StaticAssert( not HasSimdType<SimdHalf4> );
 		AE_LOGI( "SimdHalf4 - not supported" );
@@ -2369,6 +2394,8 @@ namespace
 			TEST( All(BitEqual( packed_float4{b2}, packed_float4{1.1f, 2.2f, 3.3f, 4.4f}, acc )));
 			TEST( All(BitEqual( packed_float4{b3}, packed_float4{5.5f, 6.6f, 7.7f, 8.8f}, acc )));
 		}
+		TEST_PASSED();
+
 	#else
 		StaticAssert( not HasSimdType<SimdHalf8> );
 		AE_LOGI( "SimdHalf8 - not supported" );
@@ -2386,6 +2413,7 @@ namespace
 
 		Test_All< SimdHalf16 >();
 
+		TEST_PASSED();
 	#else
 		StaticAssert( not HasSimdType<SimdHalf16> );
 		AE_LOGI( "SimdHalf16 - not supported" );
@@ -2465,6 +2493,8 @@ namespace
 			CHECK_Eq( c[2], ref[2] );
 			CHECK_Eq( c[3], ref[3] );
 		}
+
+		TEST_PASSED();
 	#endif
 	}
 
@@ -2558,6 +2588,8 @@ namespace
 		#endif
 
 		SimdRuntimeConfig::SetState( prev_state );
+
+		TEST_PASSED();
 	#endif
 	}
 }

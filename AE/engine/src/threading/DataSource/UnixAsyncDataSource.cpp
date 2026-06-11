@@ -216,7 +216,8 @@ namespace AE::Threading
 	UnixAsyncRDataSource::UnixAsyncRDataSource (Handle_t file, EMode mode DEBUG_ONLY(, Path filename)) __NE___ :
 		_file{ file },
 		_fileSize{ GetFileSize( _file )},
-		_mode{ mode }
+		_mode{ mode },
+		_align{ GetDirectAccessAlign( _file )}
 		DEBUG_ONLY(, _filename{ FileSystem::ToAbsolute( filename )})
 	{}
 
@@ -285,7 +286,8 @@ namespace AE::Threading
 =================================================
 */
 	UnixAsyncWDataSource::UnixAsyncWDataSource (Handle_t file, EMode DEBUG_ONLY(, Path filename)) __NE___ :
-		_file{ file }
+		_file{ file },
+		_align{ GetDirectAccessAlign( _file )}
 		DEBUG_ONLY(, _filename{ FileSystem::ToAbsolute( filename )})
 	{}
 

@@ -44,6 +44,9 @@ void ASmain (WinAPI_ActionBindings& bindings)
 				  ActionInfo( "Touch.Move", EValueType::Float2, EGestureType::Move ));
 		bind.Add( WinAPI_Input::TouchPos,
 				  ActionInfo( "Touch.Click", EValueType::Float2, EGestureType::Click ));
+
+		bind.Add( WinAPI_Input::RawChar,
+				  ActionInfo( "UI.Char", EValueType::Chars ));
 	}
 
 	// Camera3D bindings

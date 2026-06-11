@@ -203,6 +203,7 @@ namespace AE::Graphics
 				_Coro_::AsyncTaskImpl::TaskDependencyManagerApi::SetDependencyCompletionStatus( *dep, False{"not canceled"} );
 			}
 			_onCompleteDeps.clear();
+			CHECK( _status.Set( EStatus::Submitted, EStatus::Completed ));
 		}
 
 		GFX_DBG_ONLY(
@@ -210,8 +211,6 @@ namespace AE::Graphics
 				_profiler->BatchComplete( this );
 			_profiler = null;
 		)
-
-		CHECK( _status.Set( EStatus::Submitted, EStatus::Completed ));
 	}
 
 /*
@@ -271,9 +270,8 @@ namespace AE::Graphics
 		CHECK_ERR( sem );
 	  #endif
 
-		CHECK_ERR( not IsSubmitted() );
-
 		EXLOCK( _gpuInDepsGuard );
+		CHECK_ERR( not IsSubmitted() );
 		CHECK_ERR( not _gpuInDeps.IsFull() );
 
 		auto&	val = _gpuInDeps.emplace( sem, value ).first->second;
@@ -337,9 +335,8 @@ namespace AE::Graphics
 		CHECK_ERR( sem );
 	  #endif
 
-		CHECK_ERR( not IsSubmitted() );
-
 		EXLOCK( _gpuOutDepsGuard );
+		CHECK_ERR( not IsSubmitted() );
 		CHECK_ERR( not _gpuOutDeps.IsFull() );
 
 		auto&	val = _gpuOutDeps.emplace( sem, value ).first->second;

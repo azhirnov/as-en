@@ -18,13 +18,22 @@
 
 namespace AE::Base
 {
+namespace _hidden_
+{
+	template <typename T>
+	struct PackedPtr_Align { static constexpr usize  value = alignof(T); };
+
+	template <>
+	struct PackedPtr_Align<void> { static constexpr usize  value = 1; };
+}
+
 
 	//
 	// Packed Pointer
 	//
 
 	template <typename T,
-			  usize Align_v>
+			  usize Align_v = Base::_hidden_::PackedPtr_Align<T>::value >
 	class PackedPtr
 	{
 		StaticAssert( IsPowerOfTwo( Align_v ));
@@ -60,7 +69,7 @@ namespace AE::Base
 		ND_ T*			Ptr ()							__NE___	{ return BitCast<T*>( (_value & _PtrMask) << _AlignPOT ); }
 		ND_ T const*	Ptr ()							C_NE___	{ return BitCast<T const*>( (_value & _PtrMask) << _AlignPOT ); }
 
-			void		Ptr (T* value)					__NE___;
+			void		SetPtr (T* value)				__NE___;
 
 		ND_ usize		Extra ()						C_NE___	{ return _value >> _PtrBits; }
 			void		SetExtra (usize value)			__NE___;
@@ -73,11 +82,11 @@ namespace AE::Base
 
 /*
 =================================================
-	Ptr
+	SetPtr
 =================================================
 */
 	template <typename T, usize A>
-	void  PackedPtr<T,A>::Ptr (T* value) __NE___
+	void  PackedPtr<T,A>::SetPtr (T* value) __NE___
 	{
 		usize	v = usize(value);
 		ASSERT( IsMultipleOf( v, A ));
@@ -85,7 +94,7 @@ namespace AE::Base
 		v >>= _AlignPOT;
 		ASSERT( v <= _PtrMask );
 
-		_value &= _PtrMask;
+		_value &= ~_PtrMask;  // remove ptr
 		_value |= (v & _PtrMask);
 	}
 
@@ -100,7 +109,7 @@ namespace AE::Base
 		ASSERT( value <= _ExtraMax );
 		StaticAssert( _ExtraMax > 0 );
 
-		_value &= ~_PtrMask;	// remove extra
+		_value &= _PtrMask;	// remove extra
 		_value |= value << _PtrBits;
 	}
 

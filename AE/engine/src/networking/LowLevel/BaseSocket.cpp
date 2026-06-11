@@ -37,6 +37,8 @@ namespace AE::Networking
 */
 	void  BaseSocket::Close () __NE___
 	{
+		DRC_EXLOCK( _drCheck );
+
 		if ( _handle != Default )
 		{
 			#if defined(AE_WINDOWS_SOCKET)
@@ -64,6 +66,8 @@ namespace AE::Networking
 */
 	void  BaseSocket::FastClose () __NE___
 	{
+		DRC_EXLOCK( _drCheck );
+
 		if ( _handle != Default )
 		{
 			struct linger		so_linger;
@@ -82,6 +86,8 @@ namespace AE::Networking
 */
 	void  BaseSocket::BlockingClose () __NE___
 	{
+		DRC_EXLOCK( _drCheck );
+
 		if ( _handle != Default )
 		{
 			Unused( _SetBlocking() );
@@ -158,6 +164,8 @@ namespace AE::Networking
 */
 	bool  BaseSocket::IsNonBlocking () C_NE___
 	{
+		DRC_EXLOCK( _drCheck );
+
 	#if defined(AE_WINDOWS_SOCKET)
 		// TODO
 		return true;
@@ -202,6 +210,7 @@ namespace AE::Networking
 */
 	Bytes  BaseSocket::GetSendBufferSize () C_NE___
 	{
+		DRC_EXLOCK( _drCheck );
 		ASSERT( IsOpen() );
 
 		int			buf_size	= 0;
@@ -240,6 +249,7 @@ namespace AE::Networking
 */
 	Bytes  BaseSocket::GetReceiveBufferSize () C_NE___
 	{
+		DRC_EXLOCK( _drCheck );
 		ASSERT( IsOpen() );
 
 		int			buf_size	= 0;
@@ -259,6 +269,7 @@ namespace AE::Networking
 	template <typename NativeAddress, typename AddressType>
 	bool  BaseSocket::_GetAddress (OUT AddressType &outAddr) C_NE___
 	{
+		DRC_EXLOCK( _drCheck );
 		CHECK_ERR( IsOpen() );
 
 		NativeAddress	addr;

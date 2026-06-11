@@ -196,7 +196,7 @@ namespace AE::LangModel
 
 	public:
 		ImageStorage ()						__NE___ {}
-		ImageStorage (ImageStorage &&other)	__NE___ : _ptr{other._ptr} { other._ptr = null; }
+		ImageStorage (ImageStorage &&other)	__NE___;
 		~ImageStorage ()					__NE___;
 
 		ND_ bool  Allocate ()				__NE___;
@@ -212,16 +212,43 @@ namespace AE::LangModel
 	struct ImageGenParams
 	{
 	public:
-		String					prompt;							// text to image mode
-		String					negativePrompt;
+		U8String				prompt;							// text to image mode
+		U8String				negativePrompt;
 
 		uint2					dim;
 		uint					seed				= 0;
+		uint					resultCount			= 1;
 
-		ImageRef				initImage;						// image to image mode
-		ImageRef				maskImage;
+		// image to image mode
+		// init image is being noised and transformed
+		ImageRef				initImage;
 		float					initImageStrength	= 1.f;		// 0 - tries to preserve the input almost entirely,
 																// 1 - behaves close to pure text-to-image
+		// define which part of 'initImage' will be modified
+		ImageRef				maskImage;
+
+		// use cases:
+		// * pose transfer  - prompt contains character, control image contains pose
+		// * edge-guided generation  - control image define edges of objects
+		// * depth-guided generation  - bright texels - near, dark - far, used to define object placement, perspective, camera feel.
+		// loaded model must support control image, otherwise it is ignored.
+		ImageRef				controlImage;
+		float					controlStrength		= 1.f;		// 0 - losely follows control image
+																// 1 - closely follows control image
+
+		// images that generation can use as references/guidance, instead of using only text prompt or single init image.
+		// purposes:
+		//  * style reference
+		//  * combine several reference images
+		//  * keep a character/object closer to reference images across generations
+		Array<ImageRef>			refImages;
+
+		// automatically resize reference images to match expected dimensions
+		bool					autoResizeRefImage	= true;
+
+		// 'false' - use the same reference images for every generated image
+		// 'true'  - move to the next reference image as generation proceeds, so 'refImages' should equal to 'resultCount'
+		bool					increaseRefIndex	= false;
 
 	protected:
 		const EImplementation	_type;

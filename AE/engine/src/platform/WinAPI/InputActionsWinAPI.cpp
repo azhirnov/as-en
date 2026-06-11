@@ -248,8 +248,22 @@ namespace
 					{
 						constexpr auto	id		= ControllerID::Keyboard;
 						const auto&		kb		= p_data->data.keyboard;
-						const uint		code	= kb.VKey << (kb.Flags & RI_KEY_E0 ? 8 : 0); //(kb.Flags & RI_KEY_E1 ? 16 : 0));
 						const bool		down	= (kb.Flags & RI_KEY_BREAK) == 0;
+
+					#if 0	// TODO: use scan codes
+						uint			code	= kb.MakeCode;
+
+						if_unlikely( code == 0 )
+							code = ::MapVirtualKeyW( kb.VKey, MAPVK_VK_TO_VSC_EX );
+
+						if ( kb.Flags & RI_KEY_E0 )
+							code |= 0xE000;
+
+						if ( kb.Flags & RI_KEY_E1 )
+							code |= 0xE100;
+					#else
+						const uint		code	= kb.VKey << (kb.Flags & RI_KEY_E0 ? 8 : 0); //(kb.Flags & RI_KEY_E1 ? 16 : 0));
+					#endif
 
 						ASSERT( code >= uint(EInputType::KeyBegin) and code <= uint(EInputType::KeyEnd) );
 

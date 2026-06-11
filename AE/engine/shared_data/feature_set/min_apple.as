@@ -4,6 +4,8 @@
 void ASmain ()
 {
 	// include:
+	//	Apple-M1-1.1.224
+	//	Apple-M1-1.2.296
 	//	Apple-M1-1.4.323
 	//	Apple-M2-1.4.323
 	//	Apple-M3-1.4.323
@@ -61,14 +63,12 @@ void ASmain ()
 		EShaderStages::Compute
 	));
 	fset.subgroupQuadStages(EShaderStages(
-		EShaderStages::Vertex | 
 		EShaderStages::Fragment | 
 		EShaderStages::Compute
 	));
 	fset.minSubgroupSize (4);
 	fset.maxSubgroupSize (4);
 	fset.subgroup (True);
-	fset.subgroupBroadcastDynamicId (True);
 	fset.subgroupSizeControl (True);
 	fset.shaderInt8 (True);
 	fset.shaderInt16 (True);
@@ -84,10 +84,7 @@ void ASmain ()
 	fset.storagePushConstant8 (True);
 	fset.fragmentStoresAndAtomics (True);
 	fset.vertexPipelineStoresAndAtomics (True);
-	fset.shaderOutputViewportIndex (True);
-	fset.shaderOutputLayer (True);
 	fset.shaderClipDistance (True);
-	fset.shaderDrawParameters (True);
 	fset.runtimeDescriptorArray (True);
 	fset.shaderSampleRateInterpolationFunctions (True);
 	fset.shaderStencilExport (True);
@@ -104,8 +101,7 @@ void ASmain ()
 	fset.shaderStorageTexelBufferArrayNonUniformIndexing (True);
 	fset.shaderStorageImageReadWithoutFormat (True);
 	fset.shaderStorageImageWriteWithoutFormat (True);
-	fset.shaderDemoteToHelperInvocation (True);
-	fset.maxSpirvVersion (140);
+	fset.maxSpirvVersion (130);
 	fset.maxMetalVersion (230);
 	fset.drawIndirectFirstInstance (True);
 	fset.maxDrawIndirectCount (1 << 30);
@@ -123,7 +119,7 @@ void ASmain ()
 	fset.perPipeline_maxStorageBuffers (155);
 	fset.perPipeline_maxStorageImages (40);
 	fset.perPipeline_maxUniformBuffers (155);
-	fset.perPipeline_maxTotalResources (1024);
+	fset.perPipeline_maxTotalResources (700);
 	fset.perStage_maxInputAttachments (96);
 	fset.perStage_maxSampledImages (96);
 	fset.perStage_maxSamplers (16);
@@ -207,14 +203,13 @@ void ASmain ()
 		EPixelFormat::RGBA16_SNorm, EPixelFormat::RGBA8_SNorm, EPixelFormat::RG16_SNorm, EPixelFormat::RG8_SNorm, 
 		EPixelFormat::R16_SNorm, EPixelFormat::R8_SNorm, EPixelFormat::RGBA16_UNorm, EPixelFormat::RGBA8_UNorm, 
 		EPixelFormat::RG16_UNorm, EPixelFormat::RG8_UNorm, EPixelFormat::R16_UNorm, EPixelFormat::R8_UNorm, 
-		EPixelFormat::RGB10_A2_UNorm, EPixelFormat::BGRA8_UNorm, EPixelFormat::sRGB8_A8, EPixelFormat::sBGR8_A8, 
-		EPixelFormat::R8I, EPixelFormat::RG8I, EPixelFormat::RGBA8I, EPixelFormat::R16I, 
-		EPixelFormat::RG16I, EPixelFormat::RGBA16I, EPixelFormat::R32I, EPixelFormat::RG32I, 
-		EPixelFormat::RGBA32I, EPixelFormat::R8U, EPixelFormat::RG8U, EPixelFormat::RGBA8U, 
-		EPixelFormat::R16U, EPixelFormat::RG16U, EPixelFormat::RGBA16U, EPixelFormat::R32U, 
-		EPixelFormat::RG32U, EPixelFormat::RGBA32U, EPixelFormat::RGB10_A2U, EPixelFormat::R16F, 
-		EPixelFormat::RG16F, EPixelFormat::RGBA16F, EPixelFormat::R32F, EPixelFormat::RG32F, 
-		EPixelFormat::RGBA32F, EPixelFormat::R11G11B10F
+		EPixelFormat::RGB10_A2_UNorm, EPixelFormat::BGRA8_UNorm, EPixelFormat::R8I, EPixelFormat::RG8I, 
+		EPixelFormat::RGBA8I, EPixelFormat::R16I, EPixelFormat::RG16I, EPixelFormat::RGBA16I, 
+		EPixelFormat::R32I, EPixelFormat::RG32I, EPixelFormat::RGBA32I, EPixelFormat::R8U, 
+		EPixelFormat::RG8U, EPixelFormat::RGBA8U, EPixelFormat::R16U, EPixelFormat::RG16U, 
+		EPixelFormat::RGBA16U, EPixelFormat::R32U, EPixelFormat::RG32U, EPixelFormat::RGBA32U, 
+		EPixelFormat::RGB10_A2U, EPixelFormat::R16F, EPixelFormat::RG16F, EPixelFormat::RGBA16F, 
+		EPixelFormat::R32F, EPixelFormat::RG32F, EPixelFormat::RGBA32F, EPixelFormat::R11G11B10F
 	});
 	fset.AddTexelFormats( EFormatFeature::AttachmentBlend, {
 		EPixelFormat::RGBA16_SNorm, EPixelFormat::RGBA8_SNorm, EPixelFormat::RG16_SNorm, EPixelFormat::RG8_SNorm, 

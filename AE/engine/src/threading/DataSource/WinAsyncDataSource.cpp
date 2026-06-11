@@ -35,11 +35,11 @@ namespace
 		{
 			// Check:
 			//	* If used 'AppV1::AppConfig':
-			//		- 'threading.mask' must contains 'EThread::FileIO'.
+			//		- 'threading.mask' must contains 'EThread::IO'.
 			//		- 'threading.maxIOAccessThreads' must be >= 1.
 			//	* If used 'ThreadMngr::SetupThreads()':
 			//		- 'TaskScheduler::Config.maxIOAccessThreads' must be >= 1.
-			//		- 'mask' must contains 'EThread::FileIO'.
+			//		- 'mask' must contains 'EThread::IO'.
 
 			AE_LOGW( "FileIOService is not initialized" );
 			return false;	// error

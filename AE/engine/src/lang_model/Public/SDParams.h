@@ -109,7 +109,6 @@ namespace AE::LangModel::SD
 	{
 		SampleParams		sample;
 		SampleGuidance		guidance;
-		uint				resultCount		= 1;
 
 	// methods
 		ImageGenParams ()						__NE___ : LangModel::ImageGenParams{ EImplementation::StableDiffusion } {}

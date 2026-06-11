@@ -34,7 +34,7 @@
 			scene.Set( camera );
 		}
 
-		// create cube
+		// create cylinder
 		{
 			RC<Mesh>	mesh = Mesh();
 			mesh.SetAttributes( EAttribute::Position | EAttribute::Texcoord2D | EAttribute::TBN );

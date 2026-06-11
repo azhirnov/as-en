@@ -56,26 +56,3 @@
 	StaticAssert( offsetof(VB_UVf2_Col8, Color) == 8 );
 	StaticAssert( sizeof(VB_UVf2_Col8) == 12 );
 
-#ifndef sdf_font_ublock_DEFINED
-#	define sdf_font_ublock_DEFINED
-	// size: 48, align: 16
-	struct sdf_font_ublock
-	{
-		static constexpr auto   TypeName = ShaderStructName{HashVal32{0x5a07d037u}};
-
-		float2  rotation0;
-		float2  rotation1;
-		float   sdfScale;
-		float   sdfBias;
-		float   pxRange;
-		float4  bgColor;
-	};
-#endif
-	StaticAssert( offsetof(sdf_font_ublock, rotation0) == 0 );
-	StaticAssert( offsetof(sdf_font_ublock, rotation1) == 8 );
-	StaticAssert( offsetof(sdf_font_ublock, sdfScale) == 16 );
-	StaticAssert( offsetof(sdf_font_ublock, sdfBias) == 20 );
-	StaticAssert( offsetof(sdf_font_ublock, pxRange) == 24 );
-	StaticAssert( offsetof(sdf_font_ublock, bgColor) == 32 );
-	StaticAssert( sizeof(sdf_font_ublock) == 48 );
-

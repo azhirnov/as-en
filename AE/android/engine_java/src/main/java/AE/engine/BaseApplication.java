@@ -53,12 +53,14 @@ public class BaseApplication
 		File	internalCache	= getCacheDir();
 		File	externalPath	= getExternalFilesDir(null);
 		File	externalCache	= getExternalCacheDir();
+		File	sharedData		= Environment.getExternalStorageDirectory();
 
 		native_SetDirectories(
 			(internalPath	== null ? "" : internalPath .getAbsolutePath()),
 			(internalCache	== null ? "" : internalCache.getAbsolutePath()),
 			(externalPath	== null ? "" : externalPath .getAbsolutePath()),
-			(externalCache	== null ? "" : externalCache.getAbsolutePath()) );
+			(externalCache	== null ? "" : externalCache.getAbsolutePath()),
+			(sharedData     == null ? "" : sharedData   .getAbsolutePath()) );
 	}
 
 	private void  _SendSystemInfo ()
@@ -230,7 +232,7 @@ public class BaseApplication
 // native
 
 	private static native void  native_OnCreate (Object app, Object assetMngr, boolean isUnderDebugger);
-	private static native void  native_SetDirectories (String internal, String internalCache, String external, String externalCache);
+	private static native void  native_SetDirectories (String internal, String internalCache, String external, String externalCache, String externalStorage);
 	private static native void  native_SetSystemInfo (String iso3Lang0, String iso3Lang1);
 	private static native void  native_SetDisplayInfo (int minWidth, int minHeight, int maxWidth, int maxHeight,
 													   float dpi, int refreshRate, int orientation,

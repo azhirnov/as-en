@@ -1240,6 +1240,10 @@ namespace
 		{
 			const auto			core_bits	 = core.physicalBits;
 			const uint			thread_count = Min( max_threads, uint(core_bits.count()) );
+
+			if ( thread_count <= 1 )
+				return;
+
 			IntervalProfiler	profiler{ "SIMD test, "s << ToString(thread_count) << "T, " << ToString(thread_count) <<
 										  "C, on " << ToString( core.type ) << " core",
 										  IntervalProfiler::EFlags::SortByTime };
@@ -1266,6 +1270,10 @@ namespace
 
 			const auto			core_bits	 = core.logicalBits;
 			const uint			thread_count = Min( max_threads, uint(core_bits.count()) );
+
+			if ( thread_count <= 1 )
+				return;
+
 			IntervalProfiler	profiler{ "SIMD test, "s << ToString(thread_count) << "T, " << ToString(thread_count/2) <<
 										  "C, on " << ToString( core.type ) << " core",
 										  IntervalProfiler::EFlags::SortByTime };

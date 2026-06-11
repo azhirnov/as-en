@@ -13,6 +13,7 @@ void ASmain ()
 	//	Adreno-740-1.3.128
 	//	Adreno-740-1.3.295
 	//	Adreno-830-1.3.284
+	//	Adreno-830-1.4.295-MS
 	//	Adreno-830-1.4.295
 	//	AdrenoX1-45-Win-1.3.295
 	//	AdrenoX1-85-Linux-1.4.305

@@ -4,14 +4,18 @@
 void ASmain ()
 {
 	// include:
+	//	Apple-M1-1.1.224
+	//	Apple-M1-1.2.296
 	//	Apple-M1-1.4.323
 	//	Apple-M2-1.4.323
 	//	Apple-M3-1.4.323
 	//	Apple-M4-1.4.329
 	//	Lin-AMD-RDNA3-780M-1.4.313
 	//	Lin-NV-RTX2000-1.4.312
+	//	Mesa-Adreno-X1-85-1.4.305
 	//	Mesa-AMD-GCN4-RX580-1.4.318
 	//	Mesa-AMD-RDNA3-780M-1.4.328
+	//	Mesa-AMD-RDNA3.5-1.4.340-8060S
 	//	Mesa-AMD-RDNA3.5-890M-1.4.318
 	//	Mesa-AMD-RDNA4-1.4.328
 	//	Mesa-Intel-Arc-1.4.318
@@ -19,15 +23,18 @@ void ASmain ()
 	//	Mesa-Intel-Gen9.5-1.4.311
 	//	Mesa-Intel-Xe1-1.4.328
 	//	Mesa-Intel-Xe2-1.4.318
+	//	Win-Adreno-X1-45-1.3.295
 	//	Win-Adreno-X1-85-1.3.295
 	//	Win-AMD-GCN4-RX580-1.4.264
 	//	Win-AMD-GCN5-IIV-1.3.260
 	//	Win-AMD-GCN5-RXVega10-1.3.260
 	//	Win-AMD-GCN5-RXVega56-1.3.264
+	//	Win-AMD-RDNA1-1.2.196
 	//	Win-AMD-RDNA1-1.4.315
 	//	Win-AMD-RDNA2-1.4.315
 	//	Win-AMD-RDNA2-610M-1.4.315
 	//	Win-AMD-RDNA3-1.4.315
+	//	Win-AMD-RDNA3-780M-1.3.237
 	//	Win-AMD-RDNA3-780M-1.4.329
 	//	Win-AMD-RDNA3.5-8060S-1.4.325
 	//	Win-AMD-RDNA3.5-890M-1.4.329
@@ -49,10 +56,13 @@ void ASmain ()
 	//	Win-NV-GTX800-1.4.329
 	//	Win-NV-GTX900-1.4.312
 	//	Win-NV-MX150-1.4.312
+	//	Win-NV-RTX2000-1.2.168
+	//	Win-NV-RTX2000-1.3.224
 	//	Win-NV-RTX2000-1.4.312
 	//	Win-NV-RTX3000-1.4.328
 	//	Win-NV-RTX4000-1.4.328
 	//	Win-NV-RTX5000-1.4.319
+	//	Win-NV-RTX5000-1.4.325
 	//	Adreno-660-1.1.128
 	//	Adreno-660-1.1.276
 	//	Adreno-660-1.1.295
@@ -60,6 +70,7 @@ void ASmain ()
 	//	Adreno-740-1.3.128
 	//	Adreno-740-1.3.295
 	//	Adreno-830-1.3.284
+	//	Adreno-830-1.4.295-MS
 	//	Adreno-830-1.4.295
 	//	AdrenoX1-45-Win-1.3.295
 	//	AdrenoX1-85-Linux-1.4.305
@@ -77,7 +88,8 @@ void ASmain ()
 	//	Maleoon920-1.3.275
 	//	Maleoon920-1.3.309
 	//	Maleoon935-1.3.309
-	//	Mali-G1U-1.3.305
+	//	Mali-G1-1.3.305-Oppo
+	//	Mali-G1-1.3.305-Vivo
 	//	Mali-G57-1.1.191
 	//	Mali-G57-1.3.225
 	//	Mali-G57-1.3.283

@@ -53,6 +53,7 @@ namespace AE::Networking
 		ND_ ulong	ToULong ()							C_NE___	{ return ulong{_address} | (ulong{_port} << 32); }
 
 			void	SetPort (ushort value)				__NE___	{ _port = value; }
+		ND_ auto&	EditAddress ()						__NE___	{ return _addressBits; }
 
 		ND_ bool	operator == (const IpAddress &rhs)	C_NE___	{ return (_address == rhs._address) and (_port == rhs._port); }
 		ND_ bool	operator <  (const IpAddress &rhs)	C_NE___	{ return _address == rhs._address ? _port < rhs._port : _address < rhs._address; }

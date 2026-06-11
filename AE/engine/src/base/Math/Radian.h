@@ -164,6 +164,8 @@ namespace AE::Base
 ----
 	result in range [-Pi/2 ... Pi/2],
 	result is undefined if abs(x) > 1
+----
+	for right-angled triangle angle it is opposite catheter div by hypotenuse
 =================================================
 */
 	template <typename T>
@@ -180,6 +182,8 @@ namespace AE::Base
 ----
 	result in range [0 .. Pi],
 	result is undefined if abs(x) > 1
+----
+	for right-angled triangle angle it is adjacent catheter div by hypotenuse
 =================================================
 */
 	template <typename T>
@@ -284,6 +288,13 @@ namespace AE::Base
 	ATan
 ----
 	result in range [-Pi/2 ... Pi/2], result is undefined if y_over_x == 0
+----
+	for right-angled triangle angle: opposite catheter div by adjacent catheter
+
+	    /|
+	  /  | y	a = ATan( y / x )
+  a /____|
+	  x
 =================================================
 */
 	template <typename T>

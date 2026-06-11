@@ -45,7 +45,7 @@ namespace
 		{
 			cfg.threading.maxThreads			= 1;
 			cfg.threading.maxIOAccessThreads	= 1;
-			cfg.threading.mask					= { EThread::PerFrame, EThread::Renderer, EThread::Background, EThread::FileIO };
+			cfg.threading.mask					= { EThread::PerFrame, EThread::Renderer, EThread::Background, EThread::IO };
 		}
 
 		// graphics
@@ -81,7 +81,7 @@ namespace
 
 		// VR
 		{
-			cfg.enableVR		= true;
+			cfg.enableVR		= false;
 			cfg.onlyVR			= true;
 			cfg.vr.dimension	= {1024, 1024};
 			cfg.vr.colorFormat	= EPixelFormat::RGBA8_UNorm;

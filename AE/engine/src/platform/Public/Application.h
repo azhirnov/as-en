@@ -26,14 +26,6 @@
 
 namespace AE::App
 {
-	enum class EAppStorage
-	{
-		Builtin,		// read-only
-		Cache,			// read / write / execute
-		ExternalCache,	// read / write
-		//AppData
-	};
-
 
 	//
 	// Application interface
@@ -54,6 +46,10 @@ namespace AE::App
 		// interface
 		public:
 			virtual ~IAppListener ()							__NE___	{}
+
+			// Used to store app data.
+			// You can use same name to share configs between apps.
+			virtual String  GetAppName ()						__NE___	{ return "as-en"; }
 
 			//   Thread safe: main thread only
 			virtual void  BeforeWndUpdate (IApplication &)		__NE___ = 0;

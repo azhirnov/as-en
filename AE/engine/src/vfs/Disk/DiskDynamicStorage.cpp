@@ -50,6 +50,7 @@ namespace AE::VFS
 		TRY{
 			auto	cur_time = TimePoint_t::clock::now();
 
+			// TODO: file watch
 			if ( TimeCast<seconds>( cur_time - _fileMap.ConstPtr()->lastUpdate ) < _UpdateInterval )
 				return false;
 
@@ -333,6 +334,8 @@ namespace AE::VFS
 */
 	RC<IVirtualFileStorage>  VirtualFileStorageFactory::CreateDynamicFolder (const Path &folder, StringView prefix, Bool createFolder) __NE___
 	{
+		AE_LOG_DBG( "Mount dynamic folder '"s << ToString(folder) << "' with prefix '" << prefix << "'" );
+
 		auto	result = RC<DiskDynamicStorage>{ new DiskDynamicStorage{}};
 		CHECK_ERR( result->_Create( folder, prefix, createFolder ));
 		return result;

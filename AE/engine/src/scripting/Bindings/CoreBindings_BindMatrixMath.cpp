@@ -43,7 +43,7 @@ namespace
 		static void  Bind (ClassBinder<Mat_t> &binder)
 		{
 		//	binder.AddConstructor( &_Ctor1 );
-			binder.AddConstructor( &_Ctor2, {"value"} );
+			binder.AddConstructor( &_Ctor2, {"value"},		False{"non explicit"} );
 			binder.AddConstructor( &_Ctor3,	{"col0", "col1"} );
 
 			Mat_t	temp;
@@ -88,7 +88,7 @@ namespace
 		static void  Bind (ClassBinder<Mat_t> &binder)
 		{
 		//	binder.AddConstructor( &_Ctor1 );
-			binder.AddConstructor( &_Ctor2,	{"value"} );
+			binder.AddConstructor( &_Ctor2,	{"value"},				False{"non explicit"} );
 			binder.AddConstructor( &_Ctor3,	{"col0", "col1", "col2"} );
 
 			Mat_t	temp;
@@ -134,7 +134,7 @@ namespace
 		static void  Bind (ClassBinder<Mat_t> &binder)
 		{
 		//	binder.AddConstructor( &_Ctor1 );
-			binder.AddConstructor( &_Ctor2,	{"value"} );
+			binder.AddConstructor( &_Ctor2,	{"value"},						False{"non explicit"} );
 			binder.AddConstructor( &_Ctor3,	{"col0", "col1", "col2", "col3"} );
 
 			Mat_t	temp;

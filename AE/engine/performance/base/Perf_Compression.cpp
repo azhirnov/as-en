@@ -5,6 +5,21 @@
 
 namespace
 {
+	#define PROF_BEGIN()																					\
+		profiler.BeginTest( name, [&comp_size_arr, &buffer, i = comp_size_arr.size()] (nanoseconds dt)		\
+			{																								\
+				double	comp_size	= double(ulong{comp_size_arr[i]});										\
+				double	rate		= 100.0 * comp_size / double(buffer.size());							\
+				double	bw			= double(buffer.size()) * 1.0e+9 / double(dt.count());					\
+				return	ToString(rate, 1) << "% | " <<														\
+						ToStringSfx(bw) << "B/s";															\
+			});
+
+	#define PROF_END()							\
+		profiler.EndTest();						\
+		comp_size_arr.push_back( comp_size );
+
+
 	static void  ReadNonCompressed (OUT Array<char> &buffer)
 	{
 	#ifdef AE_PLATFORM_ANDROID
@@ -28,7 +43,7 @@ namespace
 		compressed.resize( buffer.size() );
 
 		const uint		max_iter = 10;
-		Array<float>	comp_arr;
+		Array<Bytes>	comp_size_arr;
 
 		IntervalProfiler	profiler{ "CompressionTest on "s << coreTypeName,
 									  IntervalProfiler::EFlags::IncludeTime | IntervalProfiler::EFlags::IncludeDiffFromFastest };
@@ -44,7 +59,7 @@ namespace
 			String	name = "Brotli, q="s << ToString( qual, 1 ) << ", wnd=" << ToString( wnd, 1 );
 			Bytes	comp_size;
 
-			profiler.BeginTest( name, [&comp_arr, i = comp_arr.size()](nanoseconds) { return ToString(comp_arr[i], 1) << '%'; } );
+			PROF_BEGIN();
 			for (uint i = 0; i < max_iter; ++i)
 			{
 				profiler.BeginIteration();
@@ -54,8 +69,7 @@ namespace
 
 				profiler.EndIteration();
 			}
-			profiler.EndTest();
-			comp_arr.push_back(float( 100.0 * double(ulong{comp_size}) / double(buffer.size()) ));
+			PROF_END();
 			AE_LOGI( name );
 		}
 	  #endif
@@ -72,7 +86,7 @@ namespace
 			String	name = "LZ4, hc="s << ToString( hc, 1 );
 			Bytes	comp_size;
 
-			profiler.BeginTest( name, [&comp_arr, i = comp_arr.size()](nanoseconds) { return ToString(comp_arr[i], 1) << '%'; } );
+			PROF_BEGIN();
 			for (uint i = 0; i < max_iter; ++i)
 			{
 				profiler.BeginIteration();
@@ -82,8 +96,7 @@ namespace
 
 				profiler.EndIteration();
 			}
-			profiler.EndTest();
-			comp_arr.push_back(float( 100.0 * double(ulong{comp_size}) / double(buffer.size()) ));
+			PROF_END();
 			AE_LOGI( name );
 		}
 
@@ -95,7 +108,7 @@ namespace
 			String	name = "LZ4 frame, lvl="s << ToString( lvl, 1 );
 			Bytes	comp_size;
 
-			profiler.BeginTest( name, [&comp_arr, i = comp_arr.size()](nanoseconds) { return ToString(comp_arr[i], 1) << '%'; } );
+			PROF_BEGIN();
 			for (uint i = 0; i < max_iter; ++i)
 			{
 				profiler.BeginIteration();
@@ -105,8 +118,7 @@ namespace
 
 				profiler.EndIteration();
 			}
-			profiler.EndTest();
-			comp_arr.push_back(float( 100.0 * double(ulong{comp_size}) / double(buffer.size()) ));
+			PROF_END();
 			AE_LOGI( name );
 		}
 	  #endif
@@ -120,7 +132,7 @@ namespace
 			String	name = "ZStd, lvl="s << ToString( lvl, 1 );
 			Bytes	comp_size;
 
-			profiler.BeginTest( name, [&comp_arr, i = comp_arr.size()](nanoseconds) { return ToString(comp_arr[i], 1) << '%'; } );
+			PROF_BEGIN();
 			for (uint i = 0; i < max_iter; ++i)
 			{
 				profiler.BeginIteration();
@@ -130,8 +142,7 @@ namespace
 
 				profiler.EndIteration();
 			}
-			profiler.EndTest();
-			comp_arr.push_back(float( 100.0 * double(ulong{comp_size}) / double(buffer.size()) ));
+			PROF_END();
 			AE_LOGI( name );
 		}
 	  #endif
@@ -152,7 +163,7 @@ namespace
 		decompressed.resize( buffer.size() );
 
 		const uint		max_iter = 10;
-		Array<float>	comp_arr;
+		Array<Bytes>	comp_size_arr;
 
 		IntervalProfiler	profiler{ "DecompressionTest on "s << coreTypeName,
 									  IntervalProfiler::EFlags::IncludeTime | IntervalProfiler::EFlags::IncludeDiffFromFastest };
@@ -170,7 +181,7 @@ namespace
 			Bytes	comp_size = ArraySizeOf(compressed);
 			TEST( BrotliUtils::Compress( OUT compressed.data(), INOUT comp_size, buffer.data(), ArraySizeOf(buffer), cfg ));
 
-			profiler.BeginTest( name, [&comp_arr, i = comp_arr.size()](nanoseconds) { return ToString(comp_arr[i], 1) << '%'; } );
+			PROF_BEGIN();
 			for (uint i = 0; i < max_iter; ++i)
 			{
 				profiler.BeginIteration();
@@ -181,8 +192,7 @@ namespace
 				profiler.EndIteration();
 				TEST( decomp_size == ArraySizeOf(buffer) );
 			}
-			profiler.EndTest();
-			comp_arr.push_back(float( 100.0 * double(ulong{comp_size}) / double(buffer.size()) ));
+			PROF_END();
 			AE_LOGI( name );
 		}
 	  #endif
@@ -200,7 +210,7 @@ namespace
 			Bytes	comp_size = ArraySizeOf(compressed);
 			TEST( Lz4Utils::Compress( OUT compressed.data(), INOUT comp_size, buffer.data(), ArraySizeOf(buffer), cfg ));
 
-			profiler.BeginTest( name, [&comp_arr, i = comp_arr.size()](nanoseconds) { return ToString(comp_arr[i], 1) << '%'; } );
+			PROF_BEGIN();
 			for (uint i = 0; i < max_iter; ++i)
 			{
 				profiler.BeginIteration();
@@ -211,8 +221,7 @@ namespace
 				profiler.EndIteration();
 				TEST( decomp_size == ArraySizeOf(buffer) );
 			}
-			profiler.EndTest();
-			comp_arr.push_back(float( 100.0 * double(ulong{comp_size}) / double(buffer.size()) ));
+			PROF_END();
 			AE_LOGI( name );
 		}
 
@@ -225,7 +234,7 @@ namespace
 			Bytes	comp_size = ArraySizeOf(compressed);
 			TEST( Lz4Utils::CompressFrame( OUT compressed.data(), INOUT comp_size, buffer.data(), ArraySizeOf(buffer), cfg ));
 
-			profiler.BeginTest( name, [&comp_arr, i = comp_arr.size()](nanoseconds) { return ToString(comp_arr[i], 1) << '%'; } );
+			PROF_BEGIN();
 			for (uint i = 0; i < max_iter; ++i)
 			{
 				profiler.BeginIteration();
@@ -236,8 +245,7 @@ namespace
 				profiler.EndIteration();
 				TEST( decomp_size == ArraySizeOf(buffer) );
 			}
-			profiler.EndTest();
-			comp_arr.push_back(float( 100.0 * double(ulong{comp_size}) / double(buffer.size()) ));
+			PROF_END();
 			AE_LOGI( name );
 		}
 	  #endif
@@ -252,7 +260,7 @@ namespace
 			Bytes	comp_size = ArraySizeOf(compressed);
 			TEST( ZStdUtils::Compress( OUT compressed.data(), INOUT comp_size, buffer.data(), ArraySizeOf(buffer), cfg ));
 
-			profiler.BeginTest( name, [&comp_arr, i = comp_arr.size()](nanoseconds) { return ToString(comp_arr[i], 1) << '%'; } );
+			PROF_BEGIN();
 			for (uint i = 0; i < max_iter; ++i)
 			{
 				profiler.BeginIteration();
@@ -263,8 +271,7 @@ namespace
 				profiler.EndIteration();
 				TEST( decomp_size == ArraySizeOf(buffer) );
 			}
-			profiler.EndTest();
-			comp_arr.push_back(float( 100.0 * double(ulong{comp_size}) / double(buffer.size()) ));
+			PROF_END();
 			AE_LOGI( name );
 		}
 	  #endif

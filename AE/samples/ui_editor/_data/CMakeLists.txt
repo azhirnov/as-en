@@ -3,7 +3,7 @@
 cmake_minimum_required( VERSION 3.22 FATAL_ERROR )
 project( "UIEditor" )
 
-file( GLOB_RECURSE DATA_FILES  "*.as" "*.glsl" "*.msl" ".vs" )
+file( GLOB_RECURSE DATA_FILES  "*.as" "*.glsl" "*.msl" "*.vs" )
 
 set( SOURCES ${DATA_FILES} )
 

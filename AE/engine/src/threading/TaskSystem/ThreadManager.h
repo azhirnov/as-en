@@ -42,6 +42,8 @@ namespace AE::Threading
 									   Bool							 bindThreadToPhysicalCore,
 									   OUT EThreadArray				&allowProcessInMain)		__NE___;
 
+		ND_ static EThreadArray  DefaultMask ()													__NE___;
+
 	private:
 		friend class TaskScheduler;
 		ND_ static RC<IThread>  _CreateMainThread ()											__NE___;

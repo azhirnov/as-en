@@ -43,6 +43,7 @@ StaticAssert( sizeof(VB_Position_f4) == 16 );
 #define VB_UVf2_Col8_DEFINED
 #define VB_UVs2_Col8_DEFINED
 #define VB_Color8_DEFINED
+#define VB_UVs2_SCs1_Col8_DEFINED
 
 
 // size: 12, align: 4
@@ -86,7 +87,7 @@ StaticAssert( sizeof(VB_Color8) == 4 );
 // size: 12, align: 2
 struct VB_UVs2_SCs1_Col8
 {
-	packed_ushort4	UV_Scale;
+	packed_ushort4	UV_Scale;	// 'scale' used for SDF font
 	ubyte4			Color;
 
 	VB_UVs2_SCs1_Col8 () {}

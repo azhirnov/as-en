@@ -23,6 +23,7 @@ namespace AE::Networking
 	template <typename NativeAddress, typename AddressType>
 	inline bool  TcpSocket::_Accept (const TcpSocket &other, OUT AddressType &clientAddr) __NE___
 	{
+		DRC_EXLOCK( _drCheck );
 		CHECK_ERR( not IsOpen() );
 
 		if_unlikely( not other.IsOpen() )
@@ -80,6 +81,7 @@ namespace AE::Networking
 	{
 		constexpr bool	is_ipv6 = IsSame< AddressType, IpAddress6 >;
 
+		DRC_EXLOCK( _drCheck );
 		ASSERT( addr.IsValid() );
 		CHECK_ERR( _Create( cfg, Bool{is_ipv6} ));
 
@@ -149,6 +151,7 @@ namespace AE::Networking
 	{
 		constexpr bool	is_ipv6 = IsSame< AddressType, IpAddress6 >;
 
+		DRC_EXLOCK( _drCheck );
 		ASSERT( addr.IsValid() );
 		CHECK_ERR( _Create( cfg, Bool{is_ipv6} ));
 
@@ -207,6 +210,7 @@ namespace AE::Networking
 	{
 		constexpr bool	is_ipv6 = IsSame< AddressType, IpAddress6 >;
 
+		DRC_EXLOCK( _drCheck );
 		ASSERT( addr.IsValid() );
 		CHECK_ERR( _Create( cfg, Bool{is_ipv6} ));
 
@@ -304,6 +308,7 @@ namespace AE::Networking
 */
 	bool  TcpSocket::IsNoDelay () C_NE___
 	{
+		DRC_EXLOCK( _drCheck );
 		ASSERT( IsOpen() );
 
 		int			option	= 0;
@@ -324,6 +329,7 @@ namespace AE::Networking
 	auto  TcpSocket::Send (const void* data, const Bytes dataSize) C_NE___ -> Tuple< SocketSendError, Bytes >
 	{
 		ASSERT( (data != null) and (dataSize > 0) );
+		DRC_EXLOCK( _drCheck );
 
 		if_unlikely( not IsOpen() )
 			return Tuple{ SocketSendError::NoSocket, 0_b };
@@ -347,6 +353,7 @@ namespace AE::Networking
 	auto  TcpSocket::Receive (OUT void* data, const Bytes dataSize) C_NE___ -> Tuple< SocketReceiveError, Bytes >
 	{
 		ASSERT( (data != null) and (dataSize > 0) );
+		DRC_EXLOCK( _drCheck );
 
 		if_unlikely( not IsOpen() )
 			return Tuple{ SocketReceiveError::NoSocket, 0_b };
@@ -369,6 +376,7 @@ namespace AE::Networking
 */
 	bool  TcpSocket::KeepAlive (bool enable) __NE___
 	{
+		DRC_EXLOCK( _drCheck );
 		ASSERT( IsOpen() );
 
 		const int	i_enable = int(enable);
@@ -389,6 +397,7 @@ namespace AE::Networking
 */
 	bool  TcpSocket::IsKeepAlive () C_NE___
 	{
+		DRC_EXLOCK( _drCheck );
 		ASSERT( IsOpen() );
 
 		int			i_enable	= 0;
@@ -414,6 +423,8 @@ namespace AE::Networking
 		constexpr bool	is_ipv6 = IsSame< AddressType, IpAddress6 >;
 		ASSERT( _isIPv6 == is_ipv6 );
 		Unused( is_ipv6 );
+
+		DRC_EXLOCK( _drCheck );
 
 		NativeAddress	addr;
 		socklen_t		addr_len = sizeof(addr);
@@ -454,6 +465,8 @@ namespace AE::Networking
 */
 	TcpSocket::EStatus  TcpSocket::ConnectionStatus () C_NE___
 	{
+		DRC_EXLOCK( _drCheck );
+
 		if ( not IsOpen() )
 			return EStatus::NoSocket;
 
@@ -510,6 +523,7 @@ namespace AE::Networking
 */
 	uint  TcpSocket::NewConnectionCount (microseconds timeout) C_NE___
 	{
+		DRC_EXLOCK( _drCheck );
 		CHECK_ERR( IsOpen() );
 
 		fd_set	socket_set = {};

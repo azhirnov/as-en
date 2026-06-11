@@ -131,7 +131,7 @@ namespace AE::App
 		DRC_EXLOCK( _drCheck );
 		InputActionsBase::Update( timeSinceStart );
 
-		if_unlikely( _touchActive | _touchBegin | _touchEnd )
+		if_unlikely( _touchActive or _touchBegin or _touchEnd )
 		{
 			const EGestureState		state = _touchEnd ? EGestureState::End : (_touchBegin ? EGestureState::Begin : EGestureState::Update);
 

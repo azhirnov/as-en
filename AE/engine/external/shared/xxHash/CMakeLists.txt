@@ -6,7 +6,7 @@ set( XXHASH_PATH "${AE_EXTERNAL_SHARED_PATH}/xxHash" )
 
 add_library( "xxHash-lib" INTERFACE )
 target_include_directories( "xxHash-lib" INTERFACE "${XXHASH_PATH}" )
-target_compile_definitions( "xxHash-lib" INTERFACE "AE_ENABLE_XXHASH" "AE_LICENSE_BSD_2" "XXH_INLINE_ALL" )
+target_compile_definitions( "xxHash-lib" INTERFACE "AE_ENABLE_XXHASH" "AE_LICENSE_BSD2" "XXH_INLINE_ALL" )
 install( FILES "${XXHASH_PATH}/LICENSE.txt" DESTINATION "3party_license" RENAME "xxHash-LICENSE.txt" )
 #------------------------------------------------
 

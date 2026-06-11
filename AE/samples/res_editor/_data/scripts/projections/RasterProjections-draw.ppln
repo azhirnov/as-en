@@ -176,7 +176,7 @@
 
 	#define I	gl.InvocationID
 
-	float EdgeTessLevel (float3 p0, float3 p1)
+	float  EdgeTessLevel (float3 p0, float3 p1)
 	{
 		float	edge_length		= Distance( p0, p1 );
 		float	edge_center		= Distance( (p0 + p1) * 0.5f, float3(0.0f) );
@@ -226,10 +226,12 @@
 		{
 			case 0 :	// paraboloid
 			{
+				view_pos.y = -view_pos.y;
+
 				// see 'RayInverse_Paraboloid'
 				float	d		= Max( Length( view_pos.xyz ), 1.0e-5 );
 				float	d2		= Max( Length( view_pos.xz ), 1.0e-5 );
-				float	r2		= ToUNorm( -view_pos.y / d );
+				float	r2		= ToUNorm( view_pos.y / d );
 
 				gl.Position.xy	= view_pos.xz / d2 * r2;
 				gl.Position.z	= Saturate( (d - z_near) / (z_far - z_near) );
@@ -240,41 +242,29 @@
 			}
 
 			case 1 :	// dual paraboloid
-			{
-				// see 'RayInverse_DualParaboloid'
-				if ( iPassIdx == 1 )
-					view_pos = float3( -view_pos.x, view_pos.y, -view_pos.z );
-
-				float	len		= Length( view_pos.xyz );
-				float3	dir		= view_pos.xyz / len;
-
-				gl.Position.xy	= dir.xy / (dir.z + 1.0);
-				gl.Position.z	= (len - z_near) / (z_far - z_near);
-				gl.Position.w	= 1.0;
-
-				gl.ClipDistance[0]	= dir.z + iOverlap * 0.1;	// requires 'shaderClipDistance'
-				//Out.clip			= dir.z + iOverlap * 0.1;
-				break;
-			}
-
 			case 2 :	// dual paraboloid v2
 			{
 				// see 'RayInverse_DualParaboloid'
 				if ( iPassIdx == 1 )
-					view_pos = float3( -view_pos.x, view_pos.y, -view_pos.z );
+					view_pos = float3( -view_pos.x, view_pos.y, -view_pos.z );	// back face
 
 				float	len		= Length( view_pos.xyz );
 				float3	dir		= view_pos.xyz / len;
-				float	w		= Sign( dir.z );	// free clipping, but with UV distortion and missed triangles near to Z=0
 
 				gl.Position.xy	= dir.xy / (dir.z + 1.0);
 				gl.Position.z	= (len - z_near) / (z_far - z_near);
 				gl.Position.w	= 1.0;
 
-				if ( dir.z < -iOverlap * 0.1 )
-					gl.Position.z = -0.01;
+				if ( iProjection == 1 )
+				{
+					gl.ClipDistance[0]	= dir.z + iOverlap * 0.1;	// requires 'shaderClipDistance'
+					//Out.clip			= dir.z + iOverlap * 0.1;
+				}else{
+					if ( dir.z < -iOverlap * 0.1 )
+						gl.Position.z = -0.01;	// free clipping, but with UV distortion and missed triangles near to Z=0
 
-				gl.ClipDistance[0] = 1.0;  // unused for this implementation
+					gl.ClipDistance[0] = 1.0;  // unused for this implementation
+				}
 				break;
 			}
 		}

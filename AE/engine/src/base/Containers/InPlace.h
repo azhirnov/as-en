@@ -61,7 +61,7 @@ namespace AE::Base
 		__Cx__ ~InPlace ()									__NE___
 		{
 			StaticAssert( alignof(Self) >= alignof(T) );
-			ASSERT( not _isCreated );
+			ASSERT_MSG( not _isCreated, "must be destroyed" );
 		}
 
 
@@ -72,7 +72,7 @@ namespace AE::Base
 		template <typename ...Args>
 		__Cx__ Self&  Create (Args&& ...args)				__NE___
 		{
-			ASSERT( not _isCreated );
+			ASSERT_MSG( not _isCreated, "already created" );
 
 			CheckNothrow( IsNoExcept( T{ FwdArg<Args>( args )... }));
 			CheckNothrow( IsNoExcept( new (std::addressof(_value)) T{ FwdArg<Args>( args )... }));
@@ -86,7 +86,7 @@ namespace AE::Base
 		template <typename ...Args>
 		Self&  CreateOrThrow (Args&& ...args)				__Th___
 		{
-			ASSERT( not _isCreated );
+			ASSERT_MSG( not _isCreated, "already created" );
 
 			CheckNothrow( not IsNoExcept( new (std::addressof(_value)) T{ FwdArg<Args>( args )... }));
 
@@ -111,7 +111,7 @@ namespace AE::Base
 		__Cx__ Self&  CustomCtor (const Fn &fn)				__NE___
 		{
 			CheckNothrow( IsNoExcept( fn( _value )));
-			ASSERT( not _isCreated );
+			ASSERT_MSG( not _isCreated, "already created" );
 
 			fn( OUT _value );
 

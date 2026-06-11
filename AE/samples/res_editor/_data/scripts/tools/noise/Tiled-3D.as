@@ -11,11 +11,13 @@
 	void ASmain ()
 	{
 		// initialize
-		RC<DynamicUInt>		tex_dim	= DynamicUInt();
+		RC<DynamicUInt>		tex_pot	= DynamicUInt();
 		RC<Image>			rt		= Image( EPixelFormat::RGBA8_UNorm, SurfaceSize() );
-		RC<Image>			tex		= Image( EPixelFormat::R8_UNorm, tex_dim.Mul(32).Dimension3() );
+		RC<Image>			tex		= Image( EPixelFormat::R8_UNorm, tex_pot.Exp2().Dimension3() );
 
-		Slider( tex_dim,	"TexDim",	1,	16,		4 );
+		Slider( tex_pot,	"TexDim",	4,	10,		5 );
+
+		Label( tex.Dimension().X(),	"Dim" );
 
 		// render loop
 		{

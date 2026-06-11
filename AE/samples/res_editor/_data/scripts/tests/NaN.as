@@ -55,9 +55,10 @@
 	{
 		float4		col		= float4(0.0);
 		ftype		nan;
+		const float	row_cnt	= 9.0;
 		const bool	left	= (GetGroupCoordUNorm().x < 0.5);
-		const int	row0	= int(GetGlobalCoordUNorm().y * 8.0);
-		const int	row1	= int(GetGlobalCoordUNorm().y * 8.0 + 0.02);
+		const int	row0	= int(GetGlobalCoordUNorm().y * row_cnt);
+		const int	row1	= int(GetGlobalCoordUNorm().y * row_cnt + 0.02);
 
 		switch ( iNaNType )
 		{
@@ -101,18 +102,19 @@
 			case 5 :	col = float4( left ? Step(ftype(0.0), nan)  : ToUNorm(SignOrZero(nan)) );								break;
 			case 6 :	col = float4( left ? Step(ftype(0.0), -nan) : ToUNorm(SignOrZero(-nan)) );								break;
 			case 7 :	col = float4( SmoothStep( nan, ftype(0.0), ftype(1.0) ));												break;
+			case 8 :	col = float4( 0.0 / nan );																				break;
 		}
 
 		if ( Any(IsNaN( col )) )
-			col = float4(1.0, 0.0, 0.0, 1.0);
+			col = float4(1.0, 0.0, 0.0, 1.0);		// red
 		else
 		if ( Any(IsInfinity( col )) )
-			col = float4(1.0, 0.3, 0.2, 1.0);
+			col = float4(1.0, 0.3, 0.2, 1.0);		// red-orange
 		else
 		if ( AnyNotEqual( col, col ))
-			col = float4(0.9, 0.7, 0.2, 1.0);
+			col = float4(0.9, 0.7, 0.2, 1.0);		// orange
 		else
-			col *= float4(0.0, 0.75, 0.0, 1.0);
+			col *= float4(0.0, 0.75, 0.0, 1.0);		// green
 
 		if ( row0 != row1 )
 			col = float4(0.0, 0.0, 1.0, 1.0);

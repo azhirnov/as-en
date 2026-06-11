@@ -14,6 +14,12 @@ namespace AE::LangModel
 		static const Bytes		c_ImgStOffset = 8_b;
 	}
 
+	ImageStorage::ImageStorage (ImageStorage &&other) __NE___ :
+		ImageRef{other}, _ptr{other._ptr}, _size{other._size}
+	{
+		other._ptr = null;
+	}
+
 	ImageStorage::~ImageStorage () __NE___
 	{
 		Deallocate();

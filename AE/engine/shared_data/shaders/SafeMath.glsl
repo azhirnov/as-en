@@ -20,7 +20,7 @@
 */
 #define Gen_SafeSqrt1( _type_, _zero_ )			\
 	ND_ _type_  SafeSqrt (const _type_ x) {		\
-		return sqrt( max( x, _type_(_zero_) ));	\
+		return Sqrt( Max( x, _type_(_zero_) ));	\
 	}
 
 #define Gen_SafeSqrt( _stype_, _vtype_, _zero_ )\
@@ -52,7 +52,7 @@ Gen_SafeSqrt( float, float_vec_t, float_zero )
 */
 #define Gen_SafeInvSqrt1( _type_, _zero_ )				\
 	ND_ _type_  SafeInvSqrt (const _type_ x) {			\
-		return inversesqrt( max( x, _type_(_zero_) ));	\
+		return InvSqrt( Max( x, _type_(_zero_) ));		\
 	}
 
 #define Gen_SafeInvSqrt( _stype_, _vtype_, _zero_ )\
@@ -84,7 +84,7 @@ Gen_SafeInvSqrt( float, float_vec_t, float_min )
 */
 #define Gen_SafeLn1( _type_, _zero_ )			\
 	ND_ _type_  SafeLn (const _type_ x) {		\
-		return log( max( x, _type_(_zero_) ));	\
+		return Ln( Max( x, _type_(_zero_) ));	\
 	}
 
 #define Gen_SafeLn( _stype_, _vtype_, _zero_ )\
@@ -113,7 +113,7 @@ Gen_SafeLn( float, float_vec_t, float_min )
 */
 #define Gen_SafeLog21( _type_, _zero_ )			\
 	ND_ _type_  SafeLog2 (const _type_ x) {		\
-		return log2( max( x, _type_(_zero_) ));	\
+		return Log2( Max( x, _type_(_zero_) ));	\
 	}
 
 #define Gen_SafeLog2( _stype_, _vtype_, _zero_ )\
@@ -143,7 +143,7 @@ Gen_SafeLog2( float, float_vec_t, float_min )
 */
 #define Gen_SafePow1( _type_, _zero_ )						\
 	ND_ _type_  SafePow (const _type_ x, const _type_ y) {	\
-		return pow( max( abs(x), _type_(_zero_) ), y );		\
+		return Pow( Max( abs(x), _type_(_zero_) ), y );		\
 	}
 
 #define Gen_SafePow( _stype_, _vtype_, _zero_ )\
@@ -172,7 +172,7 @@ Gen_SafePow( float, float_vec_t, float_min )
 */
 #define Gen_SafeDiv1( _type_, _zero_ )							\
 	ND_ _type_  SafeDiv (const _type_ x, const _type_ y) {		\
-		return (x * sign(y)) / max( abs(y), _type_(_zero_) );	\
+		return (x * Sign(y)) / Max( abs(y), _type_(_zero_) );	\
 	}
 
 #define Gen_SafeDiv( _stype_, _vtype_, _zero_ )\
@@ -202,7 +202,7 @@ Gen_SafeDiv( float, float_vec_t, float_min )
 */
 #define Gen_CBRT1( _stype_, _type_, _zero_ )										\
 	ND_ _type_  SafeCbrt (const _type_ x) {											\
-		return pow( max( x, _type_(_zero_) ), _type_(_stype_(1.0)/_stype_(3.0)) );	\
+		return Pow( Max( x, _type_(_zero_) ), _type_(_stype_(1.0)/_stype_(3.0)) );	\
 	}
 
 #define Gen_CBRT( _stype_, _vtype_, _zero_ )\
@@ -234,15 +234,10 @@ ND_ float4	SafeRcp (const float4 v)	{ return Sign(v) * Max( 1.0f / Abs(v), float
 
 /*
 =================================================
-	SafeLength / SafeNormalize
+	SafeNormalize
 =================================================
 */
-#define Gen_SAFELEN1( _stype_, _vtype_, _zero_ )	\
-	ND_ _stype_  SafeLength (const _vtype_ v)		\
-	{												\
-		_stype_	sq = LengthSq( v );					\
-		return Max( Sqrt( sq ), _zero_ );			\
-	}												\
+#define Gen_SAFENORM1( _stype_, _vtype_, _zero_ )	\
 	ND_ _vtype_  SafeNormalize (const _vtype_ v)	\
 	{												\
 		_stype_	sq  = LengthSq( v );				\
@@ -250,19 +245,19 @@ ND_ float4	SafeRcp (const float4 v)	{ return Sign(v) * Max( 1.0f / Abs(v), float
 		return v * inv;								\
 	}
 
-#define Gen_SAFELEN( _stype_, _vtype_, _zero_ )\
-	Gen_SAFELEN1( _stype_, UNITE( _vtype_, 2 ), _zero_ )\
-	Gen_SAFELEN1( _stype_, UNITE( _vtype_, 3 ), _zero_ )\
-	Gen_SAFELEN1( _stype_, UNITE( _vtype_, 4 ), _zero_ )
+#define Gen_SAFENORM( _stype_, _vtype_, _zero_ )\
+	Gen_SAFENORM1( _stype_, UNITE( _vtype_, 2 ), _zero_ )\
+	Gen_SAFENORM1( _stype_, UNITE( _vtype_, 3 ), _zero_ )\
+	Gen_SAFENORM1( _stype_, UNITE( _vtype_, 4 ), _zero_ )
 
-Gen_SAFELEN( float, float_vec_t, float_zero )
+Gen_SAFENORM( float, float_vec_t, float_zero )
 
 #if AE_ENABLE_HALF_TYPE
-	Gen_SAFELEN( half, half_vec_t, half_zero )
+	Gen_SAFENORM( half, half_vec_t, half_zero )
 #endif
 #if AE_ENABLE_DOUBLE_TYPE
-	Gen_SAFELEN( double, double_vec_t, double_min )
+	Gen_SAFENORM( double, double_vec_t, double_min )
 #endif
 
-#undef Gen_SAFELEN1
-#undef Gen_SAFELEN
+#undef Gen_SAFENORM1
+#undef Gen_SAFENORM

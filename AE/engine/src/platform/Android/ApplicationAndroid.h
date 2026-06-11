@@ -32,6 +32,7 @@ namespace AE::App
 			Path				internalCache;
 			Path				externalAppData;
 			Path				externalCache;
+			Path				externalStorage;
 		};
 		using StoragePathSync_t = Threading::Synchronized< Threading::RWSpinLock, StoragePath >;
 
@@ -106,7 +107,8 @@ namespace AE::App
 											  jobject assetMngr,
 											  jboolean isUnderDebugger)					__NE___;
 		static void JNICALL  native_SetDirectories (JNIEnv*, jclass, jstring,
-													jstring, jstring, jstring)			__NE___;
+													jstring, jstring, jstring,
+													jstring)							__NE___;
 		static void JNICALL  native_SetDisplayInfo (JNIEnv*, jclass,
 										jint minWidth, jint minHeight,
 										jint maxWidth, jint maxHeight,

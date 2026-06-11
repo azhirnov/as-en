@@ -226,6 +226,103 @@ namespace AE::UI
 
 /*
 =================================================
+	SetStyle
+=================================================
+*/
+	bool  TextDrawable::SetStyle (StyleName::Ref name) __NE___
+	{
+		_data.stylePtr	= UIStyleCollection().GetFontStyle( name );
+		CHECK_ERR( _data.stylePtr );
+
+		_style			= name;
+		_data.mtr.ppln	= _data.stylePtr->pipeline;
+
+		auto	style	= _data.stylePtr->Get( _data.styleIdx );
+		ASSERT_MSG( style.uv.IsEmpty(), "UV defined for color-only drawable, use ImageDrawable instead" );
+
+		_data.currColor	= style.color;
+		_data.currScale	= style.scale;
+
+		_data.prevColor	= _data.currColor;
+		_data.prevScale	= _data.currScale;
+		_data.factor	= 1.f;
+
+		return true;
+	}
+
+/*
+=================================================
+	Draw
+=================================================
+*/
+	void  TextDrawable::Draw (const DrawParams &params, Canvas &canvas, DrawContext_t &ctx) __Th___
+	{
+		// flush canvas if different materials
+		if_unlikely( params.mtr != _data.mtr and not canvas.IsEmpty() )
+		{
+			ctx.BindPipeline( params.mtr->ppln );
+			ctx.BindDescriptorSet( params.mtr.dsIndex, params.mtr.ds, {&params.mtr.globalDynOffset, 1} );	// TODO
+		//	ctx.SetStencilReference( params.mtr->stencilRef );
+			canvas.Flush( ctx, params.mtr.topology );
+		}
+		params.mtr = _data.mtr;
+
+		// change state
+		if_unlikely( _data.styleIdx != params.style )
+		{
+			_data.styleIdx	= params.style;
+			_data.prevColor	= (_data.factor < 1.0f ? Lerp( _data.prevColor, _data.currColor, _data.factor ) : _data.currColor);
+			_data.prevScale	= (_data.factor < 1.0f ? Lerp( _data.prevScale, _data.currScale, _data.factor ) : _data.currScale);
+
+			auto	style = _data.stylePtr->Get( _data.styleIdx );
+			_data.currColor	= style.color;
+			_data.currScale	= style.scale;
+			_data.factor	= 0.0f;
+		}
+
+		RGBA8u	color	= _data.currColor;
+		float	scale	= _data.currScale;
+
+		// color animation
+		if_unlikely( _data.factor < 1.0f )
+		{
+			_data.factor	= Min( 1.0f, _data.factor + params.dt.count() * _GetColorAnimSpeed() );
+			color			= Lerp( _data.prevColor, _data.currColor, _data.factor );
+			scale			= Lerp( _data.prevScale, _data.currScale, _data.factor );
+		}
+
+		Canvas::FontParams	config;
+		config.heightInPx	= 10.f;
+		config.color		= color;
+
+		RectF	vp_rect = canvas.Dimensions().PixelsToViewport( params.clipRect.Scale( scale ));
+
+		canvas.DrawText( _text, *_data.stylePtr->font, config, vp_rect );
+	}
+
+/*
+=================================================
+	Serialize / Deserialize
+=================================================
+*/
+	bool  TextDrawable::Serialize (Serializer &ser) C_NE___
+	{
+		return ser( _GetDrawableID(Type()), _style, _text );
+	}
+
+	bool  TextDrawable::Deserialize (Deserializer &des) __NE___
+	{
+		if_unlikely( not des( OUT _style, OUT _text ))
+			return false;
+
+		return SetStyle( StyleName{_style} );
+	}
+//-----------------------------------------------------------------------------
+
+
+
+/*
+=================================================
 	DrawableSerializer
 =================================================
 */
@@ -258,7 +355,6 @@ namespace
 		{
 			case EType::Unknown :
 			case EType::NinePatch :
-			case EType::Text :
 			case EType::_Count :
 			#define REG( _name_ )															\
 				case EType::_name_ :														\
@@ -269,7 +365,7 @@ namespace
 			REG( Rectangle )
 			REG( Image )
 		//	REG( NinePatch )
-		//	REG( Text )
+			REG( Text )
 			#undef REG
 
 			default : break;

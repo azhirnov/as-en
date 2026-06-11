@@ -1,47 +1,25 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 #include <pipeline_compiler.as>
 
-void CreateUIRenderPass ()
-{
-	RC<CompatibleRenderPass>	compat = CompatibleRenderPass( "UI.RenderPass" );
-
-	const string	pass = "Main";
-	compat.AddSubpass( pass );
-
-	{
-		RC<Attachment>	rt	= compat.AddAttachment( "Color" );
-		rt.format		= EPixelFormat::SwapchainColor;
-		rt.Usage( pass, EAttachment::Color, ShaderIO("out_Color") );
-	}
-
-	// specialization
-	{
-		RC<RenderPass>	rp = compat.AddSpecialization( "UI.RenderPass" );
-
-		RC<AttachmentSpec>	rt = rp.AddAttachment( "Color" );
-		rt.loadOp	= EAttachmentLoadOp::Load;
-		rt.storeOp	= EAttachmentStoreOp::Store;
-		rt.Layout( pass, EResourceState::ColorAttachment );
-	}
-}
-
 
 void  CreateUIRenderTech ()
 {
 	RC<RenderTechnique> rtech = RenderTechnique( "UI.RTech" );
 	{
-		RC<ShaderStructType>	st1 = ShaderStructType( "ui.global.ublock" );
-		st1.Set( "float2	posScale;"
-				 "float2	posBias;" );
-
-		RC<ShaderStructType>	st2 = ShaderStructType( "ui.material.ublock" );
-		st2.Set( "uint		id;" );
-
+		RC<ShaderStructType>	st = ShaderStructType( "ui.global.ublock" );
+		st.Set( "float2		posScale;"
+				"float2		posBias;" );
+	}{
+		// cam be used to pass additional data without using descriptor sets
+		RC<ShaderStructType>	st = ShaderStructType( "ui.params.pc" );
+		st.Set( "float4		fParams0;" );
+	}{
 		RC<DescriptorSetLayout>	ds = DescriptorSetLayout( "ui.global.ds" );
 		ds.CombinedImage( EShaderStages::Fragment, "un_ImageRGBA",  EImageType::Float_2D, "LinearClamp" );
 		ds.CombinedImage( EShaderStages::Fragment, "un_ImageAlpha", EImageType::Float_2D, "LinearClamp" );
-		ds.UniformBufferDynamic( EShaderStages::Vertex | EShaderStages::Fragment, "globalUB", "ui.global.ublock"	);
-	//	ds.UniformBufferDynamic( EShaderStages::Vertex | EShaderStages::Fragment, "mtrUB",	  "ui.material.ublock"	);
+
+		// allow to use single DS for multiple widgets by changing offset
+		ds.UniformBufferDynamic( EShaderStages::Vertex | EShaderStages::Fragment, "globalUB",	"ui.global.ublock" );
 	}
 	{
 		RC<GraphicsPass>	pass = rtech.AddGraphicsPass( "Main" );
@@ -51,17 +29,17 @@ void  CreateUIRenderTech ()
 	{
 		RC<ShaderStructType>	st = ShaderStructType( "ui.io" );
 		st.Set( EStructLayout::InternalIO,
-				"float4		color;"
-				"float2		uv;" );
+				"mediump float4		color;"
+				"float2				uv;" );
 	}{
 		RC<PipelineLayout>		pl = PipelineLayout( "ui.pl" );
 		pl.DSLayout( 0, "ui.global.ds" );
+		pl.PushConst( "pc", "ui.params.pc", EShader::Fragment );
 	}
 }
 
 
 void  ASmain ()
 {
-	CreateUIRenderPass();
 	CreateUIRenderTech();
 }

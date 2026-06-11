@@ -555,8 +555,10 @@ namespace
 		if ( tokens.empty() )
 			return prev;
 
-		if ( name == "\"subgroupSupportedStages\""	or
-			 name == "\"requiredSubgroupSizeStages\"" )
+		if ( name == "\"subgroupSupportedStages\""								or
+			 name == "\"requiredSubgroupSizeStages\""							or
+			 name == "\"supportedIndirectCommandsShaderStages\""				or
+			 name == "\"supportedIndirectCommandsShaderStagesPipelineBinding\"" )
 		{
 			if ( tokens.back() == "]" )
 			{
@@ -565,6 +567,7 @@ namespace
 					if ( std::find( tokens.begin(), tokens.end(), bit ) != tokens.end() )
 						prev |= stage;
 				}};
+				prev = Default;
 				Contains( "VK_SHADER_STAGE_VERTEX_BIT",						EShaderStages::Vertex );
 				Contains( "VK_SHADER_STAGE_TESSELLATION_CONTROL_BIT",		EShaderStages::TessControl );
 				Contains( "VK_SHADER_STAGE_TESSELLATION_EVALUATION_BIT",	EShaderStages::TessEvaluation );
@@ -572,18 +575,23 @@ namespace
 				Contains( "VK_SHADER_STAGE_FRAGMENT_BIT",					EShaderStages::Fragment );
 				Contains( "VK_SHADER_STAGE_COMPUTE_BIT",					EShaderStages::Compute );
 				Contains( "VK_SHADER_STAGE_ALL_GRAPHICS",					EShaderStages::AllGraphics );
-				Contains( "VK_SHADER_STAGE_ALL",							EShaderStages::All );
 				Contains( "VK_SHADER_STAGE_RAYGEN_BIT_KHR",					EShaderStages::RayGen );
 				Contains( "VK_SHADER_STAGE_ANY_HIT_BIT_KHR",				EShaderStages::RayAnyHit );
 				Contains( "VK_SHADER_STAGE_CLOSEST_HIT_BIT_KHR",			EShaderStages::RayClosestHit );
 				Contains( "VK_SHADER_STAGE_MISS_BIT_KHR",					EShaderStages::RayMiss );
 				Contains( "VK_SHADER_STAGE_INTERSECTION_BIT_KHR",			EShaderStages::RayIntersection );
 				Contains( "VK_SHADER_STAGE_CALLABLE_BIT_KHR",				EShaderStages::RayCallable );
-			//	Contains( "VK_SHADER_STAGE_TASK_BIT_NV",					EShaderStages::MeshTask );
-			//	Contains( "VK_SHADER_STAGE_MESH_BIT_NV",					EShaderStages::Mesh );
+				Contains( "VK_SHADER_STAGE_TASK_BIT_NV",					EShaderStages::MeshTask );
+				Contains( "VK_SHADER_STAGE_MESH_BIT_NV",					EShaderStages::Mesh );
 				Contains( "VK_SHADER_STAGE_TASK_BIT_EXT",					EShaderStages::MeshTask );
 				Contains( "VK_SHADER_STAGE_MESH_BIT_EXT",					EShaderStages::Mesh );
 				Contains( "VK_SHADER_STAGE_SUBPASS_SHADING_BIT_HUAWEI",		EShaderStages::Tile );
+
+				if ( prev == Default or name != "\"requiredSubgroupSizeStages\"" )
+				{
+					// avoid bug in gpuinfo
+					Contains( "VK_SHADER_STAGE_ALL",						EShaderStages::All );
+				}
 				CHECK( tokens.size() == 2 or prev != Default );
 			}
 			else
@@ -593,6 +601,7 @@ namespace
 					if ( AllBits( available, bit ))
 						prev |= stage;
 				}};
+				prev = Default;
 				Contains( VK_SHADER_STAGE_VERTEX_BIT,					EShaderStages::Vertex );
 				Contains( VK_SHADER_STAGE_TESSELLATION_CONTROL_BIT,		EShaderStages::TessControl );
 				Contains( VK_SHADER_STAGE_TESSELLATION_EVALUATION_BIT,	EShaderStages::TessEvaluation );
@@ -610,6 +619,7 @@ namespace
 				Contains( VK_SHADER_STAGE_TASK_BIT_EXT,					EShaderStages::MeshTask );
 				Contains( VK_SHADER_STAGE_MESH_BIT_EXT,					EShaderStages::Mesh );
 				Contains( VK_SHADER_STAGE_SUBPASS_SHADING_BIT_HUAWEI,	EShaderStages::Tile );
+				CHECK( prev != Default );
 			}
 		}
 		else
@@ -1225,7 +1235,7 @@ namespace
 */
 	bool  FeatureSetFromJSON (const Path &jsonFile, OUT FeatureSetExt &outFeatureSet, OUT String &outName)
 	{
-		StaticAssert( FeatureSet::GetFeatureCount() == 277 );
+		StaticAssert( FeatureSet::GetFeatureCount() == 278 );
 
 		String	json;
 		{

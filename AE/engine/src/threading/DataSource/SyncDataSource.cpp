@@ -34,7 +34,7 @@ namespace{
 			for (; (i < max_tasks) and sched.ProcessTask( ETaskQueue::Background, seed ); ++i) {}
 
 			if ( i < max_tasks )
-				i += uint(sched.ProcessFileIO());
+				i += uint(sched.ProcessIO());
 
 			if_unlikely( i == 0 )
 				ThreadUtils::Sleep_500us();

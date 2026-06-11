@@ -91,8 +91,10 @@ namespace AE::GeometryTools
 		tangent		= Normalize( tangent );
 		bitangent	= Normalize( bitangent );
 
-		//if ( Dot( Cross( tangent, bitangent ), normal ) < 0.0 )
-		//	tangent = -tangent;
+		if ( Dot( Cross( tangent, bitangent ), normal ) > 0.0 )
+			tangent = -tangent;
+
+		CheckTBN( normal, tangent, bitangent );
 	}
 
 

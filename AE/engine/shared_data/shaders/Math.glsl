@@ -33,7 +33,7 @@
 # define AE_ENABLE_DOUBLE_TYPE	0	// suffix 'LF'
 #endif
 
-#define uniform					// mark as uniform value across subgroup, so it uses scalar register (SGPR on AMD)
+#define sg_uniform				// mark as uniform value across subgroup, so it uses scalar register (SGPR on AMD)
 								// and may be executed in scalar thread (int MAD and address math on most discrete GPUs, fp FMA/cmp ops on AMD RDNA4+, NV Turing+).
 #define if_uniform		if		// mark as uniform control flow
 #define quad_uniform			// required for derivatives (dFdx, etc), otherwise result is undefined

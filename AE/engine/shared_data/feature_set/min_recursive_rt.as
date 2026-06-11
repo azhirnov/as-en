@@ -7,6 +7,7 @@ void ASmain ()
 	//	Lin-AMD-RDNA3-780M-1.4.313
 	//	Lin-NV-RTX2000-1.4.312
 	//	Mesa-AMD-RDNA3-780M-1.4.328
+	//	Mesa-AMD-RDNA3.5-1.4.340-8060S
 	//	Mesa-AMD-RDNA3.5-890M-1.4.318
 	//	Mesa-AMD-RDNA4-1.4.328
 	//	Mesa-Intel-Arc-1.4.318
@@ -26,10 +27,13 @@ void ASmain ()
 	//	Win-Intel-Xe2-LPG-1.4.323
 	//	Win-llvmpipe-1.4.328
 	//	Win-NV-GTX1000-1.4.329
+	//	Win-NV-RTX2000-1.2.168
+	//	Win-NV-RTX2000-1.3.224
 	//	Win-NV-RTX2000-1.4.312
 	//	Win-NV-RTX3000-1.4.328
 	//	Win-NV-RTX4000-1.4.328
 	//	Win-NV-RTX5000-1.4.319
+	//	Win-NV-RTX5000-1.4.325
 
 	const EFeature  True = EFeature::RequireTrue;
 
@@ -63,11 +67,13 @@ void ASmain ()
 		ESubgroupTypes::Int64
 	));
 	fset.subgroupStages(EShaderStages(
-		EShaderStages::Fragment | 
+		EShaderStages::AllRayTracing | 
+		EShaderStages::GraphicsPipeStages | 
 		EShaderStages::Compute
 	));
 	fset.subgroupQuadStages(EShaderStages(
-		EShaderStages::Fragment | 
+		EShaderStages::AllRayTracing | 
+		EShaderStages::GraphicsPipeStages | 
 		EShaderStages::Compute
 	));
 	fset.requiredSubgroupSizeStages(EShaderStages(
@@ -97,7 +103,6 @@ void ASmain ()
 	fset.shaderOutputViewportIndex (True);
 	fset.shaderOutputLayer (True);
 	fset.shaderSubgroupClock (True);
-	fset.shaderIntegerDotProduct (True);
 	fset.shaderClipDistance (True);
 	fset.shaderCullDistance (True);
 	fset.shaderDrawParameters (True);
@@ -127,7 +132,7 @@ void ASmain ()
 	fset.rayTracingPipeline (True);
 	fset.rayTraversalPrimitiveCulling (True);
 	fset.maxRayRecursionDepth (13);
-	fset.maxSpirvVersion (160);
+	fset.maxSpirvVersion (150);
 	fset.maxMetalVersion (240);
 	fset.drawIndirectFirstInstance (True);
 	fset.drawIndirectCount (True);
@@ -168,7 +173,7 @@ void ASmain ()
 	fset.maxTexelGatherOffset (31);
 	fset.maxFragmentOutputAttachments (8);
 	fset.maxFragmentDualSrcAttachments (1);
-	fset.maxFragmentCombinedOutputResources (104);
+	fset.maxFragmentCombinedOutputResources (16);
 	fset.maxPushConstantsSize (256);
 	fset.maxComputeSharedMemorySize (32 << 10);
 	fset.maxComputeWorkGroupInvocations (1 << 10);

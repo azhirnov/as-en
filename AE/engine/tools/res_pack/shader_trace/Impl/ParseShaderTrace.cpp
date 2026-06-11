@@ -886,7 +886,7 @@ namespace
 
 		for (auto data_ptr = start_ptr; data_ptr < end_ptr;)
 		{
-			uint		pos			= uint(Distance( start_ptr, data_ptr ));
+			uint		pos			= uint(PtrDistance( start_ptr, data_ptr ));
 			uint		prev_pos	= *(data_ptr++);
 			uint		expr_id		= *(data_ptr++);
 			uint		type		= *(data_ptr++);
@@ -930,7 +930,7 @@ namespace
 			CHECK_ERR( expr_id < _exprLocations.size() );
 
 			auto&	expr = _exprLocations[ expr_id ];
-			auto&	str  = result[ Distance( shaders.data(), trace )];
+			auto&	str  = result[ PtrDistance( shaders.data(), trace )];
 
 			if ( t_basic == ShaderTrace::TBasicType_Clock )
 				CHECK_ERR( trace->AddTime( expr, row_size, col_size, data ))

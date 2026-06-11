@@ -31,7 +31,7 @@
 			scene.Set( camera );
 		}
 
-		// create cube
+		// create cylinder
 		{
 			const uint	segments = 32;
 			RC<Mesh>	mesh	 = Mesh();

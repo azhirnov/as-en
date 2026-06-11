@@ -107,9 +107,9 @@ namespace
 
 			if constexpr( IsSame< Address, IpAddress >)
 			{
-				if ( not mngr->GetSelfIPAddress( AE_ROUTER_IPv4, OUT self_addr ))
+				if ( not mngr->GetSelfLocalIPAddress( OUT self_addr ))
 				{
-					AE_LOGW( "GetSelfIPAddress failed for "s << AE_ROUTER_IPv4.ToString() );
+					AE_LOGW( "GetSelfLocalIPAddress failed" );
 					return;
 				}
 			}
@@ -151,6 +151,9 @@ namespace
 
 extern void UnitTest_UDP ()
 {
+	IpAddress	router_ip;
+	TEST( SocketService::Instance().GetRouterIPAddress( OUT router_ip ));
+
 	UDP_Test1();
 	UDP_Test2();
 

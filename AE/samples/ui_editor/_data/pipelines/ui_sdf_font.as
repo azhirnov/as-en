@@ -11,31 +11,14 @@
 		{
 			RC<ShaderStructType>	st = ShaderStructType( "sdf_font.io" );
 			st.Set( EStructLayout::InternalIO,
-					"float4		color;"		+
-					"float3		uv_scale;" );
-		}{
-			RC<ShaderStructType>	st = ShaderStructType( "sdf_font_ublock" );
-			st.Set( EStructLayout::Compatible_Std140,
-					"float2		rotation0;"		+
-					"float2		rotation1;"		+
-					"float		sdfScale;"		+
-					"float		sdfBias;"		+
-					"float		pxRange;"		+
-					"float4		bgColor;"		);
-		}{
-			RC<DescriptorSetLayout>	ds = DescriptorSetLayout( "sdf_font.ds" );
-			ds.CombinedImage( EShaderStages::Fragment, "un_Texture", EImageType::Float_2D, "LinearRepeat" );
-			ds.UniformBufferDynamic( EShaderStages::Vertex | EShaderStages::Fragment, "drawUB", "sdf_font_ublock" );
-		}{
-			RC<PipelineLayout>		pl = PipelineLayout( "sdf_font.pl" );
-			pl.DSLayout( 0, "ui.global.ds" );
-			pl.DSLayout( 1, "sdf_font.ds" );
+					"mediump float4		color;"		+
+					"float3				uv_scale;" );
 		}
 
 		RC<GraphicsPipeline>	ppln = GraphicsPipeline( "ui.sdf_font" );
 		ppln.SetVertexInput( "VB_Position_f2, VB_UVs2_SCs1_Col8" );
 		ppln.SetShaderIO( EShader::Vertex, EShader::Fragment, "sdf_font.io" );
-		ppln.SetLayout( "sdf_font.pl" );
+		ppln.SetLayout( "ui.pl" );
 		ppln.SetFragmentOutputFromRenderTech( "UI.RTech", "Main" );
 
 		{
@@ -86,7 +69,7 @@
 //-----------------------------------------------------------------------------
 #ifdef SH_FRAG
 	#include "SDF.glsl"
-
+	/*
 	// Result must be >= 1, AA will work if >= 2
 	float  ScreenPxRange (gl::CombinedTex2D<float> msdfTex, float2 uv, float pxRange)
 	{
@@ -97,13 +80,18 @@
 
 	void Main ()
 	{
-		float3	msd		= gl.texture.Sample( un_Texture, In.uv_scale.xy ).rgb;
+		float3	msd		= gl.texture.Sample( un_ImageRGBA, In.uv_scale.xy ).rgb;
 		float	sd		= MCSDF_Median( msd );
-				sd		= FusedMulAdd( sd, drawUB.sdfScale, drawUB.sdfBias );
-		float	px_dist	= ScreenPxRange( un_Texture, In.uv_scale.xy, drawUB.pxRange );
+				sd		= FusedMulAdd( sd, fontUB.sdfScale, fontUB.sdfBias );
+		float	px_dist	= ScreenPxRange( un_ImageRGBA, In.uv_scale.xy, fontUB.pxRange );
 				sd		= px_dist * (sd - 0.5);
 
-		out_Color = Lerp( drawUB.bgColor, In.color, sd );
+		out_Color = In.color * sd;
+	}*/
+
+	void Main ()
+	{
+		out_Color = float4(1.0); // TODO
 	}
 
 #endif

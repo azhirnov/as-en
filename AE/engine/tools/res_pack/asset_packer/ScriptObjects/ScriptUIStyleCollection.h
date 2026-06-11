@@ -134,29 +134,31 @@ namespace AE::AssetPacker
 		//
 		// Font Style
 		//
-	/*	class ScriptFontStyle final : public BaseStyle
+		class ScriptFontStyle final : public BaseStyle
 		{
 		private:
+			Graphics::PipelineName			_pplnName;
+			Graphics::CachedResourceName	_fontName;
 			StyleCollection::FontStyle		_internal;
-			String							_fontName;
 
 		public:
 			explicit ScriptFontStyle (ScriptUIStyleCollection &c) : BaseStyle{c} {}
+
+			void  SetFont      (const String &fontName)						__Th___;
+			void  SetPipeline  (const String &name)							__Th___;
 
 			void  SetDisabled  (const RGBA8u &col)							__Th___;
 			void  SetEnabled   (const RGBA8u &col)							__Th___;
 			void  SetMouseOver (const RGBA8u &col)							__Th___;
 			void  SetTouchDown (const RGBA8u &col)							__Th___;
 			void  SetSelected  (const RGBA8u &col)							__Th___;
-			void  SetFont      (const String &fontName)						__Th___;
-			void  SetPipeline  (const String &name)							__Th___;
 
 			bool  Serialize (Serializing::Serializer &)						C_NE___;
 
 			static void  Bind (const ScriptEnginePtr &se)					__Th___;
 		};
 		using ScriptFontStylePtr = ScriptRC< ScriptFontStyle >;
-		*/
+
 
 	private:
 		using StyleMap_t	= HashMap< String, ScriptRC<BaseStyle> >;
@@ -181,7 +183,7 @@ namespace AE::AssetPacker
 
 		ScriptColorStyle*	AddColorStyle (const String &name)				__Th___;
 		ScriptImageStyle*	AddImageStyle (const String &name)				__Th___;
-	//	ScriptFontStyle*	AddFontStyle (const String &name)				__Th___;
+		ScriptFontStyle*	AddFontStyle (const String &name)				__Th___;
 
 		void  Store (const String &nameInArchive)							__Th___;
 

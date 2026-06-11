@@ -1,4 +1,7 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+/*
+	Thread-safe:  const methods are safe if cache was synchronized
+*/
 
 #pragma once
 
@@ -40,7 +43,8 @@ namespace AE::Base
 
 		template <typename ToDuration>
 		ND_ ToDuration	TimeSince ()							C_NE___	{ return TimeCast<ToDuration>( TimeSince() ); }
-		ND_ Duration_t	TimeSince ()							C_NE___	{ return Clock_t::now() - _lastTick; }
+		ND_ Duration_t	TimeSince ()							C_NE___	{ return TimeSince( Clock_t::now() ); }
+		ND_ Duration_t	TimeSince (TimePoint_t tp)				C_NE___	{ return tp - _lastTick; }
 
 		template <typename ToDuration>
 		ND_ ToDuration	TimeSinceStart ()						C_NE___	{ return TimeCast<ToDuration>( TimeSinceStart() ); }

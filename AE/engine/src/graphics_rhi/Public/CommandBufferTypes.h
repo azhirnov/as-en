@@ -522,6 +522,8 @@ namespace AE::Graphics
 
 		UploadImageDesc ()										__NE___ = default;
 
+		UploadImageDesc&	Offset (const uint2 &value)			__NE___	{ return Offset(uint3{ value.x, value.y, 0u }); }
+		UploadImageDesc&	Dimension (const uint2 &value)		__NE___	{ return Dimension(uint3{ value.x, value.y, 1u }); }
 		UploadImageDesc&	Offset (const uint3 &value)			__NE___	{ imageOffset	= ImageDim_t{value};		return *this; }
 		UploadImageDesc&	Dimension (const uint3 &value)		__NE___	{ imageDim		= ImageDim_t{value};		return *this; }
 		UploadImageDesc&	ArrayLayer (uint value)				__NE___	{ arrayLayer	= ImageLayer{value};		return *this; }

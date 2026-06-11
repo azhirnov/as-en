@@ -272,8 +272,15 @@ namespace AE::AssetPacker
 	{
 		CHECK_THROW_MSG( not nameInArchive.empty() );
 
-		CHECK_THROW_MSG( _fontMap.contains( nameInArchive ),
-			"Font '"s << nameInArchive << "' is not exists" );
+		if ( _fontMap.contains( nameInArchive ))
+			return;
+
+		String	str = "Font '"s << nameInArchive << "' is not exists. Available fonts:";
+
+		for (auto& name : _fontMap) {
+			str << "\n  " << name;
+		}
+		CHECK_THROW_MSG( false, str );
 	}
 
 	void  ObjectStorage::RequireFont (const String &metaArchive, const String &nameInMeta) __Th___
@@ -281,8 +288,18 @@ namespace AE::AssetPacker
 		CHECK_THROW_MSG( not metaArchive.empty() );
 		CHECK_THROW_MSG( not nameInMeta.empty() );
 
-		CHECK_THROW_MSG( _fontMap.contains( String{metaArchive} << '%' << nameInMeta ),
-			"Font meta '"s << nameInMeta << "' with meta file '" << metaArchive << "' is not exists" );
+		if ( _fontMap.contains( String{metaArchive} << '%' << nameInMeta ))
+			return;
+
+		String	str		= "Font meta '"s << nameInMeta << "' with meta file '" << metaArchive << "' is not exists. Available fonts:";
+		String	prefix	= metaArchive + '%';
+
+		for (auto& name : _fontMap)
+		{
+			if ( StartsWith( name, prefix ))
+				str << "\n  " << name;
+		}
+		CHECK_THROW_MSG( false, str );
 	}
 
 /*

@@ -166,7 +166,7 @@ namespace AE::VFS
 		}
 
 		#if not AE_OPTIMIZE_IDS
-		DBG_WARNING( "Failed to open VFS file '"s << name.GetName() << "'" );
+			AE_LOGW( "Failed to open VFS file '"s << name.GetName() << "'" );
 		#endif
 		return false;
 	}
@@ -209,7 +209,7 @@ namespace AE::VFS
 		}
 
 		#if not AE_OPTIMIZE_IDS
-		DBG_WARNING( "Failed to open VFS file '"s << name.GetName() << "'" );
+			AE_LOGW( "Failed to open VFS file '"s << name.GetName() << "'" );
 		#endif
 		return false;
 	}

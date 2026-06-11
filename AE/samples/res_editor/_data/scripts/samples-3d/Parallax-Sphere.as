@@ -31,7 +31,7 @@
 			scene.Set( camera );
 		}
 
-		// create cube
+		// create sphere
 		{
 			RC<Mesh>	mesh = Mesh();
 			mesh.SetAttributes( EAttribute::Position | EAttribute::Texcoord2D | EAttribute::TBN );

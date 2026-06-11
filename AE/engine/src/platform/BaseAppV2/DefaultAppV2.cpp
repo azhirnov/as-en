@@ -87,7 +87,10 @@ namespace AE::AppV2
 		CHECK_ERRV( new_view->Open( data.output, params ));
 
 		if ( data.view )
+		{
+			// TODO use SetPaused ?
 			data.view->Close();
+		}
 
 		_curState->view = RVRef(new_view);
 
@@ -137,8 +140,7 @@ namespace AE::AppV2
 		CHECK_ERR( storage );
 		CHECK_ERR( GetVFS().AddStorage( storage ));
 
-		GetVFS().MakeImmutable();
-		return true;
+		return _InitVFS2();
 	}
 #else
 	bool  AppCore::_InitVFS (const Path &archivePath) __NE___
@@ -152,10 +154,31 @@ namespace AE::AppV2
 		CHECK_ERR( storage );
 		CHECK_ERR( GetVFS().AddStorage( storage ));
 
+		return _InitVFS2();
+	}
+#endif
+
+/*
+=================================================
+	_InitVFS2
+=================================================
+*/
+	bool  AppCore::_InitVFS2 () __NE___
+	{
+		{
+			auto	shared_data = GetApplication()->OpenStorage( EAppStorage::SharedData );
+			CHECK_ERR( shared_data );
+			CHECK_ERR( GetVFS().AddStorage( VFS::StorageName{"shared-data/"}, shared_data ));
+		}
+		{
+			auto	user_data = GetApplication()->OpenStorage( EAppStorage::UserData );
+			CHECK_ERR( user_data );
+			CHECK_ERR( GetVFS().AddStorage( VFS::StorageName{"user-data/"}, user_data ));
+		}
+
 		GetVFS().MakeImmutable();
 		return true;
 	}
-#endif
 
 /*
 =================================================
@@ -315,8 +338,9 @@ namespace AE::AppV2
 	constructor
 =================================================
 */
-	AppMainV2::AppMainV2 (AppCoreCtor_t ctor) __NE___ :
-		_device{ True{"enable info log"} }
+	AppMainV2::AppMainV2 (const Callbacks &cb) __NE___ :
+		_device{ True{"enable info log"} },
+		_callbacks{ cb }
 	{
 		TaskScheduler::InstanceCtor::Create();
 		VFS::VirtualFileSystem::InstanceCtor::Create();
@@ -324,7 +348,9 @@ namespace AE::AppV2
 		Audio::IAudioSystem::InstanceCtor::Create();
 	  #endif
 
-		_core = ctor();
+		CHECK_FATAL( _callbacks.createApp != null );
+
+		_core = _callbacks.createApp();
 		CHECK_FATAL( _core );
 
 		auto&	cfg = _core->Config();
@@ -332,17 +358,16 @@ namespace AE::AppV2
 		CHECK( cfg.graphics.maxFrames <= cfg.graphics.swapchain.minImageCount );
 
 		if ( cfg.enableNetwork )
+		{
 			CHECK_FATAL( Networking::SocketService::Instance().Initialize() );
+			CHECK_FATAL( Networking::SocketDependencyManager::Register() );
+		}
 
 	  #ifdef AE_ENABLE_AUDIO
 		if ( cfg.enableAudio )
 			CHECK_FATAL( AudioSystem().Initialize() );
 	  #endif
 	}
-
-	AppMainV2::AppMainV2 (RC<AppCore> core) __NE___ :
-		AppMainV2{ [core](){ return core; }}
-	{}
 
 /*
 =================================================
@@ -469,18 +494,63 @@ namespace AE::AppV2
 
 		// create window
 		{
-			auto	wnd = app.CreateWindow( MakeUnique<AppMainV2::WindowEventListener>( _core ), cfg.window );
+			App::WindowDesc		wnd_desc = cfg.window;
+			if ( _callbacks.overrideWindowCfg )
+				_callbacks.overrideWindowCfg( INOUT wnd_desc );
+
+			auto	wnd = app.CreateWindow( MakeUnique<AppMainV2::WindowEventListener>( _core ), wnd_desc );
 			CHECK_ERR( wnd );
 			_windows.emplace_back( RVRef(wnd) );
 		}
 
 		// create VR device
-		if ( cfg.enableVR )
 		{
-			// TODO
+			bool							enable	= cfg.enableVR;
+			Array<IVRSession::EDeviceType>	devices	{ cfg.vrDevices.begin(), cfg.vrDevices.end() };
+
+			if ( _callbacks.overrideVRDevice )
+				_callbacks.overrideVRDevice( INOUT enable, INOUT devices );
+
+			if ( enable )
+			{
+				_CreateVRDevice( app, devices );
+			}
 		}
 
 		return true;
+	}
+
+/*
+=================================================
+	_CreateVRDevice
+=================================================
+*/
+	void  AppMainV2::_CreateVRDevice (IApplication &app, ArrayView<IVRSession::EDeviceType> vrDevices) __NE___
+	{
+		ASSERT( not vrDevices.empty() );
+
+		IInputActions*	ia = null;
+
+		if ( not _windows.empty() )
+			ia = &_windows[0]->InputActions();
+
+		for (auto type : vrDevices)
+		{
+			WindowPtr	vr_wnd = app.CreateVRSession( MakeUnique<AppMainV2::WindowEventListener>( _core ), ia, type );
+			if ( vr_wnd )
+			{
+				IVRSession*	vr_dev = vr_wnd->AsVRSession();
+				CHECK_ERRV( vr_dev != null );
+
+				IVRSession::Settings		settings;
+				settings.cameraClipPlanes	= { 0.1f, 100.f };
+
+				Unused( vr_dev->Setup( settings ));
+
+				_windows.push_back( vr_wnd );
+				return;
+			}
+		}
 	}
 
 /*
@@ -516,10 +586,15 @@ namespace AE::AppV2
 		if_unlikely( _device.IsInitialized() )
 			return true;
 
+		Graphics::GraphicsCreateInfo	gfx_cfg = _core->Config().graphics;
+
+		if ( _callbacks.overrideGraphicsCfg )
+			_callbacks.overrideGraphicsCfg( INOUT gfx_cfg );
+
 		RenderTaskScheduler::InstanceCtor::Create( _device );
 
 	  #ifdef AE_ENABLE_VULKAN
-		CHECK_ERR( _device.Init( _core->Config().graphics, app.GetVulkanInstanceExtensions() ));
+		CHECK_ERR( _device.Init( gfx_cfg, app.GetVulkanInstanceExtensions() ));
 
 		#if ENABLE_SYNC_LOG
 		{
@@ -535,11 +610,11 @@ namespace AE::AppV2
 
 	  #elif defined(AE_ENABLE_METAL)
 		Unused( app );
-		CHECK_ERR( _device.Init( _core->Config().graphics ));
+		CHECK_ERR( _device.Init( gfx_cfg ));
 
 	  #elif defined(AE_ENABLE_REMOTE_GRAPHICS)
 		Unused( app );
-		CHECK_ERR( _device.Init( _core->Config().graphics ));
+		CHECK_ERR( _device.Init( gfx_cfg ));
 
 		#if ENABLE_SYNC_LOG
 			_device.EnableSyncLog( true );
@@ -552,7 +627,7 @@ namespace AE::AppV2
 		CHECK_ERR( _device.CheckConstantLimits() );
 		CHECK_ERR( _device.CheckExtensions() );
 
-		CHECK_ERR( GraphicsScheduler().Initialize( _core->Config().graphics ));
+		CHECK_ERR( GraphicsScheduler().Initialize( gfx_cfg ));
 		return true;
 	}
 
@@ -566,11 +641,12 @@ namespace AE::AppV2
 		if_unlikely( not _device.IsInitialized() )
 			return;
 
-		Unused( GraphicsScheduler().WaitAll( AE::DefaultTimeout ));	// TODO ???
+		// All render tasks must complete before destroying device
+		Unused( GraphicsScheduler().WaitAll( AE::DefaultTimeout ));
 
 		RenderTaskScheduler::InstanceCtor::Destroy();
 
-		#if ENABLE_SYNC_LOG
+		#if ENABLE_SYNC_LOG and defined(AE_ENABLE_VULKAN)
 			VulkanSyncLog::Deinitialize( INOUT _device.EditDeviceFnTable() );
 		#endif
 
@@ -611,6 +687,8 @@ namespace AE::AppV2
 				break;
 		}
 		switch_end
+
+		_core->OnStateChanged( wnd, state );
 	}
 
 /*

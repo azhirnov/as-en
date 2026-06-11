@@ -503,6 +503,8 @@ namespace AE::VFS
 
 	RC<IVirtualFileStorage>  VirtualFileStorageFactory::CreateStaticArchive (const Path &filename) __NE___
 	{
+		AE_LOG_DBG( "Mount static archive '"s << ToString(filename) << "'" );
+
 		auto	result = RC<ArchiveStaticStorage>{ new ArchiveStaticStorage{}};
 		CHECK_ERR( result->_Create( filename ));
 		return result;

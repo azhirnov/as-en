@@ -22,57 +22,63 @@ namespace AE::App
 	{
 	// variables
 	protected:
-		Library					_dx11Lib;
-		Library					_dxgiLib;
+		Library						_dx11Lib;
+		Library						_dxgiLib;
 
-		StdThread				_dxThread;
-		Atomic<bool>			_looping;
+		StdThread					_dxThread;
+		Atomic<bool>				_looping;
+		Atomic<bool>				_complete;
 
-		void*					_dxDevice				= null;		// ID3D11Device
-		void*					_dxContext				= null;		// ID3D11DeviceContext
+		void*						_dxDevice				= null;		// ID3D11Device
+		void*						_dxContext				= null;		// ID3D11DeviceContext
 
 	  #ifdef AE_DEBUG
-		void*					_dxDebug				= null;		// IDXGIDebug1
-		void*					_dxDebugQueue			= null;		// IDXGIInfoQueue
+		void*						_dxDebug				= null;		// IDXGIDebug1
+		void*						_dxDebugQueue			= null;		// IDXGIInfoQueue
 	  #endif
 
-		void*					_acquiredDesktopImage	= null;		// ID3D11Texture2D
-		void*					_desktopDuplication		= null;		// IDXGIOutputDuplication
+		void*						_acquiredDesktopImage	= null;		// ID3D11Texture2D
+		void*						_desktopDuplication		= null;		// IDXGIOutputDuplication
 
-		Config					_config;
+		Config						_config;
 
-		ApplicationBase const&	_app;
+		ApplicationBase const&		_app;
 
-		bool					_inHostMemory			= false;
-		Monitor::EOrientation	_rotation				= Default;
-		uint2					_displayDim;
-		EPixelFormat			_surfaceFormat			= Default;
-		float					_refreshRate			= 0.f;			// Hz
+		bool						_inHostMemory			= false;
+		Monitor::EOrientation		_rotation				= Default;
+		uint2						_displayDim;
+		EPixelFormat				_surfaceFormat			= Default;
+		float						_refreshRate			= 0.f;			// Hz
 
-		Array<uint>				_tempBuffer;
+		HighResClock::time_point	_lastPresentTime;
+		HighResClock::time_point	_lastMouseUpdateTime;
+
+		Array<uint>					_tempBuffer;
 
 
 	// methods
 	public:
-		ScreenCaptureDXGI (const ApplicationBase &app)	__NE___ : _app{app} {}
-		~ScreenCaptureDXGI ()							__NE_OV;
+		ScreenCaptureDXGI (const ApplicationBase &app)		__NE___ : _app{app} {}
+		~ScreenCaptureDXGI ()								__NE_OV;
 
-		Description  GetDescription ()					C_NE_OV;
+		Description  GetDescription ()						C_NE_OV;
 
 	protected:
-		ND_ bool  _InitDX11 ();
-		ND_ bool  _OpenDesktopInThread ();
-		ND_ bool  _InitDuplication ();
-			void  _Destroy ();
+		ND_ bool  _InitDX11 ()								__NE___;
+		ND_ bool  _OpenDesktopInThread ()					__NE___;
+		ND_ bool  _InitDuplication ()						__NE___;
+			void  _ReleaseDuplication ()					__NE___;
+			void  _Destroy ()								__NE___;
 
 		ND_ bool  _GetFrame (OUT bool		&outTimeout,
+							 OUT bool		&outRecreate,
 							 OUT FrameInfo	&frameInfo,
-							 milliseconds	timeout);
-			void  _ReleaseFrame ();
+							 milliseconds	timeout)		__NE___;
+			void  _ReleaseFrame ()							__NE___;
 
 	// interface
 	protected:
-		ND_ virtual bool  _FindAdapter (void* factory, OUT void** adapter) = 0;
+		ND_ virtual bool  _FindAdapter (void* factory, OUT void** adapter) __NE___ = 0;
 	};
 //-----------------------------------------------------------------------------
 
@@ -116,25 +122,31 @@ namespace AE::App
 
 	// methods
 	public:
-		ScreenCaptureDXGI_HostAccess (const ApplicationBase &app)			__NE___ : ScreenCaptureDXGI{app} {}
-		~ScreenCaptureDXGI_HostAccess ()									__NE_OV;
+		ScreenCaptureDXGI_HostAccess (const ApplicationBase &app)				__NE___ : ScreenCaptureDXGI{app} {}
+		~ScreenCaptureDXGI_HostAccess ()										__NE_OV;
 
-		bool  Start (const Config &)										__NE___;
-		void  Finish ()														__NE_OV;
+		bool		Start (const Config &)										__NE___;
+		void		Finish ()													__NE_OV;
+		AsyncTask	FinishAsync ()												__NE_OV;
 
-		ErrorCode  AcquireImage (OUT ImageID &, OUT ImageViewID &, OUT FrameInfo &,
-								 Graphics::CommandBatch&, milliseconds)		__NE_OV  { return ErrorCode::Error_NotSupported; }
+		ErrorCode	AcquireImage (OUT ImageID &, OUT ImageViewID &, OUT FrameInfo &,
+								  Graphics::CommandBatch&, milliseconds)		__NE_OV  { return ErrorCode::Error_NotSupported; }
 
-		ErrorCode  ReadHostImage (const ReadImageFn_t &)					__NE_OV;
+		ErrorCode	ReadHostImage (const ReadImageFn_t &)						__NE_OV;
 
-		bool  SetReadImageCallback (SyncReadImageFn_t fn)					__NE_OV;
+		bool		SetReadImageCallback (SyncReadImageFn_t fn)					__NE_OV;
+
+		EState		GetState ()													C_NE_OV;
 
 	private:
-		void  _ThreadFn ()													__NE___;
-		void  _DestroyStagingImages ()										__NE___;
-		void  _MapNextImage ()												__NE___;
-		bool  _CopyToStaging (const FrameInfo &)							__NE___;
-		bool  _FindAdapter (void* factory, OUT void** adapter)				__NE_OV;
+		void  _ThreadFn ()														__NE___;
+		void  _DestroyStagingImages ()											__NE___;
+		void  _MapNextImage ()													__NE___;
+		bool  _CopyToStaging (const FrameInfo &)								__NE___;
+		bool  _FindAdapter (void* factory, OUT void** adapter)					__NE_OV;
+		bool  _RecreateDuplication ()											__NE___;
+
+		static auto  _FinishTask (RC<ScreenCaptureDXGI_HostAccess>)				__NE___ -> InlineCoro<ETaskQueue::Background>;
 	};
 //-----------------------------------------------------------------------------
 
@@ -173,19 +185,21 @@ namespace AE::App
 		ScreenCaptureDXGI_Vulkan (const ApplicationBase &app)			__NE___ : ScreenCaptureDXGI{app} {}
 		~ScreenCaptureDXGI_Vulkan ()									__NE_OV;
 
+		bool		Start (const Config &)								__NE___;
+		void		Finish ()											__NE_OV;
+		AsyncTask	FinishAsync ()										__NE_OV;
 
-		bool  Start (const Config &)									__NE___;
-		void  Finish ()													__NE_OV;
+		ErrorCode	AcquireImage (OUT ImageID				&imageId,
+								  OUT ImageViewID			&viewId,
+								  OUT FrameInfo				&info,
+								  Graphics::CommandBatch	&cmdBatch,
+								  milliseconds				timeout)	__NE_OV;
 
-		ErrorCode  AcquireImage (OUT ImageID			&imageId,
-								 OUT ImageViewID		&viewId,
-								 OUT FrameInfo			&info,
-								 Graphics::CommandBatch	&cmdBatch,
-								 milliseconds			timeout)		__NE_OV;
+		ErrorCode	ReadHostImage (const ReadImageFn_t &)				__NE_OV	{ return ErrorCode::Error_NotSupported; }
 
-		ErrorCode  ReadHostImage (const ReadImageFn_t &)				__NE_OV	{ return ErrorCode::Error_NotSupported; }
+		bool		SetReadImageCallback (SyncReadImageFn_t)			__NE_OV	{ return false; }
 
-		bool  SetReadImageCallback (SyncReadImageFn_t)					__NE_OV	{ return false; }
+		EState		GetState ()											C_NE_OV;
 
 	private:
 		ND_ bool  _CreateVulkanImage (void* acquiredDesktopImage,
@@ -193,6 +207,8 @@ namespace AE::App
 			void  _DestroyVulkanImage (SharedImage &)					__NE___;
 		ND_ bool  _FindAdapter (void* factory, OUT void** adapter)		__NE_OV;
 		ND_ bool  _CheckVulkanCompatibility ()							__NE___;
+
+		static auto  _FinishTask (RC<ScreenCaptureDXGI_Vulkan>)			__NE___ -> InlineCoro<ETaskQueue::Background>;
 	};
 
 # endif // AE_ENABLE_VULKAN

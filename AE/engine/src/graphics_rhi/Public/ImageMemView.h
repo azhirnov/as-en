@@ -60,6 +60,7 @@ namespace AE::Graphics
 
 		ND_ uint3			Offset ()						C_NE___	{ return uint3{ _offset }; }
 		ND_ uint3			Dimension ()					C_NE___	{ return uint3{ _dimension }; }
+		ND_ uint2			Dimension2 ()					C_NE___	{ return uint2{ _dimension }; }
 		ND_ Bytes			RowPitch ()						C_NE___	{ return Bytes(_rowPitch); }
 		ND_ Bytes			SlicePitch ()					C_NE___	{ return Bytes(_slicePitch); }
 		ND_ uint			BitsPerBlock ()					C_NE___	{ return _bitsPerBlock; }

@@ -153,6 +153,77 @@ namespace
 		RC<C1> b1 = RC<C1>{ a1 };
 		RC<C2> b2 = RC<C2>{ a0 };
 	}
+
+
+	static void  PackedPtr_Test1 ()
+	{
+		{
+			PackedPtr<void>		p;
+
+			TEST( p.Ptr() == null );
+			TEST( p.Extra() == 0 );
+		}
+		{
+			PackedPtr<char>		p;
+			TEST( p.Align() == POTBytes{1_b} );
+
+			#if AE_PLATFORM_BITS == 64
+				StaticAssert( p.ExtraBits() == 64 - 48 );
+				usize	extra = 0xABC;
+			#endif
+
+			#if AE_PLATFORM_BITS == 32
+				StaticAssert( p.ExtraBits() == 0 );
+				usize	extra = 0;
+			#endif
+
+			char*	ptr = BitCast<char*>( usize{0x1234'5678} );
+			p.SetPtr( ptr );
+
+			TEST_Eq( p.Extra(), 0u );
+			TEST_Eq( BitCast<usize>(p.Ptr()), BitCast<usize>(ptr) );
+
+			p.SetExtra( extra );
+
+			TEST_Eq( p.Extra(), extra );
+			TEST_Eq( BitCast<usize>(p.Ptr()), BitCast<usize>(ptr) );
+
+			p.SetPtr( ptr );
+
+			TEST_Eq( p.Extra(), extra );
+			TEST_Eq( BitCast<usize>(p.Ptr()), BitCast<usize>(ptr) );
+		}
+		{
+			PackedPtr<ulong>		p;
+			TEST( p.Align() == POTBytes{8_b} );
+
+			#if AE_PLATFORM_BITS == 64
+				StaticAssert( p.ExtraBits() == 64 - 48 + 3 );
+				usize	extra = 0xABC;
+			#endif
+
+			#if AE_PLATFORM_BITS == 32
+				StaticAssert( p.ExtraBits() == 3 );
+				usize	extra = 0x3;
+			#endif
+
+			ulong*	ptr = BitCast<ulong*>( usize{0x1234'5678} & ~7 );
+			p.SetPtr( ptr );
+
+			TEST_Eq( p.Extra(), 0u );
+			TEST_Eq( BitCast<usize>(p.Ptr()), BitCast<usize>(ptr) );
+
+			p.SetExtra( extra );
+
+			TEST_Eq( p.Extra(), extra );
+			TEST_Eq( BitCast<usize>(p.Ptr()), BitCast<usize>(ptr) );
+
+			p.SetPtr( ptr );
+
+			TEST_Eq( p.Extra(), extra );
+			TEST_Eq( BitCast<usize>(p.Ptr()), BitCast<usize>(ptr) );
+		}
+	}
 }
 
 
@@ -165,6 +236,8 @@ extern void UnitTest_RC ()
 
 	PackedRC_Test1();
 	PackedRC_Test2();
+
+	PackedPtr_Test1();
 
 	TEST_PASSED();
 }

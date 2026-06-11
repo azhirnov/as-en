@@ -103,7 +103,7 @@ namespace AE::RemoteGraphics
 		_initialized = true;
 		_bits.Store( Bitfield<uint>{ ToBitMask<uint>( RmNetConfig::socketCount )});
 
-		ushort	port = RmNetConfig::serverPort;
+		ushort	port = addr.Port();
 
 		for (auto& item : _arr)
 		{

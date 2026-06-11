@@ -136,6 +136,7 @@ namespace {
 					case SocketSendError::ConnectionResetByPeer :
 					case SocketSendError::UnknownError :
 					case SocketSendError::PermissionDenied :
+					case SocketSendError::UnreachableNetwork :
 					default :
 						isDisconnected = true;
 						return;

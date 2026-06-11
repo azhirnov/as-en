@@ -11,13 +11,15 @@ namespace
   #ifdef AE_PLATFORM_ANDROID
 	const auto	seq_rflags	= FileRDataSource::EMode::Direct | FileRDataSource::EMode::SequentialScan;
 	const auto	rnd_rflags	= FileRDataSource::EMode::Direct | FileRDataSource::EMode::RandomAccess;
-	const auto	wflags		= FileWDataSource::EMode::Unknown;	// WriteSeq/WriteBlock returns 0, WriteBlock crashes
+	const auto	wflags		= FileWDataSource::EMode::Unknown;	// WriteSeq/WriteBlock returns 0, WriteBlock crashes on some devices
 
   #else
 	const auto	seq_rflags	= FileRDataSource::EMode::Direct | FileRDataSource::EMode::SequentialScan;
 	const auto	rnd_rflags	= FileRDataSource::EMode::Direct | FileRDataSource::EMode::RandomAccess;
 	const auto	wflags		= FileWDataSource::EMode::Direct;
   #endif
+
+  #define VALIDATE_DATA		1
 
 	auto			c_CoreId		= ECpuCoreId(0);
 
@@ -43,7 +45,14 @@ namespace
 	template <typename FileType>
 	static bool  AllocBuffer (OUT DynUntypedStorage &buf, Bytes bufSize, const FileType &file)
 	{
-		const Bytes		align = Max( Bytes{file.DirectAccessAlign().ptrAlign}, AlignOf<ulong> );
+		const auto		align_req = file.DirectAccessAlign();
+
+		AE_LOG_DBG( "DirectAccessAlign: ptr("s << ToString(align_req.ptrAlign) << "), offset(" << ToString(align_req.offsetAlign) << ")" );
+
+		CHECK( align_req.ptrAlign.GetPOT() > 1 );
+		CHECK( align_req.offsetAlign.GetPOT() > 1 );
+
+		const Bytes		align = Max( Bytes{align_req.ptrAlign}, AlignOf<ulong> );
 
 		return buf.Alloc( bufSize, align, null );
 	}
@@ -94,7 +103,7 @@ namespace
 			}
 			profiler.EndIteration();
 
-			// validate data
+			#if VALIDATE_DATA
 			AE_LOGI( "validate data" );
 			const auto*	ptr = buf.Ptr<ulong>();
 			for (ulong pos = 0; pos < c_FileSize; pos += c_BufferSize)
@@ -106,6 +115,7 @@ namespace
 				}
 				TEST( valid );
 			}
+			#endif
 		}
 		profiler.EndTest();
 	}
@@ -188,7 +198,7 @@ namespace
 
 			profiler.EndIteration();
 
-			// validate data
+			#if VALIDATE_DATA
 			AE_LOGI( "validate data" );
 			const auto*	ptr = buf.Ptr<ulong>();
 			for (ulong pos = 0; pos < c_FileSize; pos += c_BufferSize)
@@ -200,6 +210,7 @@ namespace
 				}
 				TEST( valid );
 			}
+			#endif
 
 			req_arr.clear();
 			TEST_Eq( rfile.use_count(), 1 );
@@ -258,7 +269,7 @@ namespace
 			}
 			profiler.EndIteration();
 
-			// validate data
+			#if VALIDATE_DATA
 			AE_LOGI( "validate data" );
 			const auto*	ptr = buf.Ptr<ulong>();
 			for (ulong pos = 0; pos < c_FileSize; pos += c_BufferSize)
@@ -270,6 +281,7 @@ namespace
 				}
 				TEST( valid );
 			}
+			#endif
 		}
 		profiler.EndTest();
 	}
@@ -358,7 +370,7 @@ namespace
 
 			profiler.EndIteration();
 
-			// validate data
+			#if VALIDATE_DATA
 			AE_LOGI( "validate data" );
 			const auto*	ptr = buf.Ptr<ulong>();
 			for (ulong pos = 0; pos < c_FileSize; pos += c_BufferSize)
@@ -370,6 +382,7 @@ namespace
 				}
 				TEST( valid );
 			}
+			#endif
 
 			req_arr.clear();
 			TEST_Eq( rfile.use_count(), 1 );

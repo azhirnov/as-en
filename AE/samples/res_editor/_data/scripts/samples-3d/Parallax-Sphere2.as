@@ -42,7 +42,7 @@
 			RunScript( "GenParallaxCubemap.as", ScriptFlags::RunOnce, args );	// [src](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/scripts/callable/GenParallaxCubemap.as)
 		}
 
-		// create cube
+		// create sphere
 		{
 			RC<Mesh>	mesh = Mesh();
 			mesh.SetAttributes( EAttribute::Position | EAttribute::Texcoord3D );

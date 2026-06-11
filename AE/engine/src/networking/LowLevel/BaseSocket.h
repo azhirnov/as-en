@@ -1,4 +1,8 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+/*
+	Thread-safe: no
+	Internally send/recv is thread safe, but order of data is not defined.
+*/
 
 #pragma once
 
@@ -44,6 +48,8 @@ namespace AE::Networking
 		Socket_t			_handle	= Default;
 
 		DEBUG_ONLY( String	_dbgName;)
+
+		DRC_ONLY( Threading::DataRaceCheck	_drCheck;)
 
 
 	// methods

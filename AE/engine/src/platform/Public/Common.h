@@ -71,6 +71,14 @@ namespace AE::App
 	};
 
 
+	enum class EWindowDisplayMode : ubyte
+	{
+		AlwaysVisible,
+		VisibleOnScreen_ClippedForCapture,		// capture will show black window
+		VisibleOnScreen_HiddenForCapture,		// window completelly hidden in capture
+	};
+
+
 	using InputModeName		= NamedID< 32, App::_hidden_::AppIDs_Start + 1, AE_OPTIMIZE_IDS >;
 	using InputActionName	= NamedID< 32, App::_hidden_::AppIDs_Start + 2, AE_OPTIMIZE_IDS >;
 	using LocaleName		= NamedID< 8,  App::_hidden_::AppIDs_Start + 3, AE_OPTIMIZE_IDS >;	// format: en-US, ru-RU

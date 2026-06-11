@@ -149,5 +149,128 @@ namespace AE::Networking
 		return _GetSelfIPAddress< sockaddr_in6 >( host, OUT self );
 	}
 
+/*
+=================================================
+	GetRouterIPAddress
+=================================================
+*/
+	bool  SocketService::GetRouterIPAddress (OUT IpAddress &outAddr) C_NE___
+	{
+		using EFlags = OSProcess::EFlags;
+
+	#ifdef AE_PLATFORM_WINDOWS
+		String	cmd = "ipconfig";
+		String	output;
+
+		CHECK_ERR( WindowsProcess::Execute( cmd, OUT output, EFlags::UseCommandPrompt | EFlags::ReadOutput | EFlags::NoWindow ));
+
+		for (usize pos = 0; pos < output.size();)
+		{
+			pos = output.find( "Default Gateway", pos );
+			if ( pos == String::npos )
+				break;
+
+			usize	new_line	= output.find( "\r\n", pos );
+			usize	ip_begin	= output.find( ": ",  pos );
+
+			if ( ip_begin < new_line	and
+				 ip_begin + 2 < new_line )
+			{
+				outAddr = IpAddress::FromServiceUDP( SubStringBE( output, ip_begin+2, new_line ), "0" );
+				return true;
+			}
+			pos = new_line;
+		}
+		return false;
+
+    #else
+        // TODO
+        return false;
+	#endif
+	}
+
+/*
+=================================================
+	GetSelfLocalIPAddress
+=================================================
+*/
+	bool  SocketService::GetSelfLocalIPAddress (OUT IpAddress &self) C_NE___
+	{
+		IpAddress	router_ip;
+		return	GetRouterIPAddress( OUT router_ip )  and
+				GetSelfIPAddress( router_ip, OUT self );
+	}
+
+/*
+=================================================
+	GetSelfGlobalIPAddress
+=================================================
+*/
+	bool  SocketService::GetSelfGlobalIPAddress (OUT IpAddress &self, IpAddress httpServerAddr, nanoseconds timeout) C_NE___
+	{
+		self = Default;
+
+		TcpSocket::Config	cfg;
+		cfg.nonBlocking		= true;
+
+		TcpSocket	tcp;
+		if ( not tcp.Connect( httpServerAddr, cfg ))
+		{
+			// can't connect
+			return false;
+		}
+
+		const auto	end_time = HighResClock::now() + timeout;
+
+		// request
+		for (;;)
+		{
+			static constexpr char	request[] =
+				"GET /?format=text HTTP/1.1\r\n"
+				"Host: api.ipify.org\r\n"
+				"Connection: close\r\n\r\n";
+
+			auto	[err, size] = tcp.Send( request, Sizeof(request) );
+
+			if ( err >= SocketSendError::_Error or HighResClock::now() > end_time )
+			{
+				// connection lost
+				return false;
+			}
+
+			if ( err == SocketSendError::Sent and size == Sizeof(request) )
+				break;
+		}
+
+		// response
+		for (;;)
+		{
+			char	buf [4096];
+			auto	[err, size] = tcp.Receive( OUT buf, Sizeof(buf) );
+
+			if ( err >= SocketReceiveError::_Error or HighResClock::now() > end_time )
+			{
+				// connection lost
+				return false;
+			}
+
+			if ( err == SocketReceiveError::Received )
+			{
+				StringView	div{ "\r\n\r\n" };
+				StringView	str{ buf, usize{size} };
+
+				usize	pos = str.find( div );
+				if ( pos < str.size() )
+				{
+					self = IpAddress::FromHostPortTCP( str.substr( pos + div.size() ), 0 );
+					return true;
+				}
+				break;
+			}
+		}
+
+		// failed to parse response
+		return false;
+	}
 
 } // AE::Networking

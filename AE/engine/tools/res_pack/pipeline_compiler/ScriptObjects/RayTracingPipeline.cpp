@@ -322,7 +322,7 @@ namespace
 			if_unlikely( sh.name == name )
 			{
 				if ( sh.shader->type == EShader::RayGen )
-					return uint(Distance( _generalShaders.data(), &sh ));
+					return uint(PtrDistance( _generalShaders.data(), &sh ));
 				break;
 			}
 		}
@@ -335,7 +335,7 @@ namespace
 			if_unlikely( sh.name == name )
 			{
 				if ( sh.shader->type == EShader::RayMiss )
-					return uint(Distance( _generalShaders.data(), &sh ));
+					return uint(PtrDistance( _generalShaders.data(), &sh ));
 				break;
 			}
 		}
@@ -346,11 +346,11 @@ namespace
 	{
 		for (auto& sh : _triangleGroups) {
 			if_unlikely( sh.name == name )
-				return uint(_generalShaders.size() + Distance( _triangleGroups.data(), &sh ));
+				return uint(_generalShaders.size() + PtrDistance( _triangleGroups.data(), &sh ));
 		}
 		for (auto& sh : _proceduralGroups) {
 			if_unlikely( sh.name == name )
-				return uint(_generalShaders.size() + _triangleGroups.size() + Distance( _proceduralGroups.data(), &sh ));
+				return uint(_generalShaders.size() + _triangleGroups.size() + PtrDistance( _proceduralGroups.data(), &sh ));
 		}
 		return UMax;
 	}
@@ -361,7 +361,7 @@ namespace
 			if_unlikely( sh.name == name )
 			{
 				if ( sh.shader->type == EShader::RayCallable )
-					return uint(Distance( _generalShaders.data(), &sh ));
+					return uint(PtrDistance( _generalShaders.data(), &sh ));
 				break;
 			}
 		}

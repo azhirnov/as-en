@@ -26,7 +26,7 @@ namespace AE::AppV1
 
 		struct ThreadConfig : Threading::TaskScheduler::Config
 		{
-			EnumSet<EThread>		mask		{EThread::PerFrame, EThread::Renderer, EThread::Background, EThread::FileIO};
+			EnumSet<EThread>		mask		{EThread::PerFrame, EThread::Renderer, EThread::Background, EThread::IO};
 			uint					maxThreads	= 2;
 		};
 

@@ -34,7 +34,7 @@
 #define length			__reserved__
 #define input			__reserved__
 
-#define uniform			// used scalar register and uniform control flow
+#define sg_uniform		// used scalar register and uniform control flow
 #define nonuniform		// used vector register
 #define quad_uniform	// required for derivatives (dFdx, etc), otherwise result is undefined
 
@@ -447,7 +447,7 @@ public:
 	//  * local variable declarations with no storage qualifier
 	//  * function parameter declarations and function return types.
 	template <typename T>
-	ND_ uniform T	SubgroupUniform (const T &);
+	ND_ sg_uniform T	SubgroupUniform (const T &);
   #endif
 
 
@@ -773,7 +773,8 @@ public:
 			ND_ _type_  SampleGradOffset (_texType_ tex, typename _texType_::UNorm p, typename _texType_::Grad dPdx, typename _texType_::Grad dPdy, typename _texType_::Offset offset) const; \
 
 		// 2D, 2DArr, Cube, CubeArr
-		// Gather - implicitly calculate derivatives, 'p' must be quad uniform
+		// Gather - implicitly calculate derivatives, 'p' must be quad uniform.
+		// Optimization: same mem bandwidth, but reduce traffic to TextureUnit and improve cache hit rate.
 		#define _GEN_TEXTURE5( _type_, _texType_ ) \
 			ND_ _type_  Gather (_texType_ tex, quad_uniform typename _texType_::UNorm p) const; \
 			ND_ _type_  Gather (_texType_ tex, quad_uniform typename _texType_::UNorm p, int comp) const; \
@@ -933,19 +934,19 @@ public:
 	  #endif
 
 	  #ifdef AE_shader_subgroup_vote
-		ND_ uniform	bool	All (bool) const;								// returns true if all active invocation has 'value == true'
-		ND_ uniform	bool	Any (bool) const;								// returns true if any active invocation have 'value == true'
+		ND_ sg_uniform	bool	All (bool) const;								// returns true if all active invocation has 'value == true'
+		ND_ sg_uniform	bool	Any (bool) const;								// returns true if any active invocation have 'value == true'
 
-		template <typename T>	ND_ uniform	bool	AllEqual (T) const;		// returns true if all active invocation have a 'value' that is equal
+		template <typename T>	ND_ sg_uniform	bool	AllEqual (T) const;		// returns true if all active invocation have a 'value' that is equal
 	  #endif
 
 	  #ifdef AE_shader_subgroup_ballot
-		template <typename T>	ND_ uniform	T		Broadcast (T value, uniform uint id) const;		// returns the 'value' from the invocation whose ID is equal to 'id'.
-																									// 'id' must be compile-time constant.
-																									// 'AE_subgroupBroadcastDynamicId' allows dynamically uniform 'id', but it is slow.
-		template <typename T>	ND_	uniform	T		BroadcastFirst (T) const;						// returns the 'value' from the active invocation with the lowest ID
+		template <typename T>	ND_ sg_uniform	T		Broadcast (T value, sg_uniform uint id) const;	// returns the 'value' from the invocation whose ID is equal to 'id'.
+																										// 'id' must be compile-time constant.
+																										// 'AE_subgroupBroadcastDynamicId' allows dynamically uniform 'id', but it is slow.
+		template <typename T>	ND_	sg_uniform	T		BroadcastFirst (T) const;						// returns the 'value' from the active invocation with the lowest ID
 
-		ND_ uniform	uint4	Ballot (bool) const;					// returns a set of bitfields containing the result of evaluating the expression 'value' in all active invocations in the subgroup
+		ND_ sg_uniform	uint4	Ballot (bool) const;				// returns a set of bitfields containing the result of evaluating the expression 'value' in all active invocations in the subgroup
 
 		// helpers, doesnt use cross-lane operations
 		ND_ bool	InverseBallot (uint4) const;
@@ -977,13 +978,13 @@ public:
 	  #endif
 
 	  #ifdef AE_shader_subgroup_arithmetic
-		template <typename T>	ND_ uniform T		Add (T) const;				//	same as:
-		template <typename T>	ND_ uniform T		Mul (T) const;				//		input[ subgroup.Index ] = x
-		template <typename T>	ND_ uniform T		Min (T) const;				//		for (accum = 0, i = 0; i < subgroup.Size; ++i)
-		template <typename T>	ND_ uniform T		Max (T) const;				//			accum <op>= input[i]
-		template <typename T>	ND_ uniform T		And (T) const;				//		return accum
-		template <typename T>	ND_ uniform T		Or  (T) const;				//
-		template <typename T>	ND_ uniform T		Xor (T) const;				//
+		template <typename T>	ND_ sg_uniform T	Add (T) const;				//	same as:
+		template <typename T>	ND_ sg_uniform T	Mul (T) const;				//		input[ subgroup.Index ] = x
+		template <typename T>	ND_ sg_uniform T	Min (T) const;				//		for (accum = 0, i = 0; i < subgroup.Size; ++i)
+		template <typename T>	ND_ sg_uniform T	Max (T) const;				//			accum <op>= input[i]
+		template <typename T>	ND_ sg_uniform T	And (T) const;				//		return accum
+		template <typename T>	ND_ sg_uniform T	Or  (T) const;				//
+		template <typename T>	ND_ sg_uniform T	Xor (T) const;				//
 
 		template <typename T>	ND_ nonuniform T	InclusiveAdd (T) const;		//	same as:
 		template <typename T>	ND_ nonuniform T	InclusiveMul (T) const;		//		input[ subgroup.Index ] = x
@@ -1082,9 +1083,9 @@ public:
 	const	int		VertexIndex			= {};	// BaseVertex + VertexID
 
 	#ifdef AE_shader_draw_parameters
-	const	int			BaseInstance	= {};
-	const	int			BaseVertex		= {};
-	const uniform int	DrawIndex		= {};
+	const	int				BaseInstance	= {};
+	const	int				BaseVertex		= {};
+	const sg_uniform int	DrawIndex		= {};
 	#endif
 
 	// out
@@ -1199,7 +1200,7 @@ public:
 	// GL_ARB_shader_draw_parameters
   #if defined(AE_shader_draw_parameters) and (defined(SH_MESH_TASK) or defined(SH_MESH) or defined(SH_VERT))
 	// in
-	const uniform int	DrawID = {};	// dynamically uniform
+	const sg_uniform int	DrawID = {};	// dynamically uniform
   #endif
 
 
@@ -1342,12 +1343,12 @@ public:
 	} memoryBarrier;
 
 	// in
-	const 	uint3		GlobalInvocationID		= {};
-	const	uint3		LocalInvocationID		= {};
-	const	uint		LocalInvocationIndex	= {};
-	const	uint3		NumWorkGroups			= {};
-	const uniform uint3	WorkGroupID				= {};
-	constexpr uint3		WorkGroupSize			= {};
+	const 	uint3			GlobalInvocationID		= {};
+	const	uint3			LocalInvocationID		= {};
+	const	uint			LocalInvocationIndex	= {};
+	const	uint3			NumWorkGroups			= {};
+	const sg_uniform uint3	WorkGroupID				= {};
+	constexpr uint3			WorkGroupSize			= {};
 
   #else
 

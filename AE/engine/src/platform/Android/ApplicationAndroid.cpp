@@ -119,31 +119,33 @@ namespace {
 */
 	RC<IVirtualFileStorage>  ApplicationAndroid::OpenStorage (EAppStorage type) __NE___
 	{
-		switch_enum( type )
+		CHECK_ERR( type < EAppStorage::_Count );
+
+		auto	vfs = _storageCache[ uint(type) ].load();
+		if ( vfs )
 		{
-			case EAppStorage::Builtin :
-			{
-				auto	fs = MakeRC<FileSystemAndroid>();
-				CHECK_ERR( fs->Create( _paths->jniAssetMngr, "" ));
-				return fs;
-			}
-
-			case EAppStorage::Cache :
-			{
-				Path	dir = _paths->internalCache;
-				CHECK_ERR( not dir.empty() );
-				return VFS::VirtualFileStorageFactory::CreateDynamicFolder( dir );
-			}
-
-			case EAppStorage::ExternalCache :
-			{
-				Path	dir = _paths->externalCache;
-				CHECK_ERR( not dir.empty() );
-				return VFS::VirtualFileStorageFactory::CreateDynamicFolder( dir );
-			}
+			// already created
+			return vfs;
 		}
-		switch_end
-		return null;
+
+		StringView	prefix = _GetStoragePrefix( type );
+
+		if ( type == EAppStorage::Builtin )
+		{
+			auto	fs = MakeRC<FileSystemAndroid>();
+			CHECK_ERR( fs->Create( _paths->jniAssetMngr, "" ));		// TODO: prefix
+			return fs;
+		}
+
+		Path	dir = GetStoragePath( type );
+		CHECK_ERR( not dir.empty() );
+
+		auto	new_vfs = VFS::VirtualFileStorageFactory::CreateDynamicFolder( dir, prefix, True{"create folder"} );
+
+		if ( _storageCache[ uint(type) ].CAS_Loop( INOUT vfs, new_vfs ))
+			return new_vfs;
+		else
+			return vfs;
 	}
 
 /*
@@ -156,8 +158,18 @@ namespace {
 		switch_enum( type )
 		{
 			case EAppStorage::Builtin :			return {};	// not supported, use 'OpenStorage()'
-			case EAppStorage::Cache :			return _paths->internalCache;
-			case EAppStorage::ExternalCache :	return _paths->externalCache;
+			case EAppStorage::Cache :			return _paths->internalCache / "cache";
+			case EAppStorage::ExternalCache :	return _paths->externalCache / "ext-cache";
+			case EAppStorage::UserData :		return _paths->internalCache / "user-data";
+
+			case EAppStorage::SharedData :
+			{
+				CHECK_ERR( _listener );
+				Path	path = _paths->externalStorage;
+				path /= _listener->GetAppName();
+				return path;
+			}
+			case EAppStorage::_Count :          break;
 		}
 		switch_end
 		return {};
@@ -392,7 +404,8 @@ namespace {
 */
 	void JNICALL ApplicationAndroid::native_SetDirectories (JNIEnv*, jclass,
 															jstring internalAppData, jstring internalCache,
-															jstring externalAppData, jstring externalCache) __NE___
+															jstring externalAppData, jstring externalCache,
+															jstring externalStorage) __NE___
 	{
 		auto&	app = GetApp();
 		DRC_EXLOCK( app._drCheck );
@@ -401,6 +414,7 @@ namespace {
 		app._paths->internalCache	= Path{JavaString{ internalCache }};
 		app._paths->externalAppData	= Path{JavaString{ externalAppData }};
 		app._paths->externalCache	= Path{JavaString{ externalCache }};
+		app._paths->externalStorage	= Path{JavaString{ externalStorage }};
 	}
 
 /*

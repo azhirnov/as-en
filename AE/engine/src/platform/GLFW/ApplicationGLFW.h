@@ -37,8 +37,8 @@ namespace AE::App
 
 		MonitorsView_t			GetMonitors (bool update = false)						__NE_OV;
 		MonitorsView_t			GetCachedMonitors ()									C_NE_OV;
-		RC<IVirtualFileStorage> OpenStorage (EAppStorage)								__NE_OV { return null; }
-		Path					GetStoragePath (EAppStorage)							__NE_OV	{ return {}; }
+		RC<IVirtualFileStorage> OpenStorage (EAppStorage)								__NE_OV;
+		Path					GetStoragePath (EAppStorage)							__NE_OV;
 		ArrayView<const char*>	GetVulkanInstanceExtensions ()							__NE_OV;
 		RC<IScreenCapture>		StartScreenCapture (const IScreenCapture::Config &)		__NE_OV;
 		Unique<ISendInput>		CreateInputSender ()									__NE_OV;

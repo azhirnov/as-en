@@ -37,6 +37,8 @@ namespace AE::App
 
 			Array<MoveRect>				moveRects;
 			Array<RectI>				dirtyRects;
+
+			int2						pointerPos;
 		};
 
 		using SurfaceFormats_t = FixedArray< Graphics::EPixelFormat, 8 >;
@@ -62,6 +64,7 @@ namespace AE::App
 			Timeout,				// try again later or increase 'timeout' argument.
 			_Errors,
 			Error_NotSupported,		// unsupported method, use 'AcquireImage()' for GPU side access or 'ReadHostImage()' for CPU side.
+			Error_NeedRecreate,		//
 			Failed_Acquire,			// after this error you must restart screen capture.
 			Failed_VkInterop,		// failed to share resource with Vulkan, try another parameters in 'Config'.
 			Failed_StagingAlloc,	// failed to allocate staging memory.
@@ -69,7 +72,7 @@ namespace AE::App
 		};
 
 		using ReadImageFn_t		= Function< void (const Graphics::ImageMemView &memView, const FrameInfo &info) >;
-		using SyncReadImageFn_t = Function< void (const Graphics::ImageMemView &memView, const FrameInfo &info, ErrorCode err) >;
+		using SyncReadImageFn_t = Function< bool (const Graphics::ImageMemView &memView, const FrameInfo &info, ErrorCode err) >;
 
 
 		struct Description
@@ -82,15 +85,35 @@ namespace AE::App
 			Monitor::NativeMonitor_t	monitorHandle	= null;
 		};
 
+		enum class EState
+		{
+			Active,
+			Paused,
+			WillFinish,				// not active, but not finished yet
+			Finished,
+			ActiveWithError,		// active but have error, will finished soon
+			Unknown,
+		};
+
 
 	// interface
 	public:
 
 		// Stop capture and free resources.
-		//   Thread safe: main thread only
+		//   Thread safe: yes
 		//
-			virtual void  Finish ()													__NE___ = 0;
+			virtual void  Finish ()													__NE___ = 0;	// deprecated
 
+		ND_ virtual AsyncTask  FinishAsync ()										__NE___ = 0;
+
+
+		// Get current state of screen capture.
+		//   Thread safe: yes
+		//
+		ND_ virtual EState  GetState ()												C_NE___ = 0;
+
+
+	// GPU side image //
 
 		// Acquire next image and use it on GPU side.
 		//   Thread safe: main thread only
@@ -101,10 +124,13 @@ namespace AE::App
 											 Graphics::CommandBatch		&cmdBatch,
 											 milliseconds				timeout)	__NE___ = 0;
 
+	// CPU size image //
+
 		// Read new frame on CPU side.
 		// Returns 'false' if there are no new images.
 		// First frame may contains non-empty 'moveRects' but user should ignore it and make full copy to initialize capture.
 		// Subsequent frames should use 'moveRects' to move regions and 'dirtyRects' to copy regions from 'memView' to local copy.
+		// Callback must not throw exceptions.
 		//   Thread safe: yes
 		//
 			virtual ErrorCode  ReadHostImage (const ReadImageFn_t &)				__NE___ = 0;
@@ -112,6 +138,7 @@ namespace AE::App
 
 		// Read image in the screen capture thread.
 		// Returns 'false' if not supported.
+		// Callback may throw exceptions, any exception will stop the capture.
 		//   Thread safe: yes
 		//
 			virtual bool  SetReadImageCallback (SyncReadImageFn_t fn)				__NE___ = 0;

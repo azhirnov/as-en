@@ -13,6 +13,11 @@ void ASmain ()
 				"packed_short_norm2	Position;" );
 	}
 	{
+		RC<ShaderStructType>	st = ShaderStructType( "VB_Position_s3" );
+		st.Set( EStructLayout::InternalIO,
+				"packed_short_norm3	Position;" );
+	}
+	{
 		RC<ShaderStructType>	st = ShaderStructType( "VB_Position_f3" );
 		st.Set( EStructLayout::InternalIO,
 				"packed_float3		Position;" );
@@ -40,7 +45,7 @@ void ASmain ()
 	{
 		RC<ShaderStructType>	st = ShaderStructType( "VB_UVs2_SCs1_Col8" );
 		st.Set( EStructLayout::InternalIO,
-				"packed_ushort_norm4	UV_Scale;"
+				"packed_ushort_norm4	UV_Scale;"	// 'scale' used for SDF font
 				"packed_ubyte_norm4		Color;"		);
 	}
 	{
@@ -70,5 +75,12 @@ void ASmain ()
 		RC<VertexBufferInput>	vb = VertexBufferInput( "VB_Position_f2, VB_Color8" );
 		vb.Add( "Position",	"VB_Position_f2" );
 		vb.Add( "Attribs",	"VB_Color8"		 );
+	}
+
+	// VB for UI
+	{
+		RC<VertexBufferInput>	vb = VertexBufferInput( "VB_Position_s3, VB_UVs2_SCs1_Col8" );
+		vb.Add( "Position",	"VB_Position_s3"	);
+		vb.Add( "Attribs",	"VB_UVs2_SCs1_Col8"	);
 	}
 }

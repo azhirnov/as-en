@@ -3,6 +3,7 @@
 	Thread-safe: must be externally synchronized
 
 	Designed to stream large messages over TCP connection.
+	Blocking version, must be in separate thread.
 */
 
 #pragma once

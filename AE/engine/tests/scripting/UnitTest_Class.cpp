@@ -528,6 +528,27 @@ namespace
 		TEST( Run< uint () >( se, script, "ASmain", SourceLoc{__FILE__, line}, OUT res ));
 		TEST_Eq( res, 111u );
 	}
+
+
+	static void  ScriptClass_Test12 (const ScriptEnginePtr &se)
+	{
+		static const int  line		= __LINE__ + 1;
+		static const char script[]	= R"#(
+			int ASmain (int i) {
+				Test1_CL@ c = 0;
+				return c.F() + i;
+			}
+		)#";
+
+		// must fail to compile, so disable logger
+		StaticLogger::Deinitialize( false );
+
+		int	res = 0;
+		bool ok = not Run< int (int) >( se, script, "ASmain", SourceLoc{__FILE__, line}, OUT res, 1 );
+
+		StaticLogger::InitDefault();
+		TEST( ok );
+	}
 }
 
 
@@ -552,6 +573,7 @@ extern void UnitTest_Class ()
 	ScriptClass_Test9( se );
 	ScriptClass_Test10( se );
 	ScriptClass_Test11( se );
+	ScriptClass_Test12( se );
 
 	TEST_PASSED();
 }

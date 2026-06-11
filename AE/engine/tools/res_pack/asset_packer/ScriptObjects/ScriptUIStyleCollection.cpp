@@ -6,7 +6,7 @@ AE_DECL_SCRIPT_OBJ_RC(	AE::AssetPacker::ScriptUIStyleCollection,								"UIStyle
 AE_DECL_SCRIPT_OBJ_RC(	AE::AssetPacker::ScriptUIStyleCollection::ScriptColorStyle,				"UIColorStyle" );
 AE_DECL_SCRIPT_OBJ_RC(	AE::AssetPacker::ScriptUIStyleCollection::ScriptImageStyle,				"UIImageStyle" );
 //AE_DECL_SCRIPT_OBJ_RC(	AE::AssetPacker::ScriptUIStyleCollection::ScriptImageAnimationStyle,	"UIImageAnimationStyle" );
-//AE_DECL_SCRIPT_OBJ_RC(	AE::AssetPacker::ScriptUIStyleCollection::ScriptFontStyle,			"UIFontStyle" );
+AE_DECL_SCRIPT_OBJ_RC(	AE::AssetPacker::ScriptUIStyleCollection::ScriptFontStyle,				"UIFontStyle" );
 
 
 namespace AE::AssetPacker
@@ -230,43 +230,45 @@ namespace AE::AssetPacker
 =================================================
 	Set*
 =================================================
-*
-	void  ScriptUIStyleCollection::ScriptFontStyle::SetDisabled (const RGBA8u &col)		__Th___	{ _internal.color.disabled	= col; }
-	void  ScriptUIStyleCollection::ScriptFontStyle::SetEnabled (const RGBA8u &col)		__Th___	{ _internal.color.enabled	= col; }
-	void  ScriptUIStyleCollection::ScriptFontStyle::SetMouseOver (const RGBA8u &col)	__Th___	{ _internal.color.mouseOver	= col; }
-	void  ScriptUIStyleCollection::ScriptFontStyle::SetTouchDown (const RGBA8u &col)	__Th___	{ _internal.color.touchDown	= col; }
-	void  ScriptUIStyleCollection::ScriptFontStyle::SetSelected (const RGBA8u &col)		__Th___	{ _internal.color.selected	= col; }
+*/
+	void  ScriptUIStyleCollection::ScriptFontStyle::SetDisabled (const RGBA8u &col)		__Th___	{ _internal.colors[uint(EStyleIndex::Disabled)]	 = col; }
+	void  ScriptUIStyleCollection::ScriptFontStyle::SetEnabled (const RGBA8u &col)		__Th___	{ _internal.colors[uint(EStyleIndex::Enabled)]	 = col; }
+	void  ScriptUIStyleCollection::ScriptFontStyle::SetMouseOver (const RGBA8u &col)	__Th___	{ _internal.colors[uint(EStyleIndex::MouseOver)] = col; }
+	void  ScriptUIStyleCollection::ScriptFontStyle::SetTouchDown (const RGBA8u &col)	__Th___	{ _internal.colors[uint(EStyleIndex::TouchDown)] = col; }
+	void  ScriptUIStyleCollection::ScriptFontStyle::SetSelected (const RGBA8u &col)		__Th___	{ _internal.colors[uint(EStyleIndex::Selected)]	 = col; }
 
 	void  ScriptUIStyleCollection::ScriptFontStyle::SetFont (const String &fontName)	__Th___
 	{
-		ObjectStorage::Instance()->RequireFont( fontName );
+		auto&	storage	= *ObjectStorage::Instance();
 
-		_fontName = fontName;
+		storage.RequireFont( _collection._metaDataFileName, fontName );		// throw
+		storage.AddName< CachedResourceName >( fontName );					// throw
+
+		_fontName = CachedResourceName{fontName};
 	}
 
 	void  ScriptUIStyleCollection::ScriptFontStyle::SetPipeline (const String &name)	__Th___
 	{
 		_collection._CheckPipeline( name );
-		_internal._pplnName = PipelineName{name};
+		_pplnName = PipelineName{name};
 	}
 
 /*
 =================================================
 	Serialize
 =================================================
-*
+*/
 	bool  ScriptUIStyleCollection::ScriptFontStyle::Serialize (Serializing::Serializer &ser) C_NE___
 	{
-		// TODO: validate
-
-		CHECK_THROW( Serialize_FontStyle( _internal, ser ));
+		const EType  type = EType::FontStyle;
+		return ser( type, _pplnName, _fontName, _internal.colors );
 	}
 
 /*
 =================================================
 	Bind
 =================================================
-*
+*/
 	void  ScriptUIStyleCollection::ScriptFontStyle::Bind (const ScriptEnginePtr &se) __Th___
 	{
 		Scripting::ClassBinder<ScriptFontStyle>		binder{ se };
@@ -335,7 +337,7 @@ namespace AE::AssetPacker
 =================================================
 	AddFontStyle
 =================================================
-*
+*/
 	ScriptUIStyleCollection::ScriptFontStyle*  ScriptUIStyleCollection::AddFontStyle (const String &name) __Th___
 	{
 		ObjectStorage::Instance()->AddName<StyleName>( name );
@@ -462,7 +464,7 @@ namespace AE::AssetPacker
 		ScriptColorStyle::Bind( se );
 		ScriptImageStyle::Bind( se );
 		//ScriptImageAnimationStyle::Bind( se );
-		//ScriptFontStyle::Bind( se );
+		ScriptFontStyle::Bind( se );
 
 		Scripting::ClassBinder<ScriptUIStyleCollection>		binder{ se };
 		binder.CreateRef();
@@ -471,7 +473,7 @@ namespace AE::AssetPacker
 		AS_METHOD( binder, ScriptUIStyleCollection::AddColorStyle,			"AddColorStyle",			{"name"} );
 		AS_METHOD( binder, ScriptUIStyleCollection::AddImageStyle,			"AddImageStyle",			{"name"} );
 	//	AS_METHOD( binder, ScriptUIStyleCollection::AddImageAnimationStyle,	"AddImageAnimationStyle",	{"name"} );
-	//	AS_METHOD( binder, ScriptUIStyleCollection::AddFontStyle,			"AddFontStyle",				{"name"} );
+		AS_METHOD( binder, ScriptUIStyleCollection::AddFontStyle,			"AddFontStyle",				{"name"} );
 		AS_METHOD( binder, ScriptUIStyleCollection::Store,					"Store",					{"nameInArchive"} );
 	}
 

@@ -70,9 +70,10 @@ namespace AE::RemoteGraphics
 	constructor
 =================================================
 */
-	RmGAppListener::RmGAppListener () __NE___ :
+	RmGAppListener::RmGAppListener (ushort serverPort) __NE___ :
 		_device{ True{"enable log"} },
-		_connectionLostTimer{ seconds{30} }
+		_connectionLostTimer{ seconds{30} },
+		_serverPort{ serverPort }
 	{
 		TaskScheduler::InstanceCtor::Create();
 
@@ -179,9 +180,9 @@ namespace AE::RemoteGraphics
 		using namespace AE::Networking;
 
 		IpAddress	server_addr;
-		CHECK( SocketService::Instance().GetSelfIPAddress( AE_ROUTER_IPv4, OUT server_addr ));
+		CHECK( SocketService::Instance().GetSelfLocalIPAddress( OUT server_addr ));
 
-		server_addr.SetPort( RmNetConfig::serverPort );
+		server_addr.SetPort( _serverPort );
 
 		AE_LOGI( "Start RemoteGraphicsDevice on address: "s << server_addr.ToString() << " x" << ToString( RmNetConfig::socketCount ));
 
@@ -238,7 +239,7 @@ namespace AE::RemoteGraphics
 				if ( core_id != UMax )
 					ThreadUtils::SetAffinity( core_id );
 
-				CHECK_FATAL( conn.InitServer( ushort(RmNetConfig::serverPort + i), &_objFactory ));
+				CHECK_FATAL( conn.InitServer( ushort(_serverPort + i), &_objFactory ));
 
 				_GetThreadData() = &_threadArr[i];
 
@@ -875,6 +876,7 @@ namespace AE::RemoteGraphics
 //-----------------------------------------------------------------------------
 
 
+using namespace AE;
 using namespace AE::Base;
 using namespace AE::App;
 using namespace AE::RemoteGraphics;
@@ -886,9 +888,13 @@ using namespace AE::RemoteGraphics;
 */
 Unique<IApplication::IAppListener>  AE_OnAppCreated (const int argc, char const* argv[])
 {
-	Unused( argc, argv );
+	ushort		port		= AE_RMG_PORT;
+	StringView	port_str	= Parser::GetCommandLineArg( ArrayView<const char*>{ argv, usize(argc) }, "-port" );
+	if ( not port_str.empty() )
+		port = ushort(Base::StringToInt( port_str ));
+
 	StaticLogger::InitDefault();
-	return MakeUnique<RmGAppListener>();
+	return MakeUnique<RmGAppListener>( port );
 }
 
 void  AE_OnAppDestroyed ()

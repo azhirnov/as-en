@@ -316,8 +316,8 @@ namespace
 		sd_img_gen_params_t		igen_params;
 		_fn.sd_img_gen_params_init( OUT &igen_params );
 
-		igen_params.prompt			= in_params.prompt.c_str();
-		igen_params.negative_prompt	= in_params.negativePrompt.empty() ? "" : in_params.negativePrompt.c_str();
+		igen_params.prompt			= Cast<char>( in_params.prompt.c_str() );
+		igen_params.negative_prompt	= in_params.negativePrompt.empty() ? "" : Cast<char>( in_params.negativePrompt.c_str() );
 		igen_params.width			= in_params.dim.x;
 		igen_params.height			= in_params.dim.y;
 
@@ -325,7 +325,7 @@ namespace
 		igen_params.batch_count		= in_params.resultCount;
 
 
-		sd_cache_params_t &		cache_params = igen_params.cache;
+		sd_cache_params_t&		cache_params = igen_params.cache;
 		_fn.sd_cache_params_init( OUT &cache_params );
 
 		cache_params.mode			= SD_CACHE_DISABLED;
@@ -363,6 +363,31 @@ namespace
 			igen_params.strength = in_params.initImageStrength;
 		}
 
+		// reference images
+		Array<sd_image_t>	ref_images;
+		if ( not in_params.refImages.empty() )
+		{
+			for (auto& src : in_params.refImages)
+			{
+				auto&	dst = ref_images.emplace_back();
+
+				CHECK_ERR( ConvertImage( OUT dst, src ));
+			}
+
+			igen_params.ref_images				= ref_images.data();
+			igen_params.ref_images_count		= int(ref_images.size());
+			igen_params.auto_resize_ref_image	= in_params.autoResizeRefImage;
+			igen_params.increase_ref_index		= in_params.increaseRefIndex;
+		}
+
+		// control image
+		if ( in_params.controlImage.IsDefined() )
+		{
+			CHECK_ERR( All( in_params.controlImage.dim == in_params.dim ));
+			CHECK_ERR( ConvertImage( OUT igen_params.control_image, in_params.controlImage ));
+
+			igen_params.control_strength = in_params.controlStrength;
+		}
 
 		sd_image_t*		imgs = _fn.generate_image( _context, &igen_params );
 		CHECK_ERR( imgs != null );

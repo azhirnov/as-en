@@ -25,6 +25,9 @@ void ASmain (Android_ActionBindings& bindings)
 				  ActionInfo( "Touch.Click", EValueType::Float2, EGestureType::Click ));
 		bind.Add( Android_Input::TouchPos,
 				  ActionInfo( "Touch.Move", EValueType::Float2, EGestureType::Move ));
+
+	//	bind.Add( Android_Input::RawChar,
+	//			  ActionInfo( "UI.Char", EValueType::Chars ));
 	}
 
 	// Camera3D bindings

@@ -53,6 +53,13 @@ namespace AE::Threading
 
 		using ChunkArray_t	= StaticArray< Chunk *, MaxChunks >;
 
+	public:
+		struct CancelAllResult
+		{
+			usize	canceledTasks	= 0;
+			usize	skippedChunks	= 0;
+		};
+
 
 	// variables
 	private:
@@ -85,7 +92,8 @@ namespace AE::Threading
 		ND_ Bytes		AllocatedSize ()									C_NE___;
 
 			void		Release ()											__NE___;
-			void		CancelAll ()										__NE___;
+
+		ND_ CancelAllResult  CancelAll ()									__NE___;
 
 
 	  // debugging //

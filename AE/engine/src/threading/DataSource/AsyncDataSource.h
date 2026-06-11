@@ -134,7 +134,7 @@ namespace AE::_Coro_
 		template <typename P>
 		ND_ bool	await_suspend (std::coroutine_handle<P> curCoro)	__NE___
 		{
-			return CoroAwaiterImpl::AwaitSuspendImpl2( curCoro, Tuple{_req.GetRC()} );
+			return CoroAwaiterImpl::AwaitSuspendImpl2( curCoro.promise(), Tuple{_req.GetRC()} );
 		}
 	};
 

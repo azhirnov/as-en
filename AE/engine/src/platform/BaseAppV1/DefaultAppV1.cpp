@@ -54,7 +54,10 @@ namespace AE::AppV1
 											   OUT _allowProcessInMain ));
 
 		if ( _config.enableNetwork )
+		{
 			CHECK_FATAL( Networking::SocketService::Instance().Initialize() );
+			CHECK_FATAL( Networking::SocketDependencyManager::Register() );
+		}
 
 	  #ifdef AE_ENABLE_AUDIO
 		if ( _config.enableAudio )
@@ -157,7 +160,7 @@ namespace AE::AppV1
 */
 	void  AppCoreV1::OnStart (IApplication &app) __NE___
 	{
-		CHECK_FATAL( _InitGraphics( app ));
+		CHECK_FATAL( _InitGraphics( app, _config.graphics ));
 	}
 
 /*
@@ -170,7 +173,7 @@ namespace AE::AppV1
 		// create VR device without window
 		if ( _config.enableVR and _config.onlyVR )
 		{
-			_CreateVRDevice( app );
+			_CreateVRDevice( app, _config.vrDevices );
 
 			if ( not _windows.empty() )
 				return true;
@@ -198,7 +201,7 @@ namespace AE::AppV1
 		// create VR device with window
 		if ( _config.enableVR and _windows.size() >= 1 )
 		{
-			_CreateVRDevice( app );
+			_CreateVRDevice( app, _config.vrDevices );
 		}
 
 		return true;
@@ -209,16 +212,16 @@ namespace AE::AppV1
 	_CreateVRDevice
 =================================================
 */
-	void  AppCoreV1::_CreateVRDevice (IApplication &app) __NE___
+	void  AppCoreV1::_CreateVRDevice (IApplication &app, ArrayView<IVRSession::EDeviceType> vrDevices) __NE___
 	{
-		ASSERT( not _config.vrDevices.empty() );
+		ASSERT( not vrDevices.empty() );
 
 		IInputActions*	ia = null;
 
 		if ( not _windows.empty() )
 			ia = &_windows[0]->InputActions();
 
-		for (auto type : _config.vrDevices)
+		for (auto type : vrDevices)
 		{
 			WindowPtr	vr_wnd = app.CreateVRSession( MakeUnique<AppCoreV1::WindowEventListener>( _impl, *this ), ia, type );
 			if ( vr_wnd )
@@ -259,7 +262,7 @@ namespace AE::AppV1
 	_InitGraphics
 =================================================
 */
-	bool  AppCoreV1::_InitGraphics (IApplication &app) __NE___
+	bool  AppCoreV1::_InitGraphics (IApplication &app, const GraphicsCreateInfo &graphicsCfg) __NE___
 	{
 		if_unlikely( _device.IsInitialized() )
 			return true;
@@ -267,7 +270,7 @@ namespace AE::AppV1
 		RenderTaskScheduler::InstanceCtor::Create( _device );
 
 	  #ifdef AE_ENABLE_VULKAN
-		CHECK_ERR( _device.Init( _config.graphics, app.GetVulkanInstanceExtensions() ));
+		CHECK_ERR( _device.Init( graphicsCfg, app.GetVulkanInstanceExtensions() ));
 
 		#if ENABLE_SYNC_LOG
 		{
@@ -283,11 +286,11 @@ namespace AE::AppV1
 
 	  #elif defined(AE_ENABLE_METAL)
 		Unused( app );
-		CHECK_ERR( _device.Init( _config.graphics ));
+		CHECK_ERR( _device.Init( graphicsCfg ));
 
 	  #elif defined(AE_ENABLE_REMOTE_GRAPHICS)
 		Unused( app );
-		CHECK_ERR( _device.Init( _config.graphics ));
+		CHECK_ERR( _device.Init( graphicsCfg ));
 
 		#if ENABLE_SYNC_LOG
 			_device.EnableSyncLog( true );
@@ -300,7 +303,7 @@ namespace AE::AppV1
 		CHECK_ERR( _device.CheckConstantLimits() );
 		CHECK_ERR( _device.CheckExtensions() );
 
-		CHECK_ERR( GraphicsScheduler().Initialize( _config.graphics ));
+		CHECK_ERR( GraphicsScheduler().Initialize( graphicsCfg ));
 		return true;
 	}
 
@@ -314,7 +317,7 @@ namespace AE::AppV1
 		if_unlikely( not _device.IsInitialized() )
 			return;
 
-		// All render tasks must complete before destroing device
+		// All render tasks must complete before destroying device
 		Unused( GraphicsScheduler().WaitAll( AE::DefaultTimeout ));
 
 		RenderTaskScheduler::InstanceCtor::Destroy();

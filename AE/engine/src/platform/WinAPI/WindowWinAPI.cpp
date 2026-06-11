@@ -675,6 +675,26 @@ namespace AE::App
 	  #endif
 	}
 
+/*
+=================================================
+	SetDisplayMode
+=================================================
+*/
+	bool  WindowWinAPI::SetDisplayMode (EWindowDisplayMode mode) __NE___
+	{
+		DWORD	affinity = 0;
+
+		switch_enum( mode )
+		{
+			case EWindowDisplayMode::AlwaysVisible :						affinity = 0x00;  break;
+			case EWindowDisplayMode::VisibleOnScreen_ClippedForCapture :	affinity = 0x01;  break;
+			case EWindowDisplayMode::VisibleOnScreen_HiddenForCapture :		affinity = 0x11;  break;	// TODO: win10
+		}
+		switch_end
+
+		return ::SetWindowDisplayAffinity( _wnd, affinity ) != FALSE;	// win7
+	}
+
 
 } // AE::App
 

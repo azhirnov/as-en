@@ -37,7 +37,7 @@ namespace
 */
 	void  VDevice::InitFeatureSet (OUT FeatureSet &outFeatureSet) C_NE___
 	{
-		StaticAssert( FeatureSet::GetFeatureCount() == 277 );
+		StaticAssert( FeatureSet::GetFeatureCount() == 278 );
 
 		using EFeature	= FeatureSet::EFeature;
 		using KiBytes	= FeatureSet::KiBytes;
@@ -775,6 +775,11 @@ namespace
 			}
 		}
 
+		if ( _extensions.descriptorHeap )
+		{
+			outFeatureSet.descriptorHeap = True;
+		}
+
 		constexpr usize	max_samples = CT_SizeOfInBits< FeatureSet::SampleCountBits >;
 		for (usize i = 0; i < max_samples; ++i)
 		{
@@ -916,7 +921,7 @@ namespace
 		#define SET_FEAT( _name_ )			feats10._name_ = (inFS._name_ == True ? VK_TRUE : VK_FALSE)
 		#define SET_FEAT2( _name_, _feat_ )	_feat_._name_  = (inFS._name_ == True ? VK_TRUE : VK_FALSE)
 
-		StaticAssert( FeatureSet::GetFeatureCount() == 277 );
+		StaticAssert( FeatureSet::GetFeatureCount() == 278 );
 		using EFeature = FeatureSet::EFeature;
 
 		auto&			feats10		= _properties.features;

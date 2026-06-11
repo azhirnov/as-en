@@ -1,10 +1,6 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 /*
-	Compare techniques for light pass in deferred shading:
-	 * light volume
-	 * light AABB / billboard
-	 * tiled without z-test
-	 * tiled with z-test, zbins
+	Forward+ rendering with clustered lights.
 
 	related:
 	* [project lights to clusters](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/scripts/light-cull/test-LightVolToClusters.as)
@@ -12,9 +8,10 @@
 #ifdef __INTELLISENSE__
 # 	include <res_editor.as>
 #	include <glsl.h>
+#	define INIT_PARAMS
 #	define PUT_OBJECTS
 #	define PUT_LIGHTS
-#	define CLUSTER_LIGHT_PASS
+#	define PROJ_TO_CLUSTERS
 #	define RESOLVE
 #endif
 //-----------------------------------------------------------------------------
@@ -26,24 +23,26 @@
 		const EPixelFormat	hdr_fmt			= EPixelFormat::RGBA16F;
 		RC<DynamicDim>		dim				= SurfaceSize();
 		RC<Image>			rt				= Image( hdr_fmt, dim );						rt.Name( "Main-RT" );
-		RC<Image>			rt_col			= Image( EPixelFormat::RGB10_A2_UNorm, dim );	rt_col.Name( "Albedo" );
+		RC<Image>			rt_col			= Image( hdr_fmt, dim );						rt_col.Name( "HDR" );
 		RC<Image>			rt_norm			= Image( EPixelFormat::RGB10_A2_UNorm, dim );	rt_norm.Name( "Normals" );
-		RC<Image>			ds				= Image( Supported_DepthStencilFormat(), dim );	ds.Name( "Depth" );
-		RC<Image>			rt_light		= Image( hdr_fmt, dim );						rt_light.Name( "LightBuf" );
+		RC<Image>			ds				= Image( Supported_DepthFormat(), dim );		ds.Name( "Depth" );
+		RC<Image>			rt_ovd			= Image( EPixelFormat::R16F, dim );				rt_ovd.Name( "Overdraw" );
 		RC<Buffer>			obj_buf			= Buffer();
-		RC<Buffer>			clusters_buf	= Buffer();
 		RC<Buffer>			lights_buf		= Buffer();
+		RC<Buffer>			params_buf		= Buffer();
 		RC<Scene>			scene			= Scene();
 		RC<Scene>			scene_lights	= Scene();
-		RC<Scene>			scene_defer_lights1 = Scene();
-		RC<Scene>			scene_defer_lights2 = Scene();
+		RC<Scene>			scene_cl		= Scene();
 
 		RC<DynamicUInt>		obj_count		= DynamicUInt();
-		const int2			tile_size		= int2( 16 );
-		RC<DynamicUInt>		depth_slices	= DynamicUInt();
-		RC<DynamicUInt>		cluster_count	= dim.DivCeil( tile_size ).Area().Mul( depth_slices );
 		RC<DynamicUInt>		light_count		= DynamicUInt();
-		RC<DynamicUInt>		mode			= DynamicUInt();
+		RC<DynamicUInt>		dbg_mode		= DynamicUInt();
+		RC<DynamicUInt>		view_mode		= DynamicUInt();
+
+		RC<DynamicUInt3>	clusters_count	= DynamicUInt3();
+		RC<Buffer>			clusters_buf	= Buffer();
+		const uint			warp_size		= GetSubgroupSize();
+		const uint			warps_per_wg	= 4;
 
 		obj_buf.ArrayLayout(
 			"ObjectTransform",
@@ -65,9 +64,17 @@
 
 		clusters_buf.ArrayLayout(
 			"Cluster",
-			"	uint	count;"			// atomic
-			"	uint	indices [16];",
-			cluster_count );
+			"	uint	count;"
+			"	uint	offset;",
+			clusters_count.Volume()
+		);
+
+		params_buf.UseLayout(
+			"Params",
+			"	CameraData	camera;"
+			"	uint		maxClusterTestsPerLight;"	// atomic
+			"	uint		maxClustersPerLight;"		// atomic		// TODO: histogramm
+		);
 
 		// setup camera
 		{
@@ -75,7 +82,6 @@
 
 			camera.ClipPlanes( 1.0f );
 			camera.FovY( 60.f );
-			camera.ReverseZ( true );
 
 			const float	s = 2.0f;
 			camera.ForwardBackwardScale( s );
@@ -84,19 +90,15 @@
 
 			scene.Set( camera );
 			scene_lights.Set( camera );
-			scene_defer_lights1.Set( camera );
-			scene_defer_lights2.Set( camera );
 		}
 
 		// create scene with buildings
 		{
-			array<float3>	positions, normals;
-			array<uint>		indices;
-			GetCube( OUT positions, OUT normals, OUT indices );
+			RC<Mesh>	mesh = Mesh();
+			mesh.SetAttributes( EAttribute::Position );
+			mesh.AddCube();
 
-			RC<Buffer>		geom_data = Buffer();
-			geom_data.FloatArray( "positions",	positions );
-			geom_data.UIntArray(  "indices",	indices );
+			RC<Buffer>		geom_data = mesh.ToBuffer();
 			geom_data.LayoutName( "GeometryData" );
 
 			RC<UnifiedGeometry>		geometry = UnifiedGeometry();
@@ -104,10 +106,10 @@
 			geometry.ArgIn( "un_Transform",	obj_buf );
 
 			UnifiedGeometry_DrawIndexed	cmd;
-			cmd.indexCount	= indices.size();
+			cmd.indexCount	= mesh.IndexCount();
 			cmd.IndexBuffer( geom_data, "indices" );
 			cmd.InstanceCount( obj_count );
-			cmd.PipelineHint( "opaque.GEqual|Stencil" );
+			cmd.PipelineHint( "opaque.LEqual" );
 			geometry.Draw( cmd );
 
 			scene.Add( geometry );
@@ -133,110 +135,136 @@
 			scene_lights.Add( geometry );
 		}
 
-		// create scene with light cones for deferred shading
+		// create frustum
 		{
-			array<float3>	positions, normals;
-			array<uint>		indices;
-			GetCone( 12, 1.0, 1.0, OUT positions, OUT indices );
+			RC<UnifiedGeometry>		geometry	= UnifiedGeometry();
+			RC<Buffer>				geom_data	= Buffer();
 
-			RC<Buffer>		geom_data = Buffer();
-			geom_data.FloatArray( "positions",	positions );
+			// 2 - 3 -- near   6 - 7
+			// | / |           | \ |
+			// 0 - 1    far -- 4 - 5
+			array<float3>		positions;	positions.resize( 8 );	// near[4], far[4]
+			array<uint>			indices;	GetFrustumIndices( OUT indices );
+
+			geom_data.FloatArray( "position",	positions );
 			geom_data.UIntArray(  "indices",	indices );
-			geom_data.LayoutName( "GeometryData" );
-
-			RC<UnifiedGeometry>		geometry = UnifiedGeometry();
-			geometry.ArgIn( "un_Geometry",	geom_data );
-			geometry.ArgIn( "un_LightObjs",	lights_buf );
+			geom_data.LayoutName( "GeometrySBlock" );
 
 			UnifiedGeometry_DrawIndexed	cmd;
-			cmd.indexCount	= indices.size();
-			cmd.IndexBuffer( geom_data, "indices" );
-			cmd.InstanceCount( light_count );
+			cmd.indexCount		= indices.size();
+			cmd.IndexBuffer(	geom_data,	"indices" );
+			cmd.InstanceCount( clusters_count.Volume() );
 			geometry.Draw( cmd );
 
-			scene_defer_lights1.Add( geometry );
-		}
+			geometry.ArgIn(	"un_Geometry",	geom_data );
+			geometry.ArgIn(	"un_Clusters",	clusters );
 
-		// create scene with light billboards for deferred shading
-		{
-			RC<UnifiedGeometry>		geometry = UnifiedGeometry();
-			geometry.ArgIn( "un_LightObjs",	lights_buf );
-
-			UnifiedGeometry_Draw	cmd;
-			cmd.vertexCount = 4;
-			cmd.InstanceCount( light_count );
-			geometry.Draw( cmd );
-
-			scene_defer_lights2.Add( geometry );
+			scene_cl.Add( geometry );
 		}
 
 		Slider( obj_count,		"ObjCount",		100,	400,		100 );
 		Slider( light_count,	"LightCount",	100,	1000,		200 );
-		Slider( depth_slices,	"DepthSlices",	1,		100,		10 );
-		Slider( mode,			"Mode",			0,		2 );	// light volumes, light billboards, tiled, tiled depth cull, tiled zbin
+		Slider( dbg_mode,		"DbgClusters",	0,		1 );
+		Slider( view_mode,		"View",			0,		3,			0 );	// 0 - combined, 1 - color, 2 - light, 3 - overdraw
+		Slider( clusters_count,	"ClusterDim",		uint3(1),	uint3(40,20,64),	uint3(6,4,32) );
 
 		// render loop
 		{
+			RC<ComputePass>			pass = ComputePass( "", "INIT_PARAMS" );
+			pass.Set( camera );
+			pass.ArgInOut( "un_Params",			params_buf );
+			pass.Constant( "iDbgMode",			dbg_mode );
+			pass.LocalSize( 1 );
+			pass.DispatchGroups( 1 );
+		}{
 			RC<ComputePass>			pass = ComputePass( "", "PUT_OBJECTS" );
-			pass.ArgInOut( "un_Objects",	obj_buf );
+			pass.ArgInOut( "un_Objects",		obj_buf );
 			pass.LocalSize( 64 );
 			pass.DispatchThreads( obj_count );
 		}{
-			ClearBuffer( clusters_buf, 0 );
-
 			RC<ComputePass>			pass = ComputePass( "", "PUT_LIGHTS" );
-			pass.ArgInOut( "un_Lights",		lights_buf );
-			pass.ArgInOut( "un_Clusters",	clusters_buf );
+			pass.ArgInOut( "un_Lights",			lights_buf );
 			pass.LocalSize( 64 );
 			pass.DispatchThreads( light_count );
+		}
+
+		// lights to clusters
+		// pass1: count max lights per cluster
+		{
+			ClearBuffer( clusters_buf, 0 );
+
+			RC<ComputePass>			pass = ComputePass( "", "PROJ_TO_CLUSTERS" );
+			pass.ArgInOut(	"un_Params",		params_buf );
+			pass.ArgIn(		"un_Lights",		lights_buf );
+			pass.ArgInOut(	"un_Clusters",		clusters_buf );
+			pass.Constant(	"iClusterCount",	clusters_count );
+			pass.SubgroupSize( warp_size );
+			pass.LocalSize( warp_size * warps_per_wg );
+			pass.DispatchGroups( light_count.DivCeil(warps_per_wg) );	// single light per warp
+			pass.AddFlag( EPassFlags::Enable_ShaderAsserts );
+		}
+		// pass2: build light indices list
+		{
+		}
+		// pass3: sort light indices
+		{
+		}
+
+		{
+		//	RC<SceneGraphicsPass>	pass = scene.AddGraphicsPass( "depth pre-pass" );
+		//	pass.AddPipeline( "samples/StreetLights/DPP.as" );			// [src](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/pipelines/samples/StreetLights/DPP.as)
+		//	pass.Output( ds,	DepthStencil(0.0, 0) );		// write
 		}{
-			RC<SceneGraphicsPass>	pass = scene.AddGraphicsPass( "opaque" );
-			pass.AddPipeline( "samples/StreetLights-Opaque.as" );		// [src](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/pipelines/samples/StreetLights-Opaque.as)
+			RC<SceneGraphicsPass>	pass = scene.AddGraphicsPass( "forward+" );
+			pass.AddPipeline( "samples/StreetLights/ForwardPlus.as" );	// [src](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/pipelines/samples/StreetLights/ForwardPlus.as)
 			pass.Output( "out_Color",		rt_col,		RGBA32f(0.0) );
 			pass.Output( "out_Normal",		rt_norm,	RGBA32f(0.0) );
-			pass.Output(					ds,			DepthStencil(0.0, 0) );
-		}
-
-		// classic deferred
-		{
-			// not handled case when camera is inside light volume
-			RC<SceneGraphicsPass>	pass = scene_defer_lights1.AddGraphicsPass( "light volumes" );
-			pass.AddPipeline( "samples/DeferredShading-Volume.as" );	// [src](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/pipelines/samples/DeferredShading-Volume.as)
-			pass.Output( "out_Color",		rt_light,	RGBA32f(0.0) );
-			pass.Output(					ds );
-			pass.ArgIn( "un_Albedo",		rt_col,		Sampler_NearestClamp );
-			pass.ArgIn( "un_Normal",		rt_norm,	Sampler_NearestClamp );
-			pass.ArgIn( "un_Depth",			ds,			Sampler_NearestClamp );
-			pass.EnableIfEqual( mode, 0 );
+			pass.Output( "out_Overdraw",	rt_ovd,		RGBA32f(0.0) );
+			pass.Output(					ds );						// read/write
+			pass.ColorSelector( "iAmbient",		RGBA8u(54, 61, 75, 255) );
+			pass.EnableIfEqual( dbg_mode,	0 );
 		}{
-			RC<SceneGraphicsPass>	pass = scene_defer_lights2.AddGraphicsPass( "light quads" );
-			pass.AddPipeline( "samples/DeferredShading-Billboard.as" );	// [src](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/pipelines/samples/DeferredShading-Billboard.as)
-			pass.Output( "out_Color",		rt_light,	RGBA32f(0.0) );
-			pass.Output(					ds );
-			pass.ArgIn( "un_Albedo",		rt_col,		Sampler_NearestClamp );
-			pass.ArgIn( "un_Normal",		rt_norm,	Sampler_NearestClamp );
-			pass.ArgIn( "un_Depth",			ds,			Sampler_NearestClamp );
-			pass.EnableIfEqual( mode, 1 );
-		}
-
-		{
+		//	RC<SceneGraphicsPass>	draw = scene1.AddGraphicsPass( "draw clusters" );
+		//	pass.AddPipeline( "samples/DrawClusters.as" );				// [src](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/pipelines/samples/DrawClusters.as)
+		//	draw.Output( "out_Color",		rt );
+		//	draw.Output(					ds );
+		//	draw.Slider( "iClusterAlpha",	0.0,	1.0,	0.5 );
+		//	pass.EnableIfEqual( dbg_mode,	1 );
+		}{
 			RC<Postprocess>			pass = Postprocess( "", "RESOLVE" );
-			pass.Output( "out_Color",		rt );
-			pass.ArgIn( "un_Albedo",		rt_col,		Sampler_NearestClamp );
-			pass.ArgIn( "un_LightBuf",		rt_light,	Sampler_NearestClamp );
-			pass.Slider( "iView",			0,		2,		0 );	// 0 - combined, 1 - color, 2 - light
-			pass.Slider( "iLightScale",		1.0,	100.0,	10.0 );
-			pass.ColorSelector( "iAmbient",	RGBA8u(54, 61, 75, 255) );
+			pass.Output(	"out_Color",		rt );
+			pass.ArgIn(		"un_Albedo",		rt_col,		Sampler_NearestClamp );
+			pass.ArgIn(		"un_LightBuf",		rt_light,	Sampler_NearestClamp );
+			pass.ArgIn(		"un_Overdraw",		rt_ovd,		Sampler_NearestClamp );
+			pass.Slider(	"iLightScale",		1.0,		100.0,	10.0 );
+			pass.Constant(	"iView",			view_mode );
+			pass.Constant(	"iMaxOverdraw",		light_count );
 		}{
 			RC<SceneGraphicsPass>	pass = scene_lights.AddGraphicsPass( "translucent" );
-			pass.AddPipeline( "samples/StreetLights-LightBulb.as" );	// [src](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/pipelines/samples/StreetLights-LightBulb.as)
-			pass.AddPipeline( "samples/StreetLights-LightCone.as" );	// [src](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/pipelines/samples/StreetLights-LightCone.as)
+			pass.AddPipeline( "samples/StreetLights/LightBulb.as" );	// [src](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/pipelines/samples/StreetLights/LightBulb.as)
+			pass.AddPipeline( "samples/StreetLights/LightCone.as" );	// [src](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/pipelines/samples/StreetLights/LightCone.as)
 			pass.Output( "out_Color",		rt );
 			pass.OutputLS(					ds,			EAttachmentLoadOp::Load, EAttachmentStoreOp::None );
 			pass.Slider( "iLightSize",		0.01,	1.0,	1.0 );
+			pass.EnableIfLess( view_mode, 3 );
 		}
 
 		Present( rt );
+	}
+
+#endif
+//-----------------------------------------------------------------------------
+#ifdef INIT_PARAMS
+
+	void  Main ()
+	{
+		if ( iDbgMode == 0 )
+		{
+			un_Params.camera	= un_PerPass.camera;
+		}
+
+		un_Params.maxClusterTestsPerLight	= 0;
+		un_Params.maxClustersPerLight		= 0;
 	}
 
 #endif
@@ -270,6 +298,9 @@
 			un_Objects.elements[idx] = obj;
 			return;
 		}
+
+		if ( idx >= un_Objects.elements.length() )
+			return;
 
 		obj.position.x	= (ToSNorm( uv.x ) + 0.25) * 20.0;
 		obj.position.y	= GROUND_Y;
@@ -319,74 +350,118 @@
 	}
 
 
-	/*void  PutLightToCluster (const LightObject light, const uint lightIdx)
-	{
-		const float4	view_pos	= WorldPosToViewSpace( light.position );
-		const float4	scr_pos		= ViewPosToScreenSpace( view_pos, float4( 0.0, 0.0, un_PerPass.resolution.xy ));
-		const uint		z_index		= uint(Saturate( view_pos.z / iMaxDepth ) * iDepthSlices);
-
-		const uint2		tile_idx	= uint2(scr_pos.xy) / iTileSize;
-		const uint2		cluster_dim	= DivCeil( uint2(un_PerPass.resolution.xy), iTileSize );
-
-		const uint		cluster_idx	= z_index * cluster_dim.x * cluster_dim.y +
-									  tile_idx.y * cluster_dim.x +
-									  tile_idx.x;
-
-		if ( cluster_idx >= un_Clusters.elements.length() )
-			return;		// TODO: error ?
-
-		const uint		idx = gl.AtomicAdd( INOUT un_Clusters.elements[ cluster_idx ].count, 1u );
-
-		if ( idx >= un_Clusters.elements[ cluster_idx ].indices.length() )
-			return;		// TODO: error ?
-
-		un_Clusters.elements[ cluster_idx ].indices[ idx ] = lightIdx;
-	}*/
-
-
 	void Main ()
 	{
 		const uint	idx = GetGlobalIndex();
 
+		if ( idx >= un_Lights.elements.length() )
+			return;
+
 		LightObject light;
 		GenLight( OUT light, idx );
-
-	//	PutLightToCluster( light, idx );
 	}
 
 #endif
 //-----------------------------------------------------------------------------
-#ifdef CLUSTER_LIGHT_PASS
-	#include "Matrix.glsl"
+#ifdef PROJ_TO_CLUSTERS
+	#include "Cone.glsl"
+	#include "Frustum.glsl"
+	#include "InvocationID.glsl"
+	#include "LightClusters.glsl"
 
-	float4  ProcessLights (float3 albedo, float3 surfNormal)
-	{
-		// TODO
-		return float4( 1.0 );
-	}
+	#define camera		un_Params.camera
 
 
 	void  Main ()
 	{
-		float4		albedo		= gl.texture.Fetch( un_Albedo, int2(gl.FragCoord.xy), 0 );
-		float3		norm		= Normalize( ToSNorm( gl.texture.Fetch( un_Normal, int2(gl.FragCoord.xy), 0 ).rgb ));
-		float		depth		= gl.texture.Fetch( un_Depth, int2(gl.FragCoord.xy), 0 ).r;  // non-linear
-		float		view_depth	= FastUnProjectZ( un_PerPass.camera.proj, depth );
+		// read light geometry
+		sg_uniform const uint			light_idx	= gl.subgroup.BroadcastFirst( GetGlobalIndex() / gl.subgroup.Size );
+		sg_uniform const LightObject	light_obj	= un_Lights.elements[ light_idx ];
+		sg_uniform const Cone			cone		= Cone_Create(	float3x3(camera.view) * light_obj.position,  // view space
+																	float3x3(camera.view) * light_obj.dir,
+																	light_obj.angle, light_obj.height );
 
-		if ( view_depth < iMaxDepth )
+		// project to clusters
+		sg_uniform uint3	cl_min, cl_max;
+		sg_uniform uint		cl_count;
 		{
-			out_Color = ProcessLights( albedo.rgb, norm );
+			// calculate bounding sphere
+			Sphere		sphere		= Cone_ToBoundingSphere( cone );  // view space
+
+			// project to NDC
+			Rect		scr_rect	= Rect_ToUNorm( Sphere_FastProject( sphere, camera.proj[0][0], camera.proj[1][1] ));
+			float		z_min		= sphere.center.z - sphere.radius;	// view space
+			float		z_max		= sphere.center.z + sphere.radius;
+
+			float3		f_cluster_count	= float3(iClusterCount);
+			float		z_near			= camera.clipPlanes.x;
+			float		z_far			= camera.clipPlanes.y;
+
+			if ( sphere.center.z - sphere.radius < z_near )
+			{
+				cl_min.xy = uint2(0);
+				cl_max.xy = iClusterCount.xy;
+			}
+			else
+			{
+				cl_min.xy = uint2(Max( Floor( Rect_Min(scr_rect) * f_cluster_count.xy ), float2(0.0) ));
+				cl_max.xy = uint2( Ceil(  Rect_Max(scr_rect) * f_cluster_count.xy ));
+			}
+
+			cl_min.z = uint( Max( Cluster_InvZProjection_Log( z_min, f_cluster_count.z, camera.clipPlanes ), 0.0 ));
+			cl_max.z = uint( Max( Cluster_InvZProjection_Log( z_max, f_cluster_count.z, camera.clipPlanes ), 0.0 ));
+
+			cl_min	= gl.subgroup.BroadcastFirst( Min( cl_min, iClusterCount-1 ));
+			cl_max	= gl.subgroup.BroadcastFirst( Min( cl_max, iClusterCount - cl_min ));
+
+			sg_uniform uint3	cl_size	= cl_max - cl_min;
+
+			cl_count = cl_size.x * cl_size.y * cl_size.z;
+			if ( cl_count == 0 )
+				return;
+
+			if ( gl.subgroup.Elect() )
+				AtomicMax( INOUT un_Params.maxClusterTestsPerLight, cl_count );
 		}
-		else
+
+
+		// parallel work to threads in warp
+		Frustum		main_frustum	= Frustum_Create( un_Params.frustumPlanes );	// view space
+		uint		isec_clusters	= 0;
+
+		for (uint i = gl.subgroup.Index; i < cl_count; i += gl.subgroup.Size)
 		{
-			float	ndl = Max( Dot( norm, Normalize(iLight) ), 0.0 );
-			out_Color = float4( ndl );
+			uint3		cluster_idx		= IndexToVec3( i, iClusterCount ) + cl_min;	// non-uniform	// TODO: use fp or POT version
+			uint		cl_idx			= VecToIndex( cluster_idx );
+
+			Frustum		cl_frustum		= CreateClusterFrustum( main_frustum, cluster_idx, iClusterCount );
+			bool		visible			= Frustum_IsConeVisible_v2( cl_frustum, cone );
+
+			if ( visible							and
+				 AllLess( cluster_idx, iClusterCount ))
+			{
+				uint	pos = AtomicAdd( INOUT un_Clusters.elements[ cl_idx ].count, 1 );
+
+				ASSERT( pos < un_Clusters.elements[ cl_idx ].indices.length() );
+
+				if ( pos < un_Clusters.elements[ cl_idx ].indices.length() )
+				{
+					un_Clusters.elements[ cl_idx ].indices[ pos ] = light_idx;
+					++isec_clusters;
+				}
+			}
 		}
+
+		// stats
+		isec_clusters = gl.subgroup.Add( isec_clusters );
+		if ( gl.subgroup.Elect() )
+			AtomicMax( INOUT un_Params.maxClustersPerLight, isec_clusters );
 	}
 
 #endif
 //-----------------------------------------------------------------------------
 #ifdef RESOLVE
+	#include "Color.glsl"
 	#include "ColorSpace.glsl"
 	#include "ToneMapping.glsl"
 
@@ -411,6 +486,13 @@
 				if ( Any( IsNaN( light )))
 					out_Color = float4(1.0, 0.0, 1.0, 1.0);
 				break;
+
+			case 3 :
+			{
+				float	cnt = gl.texture.Fetch( un_Overdraw, int2(gl.FragCoord.xy), 0 ).r * iLightScale;
+				out_Color = Rainbow( cnt / iMaxOverdraw );
+				break;
+			}
 		}
 	}
 

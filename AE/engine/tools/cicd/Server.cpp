@@ -43,7 +43,7 @@ namespace AE::CICD
 			CHECK_ERR( _socket.Listen( addr, cfg ));
 
 			IpAddress	server_addr;
-			CHECK( SocketService::Instance().GetSelfIPAddress( AE_ROUTER_IPv4, OUT server_addr ));
+			CHECK( SocketService::Instance().GetSelfLocalIPAddress( OUT server_addr ));
 
 			server_addr.SetPort( addr.Port() );
 			AE_LOGI( "Start server on: "s << server_addr.ToString() );

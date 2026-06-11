@@ -37,22 +37,22 @@ namespace AE::Graphics
 		void  SetDimensions (const App::IOutputSurface::RenderTarget &rt)		__NE___	{ SetDimensions( rt.RegionSizePxf(), rt.pixToMm ); }
 		void  CopyDimensions (const SurfaceDimensions &)						__NE___;
 
-		// mm -> viewport
+		// millimeters -> viewport
 		ND_ float2	MmToViewport (const float2 &mm)								C_NE___	{ return mm * GetMmToViewport() - 1.f; }
 		ND_ RectF	MmToViewport (const RectF &mm)								C_NE___	{ return mm * GetMmToViewport() - 1.f; }
-		ND_ float2	MmSizeToViewport (const float2 &mm)							C_NE___	{ return mm * GetMmToViewport(); }
-		ND_ RectF	MmSizeToViewport (const RectF &mm)							C_NE___	{ return mm * GetMmToViewport(); }
+		ND_ float2	MmSizeToViewport (const float2 &sizeInMm)					C_NE___	{ return sizeInMm * GetMmToViewport(); }
 
 		ND_ float2	AlignMmToPixel (const float2 &mm)							C_NE___	{ return Round( mm * _pixelsToMm ) * _mmToPixel; }
 		ND_ RectF	AlignMmToPixel (const RectF &mm)							C_NE___;
 
-		// mm -> pixels
+		// millimeters -> pixels
 		ND_ float2	MmToPixels (const float2 &mm)								C_NE___	{ return mm * _mmToPixel; }
 		ND_ RectF	MmToPixels (const RectF &mm)								C_NE___	{ return mm * _mmToPixel; }
 
 		// pixels -> viewport
-		ND_ float2	PixelsToViewport (const float2 &pix)						C_NE___	{ return pix * GetPixelsToViewport(); }
-		ND_ RectF	PixelsToViewport (const RectF &pix)							C_NE___	{ return pix * GetPixelsToViewport(); }
+		ND_ float2	PixelsToViewport (const float2 &pix)						C_NE___	{ return pix * GetPixelsToViewport() - 1.f; }
+		ND_ RectF	PixelsToViewport (const RectF &pix)							C_NE___	{ return pix * GetPixelsToViewport() - 1.f; }
+		ND_ float2	PixSizeToViewport (const float2 &sizeInPix)					C_NE___	{ return sizeInPix * GetPixelsToViewport(); }
 
 		// viewport -> pixels
 		ND_ RectF	ViewportToPixels (const RectF &vp)							C_NE___;

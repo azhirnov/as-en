@@ -47,6 +47,7 @@
 # include <powerbase.h>
 # include <psapi.h>
 # include <iphlpapi.h>
+# include <shlobj.h>
 
 # ifdef AE_COMPILER_MSVC
 #	pragma warning (pop)

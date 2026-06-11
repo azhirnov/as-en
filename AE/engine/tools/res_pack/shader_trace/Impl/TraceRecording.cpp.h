@@ -415,7 +415,7 @@ TIntermBinary*  DebugInfo::GetDebugStorageField (const char* name) const
 	{
 		if ( field.type->getFieldName() == name )
 		{
-			const auto				index			= Distance( _dbgStorage->getType().getStruct()->data(), &field );
+			const auto				index			= PtrDistance( _dbgStorage->getType().getStruct()->data(), &field );
 			TConstUnionArray		index_Value(1);	index_Value[0].setIConst( int(index) );
 			TIntermConstantUnion*	field_index		= new TIntermConstantUnion{ index_Value, TType{index_type} };
 			TIntermBinary*			field_access	= new TIntermBinary{ TOperator::EOpIndexDirectStruct };
@@ -2086,7 +2086,7 @@ ND_ static bool  AppendShaderInputVaryings (TIntermAggregate* body, DebugInfo &d
 			{
 				ASSERT( not field.type->isStruct() );	// TODO
 
-				const usize				index			= Distance( struct_fields.data(), &field );
+				const usize				index			= PtrDistance( struct_fields.data(), &field );
 				TConstUnionArray		index_Value(1);	index_Value[0].setIConst( int(index) );
 				TIntermConstantUnion*	field_index		= new TIntermConstantUnion{ index_Value, TType{index_type} };
 				TIntermBinary*			field_access	= new TIntermBinary{ TOperator::EOpIndexDirectStruct };

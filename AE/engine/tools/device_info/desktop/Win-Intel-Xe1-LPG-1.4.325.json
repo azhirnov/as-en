@@ -1339,7 +1339,7 @@
                         "VK_SAMPLE_COUNT_8_BIT"
                     ],
                     "sampleLocationSubPixelBits": 4,
-                    "variableSampleLocations": true
+                    "variableSampleLocations": false
                 },
                 "VkPhysicalDeviceTimelineSemaphorePropertiesKHR": {
                     "maxTimelineSemaphoreValueDifference": 9223372036854775807

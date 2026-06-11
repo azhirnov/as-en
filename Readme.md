@@ -47,7 +47,7 @@ Tools:
  * [Vulkan/OpenXR Header Generator](AE/engine/tools/header_gen/Readme.md)
  * [Vulkan Synchronizations Logger](AE/engine/tools/vulkan_sync_log/Readme.md)
  * [FeatureSet Generator](AE/engine/tools/feature_set_gen/Readme.md)
- * [Remote Graphics Device](AE/engine/tools/remote_graphics_device/Readme.md)
+ * [Remote Graphics Device](AE/rem_tools/remote_graphics_device/Readme.md)
  * [Android Remote Control](AE/samples/android_remote_control/Readme.md)
 
 

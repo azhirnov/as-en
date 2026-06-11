@@ -367,7 +367,7 @@ namespace AE::Base
 			void	_IncSet (T* ptr)								__NE___;
 			void	_ResetDec ()									__NE___	{ _Dec( _Exchange( null )); }
 
-		ND_ T*		_Lock ()										__NE___;
+		ND_ T*		_Lock (T* exp)									__NE___;
 			void	_Unlock ()										__NE___;
 		ND_ T*		_Exchange (T* ptr)								__NE___;
 
@@ -606,7 +606,11 @@ namespace AE::Base
 	template <typename T>
 	RC<T>  AtomicRC<T>::load () __NE___
 	{
-		RC_t	res{ _Lock() };
+		T*	exp = _ptr.load();
+		if ( exp == null )
+			return {};
+
+		RC_t	res{ _Lock( exp )};
 		_Unlock();
 		return res;
 	}
@@ -700,9 +704,8 @@ namespace AE::Base
 =================================================
 */
 	template <typename T>
-	T*  AtomicRC<T>::_Lock () __NE___
+	T*  AtomicRC<T>::_Lock (T* exp) __NE___
 	{
-		T*	exp = _ptr.load();
 		for (;;)
 		{
 			// spin until we can set the lock bit

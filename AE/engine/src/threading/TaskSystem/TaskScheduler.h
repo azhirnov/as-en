@@ -123,7 +123,10 @@ namespace AE::Threading
 	public:
 		// returns 'true' if added dependency to task.
 		// returns 'false' if dependency is cancelled or on error.
+		//		Thread-safe: yes
+		//
 		ND_ virtual bool  Resolve (AnyTypeCRef dep, Task &, Bool defaultIsStrongDep) __NE___ = 0;
+
 
 		// only for debugging
 		DEBUG_ONLY(
@@ -135,7 +138,8 @@ namespace AE::Threading
 
 	enum class EIOServiceType : uint
 	{
-		File,	// async file IO
+		File,		// async file IO
+		Network,
 	};
 
 
@@ -196,8 +200,10 @@ namespace AE::Threading
 		};
 
 		using TaskQueues_t		= StaticArray< PerQueue, uint(ETaskQueue::_Count) >;
-		using TaskDepsMngr_t	= FlatHashMap< TypeId, RC<ITaskDependencyManager> >;
+		using TaskDepsMngr_t	= Synchronized< SharedMutex, FlatHashMap< TypeId, RC<ITaskDependencyManager> >>;
 		using OutputChunkPool_t	= LfIndexedPool< OutputChunk_t, uint, 64*64, 64, GlobalLinearAllocatorRef >;
+
+		using IOServices_t		= Synchronized< SharedMutex, FixedSet< RC<IOService>, 8 >>;
 
 
 	// variables
@@ -206,8 +212,8 @@ namespace AE::Threading
 
 		OutputChunkPool_t	_chunkPool;
 
-		SharedMutex			_taskDepsMngrsGuard;	// TODO: init on start, remove lock
 		TaskDepsMngr_t		_taskDepsMngrs;
+		IOServices_t		_ioServices;
 
 		Mutex				_threadGuard;
 		Array<RC<IThread>>	_threads;
@@ -239,6 +245,9 @@ namespace AE::Threading
 			template <typename T>
 			bool  UnregisterDependency ()											__NE___;
 
+			void  AddIOService (RC<IOService>)										__NE___;
+			void  RemoveIOService (RC<IOService>)									__NE___;
+
 
 	// thread api //
 			bool  AddThread (RC<IThread> thread, ECpuCoreId coreId = Default)		__NE___;
@@ -247,7 +256,9 @@ namespace AE::Threading
 			bool  ProcessTasks (const EThreadArray &threads, EThreadSeed seed)		__NE___;
 			bool  ProcessTasks (const EThreadArray &threads, EThreadSeed seed,
 								uint maxTasks)										__NE___;
-			bool  ProcessFileIO ()													__NE___;
+			bool  ProcessIO ()														__NE___;
+
+			usize  CancelAll ()														__NE___;
 
 			void  SuspendThread (uint iteration)									__NE___;
 
@@ -275,7 +286,9 @@ namespace AE::Threading
 							  Bool					defaultIsStrongDep = True{},
 							  const SourceLoc &		loc		= SourceLoc::current())	__NE___;
 
+			bool  Cancel (Task &task, Bool fastCancel = False{})					__NE___;
 			bool  Cancel (const AsyncTask &task, Bool fastCancel = False{})			__NE___;
+
 			bool  Enqueue (AsyncTask task)											__NE___;
 			bool  Enqueue (AsyncTask task, ETaskQueue queue)						__NE___;
 
@@ -360,8 +373,7 @@ namespace AE::Threading
 	bool  TaskScheduler::RegisterDependency (RC<ITaskDependencyManager> mngr) __NE___
 	{
 		CHECK_ERR( mngr );
-		EXLOCK( _taskDepsMngrsGuard );
-		return _taskDepsMngrs.insert_or_assign( TypeIdOf<T>(), RVRef(mngr) ).second;	// should not throw
+		return _taskDepsMngrs->insert_or_assign( TypeIdOf<T>(), RVRef(mngr) ).second;	// should not throw
 	}
 
 /*
@@ -372,8 +384,7 @@ namespace AE::Threading
 	template <typename T>
 	bool  TaskScheduler::UnregisterDependency () __NE___
 	{
-		EXLOCK( _taskDepsMngrsGuard );
-		return _taskDepsMngrs.erase( TypeIdOf<T>() ) > 0;
+		return _taskDepsMngrs->erase( TypeIdOf<T>() ) > 0;
 	}
 
 /*
@@ -519,10 +530,11 @@ namespace AE::Threading
 	bool  TaskScheduler::_AddCustomDependency (Task &task, const T &dep, Bool defaultIsStrongDep) __NE___
 	{
 		StaticAssert( not IsConst<T> );
-		SHAREDLOCK( _taskDepsMngrsGuard );
 
-		auto	iter = _taskDepsMngrs.find( TypeIdOf<T>() );
-		CHECK_ERR_MSG( iter != _taskDepsMngrs.end(),
+		auto	dep_mngrs	= _taskDepsMngrs.ReadLock();
+		auto	iter		= dep_mngrs->find( TypeIdOf<T>() );
+
+		CHECK_ERR_MSG( iter != dep_mngrs->end(),
 			"Can't find dependency manager for type: "s << TypeNameOf<T>() );
 
 		return iter->second->Resolve( AnyTypeCRef{dep}, task, defaultIsStrongDep );
@@ -585,13 +597,21 @@ namespace AE::_Coro_
 	template <ETaskQueue Queue>
 	forceinline void  ScheduledInlineCoro<Queue>::_AddToScheduler () __NE___
 	{
+		AsyncTaskImpl*	coro			= _coro.Ptr();
+		bool			is_scheduled	= _coro.Extra() != 0;
+
+		// protect for double-scheduling
+		if ( is_scheduled )
+			return;
+
+		_coro.SetExtra( 1 );
+
 		// inline coro without 'co_await' must finish at this point
-		if ( _coro != null							and
-			 _coro->Status() == ETaskStatus::Continue )
+		if ( coro != null							 and
+			 coro->Status() == ETaskStatus::Continue )
 		{
-			Scheduler().Enqueue( AsyncTask{_coro}, Queue );
+			Scheduler().Enqueue( AsyncTask{coro}, Queue );
 		}
-		_coro = null;
 	}
 
 /*
@@ -602,13 +622,21 @@ namespace AE::_Coro_
 	template <typename ResultType, ETaskQueue Queue>
 	forceinline void  ScheduledInlinePromise<ResultType, Queue>::_AddToScheduler () __NE___
 	{
+		AsyncTaskImpl*	coro			= _coro.Ptr();
+		bool			is_scheduled	= _coro.Extra() != 0;
+
+		// protect for double-scheduling
+		if ( is_scheduled )
+			return;
+
+		_coro.SetExtra( 1 );
+
 		// inline coro without 'co_await' must finish at this point
-		if ( _coro != null							and
-			 _coro->Status() == ETaskStatus::Continue )
+		if ( coro != null							 and
+			 coro->Status() == ETaskStatus::Continue )
 		{
-			Scheduler().Enqueue( AsyncTask{_coro}, Queue );
+			Scheduler().Enqueue( AsyncTask{coro}, Queue );
 		}
-		_coro = null;
 	}
 
 /*

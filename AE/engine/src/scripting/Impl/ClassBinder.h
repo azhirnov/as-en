@@ -172,10 +172,10 @@ namespace AE::Scripting
 		ND_ bool  IsRegistered ()																		C_NE___;
 
 		template <typename Fn>
-		void  AddConstructor (Fn ctorPtr, ArgNames_t = {})												__Th___;
+		void  AddConstructor (Fn ctorPtr, ArgNames_t = {}, Bool isExplicit = True{})					__Th___;
 
 		template <typename ...Args>
-		void  AddConstructor (ArgNames_t = {})															__Th___;
+		void  AddConstructor (ArgNames_t = {}, Bool isExplicit = True{})								__Th___;
 
 		template <typename Fn>
 		void  AddFactoryCtor (Fn ctorPtr, ArgNames_t = {})												__Th___;

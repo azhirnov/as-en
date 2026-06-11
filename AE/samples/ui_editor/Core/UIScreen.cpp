@@ -52,7 +52,7 @@ namespace AE::UIEditor
 
 			auto	draw_ctx = gfx_ctx.BeginRenderPass( RenderPassDesc{ *self->_rtech.rtech, RenderTechPassName{"Main"}, rt.RegionSize() }
 										.AddViewport( rt.RegionSize() )
-										.AddTarget( AttachmentName{"Color"}, rt.viewId, rt.initialState | EResourceState::Invalidate, rt.finalState ));
+										.AddTarget( AttachmentName{"Color"}, rt.viewId, RGBA32f{HtmlColor::Black}, rt.initialState | EResourceState::Invalidate, rt.finalState ));
 
 			draw_ctx.ClearAttachment( AttachmentName{"Color"}, RGBA32f{HtmlColor::Black}, rt.region );
 
@@ -153,7 +153,7 @@ namespace AE::UIEditor
 			});
 
 		_actionMap = builder.Build();
-		_widget->SetActionBindings( _actionMap );
+		_widget->SetActionBindingsRef( _actionMap );
 
 		_screen->Add( _widget );
 

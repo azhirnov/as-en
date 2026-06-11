@@ -276,7 +276,7 @@ namespace
 */
 	void  MFeatureSet::InitFeatureSet (const MGPUFamilies &f, INOUT FeatureSet &outFeatureSet) C_NE___
 	{
-		StaticAssert( FeatureSet::GetFeatureCount() == 277 );
+		StaticAssert( FeatureSet::GetFeatureCount() == 278 );
 
 		using SubgroupOperationBits = FeatureSet::SubgroupOperationBits;
 		using KiBytes				= FeatureSet::KiBytes;

@@ -478,7 +478,7 @@ namespace AE::ResEditor
 */
 	inline uint  DynamicDim::_GetX (EnableRCBase* base) __NE___
 	{
-		return Cast<DynamicDim>(base)->Dimension2().x;
+		return Cast<DynamicDim>(base)->Dimension3().x;
 	}
 
 	inline RC<DynamicUInt>  DynamicDim::GetDynamicX () __NE___
@@ -494,7 +494,7 @@ namespace AE::ResEditor
 */
 	inline uint  DynamicDim::_GetY (EnableRCBase* base) __NE___
 	{
-		return Cast<DynamicDim>(base)->Dimension2().y;
+		return Cast<DynamicDim>(base)->Dimension3().y;
 	}
 
 	inline RC<DynamicUInt>  DynamicDim::GetDynamicY () __NE___
@@ -510,7 +510,7 @@ namespace AE::ResEditor
 */
 	inline uint2  DynamicDim::_GetXY (EnableRCBase* base) __NE___
 	{
-		return Cast<DynamicDim>(base)->Dimension2();
+		return uint2{Cast<DynamicDim>(base)->Dimension3()};
 	}
 
 	inline RC<DynamicUInt2>  DynamicDim::GetDynamicXY () __NE___

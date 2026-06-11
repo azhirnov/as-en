@@ -6,6 +6,10 @@ Content:
 * [HDD WDC 3TB](#HDD-WDC-3TB)
 * [HDD Seagate 16TB](#HDD-Seagate-16TB)
 * [MiniPC N150](#MiniPC-N150)
+* [Realme 8i](#Realme-8i)
+* [ASUS ROG Phone 5](#ASUS-ROG-Phone-5)
+* [Pico 4 Ultra](#Pico-4-Ultra)
+* [Infinix GT 20 Pro](#Infinix-GT-20-Pro)
 
 
 # Test description
@@ -384,7 +388,7 @@ Drive Model:	GN-512 2280
 
 # Realme 8i
 
-TODO UFS ???
+UFS 2.1 from specs
 
 ## AsyncFile test
 
@@ -423,3 +427,127 @@ TODO UFS ???
 | Async Random Read     | 1.20 s | +105%  | 223.7MB/s |
 | Sync Random Read      | 9.08 s | +1450% | 29.6MB/s  |
 | Sync Sequential Read  | 9.48 s | +1518% | 28.3MB/s  |
+
+
+# ASUS ROG Phone 5
+
+UFS 3.1 from specs
+
+## 256 MiB / 32 KiB
+
+| test                  | time   | %     | bandwidth |
+|-----------------------|--------|-------|-----------|
+| Async Sequential Read | 0.22 s | -     | 1.24GB/s  |
+| Async Random Read     | 0.24 s | +11%  | 1.12GB/s  |
+| Sync Sequential Read  | 0.69 s | +220% | 388.5MB/s |
+| Sync Random Read      | 1.17 s | +442% | 229.4MB/s |
+
+## 256 MiB / 16 KiB
+
+| test                  | time   | %     | bandwidth |
+|-----------------------|--------|-------|-----------|
+| Async Sequential Read | 0.33 s | -     | 816.8MB/s |
+| Async Random Read     | 0.34 s | +5%   | 779.0MB/s |
+| Sync Sequential Read  | 1.88 s | +471% | 143.0MB/s |
+| Sync Random Read      | 1.89 s | +476% | 141.7MB/s |
+
+## 256 MiB / 8 KiB
+
+| test                  | time   | %     | bandwidth |
+|-----------------------|--------|-------|-----------|
+| Async Sequential Read | 0.59 s | -     | 456.9MB/s |
+| Async Random Read     | 0.63 s | +7%   | 428.2MB/s |
+| Sync Sequential Read  | 3.31 s | +463% | 81.2MB/s  |
+| Sync Random Read      | 3.41 s | +481% | 78.6MB/s  |
+
+## 256 MiB / 4 KiB
+
+| test                  | time   | %     | bandwidth |
+|-----------------------|--------|-------|-----------|
+| Async Sequential Read | 1.14 s | -     | 235.9MB/s |
+| Async Random Read     | 1.19 s | +4%   | 226.1MB/s |
+| Sync Random Read      | 5.98 s | +426% | 44.9MB/s  |
+| Sync Sequential Read  | 6.10 s | +436% | 44.0MB/s  |
+
+
+
+# Pico 4 Ultra
+
+UFS 3.1 from specs
+
+## 256 MiB / 32 KiB
+
+| test                  | time   | %     | bandwidth |
+|-----------------------|--------|-------|-----------|
+| Async Sequential Read | 0.21 s | -     | 1.26GB/s  |
+| Async Random Read     | 0.23 s | +9%   | 1.16GB/s  |
+| Sync Sequential Read  | 0.61 s | +186% | 439.9MB/s |
+| Sync Random Read      | 1.32 s | +520% | 203.0MB/s |
+
+## 256 MiB / 16 KiB
+
+| test                  | time   | %     | bandwidth |
+|-----------------------|--------|-------|-----------|
+| Async Random Read     | 0.32 s | -     | 840.2MB/s |
+| Async Sequential Read | 0.32 s | +2%   | 826.8MB/s |
+| Sync Sequential Read  | 0.90 s | +183% | 296.8MB/s |
+| Sync Random Read      | 2.22 s | +595% | 120.9MB/s |
+
+## 256 MiB / 8 KiB
+
+| test                  | time   | %     | bandwidth |
+|-----------------------|--------|-------|-----------|
+| Async Random Read     | 0.60 s | -     | 445.2MB/s |
+| Async Sequential Read | 0.62 s | +3%   | 433.8MB/s |
+| Sync Sequential Read  | 1.60 s | +165% | 167.9MB/s |
+| Sync Random Read      | 3.26 s | +441% | 82.4MB/s  |
+
+## 256 MiB / 4 KiB
+
+| test                  | time   | %     | bandwidth |
+|-----------------------|--------|-------|-----------|
+| Async Random Read     | 1.19 s | -     | 225.0MB/s |
+| Async Sequential Read | 1.26 s | +6%   | 213.1MB/s |
+| Sync Sequential Read  | 2.83 s | +137% | 94.8MB/s  |
+| Sync Random Read      | 5.94 s | +398% | 45.2MB/s  |
+
+
+# Infinix GT 20 Pro
+
+UFS 3.1 from specs
+
+## 256 MiB / 32 KiB
+
+| test                  | time   | %     | bandwidth |
+|-----------------------|--------|-------|-----------|
+| Async Random Read     | 0.24 s | -     | 1.10GB/s  |
+| Async Sequential Read | 0.27 s | +10%  | 1.00GB/s  |
+| Sync Random Read      | 1.34 s | +451% | 200.3MB/s |
+| Sync Sequential Read  | 1.59 s | +556% | 168.4MB/s |
+
+## 256 MiB / 16 KiB
+
+| test                  | time   | %     | bandwidth |
+|-----------------------|--------|-------|-----------|
+| Async Sequential Read | 0.33 s | -     | 807.9MB/s |
+| Async Random Read     | 0.39 s | +19%  | 681.4MB/s |
+| Sync Sequential Read  | 2.22 s | +567% | 121.1MB/s |
+| Sync Random Read      | 2.81 s | +747% | 95.4MB/s  |
+
+## 256 MiB / 8 KiB:
+
+| test                  | time   | %     | bandwidth |
+|-----------------------|--------|-------|-----------|
+| Async Sequential Read | 0.60 s | -     | 445.5MB/s |
+| Async Random Read     | 0.60 s | -     | 445.2MB/s |
+| Sync Sequential Read  | 5.19 s | +762% | 51.7MB/s  |
+| Sync Random Read      | 5.32 s | +783% | 50.4MB/s  |
+
+## 256 MiB / 4 KiB
+
+| test                  | time    | %     | bandwidth |
+|-----------------------|---------|-------|-----------|
+| Async Sequential Read | 1.05 s  | -     | 256.5MB/s |
+| Async Random Read     | 1.13 s  | +8%   | 236.8MB/s |
+| Sync Random Read      | 9.79 s  | +835% | 27.4MB/s  |
+| Sync Sequential Read  | 10.01 s | +857% | 26.8MB/s  |

@@ -143,6 +143,8 @@ namespace AE::App
 
 		TsDoubleBufferedQueue		_dbQueue;
 
+		AtomicRC<IRawKeyListener>	_keyListener;
+
 		DRC_ONLY(
 			DataRaceCheck			_drCheck;
 		)
@@ -180,6 +182,8 @@ namespace AE::App
 							   EValueType type, EGestureType gesture)								__NE_OV;
 		bool  EndBindAction ()																		__NE_OV;
 		bool  IsBindActionActive ()																	C_NE_OV	{ DRC_EXLOCK( _drCheck );  return _bindAction.isActive; }
+
+		void  SetRawKeyListener (RC<IRawKeyListener> listener)										__NE_OV	{ _keyListener.store( RVRef(listener) ); }
 
 
 	protected:

@@ -7,16 +7,19 @@ void ASmain ()
 	//	Lin-AMD-RDNA3-780M-1.4.313
 	//	Mesa-AMD-GCN4-RX580-1.4.318
 	//	Mesa-AMD-RDNA3-780M-1.4.328
+	//	Mesa-AMD-RDNA3.5-1.4.340-8060S
 	//	Mesa-AMD-RDNA3.5-890M-1.4.318
 	//	Mesa-AMD-RDNA4-1.4.328
 	//	Win-AMD-GCN4-RX580-1.4.264
 	//	Win-AMD-GCN5-IIV-1.3.260
 	//	Win-AMD-GCN5-RXVega10-1.3.260
 	//	Win-AMD-GCN5-RXVega56-1.3.264
+	//	Win-AMD-RDNA1-1.2.196
 	//	Win-AMD-RDNA1-1.4.315
 	//	Win-AMD-RDNA2-1.4.315
 	//	Win-AMD-RDNA2-610M-1.4.315
 	//	Win-AMD-RDNA3-1.4.315
+	//	Win-AMD-RDNA3-780M-1.3.237
 	//	Win-AMD-RDNA3-780M-1.4.329
 	//	Win-AMD-RDNA3.5-8060S-1.4.325
 	//	Win-AMD-RDNA3.5-890M-1.4.329
@@ -84,10 +87,7 @@ void ASmain ()
 	fset.shaderBufferInt64Atomics (True);
 	fset.shaderSharedInt64Atomics (True);
 	fset.shaderBufferFloat32Atomics (True);
-	fset.shaderBufferFloat64Atomics (True);
 	fset.shaderSharedFloat32Atomics (True);
-	fset.shaderSharedFloat64Atomics (True);
-	fset.shaderImageFloat32Atomics (True);
 	fset.shaderOutputViewportIndex (True);
 	fset.shaderOutputLayer (True);
 	fset.shaderSubgroupClock (True);
@@ -104,14 +104,12 @@ void ASmain ()
 	fset.shaderStorageBufferArrayDynamicIndexing (True);
 	fset.shaderStorageImageArrayDynamicIndexing (True);
 	fset.shaderUniformBufferArrayDynamicIndexing (True);
-	fset.shaderInputAttachmentArrayDynamicIndexing (True);
 	fset.shaderUniformTexelBufferArrayDynamicIndexing (True);
 	fset.shaderStorageTexelBufferArrayDynamicIndexing (True);
 	fset.shaderUniformBufferArrayNonUniformIndexing (True);
 	fset.shaderSampledImageArrayNonUniformIndexing (True);
 	fset.shaderStorageBufferArrayNonUniformIndexing (True);
 	fset.shaderStorageImageArrayNonUniformIndexing (True);
-	fset.shaderInputAttachmentArrayNonUniformIndexing (True);
 	fset.shaderUniformTexelBufferArrayNonUniformIndexing (True);
 	fset.shaderStorageTexelBufferArrayNonUniformIndexing (True);
 	fset.shaderStorageImageMultisample (True);
@@ -122,12 +120,11 @@ void ASmain ()
 	fset.shaderDemoteToHelperInvocation (True);
 	fset.shaderTerminateInvocation (True);
 	fset.shaderZeroInitializeWorkgroupMemory (True);
-	fset.maxSpirvVersion (160);
+	fset.maxSpirvVersion (150);
 	fset.drawIndirectFirstInstance (True);
 	fset.drawIndirectCount (True);
 	fset.maxDrawIndirectCount (4294967295);
 	fset.multiview (True);
-	fset.multiviewGeometryShader (True);
 	fset.multiviewTessellationShader (True);
 	fset.maxMultiviewViewCount (6);
 	fset.multiViewport (True);
@@ -136,7 +133,7 @@ void ASmain ()
 	fset.variableSampleLocations (True);
 	fset.tessellationIsolines (True);
 	fset.tessellationPointMode (True);
-	fset.maxTexelBufferElements (4294967295);
+	fset.maxTexelBufferElements (512 << 20);
 	fset.maxUniformBufferSize (4294967295);
 	fset.maxStorageBufferSize (4294967295);
 	fset.perPipeline_maxUniformBuffersDynamic (8);
@@ -176,25 +173,22 @@ void ASmain ()
 	fset.maxVertexAttributes (32);
 	fset.maxVertexBuffers (32);
 	fset.AddVertexFormats({
-		EVertexType::Byte, EVertexType::Byte2, EVertexType::Byte3, EVertexType::Byte4, 
-		EVertexType::UByte, EVertexType::UByte2, EVertexType::UByte3, EVertexType::UByte4, 
-		EVertexType::Short, EVertexType::Short2, EVertexType::Short4, EVertexType::UShort, 
-		EVertexType::UShort2, EVertexType::UShort4, EVertexType::Int, EVertexType::Int2, 
-		EVertexType::Int3, EVertexType::Int4, EVertexType::UInt, EVertexType::UInt2, 
-		EVertexType::UInt3, EVertexType::UInt4, EVertexType::Long2, EVertexType::Long3, 
-		EVertexType::Long4, EVertexType::ULong2, EVertexType::ULong3, EVertexType::ULong4, 
-		EVertexType::Half, EVertexType::Half2, EVertexType::Half4, EVertexType::Float, 
-		EVertexType::Float2, EVertexType::Float3, EVertexType::Float4, EVertexType::Double, 
-		EVertexType::Double2, EVertexType::Double3, EVertexType::Double4, EVertexType::UInt_2_10_10_10, 
-		EVertexType::Byte_Norm, EVertexType::Byte2_Norm, EVertexType::Byte3_Norm, EVertexType::Byte4_Norm, 
-		EVertexType::UByte_Norm, EVertexType::UByte2_Norm, EVertexType::UByte3_Norm, EVertexType::UByte4_Norm, 
-		EVertexType::Short_Norm, EVertexType::Short2_Norm, EVertexType::Short3_Norm, EVertexType::Short4_Norm, 
-		EVertexType::UShort_Norm, EVertexType::UShort2_Norm, EVertexType::UShort3_Norm, EVertexType::UShort4_Norm, 
-		EVertexType::UInt_2_10_10_10_Norm, EVertexType::Byte_Scaled, EVertexType::Byte2_Scaled, EVertexType::Byte3_Scaled, 
-		EVertexType::Byte4_Scaled, EVertexType::UByte_Scaled, EVertexType::UByte2_Scaled, EVertexType::UByte3_Scaled, 
-		EVertexType::UByte4_Scaled, EVertexType::Short_Scaled, EVertexType::Short2_Scaled, EVertexType::Short3_Scaled, 
-		EVertexType::Short4_Scaled, EVertexType::UShort_Scaled, EVertexType::UShort2_Scaled, EVertexType::UShort3_Scaled, 
-		EVertexType::UShort4_Scaled, EVertexType::UInt_2_10_10_10_Scaled
+		EVertexType::Byte, EVertexType::Byte2, EVertexType::Byte4, EVertexType::UByte, 
+		EVertexType::UByte2, EVertexType::UByte4, EVertexType::Short, EVertexType::Short2, 
+		EVertexType::Short4, EVertexType::UShort, EVertexType::UShort2, EVertexType::UShort4, 
+		EVertexType::Int, EVertexType::Int2, EVertexType::Int3, EVertexType::Int4, 
+		EVertexType::UInt, EVertexType::UInt2, EVertexType::UInt3, EVertexType::UInt4, 
+		EVertexType::Long2, EVertexType::Long3, EVertexType::Long4, EVertexType::ULong2, 
+		EVertexType::ULong3, EVertexType::ULong4, EVertexType::Half, EVertexType::Half2, 
+		EVertexType::Half4, EVertexType::Float, EVertexType::Float2, EVertexType::Float3, 
+		EVertexType::Float4, EVertexType::Double, EVertexType::Double2, EVertexType::Double3, 
+		EVertexType::Double4, EVertexType::UInt_2_10_10_10, EVertexType::Byte_Norm, EVertexType::Byte2_Norm, 
+		EVertexType::Byte4_Norm, EVertexType::UByte_Norm, EVertexType::UByte2_Norm, EVertexType::UByte4_Norm, 
+		EVertexType::Short_Norm, EVertexType::Short2_Norm, EVertexType::Short4_Norm, EVertexType::UShort_Norm, 
+		EVertexType::UShort2_Norm, EVertexType::UShort4_Norm, EVertexType::UInt_2_10_10_10_Norm, EVertexType::Byte_Scaled, 
+		EVertexType::Byte2_Scaled, EVertexType::Byte4_Scaled, EVertexType::UByte_Scaled, EVertexType::UByte2_Scaled, 
+		EVertexType::UByte4_Scaled, EVertexType::Short_Scaled, EVertexType::Short2_Scaled, EVertexType::Short4_Scaled, 
+		EVertexType::UShort_Scaled, EVertexType::UShort2_Scaled, EVertexType::UShort4_Scaled, EVertexType::UInt_2_10_10_10_Scaled
 	});
 	fset.AddTexelFormats( EFormatFeature::UniformTexelBuffer, {
 		EPixelFormat::RGBA16_SNorm, EPixelFormat::RGBA8_SNorm, EPixelFormat::RG16_SNorm, EPixelFormat::RG8_SNorm, 
@@ -296,7 +290,6 @@ void ASmain ()
 	fset.samplerFilterMinmax (True);
 	fset.samplerMipLodBias (True);
 	fset.samplerYcbcrConversion (True);
-	fset.nonSeamlessCubeMap (True);
 	fset.maxSamplerAnisotropy (16.00);
 	fset.maxSamplerLodBias (16.00);
 	fset.framebufferColorSampleCounts({ 1, 2, 4, 8 });

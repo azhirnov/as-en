@@ -52,6 +52,34 @@ namespace AE::App
 		}
 	}
 
+/*
+=================================================
+	GetStoragePath
+=================================================
+*/
+	Path  UtilsWinAPI::GetStoragePath (EAppStorage type) __NE___
+	{
+		KNOWNFOLDERID const*	path_guid = null;
+
+		switch ( type )
+		{
+			case EAppStorage::UserData :	path_guid = &FOLDERID_RoamingAppData;	break;
+			case EAppStorage::SharedData :	path_guid = &FOLDERID_Documents;		break;
+			default :						return {};
+		}
+
+		PWSTR	path	= null;
+		HRESULT	hr		= ::SHGetKnownFolderPath( *path_guid, 0, null, OUT &path );
+
+		if ( FAILED(hr) )
+			return {};
+
+		Path	result {path};
+		::CoTaskMemFree( path );
+
+		return result;
+	}
+
 
 } // AE::App
 

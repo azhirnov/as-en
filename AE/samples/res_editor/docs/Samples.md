@@ -190,18 +190,18 @@ Spherical cube to fix cubemap distortion
 ## Order-Independent Transparency
 
 **Approximated OIT:**
-* not implemented yet
+* [Weighted](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/scripts/oit/Weighted-1.as)
 
 **Exact OIT, only front or back faces:**<br/>
 ![](img/OIT.jpg)
-* [Linked List](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/scripts/samples-3d/OIT-LinkedList-1.as)
+* [Linked List](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/scripts/oit/LinkedList-1.as)
 * [Ray tracing, back to front](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/scripts/ray-trace/OIT-1.as)
 * [Ray tracing, front to back](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/scripts/ray-trace/OIT-2.as)
 * [Ray tracing, using any-hit shader](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/scripts/ray-trace/OIT-3.as)
 
 **Front and back faces with optical depth for volume:**<br/>
 ![](img/OIT-Volume.jpg)
-* [Linked List](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/scripts/samples-3d/OIT-LinkedList-2.as)
+* [Linked List](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/scripts/oit/LinkedList-2.as)
 * [Ray tracing](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/scripts/ray-trace/OIT-4.as)
 
 

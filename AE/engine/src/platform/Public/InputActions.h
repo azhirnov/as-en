@@ -169,6 +169,16 @@ namespace AE::App
 		};
 
 
+		//
+		// Raw Key Listener
+		//
+		class IRawKeyListener : public EnableRC<IRawKeyListener>
+		{
+		public:
+			virtual void  KeyEvent (/*EInputType*/ushort type, EGestureState state, ControllerID id, Duration_t timestamp) __NE___ = 0;
+		};
+
+
 	// interface
 	public:
 
@@ -213,6 +223,11 @@ namespace AE::App
 		//   Thread safe: no
 		//
 		ND_ virtual bool  GetReflection (InputModeName::Ref mode, InputActionName::Ref action, OUT Reflection &)	C_NE___ = 0;
+
+		// TODO
+		//   Thread safe: yes
+		//
+			virtual void  SetRawKeyListener (RC<IRawKeyListener>)													__NE___ = 0;
 
 
 	// bind action to input key/gesture //

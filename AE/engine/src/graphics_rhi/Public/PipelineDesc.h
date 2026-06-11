@@ -48,8 +48,8 @@ namespace AE::Graphics
 		//	Can be used in 'IndirectExecutionSetDesc' and 'IIndirectExecutionSetUpdater'.
 		IndirectBindable				= 1 << 12,
 
-		// compatible with any pipeline type.
-		// for ray tracing pipeline it enable opacity micromaps,
+		// Compatible with any pipeline type.
+		// For ray tracing pipeline it enable opacity micromaps,
 		// for other pipelines without this flag 'rayQueryMicromapARM' can be used for optimization.
 		OpacityMicromap					= 1 << 13,
 

@@ -14,6 +14,7 @@ AE_DECL_SCRIPT_OBJ_RC(	AE::AssetPacker::ScriptUIWidget,			"UIWidget"			);
 AE_DECL_SCRIPT_OBJ_RC(	AE::AssetPacker::ScriptUIDrawable,			"BaseUIDrawable"	);
 AE_DECL_SCRIPT_OBJ_RC(	AE::AssetPacker::ScriptRectangleDrawable,	"RectangleDrawable"	);
 AE_DECL_SCRIPT_OBJ_RC(	AE::AssetPacker::ScriptImageDrawable,		"ImageDrawable"		);
+AE_DECL_SCRIPT_OBJ_RC(	AE::AssetPacker::ScriptTextDrawable,		"TextDrawable"		);
 
 AE_DECL_SCRIPT_OBJ_RC(	AE::AssetPacker::ScriptUIController,		"BaseUIController"	);
 AE_DECL_SCRIPT_OBJ_RC(	AE::AssetPacker::ScriptButtonController,	"ButtonController"	);
@@ -174,6 +175,7 @@ namespace AE::AssetPacker
 		ScriptUIDrawable::Bind( se );
 		ScriptRectangleDrawable::Bind( se );
 		ScriptImageDrawable::Bind( se );
+		ScriptTextDrawable::Bind( se );
 
 		ScriptUIController::Bind( se );
 		ScriptButtonController::Bind( se );

@@ -20,21 +20,21 @@
 	layout(location=0) out float4  out_Color;
 
 
-	float  ApplyStyle (float2 uv, float sd, float2 size)
+	float  ApplyStyle (float2 uv, float sd, float2 texDim)
 	{
 		float3	thick = float3(-0.5, 0.0, 1.5);
-		sd = AA_Font( uv, sd, thick, size ).x;
+		sd = AA_Font( uv, sd, thick, texDim ).x;
 		return sd;
 	}
 
 	void Main ()
 	{
 		float3	msd		= gl.texture.Sample( un_Texture, In.uv_scale.xy ).rgb;
-		float2	size	= float2(gl.texture.GetSize( un_Texture, 0 ));
+		float2	dim		= float2(gl.texture.GetSize( un_Texture, 0 ));
 
 		float	sd		= MCSDF_Median( msd );
-				sd		= FusedMulAdd( sd, drawUB.sdfScale, drawUB.sdfBias );
-				sd		= ApplyStyle( In.uv_scale.xy, sd, size );
+				sd		= FusedMulAdd( sd, drawUB.sdfScale, drawUB.sdfBias );	// front packed distance to correct SDF
+				sd		= ApplyStyle( In.uv_scale.xy, sd, dim );
 
 		out_Color = Lerp( drawUB.bgColor, In.color, sd );
 	}

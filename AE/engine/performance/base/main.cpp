@@ -30,26 +30,22 @@ TEST_ENTRY()
 	RUN_TEST( PerfTest_MinSleepTime );
 	RUN_TEST( PerfTest_Utf8 );
 	RUN_TEST( PerfTest_FindSubString );
-	RUN_TEST( PerfTest_LogicOp );
+	RUN_TEST( PerfTest_LogicOp );			// compare logic ops with bit ops for boolean expressions
 
-	RUN_TEST( PerfTest_SIMD );
-	RUN_TEST( PerfTest_SIMD2 );
-	RUN_TEST( PerfTest_SIMD3 );
+	RUN_TEST( PerfTest_SIMD );				// measure FLOPS, without any memory access
+	RUN_TEST( PerfTest_SIMD2 );				// measure FLOPS with memory access
+	RUN_TEST( PerfTest_SIMD3 );				// measure FLOPS with mixed SIMD & scalar
 	RUN_TEST( PerfTest_VertSIMD );
 
-	RUN_TEST( PerfTest_MemCopy );
-	RUN_TEST( PerfTest_CacheSize );
+	RUN_TEST( PerfTest_MemCopy );			// find fastest memcpy implementation
+	RUN_TEST( PerfTest_CacheSize );			// measure cache sizes
 
-	RUN_TEST( PerfTest_Compression );
+	RUN_TEST( PerfTest_Compression );		// compare compression algorithms
 
 	AE_LOGI( "PerformanceTests.Base finished" );
 
   #else
-  # ifdef AE_PLATFORM_ANDROID
-	Unused( path );
-  # else
 	Unused( argc, argv );
-  # endif
   #endif
 
 	return 0;

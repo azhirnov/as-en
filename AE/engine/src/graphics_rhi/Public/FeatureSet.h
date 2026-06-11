@@ -294,6 +294,8 @@ namespace AE::Graphics
 		_visitorF_( EFeature,			shaderUniformTexelBufferArrayNonUniformIndexing,	: 2 )	/*-|																	*/\
 		_visitorF_( EFeature,			shaderStorageTexelBufferArrayNonUniformIndexing,	: 2 )	/*-/																	*/\
 		_visitorF_( EFeature,			quadDivergentImplicitLod,							: 2 )	/* derivative calculation for non-uniform image 						*/\
+		/* descriptor heap */\
+		_visitorF_( EFeature,			descriptorHeap,										: 2 )	\
 		/* storage image format */\
 		_visitorF_( EFeature,			shaderStorageImageMultisample,						: 2 )\
 		_visitorF_( EFeature,			shaderStorageImageReadWithoutFormat,				: 2 )\

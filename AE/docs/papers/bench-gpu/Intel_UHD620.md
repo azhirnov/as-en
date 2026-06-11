@@ -82,7 +82,6 @@ Result of `Rainbow( gl_SubgroupInvocationID / gl_SubgroupSize )` in compute shad
 	| min(x,0)          | 0  | 0  | 0       | 0       | 0   |
 	| max(x,0)          | 0  | 0  | **inf** | **inf** | max |
 	| clamp(x,0,1)      | 0  | 0  | 1       | 1       | 1   |
-	| bool(x)           | 1  | 1  | 1       | 1       | 1   |
 	| x != x            | 1  | 1  | 0       | 0       | 0   |
 	| step(0,x)         | 1  | 1  | 1       | 1       | 1   |
 	| step(0,-x)        | 1  | 1  | 0       | 0       | 0   |

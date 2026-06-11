@@ -43,6 +43,9 @@ namespace AE::Graphics
 		};
 		StaticAssert( sizeof(imgui_fs_pc) == 4 );
 
+		using MouseDownBits = BitSet<5>;
+
+
 	public:
 		static constexpr uint	TextureCount = 16;
 
@@ -55,20 +58,26 @@ namespace AE::Graphics
 			const int		_stackSize;
 
 		public:
-			explicit StyleScope (ImGuiContext* ctx)	__NE___;
-			~StyleScope ()							__NE___;
+			explicit StyleScope (ImGuiContext* ctx)											__NE___;
+			~StyleScope ()																	__NE___;
 		};
 
 		struct AEStyleScope : StyleScope {
-			explicit AEStyleScope (ImGuiContext* ctx, Bool sRGB = True{}) __NE___;
+			explicit AEStyleScope (ImGuiContext* ctx, Bool sRGB = True{})					__NE___;
 		};
 
 		struct AEStyleScope_StartBtn : StyleScope {
-			explicit AEStyleScope_StartBtn (ImGuiContext* ctx, Bool sRGB = True{}) __NE___;
+			explicit AEStyleScope_StartBtn (ImGuiContext* ctx = null, Bool sRGB = True{})	__NE___;
 		};
 		struct AEStyleScope_StopBtn : StyleScope {
-			explicit AEStyleScope_StopBtn (ImGuiContext* ctx, Bool sRGB = True{}) __NE___;
+			explicit AEStyleScope_StopBtn (ImGuiContext* ctx = null, Bool sRGB = True{})	__NE___;
 		};
+
+		struct DrawUtils
+		{
+			static void  DrawCursor (float2 pos, float scale = 1.f)							__NE___;
+		};
+
 
 	private:
 		struct PipelineSet
@@ -80,19 +89,29 @@ namespace AE::Graphics
 		using RenderTaskRef		= _Coro_::RenderTaskImpl::UserApi;
 		using DescSetArray_t	= FixedArray< Strong<DescriptorSetID>, GraphicsConfig::MaxFrames >;
 
+		enum class EScaleType
+		{
+			Unknown,	// without scale
+			Fixed,
+			Adaptive,
+			AdaptiveFract,
+		};
+
 
 	// variables
 	public:
 		float2						mousePos;
 		float2						mouseWheel;
-		bool						mouseLBDown			= false;
+		MouseDownBits				mouseBtnDown;
 		bool						touchActive			= false;
 		U8String					inputText;
+		Array<Pair< int, bool >>	keyStates;			// ImGuiKey
 
 	private:
 		// imgui
 		ImGuiContext*				_imguiCtx			= null;
 		bool						_fontInitialized	= false;
+		EScaleType					_scaleType			= Default;
 
 		float						_pixToUI			= 1.f;		// surface coords to UI coords
 		float						_uiToPix			= 1.f;		// UI coords to surface coords
@@ -123,6 +142,20 @@ namespace AE::Graphics
 			void  Deinitialize ()																__NE___;
 
 			void  SetScale (float scale)														__NE___;
+			void  SetAdaptiveScale (float scale, bool round = true)								__NE___;
+			void  DisableScale ()																__NE___;
+
+		// Convert screen space position to ui space.
+		// Must be used inside 'updateUI' callback.
+		//
+		ND_ float	ToScreen (float  uiSpace)													C_NE___	{ return uiSpace * _uiToPix; }
+		ND_ float2	ToScreen (float2 uiSpace)													C_NE___	{ return uiSpace * _uiToPix; }
+
+		// Convert ui space position to screen space.
+		// Must be used inside 'updateUI' callback.
+		//
+		ND_ float	ToUI (float  screenSpace)													C_NE___	{ return screenSpace * _pixToUI; }
+		ND_ float2	ToUI (float2 screenSpace)													C_NE___	{ return screenSpace * _pixToUI; }
 
 		ND_ bool  IsInitialized ()																C_NE___	{ return bool{_rtech}; }
 		ND_ auto  GetRenderTech ()																__NE___	{ return Ptr{_rtech.get()}; }

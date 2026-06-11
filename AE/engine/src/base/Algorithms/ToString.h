@@ -367,8 +367,13 @@ namespace _hidden_
 */
 	Nd__In String  ToString (const Path &path) __Th___
 	{
-		String	str;
+		String	str; // ansi
+      #ifdef AE_PLATFORM_WINDOWS
 		Unused( ConvertString( OUT str, BasicStringView{path.lexically_normal().native()} ));
+      #else
+        const auto& src_str = path.lexically_normal().native();
+        Unused( ConvertString( OUT str, BasicStringView<CharUtf8>{ Cast<CharUtf8>(src_str.c_str()), src_str.size() }));
+      #endif
 		FindAndReplace( INOUT str, '\\', '/' );
 		return str;
 	}
