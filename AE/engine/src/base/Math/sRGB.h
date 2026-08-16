@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #pragma once
 
@@ -6,7 +6,7 @@
 
 namespace AE::Base
 {
-
+#ifdef AE_LICENSE_MIT
 /*
 =================================================
 	ApplySRGBCurve / RemoveSRGBCurve
@@ -47,5 +47,6 @@ namespace AE::Base
 	Nd__In float4	RemoveSRGBCurve_Fast (const float4 &v)	__NE___	{ return float4( RemoveSRGBCurve_Fast(v.r), RemoveSRGBCurve_Fast(v.g), RemoveSRGBCurve_Fast(v.b), v.a ); }
 	Nd__In RGBA32f	RemoveSRGBCurve_Fast (const RGBA32f &v)	__NE___	{ return RGBA32f( RemoveSRGBCurve_Fast(v.r), RemoveSRGBCurve_Fast(v.g), RemoveSRGBCurve_Fast(v.b), v.a ); }
 
+#endif // AE_LICENSE_MIT
 
 } // AE::Base

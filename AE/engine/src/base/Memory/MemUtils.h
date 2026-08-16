@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #pragma once
 
@@ -319,7 +319,14 @@ namespace _hidden_
 	template <typename T>
 	__Cx__ void  UnsafeZeroMem (OUT T& value) __NE___
 	{
+	#ifdef AE_COMPILER_CLANG
+		# pragma clang diagnostic push
+		# pragma clang diagnostic ignored "-Wnontrivial-memcall"
 		std::memset( OUT &value, 0, sizeof(value) );
+		# pragma clang diagnostic pop
+	#else
+		std::memset( OUT &value, 0, sizeof(value) );
+	#endif
 	}
 
 	template <typename T>
@@ -423,5 +430,29 @@ namespace _hidden_
 		return std::memcmp( &lhs, &rhs, sizeof(T) ) < 0;
 	}
 
+/*
+=================================================
+	MemMismatch
+----
+	returns pointers to first mismatched byte
+=================================================
+*/
+	Nd__In Pair<const void*, const void*>  MemMismatch (const void* lhs, const void* rhs, Bytes size) __NE___
+	{
+		NonNull( lhs );
+		NonNull( rhs );
+
+		// TODO: SIMD optimization
+		const ubyte*	p0	= Cast<ubyte>(lhs);
+		const ubyte*	p1	= Cast<ubyte>(rhs);
+		const ubyte*	end	= p0 + size;
+
+		for (; p0 < end; ++p0, ++p1)
+		{
+			if ( *p0 != *p1 )
+				break;
+		}
+		return {p0, p1};
+	}
 
 } // AE::Base

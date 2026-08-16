@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 /*
 	This virtual machine emulates C++ memory model that described in standard.
 	https://en.cppreference.com/w/cpp/atomic/memory_order

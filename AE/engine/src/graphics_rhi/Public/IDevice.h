@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 /*
 	Device interface only used to be sure that all device implementations has the same methods.
 

@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 /*
 	Dual filter blur.
 	UV defined in VS to avoid dependent lookup.

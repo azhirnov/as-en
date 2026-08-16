@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #include "Passes/RasterMip.h"
 #include "Resources/Buffer.h"
@@ -82,10 +82,11 @@ namespace AE::ResEditor
 
 			for (usize mip = 0; mip < _mipChainDS.size(); ++mip)
 			{
-				RenderPassDesc	rp_desc	= _rpDesc;
-				const uint2		dim		= Max( _variables.front().image->GetImageDesc().Dimension2() >> (mip + 1), 1u );
+				RenderPassDesc	rp_desc		= _rpDesc;
+				const uint2		src_dim		= Max( _variables.front().image->GetImageDesc().Dimension2() >> mip, 1u );
+				const uint2		dst_dim		= Max( src_dim >> 1, 1u );
 
-				rp_desc.area = RectI{int2{dim}};
+				rp_desc.area = RectI{int2{dst_dim}};
 				rp_desc.AddViewport( rp_desc.area );
 
 				for (auto& var : _variables)
@@ -103,8 +104,9 @@ namespace AE::ResEditor
 				dctx.BindDescriptorSet( _ds1Index, _mipChainDS[mip] );
 
 				ShaderTypes::ComputeMipPC	pc;
-				pc.invResolution	= 1.f / float2{dim};
-				pc.resolution		= dim;
+				pc.invDstResolution	= 1.f / float2{dst_dim};
+				pc.dstResolution	= dst_dim;
+				pc.srcResolution	= src_dim;
 
 				dctx.PushConstant( _pcIndex, pc );
 

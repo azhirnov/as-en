@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #ifdef AE_ENABLE_VULKAN
 # include "graphics_rhi/Vulkan/Allocators/VUniMemAllocator.h"
@@ -82,6 +82,8 @@ namespace {
 
 		if ( AllBits( memType, EMemoryType::Dedicated ))
 			result |= VMA_ALLOCATION_CREATE_DEDICATED_MEMORY_BIT;
+		else
+			result |= VMA_ALLOCATION_CREATE_CAN_ALIAS_BIT;
 
 		if ( AllBits( memType, EMemoryType::Transient ))
 			result |= VMA_ALLOCATION_CREATE_NEVER_ALLOCATE_BIT;

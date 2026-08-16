@@ -239,8 +239,10 @@ Spherical cube to fix cubemap distortion
 
 * [Fake glow](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/scripts/vfx/FakeGlow.as)<br/>
 ![](img/FakeGlow.jpg)
-* [Light Shafts (radial blur)](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/scripts/vfx/LightShafts.as)<br/>
+* [Light Shafts (variants)](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/scripts/vfx/LightShafts.as)<br/>
 ![](img/LightShafts.jpg)
+* [Light Shafts v1](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/scripts/vfx/LightShafts-v1.as)<br/>
+![](img/LightShafts2.jpg)
 
 ## Games
 
@@ -253,7 +255,20 @@ ResEditor allows to create game prototypes.
 
 ## Tools
 
-* [Image compression](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/scripts/tools/2d/ImageCompression.as)
+**Compression**
+* Compression on CPU:
+	- [Compression test](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/scripts/tools/compression/ImageCompression.as)
+	- [Load image and compare Compression methods](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/scripts/tools/compression/ImageCompression2D.as)
+* Decompression on GPU:
+	- [BC1](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/scripts/tools/compression/BC1Decode.as)
+	- [BC4](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/scripts/tools/compression/BC4Decode.as)
+	- [BC5](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/scripts/tools/compression/BC5Decode.as)
+	- [BC6](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/scripts/tools/compression/BC6Decode.as)
+	- [BC7](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/scripts/tools/compression/BC7Decode.as)
+	- [EAC](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/scripts/tools/compression/EACDecode.as)
+	- [ETC2](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/scripts/tools/compression/ETC2Decode.as)
+	- [ETC2 A1](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/scripts/tools/compression/ETC2A1Decode.as)
+	- [ETC2 A8](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/scripts/tools/compression/ETC2A8Decode.as)
 
 **Function graphs**
 * [Easing functions](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/scripts/tools/2d/Easing.as)

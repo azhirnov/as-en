@@ -100,7 +100,7 @@ ctx.ReadbackImage( image, ReadbackImageDesc{} )
 Асинхронный рендер пасс `BeginMtRenderPass()` создает `DrawCommandBatch`, который создает задачи `DrawTask`.
 Текущая задача должна дождаться заполнения вторичных командных буферов, затем записать их в первичный командный буфер через `ExecuteSecondary( drawBatch )` и завершить рендер пасс `EndMtRenderPass()`.
 
-Пример [Test_RG_DrawAsync1.cpp](https://github.com/azhirnov/as-en/blob/dev/AE/engine/tests/graphics_rhi/RenderGraph/Test_RG_DrawAsync1.cpp)
+Пример [Test_DrawAsync1.cpp](https://github.com/azhirnov/as-en/blob/dev/AE/engine/tests/graphics_rhi/RenderGraph/Test_DrawAsync1.cpp)
 
 #### IDrawContext
 

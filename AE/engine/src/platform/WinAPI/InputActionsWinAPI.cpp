@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #ifdef AE_WINAPI_WINDOW
 # include "base/Platforms/WindowsHeader.cpp.h"
@@ -387,7 +387,7 @@ namespace
 					EGestureState::End		// WM_POINTERUP
 				};
 
-				float2	pos		= float2{ GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam)} * _pixToMm;
+				float2	pos		= float2{int2{ GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam) }} * _pixToMm;
 				uint	id		= GET_POINTERID_WPARAM(wParam);
 				auto	state	= states[ uMsg - WM_POINTERUPDATE ];
 

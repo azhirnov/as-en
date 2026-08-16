@@ -1,4 +1,4 @@
-# Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+# Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 if (${AE_DESKTOP})
 	add_subdirectory( "header_gen" )

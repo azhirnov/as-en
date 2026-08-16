@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #pragma once
 
@@ -48,6 +48,7 @@ namespace AE::Base
 		NdCx__ static SourceLoc  current (const std::source_location &loc = std::source_location::current()) __NE___ { return SourceLoc{loc}; }
 
 	//private:  // for tests
+		NdCx__ static StringView  _ExtractFnName2 (StringView)		__NE___;
 		NdCx__ static StringView  _ExtractFnName (StringView)		__NE___;
 		NdCx__ static StringView  _ExtractStem (StringView)			__NE___;
 	};
@@ -87,6 +88,21 @@ namespace AE::Base
 =================================================
 */
 	__CxIn StringView  SourceLoc::_ExtractFnName (StringView fnSign) __NE___
+	{
+		StringView	fn = _ExtractFnName2( fnSign );
+		for (; fn.size() and fn.back() == ')'; )
+		{
+			usize	pos = usize(fn.data() - fnSign.data())-1;
+			pos = fnSign.rfind( '(', pos );
+			if ( pos < fnSign.size() )
+				fn = _ExtractFnName2( StringView{ fnSign.data(), pos });
+			else
+				break;
+		}
+		return fn;
+	}
+
+	__CxIn StringView  SourceLoc::_ExtractFnName2 (StringView fnSign) __NE___
 	{
 		usize   end = fnSign.rfind( '(' );
 

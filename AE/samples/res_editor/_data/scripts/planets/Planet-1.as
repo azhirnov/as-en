@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 /*
 	Generate planet PBR (in progress) textures and draw.
 	Used spherical cube with tangential projection to minimize distortion.

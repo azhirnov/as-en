@@ -1,6 +1,7 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #include "UnitTest_Common.h"
+
 
 namespace
 {
@@ -257,7 +258,7 @@ namespace
 		AsyncTask	task1 = [] (ExeOrder &val) -> AsyncCoro
 							{
 								TEST( not Coro_IsCanceled );
-								TEST( Coro_Get().Status() == ETaskStatus::InProgress );
+								TEST_Eq( Coro_Get().Status(), ETaskStatus::InProgress );
 								TEST( Coro_Get().QueueType() == ETaskQueue::PerFrame );
 
 								CHECK_CE( true );
@@ -280,20 +281,20 @@ namespace
 								co_return;
 							}( value );
 
-		TEST( task1->Status() == ETaskStatus::Initial );
-		TEST( task2->Status() == ETaskStatus::Initial );
+		TEST_Eq( task1->Status(), ETaskStatus::Initial );
+		TEST_Eq( task2->Status(), ETaskStatus::Initial );
 
 		scheduler->Run( task2, Tuple{ task1 });
 		scheduler->Run( task1, Tuple{} );
 
-		TEST( task1->Status() == ETaskStatus::Pending );
-		TEST( task2->Status() == ETaskStatus::Pending );
+		TEST_Eq( task1->Status(), ETaskStatus::Pending );
+		TEST_Eq( task2->Status(), ETaskStatus::Pending );
 
 		scheduler->AddThread( ThreadMngr::CreateThread( ThreadMngr::ThreadConfig{} ));
 
 		TEST( scheduler->Wait( List{ task1, task2 }, c_MaxTimeout ));
-		TEST( task1->Status() == ETaskStatus::Completed );
-		TEST( task2->Status() == ETaskStatus::Completed );
+		TEST_Eq( task1->Status(), ETaskStatus::Completed );
+		TEST_Eq( task2->Status(), ETaskStatus::Completed );
 
 		DeferExLock  guard {value.guard};
 		TEST( guard.try_lock() );
@@ -313,7 +314,7 @@ namespace
 		AsyncTask	task1 = [] (ExeOrder &val) -> AsyncCoro
 							{
 								TEST( not Coro_IsCanceled );
-								TEST( Coro_Get().Status() == ETaskStatus::InProgress );
+								TEST_Eq( Coro_Get().Status(), ETaskStatus::InProgress );
 								TEST( Coro_Get().QueueType() == ETaskQueue::PerFrame );
 								{
 									DeferExLock  guard {val.guard};
@@ -349,8 +350,8 @@ namespace
 		scheduler->AddThread( ThreadMngr::CreateThread( ThreadMngr::ThreadConfig{} ));
 
 		TEST( scheduler->Wait( List{ task1, task2 }, c_MaxTimeout ));
-		TEST( task1->Status() == ETaskStatus::Error );
-		TEST( task2->Status() == ETaskStatus::Canceled );
+		TEST_Eq( task1->Status(), ETaskStatus::Error );
+		TEST_Eq( task2->Status(), ETaskStatus::Canceled );
 
 		DeferExLock  guard {value.guard};
 		TEST( guard.try_lock() );
@@ -410,9 +411,9 @@ namespace
 		scheduler->AddThread( ThreadMngr::CreateThread( ThreadMngr::ThreadConfig{} ));
 
 		TEST( scheduler->Wait( List{ task1, task2, task3 }, c_MaxTimeout ));
-		TEST( task1->Status() == ETaskStatus::Completed );
-		TEST( task2->Status() == ETaskStatus::Completed );
-		TEST( task3->Status() == ETaskStatus::Completed );
+		TEST_Eq( task1->Status(), ETaskStatus::Completed );
+		TEST_Eq( task2->Status(), ETaskStatus::Completed );
+		TEST_Eq( task3->Status(), ETaskStatus::Completed );
 
 		DeferExLock  guard {value.guard};
 		TEST( guard.try_lock() );
@@ -432,7 +433,7 @@ namespace
 		AsyncTask	task1 = [] (ExeOrder &val) -> AsyncCoro
 							{
 								TEST( not Coro_IsCanceled );
-								TEST( Coro_Get().Status() == ETaskStatus::InProgress );
+								TEST_Eq( Coro_Get().Status(), ETaskStatus::InProgress );
 								TEST( Coro_Get().QueueType() == ETaskQueue::PerFrame );
 								{
 									DeferExLock  guard {val.guard};
@@ -474,8 +475,8 @@ namespace
 		scheduler->AddThread( ThreadMngr::CreateThread( ThreadMngr::ThreadConfig{} ));
 
 		TEST( scheduler->Wait( List{ task1, task2 }, c_MaxTimeout ));
-		TEST( task1->Status() == ETaskStatus::Error );
-		TEST( task2->Status() == ETaskStatus::Completed );
+		TEST_Eq( task1->Status(), ETaskStatus::Error );
+		TEST_Eq( task2->Status(), ETaskStatus::Completed );
 
 		DeferExLock  guard {value.guard};
 		TEST( guard.try_lock() );
@@ -554,10 +555,10 @@ namespace
 		scheduler->AddThread( ThreadMngr::CreateThread( ThreadMngr::ThreadConfig{} ));
 
 		TEST( scheduler->Wait( List{ task1, task2, task3, taskB }, c_MaxTimeout ));
-		TEST( task1->Status() == ETaskStatus::Completed );
-		TEST( task2->Status() == ETaskStatus::Completed );
-		TEST( task3->Status() == ETaskStatus::Error );
-		TEST( taskB->Status() == ETaskStatus::Completed );
+		TEST_Eq( task1->Status(), ETaskStatus::Completed );
+		TEST_Eq( task2->Status(), ETaskStatus::Completed );
+		TEST_Eq( task3->Status(), ETaskStatus::Error );
+		TEST_Eq( taskB->Status(), ETaskStatus::Completed );
 
 		DeferExLock  guard {value.guard};
 		TEST( guard.try_lock() );
@@ -577,7 +578,7 @@ namespace
 		AsyncTask	task1 = [] (ExeOrder &val) -> AsyncCoro
 							{
 								TEST( not Coro_IsCanceled );
-								TEST( Coro_Get().Status() == ETaskStatus::InProgress );
+								TEST_Eq( Coro_Get().Status(), ETaskStatus::InProgress );
 								TEST( Coro_Get().QueueType() == ETaskQueue::PerFrame );
 								{
 									DeferExLock  guard {val.guard};
@@ -606,8 +607,8 @@ namespace
 		scheduler->AddThread( ThreadMngr::CreateThread( ThreadMngr::ThreadConfig{} ));
 
 		TEST( scheduler->Wait( List{ task1, task2 }, c_MaxTimeout ));
-		TEST( task1->Status() == ETaskStatus::Error );
-		TEST( task2->Status() == ETaskStatus::Canceled );
+		TEST_Eq( task1->Status(), ETaskStatus::Error );
+		TEST_Eq( task2->Status(), ETaskStatus::Canceled );
 
 		DeferExLock  guard {value.guard};
 		TEST( guard.try_lock() );
@@ -626,7 +627,7 @@ namespace
 
 		AsyncTask	task1	= static_task.GetRC();
 		TEST( task1 );
-		TEST( task1->Status() == ETaskStatus::Canceled );
+		TEST_Eq( task1->Status(), ETaskStatus::Canceled );
 		TEST_Eq( task1.use_count(), 2 );
 
 		AsyncTask	task2 = [] () -> AsyncCoro { co_return; }();
@@ -636,7 +637,7 @@ namespace
 		StaticLogger::InitDefault();
 
 		TEST( task3 );
-		TEST( task3->Status() == ETaskStatus::Canceled );
+		TEST_Eq( task3->Status(), ETaskStatus::Canceled );
 		TEST_Eq( task3.use_count(), 3 );
 
 		scheduler->Run( task2, Tuple{ task1, task3 });
@@ -644,7 +645,7 @@ namespace
 		scheduler->AddThread( ThreadMngr::CreateThread( ThreadMngr::ThreadConfig{} ));
 
 		TEST( scheduler->Wait( List{ task2 }, c_MaxTimeout ));
-		TEST( task2->Status() == ETaskStatus::Canceled );
+		TEST_Eq( task2->Status(), ETaskStatus::Canceled );
 	}
 
 
@@ -662,7 +663,7 @@ namespace
 
 								// by default it is 'PerFrame' but it has no effect until coroutine is suspended
 								TEST( Coro_Get().QueueType() == ETaskQueue::Unknown );
-								TEST( Coro_Get().Status() == ETaskStatus::InProgress );
+								TEST_Eq( Coro_Get().Status(), ETaskStatus::InProgress );
 
 								{
 									DeferExLock  guard {val.guard};
@@ -672,7 +673,7 @@ namespace
 								}
 								co_return;
 							}( value );
-		TEST( task1->Status() == ETaskStatus::Completed );
+		TEST_Eq( task1->Status(), ETaskStatus::Completed );
 
 		AsyncCoro	task2 = [] (ExeOrder &val, AsyncTask task) -> InlineCoro<ETaskQueue::PerFrame>	// inline coroutine implicitly added to queue
 							{
@@ -680,7 +681,7 @@ namespace
 
 								// by default it is 'PerFrame' but it has no effect until coroutine is suspended
 								TEST( Coro_Get().QueueType() == ETaskQueue::Unknown );
-								TEST( Coro_Get().Status() == ETaskStatus::InProgress );
+								TEST_Eq( Coro_Get().Status(), ETaskStatus::InProgress );
 
 								{
 									DeferExLock  guard {val.guard};
@@ -691,7 +692,7 @@ namespace
 
 								// at this point coroutine will be added to queue
 								Coro_Continue();
-								TEST( Coro_Get().Status() == ETaskStatus::InProgress );
+								TEST_Eq( Coro_Get().Status(), ETaskStatus::InProgress );
 								TEST( not Coro_IsCanceled );
 								TEST( Coro_Get().QueueType() == ETaskQueue::PerFrame );  // as in template parameter
 
@@ -704,7 +705,7 @@ namespace
 
 								// at this point coroutine will be added to queue again
 								Coro_ContinueInQueue( ETaskQueue::Background );
-								TEST( Coro_Get().Status() == ETaskStatus::InProgress );
+								TEST_Eq( Coro_Get().Status(), ETaskStatus::InProgress );
 								TEST( not Coro_IsCanceled );
 								TEST( Coro_Get().QueueType() == ETaskQueue::Background );
 
@@ -718,7 +719,7 @@ namespace
 								co_return;
 							}
 							( value, task1 );
-		TEST( task2->Status() == ETaskStatus::Pending );
+		TEST_Eq( task2->Status(), ETaskStatus::Pending );
 
 		{
 			DeferExLock  guard {value.guard};
@@ -730,8 +731,8 @@ namespace
 		scheduler->AddThread( ThreadMngr::CreateThread( ThreadMngr::ThreadConfig{} ));
 
 		TEST( scheduler->Wait( List{ task1, AsyncTask{task2} }, c_MaxTimeout ));
-		TEST( task1->Status() == ETaskStatus::Completed );
-		TEST( task2->Status() == ETaskStatus::Completed );
+		TEST_Eq( task1->Status(), ETaskStatus::Completed );
+		TEST_Eq( task2->Status(), ETaskStatus::Completed );
 
 		DeferExLock  guard {value.guard};
 		TEST( guard.try_lock() );
@@ -808,10 +809,10 @@ namespace
 		scheduler->AddThread( ThreadMngr::CreateThread( ThreadMngr::ThreadConfig{} ));
 
 		TEST( scheduler->Wait( List{ task1, task2, task3, taskB }, c_MaxTimeout ));
-		TEST( task1->Status() == ETaskStatus::Completed );
-		TEST( task2->Status() == ETaskStatus::Completed );
-		TEST( task3->Status() == ETaskStatus::Error );
-		TEST( taskB->Status() == ETaskStatus::Completed );
+		TEST_Eq( task1->Status(), ETaskStatus::Completed );
+		TEST_Eq( task2->Status(), ETaskStatus::Completed );
+		TEST_Eq( task3->Status(), ETaskStatus::Error );
+		TEST_Eq( taskB->Status(), ETaskStatus::Completed );
 
 		DeferExLock  guard {value.guard};
 		TEST( guard.try_lock() );
@@ -883,10 +884,10 @@ namespace
 		scheduler->AddThread( ThreadMngr::CreateThread( ThreadMngr::ThreadConfig{} ));
 
 		TEST( scheduler->Wait( List{ task1, task2, task3, taskB }, c_MaxTimeout ));
-		TEST( task1->Status() == ETaskStatus::Completed );
-		TEST( task2->Status() == ETaskStatus::Completed );
-		TEST( task3->Status() == ETaskStatus::Completed );
-		TEST( taskB->Status() == ETaskStatus::Completed );
+		TEST_Eq( task1->Status(), ETaskStatus::Completed );
+		TEST_Eq( task2->Status(), ETaskStatus::Completed );
+		TEST_Eq( task3->Status(), ETaskStatus::Completed );
+		TEST_Eq( taskB->Status(), ETaskStatus::Completed );
 
 		DeferExLock  guard {value.guard};
 		TEST( guard.try_lock() );
@@ -961,10 +962,10 @@ namespace
 		scheduler->AddThread( ThreadMngr::CreateThread( ThreadMngr::ThreadConfig{} ));
 
 		TEST( scheduler->Wait( List{ task1, task2, task3, taskB }, c_MaxTimeout ));
-		TEST( task1->Status() == ETaskStatus::Completed );
-		TEST( task2->Status() == ETaskStatus::Completed );
-		TEST( task3->Status() == ETaskStatus::Error );
-		TEST( taskB->Status() == ETaskStatus::Completed );
+		TEST_Eq( task1->Status(), ETaskStatus::Completed );
+		TEST_Eq( task2->Status(), ETaskStatus::Completed );
+		TEST_Eq( task3->Status(), ETaskStatus::Error );
+		TEST_Eq( taskB->Status(), ETaskStatus::Completed );
 
 		DeferExLock  guard {value.guard};
 		TEST( guard.try_lock() );
@@ -991,7 +992,7 @@ namespace
 								}
 								co_return;
 							}( value );
-		TEST( task1->Status() == ETaskStatus::Pending );
+		TEST_Eq( task1->Status(), ETaskStatus::Pending );
 
 		AsyncTask	task2 = [] (ExeOrder &val, auto task) -> ScheduledCoro< ETaskQueue::PerFrame >
 							{
@@ -1008,14 +1009,14 @@ namespace
 								}
 								co_return;
 							}( value, task1 );
-		TEST( task2->Status() == ETaskStatus::Pending );
+		TEST_Eq( task2->Status(), ETaskStatus::Pending );
 
 
 		scheduler->AddThread( ThreadMngr::CreateThread( ThreadMngr::ThreadConfig{} ));
 
 		TEST( scheduler->Wait( List{ task1, task2 }, c_MaxTimeout ));
-		TEST( task1->Status() == ETaskStatus::Completed );
-		TEST( task2->Status() == ETaskStatus::Completed );
+		TEST_Eq( task1->Status(), ETaskStatus::Completed );
+		TEST_Eq( task2->Status(), ETaskStatus::Completed );
 
 		DeferExLock  guard {value.guard};
 		TEST( guard.try_lock() );
@@ -1032,7 +1033,7 @@ namespace
 		ExeOrder	value;	// access to value protected by internal synchronizations
 		AsyncCoro	task1;	// cancelled
 
-		TEST( task1->Status() == ETaskStatus::Canceled );
+		TEST_Eq( task1->Status(), ETaskStatus::Canceled );
 
 		AsyncTask	task2 = [] (ExeOrder &val, const AsyncTask t1) -> UncancellableCoro
 							{
@@ -1104,7 +1105,7 @@ namespace
 		scheduler->AddThread( ThreadMngr::CreateThread( ThreadMngr::ThreadConfig{} ));
 
 		TEST( scheduler->Wait( List{ task2 }, c_MaxTimeout ));
-		TEST( task2->Status() == ETaskStatus::Completed );
+		TEST_Eq( task2->Status(), ETaskStatus::Completed );
 
 		DeferExLock  guard {value.guard};
 		TEST( guard.try_lock() );
@@ -1140,6 +1141,52 @@ namespace
 								co_return;
 							}();
 	}
+
+
+	static void  Task_Test15 ()
+	{
+		LocalTaskScheduler	scheduler {WorkerQueueCount(1)};
+
+		AsyncTask	task1	= [] () -> AsyncCoro
+							{
+								for (;;)
+								{
+									if ( Coro_IsCanceled )
+										break;
+
+									Coro_Continue();
+								}
+							}();
+
+		scheduler->Run( task1 );
+		TEST_Eq( task1.use_count(), 2 );
+
+		AsyncTask	task2	= [&scheduler] (AsyncTask t1) -> AsyncCoro
+							{
+								TEST_Eq( t1.use_count(), 3 );
+
+								scheduler->Cancel( *t1 );
+
+								co_await Tuple{WeakDep{ t1 }};
+
+								// TODO: why
+								// Unused( Coro_WaitResult( task ));
+								// does't wait for completion
+
+								// TODO: sometimes fail on Android
+								CHECK_Eq( t1.use_count(), 2 );
+							}( task1 );
+		TEST_Eq( task1.use_count(), 3 );
+
+		scheduler->Run( task2 );
+
+		scheduler->AddThread( ThreadMngr::CreateThread( ThreadMngr::ThreadConfig{} ));
+		scheduler->AddThread( ThreadMngr::CreateThread( ThreadMngr::ThreadConfig{} ));
+
+		TEST( scheduler->Wait( List{ task2 }, c_MaxTimeout ));
+		TEST_Eq( task1->Status(), ETaskStatus::Canceled );
+		TEST_Eq( task2->Status(), ETaskStatus::Completed );
+	}
 }
 
 
@@ -1163,6 +1210,7 @@ extern void UnitTest_Task ()
 	Task_Test11();
 	Task_Test12();
 	Task_Test13();
+	Task_Test15();
 
 	Unused( &Task_Test14 );
 

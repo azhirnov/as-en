@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 /*
 	IPreprocessingStateCommandPool
 		Thread-safe:	no
@@ -151,22 +151,23 @@ namespace AE::Graphics
 
 	// methods
 	public:
-		IndirectCommandsLayoutDescBuilder ()			__NE___ {}
+		IndirectCommandsLayoutDescBuilder ()										__NE___ {}
 
-		bool   PipelineLayout (GraphicsPipelineID)		__NE___;
-		bool   PipelineLayout (MeshPipelineID)			__NE___;
-		bool   PipelineLayout (ComputePipelineID)		__NE___;
-		bool   PipelineLayout (RayTracingPipelineID)	__NE___;
+		bool   PipelineLayoutFrom (GraphicsPipelineID)								__NE___;
+		bool   PipelineLayoutFrom (MeshPipelineID)									__NE___;
+		bool   PipelineLayoutFrom (ComputePipelineID)								__NE___;
+		bool   PipelineLayoutFrom (RayTracingPipelineID)							__NE___;
+		bool   PipelineLayoutFrom (IndirectExecutionSetID)							__NE___;
 
-		Self&  Usage (EIndirectCommandsLayoutUsage)		__NE___;
-		Self&  Stages (EShaderStages)					__NE___;
-		Self&  SequenceStride (Bytes)					__NE___;
+		Self&  Usage (EIndirectCommandsLayoutUsage)									__NE___;
+		Self&  Stages (EShaderStages)												__NE___;
+		Self&  SequenceStride (Bytes)												__NE___;
 
-		Self&  BaseOffset (Bytes)						__NE___;
+		Self&  BaseOffset (Bytes)													__NE___;
 
 		template <typename T>
-		Self&  Advance (usize count = 1)				__NE___	{ return Advance( SizeOf<T> * count ); }
-		Self&  Advance (Bytes)							__NE___;
+		Self&  Advance (usize count = 1)											__NE___	{ return Advance( SizeOf<T> * count ); }
+		Self&  Advance (Bytes)														__NE___;
 
 		template <typename T>
 		Self&  PushConstant		  (PushConstantName::Ref pcName)													__NE___	{ return PushConstant( pcName, T::TypeName ); }
@@ -179,22 +180,22 @@ namespace AE::Graphics
 		Self&  VertexBuffer		  (uint vertexBindingUnit)															__NE___;
 		Self&  VertexBuffer		  (GraphicsPipelineID pplnId, VertexBufferName::Ref name)							__NE___;
 
-		Self&  Draw				  ()					__NE___;
-		Self&  DrawIndexed		  ()					__NE___;
-		Self&  DrawIndexedCount	  ()					__NE___;
-		Self&  DrawMeshTasks	  ()					__NE___;
-		Self&  DrawMeshTasksCount ()					__NE___;
-		Self&  Dispatch			  ()					__NE___;
-		Self&  TraceRays		  ()					__NE___;
+		Self&  Draw				  ()												__NE___;
+		Self&  DrawIndexed		  ()												__NE___;
+		Self&  DrawIndexedCount	  ()												__NE___;
+		Self&  DrawMeshTasks	  ()												__NE___;
+		Self&  DrawMeshTasksCount ()												__NE___;
+		Self&  Dispatch			  ()												__NE___;
+		Self&  TraceRays		  ()												__NE___;
 
-		ND_ Bytes	SequenceSize ()						C_NE___	{ return _offset; }
-		ND_ Bytes	Size (uint sequenceCount)			C_NE___	{ return Max( SequenceSize(), _desc.sequenceStride ) * sequenceCount; }
+		ND_ Bytes	SequenceSize ()													C_NE___	{ return _offset; }
+		ND_ Bytes	Size (uint sequenceCount)										C_NE___	{ return Max( SequenceSize(), _desc.sequenceStride ) * sequenceCount; }
 
-		ND_ IndirectCommandsLayoutDesc  Build ()		__NE___;
+		ND_ IndirectCommandsLayoutDesc  Build ()									__NE___;
 
 	private:
 		template <typename PipeID>
-		bool  _PipelineLayout (PipeID, EShaderStages);
+		bool  _PipelineLayoutFrom (PipeID)											__NE___;
 	};
 //-----------------------------------------------------------------------------
 

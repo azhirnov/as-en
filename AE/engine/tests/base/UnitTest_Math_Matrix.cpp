@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #include "UnitTest_Common.h"
 
@@ -7,8 +7,8 @@ namespace
 	static void  MatrixStorage_Test1 ()
 	{
 		// 4 columns, 2 rows
-		using CMat4x2_t = MatrixStorage< float, 4, 2, EMatrixOrder::ColumnMajor >;
-		using RMat4x2_t = MatrixStorage< float, 2, 4, EMatrixOrder::RowMajor >;
+		using CMat4x2_t = MatrixStorage< float, 4, 2, EMatrixLayout::ColumnMajor >;
+		using RMat4x2_t = MatrixStorage< float, 2, 4, EMatrixLayout::RowMajor >;
 
 		StaticAssert( VecSize<CMat4x2_t::Column_t> == 2 );
 		StaticAssert( VecSize<CMat4x2_t::Row_t> == 4 );
@@ -27,8 +27,8 @@ namespace
 	static void  MatrixStorage_Test2 ()
 	{
 		// 4 columns, 2 rows
-		using CMat4x2_t = MatrixStorage< float, 4, 2, EMatrixOrder::ColumnMajor, sizeof(float)*4 >;
-		using RMat4x2_t = MatrixStorage< float, 2, 4, EMatrixOrder::RowMajor, sizeof(float)*4 >;
+		using CMat4x2_t = MatrixStorage< float, 4, 2, EMatrixLayout::ColumnMajor, sizeof(float)*4 >;
+		using RMat4x2_t = MatrixStorage< float, 2, 4, EMatrixLayout::RowMajor, sizeof(float)*4 >;
 
 		StaticAssert( VecSize<CMat4x2_t::Column_t> == 2 );
 		StaticAssert( VecSize<CMat4x2_t::Row_t> == 4 );
@@ -47,8 +47,8 @@ namespace
 	static void  MatrixStorage_Test3 ()
 	{
 		// 4 columns, 3 rows
-		using CMat4x3_t = MatrixStorage< float, 4, 3, EMatrixOrder::ColumnMajor >;
-		using RMat4x3_t = MatrixStorage< float, 3, 4, EMatrixOrder::RowMajor >;
+		using CMat4x3_t = MatrixStorage< float, 4, 3, EMatrixLayout::ColumnMajor >;
+		using RMat4x3_t = MatrixStorage< float, 3, 4, EMatrixLayout::RowMajor >;
 
 		StaticAssert( VecSize<CMat4x3_t::Column_t> == 3 );
 		StaticAssert( VecSize<CMat4x3_t::Row_t> == 4 );
@@ -67,8 +67,8 @@ namespace
 	static void  MatrixStorage_Test4 ()
 	{
 		// 4 columns, 3 rows
-		using CMat4x3_t = MatrixStorage< float, 4, 3, EMatrixOrder::ColumnMajor, sizeof(float)*4 >;
-		using RMat4x3_t = MatrixStorage< float, 3, 4, EMatrixOrder::RowMajor, sizeof(float)*4 >;
+		using CMat4x3_t = MatrixStorage< float, 4, 3, EMatrixLayout::ColumnMajor, sizeof(float)*4 >;
+		using RMat4x3_t = MatrixStorage< float, 3, 4, EMatrixLayout::RowMajor, sizeof(float)*4 >;
 
 		StaticAssert( VecSize<CMat4x3_t::Column_t> == 3 );
 		StaticAssert( VecSize<CMat4x3_t::Row_t> == 4 );
@@ -87,7 +87,7 @@ namespace
 	static void  MatrixStorage_Test5 ()
 	{
 		// 3 columns with float4
-		using float3x4_t = MatrixStorage< float, 3, 4, EMatrixOrder::ColumnMajor >;
+		using float3x4_t = MatrixStorage< float, 3, 4, EMatrixLayout::ColumnMajor >;
 
 		const float3x4_t  m1{};
 		Unused( m1 );
@@ -113,7 +113,7 @@ namespace
 	static void  MatrixStorage_Test6 ()
 	{
 		// 4 rows with float3
-		using float3x4_t = MatrixStorage< float, 4, 3, EMatrixOrder::RowMajor >;
+		using float3x4_t = MatrixStorage< float, 4, 3, EMatrixLayout::RowMajor >;
 
 		const float3x4_t  m1{};
 		Unused( m1 );
@@ -142,8 +142,8 @@ namespace
 
 	static void  MatrixStorage_Test7 ()
 	{
-		using cm_float3x4_t = MatrixStorage< float, 3, 4, EMatrixOrder::ColumnMajor >;
-		using rm_float3x4_t = MatrixStorage< float, 4, 3, EMatrixOrder::RowMajor >;
+		using cm_float3x4_t = MatrixStorage< float, 3, 4, EMatrixLayout::ColumnMajor >;
+		using rm_float3x4_t = MatrixStorage< float, 4, 3, EMatrixLayout::RowMajor >;
 
 		cm_float3x4_t	m1{ float3x4{float4{1.0f, 2.0f, 3.0f, 4.0f},
 									 float4{5.0f, 6.0f, 7.0f, 8.0f},
@@ -191,8 +191,8 @@ namespace
 
 	static void  MatrixStorage_Test8 ()
 	{
-		using cm_float4x3_t = MatrixStorage< float, 4, 3, EMatrixOrder::ColumnMajor >;
-		using rm_float4x3_t = MatrixStorage< float, 3, 4, EMatrixOrder::RowMajor >;
+		using cm_float4x3_t = MatrixStorage< float, 4, 3, EMatrixLayout::ColumnMajor >;
+		using rm_float4x3_t = MatrixStorage< float, 3, 4, EMatrixLayout::RowMajor >;
 
 		cm_float4x3_t	m1{ float4x3{float3{1.0f, 2.0f, 3.0f},
 									 float3{4.0f, 5.0f, 6.0f},
@@ -589,11 +589,11 @@ namespace
 
 		const auto	TestInf = [n] (const float4x4 &p)
 		{{
-			const float	f = 2.0e+6f;
+			const float	f2 = 2.0e+6f;
 
 			for (float linear_norm = 0.0f; linear_norm <= 1.0f; linear_norm += 0.01f)
 			{
-				float	world_z = Lerp( n, f, linear_norm );
+				float	world_z = Lerp( n, f2, linear_norm );
 				float	a		= float4x4::FastProjectZInf( n, world_z );
 				float	b		= float4x4::FastUnProjectZInf( n, a );
 
@@ -606,10 +606,10 @@ namespace
 
 			for (float linear_norm = -0.01f; linear_norm < 1.01f; linear_norm += 0.01f)
 			{
-				float	linear			= Lerp( n, f, linear_norm );
+				float	linear			= Lerp( n, f2, linear_norm );
 				float	non_linear		= p.ProjectToNormClipSpace( float3{ 0.f, 0.f, linear }).z;
 				float	non_linear1		= float4x4::FastProjectZInf( n, linear );
-				float	non_linear2		= ToNonlinearDepth( linear_norm, n, f );
+				float	non_linear2		= ToNonlinearDepth( linear_norm, n, f2 );
 			//	float	linear_norm2	= ToLinearDepth( non_linear, n, f );
 				float	linear2			= float4x4::FastUnProjectZInf( n, non_linear );
 
@@ -661,11 +661,11 @@ namespace
 
 		const auto	TestRevZInf = [n] (const float4x4 &p)
 		{{
-			const float	f = 2.0e+6f;
+			const float	f2 = 2.0e+6f;
 
 			for (float linear_norm = 0.0f; linear_norm <= 1.0f; linear_norm += 0.01f)
 			{
-				float	world_z = Lerp( n, f, linear_norm );
+				float	world_z = Lerp( n, f2, linear_norm );
 				float	a		= float4x4::FastProjectRevZInf( n, world_z );
 				float	b		= float4x4::FastUnProjectRevZInf( n, a );
 
@@ -678,7 +678,7 @@ namespace
 
 			for (float linear_norm = -0.01f; linear_norm < 1.01f; linear_norm += 0.01f)
 			{
-				float	linear			= Lerp( n, f, linear_norm );
+				float	linear			= Lerp( n, f2, linear_norm );
 				float	non_linear		= p.ProjectToNormClipSpace( float3{ 0.f, 0.f, linear }).z;
 				float	non_linear1		= float4x4::FastProjectRevZInf( n, linear );
 			//	float	non_linear2		= ToNonlinearDepthRevZ( linear_norm, n, f );

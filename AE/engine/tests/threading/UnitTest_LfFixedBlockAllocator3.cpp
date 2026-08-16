@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 // [Multithreading test]()
 // [Performance test](https://github.com/azhirnov/as-en/blob/dev/AE/engine/performance/threading/Perf_MtAllocator.cpp)

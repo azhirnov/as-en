@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #pragma once
 
@@ -247,6 +247,17 @@ namespace AE::Base
 	{
 		NonNull( ptr );		// assume() in release
 		return ptr;
+	}
+
+/*
+=================================================
+	BitSetFrom
+=================================================
+*/
+	template <typename T>
+	ND_ auto  BitSetFrom (T x) __NE___
+	{
+		return BitSet< sizeof(x)*8 >{ x };
 	}
 //-----------------------------------------------------------------------------
 

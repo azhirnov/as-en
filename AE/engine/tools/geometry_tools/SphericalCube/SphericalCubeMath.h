@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 /*
 	based on
 	"Cube-to-sphere Projections for Procedural Texturing and Beyond"
@@ -20,6 +20,7 @@ namespace AE::GeometryTools
 		YNeg	= 3,	// up
 		ZPos	= 4,	// front
 		ZNeg	= 5,	// back
+		_Count
 	};
 
 	struct SCProj1_Identity;

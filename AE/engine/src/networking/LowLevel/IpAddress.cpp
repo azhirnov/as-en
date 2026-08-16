@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #include "networking/LowLevel/IpAddress.h"
 #include "networking/LowLevel/PlatformSpecific.cpp.h"

@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #pragma once
 
@@ -33,6 +33,8 @@ namespace AE::PipelineCompiler
 	private:
 		static constexpr char				_DbgShaderTraceStr []	= "ShaderTrace";
 		static constexpr DescriptorSetName	_DbgShaderTrace			{_DbgShaderTraceStr};
+
+		using MSLBindingsPerState_t = FixedMap< EShaderStages, MSLBindings, uint(EShader::_Count) >;
 
 
 	// variables
@@ -76,6 +78,7 @@ namespace AE::PipelineCompiler
 
 		ND_ bool	MslDescSetAsArgumentBuffer ()												const;
 		ND_ bool	HasDynamicBuffers ()														const;
+		ND_ bool	HasDescriptorHeap ()														const;
 
 		ND_ StringView							Name ()											const	{ return _name; }
 		ND_ DebugInfo const&					GetDebugDS ()									const	{ return _dbgInfo; }
@@ -99,6 +102,9 @@ namespace AE::PipelineCompiler
 		ND_ bool  _Build ()																		__Th___;
 
 		ND_ String  _DescriptorsMacros (EShaderStages stages)									C_Th___;
+
+		ND_ bool  _AddDescSets (INOUT MSLBindingsPerState_t &)									__Th___;
+		ND_ bool  _AddPushConst (INOUT MSLBindingsPerState_t &)									__Th___;
 	};
 
 

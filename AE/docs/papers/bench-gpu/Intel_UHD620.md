@@ -278,26 +278,3 @@ TODO
 	| 256K     | 512x512   | 12.1 | **1.8**  |  16 | less than RAM bandwidth |
 	| **512K** | 512x1024  | 14.5 | 1.2      |  13 | ? |
 	| 1M       | 1024x1024 | 27.7 | **1.9**  |   7 |
-
-## Nonuniform
-
-* __depth pre-pass__ [[14.2](../GPU_Benchmarks.md#14-Nonuniform)]<br/>
-	dpp = 0.6ms,
-	Scale=0.6, Dim=2K, ObjCount=4K
-
-	| nonuniform              | per object (ms) | per warp (ms) | per quad (ms) | per pixel (ms) |
-	|-------------------------|-----------------|---------------|---------------|----------------|
-	| texture layer           | 1.90            | 2.3           | 3.5           | 6.5            |
-	| texture index           | 1.90            | 5.0           | 26.1          | 63             |
-	| texture & sampler index | 1.96            | 2.3           | 6.5           | 12.6           |
-
-* __visibility buffer__ [[14.3](../GPU_Benchmarks.md#14-Nonuniform)]<br/>
-	visibility buffer build = 0.97ms<br/>
-	visibility buffer FS overhead = 0.6ms<br/>
-	Scale=0.6, Dim=2K, ObjCount=4K
-
-	| nonuniform              | per object (ms) | per warp (ms) | per quad (ms) | per pixel (ms) |
-	|-------------------------|-----------------|---------------|---------------|----------------|
-	| texture layer           | 2.55            | 2.6           | 2.7           | 2.9            |
-	| texture index           | 2.9             | 2.8           | 10.1          | 25.2           |
-	| texture & sampler index | 2.9             | 2.7           | 4.25          | 7.6            |

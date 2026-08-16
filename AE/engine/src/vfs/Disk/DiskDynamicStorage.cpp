@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #include "threading/DataSource/FileAsyncDataSource.h"
 
@@ -21,9 +21,10 @@ namespace AE::VFS
 			_folder = FileSystem::ToAbsolute( folder );
 
 			if ( createFolder )
-				FileSystem::CreateDirectories( _folder );
+				CHECK( FileSystem::CreateDirectories( _folder ));
 
-			CHECK_ERR( FileSystem::IsDirectory( _folder ));
+			CHECK_ERR_MSG( FileSystem::IsDirectory( _folder ),
+				"Folder '"s << ToString(_folder) << "' is not exist" );
 
 			auto	file_map = _fileMap.WriteLock();
 			file_map->map.clear();
@@ -213,9 +214,9 @@ namespace AE::VFS
 	{
 		TRY{
 			const Path	abs_path = (_folder / inPath).lexically_normal();	// path without '..'
-			const Path	rel_path = FileSystem::ToRelative( abs_path, _folder );
+			Path		rel_path;
+			CHECK_ERR( FileSystem::IsSubPath( abs_path, _folder, OUT &rel_path ));
 
-			CHECK_ERR( not rel_path.empty() and *rel_path.begin() != ".." );
 			FileSystem::CreateDirectories( abs_path.parent_path() );
 
 			String	str;
@@ -248,8 +249,8 @@ namespace AE::VFS
 			Path			path		= abs_path.parent_path();
 
 			{
-				const Path	rel_path = FileSystem::ToRelative( abs_path, _folder );
-				CHECK_ERR_MSG( not rel_path.empty() and *rel_path.begin() != "..",
+				Path	rel_path;
+				CHECK_ERR_MSG( FileSystem::IsSubPath( abs_path, _folder, OUT &rel_path ),
 					"input path is outside of disk storage folder, don't use '../' in path" );
 				FileSystem::CreateDirectories( abs_path.parent_path() );
 			}
@@ -324,6 +325,39 @@ namespace AE::VFS
 		// not supported
 		return false;
 	}
+
+/*
+=================================================
+	_GetPath
+=================================================
+*/
+	bool  DiskDynamicStorage::_GetPath (FileName::Ref name, OUT Path &outPath) C_NE___
+	{
+		// first try
+		{
+			auto	map = _fileMap.ReadLock();
+			auto	it  = map->map.find( FileName::Optimized_t{name} );
+			if ( it != map->map.end() )
+			{
+				outPath = Path{_folder} / it->second;
+				return true;
+			}
+		}
+
+		// update file map and try again
+		if ( _Update() )
+		{
+			auto	map = _fileMap.ReadLock();
+			auto	it  = map->map.find( FileName::Optimized_t{name} );
+			if ( it != map->map.end() )
+			{
+				outPath = Path{_folder} / it->second;
+				return true;
+			}
+		}
+
+		return false;
+	}
 //-----------------------------------------------------------------------------
 
 
@@ -334,7 +368,7 @@ namespace AE::VFS
 */
 	RC<IVirtualFileStorage>  VirtualFileStorageFactory::CreateDynamicFolder (const Path &folder, StringView prefix, Bool createFolder) __NE___
 	{
-		AE_LOG_DBG( "Mount dynamic folder '"s << ToString(folder) << "' with prefix '" << prefix << "'" );
+		AE_LOG_DBG( "Mount dynamic folder '"s << ToString( folder ) << "' with prefix '" << prefix << "'" );
 
 		auto	result = RC<DiskDynamicStorage>{ new DiskDynamicStorage{}};
 		CHECK_ERR( result->_Create( folder, prefix, createFolder ));

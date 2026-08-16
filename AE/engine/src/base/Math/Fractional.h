@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #pragma once
 
@@ -167,6 +167,22 @@ namespace AE::Base
 	template <typename T>	struct TIsSigned< Fractional<T> >				: TIsSigned<T> {};
 	template <typename T>	struct TIsUnsigned< Fractional<T> >				: TIsUnsigned<T> {};
 	template <typename T>	struct TUnwrap< Fractional<T> >					: TUnwrap<T> {};
+//-----------------------------------------------------------------------------
+
+
+/*
+=================================================
+	Abs
+=================================================
+*/
+	template <typename T>
+	NdCx__ Fractional<T>  Abs (Fractional<T> x) __NE___
+	{
+		StaticAssert( IsSignedInteger<T> );
+		x.num = std::abs( x.num );
+		return x;
+	}
+
 
 } // AE::Base
 

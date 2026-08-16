@@ -1,9 +1,11 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #ifdef AE_PLATFORM_ANDROID
 # include "graphics_rhi/Vulkan/VSwapchain.h"
 # include "platform/Android/FileSystemAndroid.h"
 # include "platform/Android/ApplicationAndroid.h"
+
+# include "base/Log/Logger.h"
 
 // must be implemented in client code
 extern "C" JNIEXPORT jint  JNI_OnLoad   (JavaVM* vm, void *);
@@ -53,6 +55,21 @@ namespace {
 		ApplicationBase{ RVRef(listener) }
 	{
 		Unused( s_JNI_ptr );
+
+		// set clipboard callbacks
+		{
+		}
+
+		// set network callbacks
+		{
+			using namespace AE::Networking;
+
+			SocketService::Callbacks	cb;
+			cb.userData				= this;
+			cb.getRouterIPAddress	= &_GetRouterIPAddress;
+
+			SocketService::Instance().SetCallbacks( cb );
+		}
 	}
 
 /*
@@ -63,6 +80,8 @@ namespace {
 	ApplicationAndroid::~ApplicationAndroid () __NE___
 	{
 		_OnDestroy();
+
+		Networking::SocketService::Instance().SetCallbacks( Default );
 
 		//ASSERT( _hwCamera.release().use_count() <= 1 );
 	}
@@ -133,7 +152,7 @@ namespace {
 		if ( type == EAppStorage::Builtin )
 		{
 			auto	fs = MakeRC<FileSystemAndroid>();
-			CHECK_ERR( fs->Create( _paths->jniAssetMngr, "" ));		// TODO: prefix
+			CHECK_ERR( fs->Create( _paths.ConstPtr()->jniAssetMngr, "" ));		// TODO: prefix
 			return fs;
 		}
 
@@ -153,26 +172,33 @@ namespace {
 	GetStoragePath
 =================================================
 */
-	Path  ApplicationAndroid::GetStoragePath (EAppStorage type) __NE___
+	Path  ApplicationAndroid::GetStoragePath (EAppStorage type) C_NE___
 	{
-		switch_enum( type )
+		Path	result;
 		{
-			case EAppStorage::Builtin :			return {};	// not supported, use 'OpenStorage()'
-			case EAppStorage::Cache :			return _paths->internalCache / "cache";
-			case EAppStorage::ExternalCache :	return _paths->externalCache / "ext-cache";
-			case EAppStorage::UserData :		return _paths->internalCache / "user-data";
-
-			case EAppStorage::SharedData :
+			auto	paths = _paths.ReadLock();
+			switch_enum( type )
 			{
-				CHECK_ERR( _listener );
-				Path	path = _paths->externalStorage;
-				path /= _listener->GetAppName();
-				return path;
+				case EAppStorage::Builtin :			break;	// not supported, use 'OpenStorage()'
+
+				case EAppStorage::Cache :			result = paths->internalCache;		break;
+				case EAppStorage::ExternalCache :	result = paths->externalCache;		break;
+
+				case EAppStorage::UserData :		result = paths->externalAppData;	break;
+
+				case EAppStorage::SharedData :
+				{
+					CHECK_ERR( _listener );
+					result = paths->externalStorage;
+					result /= _listener->GetAppName();
+					break;
+				}
+
+				case EAppStorage::_Count :          break;
 			}
-			case EAppStorage::_Count :          break;
+			switch_end
 		}
-		switch_end
-		return {};
+		return result;
 	}
 
 /*
@@ -264,6 +290,13 @@ namespace {
 		{
 			_OnDestroy();
 		}
+
+	  #ifdef AE_DEBUG
+		if ( String	str = AndroidToastLogOutput::ExtractToast(); not str.empty() )
+		{
+			ShowToast( str, True{"long time"} );
+		}
+	  #endif
 	}
 
 /*
@@ -383,9 +416,10 @@ namespace {
 		app._java.assetManager		= JavaObj{ assetMngr, je };
 		app._paths->jniAssetMngr	= AAssetManager_fromJava( env, app._java.assetManager.Get() );
 
-		app._java.application.Method( "ShowToast",			OUT app._methods.showToast );
-		app._java.application.Method( "IsNetworkConnected",	OUT app._methods.isNetworkConnected );
-		//app._java.application.Method( "CreateWindow",		OUT app._methods.createWindow );
+		app._java.application.Method( "ShowToast",				OUT app._methods.showToast );
+		app._java.application.Method( "IsNetworkConnected",		OUT app._methods.isNetworkConnected );
+		app._java.application.Method( "GetDefaultIpv4Gateway",	OUT app._methods.getDefaultIpv4Gateway );
+		//app._java.application.Method( "CreateWindow",			OUT app._methods.createWindow );
 
 		Base::Android_SetIsUnderDebugger( isUnderDebugger );
 		ASSERT( isUnderDebugger == AndroidUtils::IsUnderDebugger() );
@@ -501,6 +535,26 @@ namespace {
 
 /*
 =================================================
+	_GetRouterIPAddress
+=================================================
+*/
+	bool  ApplicationAndroid::_GetRouterIPAddress (void* self, OUT Networking::IpAddress &outAddr) __NE___
+	{
+		NonNull( self );
+
+		auto&		app		= *Cast<ApplicationAndroid>( self );
+		auto		res		= app._methods.getDefaultIpv4Gateway();
+		JavaString	addr	{*res};
+
+		if ( addr.empty() )
+			return false;
+
+		outAddr = Networking::IpAddress::FromHostPortUDP( NtStringView{addr}, 0 );
+		return true;
+	}
+
+/*
+=================================================
 	OnJniLoad
 =================================================
 */
@@ -513,6 +567,8 @@ namespace {
 			return -1;
 
 		JavaEnv::SetVM( vm );
+
+		CHECK( CpuArchInfo::Get().CheckCompilationOptions() );
 
 		const int	argc	= 1;
 		const char*	argv[]	= { "" };

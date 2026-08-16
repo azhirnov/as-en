@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #ifdef AE_PLATFORM_ANDROID
 # include "base/Defines/StdInclude.h"
@@ -32,7 +32,17 @@ namespace AE::Base
 */
 	void  SecureZeroMem (OUT void* ptr, Bytes size) __NE___
 	{
+	#if __ANDROID_API__ >= 29
+		if_likely( ptr != null )
+			::explicit_bzero( ptr, usize{size} );
+
+	#elif defined(__STDC_LIB_EXT1__)
+		if_likely( ptr != null )
+			memset_s( ptr, usize{size}, 0, usize{size} );
+
+	#else
 		return Base::_hidden_::SecureZeroMemFallback( OUT ptr, size );
+	#endif
 	}
 
 #ifndef AE_CFG_RELEASE
@@ -238,7 +248,7 @@ namespace AE::Base
 
 	bool  AndroidUtils::IsUnderDebugger () __NE___
 	{
-	  #if AE_CXX_VER >= 26
+	  #if 0 //AE_CXX_VER >= 26
 		return std::is_debugger_present();
 
 	  #elif defined(AE_CFG_RELEASE)
@@ -246,17 +256,6 @@ namespace AE::Base
 	  #else
 		return Android_IsUnderDebugger;
 	  #endif
-	}
-
-/*
-=================================================
-	SetSystemSleepState
-=================================================
-*/
-	bool  AndroidUtils::SetSystemSleepState (ESystemSleepState) __NE___
-	{
-		// TODO
-		return false;
 	}
 
 /*
@@ -275,6 +274,105 @@ namespace AE::Base
 		mask.__bits[0] = coreMask.to_ullong();
 
 		return ::sched_setaffinity( pid, sizeof(mask), &mask ) == 0;
+	}
+
+/*
+=================================================
+	_SetActivityCallbacks
+=================================================
+*/
+	namespace {
+		static SharedMutex							s_ActivityCallbacksGuard;
+		static AndroidUtils::ActivityCallbacks		s_ActivityCallbacks;
+	}
+
+	void  AndroidUtils::_SetActivityCallbacks (const ActivityCallbacks &cb) __NE___
+	{
+		EXLOCK( s_ActivityCallbacksGuard );
+		s_ActivityCallbacks = cb;
+	}
+
+/*
+=================================================
+	ClipboardExtract
+=================================================
+*/
+	bool  AndroidUtils::ClipboardExtract (OUT U8String &result, void* wnd) __NE___
+	{
+		ASSERT( wnd == null );
+		Unused( wnd );
+
+		EXLOCK( s_ActivityCallbacksGuard );
+
+		CHECK_ERR( s_ActivityCallbacks.clipboardExtract != null );
+		return s_ActivityCallbacks.clipboardExtract( s_ActivityCallbacks.userData, OUT result );
+	}
+
+/*
+=================================================
+	ClipboardPut
+=================================================
+*/
+	bool  AndroidUtils::ClipboardPut (U8StringView str, void* wnd) __NE___
+	{
+		ASSERT( wnd == null );
+		Unused( wnd );
+
+		EXLOCK( s_ActivityCallbacksGuard );
+
+		CHECK_ERR( s_ActivityCallbacks.clipboardPut != null );
+		return s_ActivityCallbacks.clipboardPut( s_ActivityCallbacks.userData, str );
+	}
+
+/*
+=================================================
+	ClipboardClear
+=================================================
+*/
+	bool  AndroidUtils::ClipboardClear (void* wnd) __NE___
+	{
+		ASSERT( wnd == null );
+		Unused( wnd );
+
+		EXLOCK( s_ActivityCallbacksGuard );
+
+		CHECK_ERR( s_ActivityCallbacks.clipboardClear != null );
+		return s_ActivityCallbacks.clipboardClear( s_ActivityCallbacks.userData );
+	}
+
+/*
+=================================================
+	OpenURL
+=================================================
+*/
+	bool  AndroidUtils::OpenURL (U8StringView url) __NE___
+	{
+		EXLOCK( s_ActivityCallbacksGuard );
+		CHECK_ERR( s_ActivityCallbacks.openURL != null );
+		return s_ActivityCallbacks.openURL( s_ActivityCallbacks.userData, url );
+	}
+
+	bool  AndroidUtils::OpenURL (StringView url) __NE___
+	{
+		return OpenURL( U8StringView{ Cast<CharUtf8>(url.data()), url.size() });
+	}
+
+	bool  AndroidUtils::OpenURL (const Path &url) __NE___
+	{
+		return OpenURL( StringView{ url.native() });
+	}
+
+/*
+=================================================
+	SetSystemSleepState
+=================================================
+*/
+	bool  AndroidUtils::SetSystemSleepState (ESystemSleepState state) __NE___
+	{
+	//	EXLOCK( s_ActivityCallbacksGuard );
+	//	CHECK_ERR( s_ActivityCallbacks.setSystemSleepState != null );
+	//	return s_ActivityCallbacks.setSystemSleepState( s_ActivityCallbacks.userData, state );
+		return true;
 	}
 
 } // AE::Base

@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #pragma once
 
@@ -63,7 +63,7 @@ namespace AE::Graphics
 
 		// pipeline
 		static constexpr uint	MaxDescriptorSets		= 8;
-		static constexpr uint	MaxPushConstants		= 8;
+		static constexpr uint	MaxPushConstants		= 4;
 		static constexpr uint	MaxSpecConstants		= 8;
 
 		static constexpr uint	MinFrames				= 2;

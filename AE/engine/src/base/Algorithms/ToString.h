@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #pragma once
 
@@ -19,6 +19,7 @@
 
 # include "base/Utils/Version.h"
 # include "base/Utils/EnumSet.h"
+# include "base/CompileTime/EnumToString.h"
 
 namespace AE::Base
 {
@@ -371,7 +372,8 @@ namespace _hidden_
       #ifdef AE_PLATFORM_WINDOWS
 		Unused( ConvertString( OUT str, BasicStringView{path.lexically_normal().native()} ));
       #else
-        const auto& src_str = path.lexically_normal().native();
+		const Path	norm	= path.lexically_normal();
+        const auto&	src_str	= norm.native();
         Unused( ConvertString( OUT str, BasicStringView<CharUtf8>{ Cast<CharUtf8>(src_str.c_str()), src_str.size() }));
       #endif
 		FindAndReplace( INOUT str, '\\', '/' );
@@ -486,6 +488,8 @@ namespace _hidden_
 
 			String&	str = frac.IsPositive() ? str_nom : str_den;
 			uint&	cnt	= dim_cnt[ frac.IsPositive() ];
+
+			frac = Abs( frac );
 
 			if ( not str.empty() )
 				str << " * ";
@@ -674,6 +678,31 @@ namespace _hidden_
 
 /*
 =================================================
+	ToString (enum)
+----
+	Warning: don't use 'ToString(...).data()' it is not null-terminated.
+	Instead use 'NtStringView{ToString(...)}.c_str()'.
+=================================================
+*/
+	template <typename T>
+	  requires( IsEnum<T> and requires{ T::_Count; })
+	ND_ StringView  ToString (T value) __NE___
+	{
+		return EnumToString<T>::ToString( value );
+	}
+
+	template <typename T>
+	  requires( AllowEnumBitOps<T> and requires{ T::_Last; })
+	ND_ String  ToString (T values) __Th___
+	{
+		String	str = BitEnumToString<T>::ToString( values );
+		if ( str.empty() )
+			str = "<none>";
+		return str;
+	}
+
+/*
+=================================================
 	ToString (EnumSet)
 =================================================
 */
@@ -681,12 +710,58 @@ namespace _hidden_
 	ND_ String  ToString (EnumSet<E> bits, StringView (*fn)(E), StringView div = " | ") __Th___
 	{
 		String	str;
+		bool	separate = false;
+
 		for (; bits.Any();)
 		{
-			if ( not str.empty() )
+			if ( separate )
 				str << div;
 
-			str << fn( bits.ExtractFirst() );
+			auto	s = fn( bits.ExtractFirst() );
+			separate = not s.empty();
+
+			str << s;
+		}
+		return str;
+	}
+
+	template <typename E>
+	ND_ String  ToString (EnumSet<E> bits, String (*fn)(E), StringView div = " | ") __Th___
+	{
+		String	str;
+		bool	separate = false;
+
+		for (; bits.Any();)
+		{
+			if ( separate )
+				str << div;
+
+			auto	s = fn( bits.ExtractFirst() );
+			separate = not s.empty();
+
+			str << s;
+		}
+		return str;
+	}
+
+	template <typename E>
+	  requires( IsEnum<E> and requires{ E::_Count; })
+	ND_ String  EnumSetToString (EnumSet<E> bits) __Th___
+	{
+		String	str;
+		bool	separate = false;
+
+		for (; bits.Any();)
+		{
+			if ( separate )
+				str << " | ";
+
+			// Warning: compiler can not see 'ToString()' overloads which is defined below or included after this header
+
+			auto	s = ToString( bits.ExtractFirst() );
+			separate = not s.empty();
+
+			str << s;
 		}
 		return str;
 	}
@@ -766,6 +841,23 @@ namespace _hidden_
 		String	str = ToString( value, fp + addFractPart );
 		if ( suffix ) str << suffix;
 		return str;
+	}
+
+/*
+=================================================
+	ToStringSfx (PhysicalQuantity)
+=================================================
+*/
+	template <typename V, typename D, typename S> requires(IsInteger<V>)
+	ND_ String  ToStringSfx (const PhysicalQuantity<V,D,S> &value) __Th___
+	{
+		return ToStringSfx( value.GetScaled() ) << '[' << ToString( D{} ) << ']';
+	}
+
+	template <typename V, typename D, typename S> requires(IsFloatPoint<V>)
+	ND_ String  ToStringSfx (const PhysicalQuantity<V,D,S> &value) __Th___
+	{
+		return ToStringSfx( value.GetScaled() ) << '[' << ToString( D{} ) << ']';
 	}
 
 /*
@@ -927,6 +1019,32 @@ namespace _hidden_
 		return	ToString( uint(Floor( sec / 3600.0 )) ) << ':' <<
 				FormatAlignedI<10>( uint(Floor( sec / 60.0 )) % 60, 2, '0' ) << ':' <<
 				FormatAlignedI<10>( uint(sec) % 60, 2, '0' );
+	}
+
+/*
+=================================================
+	ToStringAsChars
+=================================================
+*/
+	Nd__In String  ToStringAsChars (StringView inStr) __Th___
+	{
+		const auto	ToHex = [](char hc)
+		{{
+			return	hc < 10 ?	char('0' + hc) :
+								char('A' + hc - 10);
+		}};
+
+		String	str;
+		str.reserve( inStr.size() * 5 + 10 );
+		str << "(";
+		for (char c : inStr)
+		{
+			str << 'x' << ToHex( c & 0xF ) << ToHex( c >> 4 ) << ", ";
+		}
+		str.pop_back();
+		str.pop_back();
+		str << "}";
+		return str;
 	}
 //-----------------------------------------------------------------------------
 

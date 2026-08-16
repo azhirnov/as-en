@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 /*
 	SyncPoint - triggered when object is destroyed (always use reference counter!).
 	Use 'OnComplete()' to subscribe on event.

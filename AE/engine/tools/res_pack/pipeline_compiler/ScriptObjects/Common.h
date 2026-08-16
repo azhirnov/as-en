@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #pragma once
 
@@ -150,7 +150,7 @@ namespace AE::PipelineCompiler
 		_Metal_Mac_Last		= Metal_Mac_3_2,
 
 		Unknown				= 0,
-		_BITOPS_
+		_BITOPS_			= 0
 	};
 
 
@@ -184,7 +184,7 @@ namespace AE::PipelineCompiler
 		WarnAsError			= 1 << 8,
 
 		_Last,
-		All					= ((_Last - 1) << 1) - 1,
+		All					= CT_AllBitMask2<EShaderOpt>,
 		Unknown				= 0,
 	};
 

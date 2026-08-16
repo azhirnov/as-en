@@ -1,10 +1,10 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #pragma once
 
 #include "base/Utils/Bitfield.h"
 
-namespace AE::Base::_hidden_
+namespace AE::Base
 {
 
 	//
@@ -83,4 +83,4 @@ namespace AE::Base::_hidden_
 	};
 
 
-} // AE::Base::_hidden_
+} // AE::Base

@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #pragma once
 
@@ -20,7 +20,7 @@ namespace AE::Base
 		const Bytes		_offset;
 		const Bytes		_size;
 
-		static constexpr ESourceType	_RequiredType = ESourceType::RandomAccess | ESourceType::FixedSize | ESourceType::ReadAccess;
+		static constexpr ESourceType	_RequiredType = ESourceType::RandomAccess | ESourceType::FixedSize | ESourceType::ReadOnly;
 
 
 	// methods
@@ -69,7 +69,7 @@ namespace AE::Base
 		const Bytes		_offset;
 		const Bytes		_capacity;		// TODO
 
-		static constexpr ESourceType	_RequiredType = ESourceType::RandomAccess | ESourceType::WriteAccess;
+		static constexpr ESourceType	_RequiredType = ESourceType::RandomAccess | ESourceType::WriteOnly;
 
 
 	// methods

@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #include "platform/Public/HwCamera.h"
 #include "graphics_rhi/Private/EnumToString.h"
@@ -8,232 +8,9 @@ namespace AE::Base
 {
 	using namespace AE::App;
 
-	ND_ StringView  ToString (IHwCamera::EFace type)
-	{
-		switch_enum( type )
-		{
-			case IHwCamera::EFace::Front :		return "Front";
-			case IHwCamera::EFace::Back :		return "Back";
-			case IHwCamera::EFace::External :	return "External";
-			case IHwCamera::EFace::Unknown :
-			case IHwCamera::EFace::_Count :		break;
-		}
-		switch_end
-		return "";
-	}
-
 	ND_ StringView  ToString (IHwCamera::EImageFormat type)
 	{
 		return ToString( Graphics::EPixelFormatExternal(type) );
-	}
-
-	ND_ StringView  ToString (IHwCamera::EFocusDistanceCalibration type)
-	{
-		switch_enum( type )
-		{
-			case IHwCamera::EFocusDistanceCalibration::Uncalibrated :	return "Uncalibrated";
-			case IHwCamera::EFocusDistanceCalibration::Approximate :	return "Approximate";
-			case IHwCamera::EFocusDistanceCalibration::Calibrated :		return "Calibrated";
-			case IHwCamera::EFocusDistanceCalibration::Unknown :
-			case IHwCamera::EFocusDistanceCalibration::_Count :			break;
-		}
-		switch_end
-		return "";
-	}
-
-	ND_ StringView  ToString (IHwCamera::EAutoExposureMode type)
-	{
-		switch_enum( type )
-		{
-			case IHwCamera::EAutoExposureMode::Off :				return "Off";
-			case IHwCamera::EAutoExposureMode::On :					return "On";
-			case IHwCamera::EAutoExposureMode::OnAutoFlash :		return "OnAutoFlash";
-			case IHwCamera::EAutoExposureMode::OnAlwaysFlash :		return "OnAlwaysFlash";
-			case IHwCamera::EAutoExposureMode::OnAutoFlashRedeye :	return "OnAutoFlashRedeye";
-			case IHwCamera::EAutoExposureMode::OnExternalFlash :	return "OnExternalFlash";
-			case IHwCamera::EAutoExposureMode::Unknown :
-			case IHwCamera::EAutoExposureMode::_Count :				break;
-		}
-		switch_end
-		return "";
-	}
-
-	ND_ StringView  ToString (IHwCamera::EAutoFocusMode type)
-	{
-		switch_enum( type )
-		{
-			case IHwCamera::EAutoFocusMode::Off :				return "Off";
-			case IHwCamera::EAutoFocusMode::Auto :				return "Auto";
-			case IHwCamera::EAutoFocusMode::Macro :				return "Macro";
-			case IHwCamera::EAutoFocusMode::ContinuousVideo :	return "ContinuousVideo";
-			case IHwCamera::EAutoFocusMode::ContinuousPicture :	return "ContinuousPicture";
-			case IHwCamera::EAutoFocusMode::ExtDoF :			return "ExtDoF";
-			case IHwCamera::EAutoFocusMode::Unknown :
-			case IHwCamera::EAutoFocusMode::_Count :			break;
-		}
-		switch_end
-		return "";
-	}
-
-	ND_ StringView  ToString (IHwCamera::EAutoWhiteBalanceMode type)
-	{
-		switch_enum( type )
-		{
-			case IHwCamera::EAutoWhiteBalanceMode::Off :				return "Off";
-			case IHwCamera::EAutoWhiteBalanceMode::Auto :				return "Auto";
-			case IHwCamera::EAutoWhiteBalanceMode::Incandescent :		return "Incandescent";
-			case IHwCamera::EAutoWhiteBalanceMode::Fluorescent :		return "Fluorescent";
-			case IHwCamera::EAutoWhiteBalanceMode::WarmFluorescent :	return "WarmFluorescent";
-			case IHwCamera::EAutoWhiteBalanceMode::Daylight :			return "Daylight";
-			case IHwCamera::EAutoWhiteBalanceMode::CloudyDaylight :		return "CloudyDaylight";
-			case IHwCamera::EAutoWhiteBalanceMode::Twilight :			return "Twilight";
-			case IHwCamera::EAutoWhiteBalanceMode::Shade :				return "Shade";
-			case IHwCamera::EAutoWhiteBalanceMode::Unknown :
-			case IHwCamera::EAutoWhiteBalanceMode::_Count :				break;
-		}
-		switch_end
-		return "";
-	}
-
-	ND_ StringView  ToString (IHwCamera::EControlAAAMode type)
-	{
-		switch_enum( type )
-		{
-			case IHwCamera::EControlAAAMode::Off :					return "Off";
-			case IHwCamera::EControlAAAMode::Auto :					return "Auto";
-			case IHwCamera::EControlAAAMode::UseSceneMode :			return "UseSceneMode";
-			case IHwCamera::EControlAAAMode::OffKeepState :			return "OffKeepState";
-			case IHwCamera::EControlAAAMode::UseExtendedSceneMode :	return "UseExtendedSceneMode";
-			case IHwCamera::EControlAAAMode::Unknown :
-			case IHwCamera::EControlAAAMode::_Count :				break;
-		}
-		switch_end
-		return "";
-	}
-
-	ND_ StringView  ToString (IHwCamera::ESceneMode type)
-	{
-		switch_enum( type )
-		{
-			case IHwCamera::ESceneMode::Disabled :		return "Disabled";
-			case IHwCamera::ESceneMode::FacePriority :	return "FacePriority";
-			case IHwCamera::ESceneMode::Action :		return "Action";
-			case IHwCamera::ESceneMode::Portrait :		return "Portrait";
-			case IHwCamera::ESceneMode::Landscape :		return "Landscape";
-			case IHwCamera::ESceneMode::Night :			return "Night";
-			case IHwCamera::ESceneMode::NightPortrait :	return "NightPortrait";
-			case IHwCamera::ESceneMode::Theatre :		return "Theatre";
-			case IHwCamera::ESceneMode::Beach :			return "Beach";
-			case IHwCamera::ESceneMode::Snow :			return "Snow";
-			case IHwCamera::ESceneMode::Sunset :		return "Sunset";
-			case IHwCamera::ESceneMode::Steadyphoto :	return "Steadyphoto";
-			case IHwCamera::ESceneMode::Fireworks :		return "Fireworks";
-			case IHwCamera::ESceneMode::Sports :		return "Sports";
-			case IHwCamera::ESceneMode::Party :			return "Party";
-			case IHwCamera::ESceneMode::Candlelight :	return "Candlelight";
-			case IHwCamera::ESceneMode::Barcode :		return "Barcode";
-			case IHwCamera::ESceneMode::HDR :			return "HDR";
-			case IHwCamera::ESceneMode::Unknown :
-			case IHwCamera::ESceneMode::_Count :		break;
-		}
-		switch_end
-		return "";
-	}
-
-	ND_ StringView  ToString (IHwCamera::EExtendedSceneModeCap type)
-	{
-		switch_enum( type )
-		{
-			case IHwCamera::EExtendedSceneModeCap::Disabled :			return "Disabled";
-			case IHwCamera::EExtendedSceneModeCap::BokehStillCapture :	return "BokehStillCapture";
-			case IHwCamera::EExtendedSceneModeCap::BokehContinuous :	return "BokehContinuous";
-			case IHwCamera::EExtendedSceneModeCap::Unknown :
-			case IHwCamera::EExtendedSceneModeCap::_Count :				break;
-		}
-		switch_end
-		return "";
-	}
-
-	ND_ StringView  ToString (IHwCamera::EDistortionCorrectionMode type)
-	{
-		switch_enum( type )
-		{
-			case IHwCamera::EDistortionCorrectionMode::Off :			return "Off";
-			case IHwCamera::EDistortionCorrectionMode::Fast :			return "Fast";
-			case IHwCamera::EDistortionCorrectionMode::HighQuality :	return "HighQuality";
-			case IHwCamera::EDistortionCorrectionMode::Unknown :
-			case IHwCamera::EDistortionCorrectionMode::_Count :			break;
-		}
-		switch_end
-		return "";
-	}
-
-	ND_ StringView  ToString (IHwCamera::EEdgeMode type)
-	{
-		switch_enum( type )
-		{
-			case IHwCamera::EEdgeMode::Off :			return "Off";
-			case IHwCamera::EEdgeMode::Fast :			return "Fast";
-			case IHwCamera::EEdgeMode::HighQuality :	return "HighQuality";
-			case IHwCamera::EEdgeMode::ZeroShutterLag :	return "ZeroShutterLag";
-			case IHwCamera::EEdgeMode::Unknown :
-			case IHwCamera::EEdgeMode::_Count :			break;
-		}
-		switch_end
-		return "";
-	}
-
-	ND_ StringView  ToString (IHwCamera::EOpticalStabilizationMode type)
-	{
-		switch_enum( type )
-		{
-			case IHwCamera::EOpticalStabilizationMode::Off :	return "Off";
-			case IHwCamera::EOpticalStabilizationMode::On :		return "On";
-			case IHwCamera::EOpticalStabilizationMode::Unknown :
-			case IHwCamera::EOpticalStabilizationMode::_Count :	break;
-		}
-		switch_end
-		return "";
-	}
-
-	ND_ StringView  ToString (IHwCamera::EVideoStabilizationMode type)
-	{
-		switch_enum( type )
-		{
-			case IHwCamera::EVideoStabilizationMode::Off :		return "Off";
-			case IHwCamera::EVideoStabilizationMode::On :		return "On";
-			case IHwCamera::EVideoStabilizationMode::Unknown :
-			case IHwCamera::EVideoStabilizationMode::_Count :	break;
-		}
-		switch_end
-		return "";
-	}
-
-	ND_ StringView  ToString (IHwCamera::ECapability type)
-	{
-		switch_enum( type )
-		{
-			case IHwCamera::ECapability::FlashLight :					return "FlashLight";
-			case IHwCamera::ECapability::Lens_Distortion :				return "Lens_Distortion";
-			case IHwCamera::ECapability::Lens_Apertures :				return "Lens_Apertures";
-			case IHwCamera::ECapability::Lens_IntrinsicCalibration :	return "Lens_IntrinsicCalibration";
-			case IHwCamera::ECapability::Lens_FocusDistanceCalibration :return "Lens_FocusDistanceCalibration";
-			case IHwCamera::ECapability::Lens_HyperfocalDistance :		return "Lens_HyperfocalDistance";
-			case IHwCamera::ECapability::Lens_MinFocusDistance :		return "Lens_MinFocusDistance";
-			case IHwCamera::ECapability::Sensor_ExposureTimeRange :		return "Sensor_ExposureTimeRange";
-			case IHwCamera::ECapability::Sensor_SensitivityRange :		return "Sensor_SensitivityRange";
-			case IHwCamera::ECapability::Sensor_MaxAnalogSensitivity :	return "Sensor_MaxAnalogSensitivity";
-			case IHwCamera::ECapability::DepthFormat :					return "DepthFormat";
-			case IHwCamera::ECapability::RawFormat :					return "RawFormat";
-			case IHwCamera::ECapability::LogicalMultiCamera :			return "LogicalMultiCamera";
-			case IHwCamera::ECapability::ManualSensor :					return "ManualSensor";
-			case IHwCamera::ECapability::Monochrome :					return "Monochrome";
-			case IHwCamera::ECapability::MotionTracking :				return "MotionTracking";
-			case IHwCamera::ECapability::ReadSensorSetting :			return "ReadSensorSetting";
-			case IHwCamera::ECapability::_Count :						break;
-		}
-		switch_end
-		return "";
 	}
 
 	ND_ String  ToString (const IHwCamera::VideoMode &mode)
@@ -554,7 +331,7 @@ namespace AE::App
 			return true;
 		}
 
-		if ( videoModeMap.contains( EImageFormat::Private ))
+		/*if ( videoModeMap.contains( EImageFormat::Private ))
 		{
 			inoutFormat = EImageFormat::Private;
 			return true;
@@ -564,7 +341,7 @@ namespace AE::App
 		{
 			inoutFormat = EImageFormat::RawPrivate;
 			return true;
-		}
+		}*/
 
 		inoutFormat = Default;
 		return false;

@@ -1,0 +1,68 @@
+apply plugin: 'com.android.application'
+
+android {
+	namespace  'AE.ShaderEditor'
+	compileSdk 34
+
+	defaultConfig {
+		applicationId 		'AE.ShaderEditor'
+		minSdkVersion 		24 // 24+ for vulkan
+		targetSdkVersion 	34
+
+		ndk {
+			abiFilters "arm64-v8a" //, "armeabi-v7a", "x86", "x86_64"
+		}
+		externalNativeBuild {
+			cmake {
+				arguments 	'-DANDROID_STL=c++_static',  // see https://developer.android.com/ndk/guides/cpp-support#static_runtimes
+						  	'-DANDROID_ARM_NEON=ON',
+						  	'-DAE_ENABLE_VULKAN=ON',
+							'-DAE_ENGINE_BASE_PCH=ON'
+				targets 'ResourceEditor'
+			}
+		}
+	}
+
+	buildTypes {
+		release {
+			//debuggable true // to enable logcat in release
+			minifyEnabled = false
+			proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+			signingConfig signingConfigs.debug
+		}
+	}
+
+	ndkVersion "29.0.14206865"
+
+	externalNativeBuild {
+		cmake {
+			version '3.22.1+'
+			path	'../../CMakeLists.txt'
+		}
+	}
+	sourceSets {
+		main {
+			assets.srcDirs = ['../../../AE-Temp/samples/res_editor']
+		}
+	}
+	packagingOptions {
+		jniLibs {
+			excludes   += ['lib/**/*.so']
+			pickFirsts += ['lib/**/libResourceEditor.so']
+			pickFirsts += ['lib/**/libVkLayer_khronos_validation.so']
+		}
+		resources  {
+			excludes += '**/*.kotlin_*'
+		}
+	}
+
+	compileOptions {
+		sourceCompatibility JavaVersion.VERSION_18
+		targetCompatibility JavaVersion.VERSION_18
+	}
+}
+
+dependencies {
+	implementation project(path: ':engine_java')
+	implementation 'androidx.appcompat:appcompat:1.6.1'
+}

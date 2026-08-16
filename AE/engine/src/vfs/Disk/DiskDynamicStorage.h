@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 /*
 	Should not be used in Release.
 */
@@ -70,6 +70,8 @@ namespace AE::VFS
 		bool  _OpenByIter (OUT RC<RDataSource>&, FileName::Ref, const void*)		C_NE_OV	{ DBG_WARNING("not supported");  return false; }
 		bool  _OpenByIter (OUT RC<AsyncRStream>&, FileName::Ref, const void*)		C_NE_OV	{ DBG_WARNING("not supported");  return false; }
 		bool  _OpenByIter (OUT RC<AsyncRDataSource>&, FileName::Ref, const void*)	C_NE_OV	{ DBG_WARNING("not supported");  return false; }
+
+		bool  _GetPath (FileName::Ref, OUT Path &)									C_NE_OV;
 
 		using IVirtualFileStorage::_OpenByIter;
 

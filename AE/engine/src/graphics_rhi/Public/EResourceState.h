@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 /*
 	EResourceState contains information about pipeline stage,
 	memory access mask, data invalidation and other.
@@ -84,7 +84,7 @@ namespace AE::Graphics
 			VideoEncodeDst,
 			VideoEncodeDpb,
 
-			_AccessCount,
+			_Count,
 		};
 		static constexpr uint	AccessMask					= 0xFF;
 
@@ -115,7 +115,7 @@ namespace AE::Graphics
 		static constexpr uint	ComputeShader				= 1 << 19;
 		static constexpr uint	RayTracingShaders			= 1 << 20;
 
-		StaticAssert( uint(_AccessCount) < Read );
+		StaticAssert( uint(_Count) < Read );
 	};
 
 

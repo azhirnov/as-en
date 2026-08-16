@@ -1,4 +1,4 @@
-# Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+# Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 set( AE_ENABLE_MEMLEAK_CHECKS		ON  CACHE BOOL "enable memory leak checks" )
 set( AE_GRAPHICS_STRONG_VALIDATION	OFF CACHE BOOL "Safe mode: validate all arguments, throw exception in context..." )
@@ -35,7 +35,6 @@ if (${AE_WHOLE_ENGINE_PCH})
 elseif( ${AE_ENGINE_BASE_PCH} )
 	message( STATUS "Enabled precompiled headers for Engine.Base" )
 endif()
-message( STATUS "Unity build: ${AE_USE_UNITY_BUILD}" )
 
 #----------------------------------------------------------
 # advanced settings
@@ -63,6 +62,20 @@ else()
 	set( AE_VK_TIMELINE_SEMAPHORE	ON  CACHE BOOL "Use Vulkan timeline semaphore" )
 endif()
 
+if (ANDROID)
+    set( AE_ANDROID_CONSOLE_MODE	OFF CACHE BOOL "allow to run console programs from Termux" )
+    if (${AE_ANDROID_CONSOLE_MODE})
+        set( AE_ANDROID_UI_MODE     OFF CACHE INTERNAL "" FORCE )
+        message( STATUS "AE_ANDROID_CONSOLE_MODE enabled" )
+    else()
+        set( AE_ANDROID_UI_MODE     ON  CACHE INTERNAL "" FORCE )
+        message( STATUS "AE_ANDROID_UI_MODE enabled" )
+    endif()
+else()
+    set( AE_ANDROID_CONSOLE_MODE    OFF CACHE INTERNAL "" FORCE )
+    set( AE_ANDROID_UI_MODE         OFF CACHE INTERNAL "" FORCE )
+endif()
+
 mark_as_advanced( AE_USE_SANITIZER AE_CI_BUILD_TEST AE_CI_BUILD_PERF AE_ENABLE_EXCEPTIONS AE_ENABLE_LOGS AE_INCLUDE_ANDROID_SRC
 				  AE_MSVC_JUSTMYCODE AE_VK_TIMELINE_SEMAPHORE AE_ENABLE_EXTERNAL_TESTS )
 
@@ -79,4 +92,16 @@ if (ANDROID)
 else ()
 	set( AE_MOBILE  OFF CACHE INTERNAL "" FORCE )
 	set( AE_DESKTOP ON  CACHE INTERNAL "" FORCE )
+endif()
+
+#----------------------------------------------------------
+# print
+if (FALSE)
+	message( STATUS "AE_USE_UNITY_BUILD:	${AE_USE_UNITY_BUILD}" )
+	message( STATUS "AE_CI_BUILD_TEST:		${AE_CI_BUILD_TEST}" )
+	message( STATUS "AE_CI_BUILD_PERF:		${AE_CI_BUILD_PERF}" )
+	message( STATUS "AE_ENABLE_EXCEPTIONS:	${AE_ENABLE_EXCEPTIONS}" )
+	message( STATUS "AE_PORTABLE_APP:		${AE_PORTABLE_APP}" )
+	message( STATUS "AE_VK_TIMELINE_SEMAPHORE:		${AE_VK_TIMELINE_SEMAPHORE}" )
+	message( STATUS "AE_GRAPHICS_STRONG_VALIDATION:	${AE_ENABLE_EXCEPTIONS}" )
 endif()

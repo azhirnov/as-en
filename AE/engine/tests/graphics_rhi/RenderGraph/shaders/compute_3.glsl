@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 //layout(set=0, binding=0, rgba8) writeonly uniform image2D  un_OutImage;
 

@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #ifdef AE_ENABLE_IMGUI
 # include "graphics/ImGui/ImGuiRenderer.h"
@@ -72,6 +72,15 @@ namespace AE::Graphics
 				CHECK_ERR( updater.BindImages( unTexture, textures ));
 				CHECK_ERR( updater.Flush() );
 			}
+		}
+
+		// clipboard support
+		{
+			ImGuiPlatformIO&	platform_io = ImGui::GetPlatformIO();
+
+			platform_io.Platform_SetClipboardTextFn	= _SetClipboardText;
+			platform_io.Platform_GetClipboardTextFn	= _GetClipboardText;
+			platform_io.Platform_ClipboardUserData	= this;
 		}
 		return true;
 	}
@@ -161,17 +170,34 @@ namespace AE::Graphics
 
 /*
 =================================================
-	SetAdaptiveScale
+	_SetAdaptiveScale
 =================================================
 */
-	void  ImGuiRenderer::SetAdaptiveScale (float scale, bool round) __NE___
+	void  ImGuiRenderer::_SetAdaptiveScale (float scale, EScaleType type)
 	{
-		_scale		= scale;
-		_scaleType	= round ? EScaleType::Adaptive : EScaleType::AdaptiveFract;
+		const float	c_DefaultScale = 0.14f;	// pix to mm
+
+		_scale		= scale * c_DefaultScale;
+		_scaleType	= type;
 
 		// will be override in '_UpdateScale()'
 		_pixToUI	= 1.f;
 		_uiToPix	= 1.f;
+	}
+
+	void  ImGuiRenderer::SetAdaptiveScaleToPOT (float scale) __NE___
+	{
+		_SetAdaptiveScale( scale, EScaleType::AdaptivePOT );
+	}
+
+	void  ImGuiRenderer::SetAdaptiveScaleToInt (float scale) __NE___
+	{
+		_SetAdaptiveScale( scale, EScaleType::AdaptiveInt );
+	}
+
+	void  ImGuiRenderer::SetAdaptiveFractScale (float scale) __NE___
+	{
+		_SetAdaptiveScale( scale, EScaleType::AdaptiveFract );
 	}
 
 /*
@@ -203,7 +229,7 @@ namespace AE::Graphics
 			case EScaleType::Fixed :
 				break;
 
-			case EScaleType::Adaptive :
+			case EScaleType::AdaptivePOT :
 			{
 				_pixToUI = mm_scale / (pixToMm * _scale);
 
@@ -211,6 +237,14 @@ namespace AE::Graphics
 				bits.m = 0;
 				_pixToUI = BitCast<float>( bits );		// round to power of 2
 
+				_uiToPix = 1.f / _pixToUI;
+				break;
+			}
+
+			case EScaleType::AdaptiveInt :
+			{
+				_pixToUI = mm_scale / (pixToMm * _scale);
+				_pixToUI = Max( Round( _pixToUI ), 1.f );
 				_uiToPix = 1.f / _pixToUI;
 				break;
 			}
@@ -638,6 +672,37 @@ namespace AE::Graphics
 
 /*
 =================================================
+	_GetClipboardText
+=================================================
+*/
+	const char*  ImGuiRenderer::_GetClipboardText (ImGuiContext* ctx)
+	{
+		auto&	self = *Cast<ImGuiRenderer>( ctx->PlatformIO.Platform_ClipboardUserData );
+
+	  #ifdef AE_PLATFORM_ANDROID
+		// TODO
+	  #else
+		CHECK( PlatformUtils::ClipboardExtract( OUT self._clipboard ));
+	  #endif
+		return Cast<char>( self._clipboard.c_str() );
+	}
+
+/*
+=================================================
+	_SetClipboardText
+=================================================
+*/
+	void  ImGuiRenderer::_SetClipboardText (ImGuiContext*, const char* text)
+	{
+	  #ifdef AE_PLATFORM_ANDROID
+		// TODO
+	  #else
+		CHECK( PlatformUtils::ClipboardPut( U8StringView{ Cast<CharUtf8>(text) }));
+	  #endif
+	}
+
+/*
+=================================================
 	constructor
 =================================================
 */
@@ -701,6 +766,7 @@ namespace {
 		// window / frame
 		PushStyleColor( ImGuiCol_WindowBg,				RGBA8u{ 20, 0,  60, 255} );
 		PushStyleColor( ImGuiCol_ChildBg,				RGBA8u{ 40, 0, 100, 255} );
+		PushStyleColor( ImGuiCol_Border,				RGBA8u{  0, 0,  80, 255} );
 
 		// window title
 		PushStyleColor( ImGuiCol_TitleBg,				RGBA8u{ 30, 0,  80, 255} );
@@ -773,7 +839,6 @@ namespace {
 		PushStyleColor( ImGuiCol_ButtonActive,	RGBA8u{200, 20, 220, 255} );
 	}
 
-
 /*
 =================================================
 	DrawCursor
@@ -817,7 +882,52 @@ namespace {
 			ImDrawFlags_Closed,
 			1.0f * scale
 		);
+	}
 
+/*
+=================================================
+	LoadingSpinner
+=================================================
+*/
+	void  ImGuiRenderer::DrawUtils::LoadingSpinner (const char* label, float radius, float thickness, RGBA8u color) __NE___
+	{
+		ImGuiWindow* window = ImGui::GetCurrentWindow();
+		if ( window->SkipItems )
+			return;
+
+		const ImGuiStyle& style = GImGui->Style;
+
+		ImGuiID		id		= window->GetID( label );
+		ImVec2		pos		= window->DC.CursorPos;
+		ImVec2		size	{ (radius * 2.0f) + thickness, (radius * 2.0f) + thickness };
+		ImRect		bb		{ pos, ImVec2(pos.x + size.x, pos.y + size.y)};
+
+		ImGui::ItemSize( bb, style.FramePadding.y );
+
+		if ( not ImGui::ItemAdd( bb, id ))
+			return;
+
+		float	time		= float(ImGui::GetTime());
+		int		segments	= 30;
+		float	fsegments	= float(segments);
+		float	start		= Abs( Sin(Rad{ time * 1.8f }) * (fsegments - 5.f) );
+		float	a_min		= float(Pi) * 2.0f * start / fsegments;
+		float	a_max		= float(Pi) * 2.0f * (fsegments - 3.f) / fsegments;
+		ImVec2	centre		{ pos.x + radius + thickness * 0.5f,
+							  pos.y + radius + thickness * 0.5f };
+
+		window->DrawList->PathClear();
+
+		for (int i = 0; i < segments; i++)
+		{
+			float a = a_min + (float(i) / fsegments) * (a_max - a_min);
+			a += time * 8.0f;
+
+			window->DrawList->PathLineTo( ImVec2{ centre.x + std::cos(a) * radius,
+												  centre.y + std::sin(a) * radius });
+		}
+
+		window->DrawList->PathStroke( BitCast<uint>(color), false, thickness );
 	}
 
 

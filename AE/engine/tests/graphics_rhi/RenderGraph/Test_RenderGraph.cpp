@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #include "Test_RenderGraph.h"
 
@@ -25,7 +25,7 @@ RGTest::RGTest (StringView testName, ArrayView<const char*> args) :
 	//	_device.ChooseDriver( List{ EDriver::LavaPipe });
 	# endif
 	# ifdef AE_PLATFORM_LINUX
-		_device.ChooseDriver( List{ EDriver::RADV });
+	//	_device.ChooseDriver( List{ EDriver::RADV, EDriver::ANV });
 	# endif
 	#endif
 
@@ -61,6 +61,9 @@ RGTest::RGTest (StringView testName, ArrayView<const char*> args) :
 	RUN_TEST( Test_AsyncCompute1 );
 	RUN_TEST( Test_AsyncCompute2 );
 	RUN_TEST( Test_AsyncCompute3 );
+	RUN_TEST( Test_UpdateTemplate1 );
+	RUN_TEST( Test_Bindless1 );
+	//RUN_TEST( Test_Bindless2 );
 
   #ifndef AE_ENABLE_METAL
 	RUN_TEST( Test_DrawMesh1 );
@@ -183,6 +186,7 @@ bool  RGTest::SaveImage (StringView name, const ImageMemView &view) const
 bool  RGTest::Run (FStorage_t assetStorage, FStorage_t refStorage)
 {
 	CHECK_ERR( _Create( refStorage ));
+	AE_LOGI( "Test references path: "s << ToString(_refImagePath) );
 
 	for (uint i = 0; i < c_MaxRenderThreads; ++i) {
 		Scheduler().AddThread( ThreadMngr::CreateThread( ThreadMngr::ThreadConfig{
@@ -217,6 +221,8 @@ void  RGTest::_Destroy ()
 	_mvPipelines	= null;
 	_icbPipelines	= null;
 	_ommPipelines	= null;
+	_blsPipelines	= null;
+	_dhPipelines	= null;
 
 	RenderTaskScheduler::InstanceCtor::Destroy();
 
@@ -266,6 +272,8 @@ bool  RGTest::_CompilePipelines (FStorage_t assetStorage)
 	_mvPipelines	= res_mngr.LoadRenderTech( Default, RenderTechs::MultiView_RTech );
 	_icbPipelines	= res_mngr.LoadRenderTech( Default, RenderTechs::IndirectCmds_RTech );
 	_ommPipelines	= res_mngr.LoadRenderTech( Default, RenderTechs::OpacityMicromap_RTech );
+	_blsPipelines	= res_mngr.LoadRenderTech( Default, RenderTechs::Bindless_RTech );
+//	_dhPipelines	=	// TODO
 
 	return true;
 }

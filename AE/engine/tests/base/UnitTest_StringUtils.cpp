@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #include "UnitTest_Common.h"
 
@@ -174,6 +174,7 @@ namespace
 	}
 
 
+#ifdef AE_ENABLE_UTF8PROC
 	static void  StringUtils_Utf8_1 ()
 	{
 		using namespace Base::_hidden_;
@@ -626,6 +627,50 @@ namespace
 			TEST( dst == U32StringView{u32str} );
 		}
 	}
+#endif // AE_ENABLE_UTF8PROC
+
+
+	// see AndroidLogOutput::Process
+	void  DivideStringOnParts (StringView str, const usize maxPartLength, OUT Array<StringView> &parts) __NE___
+	{
+		parts.clear();
+
+		usize	offset = 0;
+		for (; offset < str.size();)
+		{
+			const usize	max		= Min( offset + maxPartLength-5, str.size() );
+			usize		end		= Clamp( str.rfind( '\n', max ), offset, max );
+						end		= str.size() - end < 5 ? max : end;
+			//const usize	size	= end - offset;
+
+			parts.push_back( SubStringBE( str, offset, end ));
+
+			offset = end;
+		}
+	}
+
+	static void  DivideStringOnParts_Test1 ()
+	{
+		static const char*	str = R"(
+)";
+
+		Array<StringView>	parts;
+		DivideStringOnParts( str, 800, OUT parts );
+
+		for (usize i = 0; i < parts.size(); ++i)
+		{
+			if ( i+1 < parts.size() )
+			{
+				char	c = *(parts[i].data() + parts[i].size());
+				CHECK( c == '\n' );
+			}
+			//if ( i > 0 )
+			{
+				char	c = *(parts[i].data());
+				CHECK( c == '\n' );
+			}
+		}
+	}
 }
 
 
@@ -642,6 +687,7 @@ extern void UnitTest_StringUtils ()
 	StringUtils_StartsWith();
 	StringUtils_EndsWith();
 
+  #ifdef AE_ENABLE_UTF8PROC
 	StringUtils_Utf8_1();
 	StringUtils_Utf8_2();
 
@@ -650,8 +696,12 @@ extern void UnitTest_StringUtils ()
 	StringUtils_Utf16_3();
 
 	StringUtils_ConvertString();
+  #endif
 
 	StringView_Hash();
+
+	//DivideStringOnParts_Test1();
+	Unused( &DivideStringOnParts_Test1 );
 
 	TEST_PASSED();
 }

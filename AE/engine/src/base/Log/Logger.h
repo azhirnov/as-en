@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #pragma once
 
@@ -50,6 +50,25 @@ namespace AE::Base
 
 		EResult  Process (const MessageInfo &info)	__Th_OV;
 	};
+
+
+	//
+	// Android Toast Log Output
+	//
+	class AndroidToastLogOutput final : public ILogger, public NothrowAllocatable
+	{
+	private:
+		const LevelBits		_levelBits;
+		const ScopeBits		_scopeBits;
+
+	public:
+		explicit AndroidToastLogOutput (LevelBits levelBits, ScopeBits scopeBits)	__NE___ :
+			_levelBits{ levelBits }, _scopeBits{ scopeBits } {}
+
+		EResult  Process (const MessageInfo &info)									__Th_OV;
+
+		ND_ static String  ExtractToast ()											__NE___;
+	};
 #endif
 
 
@@ -58,6 +77,20 @@ namespace AE::Base
 	// Console Log output
 	//
 	class ConsoleLogOutput final : public ILogger, public NothrowAllocatable
+	{
+	private:
+		Mutex		_guard;
+
+	public:
+		EResult  Process (const MessageInfo &info) __Th_OV;
+	};
+
+
+
+	//
+	// Console Pause on Error
+	//
+	class ConsolePauseOnError final : public ILogger, public NothrowAllocatable
 	{
 	private:
 		Mutex		_guard;

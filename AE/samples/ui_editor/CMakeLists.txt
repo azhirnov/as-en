@@ -1,4 +1,4 @@
-# Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+# Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 if ((TARGET "Scripting") AND (TARGET "AssetPacker") AND (NOT AE_ENABLE_REMOTE_GRAPHICS))
 

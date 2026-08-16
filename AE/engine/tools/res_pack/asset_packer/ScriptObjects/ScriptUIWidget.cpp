@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #include "res_pack/asset_packer/ScriptObjects/ScriptUIWidget.h"
 
@@ -108,68 +108,19 @@ namespace AE::AssetPacker
 		{
 			EnumBinder<ELayoutType>	binder{ se };
 			binder.Create();
-			switch_enum( ELayoutType::Unknown )
-			{
-				case ELayoutType::Unknown :
-				case ELayoutType::FillStackLayout_Cell :
-				case ELayoutType::_Count :
-				case ELayoutType::_Begin_AutoSize :
-				#define CASE( _name_ )		case ELayoutType::_name_ :  binder.AddValue( #_name_, ELayoutType::_name_ );
-				CASE( FixedLayoutPx )
-				CASE( FixedLayoutMm )
-				CASE( PaddingLayoutPx )
-				CASE( PaddingLayoutMm )
-				CASE( PaddingLayoutRel )
-				CASE( AlignedLayoutPx )
-				CASE( AlignedLayoutMm )
-				CASE( AlignedLayoutRel )
-				CASE( StackLayoutL )
-				CASE( StackLayoutR )
-				CASE( StackLayoutB )
-				CASE( StackLayoutT )
-				CASE( FillStackLayout )
-				#undef CASE
-				default : break;
-			}
-			switch_end
+			binder.BindAll();
 		}{
 			EnumBinder<ELayoutAlign>	binder{ se };
 			binder.Create();
-			switch_enum( ELayoutAlign::Unknown )
-			{
-				case ELayoutAlign::_Last :
-				case ELayoutAlign::All :
-				case ELayoutAlign::Unknown :
-				#define CASE( _name_ )		case ELayoutAlign::_name_ :  binder.AddValue( #_name_, ELayoutAlign::_name_ );
-				CASE( Left )
-				CASE( Right )
-				CASE( Bottom )
-				CASE( Top )
-				CASE( CenterX )
-				CASE( CenterY )
-				CASE( FillX )
-				CASE( FillY )
-				CASE( Center )
-				CASE( Fill )
-				#undef CASE
-				default : break;
-			}
-			switch_end
+			binder.BindAll();
+			binder.AddValue( "FillX",	ELayoutAlign::FillX );
+			binder.AddValue( "FillY",	ELayoutAlign::FillY );
+			binder.AddValue( "Center",	ELayoutAlign::Center );
+			binder.AddValue( "Fill",	ELayoutAlign::Fill );
 		}{
 			EnumBinder<EStackOrigin>	binder{ se };
 			binder.Create();
-			switch_enum( EStackOrigin::Unknown )
-			{
-				case EStackOrigin::Unknown :
-				#define CASE( _name_ )		case EStackOrigin::_name_ :  binder.AddValue( #_name_, EStackOrigin::_name_ );
-				CASE( Left )
-				CASE( Right )
-				CASE( Bottom )
-				CASE( Top )
-				#undef CASE
-				default : break;
-			}
-			switch_end
+			binder.BindAll();
 		}
 
 		ScriptUIDrawable::Bind( se );

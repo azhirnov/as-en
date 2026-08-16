@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #pragma once
 
@@ -26,96 +26,93 @@ namespace AE::Base
 
 	enum class ECPUMicroArch : ushort
 	{
-		#define CPU_MICRO_ARCH( _visitor_ )\
-			_visitor_( AMD_Athlon2,			= _AMD_Begin )\
-			_visitor_( AMD_Phenom2,			)\
-			_visitor_( AMD_Turion2,			)\
-			_visitor_( AMD_Llano,			)\
-			_visitor_( AMD_Bobcat,			)\
-			_visitor_( AMD_Bulldozer,		)\
-			_visitor_( AMD_Piledriver,		)\
-			_visitor_( AMD_Steamroller,		)\
-			_visitor_( AMD_Excavator,		)\
-			_visitor_( AMD_Jaguar,			)\
-			_visitor_( AMD_Puma,			)\
-			_visitor_( AMD_Zen1,			)\
-			_visitor_( AMD_Zen1Plus,		)	/* Zen+ */\
-			_visitor_( AMD_Zen2,			)\
-			_visitor_( AMD_Zen3,			)\
-			_visitor_( AMD_Zen4,			)\
-			_visitor_( AMD_Zen5,			)\
-			_visitor_( AMD_Zen5c,			)\
-			\
-			_visitor_( Intel_Nehelem,		= _Intel_Client_Begin )\
-			_visitor_( Intel_Westmere,		)\
-			_visitor_( Intel_SandyBridge,	)\
-			_visitor_( Intel_IvyBridge,		)\
-			_visitor_( Intel_Haswell,		)\
-			_visitor_( Intel_Broadwell,		)\
-			_visitor_( Intel_Skylake,		)\
-			_visitor_( Intel_KabyLake,		)\
-			_visitor_( Intel_CoffeeLake,	)\
-			_visitor_( Intel_CannonLake,	)\
-			_visitor_( Intel_CometLake,		)\
-			_visitor_( Intel_IceLake,		)\
-			_visitor_( Intel_TigerLake,		)\
-			_visitor_( Intel_RocketLake,	)\
-			_visitor_( Intel_AlderLake,		)\
-			_visitor_( Intel_ReptorLake,	)\
-			_visitor_( Intel_MeteorLake,	)\
-			_visitor_( Intel_ArrowLake,		)\
-			_visitor_( Intel_LunarLake,		)\
-			\
-			_visitor_( Intel_SandyBridge_Server,	= _Intel_Server_Begin )\
-			_visitor_( Intel_IvyBridge_Server,		)\
-			_visitor_( Intel_Haswell_Server,		)\
-			_visitor_( Intel_Broadwell_Server,		)\
-			_visitor_( Intel_Skylake_Server,		)\
-			_visitor_( Intel_IceLake_Server,		)\
-			_visitor_( Intel_SapphireRapids,		)\
-			_visitor_( Intel_EmeraldRapids,			)\
-			\
-			_visitor_( Intel_Bonnell,		= _Intel_LowPower_Begin )\
-			_visitor_( Intel_Saltwell,		)\
-			_visitor_( Intel_Silvermont,	)\
-			_visitor_( Intel_Airmont,		)\
-			_visitor_( Intel_Goldmont,		)\
-			_visitor_( Intel_GoldmontPlus,	)\
-			_visitor_( Intel_Tremont,		)\
-			\
-			_visitor_( ARM_ISA_7_0,		)\
-			_visitor_( ARM_ISA_8_0,		)\
-			_visitor_( ARM_ISA_8_1,		)\
-			_visitor_( ARM_ISA_8_2,		)\
-			_visitor_( ARM_ISA_8_3,		)\
-			_visitor_( ARM_ISA_8_4,		)\
-			_visitor_( ARM_ISA_8_5,		)\
-			_visitor_( ARM_ISA_8_6,		)\
-			_visitor_( ARM_ISA_8_7,		)\
-			_visitor_( ARM_ISA_8_8,		)\
-			_visitor_( ARM_ISA_8_9,		)\
-			_visitor_( ARM_ISA_9_0,		)\
-			_visitor_( ARM_ISA_9_1,		)\
-			_visitor_( ARM_ISA_9_2,		)\
-			_visitor_( ARM_ISA_9_3,		)\
+		Unknown						= 0,
 
-		_AMD_Begin				= 0x1000,
-		_Intel_Begin			= 0x2000,
-		_Intel_Client_Begin		= _Intel_Begin,
-		_Intel_Server_Begin		= 0x2100,
-		_Intel_LowPower_Begin	= 0x2200,
-		_ARM_ISA_Begin			= 0x3000,
-
-		#define CPU_MICRO_ARCH_VISIT( _name_, _setValue_ )		_name_	_setValue_,
-		CPU_MICRO_ARCH( CPU_MICRO_ARCH_VISIT )
-		#undef CPU_MICRO_ARCH_VISIT
-
+		_AMD_Begin,
+		AMD_Athlon2					= _AMD_Begin,
+		AMD_Phenom2,
+		AMD_Turion2,
+		AMD_Llano,
+		AMD_Bobcat,
+		AMD_Bulldozer,
+		AMD_Piledriver,
+		AMD_Steamroller,
+		AMD_Excavator,
+		AMD_Jaguar,
+		AMD_Puma,
+		AMD_Zen1,
+		AMD_Zen1Plus,	// Zen+
+		AMD_Zen2,
+		AMD_Zen3,
+		AMD_Zen4,
+		AMD_Zen5,
+		AMD_Zen5c,
 		_AMD_End,
-		_Intel_Client_End		= Intel_ReptorLake,
-		_Intel_Server_End		= Intel_EmeraldRapids,
-		_Intel_LowPower_End		= Intel_Tremont,
-		_ARM_ISA_End			= ARM_ISA_9_3,
-		Unknown					= 0xFFFF,
+
+		_Intel_Begin,
+		_Intel_Client_Begin			= _Intel_Begin,
+		Intel_Nehelem				= _Intel_Client_Begin,
+		Intel_Westmere,
+		Intel_SandyBridge,
+		Intel_IvyBridge,
+		Intel_Haswell,
+		Intel_Broadwell,
+		Intel_Skylake,
+		Intel_KabyLake,
+		Intel_CoffeeLake,
+		Intel_CannonLake,
+		Intel_CometLake,
+		Intel_IceLake,
+		Intel_TigerLake,
+		Intel_RocketLake,
+		Intel_AlderLake,
+		Intel_ReptorLake,
+		Intel_MeteorLake,
+		Intel_ArrowLake,
+		Intel_LunarLake,
+		_Intel_Client_End,
+
+		_Intel_Server_Begin			= _Intel_Client_End,
+		Intel_SandyBridge_Server	= _Intel_Server_Begin,
+		Intel_IvyBridge_Server,
+		Intel_Haswell_Server,
+		Intel_Broadwell_Server,
+		Intel_Skylake_Server,
+		Intel_IceLake_Server,
+		Intel_SapphireRapids,
+		Intel_EmeraldRapids,
+		_Intel_Server_End,
+
+		_Intel_LowPower_Begin		= _Intel_Server_End,
+		Intel_Bonnell				= _Intel_LowPower_Begin,
+		Intel_Saltwell,
+		Intel_Silvermont,
+		Intel_Airmont,
+		Intel_Goldmont,
+		Intel_GoldmontPlus,
+		Intel_Tremont,
+		_Intel_LowPower_End,
+		_Intel_End					= _Intel_LowPower_End,
+
+		_ARM_ISA_Begin,
+		ARM_ISA_7_0					= _ARM_ISA_Begin,
+		ARM_ISA_8_0,
+		ARM_ISA_8_1,
+		ARM_ISA_8_2,
+		ARM_ISA_8_3,
+		ARM_ISA_8_4,
+		ARM_ISA_8_5,
+		ARM_ISA_8_6,
+		ARM_ISA_8_7,
+		ARM_ISA_8_8,
+		ARM_ISA_8_9,
+		ARM_ISA_9_0,
+		ARM_ISA_9_1,
+		ARM_ISA_9_2,
+		ARM_ISA_9_3,
+		_ARM_ISA_End,
+
+		_Count
 	};
 
 	enum class ECPUVendor : ubyte
@@ -138,7 +135,18 @@ namespace AE::Base
 		Ampere,
 		Loongson,
 		Virtual,		// virtualization, origin vendor is hidden
+		_Count
 	};
+
+	// TODO
+	// ARM:
+	//	* Performance - per core L1, shared L2
+	//	* Prime core - P with high clock, large L2, more SIMD pipes
+	//	* E-core - energy efficient, low clock, low ILP, 1-2 SIMD pipes
+	// x64:
+	//	* Performance - per core L1 and L2, shared L3
+	//	* Efficient - shared L2, lower clock, same SIMD
+	//	* LP - shared L1?, low L2, low clock, less SIMD pipes - same as ARM E-core
 
 	enum class ECoreType : ubyte
 	{
@@ -233,16 +241,23 @@ namespace AE::Base
 			bool	AESKL			: 1;	// AE_SIMD_AES	3		- AES Key Locker
 
 			bool	SHA2_256		: 1;	// AE_SIMD_SHA	20		- SHA2-256 and SHA-1
-			bool	SHA512			: 1;	// AE_SIMD_SHA	21		- SHA2-512 ?
+			bool	SHA2_512		: 1;	// AE_SIMD_SHA	21		- SHA2-512
+			// TODO: PMULL
 		#endif
 
 		// ARM features
 		#ifdef AE_CPU_ARCH_ARM_BASED
 			bool	NEON			: 1;	// AE_SIMD_NEON
-			bool	NEON_fp16		: 1;	// AE_SIMD_NEON_HALF	- half-precision arithmetic
-			bool	FP16C			: 1;	// AE_SIMD_F16C	1		- half-precision conversion
+			bool	NEON_fp16		: 1;	// AE_SIMD_NEON_HALF	- 'asimdhp', half-precision arithmetic
+			bool	NEON_i8MM		: 1;	//						- matrix multiply: i8 x i8 = i32, replaced by 'smei8i32'
+
+			bool	FP16C			: 1;	// AE_SIMD_F16C	1		- half-precision conversion on SIMD
 			bool	SVE				: 1;	// AE_SIMD_SVE	1
 			bool	SVE2			: 1;	// AE_SIMD_SVE	2
+
+			bool	SME				: 1;	// AE_SIMD_SME	1
+
+			bool	FP16			: 1;	//						- 'fphp'
 			bool	BF16			: 1;
 
 			bool	AES				: 1;	// AE_SIMD_AES	1
@@ -253,8 +268,9 @@ namespace AE::Base
 			bool	SHA2_256		: 1;	// AE_SIMD_SHA	20		- SHA1 & SHA2-256 from Armv8-A
 			bool	SHA2_512		: 1;	// AE_SIMD_SHA	21		- SHA2-512 from Armv8.2-A
 			bool	SHA3			: 1;	// AE_SIMD_SHA	30		- Armv8.2
+			// TODO: PMULL
 
-			bool	Atomics			: 1;	// Armv8.1
+			bool	Atomics			: 1;	// Armv8.1				- single instruction atomics, otherwise only load/store + emulation
 		#endif
 
 		// RISC-V features
@@ -276,8 +292,8 @@ namespace AE::Base
 
 		enum ECacheType : ubyte
 		{
-			L1_Instuction,		// per core
-			L1_Data,			// per core
+			L1I,				// per core
+			L1D,			// per core
 			L2,					// per core or shared
 			L3,					// shared
 			_Count,
@@ -381,120 +397,5 @@ namespace AE::Base
 		return	lhs.first != rhs.first ?	lhs.first	< rhs.first :
 											lhs.second	< rhs.second;
 	}
-
-
-#ifdef AE_ENABLE_LOGS
-/*
-=================================================
-	ToString (ECPUArch)
-=================================================
-*/
-	Nd__In StringView  ToString (ECPUArch value) __NE___
-	{
-		switch_enum( value )
-		{
-			case ECPUArch::X86 :		return "x86";
-			case ECPUArch::X64 :		return "x64";
-			case ECPUArch::ARM_32 :		return "ARM-32";
-			case ECPUArch::ARM_64 :		return "ARM-64";
-			case ECPUArch::RISCV :		return "RISC-V";
-			case ECPUArch::RISCV_64 :	return "RISC-V 64";
-			case ECPUArch::Loong64 :	return "Loong64";
-			case ECPUArch::E2K :		return "E2K";
-			case ECPUArch::_Count :
-			case ECPUArch::Unknown:		break;
-		}
-		switch_end
-		return "";
-	}
-
-/*
-=================================================
-	ToString (ECoreType)
-=================================================
-*/
-	Nd__In StringView  ToString (ECoreType value) __NE___
-	{
-		switch_enum( value )
-		{
-			case ECoreType::HighPerformance :	return "HighPerformance";
-			case ECoreType::Performance :		return "Performance";
-			case ECoreType::EnergyEfficient :	return "EnergyEfficient";
-			case ECoreType::LowPower :			return "LowPower";
-			case ECoreType::_Count :
-			case ECoreType::Unknown:			break;
-		}
-		switch_end
-		return "";
-	}
-
-/*
-=================================================
-	ToString (ECacheType)
-=================================================
-*/
-	Nd__In StringView  ToString (CpuArchInfo::ECacheType value) __NE___
-	{
-		switch_enum( value )
-		{
-			case CpuArchInfo::ECacheType::L1_Instuction :	return "L1I";
-			case CpuArchInfo::ECacheType::L1_Data :			return "L1D";
-			case CpuArchInfo::ECacheType::L2 :				return "L2";
-			case CpuArchInfo::ECacheType::L3 :				return "L3";
-			case CpuArchInfo::ECacheType::_Count :			break;
-		}
-		switch_end
-		return "";
-	}
-
-/*
-=================================================
-	ToString (ECPUVendor)
-=================================================
-*/
-	Nd__In StringView  ToString (ECPUVendor value) __NE___
-	{
-		switch_enum( value )
-		{
-			case ECPUVendor::AMD :			return "AMD";
-			case ECPUVendor::ARM :			return "ARM";
-			case ECPUVendor::Apple :		return "Apple";
-			case ECPUVendor::Intel :		return "Intel";
-			case ECPUVendor::Qualcomm :		return "Qualcomm";
-			case ECPUVendor::Broadcom :		return "Broadcom";
-			case ECPUVendor::Cavium :		return "Cavium";
-			case ECPUVendor::Fujitsu :		return "Fujitsu";
-			case ECPUVendor::HiSilicon :	return "HiSilicon";
-			case ECPUVendor::NVidia :		return "NVidia";
-			case ECPUVendor::AppliedMicro :	return "AppliedMicro";
-			case ECPUVendor::Samsung :		return "Samsung";
-			case ECPUVendor::Marvell :		return "Marvell";
-			case ECPUVendor::HuaxintongSemiconductor :	return "HuaxintongSemiconductor";
-			case ECPUVendor::Ampere :		return "Ampere";
-			case ECPUVendor::Loongson :		return "Loongson";
-			case ECPUVendor::Virtual :		return "Virtual";
-			case ECPUVendor::Unknown:		break;
-		}
-		switch_end
-		return "";
-	}
-
-/*
-=================================================
-	ToString (ECPUMicroArch)
-=================================================
-*/
-	Nd__In StringView  ToString (ECPUMicroArch value) __NE___
-	{
-		switch ( value )
-		{
-			#define CPU_MICRO_ARCH_VISIT( _name_, _setValue_ )		case ECPUMicroArch::_name_ :	return AE_TOSTRING( _name_ );
-			CPU_MICRO_ARCH( CPU_MICRO_ARCH_VISIT )
-			#undef CPU_MICRO_ARCH_VISIT
-		}
-		return "";
-	}
-
-#endif // AE_ENABLE_LOGS
 
 } // AE::Base

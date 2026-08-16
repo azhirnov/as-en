@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #ifdef AE_WINAPI_WINDOW
 # include "base/Platforms/WindowsHeader.cpp.h"
@@ -477,7 +477,8 @@ namespace AE::App
 			::ClipCursor( &client_rect );	// win2000
 		}
 
-		const uint2		new_size { client_rect.right - client_rect.left, client_rect.bottom - client_rect.top };
+		const int2		new_size_s	{ client_rect.right - client_rect.left, client_rect.bottom - client_rect.top };
+		const uint2		new_size	= uint2(Max( new_size_s, 0 ));
 
 		if ( Any( new_size != _surfaceSize ) and All( IsNotZero( new_size )) )
 		{
@@ -620,7 +621,7 @@ namespace AE::App
 		const auto	monitors = _app.GetMonitors();
 		CHECK_ERRV( usize(monitorId) < monitors.size() );
 
-		const auto&	monitor = monitors[ usize(monitorId) ];
+		const auto&	monitor = monitors[ monitorId ];
 		ASSERT( monitor.id == monitorId );
 
 		SetPosition( monitor.workArea.pixels.LeftTop() + pos );
@@ -665,14 +666,11 @@ namespace AE::App
 		DRC_EXLOCK( _drCheck );
 		DRC_EXLOCK( _app.GetSingleThreadCheck() );
 
-	  #ifdef AE_PLATFORM_WINDOWS
 
 		RectI	region;	// TODO
 		return _app.GetNvAPI().SetHDRMode( region, value );
 
-	  #else
 		return false;
-	  #endif
 	}
 
 /*
@@ -692,7 +690,7 @@ namespace AE::App
 		}
 		switch_end
 
-		return ::SetWindowDisplayAffinity( _wnd, affinity ) != FALSE;	// win7
+		return ::SetWindowDisplayAffinity( BitCast<HWND>(_wnd), affinity ) != FALSE;	// win7
 	}
 
 

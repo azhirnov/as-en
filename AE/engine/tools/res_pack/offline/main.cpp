@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #include "base/DataSource/File.h"
 #include "base/Algorithms/StringUtils.h"
@@ -449,7 +449,7 @@ namespace
 
 			Array<const CharType*>	res_dirs;
 			for (auto& path : s_SearchDirs) {
-				res_dirs.push_back( path.c_str() );
+				res_dirs.push_back( Cast<CharType>( path.c_str() ));
 			}
 
 			AssetInfo	info			= {};
@@ -579,8 +579,13 @@ namespace
 	static String	GetSharedFeatureSetPath ()	{ return AE_SHARED_DATA "/feature_set"; }
 	static String	GetSharedShadersPath ()		{ return AE_SHARED_DATA "/shaders"; }
 	static String	GetSharedPipelinesPath ()	{ return AE_SHARED_DATA "/pipelines"; }
+
+  #ifdef AE_CANVAS_VERTS
 	static String	GetCanvasVerticesPath ()	{ return AE_CANVAS_VERTS; }
+  #endif
+  #ifdef AE_UI_BINDINGS
 	static String	GetUIBindingsPath ()		{ return AE_UI_BINDINGS; }
+  #endif
 
 	static String	_s_OutputDir;
 	static String	GetOutputDir ()				{ return _s_OutputDir; }
@@ -630,52 +635,33 @@ namespace
 		AS_GLOBAL_FN( se, GetSharedFeatureSetPath,	"GetSharedFeatureSetPath"	);
 		AS_GLOBAL_FN( se, GetSharedShadersPath,		"GetSharedShadersPath"		);
 		AS_GLOBAL_FN( se, GetSharedPipelinesPath,	"GetSharedPipelinesPath"	);
-		AS_GLOBAL_FN( se, GetCanvasVerticesPath,	"GetCanvasVerticesPath"		);
-		AS_GLOBAL_FN( se, GetUIBindingsPath,		"GetUIBindingsPath"			);
 		AS_GLOBAL_FN( se, GetOutputDir,				"GetOutputDir"				);
 		AS_GLOBAL_FN( se, DeleteFolder,				"DeleteFolder"				);
 		AS_GLOBAL_FN( se, IsGLSLCompilerSupported,	"IsGLSLCompilerSupported"	);
 		AS_GLOBAL_FN( se, IsMetalCompilerSupported,	"IsMetalCompilerSupported"	);
 
+	  #ifdef AE_CANVAS_VERTS
+		AS_GLOBAL_FN( se, GetCanvasVerticesPath,	"GetCanvasVerticesPath"		);
+	  #endif
+	  #ifdef AE_UI_BINDINGS
+		AS_GLOBAL_FN( se, GetUIBindingsPath,		"GetUIBindingsPath"			);
+	  #endif
+
 		// pipeline compiler path params
 		{
 			EnumBinder<EFileType>	binder{ se };
 			binder.Create();
-			switch_enum( EFileType::Unknown )
-			{
-				case EFileType::Unknown :
-				case EFileType::All :
-				case EFileType::_Last :
-				#define CASE( _name_ )	case EFileType::_name_ :  binder.AddValue( #_name_, EFileType::_name_ );
-				CASE( Raw )
-				CASE( Brotli )
-				CASE( InMemory )
-				CASE( BrotliInMemory )
-				CASE( ZStd )
-				CASE( ZStdInMemory )
-				#undef CASE
-				default : break;
-			}
-			switch_end
+			binder.BindAll();
+			binder.AddValue( "BrotliInMemory",	EFileType::BrotliInMemory );
+			binder.AddValue( "ZStdInMemory",	EFileType::ZStdInMemory );
 		}
 
 		//
 		{
 			EnumBinder<EReflectionFlags>	binder{ se };
 			binder.Create();
-			switch_enum( EReflectionFlags::Unknown )
-			{
-				case EReflectionFlags::Unknown :
-				case EReflectionFlags::_Last :
-				#define CASE( _name_ )	case EReflectionFlags::_name_ :  binder.AddValue( #_name_, EReflectionFlags::_name_ );
-				CASE( RenderTechniques )
-				CASE( RTechPass_Pipelines )
-				CASE( RTech_ShaderBindingTable )
-				CASE( All )
-				#undef CASE
-				default : break;
-			}
-			switch_end
+			binder.BindAll();
+			binder.AddValue( "All",	EReflectionFlags::All );
 		}
 
 		// pipeline compiler

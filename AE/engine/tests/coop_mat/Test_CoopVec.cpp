@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #include "Executor.h"
 
@@ -18,6 +18,9 @@ namespace
 	{
 		ASSERT( rowColB.x == rowC );
 		ASSERT( rowColB.y == rowA );
+		ASSERT( inputA.size() == rowA );
+		ASSERT( inputB.size() == rowColB.x * rowColB.y );
+		ASSERT( refOutput.size() == rowC );
 
 		Array<float>	output;
 		output.resize( rowC );
@@ -58,19 +61,27 @@ namespace
 			}
 		}
 
-		String	str		= "\n";
+		String	str		= "\n| I | expected | shader output | error % |\n";
 		float	max_err	= 0.f;
+		float	avr_err	= 0.f;
 
 		for (uint i = 0; i < rowC; ++i)
 		{
-			float	err	= Abs( (output[i] - ref_output[i]) * 100.f / output[i] );
+			float	err	= Abs(output[i] - ref_output[i]) * 100.f / Max( Abs(output[i]), 1.0e-5f );
 			max_err = Max( max_err, err );
+			avr_err += err;
 
-			str << "| " << ToString( output[i], 5 ) << " | " << ToString( ref_output[i], 5 ) << " | "
+			str << "| " << ToString( i ) << " | " << ToString( output[i], 5 )
+				<< " | " << ToString( ref_output[i], 5 ) << " | "
 				<< ToString( err, 2 ) << "% |\n";
 		}
+		avr_err /= float(rowC);
+		str << "----------------------------------------\n";
 
-		str << "----------------------------------------\n\n";
+		if ( max_err < 0.01f )
+			str.clear();
+
+		str << "max error: " << ToString( max_err, 2 ) << "%, avr: " << ToString( avr_err, 2 ) << "%";
 		AE_LOGI( str );
 		CHECK( max_err < 1.f );
 	}
@@ -81,6 +92,10 @@ namespace
 	{
 		ASSERT( rowColB.x == rowC );
 		ASSERT( rowColB.y == rowA );
+		ASSERT( inputA.size() == rowA );
+		ASSERT( inputB.size() == rowColB.x * rowColB.y );
+		ASSERT( inputC.size() == rowC );
+		ASSERT( refOutput.size() == rowC );
 
 		Array<float>	output;
 		output.resize( rowC );
@@ -123,17 +138,25 @@ namespace
 
 		String	str		= "\n";
 		float	max_err	= 0.f;
+		float	avr_err	= 0.f;
 
 		for (uint i = 0; i < rowC; ++i)
 		{
-			float	err	= Abs( (output[i] - ref_output[i]) * 100.f / output[i] );
+			float	err	= Abs(output[i] - ref_output[i]) * 100.f / Max( Abs(output[i]), 1.0e-5f );
 			max_err = Max( max_err, err );
+			avr_err += err;
 
-			str << "| " << ToString( output[i], 5 ) << " | " << ToString( ref_output[i], 5 ) << " | "
+			str << "| " << ToString( i ) << " | " << ToString( output[i], 5 )
+				<< " | " << ToString( ref_output[i], 5 ) << " | "
 				<< ToString( err, 2 ) << "% |\n";
 		}
+		avr_err /= float(rowC);
+		str << "----------------------------------------\n";
 
-		str << "----------------------------------------\n\n";
+		if ( max_err < 0.01f )
+			str.clear();
+
+		str << "max error: " << ToString( max_err, 2 ) << "%, avr: " << ToString( avr_err, 2 ) << "%";
 		AE_LOGI( str );
 		CHECK( max_err < 1.f );
 	}
@@ -218,7 +241,7 @@ namespace
 					}
 				}
 			)";
-			CHECK_FATAL( ex.Run( src, BufCast(input_a), BufCast(input_b), BufCast(input_b), BufCast(output) ));
+			CHECK_FATAL( ex.Run( src, BufCast(input_a), BufCast(input_b), BufCast(input_b), BufCast(output), sizeof(half) ));
 
 			for (uint i = 0; i < vec_count; ++i)
 			{
@@ -306,7 +329,7 @@ namespace
 					}
 				}
 			)";
-			CHECK_FATAL( ex.Run( src, BufCast(input_a), BufCast(input_b), BufCast(input_c), BufCast(output) ));
+			CHECK_FATAL( ex.Run( src, BufCast(input_a), BufCast(input_b), BufCast(input_c), BufCast(output), sizeof(half) ));
 
 			for (uint i = 0; i < vec_count; ++i)
 			{
@@ -327,7 +350,7 @@ namespace
 		{
 			const uint		rows_b		= 16;
 			const uint		cols_b		= 16;
-			const uint		vec_count	= 1;
+			const uint		vec_count	= 2;
 			const bool		col_major	= !!(t & 1);
 			const bool		inf_opt		= !!(t >> 1);
 
@@ -340,6 +363,8 @@ namespace
 			FillWithLinearData( input_b, 0.01f, 0.f );
 
 			BytesUSize		opt_size;
+
+			// input_b -> input_b_opt
 			{
 				Graphics::ConvertCoopMatrixOnHost	cmd;
 
@@ -365,7 +390,10 @@ namespace
 
 					CHECK_FATAL( ex.GetDevice().ConvertCooperativeVectorMatrix( {cmd} ));
 				}
-			}{
+			}
+
+			// input_b_opt -> output
+			{
 				Graphics::ConvertCoopMatrixOnHost	cmd;
 				cmd.srcSize		= opt_size;
 				cmd.dstSize		= ArraySizeOf( output ) / vec_count;
@@ -402,7 +430,7 @@ namespace
 			StaticAssert( rows_b == rows_c );
 			StaticAssert( cols_b == rows_a );
 
-			const uint		vec_count	= 1;
+			const uint		vec_count	= 2;
 			const bool		col_major	= !!(t & 1);
 			const bool		inf_opt		= !!(t >> 1);
 
@@ -432,7 +460,7 @@ namespace
 				cmd.srcLayout	= col_major ? Graphics::ECoopVecMatrixLayout::ColumnMajor : Graphics::ECoopVecMatrixLayout::RowMajor;
 				cmd.dstLayout	= inf_opt ? Graphics::ECoopVecMatrixLayout::InferencingOptimal : Graphics::ECoopVecMatrixLayout::TrainingOptimal;
 
-				CHECK_FATAL( ex.GetDevice().GetCooperativeVectorMatrixDstSize( {cmd}, {opt_size} ));
+				CHECK_FATAL( ex.GetDevice().GetCooperativeVectorMatrixDstSize( {cmd}, OUT {opt_size} ));
 
 				ASSERT( IsMultipleOf( opt_size, sizeof(input_b_opt[0]) ));
 				input_b_opt.resize( usize{opt_size} / sizeof(input_b_opt[0]) * vec_count );
@@ -492,7 +520,7 @@ namespace
 					}
 				}
 			)";
-			CHECK_FATAL( ex.Run( src, BufCast(input_a), BufCast(input_b_opt), BufCast(input_c), BufCast(output) ));
+			CHECK_FATAL( ex.Run( src, BufCast(input_a), BufCast(input_b_opt), BufCast(input_c), BufCast(output), sizeof(half) ));
 
 			for (uint i = 0; i < vec_count; ++i)
 			{

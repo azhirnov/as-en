@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #pragma once
 
@@ -31,9 +31,10 @@ namespace AE::Graphics
 		AsyncTransfer	= 1 << uint(EQueueType::AsyncTransfer),
 		VideoEncode		= 1 << uint(EQueueType::VideoEncode),
 		VideoDecode		= 1 << uint(EQueueType::VideoDecode),
+		_Last			= (1 << (uint(EQueueType::_Count) - 1)) + 1,
 		All				= (1 << uint(EQueueType::_Count)) - 1,
 		Unknown			= 0,
-		_BITOPS_
+		_BITOPS_		= 0
 	};
 
 
@@ -68,7 +69,7 @@ namespace AE::Graphics
 			Unknown		= 0,
 			ResetQuery	= 1 << 0,		// used instead of host query reset
 			FrameEnd	= 1 << 1,		// when used frame boundary, batch with 'FrameEnd' will mark batch as end of frame
-			_BITOPS_
+			_BITOPS_	= 0
 		};
 
 	// variables

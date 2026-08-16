@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #if defined(CICD_BUILD_MACHINE) or defined(CICD_TEST_MACHINE)
 # include "cicd/BaseMachine.h"

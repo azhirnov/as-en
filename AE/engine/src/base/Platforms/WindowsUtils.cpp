@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #ifdef AE_PLATFORM_WINDOWS
 # include <signal.h>
@@ -32,8 +32,8 @@ namespace AE::Base
 */
 	void  SecureZeroMem (OUT void* ptr, Bytes size) __NE___
 	{
-		NonNull( ptr );
-		::SecureZeroMemory( ptr, usize(size) );	// winxp
+		if_likely( ptr != null )
+			::SecureZeroMemory( ptr, usize(size) );	// winxp
 	}
 
 /*
@@ -1250,16 +1250,35 @@ namespace
 
 /*
 =================================================
-	ProtectCurrentProcess
+	GetTimeZone
 =================================================
-*
-	void  WindowsUtils::ProtectCurrentProcess () __NE___
-	{
-		// TODO
-		//	https://www.ired.team/offensive-security/defense-evasion/preventing-3rd-party-dlls-from-injecting-into-your-processes
-		//	https://www.ired.team/offensive-security/defense-evasion/acg-arbitrary-code-guard-processdynamiccodepolicy
-	}
 */
+	String  WindowsUtils::GetTimeZone () __NE___
+	{
+		TIME_ZONE_INFORMATION	tzInfo;
+
+		DWORD	result	= ::GetTimeZoneInformation( OUT &tzInfo );
+		WString	zone_name;
+
+		switch ( result )
+		{
+			case TIME_ZONE_ID_DAYLIGHT:
+				// Daylight‑saving time
+				zone_name = tzInfo.DaylightName;
+				break;
+
+			case TIME_ZONE_ID_STANDARD:
+			case TIME_ZONE_ID_UNKNOWN:	// Unknown / fallback – use the standard name
+			default:
+				zone_name = tzInfo.StandardName;
+				break;
+		}
+
+		String	res;
+		CHECK_ERR( Base::ConvertString( OUT res, WStringView{zone_name} ));
+		return res;
+	}
+
 
 } // AE::Base
 

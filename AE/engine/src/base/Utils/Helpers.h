@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #pragma once
 
@@ -22,7 +22,24 @@ namespace _hidden_
 		~OnDestroy ()										__NE___	{ _fn(); }
 	};
 }
-#	define ON_DESTROY( ... )	AE::Base::_hidden_::OnDestroy  AE_PRIVATE_UNITE_RAW( __atFnExit, __COUNTER__ ) { __VA_ARGS__ }
+#	define ON_DESTROY( ... )	AE::Base::_hidden_::OnDestroy  AE_PRIVATE_UNITE_RAW( __onDestroy, __COUNTER__ ) { __VA_ARGS__ }
+
+
+	//
+	// Scoped Reset
+	//
+namespace _hidden_
+{
+	template <typename ...Args>
+	struct ScopedResetImpl
+	{
+		std::tuple< Args &...>	_args;
+
+		ScopedResetImpl (Args& ...args)		__NE___	: _args{args...} {}
+		~ScopedResetImpl ()					__NE___	{ std::apply( [](auto& ...args) __NE___ { ((args = Default), ...); }, _args ); }
+	};
+}
+#	define ScopedReset( ... )	AE::Base::_hidden_::ScopedResetImpl  AE_PRIVATE_UNITE_RAW( __scopedReset, __COUNTER__ ) { __VA_ARGS__ }
 
 
 

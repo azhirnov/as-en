@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #include "graphics_rhi/Public/IndirectCommandBuffer.h"
 #include "graphics_rhi/GraphicsImpl.h"
@@ -7,7 +7,7 @@ namespace AE::Graphics
 {
 
 	template <typename PipeID>
-	bool  IndirectCommandsLayoutDescBuilder::_PipelineLayout (PipeID pplnId, EShaderStages stages)
+	bool  IndirectCommandsLayoutDescBuilder::_PipelineLayoutFrom (PipeID pplnId) __NE___
 	{
 		auto&	res_mngr = GraphicsScheduler().GetResourceManager();
 
@@ -18,16 +18,47 @@ namespace AE::Graphics
 		CHECK_ERR( _pl != null );
 
 		_desc.pipelineLayout = ppln->LayoutId();
-		_plStages = stages;
+		_plStages = ppln->GetActiveStages();
+
+		ASSERT( _plStages != Default );
+		if ( _desc.stages == Default )
+			_desc.stages = _plStages;
 
 		return true;
 	}
 
-	bool  IndirectCommandsLayoutDescBuilder::PipelineLayout (GraphicsPipelineID		pplnId)	__NE___	{ return _PipelineLayout( pplnId, EShaderStages::GraphicsPipeStages ); }
-	bool  IndirectCommandsLayoutDescBuilder::PipelineLayout (MeshPipelineID			pplnId)	__NE___	{ return _PipelineLayout( pplnId, EShaderStages::MeshPipeStages ); }
-	bool  IndirectCommandsLayoutDescBuilder::PipelineLayout (ComputePipelineID		pplnId)	__NE___	{ return _PipelineLayout( pplnId, EShaderStages::Compute ); }
-	bool  IndirectCommandsLayoutDescBuilder::PipelineLayout (RayTracingPipelineID	pplnId)	__NE___	{ return _PipelineLayout( pplnId, EShaderStages::AllRayTracing ); }
+	bool  IndirectCommandsLayoutDescBuilder::PipelineLayoutFrom (GraphicsPipelineID		pplnId)	__NE___	{ return _PipelineLayoutFrom( pplnId ); }
+	bool  IndirectCommandsLayoutDescBuilder::PipelineLayoutFrom (MeshPipelineID			pplnId)	__NE___	{ return _PipelineLayoutFrom( pplnId ); }
+	bool  IndirectCommandsLayoutDescBuilder::PipelineLayoutFrom (ComputePipelineID		pplnId)	__NE___	{ return _PipelineLayoutFrom( pplnId ); }
+	bool  IndirectCommandsLayoutDescBuilder::PipelineLayoutFrom (RayTracingPipelineID	pplnId)	__NE___	{ return _PipelineLayoutFrom( pplnId ); }
 
+
+	bool  IndirectCommandsLayoutDescBuilder::PipelineLayoutFrom (IndirectExecutionSetID exeSet) __NE___
+	{
+		auto&	res_mngr = GraphicsScheduler().GetResourceManager();
+
+		auto*	exe_set	= res_mngr.GetResource( exeSet, False{"don't inc RC"}, True{"quiet"} );
+		CHECK_ERR( exe_set != null );
+
+	  #ifdef AE_ENABLE_VULKAN
+		auto	state	= exe_set->GetInitialState();
+
+		_pl = res_mngr.GetResource( state.layoutId, False{"don't inc RC"}, True{"quiet"} );
+		CHECK_ERR( _pl != null );
+
+		_desc.pipelineLayout = state.layoutId;
+		_plStages = state.activeStages;
+
+		ASSERT( _plStages != Default );
+		if ( _desc.stages == Default )
+			_desc.stages = _plStages;
+
+		return true;
+	  #else
+		// TODO
+		return false;
+	  #endif
+	}
 
 	IndirectCommandsLayoutDescBuilder&  IndirectCommandsLayoutDescBuilder::Usage (EIndirectCommandsLayoutUsage value) __NE___
 	{
@@ -37,6 +68,7 @@ namespace AE::Graphics
 
 	IndirectCommandsLayoutDescBuilder&  IndirectCommandsLayoutDescBuilder::Stages (EShaderStages value) __NE___
 	{
+		ASSERT( value != Default );
 		ASSERT_MSG( _plStages == Default or AllBits( value, _plStages ),
 			"PipelineLayout stages doesn't match with specified shader stages" );
 

@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 //
 // [shader](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/shaders/tools/VolumeNoise.glsl)
 //

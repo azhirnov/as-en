@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 /*
 	Additional atomic functions.
 
@@ -27,6 +27,11 @@ ND_ float  AtomicF_Load  (inout uint mem);
 	void   AtomicF_Store  (inout uint mem, const float value);
 #endif
 
+// subgroup
+#if 0
+	void  SubgroupAtomicInc (out uint prevPos, buffer uint atomicCounter);
+	void  SubgroupAtomicAdd (out uint prevPos, buffer uint atomicCounter, uint value);
+#endif
 //-----------------------------------------------------------------------------
 
 
@@ -158,8 +163,76 @@ float  AtomicF_UintToFloat (uint uvalue)
 	AtomicF_Load / AtomicF_Store
 =================================================
 */
-#define AtomicF_Load ( _mem_ )\
+#define AtomicF_Load( _mem_ )\
 	AtomicF_UintToFloat( gl.AtomicLoad( INOUT (_mem_) ))
 
-#define AtomicF_Store ( _mem_, _value_ )\
+#define AtomicF_Store( _mem_, _value_ )\
 	gl.AtomicStore( INOUT (_mem_), AtomicF_FloatToUint( _value_ ))
+//-----------------------------------------------------------------------------
+
+
+/*
+=================================================
+	SubgroupAtomicInc
+----
+	used single AtomicAdd per subgroup.
+	can be used in branch
+=================================================
+*/
+#ifdef AE_shader_subgroup_ballot
+#	define SubgroupAtomicInc( _outPrevPos_, _atomicCounter_ )				\
+	{																		\
+		uint	aaa_pos		= 0u;											\
+		uint4	aaa_mask	= gl.subgroup.Ballot( true );					\
+		uint	aaa_count	= gl.subgroup.BallotBitCount( aaa_mask );		\
+		uint	aaa_first	= gl.subgroup.BallotFindLSB( aaa_mask );		\
+																			\
+		if ( gl.subgroup.Index == aaa_first )								\
+		{																	\
+			aaa_pos = gl.AtomicAdd( INOUT (_atomicCounter_), aaa_count );	\
+		}																	\
+																			\
+		aaa_pos = gl.subgroup.BroadcastFirst( aaa_pos );					\
+		aaa_pos += gl.subgroup.BallotExclusiveBitCount( aaa_mask );			\
+		_outPrevPos_ = aaa_pos;												\
+	}
+#else
+#	define SubgroupAtomicInc( _outPrevPos_, _atomicCounter_ )				\
+	{																		\
+		_outPrevPos_ = gl.AtomicAdd( INOUT (_atomicCounter_), 1 );			\
+	}
+#endif
+
+/*
+=================================================
+	SubgroupAtomicAdd
+----
+	used single AtomicAdd per subgroup.
+	can be used in branch
+=================================================
+*/
+#if defined(AE_shader_subgroup_ballot) and defined(AE_shader_subgroup_arithmetic)
+#	define SubgroupAtomicAdd( _outPrevPos_, _atomicCounter_, _curValue_ )		\
+	{																			\
+		uint	aaa_pos		= 0u;												\
+		uint	aaa_value	= _curValue_;										\
+		uint	aaa_count	= gl.subgroup.Add( aaa_value );						\
+		uint4	aaa_mask	= gl.subgroup.Ballot( true );						\
+		uint	aaa_first	= gl.subgroup.BallotFindLSB( aaa_mask );			\
+																				\
+		if ( gl.subgroup.Index == aaa_first )									\
+		{																		\
+			aaa_pos = gl.AtomicAdd( INOUT (_atomicCounter_), aaa_count );		\
+		}																		\
+																				\
+		/* same as 'Broadcast( aaa_pos, aaa_first )' but faster */				\
+		aaa_pos = gl.subgroup.BroadcastFirst( aaa_pos );						\
+		aaa_pos += gl.subgroup.ExclusiveAdd( aaa_value );						\
+		_outPrevPos_ = aaa_pos;													\
+	}
+#else
+#	define SubgroupAtomicAdd( _outPrevPos_, _atomicCounter_, _curValue_ )		\
+	{																			\
+		_outPrevPos_ = gl.AtomicAdd( INOUT (_atomicCounter_), (_curValue_) );	\
+	}
+#endif

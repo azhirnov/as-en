@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 /*
 	Config.h included before 'Defines' folder.
 */
@@ -11,6 +11,8 @@
 #	include <crtdbg.h>
 #	include <stdlib.h>
 #	include <malloc.h>
+
+	// TODO: use _CrtMemCheckpoint instead of _CrtDumpMemoryLeaks to avoid false-positive
 
 	// call at exit
 	// returns 'true' if no mem leaks
@@ -89,4 +91,4 @@
 #  define AE_PLATFORM_ANDROID
 #endif
 
-#include "base/../../GlobalConfig.h"
+//#define AE_RC_TRACK_ALL_REFS

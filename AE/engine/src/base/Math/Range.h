@@ -1,8 +1,9 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #pragma once
 
 #include "base/Math/Byte.h"
+#include "base/Math/Vec.h"
 
 namespace AE::Base
 {
@@ -50,13 +51,24 @@ namespace AE::Base
 		NdCx__ bool		IsInvalid ()							C_NE___	{ return end < begin; }
 		NdCx__ bool		IsValid ()								C_NE___	{ return not IsInvalid(); }
 
-		NdCx__ bool		Contains (T value)						C_NE___	{ return (value >= begin) and (value < end); }
+		// Contains at least 1 unit in specified position.
+		NdCx__ bool		Contains (T pos)						C_NE___	{ return (pos >= begin) and (pos < end); }
+
+		// Return 'true' if position is in range, even if range is empty.
+		NdCx__ bool		ContainsOrEqual (T pos)					C_NE___	{ return pos == begin or Contains( pos ); }
+
+		// Other range contains at least 1 shared unit.
+		NdCx__ bool		Intersects (const Self &other)			C_NE___	{ return IsIntersects( begin, end, other.begin, other.end ); }
 
 		NdCx__ static Self  Max ()								__NE___	{ return Self{ MinValue<T>(), MaxValue<T>() }; }
 
 		NdCx__ static Self  From (const Vec<T,2> &v)			__NE___	{ return Self{ v.x, v.y }; }
 		NdCx__ static Self  FromOffsetSize (T offset, T size)	__NE___	{ return Self{ offset, offset + size }; }
 	};
+
+
+	template <typename T>
+	Range (T, T) -> Range<T>;
 
 
 	using RangeI	= Range<int>;

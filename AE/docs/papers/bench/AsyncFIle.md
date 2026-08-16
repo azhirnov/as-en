@@ -10,6 +10,7 @@ Content:
 * [ASUS ROG Phone 5](#ASUS-ROG-Phone-5)
 * [Pico 4 Ultra](#Pico-4-Ultra)
 * [Infinix GT 20 Pro](#Infinix-GT-20-Pro)
+* [OnePlus Pad 4](#OnePlus-Pad-4)
 
 
 # Test description
@@ -551,3 +552,48 @@ UFS 3.1 from specs
 | Async Random Read     | 1.13 s  | +8%   | 236.8MB/s |
 | Sync Random Read      | 9.79 s  | +835% | 27.4MB/s  |
 | Sync Sequential Read  | 10.01 s | +857% | 26.8MB/s  |
+
+
+# OnePlus Pad 4
+
+UFS 4.1 from specs
+
+## 256 MiB / 32 KiB
+
+| test                  | time     | %     | bandwidth |
+|-----------------------|----------|-------|-----------|
+| Async Sequential Read | 92.90 ms | -     | 2.89GB/s  |
+| Async Random Read     | 0.11 s   | +16%  | 2.49GB/s  |
+| Sync Sequential Read  | 0.37 s   | +303% | 717.5MB/s |
+| Sync Random Read      | 0.86 s   | +826% | 312.0MB/s |
+
+
+## 256 MiB / 16 KiB
+
+| test                  | time   | %     | bandwidth |
+|-----------------------|--------|-------|-----------|
+| Async Sequential Read | 0.13 s | -     | 2.13GB/s  |
+| Async Random Read     | 0.14 s | +10%  | 1.94GB/s  |
+| Sync Sequential Read  | 0.50 s | +294% | 542.0MB/s |
+| Sync Random Read      | 1.37 s | +990% | 195.8MB/s |
+
+
+## 256 MiB / 8 KiB
+
+| test                  | time   | %      | bandwidth |
+|-----------------------|--------|--------|-----------|
+| Async Sequential Read | 0.17 s | -      | 1.55GB/s  |
+| Async Random Read     | 0.20 s | +18%   | 1.32GB/s  |
+| Sync Sequential Read  | 0.83 s | +378%  | 324.8MB/s |
+| Sync Random Read      | 2.28 s | +1218% | 117.8MB/s |
+
+
+## 256 MiB / 4 KiB
+
+| test                  | time   | %      | bandwidth |
+|-----------------------|--------|--------|-----------|
+| Async Sequential Read | 0.30 s | -      | 900.4MB/s |
+| Async Random Read     | 0.34 s | +15%   | 785.9MB/s |
+| Sync Sequential Read  | 1.35 s | +354%  | 198.3MB/s |
+| Sync Random Read      | 3.76 s | +1161% | 71.4MB/s  |
+

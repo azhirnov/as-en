@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #include <type_traits>
 
@@ -15,6 +15,7 @@
 
 namespace
 {
+	#undef ASSUME
 	#undef ASSERT
 	#define AE_HAS_ATOMICS			1
 	#define AE_shader_atomic_float	1

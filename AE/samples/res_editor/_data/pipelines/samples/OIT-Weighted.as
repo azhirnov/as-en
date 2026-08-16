@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 /*
 	Approximate OIT
 	based on https://github.com/nvpro-samples/vk_order_independent_transparency (Apache-2.0 license)
@@ -113,11 +113,13 @@
 	{
 		// from: https://github.com/nvpro-samples/vk_order_independent_transparency/blob/main/shaders/oitWeighted.frag.glsl#L58
 
-		float	depth_z			= -In.viewDepth * 30.0 * (1.0 - iWeightScale);
-		float	dist_weight		= Clamp( 0.03 / (1.0e-5 + Pow(depth_z / 200, 4.0)), 1.0e-2, 3.0e+3 );
-		float	alpha_weight	= Min( 1.0, Max(Max(color.r, color.g), Max(color.b, color.a)) * 40.0 + 0.01 );
+		float	depth_z			= (In.viewDepth * 30.0 * (1.0 - iWeightScale)) / 200.0;
+		float	dist_weight		= Clamp( 0.03 / (1.0e-5 + Pow(depth_z, 4.0)), 1.0e-2, 3.0e+3 );
 
-		alpha_weight *= alpha_weight;
+		// to prevent fragments with very tiny alpha/color from contributing too much or too little in unstable ways,
+		// while making normal visible fragments use the full depth based weight
+		float	alpha_weight	= Min( 1.0, Max(Max(color.r, color.g), Max(color.b, color.a)) * 40.0 + 0.01 );
+				alpha_weight	*= alpha_weight;
 
 		float	weight = alpha_weight * dist_weight;
 		return	weight;
@@ -126,7 +128,8 @@
 	void Main ()
 	{
 		float4	color = Shading();
-		color.rgb *= color.a;
+		color.a		*= iAlphaScale;
+		color.rgb	*= color.a;
 
 		float	weight = WeightingFn( color );
 

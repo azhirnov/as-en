@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 /*
 	Rules:
 	* feature is supported if one of feature set in array marked as 'True'.
@@ -111,6 +111,27 @@ namespace AE::PipelineCompiler
 
 /*
 =================================================
+	HAS_FEATURE
+=================================================
+*/
+#	define HAS_FEATURE( _outHasFeature_, _featArr_, _feature_ )												\
+	{																										\
+		ASSERT_MSG( not _featArr_.empty(), "empty FeatureSet array" );										\
+																											\
+		_outHasFeature_ = false;																			\
+		for (auto& feat : _featArr_)																		\
+		{																									\
+			_outHasFeature_ |= (feat->fs._feature_ == FeatureSet::EFeature::RequireTrue);					\
+																											\
+			if ( feat->fs._feature_ == FeatureSet::EFeature::RequireFalse ) {								\
+				_outHasFeature_ = false;																	\
+				break;																						\
+			}																								\
+		}																									\
+	}
+
+/*
+=================================================
 	TestFeature_Min
 =================================================
 */
@@ -178,8 +199,8 @@ namespace AE::PipelineCompiler
 
 	template <typename A>
 	ND_ A  GetMaxValueFromFeatures (ArrayView<ScriptFeatureSetPtr> features,
-									FeatureSet::PerDescriptorSet FeatureSet::*base,
-									A FeatureSet::PerDescriptorSet::*member)
+									FeatureSet::PerPipeline FeatureSet::*base,
+									A FeatureSet::PerPipeline::*member)
 	{
 		CHECK( not features.empty() );
 

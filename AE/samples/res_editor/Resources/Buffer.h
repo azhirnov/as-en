@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #pragma once
 
@@ -20,7 +20,7 @@ namespace AE::ResEditor
 		{
 			Unknown			= 0,
 			WithHistory		= 1 << 0,	// unique buffer for frame cycle with content history
-			_BITOPS_
+			_BITOPS_		= 0
 		};
 
 		struct LoadOp

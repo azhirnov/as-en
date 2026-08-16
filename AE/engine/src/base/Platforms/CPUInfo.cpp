@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #include "base/Platforms/CPUInfo.h"
 #include "base/Math/BitMath.h"
@@ -88,7 +88,7 @@ namespace AE::Base
 				<< "\n  VAES:              " << ToString( feats.VAES )
 				<< "\n  AESKL: . . . . . . " << ToString( feats.AESKL )
 				<< "\n  SHA2_256:          " << ToString( feats.SHA2_256 )
-				<< "\n  SHA512:  . . . . . " << ToString( feats.SHA512 )
+				<< "\n  SHA2_512:  . . . . " << ToString( feats.SHA2_512 )
 				<< "\n  FP16C:             " << ToString( feats.FP16C );
 			#endif
 			#ifdef AE_CPU_ARCH_ARM_BASED
@@ -171,6 +171,7 @@ namespace AE::Base
 				const uint	core_cnt = core.LogicalCount();
 				total_cores += core_cnt;
 
+				// private / shared per cluster cache
 				for (uint i = 0; i < uint(ECacheType::_Count); ++i)
 				{
 					if (auto* c = GetCache( ECacheType(i), core.type ))
@@ -182,14 +183,23 @@ namespace AE::Base
 				str	<< "\n    ----------";
 			}
 
-			str << "\nCache info:";
-			for (uint i = 0; i < uint(ECacheType::_Count); ++i)
+			// shared cache
 			{
-				if (auto* c = GetCache( ECacheType(i), ECoreType::Unknown ))
+				const usize	p0 = str.size();
+				str << "\nCache info:";
+				const usize	p1 = str.size();
+
+				for (uint i = 0; i < uint(ECacheType::_Count); ++i)
 				{
-					PrintCache( ECacheType(i), *c, total_cores );
-					str	<< "\n    ----------";
+					if (auto* c = GetCache( ECacheType(i), ECoreType::Unknown ))
+					{
+						PrintCache( ECacheType(i), *c, total_cores );
+						str	<< "\n    ----------";
+					}
 				}
+
+				if ( str.size() == p1 )
+					str.resize( p0 );
 			}
 
 			return str;
@@ -272,11 +282,16 @@ namespace AE::Base
 		#if AE_SIMD_NEON_HALF
 			CHECK_ERR_MSG( feats.NEON_fp16,	"AE_SIMD_NEON_HALF requires NEON_fp16 feature" );
 		#endif
+
 		#if AE_SIMD_SVE >= 1
 			CHECK_ERR_MSG( feats.SVE,		"AE_SIMD_SVE=1 requires SVE feature" );
 		#endif
 		#if AE_SIMD_SVE >= 2
 			CHECK_ERR_MSG( feats.SVE2,		"AE_SIMD_SVE=2 requires SVE2 feature" );
+		#endif
+
+		#if AE_SIMD_SME >= 1
+			CHECK_ERR_MSG( feats.SME,		"AE_SIMD_SME=1 requires SME feature" );
 		#endif
 
 		#ifdef AE_CPU_ARCH_X86_64
@@ -293,6 +308,7 @@ namespace AE::Base
 		#endif
 		#ifdef AE_CPU_ARCH_ARM_BASED
 			CHECK_ERR( feats.CRC32 );
+			CHECK_ERR( feats.Atomics );
 		#endif
 
 		#if AE_SIMD_SHA
@@ -402,7 +418,8 @@ namespace AE::Base
 		{
 			ASSERT( (core.LogicalCount() == core.PhysicalCount())	or
 					(core.LogicalCount() == core.PhysicalCount()*2) );
-			ASSERT( AllBits( core.logicalBits.to_ullong(), core.physicalBits.to_ullong() ));
+			ASSERT_MSG( AllBits( core.logicalBits.to_ullong(), core.physicalBits.to_ullong() ),
+				"Logical bits ("s << ToString<16>(core.logicalBits.to_ullong()) << ") must include all Physical bits (" << ToString<16>(core.physicalBits.to_ullong()) << ")" );
 		}
 
 		const uint	num_threads		= std::thread::hardware_concurrency();

@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #include "platform/Public/Application.h"
 #include "vfs/VirtualFileSystem.h"
@@ -72,7 +72,7 @@ public:
 	{
 		auto		asset_storage	= app.OpenStorage( EAppStorage::Builtin );
 		auto		cache_storage	= app.OpenStorage( EAppStorage::ExternalCache );
-		String		cache_path		= ToString( app.GetStoragePath( EAppStorage::ExternalCache ));
+		String		cache_path		= ToString( app.GetStoragePath( EAppStorage::Cache ));
 		char const*	argv[]			= { "exe path", "-p", cache_path.c_str() };
 		const int	argc			= int(CountOf( argv ));
 
@@ -90,9 +90,11 @@ public:
 			_LoadAndRun( "libTestsGraphicsRHI.so",		"Tests_GraphicsRHI",	asset_storage.get(), cache_storage.get() );
 			_LoadAndRun( "libTestsGraphics.so",			"Tests_Graphics",		asset_storage.get(), cache_storage.get() );
 			_LoadAndRun( "libTestsVideo.so",			"AEMain",				argc, argv );
+			_LoadAndRun( "libTestsCoopMat.so",			"AEMain",				argc, argv );
 
 			_LoadAndRun( "libTestsAtlasTools.so",		"AEMain",				argc, argv );
 			_LoadAndRun( "libTestsGeometryTools.so",	"AEMain",				argc, argv );
+			_LoadAndRun( "libTestsPipelineCompiler.so",	"AEMain",				argc, argv );
 
 		//	_LoadAndRun( "libNetworkStressTest.so",		"AEMain",				argc, argv );
 		}

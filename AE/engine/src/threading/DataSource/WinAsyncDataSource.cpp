@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 /*
 	docs:
 	https://learn.microsoft.com/en-us/windows/win32/fileio/synchronous-and-asynchronous-i-o
@@ -467,7 +467,7 @@ namespace
 		return	(AllBits( _mode, EMode::SequentialScan )	? ESourceType::SequentialAccess	: ESourceType::Unknown)	|
 				(AllBits( _mode, EMode::RandomAccess )	? ESourceType::RandomAccess		: ESourceType::Unknown)	|
 				ESourceType::Async		| ESourceType::FixedSize |
-				ESourceType::ThreadSafe	| ESourceType::ReadAccess;
+				ESourceType::ThreadSafe	| ESourceType::ReadOnly;
 	}
 
 /*
@@ -599,7 +599,7 @@ namespace
 */
 	IDataSource::ESourceType  WinAsyncWDataSource::GetSourceType () C_NE___
 	{
-		return	ESourceType::RandomAccess | ESourceType::WriteAccess | ESourceType::ThreadSafe | ESourceType::Async;
+		return	ESourceType::RandomAccess | ESourceType::WriteOnly | ESourceType::ThreadSafe | ESourceType::Async;
 	}
 
 /*

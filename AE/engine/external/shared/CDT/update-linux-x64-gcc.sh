@@ -8,10 +8,18 @@ export CXX=/usr/bin/g++-14
 git clone --branch "1.4.4" "https://github.com/artem-ogre/CDT.git" "temp"
 cp "temp/CDT/CMakeLists.txt" "temp/CDT/origin_CMakeLists.txt"
 cp "CDT_CMakeLists.txt" "temp/CDT/CMakeLists.txt"
-cmake -S temp/CDT -B build -G "Unix Makefiles" -DAE_ENABLE_COMPILER_WARNINGS=OFF -DCMAKE_BUILD_TYPE=Debug -DAE_SIMD_SSE=20 -DAE_SIMD_AES=0 -DCMAKE_INSTALL_PREFIX="../../../../../AE-Bin/external/linux-x64-gcc14/CDT" 
-cmake --build build --config Debug --target install -j 8
-cmake -S temp/CDT -B build -G "Unix Makefiles" -DAE_ENABLE_COMPILER_WARNINGS=OFF -DCMAKE_BUILD_TYPE=Release -DAE_SIMD_SSE=20 -DAE_SIMD_AES=0 -DCMAKE_INSTALL_PREFIX="../../../../../AE-Bin/external/linux-x64-gcc14/CDT" 
-cmake --build build --config Release --target install -j 8
+cmake -S temp/CDT -B build -G "Unix Makefiles" -DAE_ENABLE_COMPILER_WARNINGS=OFF -DCMAKE_BUILD_TYPE=Debug -DAE_SIMD_SSE=20 -DAE_SIMD_AES=0 -DCMAKE_INSTALL_PREFIX="../../../../../AE-Bin/external/linux-x64-gcc14/CDT"  || pauseOnError
+cmake --build build --config Debug --target install -j 8 || pauseOnError
+cmake -S temp/CDT -B build -G "Unix Makefiles" -DAE_ENABLE_COMPILER_WARNINGS=OFF -DCMAKE_BUILD_TYPE=Release -DAE_SIMD_SSE=20 -DAE_SIMD_AES=0 -DCMAKE_INSTALL_PREFIX="../../../../../AE-Bin/external/linux-x64-gcc14/CDT"  || pauseOnError
+cmake --build build --config Release --target install -j 8 || pauseOnError
 rm -rf "temp"
 rm -rf "build"
 read -p "press any key..."
+
+exit 0
+
+pauseOnError() {
+	echo -e "\033[31m*** failed ***\033[0m"
+	read -p "press any key..."
+	exit 1
+}

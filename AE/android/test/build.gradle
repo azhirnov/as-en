@@ -18,6 +18,9 @@ android {
 						  	'-DANDROID_ARM_NEON=ON',
 						  	'-DAE_ENABLE_VULKAN=ON',
 						  	'-DAE_SIMD_NEON_HALF=1',
+							'-DAE_SIMD_SVE=0',
+							'-DAE_SIMD_SME=0',
+							'-DAE_ARM_ARCH=82',
 						  	'-DAE_ENGINE_BASE_PCH=ON'
 				targets 'TestLauncher'
 			}
@@ -55,8 +58,8 @@ android {
 						   'lib/**/libTestsThreading.so',	'lib/**/libTestsNetworking.so',		'lib/**/libTestsSerializing.so',
 						   'lib/**/libTestsPlatform.so',	'lib/**/libTestsGraphicsRHI.so',	'lib/**/libTestsGraphics.so',
 						   'lib/**/libTestsECS.so',			'lib/**/libTestsVFS.so',			'lib/**/libTestsHuLang.so',
-						   'lib/**/libTestsVideo.so',
-						   'lib/**/libTestsAtlasTools.so',	'lib/**/libTestsGeometryTools.so',
+						   'lib/**/libTestsVideo.so',		'lib/**/libTestsCoopMat.so',
+						   'lib/**/libTestsAtlasTools.so',	'lib/**/libTestsGeometryTools.so',	'lib/**/libTestsPipelineCompiler.so',
 						   'lib/**/libPerfBase.so',			'lib/**/libPerfThreading.so',		'lib/**/libPerfGraphics.so',
 						   'lib/**/libNetworkStressTest.so' ]
 			pickFirsts += ['lib/**/libVkLayer_khronos_validation.so']

@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 /*
 	IGfxMemAllocator
 		Thread-safe:	yes
@@ -46,6 +46,7 @@
 
 namespace AE::Graphics
 {
+	struct DescSetParams;
 	struct IndirectExecutionSetDesc;
 	struct IndirectCommandsLayoutDesc;
 	struct GeneratedCommandsMemoryRequirementsDesc;
@@ -100,11 +101,11 @@ namespace AE::Graphics
 
 
 	  #elif defined(AE_ENABLE_METAL)
-		ND_ virtual MetalImageRC	AllocForImage (const ImageDesc &desc, OUT Storage_t &data)					__NE___	= 0;
-		ND_ virtual MetalBufferRC	AllocForBuffer (const BufferDesc &desc, OUT Storage_t &data)				__NE___	= 0;
+		ND_ virtual MetalImageRC	AllocImage (const ImageDesc &desc, OUT Storage_t &data)						__NE___	= 0;
+		ND_ virtual MetalBufferRC	AllocBuffer (const BufferDesc &desc, OUT Storage_t &data)					__NE___	= 0;
 
-		ND_ virtual MetalAccelStructRC  AllocForAccelStruct (const RTGeometryDesc &desc, OUT Storage_t &data)	__NE___	= 0;
-		ND_ virtual MetalAccelStructRC  AllocForAccelStruct (const RTSceneDesc &desc, OUT Storage_t &data)		__NE___	= 0;
+		ND_ virtual MetalAccelStructRC  AllocAccelStruct (const RTGeometryDesc &desc, OUT Storage_t &data)		__NE___	= 0;
+		ND_ virtual MetalAccelStructRC  AllocAccelStruct (const RTSceneDesc &desc, OUT Storage_t &data)			__NE___	= 0;
 
 		// returns 'true' if deallocated
 			virtual bool  Dealloc (INOUT Storage_t &data)														__NE___	= 0;
@@ -168,8 +169,8 @@ namespace AE::Graphics
 
 	// interface
 	public:
-		ND_ virtual bool  Allocate (DescriptorSetLayoutID layoutId, OUT Storage &ds)		__NE___	= 0;
-			virtual void  Deallocate (DescriptorSetLayoutID layoutId, INOUT Storage &ds)	__NE___	= 0;
+		ND_ virtual bool  Allocate (DescriptorSetLayoutID layoutId, const DescSetParams*, OUT Storage &ds)	__NE___	= 0;
+			virtual void  Deallocate (DescriptorSetLayoutID layoutId, INOUT Storage &ds)					__NE___	= 0;
 	};
 
 
@@ -337,18 +338,18 @@ namespace AE::Graphics
 		ND_ virtual DeviceAddress				GetDeviceAddress (BufferID		id)																				C_NE___ = 0;
 		ND_ virtual DeviceAddress				GetDeviceAddress (RTGeometryID	id)																				C_NE___ = 0;
 
-		ND_ virtual bool						CreateDescriptorSets (OUT DescSetBinding &binding, OUT Strong<DescriptorSetID> *dst, usize count, GraphicsPipelineID   ppln, DescriptorSetName::Ref dsName, DescriptorAllocatorPtr allocator = null, StringView dbgName = Default)	__NE___ = 0;
-		ND_ virtual bool						CreateDescriptorSets (OUT DescSetBinding &binding, OUT Strong<DescriptorSetID> *dst, usize count, MeshPipelineID       ppln, DescriptorSetName::Ref dsName, DescriptorAllocatorPtr allocator = null, StringView dbgName = Default)	__NE___ = 0;
-		ND_ virtual bool						CreateDescriptorSets (OUT DescSetBinding &binding, OUT Strong<DescriptorSetID> *dst, usize count, ComputePipelineID    ppln, DescriptorSetName::Ref dsName, DescriptorAllocatorPtr allocator = null, StringView dbgName = Default)	__NE___ = 0;
-		ND_ virtual bool						CreateDescriptorSets (OUT DescSetBinding &binding, OUT Strong<DescriptorSetID> *dst, usize count, RayTracingPipelineID ppln, DescriptorSetName::Ref dsName, DescriptorAllocatorPtr allocator = null, StringView dbgName = Default)	__NE___ = 0;
-		ND_ virtual bool						CreateDescriptorSets (OUT DescSetBinding &binding, OUT Strong<DescriptorSetID> *dst, usize count, TilePipelineID       ppln, DescriptorSetName::Ref dsName, DescriptorAllocatorPtr allocator = null, StringView dbgName = Default)	__NE___ = 0;
-		ND_ virtual bool						CreateDescriptorSets (OUT Strong<DescriptorSetID> *dst, usize count, PipelinePackID packId, DSLayoutName::Ref dslName, DescriptorAllocatorPtr allocator = null, StringView dbgName = Default)										__NE___ = 0;
-		ND_ virtual bool						CreateDescriptorSets (OUT Strong<DescriptorSetID> *dst, usize count, DescriptorSetLayoutID layoutId, DescriptorAllocatorPtr allocator = null, StringView dbgName = Default)															__NE___ = 0;
+		ND_ virtual bool						CreateDescriptorSets (OUT DescSetBinding &binding, OUT Strong<DescriptorSetID> *dst, usize count, GraphicsPipelineID   ppln, DescriptorSetName::Ref dsName, DescriptorAllocatorPtr allocator = null, StringView dbgName = Default, const DescSetParams* = null)	__NE___ = 0;
+		ND_ virtual bool						CreateDescriptorSets (OUT DescSetBinding &binding, OUT Strong<DescriptorSetID> *dst, usize count, MeshPipelineID       ppln, DescriptorSetName::Ref dsName, DescriptorAllocatorPtr allocator = null, StringView dbgName = Default, const DescSetParams* = null)	__NE___ = 0;
+		ND_ virtual bool						CreateDescriptorSets (OUT DescSetBinding &binding, OUT Strong<DescriptorSetID> *dst, usize count, ComputePipelineID    ppln, DescriptorSetName::Ref dsName, DescriptorAllocatorPtr allocator = null, StringView dbgName = Default, const DescSetParams* = null)	__NE___ = 0;
+		ND_ virtual bool						CreateDescriptorSets (OUT DescSetBinding &binding, OUT Strong<DescriptorSetID> *dst, usize count, RayTracingPipelineID ppln, DescriptorSetName::Ref dsName, DescriptorAllocatorPtr allocator = null, StringView dbgName = Default, const DescSetParams* = null)	__NE___ = 0;
+		ND_ virtual bool						CreateDescriptorSets (OUT DescSetBinding &binding, OUT Strong<DescriptorSetID> *dst, usize count, TilePipelineID       ppln, DescriptorSetName::Ref dsName, DescriptorAllocatorPtr allocator = null, StringView dbgName = Default, const DescSetParams* = null)	__NE___ = 0;
+		ND_ virtual bool						CreateDescriptorSets (OUT Strong<DescriptorSetID> *dst, usize count, PipelinePackID packId, DSLayoutName::Ref dslName, DescriptorAllocatorPtr allocator = null, StringView dbgName = Default, const DescSetParams* = null)										__NE___ = 0;
+		ND_ virtual bool						CreateDescriptorSets (OUT Strong<DescriptorSetID> *dst, usize count, DescriptorSetLayoutID layoutId, DescriptorAllocatorPtr allocator = null, StringView dbgName = Default, const DescSetParams* = null)														__NE___ = 0;
 
 		template <typename PplnID>
-		ND_			DescSetAndBinding_t			CreateDescriptorSet (const PplnID &ppln, DescriptorSetName::Ref dsName, DescriptorAllocatorPtr allocator = null, StringView dbgName = Default)	__NE___;
-		ND_			Strong<DescriptorSetID>		CreateDescriptorSet (PipelinePackID packId, DSLayoutName::Ref dslName, DescriptorAllocatorPtr allocator = null, StringView dbgName = Default)	__NE___;
-		ND_			Strong<DescriptorSetID>		CreateDescriptorSet (DescriptorSetLayoutID layoutId, DescriptorAllocatorPtr allocator = null, StringView dbgName = Default)						__NE___;
+		ND_			DescSetAndBinding_t			CreateDescriptorSet (const PplnID &ppln, DescriptorSetName::Ref dsName, DescriptorAllocatorPtr allocator = null, StringView dbgName = Default, const DescSetParams* = null)	__NE___;
+		ND_			Strong<DescriptorSetID>		CreateDescriptorSet (PipelinePackID packId, DSLayoutName::Ref dslName, DescriptorAllocatorPtr allocator = null, StringView dbgName = Default, const DescSetParams* = null)	__NE___;
+		ND_			Strong<DescriptorSetID>		CreateDescriptorSet (DescriptorSetLayoutID layoutId, DescriptorAllocatorPtr allocator = null, StringView dbgName = Default, const DescSetParams* = null)						__NE___;
 
 		template <typename T, typename PplnID>
 		ND_			PushConstantIndex			GetPushConstantIndex (PplnID               ppln, PushConstantName::Ref pcName)																	__NE___;
@@ -391,6 +392,7 @@ namespace AE::Graphics
 		ND_			bool						IsAlive (ID id)														C_NE___;
 
 		// Increment ref counter and returns ID if resource is alive, returns empty ID otherwise.
+		// Mostly for internal use.
 		template <typename ID>
 		ND_			Strong<ID>					AcquireResource (ID id)												__NE___;
 
@@ -480,22 +482,22 @@ namespace AE::Graphics
 =================================================
 */
 	template <typename PplnID>
-	IResourceManager::DescSetAndBinding_t  IResourceManager::CreateDescriptorSet (const PplnID &ppln, DescriptorSetName::Ref dsName, DescriptorAllocatorPtr allocator, StringView dbgName) __NE___
+	IResourceManager::DescSetAndBinding_t  IResourceManager::CreateDescriptorSet (const PplnID &ppln, DescriptorSetName::Ref dsName, DescriptorAllocatorPtr allocator, StringView dbgName, const DescSetParams* params) __NE___
 	{
 		DescSetAndBinding_t	result;
-		return CreateDescriptorSets( OUT result.Get<1>(), OUT &result.Get<0>(), 1, ppln, dsName, RVRef(allocator), dbgName ) ? RVRef(result) : Default;
+		return CreateDescriptorSets( OUT result.Get<1>(), OUT &result.Get<0>(), 1, ppln, dsName, RVRef(allocator), dbgName, params ) ? RVRef(result) : Default;
 	}
 
-	inline Strong<DescriptorSetID>  IResourceManager::CreateDescriptorSet (PipelinePackID packId, DSLayoutName::Ref dslName, DescriptorAllocatorPtr allocator, StringView dbgName) __NE___
+	inline Strong<DescriptorSetID>  IResourceManager::CreateDescriptorSet (PipelinePackID packId, DSLayoutName::Ref dslName, DescriptorAllocatorPtr allocator, StringView dbgName, const DescSetParams* params) __NE___
 	{
 		Strong<DescriptorSetID>	result;
-		return CreateDescriptorSets( OUT &result, 1, packId, dslName, RVRef(allocator), dbgName ) ? RVRef(result) : Default;
+		return CreateDescriptorSets( OUT &result, 1, packId, dslName, RVRef(allocator), dbgName, params ) ? RVRef(result) : Default;
 	}
 
-	inline Strong<DescriptorSetID>  IResourceManager::CreateDescriptorSet (DescriptorSetLayoutID layoutId, DescriptorAllocatorPtr allocator, StringView dbgName) __NE___
+	inline Strong<DescriptorSetID>  IResourceManager::CreateDescriptorSet (DescriptorSetLayoutID layoutId, DescriptorAllocatorPtr allocator, StringView dbgName, const DescSetParams* params) __NE___
 	{
 		Strong<DescriptorSetID>	result;
-		return CreateDescriptorSets( OUT &result, 1, layoutId, RVRef(allocator), dbgName ) ? RVRef(result) : Default;
+		return CreateDescriptorSets( OUT &result, 1, layoutId, RVRef(allocator), dbgName, params ) ? RVRef(result) : Default;
 	}
 
 /*

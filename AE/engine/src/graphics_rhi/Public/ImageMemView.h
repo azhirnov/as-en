@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #pragma once
 
@@ -77,6 +77,7 @@ namespace AE::Graphics
 		ND_ bool			Empty ()						C_NE___	{ return _content.Empty(); }
 		ND_ uint2			TexBlockDim ()					C_NE___	{ return uint2{_texBlockDim}; }
 		ND_ uint2			TexelBlocks ()					C_NE___	{ return ImageUtils::TexelBlocks( uint2{_dimension}, TexBlockDim() ); }
+		ND_ BufferMemView&	AsBufferView ()					__NE___	{ return _content; }
 
 			bool	PushBack (void* ptr, Bytes size)		__NE___	{ return _content.PushBack( ptr, size ); }
 
@@ -91,15 +92,19 @@ namespace AE::Graphics
 		ND_ bool	operator == (const ImageMemView &rhs)	C_NE___ { return Compare( rhs ) == 0_b; }
 
 
+		// Copy between images with same format.
 		// 'dataSize' - number of copied bytes.
 		// Returns 'true' if all required data are copied.
 			bool  CopyFrom (const ImageMemView &src, OUT Bytes &dataSize)																			__NE___;
 			bool  CopyFrom (const uint3 &dstOffset, const uint3 &srcOffset, const ImageMemView &srcImage, const uint3 &dim, OUT Bytes &dataSize)	__NE___;
+
 		ND_ bool  CopyFrom (const ImageMemView &src)																								__NE___;
 		ND_ bool  CopyFrom (const uint3 &dstOffset, const uint3 &srcOffset, const ImageMemView &srcImage, const uint3 &dim)							__NE___;
 
+		// Copy to buffer.
 		// Returns 'true' if all required data are copied.
 		ND_ bool  CopyTo (OUT void* data, Bytes size)		C_NE___;
+		ND_ bool  CopyTo (BufferMemView &dst)				C_NE___;
 
 		// Returns how much bytes are different.
 		ND_ Bytes  Compare (const ImageMemView &rhs)																		C_NE___;

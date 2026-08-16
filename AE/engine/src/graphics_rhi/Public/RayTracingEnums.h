@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #pragma once
 
@@ -15,7 +15,7 @@ namespace AE::Graphics
 		Opaque						= 1 << 0,	// indicates that this geometry does not invoke the any-hit shaders even if present in a hit group
 		NoDuplicateAnyHitInvocation	= 1 << 1,
 		_Last,
-		_BITOPS_,
+		_BITOPS_					= 0,
 		Unknown						= 0
 	};
 
@@ -36,7 +36,7 @@ namespace AE::Graphics
 		ForceOpacityMicromap2State	= 1 << 5,
 
 		_Last,
-		All							= ((_Last - 1) << 1) - 1,
+		All							= CT_AllBitMask2<ERTInstanceOpt>,
 		Unknown						= 0,
 		TriangleCullBack			= 0,		// default
 		TriangleFrontCW				= 0,		// default
@@ -128,7 +128,7 @@ namespace AE::Graphics
 		ForceNonOpaque				= 1 << 3,	// disable ERTGeometryOpt::Opaque flag
 		EnableExplicitAABB			= 1 << 4,	// enables use of 'WriteInstanceVk::explicitAABB'
 		_Last,
-		All							= ((_Last - 1) << 1) - 1,
+		All							= CT_AllBitMask2<EPartitionedInstanceOpt>,
 		Unknown						= 0,
 		TriangleCullBack			= 0,		// default
 		TriangleFrontCW				= 0,		// default
@@ -209,7 +209,7 @@ namespace AE::Graphics
 		SrcInfosArray		= 1 << 4,
 		SrcInfosCount		= 1 << 5,
 		_Last,
-		All					= ((_Last - 1) << 1) - 1,
+		All					= CT_AllBitMask2<ERTClusterAddressResolution>,
 	};
 
 
@@ -220,7 +220,7 @@ namespace AE::Graphics
 	{
 		Unknown							= 0,
 		AllowDisableOpacityMicromaps	= 1 << 0,
-		_BITOPS_
+		_BITOPS_						= 0
 	};
 
 
@@ -262,6 +262,7 @@ namespace AE::Graphics
 		Unknown,
 		TwoState			= 1,	// 1-bit mode, supports opaque and transparent states
 		FourState			= 2,	// 2-bit mode, supports opaque, transparent and unknown state which requires any-hit shader invocation
+		_Count
 	};
 
 
@@ -271,6 +272,7 @@ namespace AE::Graphics
 		Tris64_Bytes64		= 1,	// uncompressed format, 45 displacement values as 11 bit unorm
 		Tris256_Bytes128	= 2,	// compressed
 		Tris1024_Bytes128	= 3,	// compressed
+		_Count
 	};
 
 

@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 /*
 	TransferCtx --> DirectTransferCtx   --> BarrierMngr --> Vulkan device
 				\-> IndirectTransferCtx --> BarrierMngr --> Backed commands
@@ -49,6 +49,9 @@ namespace AE::Graphics::_hidden_
 
 	protected:
 		_VDirectTransferCtx (RenderCoroRef task, VCommandBuffer cmdbuf, DebugLabel dbg)										__Th___ : VBaseDirectContext{ task, RVRef(cmdbuf), dbg, ECtxType::Transfer } {}
+
+		void  _ConvertCooperativeVectorMatrix (ArrayView<ConvertCoopMatrixCmd>)												__Th___;
+		void  _ConvertCooperativeVectorMatrix (ArrayView<ConvertCoopMatrixCmd2>)											__Th___;
 	};
 
 
@@ -88,6 +91,9 @@ namespace AE::Graphics::_hidden_
 
 	protected:
 		_VIndirectTransferCtx (RenderCoroRef task, VSoftwareCmdBufPtr cmdbuf, DebugLabel dbg)								__Th___ : VBaseIndirectContext{ task, RVRef(cmdbuf), dbg, ECtxType::Transfer } {}
+
+		void  _ConvertCooperativeVectorMatrix (ArrayView<ConvertCoopMatrixCmd>)												__Th___;
+		void  _ConvertCooperativeVectorMatrix (ArrayView<ConvertCoopMatrixCmd2>)											__Th___;
 	};
 
 
@@ -121,6 +127,7 @@ namespace AE::Graphics::_hidden_
 
 		using RawCtx::ClearColorImage;
 		using RawCtx::ClearDepthStencilImage;
+		using ITransferContextVk::ClearColorImage;
 
 		void  ClearColorImage (ImageID image, const RGBA32f &color, ArrayView<ImageSubresourceRange> ranges)		__Th_OV	{ _ClearColorImage( image, color, ranges ); }
 		void  ClearColorImage (ImageID image, const RGBA32i &color, ArrayView<ImageSubresourceRange> ranges)		__Th_OV	{ _ClearColorImage( image, color, ranges ); }
@@ -184,6 +191,9 @@ namespace AE::Graphics::_hidden_
 		using ITransferContext::UploadBuffer;
 		using ITransferContext::UploadImage;
 		using ITransferContext::UpdateBuffer;
+
+		void  ConvertCooperativeVectorMatrix (ArrayView<ConvertCoopMatrixCmd> cmds)									__Th_OV	{ RawCtx::_ConvertCooperativeVectorMatrix( cmds ); }
+		void  ConvertCooperativeVectorMatrix (ArrayView<ConvertCoopMatrixCmd2> cmds)								__Th_OV	{ RawCtx::_ConvertCooperativeVectorMatrix( cmds ); }
 
 		uint3  MinImageTransferGranularity ()																		C_NE_OF;
 

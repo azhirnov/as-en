@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 /*
 	ref:
 		https://github.com/KhronosGroup/Vulkan-Samples/tree/main/samples/performance/command_buffer_usage

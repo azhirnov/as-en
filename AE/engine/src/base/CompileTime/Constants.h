@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 /*
 	UMax constant is maximum value of unsigned integer type.
 */
@@ -132,7 +132,25 @@ namespace AE::Base
 
 		template <typename T>
 		struct _GetDefaultValueForUninitialized2< T, /*enum*/1 > {
-			NdCx__ static T  Get ()													__NE___	{ return T::Unknown; }
+			NdCx__ static T  Get ()													__NE___
+			{
+				StaticAssert( std::is_enum_v<T> );
+
+				if constexpr( requires{ T::_BITOPS_; })
+				{
+					StaticAssert( ulong(T::_BITOPS_) == 0 );
+					return T(0);
+				}
+				else
+				if constexpr( requires{ T::Unknown; })
+					return T::Unknown;
+				else
+				if constexpr( requires{ T::_Count; })
+				{
+					StaticAssert( ulong(T::_Count) > 0 );
+					return T::_Count;
+				}
+			}
 		};
 
 
@@ -142,10 +160,10 @@ namespace AE::Base
 			static constexpr int GetIndex ()										__NE___
 			{
 				return	_IsEnumWithUnknown<T>		? 1 :
-							std::is_floating_point<T>::value or
-							std::is_integral<T>::value		 or
-							std::is_pointer<T>::value		 or
-							std::is_enum<T>::value  ? 2 :
+							std::is_floating_point_v<T>	or
+							std::is_integral_v<T>		or
+							std::is_pointer_v<T>		or
+							std::is_enum_v<T>		? 2 :
 													  0;
 			}
 

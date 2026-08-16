@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #pragma once
 
@@ -22,8 +22,7 @@ namespace AE::Graphics
 
 		Strong<ImageID>				_imageId;
 
-		GFX_DBG_ONLY(	DebugName_t		_debugName;	)
-		DRC_ONLY(		RWDataRaceCheck	_drCheck;	)
+		GFX_DBG_ONLY( DebugName_t	_debugName;	)
 
 
 	// methods
@@ -36,11 +35,11 @@ namespace AE::Graphics
 		ND_ bool  Create (ResourceManager &, const VulkanImageViewDesc2 &, ImageID, StringView dbgName)	__NE___;
 			void  Destroy (ResourceManager &)															__NE___;
 
-		ND_ VkImageView				Handle ()			C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _imageView; }
-		ND_ ImageViewDesc const&	Description ()		C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _desc; }
-		ND_ ImageID					ImageId ()			C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _imageId; }
+		ND_ VkImageView				Handle ()			C_NE___	{ return _imageView; }
+		ND_ ImageViewDesc const&	Description ()		C_NE___	{ return _desc; }
+		ND_ ImageID					ImageId ()			C_NE___	{ return _imageId; }
 
-		GFX_DBG_ONLY( ND_ StringView  GetDebugName ()	C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _debugName; })
+		GFX_DBG_ONLY( ND_ StringView  GetDebugName ()	C_NE___	{ return _debugName; })
 	};
 
 

@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #ifdef AE_ENABLE_VULKAN
 # include "base/Platforms/AndroidApi26.h"
@@ -20,7 +20,6 @@ namespace AE::Graphics
 */
 	VSampler::~VSampler () __NE___
 	{
-		DRC_EXLOCK( _drCheck );
 		CHECK( _sampler == Default );
 		CHECK( _ycbcrConversion == Default );
 	}
@@ -30,45 +29,55 @@ namespace AE::Graphics
 	Create
 =================================================
 */
-	bool  VSampler::Create (const ResourceManager &resMngr, const SamplerDesc &desc, const VkSamplerYcbcrConversionCreateInfo* ycbcrDesc, StringView dbgName) __NE___
+	bool  VSampler::Create (const ResourceManager &resMngr, const SamplerDesc &desc, const VkSamplerYcbcrConversionCreateInfo* ycbcrDesc,
+							IAllocator* allocator, StringView dbgName) __NE___
 	{
-		DRC_EXLOCK( _drCheck );
 		CHECK_ERR( _sampler == Default );
 		CHECK_ERR( _ycbcrConversion	== Default );
 
-		VkSamplerCreateInfo						sampler_ci;
-		VkSamplerYcbcrConversionInfo			conv_info;
-		VkSamplerReductionModeCreateInfoEXT		reduction_ci;
-		VNextChain								p_next		{sampler_ci};
-
-		sampler_ci.sType			= VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
-		sampler_ci.flags			= VEnumCast( desc.options );
-		sampler_ci.magFilter		= VEnumCast( desc.magFilter );
-		sampler_ci.minFilter		= VEnumCast( desc.minFilter );
-		sampler_ci.mipmapMode		= VEnumCast( desc.mipmapMode );
-		sampler_ci.addressModeU		= VEnumCast( desc.addressMode.x );
-		sampler_ci.addressModeV		= VEnumCast( desc.addressMode.y );
-		sampler_ci.addressModeW		= VEnumCast( desc.addressMode.z );
-		sampler_ci.mipLodBias		= desc.mipLodBias;
-		sampler_ci.anisotropyEnable	= (desc.HasAnisotropy() ? VK_TRUE : VK_FALSE);
-		sampler_ci.maxAnisotropy	= desc.maxAnisotropy;
-		sampler_ci.compareEnable	= desc.compareOp.has_value() ? VK_TRUE : VK_FALSE;
-		sampler_ci.compareOp		= VEnumCast( desc.compareOp.value_or( ECompareOp::Always ));
-		sampler_ci.minLod			= desc.minLod;
-		sampler_ci.maxLod			= desc.maxLod;
-		sampler_ci.borderColor		= VEnumCast( desc.borderColor );
-		sampler_ci.unnormalizedCoordinates= desc.UnnormalizedCoordinates() ? VK_TRUE : VK_FALSE;
-
 		auto&	dev = resMngr.GetDevice();
-		//GRES_CHECK( IsSupported( dev, sampler_ci ));
+		if ( dev.GetVExtensions().descriptorHeap )
+			CHECK_ERR( allocator != null )
+		else
+			allocator = null;
+
+		VkSamplerCreateInfo						storage_sampler_ci;
+		VkSamplerYcbcrConversionInfo			storage_conv_info;
+		VkSamplerReductionModeCreateInfoEXT		storage_reduction_ci;
+
+		auto*		sampler_ci = allocator ? allocator->Allocate<VkSamplerCreateInfo>() : &storage_sampler_ci;
+		CHECK_ERR( sampler_ci != null );
+
+		sampler_ci->sType			= VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
+		sampler_ci->flags			= VEnumCast( desc.options );
+		sampler_ci->magFilter		= VEnumCast( desc.magFilter );
+		sampler_ci->minFilter		= VEnumCast( desc.minFilter );
+		sampler_ci->mipmapMode		= VEnumCast( desc.mipmapMode );
+		sampler_ci->addressModeU	= VEnumCast( desc.addressMode.x );
+		sampler_ci->addressModeV	= VEnumCast( desc.addressMode.y );
+		sampler_ci->addressModeW	= VEnumCast( desc.addressMode.z );
+		sampler_ci->mipLodBias		= desc.mipLodBias;
+		sampler_ci->anisotropyEnable= (desc.HasAnisotropy() ? VK_TRUE : VK_FALSE);
+		sampler_ci->maxAnisotropy	= desc.maxAnisotropy;
+		sampler_ci->compareEnable	= desc.compareOp.has_value() ? VK_TRUE : VK_FALSE;
+		sampler_ci->compareOp		= VEnumCast( desc.compareOp.value_or( ECompareOp::Always ));
+		sampler_ci->minLod			= desc.minLod;
+		sampler_ci->maxLod			= desc.maxLod;
+		sampler_ci->borderColor		= VEnumCast( desc.borderColor );
+		sampler_ci->unnormalizedCoordinates = desc.UnnormalizedCoordinates() ? VK_TRUE : VK_FALSE;
+
+		VNextChain	p_next	{*sampler_ci};
 
 		if ( dev.GetVExtensions().samplerFilterMinmax and
 			 desc.reductionMode != EReductionMode::Average )
 		{
-			p_next.Add( reduction_ci );
+			auto*	reduction_ci = allocator ? allocator->Allocate<VkSamplerReductionModeCreateInfoEXT>() : &storage_reduction_ci;
+			CHECK_ERR( reduction_ci != null );
 
-			reduction_ci.sType			= VK_STRUCTURE_TYPE_SAMPLER_REDUCTION_MODE_CREATE_INFO;
-			reduction_ci.reductionMode	= VEnumCast( desc.reductionMode );
+			p_next.Add( *reduction_ci );
+
+			reduction_ci->sType			= VK_STRUCTURE_TYPE_SAMPLER_REDUCTION_MODE_CREATE_INFO;
+			reduction_ci->reductionMode	= VEnumCast( desc.reductionMode );
 		}
 
 		if ( ycbcrDesc != null )
@@ -76,17 +85,41 @@ namespace AE::Graphics
 			VK_CHECK_ERR( dev.vkCreateSamplerYcbcrConversionKHR( dev.GetVkDevice(), ycbcrDesc, null, OUT &_ycbcrConversion ));
 			dev.SetObjectName( _ycbcrConversion, dbgName, VK_OBJECT_TYPE_SAMPLER_YCBCR_CONVERSION );
 
-			p_next.Add( conv_info );
+			auto*	conv_info = allocator ? allocator->Allocate<VkSamplerYcbcrConversionInfo>() : &storage_conv_info;
+			CHECK_ERR( conv_info != null );
 
-			conv_info.sType			= VK_STRUCTURE_TYPE_SAMPLER_YCBCR_CONVERSION_INFO;
-			conv_info.conversion	= _ycbcrConversion;
+			p_next.Add( *conv_info );
+
+			conv_info->sType		= VK_STRUCTURE_TYPE_SAMPLER_YCBCR_CONVERSION_INFO;
+			conv_info->conversion	= _ycbcrConversion;
 
 			_ycbcrFormat			= ycbcrDesc->format;
 		}
 
-		VK_CHECK_ERR( dev.vkCreateSampler( dev.GetVkDevice(), &sampler_ci, null, OUT &_sampler ));
+		VK_CHECK_ERR( dev.vkCreateSampler( dev.GetVkDevice(), sampler_ci, null, OUT &_sampler ));
 		dev.SetObjectName( _sampler, dbgName, VK_OBJECT_TYPE_SAMPLER );
 
+		// add debug name to immutable sampler in descriptor heap
+	  #ifndef AE_CFG_RELEASE
+		if ( allocator != null and not dbgName.empty() )
+		{
+			auto*	obj_name = allocator->Allocate<VkDebugUtilsObjectNameInfoEXT>();
+			auto*	dbg_name = allocator->Allocate<char>( dbgName.size()+1 );
+
+			if ( obj_name != null and dbg_name != null )
+			{
+				MemCopy( OUT dbg_name, dbgName.data(), StringSizeOf(dbgName) );
+				dbg_name[dbgName.size()] = 0;
+
+				obj_name->sType			= VK_STRUCTURE_TYPE_DEBUG_UTILS_OBJECT_NAME_INFO_EXT;
+				obj_name->objectType	= VK_OBJECT_TYPE_UNKNOWN;
+				obj_name->objectHandle	= Zero;
+				obj_name->pObjectName	= dbg_name;
+			}
+		}
+	  #endif
+
+		_samplerCI = sampler_ci;
 		return true;
 	}
 
@@ -97,8 +130,6 @@ namespace AE::Graphics
 */
 	void  VSampler::Destroy (ResourceManager &resMngr) __NE___
 	{
-		DRC_EXLOCK( _drCheck );
-
 		auto&	dev = resMngr.GetDevice();
 
 		if ( _ycbcrConversion != Default )
@@ -110,6 +141,7 @@ namespace AE::Graphics
 		_sampler			= Default;
 		_ycbcrConversion	= Default;
 		_ycbcrFormat		= VK_FORMAT_UNDEFINED;
+		_samplerCI			= null;
 	}
 
 /*
@@ -255,7 +287,6 @@ namespace AE::Graphics
 
 		return true;
 	}
-
 
 } // AE::Graphics
 

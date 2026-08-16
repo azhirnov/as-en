@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #ifdef AE_ENABLE_VULKAN
 # include "graphics_rhi/Private/ResourceValidation.h"
@@ -87,6 +87,7 @@ namespace AE::Graphics
 					dst.data.pExecutionSet	= &es;
 
 					GRES_CHECK_MSG( i == 0, "execution set token must be the first token in array" );
+					GRES_CHECK_MSG( ppln_layout != null, "pipeline layout must be defined for 'ExecutionSet' token" );	// TODO: not needed for desc heap
 					break;
 				}
 				case ETokenType::PushConstant :

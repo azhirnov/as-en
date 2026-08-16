@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 /*
 	AsyncRDataSource / AsyncWDataSource and AsyncRStream / AsyncWStream must be created only as RC<> object,
 	because Request may internally keep reference to it data source object.
@@ -173,7 +173,7 @@ namespace AE::Threading
 
 	// interface
 	public:
-		ND_	ESourceType  GetSourceType ()	C_NE_OV	{ return ESourceType::RandomAccess | ESourceType::ReadAccess | ESourceType::Async | ESourceType::ThreadSafe; }
+		ND_	ESourceType  GetSourceType ()	C_NE_OV	{ return ESourceType::RandomAccess | ESourceType::ReadOnly | ESourceType::Async | ESourceType::ThreadSafe; }
 
 
 		// Returns file size.
@@ -248,7 +248,7 @@ namespace AE::Threading
 
 	// interface
 	public:
-		ND_	ESourceType  GetSourceType ()	C_NE_OV	{ return ESourceType::RandomAccess | ESourceType::WriteAccess | ESourceType::Async | ESourceType::ThreadSafe; }
+		ND_	ESourceType  GetSourceType ()	C_NE_OV	{ return ESourceType::RandomAccess | ESourceType::WriteOnly | ESourceType::Async | ESourceType::ThreadSafe; }
 
 
 		// Allocate memory block using internal allocator.
@@ -305,7 +305,7 @@ namespace AE::Threading
 
 	// interface
 	public:
-		ND_	ESourceType  GetSourceType ()	C_NE_OV	{ return ESourceType::SequentialAccess | ESourceType::ReadAccess | ESourceType::Async | ESourceType::ThreadSafe; }
+		ND_	ESourceType  GetSourceType ()	C_NE_OV	{ return ESourceType::SequentialAccess | ESourceType::ReadOnly | ESourceType::Async | ESourceType::ThreadSafe; }
 
 		// Returns:
 		//	- current position in stream, this value must be valid.
@@ -347,7 +347,7 @@ namespace AE::Threading
 
 	// interface
 	public:
-		ND_	ESourceType  GetSourceType ()	C_NE_OV	{ return ESourceType::SequentialAccess | ESourceType::WriteAccess | ESourceType::Async | ESourceType::ThreadSafe; }
+		ND_	ESourceType  GetSourceType ()	C_NE_OV	{ return ESourceType::SequentialAccess | ESourceType::WriteOnly | ESourceType::Async | ESourceType::ThreadSafe; }
 
 
 		// Returns current position in stream.

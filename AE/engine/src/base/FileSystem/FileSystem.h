@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 /*
 	Wrapper for std::filesystem that disable all exceptions.
 
@@ -48,92 +48,96 @@ namespace AE::Base
 
 		// Remove file.
 		// Returns 'true' if the file was deleted.
-		static bool  DeleteFile (const Path &p)							__NE___	{ return IsFile( p ) and _Remove( p ); }
+		static bool  DeleteFile (const Path &p)													__NE___	{ return IsFile( p ) and _Remove( p ); }
 
 		// Remove directory and all subdirectories.
-		static bool  DeleteDirectory (const Path &p)					__NE___	{ return IsDirectory( p ) and _RemoveAll( p ); }
-		static bool  DeleteEmptyDirectory (const Path &p)				__NE___	{ return IsDirectory( p ) and _Remove( p ); }
+		static bool  DeleteDirectory (const Path &p)											__NE___	{ return IsDirectory( p ) and _RemoveAll( p ); }
+		static bool  DeleteEmptyDirectory (const Path &p)										__NE___	{ return IsDirectory( p ) and _Remove( p ); }
 
 		// Create directory, parent directory must be exists.
 		// Returns 'false' on error.
-		static bool  CreateDirectory (const Path &p)					__NE___;
+		static bool  CreateDirectory (const Path &p)											__NE___;
 
 		// Create all directories that is not exists.
 		// Returns 'false' on error.
-		static bool  CreateDirectories (const Path &p)					__NE___;
+		static bool  CreateDirectories (const Path &p)											__NE___;
 
 		// Create an empty file.
-		static bool  CreateEmptyFile (const Path &p)					__NE___;
+		static bool  CreateEmptyFile (const Path &p)											__NE___;
 
 		// Set working directory.
-		static bool  SetCurrentPath (const Path &p)						__NE___;
+		static bool  SetCurrentPath (const Path &p)												__NE___;
 
 		// Returns current path
-		ND_ static Path  CurrentPath ()									__NE___;
+		ND_ static Path  CurrentPath ()															__NE___;
 
 		// Returns 'true' if path refers to a file.
-		ND_ static bool  IsFile (const Path &p)							__NE___;
+		ND_ static bool  IsFile (const Path &p)													__NE___;
 
 		// Returns 'true' if path refers to a directory.
-		ND_ static bool  IsDirectory (const Path &p)					__NE___;
+		ND_ static bool  IsDirectory (const Path &p)											__NE___;
 
 		// Returns 'true' if path refers to a file or directory.
-		ND_ static bool  IsFileOrDirectory (const Path &p)				__NE___	{ return _Exists( p ); }
+		ND_ static bool  IsFileOrDirectory (const Path &p)										__NE___	{ return _Exists( p ); }
 
 		// Returns 'true' if path refers to an empty directory.
-		ND_ static bool  IsEmptyDirectory (const Path &p)				__NE___	{ return _IsEmpty( p ) and IsDirectory( p ); }
+		ND_ static bool  IsEmptyDirectory (const Path &p)										__NE___	{ return _IsEmpty( p ) and IsDirectory( p ); }
 
 		// Returns 'true' if 'lhs' and 'rhs' refer to the same file or directory.
-		ND_ static bool  Equal (const Path &lhs, const Path &rhs)		__NE___;
+		ND_ static bool  Equal (const Path &lhs, const Path &rhs)								__NE___;
 
 		// Returns time of the last modification of file.
-		ND_ static Time_t  LastWriteTime (const Path &p)				__NE___;
+		ND_ static Time_t  LastWriteTime (const Path &p)										__NE___;
 
 		// Set time of the last modification of file.
-		static bool  SetLastWriteTime (const Path &p, Time_t t)			__NE___;
+		static bool  SetLastWriteTime (const Path &p, Time_t t)									__NE___;
 
 		// Returns absolute path.
-		ND_ static Path  ToAbsolute (const Path &p)						__NE___;
+		ND_ static Path  ToAbsolute (const Path &p)												__NE___;
 
 		// Returns relative path.
-		ND_ static Path  ToRelative (const Path &p, const Path &base)	__NE___;
+		ND_ static Path  ToRelative (const Path &p, const Path &base)							__NE___;
+
+		// Check that 'p' is subpath of 'base' or equal to 'base'.
+		// Optionally return subpath in 'outSubPath'.
+		ND_ static bool  IsSubPath (const Path &p, const Path &base, OUT Path* outSubPath = null)__NE___;
 
 		// Returns path without /../
-		ND_ static Path  Normalize (const Path &p)						__NE___;
+		ND_ static Path  Normalize (const Path &p)												__NE___;
 
 		// Enumerate all files in directory.
-		ND_ static auto  Enum (const Path &p)							__NE___;
+		ND_ static auto  Enum (const Path &p)													__NE___;
 
 		// Enumerate all files in directory and its subdirectories.
-		ND_ static auto  EnumRecursive (const Path &p)					__NE___;
+		ND_ static auto  EnumRecursive (const Path &p)											__NE___;
 
 		// Copy file. Returns 'false' if failed.
 		// Will override existing file.
-		static bool  CopyFile (const Path &from, const Path &to)		__NE___;
+		static bool  CopyFile (const Path &from, const Path &to)								__NE___;
 
 		// Recursive copy directory. Returns 'false' if failed.
 		// Will override existing files.
-		static bool  CopyDirectory (const Path &from, const Path &to)	__NE___;
+		static bool  CopyDirectory (const Path &from, const Path &to)							__NE___;
 
 		// Recursive merge directories. Returns 'false' if failed.
-		static bool  MergeDirectory (const Path &from, const Path &to, ECopyOpt opt) __NE___;
+		static bool  MergeDirectory (const Path &from, const Path &to, ECopyOpt opt)			__NE___;
 
 		// Move or rename filesystem object (file/directory).
-		static bool  Rename (const Path &oldName, const Path &newName)	__NE___;
+		static bool  Rename (const Path &oldName, const Path &newName)							__NE___;
 
 		// Returns file size or 0 on error.
-		ND_ static Bytes  FileSize (const Path &p)						__NE___;
+		ND_ static Bytes  FileSize (const Path &p)												__NE___;
 
 		// Writes file system capacity and available space.
-		static bool  GetSpace (const Path &path, OUT Bytes &total, OUT Bytes &available) __NE___;
+		static bool  GetSpace (const Path &path, OUT Bytes &total, OUT Bytes &available)		__NE___;
 
 		// Replace unsupported symbols.
 		// Returns 'true' if name is modified.
 		template <typename T>
-		static bool  ValidateFileName (INOUT BasicString<T> &name)		__NE___;
+		static bool  ValidateFileName (INOUT BasicString<T> &name)								__NE___;
 
 		// Calculate hash of path.
-		ND_ static HashVal  Hash (const Path &p)						__NE___	{ ASSERT( p.is_absolute() );  return HashVal{ std::filesystem::hash_value( p )}; }
+		ND_ static HashVal  Hash (const Path &p)												__NE___	{ ASSERT( p.is_absolute() );  return HashVal{ std::filesystem::hash_value( p )}; }
 
 
 	// utils
@@ -164,12 +168,20 @@ namespace AE::Base
 		template <typename FileType, typename ModeType>
 		ND_ static RC<FileType>  OpenUnusedFile (INOUT Path &p, ModeType mode, uint maxAttempts = 100)						__NE___;
 
+		ND_ static Path  ReplaceFirstFolder (const Path &input, const Path &replacement)									__NE___;
+
 
 	// platform dependent
 	public:
 	  #ifdef AE_PLATFORM_WINDOWS
 		// Returns path like a 'C:\Windows'
 		ND_ static Path  GetWindowsPath ()								__NE___;
+
+		ND_ static Array<Path>	GetLogicalDrives ()						__NE___;
+	  #endif
+
+	  #ifdef AE_PLATFORM_LINUX
+		ND_ static Array<Path>	GetMountPoints ()						__NE___;
 	  #endif
 
 	private:

@@ -1,18 +1,9 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #include "UnitTest_Common.h"
 
 namespace
 {
-	static void  CheckIntrinsics ()
-	{
-		auto&	info = CpuArchInfo::Get();
-		//AE_LOGI( info.Print() );
-
-		TEST( info.CheckCompilationOptions() );
-	}
-
-
 	static void  IsIntersects_Test1 ()
 	{
 		TEST( IsIntersects( 2, 6, 5, 8 ));
@@ -161,6 +152,18 @@ namespace
 	}
 
 
+	static void  Float32_Test2 ()
+	{
+		float	f1	= 0.534633f;
+		float	md	= Float32Bits{ f1 }.MinDelta();
+		float	n	= Float32Bits{ f1 }.Next();
+		float	p	= Float32Bits{ f1 }.Prev();
+
+		TEST( f1 + md == n );
+		TEST( f1 - md == p );
+	}
+
+
 	static void  Float64_Test1 ()
 	{
 		double	f1	= Float64Bits::SmallestSubnormal().AsFloatPoint();
@@ -264,6 +267,18 @@ namespace
 		TEST( h7.AsInteger() == 0xFC00 );
 	  #ifndef AE_CFG_RELEASE
 		TEST( IsInfinity( hf7 ));
+	  #endif
+
+		const float		f8		= float(-2147483647);
+		const half		h8		= half{}.SetFast(f8);
+		const float		hf8		= float{h8.GetFast()};
+		TEST( not h8.IsNaN() );
+		TEST( h8.IsInfinity() );
+		TEST( h8 == half::NegInf() );
+		TEST( hf8 < 0.f );
+		TEST( h8.AsInteger() == 0xFC00 );
+	  #ifndef AE_CFG_RELEASE
+		TEST( IsInfinity( hf8 ));
 	  #endif
 	}
 
@@ -376,48 +391,48 @@ namespace
 	}
 
 
-	static void  UFloat8_Test1 ()
+	static void  UFloatM4E4_Test1 ()
 	{
-		StaticAssert( IsAnyScalar<UFloat8> );
-		StaticAssert( IsAnyFloatPoint<UFloat8> );
+		StaticAssert( IsAnyScalar<UFloatM4E4> );
+		StaticAssert( IsAnyFloatPoint<UFloatM4E4> );
 
-		const UFloat8	a1		{1.0f};
+		const UFloatM4E4	a1		{1.0f};
 		const float		af1		= float{a1};
-		TEST( Equal( af1, 1.0f, UFloat8::Epsilon() ));
+		TEST( Equal( af1, 1.0f, UFloatM4E4::Epsilon() ));
 
-		const UFloat8	a2		{0.0f};
+		const UFloatM4E4	a2		{0.0f};
 		const float		af2		= float{a2};
-		TEST( Equal( af2, 0.0f, UFloat8::Epsilon() ));
+		TEST( Equal( af2, 0.0f, UFloatM4E4::Epsilon() ));
 
-		const UFloat8	a4		{4.0f};
+		const UFloatM4E4	a4		{4.0f};
 		const float		af4		= float{a4};
-		TEST( Equal( af4, 4.0f, UFloat8::Epsilon() ));
+		TEST( Equal( af4, 4.0f, UFloatM4E4::Epsilon() ));
 		TEST( a4.AsInteger() == 0x90 );
 
-		const UFloat8	a6		{UFloat8::Max()};
+		const UFloatM4E4	a6		{UFloatM4E4::Max()};
 		const float		af6		= float{a6};
-		TEST( Equal( af6, 248.0f, UFloat8::Epsilon() ));
+		TEST( Equal( af6, 248.0f, UFloatM4E4::Epsilon() ));
 
-		const UFloat8	a7		{UFloat8::Min()};
+		const UFloatM4E4	a7		{UFloatM4E4::Min()};
 		const float		af7		= float{a7};
-		TEST( Equal( af7, 1.52587891e-5f, UFloat8::Epsilon() ));
+		TEST( Equal( af7, 1.52587891e-5f, UFloatM4E4::Epsilon() ));
 
-		const UFloat8	a8		{1.1f};
+		const UFloatM4E4	a8		{1.1f};
 		const float		af8		= float{a8};
-		TEST( Equal( af8, 1.125f, UFloat8::Epsilon() ));
+		TEST( Equal( af8, 1.125f, UFloatM4E4::Epsilon() ));
 		TEST( a8.AsInteger() == 0x72 );
 
-		const UFloat8	a9		{1.2f};
+		const UFloatM4E4	a9		{1.2f};
 		const float		af9		= float{a9};
-		TEST( Equal( af9, 1.1875f, UFloat8::Epsilon() ));
+		TEST( Equal( af9, 1.1875f, UFloatM4E4::Epsilon() ));
 		TEST( a9.AsInteger() == 0x73 );
 
 	  #ifndef AE_CFG_RELEASE
-		const UFloat8	a10		{UFloat8::Inf()};
+		const UFloatM4E4	a10		{UFloatM4E4::Inf()};
 		const float		af10	= float{a10};
 		TEST( IsInfinity( af10 ));
 
-		const UFloat8	a11		{UFloat8::NaN()};
+		const UFloatM4E4	a11		{UFloatM4E4::NaN()};
 		const float		af11	= float{a11};
 		TEST( IsNaN( af11 ));
 	  #endif
@@ -616,8 +631,6 @@ namespace
 
 extern void UnitTest_Math ()
 {
-	CheckIntrinsics();
-
 	IsIntersects_Test1();
 
 	Wrap_Test1();
@@ -627,10 +640,11 @@ extern void UnitTest_Math ()
 	MirroredWrap_Test2();
 
 	Float32_Test1();
+	Float32_Test2();
 	Float64_Test1();
 	Float16_Test1();
 	UFloat16_Test1();
-	UFloat8_Test1();
+	UFloatM4E4_Test1();
 	BFloat16_Test1();
 
 	EqualWithPercent_Test1();

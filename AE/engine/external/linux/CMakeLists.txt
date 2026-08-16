@@ -1,7 +1,9 @@
-# Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+# Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 set( AE_ENABLE_KTX	 				OFF CACHE INTERNAL "" FORCE )
 set( AE_ENABLE_OPENXR				OFF CACHE INTERNAL "" FORCE )
+set( AE_ENABLE_FFMPEG				OFF CACHE INTERNAL "" FORCE )
+set( AE_ENABLE_STABLE_DIFFUSION		OFF CACHE INTERNAL "" FORCE )
 
 #----------------------------------------------------------
 

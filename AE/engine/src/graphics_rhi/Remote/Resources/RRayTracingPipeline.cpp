@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #ifdef AE_ENABLE_REMOTE_GRAPHICS
 # include "graphics_rhi/Remote/Resources/RRayTracingPipeline.h"
@@ -35,6 +35,7 @@ namespace AE::Graphics
 		_dynamicState			= ci.ref.dynamicState;
 		_options				= ci.ref.options;
 		_shaderGroupHandleSize	= ci.ref.shaderGroupHandleSize;
+		_activeStages			= ci.ref.activeStages;
 		_nameToHandle			= RVRef(ci.ref.nameToHandle);
 		_groupHandles			= RVRef(ci.ref.groupHandles);
 		_releaseRef				= ci.releaseRef;
@@ -63,6 +64,7 @@ namespace AE::Graphics
 		_dynamicState			= Default;
 		_options				= Default;
 		_shaderGroupHandleSize	= 0_b;
+		_activeStages			= Default;
 		_nameToHandle.clear();
 		_groupHandles.clear();
 		_dbgTrace.clear();

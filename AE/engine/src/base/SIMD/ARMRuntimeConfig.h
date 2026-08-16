@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 /*
 	docs:
 		arm64 FPCR https://arm.jonpalmisc.com/2023_09_sysreg/AArch64-fpcr
@@ -7,6 +7,9 @@
 */
 
 #pragma once
+
+#include "base/Utils/Helpers.h"
+#include "base/Math/Byte.h"
 
 namespace AE::Base
 {
@@ -40,7 +43,7 @@ namespace AE::Base
 			Underflow	= 1 << 4,
 			Inexact		= 1 << 5,
 			IntSat		= 1 << 6,
-			_BITOPS_
+			_BITOPS_	= 0
 		};
 
 	  #ifdef AE_CPU_ARCH_ARM64
@@ -83,6 +86,14 @@ namespace AE::Base
 
 		ND_ static State			GetState					()					__NE___;
 			static void				SetState					(State)				__NE___;
+
+		// return size of native vector, not an alignment requirements.
+	  #if AE_SIMD_SVE
+		ND_ static Bytes			GetVectorLength ()								__NE___	{ return Bytes{ svcntb() }; }	// non-portable
+	  #endif
+	  #if AE_SIMD_SME
+		ND_ static Bytes			GetStreamingVectorLength ()						__NE___	{ return Bytes{ svcntsb() }; }	// non-portable
+	  #endif
 	};
 
 
@@ -306,7 +317,6 @@ namespace AE::Base
 				case ExceptionFlags::Underflow :	add |= 1u << 11;	break;
 				case ExceptionFlags::Inexact :		add |= 1u << 12;	break;
 				case ExceptionFlags::IntSat :
-                case ExceptionFlags::_BITOPS_ :
 				case ExceptionFlags::Unknown :		break;
 			}
 			switch_end

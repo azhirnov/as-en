@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #include "graphics_rhi/Public/ImageUtils.h"
 #include "graphics_rhi/Private/EnumUtils.h"
@@ -178,7 +178,7 @@ namespace AE::Graphics
 				break;
 
 			case _EResState::General :
-			case _EResState::_AccessCount :
+			case _EResState::_Count :
 				break;
 		}
 		switch_end
@@ -237,6 +237,7 @@ namespace AE::Graphics
 				case EShaderStages::PreRasterizationStages :
 				case EShaderStages::PostRasterizationStages :
 				case EShaderStages::Unknown :
+				case EShaderStages::_Last :
 				default_unlikely :				RETURN_ERR( "unknown shader type" );
 			}
 			switch_end
@@ -310,7 +311,7 @@ namespace AE::Graphics
 			case _EResState::General :
 				return false;
 
-			case _EResState::_AccessCount :
+			case _EResState::_Count :
 				break;
 		}
 		switch_end
@@ -711,52 +712,50 @@ namespace AE::Graphics
 
 		const auto&	src_fmt	 = EPixelFormat_GetInfo( srcFormat );
 
-		if ( src_fmt.IsCompressed() )
+		if ( not src_fmt.IsCompressed() )
+			return srcFormat;
+
+		ASSERT( src_fmt.srcBitsPerPix > 0 );
+
+		const uint				src_bpc			= Max( 8u, src_fmt.UncompressedBitsPerChannel() );
+		const uint				src_channels	= (not allowRGB and src_fmt.channels == 3) ? 4 : src_fmt.channels;
+		const PixelFormatInfo*	best_match		= null;
+		uint					best_match_bpc	= UMax;
+
+		for (uint i = 0; i < uint(EPixelFormat::_Count); ++i)
 		{
-			ASSERT( src_fmt.srcBitsPerPix > 0 );
+			const auto&	fmt = EPixelFormat_GetInfo( EPixelFormat(i) );
 
-			const uint				src_bpc			= Max( 8u, src_fmt.UncompressedBitsPerChannel() );
-			const uint				src_channels	= (not allowRGB and src_fmt.channels == 3) ? 4 : src_fmt.channels;
-			const PixelFormatInfo*	best_match		= null;
-			uint					best_match_bpc	= UMax;
+			if ( fmt.IsCompressed() or fmt.IsMultiPlanar() )
+				break;
 
-			for (uint i = 0; i < uint(EPixelFormat::_Count); ++i)
+			if ( fmt.HasDepthOrStencil() )
+				break;
+
+			if ( fmt.channels != src_channels )
+				continue;
+
+			if ( not AllBits( src_fmt.valueType, fmt.valueType, int_mask ))
+				continue;
+
+			if ( AnyBits( src_fmt.valueType, float_mask ) != AnyBits( fmt.valueType, float_mask ))
+				continue;
+
+			const uint	bpc = fmt.BitsPerChannel();
+			if ( bpc >= src_bpc )
 			{
-				const auto&	fmt = EPixelFormat_GetInfo( EPixelFormat(i) );
-
-				if ( fmt.IsCompressed() or fmt.IsMultiPlanar() )
-					continue;
-
-				if ( fmt.HasDepthOrStencil() )
-					continue;
-
-				if ( fmt.channels != src_channels )
-					continue;
-
-				if ( not AllBits( src_fmt.valueType, fmt.valueType, int_mask ))
-					continue;
-
-				if ( AnyBits( src_fmt.valueType, float_mask ) != AnyBits( fmt.valueType, float_mask ))
-					continue;
-
-				const uint	bpc = fmt.BitsPerChannel();
-				if ( bpc >= src_bpc )
+				if ( bpc < best_match_bpc )
 				{
-					if ( bpc < best_match_bpc )
-					{
-						best_match		= &fmt;
-						best_match_bpc	= bpc;
-					}
+					best_match		= &fmt;
+					best_match_bpc	= bpc;
 				}
 			}
-
-			if ( best_match != null )
-				return best_match->format;
-			else
-				return Default;
 		}
+
+		if ( best_match != null )
+			return best_match->format;
 		else
-			return srcFormat;
+			return Default;
 	}
 
 /*

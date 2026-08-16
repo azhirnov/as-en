@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #include "Scripting/ScriptExe.h"
 
@@ -537,8 +537,8 @@ namespace
 		if ( out_pplns.empty() )
 		{
 			String	str = "Can't find pipelines with states:";
-			str << "\n  wireframe: " << ToString(settings.wireframe);
-			str << "\n  cullMode:  " << ToString(settings.cullMode);
+			str << "\n  wireframe: " << ToString( settings.wireframe );
+			str << "\n  cullMode:  " << ToString( settings.cullMode );
 			str << "\n  blendMode: " << (settings.blendMode ?
 										 (String{ToString(settings.blendMode.src)} << " (" << ToString(settings.blendMode.op) << ") " << ToString(settings.blendMode.dst)) :
 										 "none"s);

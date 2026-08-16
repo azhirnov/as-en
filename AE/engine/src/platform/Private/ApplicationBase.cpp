@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #include "platform/Private/ApplicationBase.h"
 
@@ -227,15 +227,58 @@ namespace AE::App
 	{
 		switch_enum( type )
 		{
-			case EAppStorage::Builtin :			return "builtin/";
-			case EAppStorage::Cache :			return "cache/";
-			case EAppStorage::ExternalCache :	return "ext-cache/";
-			case EAppStorage::UserData :		return "user-data/";
-			case EAppStorage::SharedData :		return "shared-data/";
+			case EAppStorage::Builtin :			return "builtin:/";
+			case EAppStorage::Cache :			return "cache:/";
+			case EAppStorage::ExternalCache :	return "ext-cache:/";
+			case EAppStorage::UserData :		return "user-data:/";
+			case EAppStorage::SharedData :		return "shared-data:/";
 			case EAppStorage::_Count :
 			default :							return {};
 		}
 		switch_end
+	}
+
+/*
+=================================================
+	MountStorage
+=================================================
+*/
+	bool  ApplicationBase::MountStorage (EAppStorage type) __NE___
+	{
+		if ( HasBit( _mountStorages.get(), uint(type) ))
+			return true;  // already mount
+
+		auto	storage = OpenStorage( type );
+		CHECK_ERR( storage );
+
+		_mountStorages.lock();
+
+		uint	bits = _mountStorages.get();
+
+		if ( HasBit( bits, uint(type) ))
+		{
+			_mountStorages.unlock();
+			return true;  // mount in another thread
+		}
+
+		VFS::StorageName	name;
+		switch_enum( type )
+		{
+			case EAppStorage::Builtin :			name = Storage_Builtin;			break;
+			case EAppStorage::Cache :			name = Storage_Cache;			break;
+			case EAppStorage::ExternalCache :	name = Storage_ExternalCache;	break;
+			case EAppStorage::UserData :		name = Storage_UserData;		break;
+			case EAppStorage::SharedData :		name = Storage_SharedData;		break;
+			case EAppStorage::_Count :			break;
+		}
+		switch_end
+
+		bool	res = GetVFS().AddStorage( name, RVRef(storage) );
+
+		bits = SetBit( bits, res, uint(type) );
+
+		_mountStorages.UnlockAndSet( bits );
+		return res;
 	}
 //-----------------------------------------------------------------------------
 

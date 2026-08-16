@@ -1,4 +1,4 @@
-# Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+# Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 if ( (TARGET "Graphics") AND (${AE_ENABLE_PROFILER}) )
 

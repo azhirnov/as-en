@@ -6,8 +6,16 @@ mkdir "build"
 mkdir "temp"
 git clone --branch "release-1.1.50" "https://github.com/KhronosGroup/OpenXR-SDK-Source.git" "temp/OpenXR-SDK-Source"
 cp "openxr_CMakeLists.txt" "temp/CMakeLists.txt"
-cmake -S temp -B build  -DAE_ENABLE_COMPILER_WARNINGS=OFF -DCMAKE_BUILD_TYPE=Release -DCMAKE_OSX_DEPLOYMENT_TARGET=10.15 -DCMAKE_OSX_ARCHITECTURES=arm64 -DCMAKE_INSTALL_PREFIX="../../../../../AE-Bin/external/macos-arm64-clang17/OpenXR" 
-cmake --build build --config Release --target install -j 6
+cmake -S temp -B build  -DAE_ENABLE_COMPILER_WARNINGS=OFF -DCMAKE_BUILD_TYPE=Release -DCMAKE_OSX_DEPLOYMENT_TARGET=10.15 -DCMAKE_OSX_ARCHITECTURES=arm64 -DCMAKE_INSTALL_PREFIX="../../../../../AE-Bin/external/macos-arm64-clang17/OpenXR"  || pauseOnError
+cmake --build build --config Release --target install -j 6 || pauseOnError
 rm -rf "temp"
 rm -rf "build"
 read -p "press any key..."
+
+exit 0
+
+pauseOnError() {
+	echo -e "\033[31m*** failed ***\033[0m"
+	read -p "press any key..."
+	exit 1
+}

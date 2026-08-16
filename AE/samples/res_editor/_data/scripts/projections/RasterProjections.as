@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 /*
 	Example of rasterization compatible projections: paraboloid, dual paraboloid.
 	Also see [RenderToCubemap](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/scripts/projections/RenderToCubemap.as).

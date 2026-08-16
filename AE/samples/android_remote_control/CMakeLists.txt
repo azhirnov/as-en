@@ -1,4 +1,4 @@
-# Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+# Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 if (NOT ${AE_ENABLE_REMOTE_GRAPHICS})
 	file( GLOB_RECURSE CPP_SOURCES "*.*" )

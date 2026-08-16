@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 /*
 	Prefer to use 'Bitfield' instead of 'BitSet' because on different implementations
 	'BitSet' has different size (min 8 bytes on clang and min 4 bytes on MSVC).

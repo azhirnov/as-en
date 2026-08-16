@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #ifdef AE_ENABLE_VULKAN
 # include "graphics_rhi/Vulkan/Resources/VMeshPipeline.h"
@@ -16,7 +16,6 @@ namespace AE::Graphics
 */
 	VMeshPipeline::~VMeshPipeline () __NE___
 	{
-		DRC_EXLOCK( _drCheck );
 		CHECK( not _handle );
 	}
 
@@ -27,8 +26,6 @@ namespace AE::Graphics
 */
 	bool  VMeshPipeline::Create (ResourceManager &resMngr, const CreateInfo &ci) __NE___
 	{
-		DRC_EXLOCK( _drCheck );
-
 		CHECK_ERR( not ci.shaders.empty() );
 		CHECK_ERR( (ci.specCI.dynamicState & ~EPipelineDynamicState::GraphicsPipelineMask) == Zero );
 		CHECK_ERR( not _handle and not _layout );
@@ -41,7 +38,6 @@ namespace AE::Graphics
 		CHECK_ERR( ppln_layout != null );
 		GRES_CHECK( resMngr.GetFeatureSet().IsSupported( render_state ));
 
-		_layout = ppln_layout->Handle();
 		_layoutId.Attach( ci.layoutId );
 
 		auto&					dev			= resMngr.GetDevice();
@@ -171,6 +167,7 @@ namespace AE::Graphics
 			}
 		}};
 
+		ExtractActiveStages( OUT _activeStages, ci.shaders );
 		CHECK_ERR( SetShaderStages( OUT pipeline_info.pStages, OUT pipeline_info.stageCount, ci.shaders, ci.specCI.specialization, allocator, AddCustomSpec ));
 		CHECK_ERR( SetDynamicState( OUT dynamic_state_info, ci.specCI.dynamicState, true, allocator ));
 		SetMultisamplingState( OUT multisample_info, render_state.multisample );
@@ -195,7 +192,6 @@ namespace AE::Graphics
 		pipeline_info.pMultisampleState		= &multisample_info;
 		pipeline_info.pVertexInputState		= &vertex_input_info;
 		pipeline_info.pDynamicState			= &dynamic_state_info;
-		pipeline_info.layout				= _layout;
 		pipeline_info.renderPass			= render_pass->Handle();
 		pipeline_info.subpass				= subpass_idx;
 
@@ -213,6 +209,8 @@ namespace AE::Graphics
 		{
 			flags2_ci.flags |= VK_PIPELINE_CREATE_2_DISALLOW_OPACITY_MICROMAP_BIT_ARM;
 		}
+
+		CHECK_ERR( SetPipelineLayout( ext, INOUT pipeline_info, INOUT flags2_ci.flags, OUT _layout, *ppln_layout ));
 
 		if ( ext.maintenance5 ){
 			p_next.Add( flags2_ci );
@@ -248,8 +246,6 @@ namespace AE::Graphics
 */
 	void  VMeshPipeline::Destroy (ResourceManager &resMngr) __NE___
 	{
-		DRC_EXLOCK( _drCheck );
-
 		auto&	dev = resMngr.GetDevice();
 
 		if ( _handle != Default )
@@ -266,6 +262,7 @@ namespace AE::Graphics
 		_options		= Default;
 		_subpassIndex	= UMax;
 		_dbgTrace		= Default;
+		_activeStages	= Default;
 
 		GFX_DBG_ONLY( _debugName.clear() );
 	}
@@ -278,7 +275,6 @@ namespace AE::Graphics
 	bool  VMeshPipeline::ParseShaderTrace (const void* ptr, Bytes maxSize, ShaderDebugger::ELogFormat format, OUT Array<String> &result) C_NE___
 	{
 		result.clear();
-		DRC_SHAREDLOCK( _drCheck );
 
 		for (auto& trace : _dbgTrace)
 		{
@@ -297,7 +293,6 @@ namespace AE::Graphics
 	bool  VMeshPipeline::ParseShaderAsserts (const void* ptr, Bytes maxSize, ShaderDebugger::ELogFormat format, OUT Array<String> &result) C_NE___
 	{
 		result.clear();
-		DRC_SHAREDLOCK( _drCheck );
 
 		for (auto& trace : _dbgTrace)
 		{

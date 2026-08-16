@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #pragma once
 
@@ -26,7 +26,7 @@ namespace AE::App
 		//EdgeSwipe,		// params: f2(0..1, side)
 
 		_Count,
-		Unknown	= 0xF,
+		Unknown	= _Count
 	};
 
 
@@ -37,7 +37,7 @@ namespace AE::App
 		End,		// used for single event too
 		Cancel,		// for Android
 		Outside,	// for Android
-		Unknown	= 0xF
+		_Count
 	};
 
 
@@ -45,11 +45,17 @@ namespace AE::App
 	{
 		Builtin,		// read-only
 		Cache,			// read / write / execute
-		ExternalCache,	// read / write
+		ExternalCache,	// read / write		// TODO: shared cache?
 		UserData,		// read / write
 		SharedData,		// read / write, shared between apps ('Documents' on Windows, '/sdcard' on Android)
 		//AppData
 		_Count
 	};
+
+	static constexpr VFS::StorageName	Storage_Builtin			{"builtin:/"};
+	static constexpr VFS::StorageName	Storage_Cache			{"cache:/"};
+	static constexpr VFS::StorageName	Storage_ExternalCache	{"ext-cache:/"};
+	static constexpr VFS::StorageName	Storage_SharedData		{"shared-data:/"};
+	static constexpr VFS::StorageName	Storage_UserData		{"user-data:/"};
 
 } // AE::App

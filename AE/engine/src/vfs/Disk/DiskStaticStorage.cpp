@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #include "threading/DataSource/FileAsyncDataSource.h"
 
@@ -257,6 +257,24 @@ namespace AE::VFS
 			result = file;
 
 		return result != null;
+	}
+
+/*
+=================================================
+	_GetPath
+=================================================
+*/
+	bool  DiskStaticStorage::_GetPath (FileName::Ref name, OUT Path &outPath) C_NE___
+	{
+		DRC_SHAREDLOCK( _drCheck );
+
+		auto	it = _map.find( FileName::Optimized_t{name} );
+		if ( it != _map.end() )
+		{
+			outPath = Path{_folder} / it->second;
+			return true;
+		}
+		return false;
 	}
 //-----------------------------------------------------------------------------
 

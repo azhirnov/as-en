@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #pragma once
 
@@ -29,16 +29,17 @@ namespace AE::Graphics
 
 	// methods
 	public:
-		RDescriptorSet ()									__NE___	{}
-		~RDescriptorSet ()									__NE___;
+		RDescriptorSet ()										__NE___	{}
+		~RDescriptorSet ()										__NE___;
 
-		ND_ bool  Create (ResourceManager &, RmDescriptorSetID, DescriptorSetLayoutID, DescriptorAllocatorPtr, StringView dbgName)	__NE___;
-			void  Destroy (ResourceManager &)																							__NE___;
+		ND_ bool  Create (ResourceManager &, RmDescriptorSetID, DescriptorSetLayoutID,
+						  DescriptorAllocatorPtr, StringView)	__NE___;
+			void  Destroy (ResourceManager &)					__NE___;
 
-		ND_ DescriptorSetLayoutID		LayoutId ()			C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _layoutId; }
-		ND_ RmDescriptorSetID			Handle ()			C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _descSetId; }
+		ND_ DescriptorSetLayoutID		LayoutId ()				C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _layoutId; }
+		ND_ RmDescriptorSetID			Handle ()				C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _descSetId; }
 
-		GFX_DBG_ONLY( ND_ StringView	GetDebugName ()		C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _debugName; })
+		GFX_DBG_ONLY( ND_ StringView	GetDebugName ()			C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _debugName; })
 	};
 
 

@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #pragma once
 
@@ -468,6 +468,32 @@ namespace AE::Base
 						_src < static_cast<From>(MinValue<To>())	? MinValue<To>() :
 																	  static_cast<To>(_src);
 			}
+		}
+	};
+
+/*
+=================================================
+	LimitCheckCast
+=================================================
+*/
+	template <typename From>
+	struct LimitCheckCast
+	{
+	private:
+		const From	_src;
+
+	public:
+		StaticAssert( IsAnyInteger<From> );
+		__Cx__ explicit LimitCheckCast (const From &src) __NE___ : _src{src} {}
+
+		template <typename To>
+		  requires( IsAnyInteger<To> )
+		ND_ operator To () C_NE___
+		{
+			To	dst;
+			ASSERT( CastAndCheck( OUT dst, _src ));
+
+			return LimitCast{_src};
 		}
 	};
 

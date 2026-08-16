@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #pragma once
 
@@ -51,33 +51,5 @@ namespace AE::Base
 
 		Default		= AllowSleep,
 	};
-//-----------------------------------------------------------------------------
-
-
-#ifdef AE_ENABLE_LOGS
-/*
-=================================================
-	ToString (EOperationSystem)
-=================================================
-*/
-	Nd__In StringView  ToString (EOperationSystem value)
-	{
-		switch_enum( value )
-		{
-			case EOperationSystem::Windows :	return "Windows";
-			case EOperationSystem::Android :	return "Android";
-			case EOperationSystem::Linux :		return "Linux";
-			case EOperationSystem::MacOS :		return "MacOS";
-			case EOperationSystem::iOS :		return "iOS";
-			case EOperationSystem::BSD :		return "BSD";
-			case EOperationSystem::Emscripten :	return "Emscripten";
-			case EOperationSystem::_Count :
-			case EOperationSystem::Unknown :	break;
-		}
-		switch_end
-		return Default;
-	}
-
-#endif // AE_ENABLE_LOGS
 
 } // AE::Base

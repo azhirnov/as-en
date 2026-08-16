@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #ifdef AE_ENABLE_VULKAN
 # include "graphics_rhi/Vulkan/Resources/VRTShaderBindingTable.h"
@@ -14,7 +14,6 @@ namespace AE::Graphics
 */
 	VRTShaderBindingTable::~VRTShaderBindingTable () __NE___
 	{
-		DRC_EXLOCK( _drCheck );
 		ASSERT( _bufferId == Default );
 		ASSERT( _pipelineId == Default );
 	}
@@ -26,8 +25,6 @@ namespace AE::Graphics
 */
 	bool  VRTShaderBindingTable::Create (ResourceManager &resMngr, const CreateInfo &ci) __NE___
 	{
-		DRC_EXLOCK( _drCheck );
-
 		CHECK_ERR( _bufferId == Default and _pipelineId == Default );
 		CHECK_ERR( resMngr.GetFeatureSet().rayTracingPipeline == FeatureSet::EFeature::RequireTrue );
 
@@ -49,8 +46,6 @@ namespace AE::Graphics
 */
 	void  VRTShaderBindingTable::Destroy (ResourceManager &resMngr) __NE___
 	{
-		DRC_EXLOCK( _drCheck );
-
 		resMngr.ImmediatelyRelease( INOUT _bufferId );
 		resMngr.ImmediatelyRelease( INOUT _pipelineId );
 

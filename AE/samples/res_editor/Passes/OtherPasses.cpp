@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #include "graphics_test/GraphicsTest.h"
 
@@ -1388,7 +1388,7 @@ namespace AE::ResEditor
 		if_unlikely( not _IsEnabled() )
 			return true;
 
-		DirectCtx::Compute	ctx{ pd.rtask, RVRef(pd.cmdbuf), DebugLabel{"ConvCoopMatrix", HtmlColor::Gray} };
+		DirectCtx::Transfer		ctx{ pd.rtask, RVRef(pd.cmdbuf), DebugLabel{"ConvCoopMatrix", HtmlColor::Gray} };
 
 		ConvertCoopMatrixCmd2	cmd = _cmd;
 

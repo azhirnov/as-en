@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 /*
 	Dual filter blur
 	https://www.froyok.fr/blog/2024-01-breakdown-syndicate/resources/presentations/siggraph2015-mmg-marius-slides.pdf

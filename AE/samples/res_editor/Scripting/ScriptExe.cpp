@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #include "Scripting/ScriptExe.h"
 #include "Passes/BuildRTAS.h"
@@ -1422,6 +1422,11 @@ namespace {
 		tmp->fs = GraphicsScheduler().GetFeatureSet();
 		return tmp.Detach();
 	}
+
+	static uint  _EPixelFormat_BytesPerPixel (EPixelFormat fmt)
+	{
+		return uint{EPixelFormat_GetInfo( fmt ).BytesPerPixel()};
+	}
 }
 
 /*
@@ -1474,10 +1479,7 @@ namespace {
 		}{
 			EnumBinder<ERenderLayer>	binder{ se };
 			binder.Create();
-			binder.AddValue( "Opaque",		ERenderLayer::Opaque );
-			binder.AddValue( "Translucent",	ERenderLayer::Translucent );
-			binder.AddValue( "PostProcess",	ERenderLayer::PostProcess );
-			StaticAssert( uint(ERenderLayer::_Count) == 3 );
+			binder.BindAll();
 		}
 
 		_Bind_DbgViewFlags( se );
@@ -1717,6 +1719,7 @@ namespace {
 		AS_GLOBAL_FN( se, _Supports_StorageImageAtomicFormat,				"Supports_StorageImageAtomicFormat",{} );
 		AS_GLOBAL_FN( se, _GetSubgroupSize,									"GetSubgroupSize",					{} );
 		AS_GLOBAL_FN( se, _GetFeatureSet,									"GetFeatureSet",					{} );
+		AS_GLOBAL_FN( se, _EPixelFormat_BytesPerPixel,						"EPixelFormat_BytesPerPixel",		{} );
 
 		// TODO:
 		//	PresentVR( left, left_layer, left_mipmap,  right, right_layer, right_mipmap )
@@ -1738,19 +1741,7 @@ namespace {
 	{
 		EnumBinder<DebugView::EFlags>	binder {se};
 		binder.Create();
-		switch_enum( DebugView::EFlags::_Count )
-		{
-			case DebugView::EFlags::_Count :
-			#define CASE( _name_ )	case DebugView::EFlags::_name_ : binder.AddValue( #_name_, DebugView::EFlags::_name_ );
-			CASE( NoCopy )
-			CASE( Copy )
-			CASE( Histogram )
-			CASE( LinearDepth )
-			CASE( Stencil )
-			#undef CASE
-			default : break;
-		}
-		switch_end
+		binder.BindAll();
 	}
 
 /*
@@ -1762,10 +1753,7 @@ namespace {
 	{
 		EnumBinder<PassGroup::EFlags>	binder {se};
 		binder.Create();
-		binder.AddValue( "RunOnce",					PassGroup::EFlags::RunOnce );
-		binder.AddValue( "OnRequest",				PassGroup::EFlags::OnRequest );
-		binder.AddValue( "RunOnce_AfterLoading",	PassGroup::EFlags::RunOnce_AfterLoading );
-		StaticAssert( uint(PassGroup::EFlags::_Count) == 4 );
+		binder.BindAll();
 	}
 
 /*
@@ -1808,18 +1796,11 @@ namespace {
 		{
 			EnumBinder<EAttachmentLoadOp>	binder{ se };
 			binder.Create();
-			binder.AddValue( "Invalidate",	EAttachmentLoadOp::Invalidate );
-			binder.AddValue( "Load",		EAttachmentLoadOp::Load );
-			binder.AddValue( "Clear",		EAttachmentLoadOp::Clear );
-			binder.AddValue( "None",		EAttachmentLoadOp::None );
-			StaticAssert( uint(EAttachmentLoadOp::_Count) == 4 );
+			binder.BindAll();
 		}{
 			EnumBinder<EAttachmentStoreOp>	binder{ se };
 			binder.Create();
-			binder.AddValue( "Invalidate",	EAttachmentStoreOp::Invalidate );
-			binder.AddValue( "Store",		EAttachmentStoreOp::Store );
-			binder.AddValue( "None",		EAttachmentStoreOp::None );
-			StaticAssert( uint(EAttachmentStoreOp::_Count) == 4 );
+			binder.BindAll();
 		}
 	}
 

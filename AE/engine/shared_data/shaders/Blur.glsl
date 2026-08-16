@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 /*
 	Blur functions.
 
@@ -19,7 +19,7 @@ ND_ float4  Blur5v2 (gl::CombinedTex2D<float> image, float2 uv, float2 invImageD
 // single-pass version
 ND_ float4  Blur5Ref (gl::CombinedTex2D<float> image, const int2 center);									// 100 samples
 
-// single-pass with unsample blur
+// single-pass with upsample blur
 ND_ float4  DualFilterBlurPass1 (gl::CombinedTex2D<float> image, float2 uv, float2 off);
 ND_ float4  DualFilterBlurPass1 (gl::CombinedTex2D<float> image, float2 uv);
 ND_ float4  DualFilterBlurPass2 (gl::CombinedTex2D<float> image, float2 uv, float2 off);

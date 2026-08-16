@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #include "threading/TaskSystem/ThreadManager.h"
 #include "UnitTest_Common.h"
@@ -151,9 +151,6 @@ namespace
 
 extern void UnitTest_UDP ()
 {
-	IpAddress	router_ip;
-	TEST( SocketService::Instance().GetRouterIPAddress( OUT router_ip ));
-
 	UDP_Test1();
 	UDP_Test2();
 

@@ -1,11 +1,11 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 /*
 	128 bit SIMD
 */
 
 #pragma once
 
-#if AE_SIMD_SSE > 0
+#if AE_SIMD_SSE >= 20
 
 namespace AE::Base
 {
@@ -26,9 +26,10 @@ namespace AE::Base
 		using Native_t		= __m128;
 		using Array_t		= StaticArray< Scalar_t, count >;
 		using Ptr_t			= AlignedPtr< sizeof(Native_t) >;
+		using CPtr_t		= AlignedPtr< sizeof(Native_t), true >;
 		using SimdInt_t		= SimdInt4;
 		using SimdUInt_t	= SimdUInt4;
-		using Mask_t		= Base::_hidden_::MSBMask< count, 0 >;
+		using Mask_t		= MSBMask< count, 0 >;
 
 		StaticAssert( sizeof(Array_t) == sizeof(Native_t) );
 
@@ -91,7 +92,7 @@ namespace AE::Base
 		explicit SimdFloat4 (Scalar_t v)						__NE___	: _value{ _mm_set1_ps( v )} {}
 		explicit SimdFloat4 (const Native_t &v)					__NE___	: _value{ v } {}
 		explicit SimdFloat4 (const Scalar_t* ptr)				__NE___	: _value{ _mm_loadu_ps( GetNonNull( ptr ))} {}
-		explicit SimdFloat4 (const Ptr_t ptr)					__NE___	: _value{ _mm_load_ps( ptr.Cast<Scalar_t>() )} {}
+		explicit SimdFloat4 (const CPtr_t ptr)					__NE___	: _value{ _mm_load_ps( ptr.Cast<Scalar_t>() )} {}
 		explicit SimdFloat4 (const Bool4 &v)					__NE___ : _value{ _mm_and_ps( v.Ref(), _mm_set1_ps(1.f) )} {}	// convert to 0.0 or 1.0
 		SimdFloat4 (Scalar_t x, Scalar_t y, Scalar_t z, Scalar_t w)	__NE___	: _value{ _mm_set_ps( w, z, y, x )} {}
 
@@ -154,13 +155,19 @@ namespace AE::Base
 		ND_ Self	FastSqrt ()									C_NE___	{ return Self{ _mm_mul_ps( _value, _mm_rsqrt_ps( _value ))}; }	// approx (x / sqrt(x))
 		ND_ Self	FastDiv (const Self &rhs)					C_NE___	{ return Self{ _mm_mul_ps( _value, _mm_rcp_ps( rhs._value ))}; }// approx (a / b)
 
-		ND_ Self	Sum ()										C_NE___;	// vector with PrefixSum()
-		ND_ Self	Max ()										C_NE___;	// vector with PrefixMax()
-		ND_ Self	Min ()										C_NE___;	// vector with PrefixMin()
+		// sum/max of all lanes, result written to all lanes
+		ND_ Self		ReduceAdd ()							C_NE___;	// GLSL: subgroup.Add
+		ND_ Self		ReduceMax ()							C_NE___;	// GLSL: subgroup.Max
+		ND_ Self		ReduceMin ()							C_NE___;	// GLSL: subgroup.Min
 
-		ND_ Scalar_t	PrefixSum ()							C_NE___;
-		ND_ Scalar_t	PrefixMax ()							C_NE___;
-		ND_ Scalar_t	PrefixMin ()							C_NE___;
+		// helper
+		ND_ Scalar_t	ReduceAddScalar ()						C_NE___	{ return ReduceAdd().get<0>(); }
+		ND_ Scalar_t	ReduceMaxScalar ()						C_NE___	{ return ReduceMax().get<0>(); }
+		ND_ Scalar_t	ReduceMinScalar ()						C_NE___	{ return ReduceMin().get<0>(); }
+
+		// set 'simd[lane] += simd[lane-1]'
+		ND_ Self		InclusiveAdd ()							C_NE___;	// GLSL: subgroup.InclusiveAdd
+		ND_ Self		ExclusiveAdd ()							C_NE___;	// GLSL: subgroup.ExclusiveAdd
 
 		// operation with first element
 		ND_ Self	Scalar_Add (const Self &rhs)				C_NE___	{ return Self{ _mm_add_ss( _value, rhs._value )}; }				// { a0 + b0,				a1, a2, a3 }
@@ -177,7 +184,7 @@ namespace AE::Base
 		ND_ Bool4	GEqual   (const Self &rhs)					C_NE___	{ return Bool4{ _mm_cmpge_ps(  _value, rhs._value )}; }
 		ND_ Bool4	LEqual   (const Self &rhs)					C_NE___	{ return Bool4{ _mm_cmple_ps(  _value, rhs._value )}; }
 
-		ND_ Bool4	BitEqual (const Self&, EnabledBitCount acc)	C_NE___;
+		ND_ Bool4	BitEqual (const Self&, EnabledBitCount acc)	C_NE___;	// TODO
 
 		// compare and return 0.0 or 1.0
 		ND_ Self	EqualF    (const Self &rhs)					C_NE___	{ return Self{ _mm_and_ps( _mm_cmpeq_ps(  _value, rhs._value ), _mm_set1_ps(1.f) )}; }
@@ -316,8 +323,9 @@ namespace AE::Base
 		NdCe__ static bool  Has_PreciseDiv ()					{ return true; }
 		NdCe__ static bool  Has_ApproxReciprocal ()				{ return true; }
 		NdCe__ static bool  Has_ApproxInvSqrt ()				{ return true; }
-		NdCe__ static bool  Has_PrefixSum ()					{ return true; }
-		NdCe__ static bool  Has_PrefixMinMax ()					{ return true; }
+		NdCe__ static bool  Has_ReduceAdd ()					{ return Has_Swizzle(); }
+		NdCe__ static bool  Has_ReduceMinMax ()					{ return Has_Swizzle(); }
+		NdCe__ static bool  Has_InclusiveAdd ()					{ return true; }
 		NdCe__ static bool  Has_BitEqual ()						{ return false; }
 		NdCe__ static bool  Has_Swizzle ()						{ return true; }
 		NdCe__ static bool  Has_Shuffle ()						{ return true; }
@@ -362,9 +370,10 @@ namespace AE::Base
 		using Native_t		= __m128d;
 		using Array_t		= StaticArray< Scalar_t, count >;
 		using Ptr_t			= AlignedPtr< sizeof(Native_t) >;
+		using CPtr_t		= AlignedPtr< sizeof(Native_t), true >;
 		using SimdInt_t		= SimdLong2;
 		using SimdUInt_t	= SimdULong2;
-		using Mask_t		= Base::_hidden_::MSBMask< count, 0 >;
+		using Mask_t		= MSBMask< count, 0 >;
 
 		StaticAssert( sizeof(Array_t) == sizeof(Native_t) );
 
@@ -424,7 +433,7 @@ namespace AE::Base
 		explicit SimdDouble2 (Scalar_t v)						__NE___	: _value{ _mm_set1_pd( v )} {}
 		explicit SimdDouble2 (const Native_t &v)				__NE___	: _value{ v } {}
 		explicit SimdDouble2 (const Scalar_t* ptr)				__NE___	: _value{ _mm_loadu_pd( GetNonNull( ptr ))} {}
-		explicit SimdDouble2 (const Ptr_t ptr)					__NE___	: _value{ _mm_load_pd( ptr.Cast<Scalar_t>() )} {}
+		explicit SimdDouble2 (const CPtr_t ptr)					__NE___	: _value{ _mm_load_pd( ptr.Cast<Scalar_t>() )} {}
 		explicit SimdDouble2 (const Bool2 &v)					__NE___ : _value{ _mm_and_pd( v.Ref(), _mm_set1_pd(1.0) )} {}	// convert to 0.0 or 1.0
 		SimdDouble2 (Scalar_t x, Scalar_t y)					__NE___	: _value{ _mm_set_pd( y, x )} {}
 
@@ -465,13 +474,19 @@ namespace AE::Base
 		ND_ Self	Min (const Scalar_t rhs)					C_NE___	{ return Self{ _mm_min_pd( _value, _mm_set1_pd( rhs ))}; }
 		ND_ Self	Max (const Scalar_t rhs)					C_NE___	{ return Self{ _mm_max_pd( _value, _mm_set1_pd( rhs ))}; }
 
-		ND_ Self	Sum ()										C_NE___;	// vector with PrefixSum()
-		ND_ Self	Max ()										C_NE___;	// vector with PrefixMax()
-		ND_ Self	Min ()										C_NE___;	// vector with PrefixMin()
+		// sum/max of all lanes, result written to all lanes
+		ND_ Self		ReduceAdd ()							C_NE___;	// GLSL: subgroup.Add
+		ND_ Self		ReduceMax ()							C_NE___;	// GLSL: subgroup.Max
+		ND_ Self		ReduceMin ()							C_NE___;	// GLSL: subgroup.Min
 
-		ND_ Scalar_t	PrefixSum ()							C_NE___;
-		ND_ Scalar_t	PrefixMax ()							C_NE___;
-		ND_ Scalar_t	PrefixMin ()							C_NE___;
+		// helper
+		ND_ Scalar_t	ReduceAddScalar ()						C_NE___	{ return ReduceAdd().get<0>(); }
+		ND_ Scalar_t	ReduceMaxScalar ()						C_NE___	{ return ReduceMax().get<0>(); }
+		ND_ Scalar_t	ReduceMinScalar ()						C_NE___	{ return ReduceMin().get<0>(); }
+
+		// set 'simd[lane] += simd[lane-1]'
+		ND_ Self		InclusiveAdd ()							C_NE___;	// GLSL: subgroup.InclusiveAdd
+		ND_ Self		ExclusiveAdd ()							C_NE___;	// GLSL: subgroup.ExclusiveAdd
 
 		ND_ Bool2	Equal    (const Self &rhs)					C_NE___	{ return Bool2{ _mm_cmpeq_pd(  _value, rhs._value )}; }
 		ND_ Bool2	NotEqual (const Self &rhs)					C_NE___	{ return Bool2{ _mm_cmpneq_pd( _value, rhs._value )}; }
@@ -480,7 +495,7 @@ namespace AE::Base
 		ND_ Bool2	GEqual   (const Self &rhs)					C_NE___	{ return Bool2{ _mm_cmpge_pd(  _value, rhs._value )}; }
 		ND_ Bool2	LEqual   (const Self &rhs)					C_NE___	{ return Bool2{ _mm_cmple_pd(  _value, rhs._value )}; }
 
-		ND_ Bool2	BitEqual (const Self&, EnabledBitCount acc)	C_NE___;
+		ND_ Bool2	BitEqual (const Self&, EnabledBitCount acc)	C_NE___;	// TODO
 
 		// compare only first element
 		ND_ Bool2	Scalar_Equal    (const Self &rhs)			C_NE___	{ return Bool2{ _mm_cmpeq_sd(  _value, rhs._value )}; }
@@ -641,8 +656,9 @@ namespace AE::Base
 		NdCe__ static bool  Has_PreciseDiv ()					{ return true; }
 		NdCe__ static bool  Has_ApproxReciprocal ()				{ return AE_SIMD_AVX >= 31; }
 		NdCe__ static bool  Has_ApproxInvSqrt ()				{ return false; }
-		NdCe__ static bool  Has_PrefixSum ()					{ return true; }
-		NdCe__ static bool  Has_PrefixMinMax ()					{ return true; }
+		NdCe__ static bool  Has_ReduceAdd ()					{ return Has_Swizzle(); }
+		NdCe__ static bool  Has_ReduceMinMax ()					{ return Has_Swizzle(); }
+		NdCe__ static bool  Has_InclusiveAdd ()					{ return true; }
 		NdCe__ static bool  Has_BitEqual ()						{ return false; }
 		NdCe__ static bool  Has_Swizzle ()						{ return true; }
 		NdCe__ static bool  Has_Shuffle ()						{ return true; }
@@ -662,7 +678,7 @@ namespace AE::Base
 
 	private:
 	  #if AE_SIMD_SSE >= 30
-		// different behaviour for Float4 & Double4, keep private
+		// different behavior for Float4 & Double4, keep private
 		ND_ Self	HAdd (const Self &rhs)						C_NE___	{ return Self{ _mm_hadd_pd( _value, rhs._value )}; }	// { a0 + a1, b0 + b1 }
 		ND_ Self	HSub (const Self &rhs)						C_NE___	{ return Self{ _mm_hsub_pd( _value, rhs._value )}; }	// { a0 - a1, b0 - b1 }
 		ND_ Self	AddSub (const Self &rhs)					C_NE___	{ return Self{ _mm_addsub_pd( _value, rhs._value )}; }	// { a0 - b0, a1 + b1 }
@@ -682,6 +698,7 @@ namespace AE::Base
 		using Self		= Int128b;
 		using Native_t	= __m128i;
 		using Ptr_t		= AlignedPtr< sizeof(Native_t) >;
+		using CPtr_t	= AlignedPtr< sizeof(Native_t), true >;
 
 
 	// variables
@@ -697,7 +714,7 @@ namespace AE::Base
 		explicit Int128b (int v)							__NE___	: _value{ _mm_cvtsi32_si128( v )} {}
 		explicit Int128b (slong v)							__NE___	: _value{ _mm_cvtsi64_si128( v )} {}
 		explicit Int128b (const Native_t &v)				__NE___	: _value{ v } {}
-		explicit Int128b (const Ptr_t ptr)					__NE___	: _value{ _mm_load_si128( ptr.Cast<Native_t>() )} {}
+		explicit Int128b (const CPtr_t ptr)					__NE___	: _value{ _mm_load_si128( ptr.Cast<Native_t>() )} {}
 
 		ND_ Native_t &		Ref ()							__NE___	{ return _value; }
 		ND_ Native_t const&	Ref ()							C_NE___	{ return _value; }
@@ -718,14 +735,15 @@ namespace AE::Base
 		ND_ Self	AndNot (const Self &rhs)				C_NE___	{ return Self{ _mm_andnot_si128( _value, rhs._value )}; } // ~a & b
 
 	  #if AE_SIMD_SSE >= 41
+		// return 0 or 1
 		ND_ int		TestAnd (const Self &mask)				C_NE___	{ return _mm_testz_si128( _value, mask._value ); }		// a & mask == 0 ? 1 : 0
 		ND_ int		TestAndNot (const Self &mask)			C_NE___	{ return _mm_testc_si128( _value, mask._value ); }		// a & ~mask == 0 ? 1 : 0
 		ND_ int		TestBoth_And_AndNot (const Self &mask)	C_NE___	{ return _mm_testnzc_si128( _value, mask._value ); }	// (a & mask == 0) and (a & ~mask == 0) ? 1 : 0
 	  #endif
 
-		// shift in bytes
-		template <int ShiftBytes> ND_ Self  LShiftB ()		C_NE___	{ return Self{ _mm_slli_si128( _value, ShiftBytes )}; }
-		template <int ShiftBytes> ND_ Self  RShiftB ()		C_NE___	{ return Self{ _mm_srli_si128( _value, ShiftBytes )}; }
+		// shift 128bit value in bytes
+		template <uint ShiftBytes> ND_ Self  LByteShift ()	C_NE___;
+		template <uint ShiftBytes> ND_ Self  RByteShift ()	C_NE___;
 
 
 	// conversion //
@@ -754,6 +772,7 @@ namespace AE::Base
 		using Bool_t		= SimdTInt128< ToUnsignedInteger< IntType >>;
 		using Native_t		= __m128i;
 		using Ptr_t			= AlignedPtr< sizeof(Native_t) >;
+		using CPtr_t		= AlignedPtr< sizeof(Native_t), true >;
 		using Signed_t		= SimdTInt128< ToSignedInteger< IntType >>;
 		using Unsigned_t	= SimdTInt128< ToUnsignedInteger< IntType >>;
 		using Shift64_t		= SimdTInt128< slong >;
@@ -763,7 +782,7 @@ namespace AE::Base
 		using Array_t					= StaticArray< Scalar_t, count >;
 		StaticAssert( sizeof(Array_t) == sizeof(Native_t) );
 
-		using Mask_t		= Base::_hidden_::MSBMask< count, CT_IntLog2< 16/count >>;
+		using Mask_t		= MSBMask< count, CT_IntLog2< 16/count >>;
 
 
 	// variables
@@ -795,9 +814,12 @@ namespace AE::Base
 		SimdTInt128 (Zero_t)								__NE___	: _value{ _mm_setzero_si128() } {}
 		SimdTInt128 (UMax_t)								__NE___	 { auto z = _mm_setzero_si128();  _value = _mm_cmpeq_epi32( z, z ); }
 		explicit SimdTInt128 (const Native_t &v)			__NE___	: _value{ v } {}
-		explicit SimdTInt128 (const Ptr_t ptr)				__NE___	: _value{ _mm_load_si128( ptr.Cast<Native_t>() )} {}
+		explicit SimdTInt128 (const CPtr_t ptr)				__NE___	: _value{ _mm_load_si128( ptr.Cast<Native_t>() )} {}
 		explicit SimdTInt128 (const Scalar_t* ptr)			__NE___	: _value{ _mm_loadu_si128( reinterpret_cast<Native_t const *>( GetNonNull( ptr )) )} {}
 		explicit SimdTInt128 (Scalar_t v)					__NE___;
+
+		template <uint Step>
+		explicit SimdTInt128 (MSBMask<count, Step> mask)	__NE___;
 
 		template <typename T = Scalar_t> requires( sizeof(T)==8 )
 		explicit SimdTInt128 (const SimdDouble2::Bool2 &v)	__NE___ : _value{ _mm_castpd_si128( v.Ref() )} {}
@@ -929,15 +951,22 @@ namespace AE::Base
 		ND_ friend Self  Select (const Bool_t &condition, const Self &ifTrue, const Self &ifFalse) __NE___ { return _Select( condition, ifTrue, ifFalse ); }
 
 
-		ND_ Self	Sum ()									C_NE___;	// vector with PrefixSum()
-		ND_ auto	SumExt ()								C_NE___;	// vector with PrefixSumExt()
-		ND_ Self	Max ()									C_NE___;	// vector with PrefixMax()
-		ND_ Self	Min ()									C_NE___;	// vector with PrefixMin()
+		// sum/max of all lanes, result written to all lanes
+		ND_ Self		ReduceAdd ()						C_NE___;	// GLSL: subgroup.Add
+		ND_ auto		ReduceAddExt ()						C_NE___;	// 32bit int will return 64bit int, etc
+		ND_ Self		ReduceMax ()						C_NE___;	// GLSL: subgroup.Max
+		ND_ Self		ReduceMin ()						C_NE___;	// GLSL: subgroup.Min
 
-		ND_ Scalar_t	PrefixSum ()						C_NE___;
-		ND_ auto		PrefixSumExt ()						C_NE___;
-		ND_ Scalar_t	PrefixMax ()						C_NE___;
-		ND_ Scalar_t	PrefixMin ()						C_NE___;
+		// helper
+		ND_ Scalar_t	ReduceAddScalar ()					C_NE___	{ return ReduceAdd().template get<0>(); }
+		ND_ auto		ReduceAddExtScalar ()				C_NE___;
+		ND_ Scalar_t	ReduceMaxScalar ()					C_NE___	{ return ReduceMax().template get<0>(); }
+		ND_ Scalar_t	ReduceMinScalar ()					C_NE___	{ return ReduceMin().template get<0>(); }
+
+		// set 'simd[lane] += simd[lane-1]'
+		ND_ Self		InclusiveAdd ()						C_NE___;	// GLSL: subgroup.InclusiveAdd
+		ND_ Self		ExclusiveAdd ()						C_NE___;	// GLSL: subgroup.ExclusiveAdd
+
 
 		ND_ Mask_t	ToBitfield ()							C_NE___	{ return Mask_t{_mm_movemask_epi8( _value )}; }
 
@@ -1074,9 +1103,10 @@ namespace AE::Base
 		NdCe__ static bool  Has_VecRShift_Arithmetic ();
 		NdCe__ static bool  Has_ScalarShift_Logic ();
 		NdCe__ static bool  Has_ScalarShift_Arithmetic ();
-		NdCe__ static bool  Has_PrefixSum ();
-		NdCe__ static bool  Has_PrefixSumExt ();
-		NdCe__ static bool  Has_PrefixMinMax ()	;
+		NdCe__ static bool  Has_ReduceAdd ();
+		NdCe__ static bool  Has_ReduceAddExt ();
+		NdCe__ static bool  Has_ReduceMinMax ();
+		NdCe__ static bool  Has_InclusiveAdd ();
 		NdCe__ static bool  Has_Mul ();
 		NdCe__ static bool  Has_MulExt ();
 		NdCe__ static bool  Has_Div ()						{ return false; }
@@ -1085,7 +1115,7 @@ namespace AE::Base
 		NdCe__ static bool  _Has_Native_Greater ();
 		NdCe__ static bool  Has_MinMax ();
 		NdCe__ static bool  Has_Swizzle ()					{ return true; }
-		NdCe__ static bool  Has_Shuffle ()					{ return true; }
+		NdCe__ static bool  Has_Shuffle ();
 
 		template <typename DstType>	NdCe__ static bool  Has_BitCast ();
 		template <typename DstType>	NdCe__ static bool  Has_Convert ();
@@ -1134,9 +1164,10 @@ namespace AE::Base
 		using Native_t		= __m128i;	// __m128h	- MSVC & Clang use __m128i, GCC use custom type
 		using Array_t		= StaticArray< Scalar_t, count >;
 		using Ptr_t			= AlignedPtr< sizeof(Native_t) >;
+		using CPtr_t		= AlignedPtr< sizeof(Native_t), true >;
 		using SimdInt_t		= SimdShort8;
 		using SimdUInt_t	= SimdUShort8;
-		using Mask_t		= Base::_hidden_::MSBMask< count, 1 >;
+		using Mask_t		= MSBMask< count, 1 >;
 
 		StaticAssert( sizeof(Array_t) == sizeof(Native_t) );
 
@@ -1200,7 +1231,7 @@ namespace AE::Base
 		explicit SimdHalf8 (float v)							__NE___ : SimdHalf8{ Scalar_t{v} } {}
 		explicit SimdHalf8 (const Native_t &v)					__NE___	: _value{ v } {}
 		explicit SimdHalf8 (const Scalar_t* ptr)				__NE___	: _value{ _mm_loadu_si128( reinterpret_cast<__m128i const *>( GetNonNull( ptr )) )} {}
-		explicit SimdHalf8 (const Ptr_t ptr)					__NE___	: _value{ _mm_load_si128( ptr.Cast<__m128i>() )} {}
+		explicit SimdHalf8 (const CPtr_t ptr)					__NE___	: _value{ _mm_load_si128( ptr.Cast<__m128i>() )} {}
 		explicit SimdHalf8 (const Bool8 &v)						__NE___ : _value{ _mm_and_si128( v.Ref(), _mm_set1_epi16(c_One_BitMask) )} {}
 
 		explicit SimdHalf8 (const SimdFloat4 &v0123)			__NE___;
@@ -1231,7 +1262,7 @@ namespace AE::Base
 		ND_ Self	EqualF    (const Self &rhs)					C_NE___	{ return Self{ Equal( rhs )}; }
 		ND_ Self	NotEqualF (const Self &rhs)					C_NE___	{ return Self{ NotEqual( rhs )}; }
 
-		ND_ Bool8	BitEqual (const Self&, EnabledBitCount acc)	C_NE___;
+		ND_ Bool8	BitEqual (const Self&, EnabledBitCount acc)	C_NE___;	// TODO
 
 		friend Self  Select (const Bool_t &condition, const Self &ifTrue, const Self &ifFalse) __NE___;
 
@@ -1300,8 +1331,9 @@ namespace AE::Base
 		NdCe__ static bool  Has_ApproxInvSqrt ()				{ return false; }
 		NdCe__ static bool  Has_Trigonometry ()					{ return false; }
 		NdCe__ static bool  Has_Exponential ()					{ return false; }
-		NdCe__ static bool  Has_PrefixSum ()					{ return false; }
-		NdCe__ static bool  Has_PrefixMinMax ()					{ return false; }
+		NdCe__ static bool  Has_ReduceAdd ()					{ return false; }
+		NdCe__ static bool  Has_ReduceMinMax ()					{ return false; }
+		NdCe__ static bool  Has_InclusiveAdd ()					{ return false; }
 		NdCe__ static bool  Has_BitEqual ()						{ return false; }
 		NdCe__ static bool  Has_Swizzle ()						{ return true; }
 		NdCe__ static bool  Has_Shuffle ()						{ return false; }

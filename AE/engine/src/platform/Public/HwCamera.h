@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 /*
 	Thread safe:  ???
 */
@@ -47,11 +47,11 @@ namespace AE::App
 			DepthJPEG			= ubyte(Graphics::EPixelFormatExternal::Android_DepthJPEG),
 			DepthPointCloud		= ubyte(Graphics::EPixelFormatExternal::Android_DepthPointCloud),
 			JPEG				= ubyte(Graphics::EPixelFormatExternal::Android_JPEG),
-			Private				= ubyte(Graphics::EPixelFormatExternal::Android_Private),
+		//	Private				= ubyte(Graphics::EPixelFormatExternal::Android_Private),
 			Raw16				= ubyte(Graphics::EPixelFormatExternal::Android_Raw16),
 			Raw12				= ubyte(Graphics::EPixelFormatExternal::Android_Raw12),
 			Raw10				= ubyte(Graphics::EPixelFormatExternal::Android_Raw10),
-			RawPrivate			= ubyte(Graphics::EPixelFormatExternal::Android_RawPrivate),
+		//	RawPrivate			= ubyte(Graphics::EPixelFormatExternal::Android_RawPrivate),
 			NV16				= ubyte(Graphics::EPixelFormatExternal::Android_NV16),
 			NV21				= ubyte(Graphics::EPixelFormatExternal::Android_NV21),
 			YCBCR_P010			= ubyte(Graphics::EPixelFormatExternal::Android_YCBCR_P010),
@@ -63,7 +63,7 @@ namespace AE::App
 			Y8					= ubyte(Graphics::EPixelFormatExternal::Android_Y8),
 			Unknown				= 0xFF
 		};
-		StaticAssert( uint(Graphics::EPixelFormatExternal::_Android_End) == 19 );
+		StaticAssert( uint(Graphics::EPixelFormatExternal::_Android_End) == 17 );
 
 		enum class EAutoExposureMode : ubyte
 		{

@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 /*
 	Thread-safe:  no
 */
@@ -206,13 +206,13 @@ namespace AE::RG::_hidden_
 		// present output surfaces
 		const auto	present_tasks = _PresentSurfaces();
 
-		AsyncTask	end_frame	= _rts.EndFrame( deps );
-
 		for (usize i = 0; i < _queues.size(); ++i)
 		{
 			if ( _queues[i].submitIdx > 0 )
 				_rts.SkipCmdBatches( EQueueType(i), UMax );
 		}
+
+		AsyncTask	end_frame	= _rts.EndFrame( deps );
 
 		// start next frame only after present
 		_rts.AddNextFrameDeps( present_tasks );

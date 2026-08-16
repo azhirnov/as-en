@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #pragma once
 
@@ -91,7 +91,7 @@ namespace AE::GeometryTools
 		tangent		= Normalize( tangent );
 		bitangent	= Normalize( bitangent );
 
-		if ( Dot( Cross( tangent, bitangent ), normal ) > 0.0 )
+		if ( Dot( Cross( tangent, bitangent ), normal ) > 0.f )
 			tangent = -tangent;
 
 		CheckTBN( normal, tangent, bitangent );

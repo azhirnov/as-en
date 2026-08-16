@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #pragma once
 
@@ -41,6 +41,10 @@ namespace AE::Base
 
 		ND_ static bool		SetProcessAffinity (CpuArchInfo::CoreBits_t)					__NE___;
 
+		ND_ static bool		OpenURL (U8StringView url)										__NE___;
+		ND_ static bool		OpenURL (StringView url)										__NE___;
+		ND_ static bool		OpenURL (const Path &url)										__NE___;
+
 
 		// OS //
 		ND_ static bool			IsUnderDebugger ()											__NE___;
@@ -54,11 +58,6 @@ namespace AE::Base
 		#endif
 
 		ND_ static String	GetUserName ()													__NE___;
-
-		ND_ static bool		GetEnvironmentVariable (NtStringView name, OUT String &value)	__NE___;
-		ND_ static bool		HasEnvironmentVariable (NtStringView name)						__NE___;
-		ND_ static bool		SetEnvironmentVariable (NtStringView name, NtStringView value)	__NE___;
-		ND_ static bool		DeleteEnvironmentVariable (NtStringView name)					__NE___;
 
 
 		// Clipboard //

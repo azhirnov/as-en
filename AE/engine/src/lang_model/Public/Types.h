@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #pragma once
 
@@ -274,32 +274,3 @@ namespace AE::LangModel
 	};
 
 } // AE::LangModel
-
-
-#ifdef AE_ENABLE_LOGS
-namespace AE::Base
-{
-
-/*
-=================================================
-	ToString (EBackend)
-=================================================
-*/
-	Nd__In StringView  ToString (LangModel::EBackend type) __NE___
-	{
-		switch_enum( type )
-		{
-			using enum LangModel::EBackend;
-			case CPU :		return "CPU";
-			case Auto :		return "Auto";
-			case Vulkan :	return "Vulkan";
-			case CUDA :		return "CUDA";
-			case Metal :	return "Metal";
-			case _Count :	break;
-		}
-		switch_end
-		return Default;
-	}
-
-} // AE::Base
-#endif // AE_ENABLE_LOGS

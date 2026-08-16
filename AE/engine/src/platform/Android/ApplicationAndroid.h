@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #pragma once
 
@@ -10,6 +10,9 @@
 # include "platform/Android/WindowAndroid.h"
 # include "platform/Private/ApplicationBase.h"
 
+namespace AE::Networking {
+	struct IpAddress;
+}
 namespace AE::App
 {
 
@@ -34,7 +37,7 @@ namespace AE::App
 			Path				externalCache;
 			Path				externalStorage;
 		};
-		using StoragePathSync_t = Threading::Synchronized< Threading::RWSpinLock, StoragePath >;
+		using StoragePathSync_t = Threading::Synchronized< SharedMutex, StoragePath >;
 
 
 	// variables
@@ -56,6 +59,7 @@ namespace AE::App
 			JavaMethod< jboolean () >				isNetworkConnected;
 			JavaMethod< void (jstring, jboolean) >	showToast;
 			//JavaMethod< void () >					createWindow;
+			JavaMethod< jstring () >				getDefaultIpv4Gateway;
 		}							_methods;
 
 		DRC_ONLY(
@@ -71,6 +75,9 @@ namespace AE::App
 
 		ND_ WinID  _AddAndroidWindow (SharedPtr<WindowAndroid> wnd)						__NE___;
 			void   _AddWindow (SharedPtr<WindowBase>)									__NE_OV;
+
+		static bool  _GetRouterIPAddress (void*, OUT Networking::IpAddress &)			__NE___;
+
 
 	public:
 		~ApplicationAndroid ()															__NE___;
@@ -97,7 +104,7 @@ namespace AE::App
 		MonitorsView_t			GetMonitors (bool update = false)						__NE_OV;
 		MonitorsView_t			GetCachedMonitors ()									C_NE_OV;
 		RC<IVirtualFileStorage> OpenStorage (EAppStorage type)							__NE_OV;
-		Path					GetStoragePath (EAppStorage type)						__NE_OV;
+		Path					GetStoragePath (EAppStorage type)						C_NE_OV;
 		ArrayView<const char*>	GetVulkanInstanceExtensions ()							__NE_OV;
 
 

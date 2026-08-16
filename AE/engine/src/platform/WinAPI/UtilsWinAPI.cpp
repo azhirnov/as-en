@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #ifdef AE_PLATFORM_WINDOWS
 # include "base/Platforms/WindowsHeader.cpp.h"
@@ -57,15 +57,17 @@ namespace AE::App
 	GetStoragePath
 =================================================
 */
-	Path  UtilsWinAPI::GetStoragePath (EAppStorage type) __NE___
+	Path  UtilsWinAPI::GetStoragePath (EAppStorage type, StringView appName) __NE___
 	{
 		KNOWNFOLDERID const*	path_guid = null;
 
 		switch ( type )
 		{
-			case EAppStorage::UserData :	path_guid = &FOLDERID_RoamingAppData;	break;
-			case EAppStorage::SharedData :	path_guid = &FOLDERID_Documents;		break;
-			default :						return {};
+			case EAppStorage::Cache :
+			case EAppStorage::ExternalCache :	path_guid = &FOLDERID_LocalAppData;		break;
+			case EAppStorage::UserData :		path_guid = &FOLDERID_RoamingAppData;	break;
+			case EAppStorage::SharedData :		path_guid = &FOLDERID_Documents;		break;
+			default :							return {};
 		}
 
 		PWSTR	path	= null;
@@ -76,6 +78,23 @@ namespace AE::App
 
 		Path	result {path};
 		::CoTaskMemFree( path );
+
+		switch ( type )
+		{
+			case EAppStorage::Cache :
+			case EAppStorage::ExternalCache :
+			case EAppStorage::UserData :
+			case EAppStorage::SharedData :
+				result /= appName;
+				break;
+		}
+
+		// suffix
+		switch ( type )
+		{
+			case EAppStorage::Cache :			result /= "cache";		break;
+			case EAppStorage::ExternalCache :	result /= "ext-cache";	break;
+		}
 
 		return result;
 	}

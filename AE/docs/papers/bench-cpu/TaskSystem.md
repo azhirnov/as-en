@@ -114,3 +114,28 @@ Total time: 0.12 s, final jobs: 92160, task time: 5.05 us, overhead: 36.47 %
 Total time: 0.11 s, final jobs: 92160, task time: 5.65 us, overhead: 22.89 %
 Total time: 0.12 s, final jobs: 92159, task time: 5.25 us, overhead: 31.04 %
 ```
+
+
+# Snapdragon 8 Elite gen 5
+
+8 threads, 8 cores (2Prime + 6P)
+
+## W=4 H=4
+
+```
+
+Total time: 1.33 s, final jobs: 349524, task time: 15.38 us, overhead: 49.43 %
+Total time: 1.09 s, final jobs: 349524, task time: 12.64 us, overhead: 49.51 %
+Total time: 1.19 s, final jobs: 349524, task time: 12.50 us, overhead: 54.08 %
+Total time: 1.07 s, final jobs: 349524, task time: 12.34 us, overhead: 49.62 %
+------------------------
+Total time: 4.84 s, final jobs: 349524, task time: 12.53 us, overhead: 88.68 %
+Total time: 1.47 s, final jobs: 349524, task time: 12.21 us, overhead: 63.71 %
+Total time: 4.48 s, final jobs: 349524, task time: 11.62 us, overhead: 88.68 %
+Total time: 4.10 s, final jobs: 349524, task time: 12.41 us, overhead: 86.78 %
+------------------------
+Total time: 0.48 s, final jobs: 163840, task time: 14.29 us, overhead: 39.22 %
+Total time: 0.51 s, final jobs: 163840, task time: 14.31 us, overhead: 42.06 %
+Total time: 0.48 s, final jobs: 163840, task time: 14.21 us, overhead: 38.86 %
+Total time: 0.47 s, final jobs: 163840, task time: 13.92 us, overhead: 39.74 %
+```

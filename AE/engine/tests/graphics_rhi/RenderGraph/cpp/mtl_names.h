@@ -37,6 +37,20 @@ namespace RenderTechs
 		} Compute_1 = {};
 	} AsyncComp_RTech;
 
+	static constexpr struct _Bindless_RTech
+	{
+		constexpr operator RenderTechName_t () const { return RenderTechName_t{Hash_t{0x83ab048cu}};}  // 'Bindless.RTech'
+
+		// compute (0)
+		static constexpr struct _Compute_1
+		{
+			constexpr operator RenderTechPassName_t () const { return RenderTechPassName_t{Hash_t{0x1e10a981u}};}  // 'Compute_1'
+
+			// pipelines
+			static constexpr PipelineName_t  bindless1_def {Hash_t{0x53cd7ec4u}};  // 'bindless1.def'
+		} Compute_1 = {};
+	} Bindless_RTech;
+
 	static constexpr struct _DebugDraw_RTech
 	{
 		constexpr operator RenderTechName_t () const { return RenderTechName_t{Hash_t{0x30b65c23u}};}  // 'DebugDraw.RTech'

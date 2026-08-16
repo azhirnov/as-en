@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #pragma once
 
@@ -123,43 +123,3 @@ namespace AE::Threading
 	};
 
 } // AE::Threading
-
-
-#ifdef AE_ENABLE_LOGS
-namespace AE::Base
-{
-
-	Nd__In StringView  ToString (Threading::ETaskQueue type)
-	{
-		using Threading::ETaskQueue;
-		switch_enum( type )
-		{
-			case ETaskQueue::Main :			return "Main";
-			case ETaskQueue::PerFrame :		return "PerFrame";
-			case ETaskQueue::Renderer :		return "Renderer";
-			case ETaskQueue::Background :	return "Background";
-			case ETaskQueue::Unknown :		break;
-		}
-		switch_end
-		RETURN_ERR( "unknown task queue type" );
-	}
-
-	Nd__In StringView  ToString (Threading::EThread type)
-	{
-		using Threading::EThread;
-		switch_enum( type )
-		{
-			case EThread::Main :			return "Main";
-			case EThread::PerFrame :		return "PerFrame";
-			case EThread::Renderer :		return "Renderer";
-			case EThread::Background :		return "Background";
-			case EThread::IO :				return "IO";
-			case EThread::_Last :
-			case EThread::_Count :			break;
-		}
-		switch_end
-		RETURN_ERR( "unknown thread type" );
-	}
-
-} // AE::Base
-#endif // AE_ENABLE_LOGS

@@ -61,27 +61,8 @@ Total ALUs = EU * warp_size/2
 * Instances in FS are merged (in rare cases).
 * Triangles with same instance are merged in FS.
 * VS use simd8 mode.
-## Nonuniform
 
-* __depth pre-pass__ [[14.2](../GPU_Benchmarks.md#14-Nonuniform)]<br/>
-	Scale=0.6, ObjCount=4K, Dim=4K, dpp=0.52ms
-
-	| nonuniform              | per object (ms) | per warp (ms) | per quad (ms) | per pixel (ms) |
-	|-------------------------|-----------------|---------------|---------------|----------------|
-	| texture layer           | 2.7             | 4.4           | 5.6           | 10.9           |
-	| texture index           | 3.2             | 3.6           | 8.3           | 17.6           |
-	| texture & sampler index | 3.2             | 3.6           | 8.3           | 17.6           |
-
-* __visibility buffer__ [[14.3](../GPU_Benchmarks.md#14-Nonuniform)]<br/>
-	visibility buffer build 0.8= ms<br/>
-	visibility buffer FS overhead = ms<br/>
-	Scale=0.6, ObjCount=4K, Dim=4K
-
-	| nonuniform              | per object (ms) | per warp (ms) | per quad (ms) | per pixel (ms) |
-	|-------------------------|-----------------|---------------|---------------|----------------|
-	| texture layer           | 2.52            | 2.6           | 2.7           | 3.2            |
-	| texture index           | 2.95            | 2.65          | 4.2           | 7.7            |
-	| texture & sampler index | 2.91            | 2.65          | 4.2           | 7.7            |
+Dark blue - single instance; light blue - single instance in FS, multiple in VS; red - multiple instances in FS.
 
 
 ## Texture cache

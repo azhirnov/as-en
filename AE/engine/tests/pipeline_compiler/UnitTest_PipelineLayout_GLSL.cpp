@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #include "UnitTest_Common.h"
 
@@ -17,7 +17,7 @@ namespace
 		samp->SetAnisotropy( 8.f );
 
 		DescriptorSetLayoutPtr	dsl0 = DescriptorSetLayout::Create( "PerDraw" );
-		dsl0->AddUniformBuffer( EShaderStages::Vertex, "constBuf", ArraySize{1}, "ubuf", EResourceState::ShaderUniform, False{} );
+		dsl0->AddUniformBuffer( EShaderStages::Vertex, "constBuf", ArraySize{1}, "ubuf", EResourceState::ShaderUniform, False{"static"} );
 		dsl0->AddUniformBuffer( EShaderStages::Vertex, "constBuf2", ArraySize{1}, "ubuf", EResourceState::ShaderUniform, True{"dynamic"} );
 		dsl0->AddStorageBuffer( EShaderStages::Vertex | EShaderStages::Fragment, "storageBuf", ArraySize{2}, "ubuf", EAccessType::Coherent, EResourceState::ShaderStorage_RW, False{} );
 		dsl0->AddUniformTexelBuffer( EShaderStages::Fragment, "texBuffer", ArraySize{1}, EImageType::UInt | EImageType::Buffer, EResourceState::ShaderSample );
@@ -101,6 +101,66 @@ namespace
 )#";
 		TEST( src == ref );
 	}
+
+
+	static void  PipelineLayout_Test2 ()
+	{
+		const ArraySize	unsized_arr {0};
+
+		ShaderStructTypePtr	st = ShaderStructType::Create( "sbuf" );
+		st->Set( EStructLayout::Compatible_Std430,
+				 "uvec4 u;"
+				 "ivec4 i;" );
+
+		DescriptorSetLayoutPtr	dsl0 = DescriptorSetLayout::Create( "PerDraw2" );
+		dsl0->AddStorageBuffer( EShaderStages::Vertex, "constBuf",  unsized_arr, "sbuf", EAccessType::Coherent, EResourceState::ShaderStorage_Read, False{"static"} );
+		//dsl0->AddStorageBuffer( EShaderStages::Vertex, "constBuf2", unsized_arr, "sbuf", EAccessType::Coherent, EResourceState::ShaderStorage_Read, True{"dynamic"} );
+		dsl0->SetUsage( EDescSetUsage::DescriptorHeap );
+
+		DescriptorSetLayoutPtr	dsl1 = DescriptorSetLayout::Create( "Material2" );
+		dsl1->AddSampledImage( EShaderStages::Fragment, "diffuseTex", unsized_arr, EImageType::Float | EImageType::Dim2DArray, EResourceState::ShaderSample );
+		dsl1->AddSampledImage( EShaderStages::Fragment, "noiseTex", unsized_arr, EImageType::Float | EImageType::Dim3D, EResourceState::ShaderSample );
+		dsl1->SetUsage( EDescSetUsage::DescriptorHeap );
+
+		DescriptorSetLayoutPtr	dsl2 = DescriptorSetLayout::Create( "PerPass2" );
+		//dsl2->AddSubpassInput( EShaderStages::Fragment, "inputTex", 0, EImageType::Float | EImageType::Dim2DMS, EResourceState::InputColorAttachment );
+		dsl2->AddRayTracingScene( EShaderStages::Fragment, "rtScene", unsized_arr );
+		dsl2->SetUsage( EDescSetUsage::DescriptorHeap );
+
+		PipelineLayoutPtr	ppln_layout = PipelineLayout::Create( "Layout2" );
+		ppln_layout->AddDSLayout( 0, "PerDraw2" );
+		ppln_layout->AddDSLayout( 2, "Material2" );
+		ppln_layout->AddDSLayout( 3, "PerPass2" );
+		TEST( ppln_layout->Build() );
+
+		PipelineLayout::UniqueTypes_t	unique_types;
+
+		String	src = '\n' + ppln_layout->ToGLSL( EShaderStages::Fragment, INOUT unique_types );
+
+		const String	ref = R"#(
+//---------------------
+// ds[0], name: 'PerDraw2', type: 'PerDraw2'
+//---------------------
+
+//---------------------
+// ds[2], name: 'Material2', type: 'Material2'
+  // state: ShaderSample | FragmentShader
+  layout(descriptor_heap) uniform texture2DArray diffuseTex [];
+  // state: ShaderSample | FragmentShader
+  layout(descriptor_heap) uniform texture3D noiseTex [];
+//---------------------
+
+//---------------------
+// ds[3], name: 'PerPass2', type: 'PerPass2'
+  layout(descriptor_heap) uniform accelerationStructureEXT rtScene [];
+//---------------------
+
+#define DESCRIPTOR_SampledImage_diffuseTex
+#define DESCRIPTOR_SampledImage_noiseTex
+#define DESCRIPTOR_RayTracingScene_rtScene
+)#";
+		TEST( src == ref );
+	}
 }
 
 
@@ -130,22 +190,24 @@ extern void  UnitTest_PipelineLayout_GLSL ()
 	fs->fs.perPipeline.maxSamplers = 8;
 	fs->fs.perPipeline.maxAccelStructures = 8;
 	fs->fs.perPipeline.maxInputAttachments = 2;
-	fs->fs.perPipeline.maxTotalResources = 1024;
+	fs->fs.perDescSet_maxTotalResources = 512;
 	fs->fs.perStage.maxUniformBuffers = 8;
 	fs->fs.perStage.maxStorageBuffers = 8;
 	fs->fs.perStage.maxStorageImages = 8;
 	fs->fs.perStage.maxSampledImages = 8;
 	fs->fs.perStage.maxSamplers = 8;
-	fs->fs.perStage.maxTotalResources = 1024;
+	fs->fs.perStage_maxTotalResources = 1024;
 	fs->fs.perStage.maxAccelStructures = 2;
 	fs->fs.perStage.maxInputAttachments = 2;
 	fs->fs.perPipeline_maxUniformBuffersDynamic = 2;
+	fs->fs.perPipeline_maxStorageBuffersDynamic = 2;
 	fs->fs.perPipeline_maxTotalBuffersDynamic = 2;
 
 	fs->fs.rayQuery = FeatureSet::EFeature::RequireTrue;
 
 	try {
 		PipelineLayout_Test1();
+		PipelineLayout_Test2();
 	} catch(...) {
 		TEST( false );
 	}

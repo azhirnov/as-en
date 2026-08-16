@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 /*
 	Game Application designed for games and VR.
 
@@ -79,7 +79,7 @@ namespace AE::App
 		MonitorsView_t			GetMonitors (bool update = false)								__NE_OV;
 		MonitorsView_t			GetCachedMonitors ()											C_NE_OV;
 		RC<IVirtualFileStorage> OpenStorage (EAppStorage type)									__NE_OV;
-		Path					GetStoragePath (EAppStorage type)								__NE_OV;
+		Path					GetStoragePath (EAppStorage type)								C_NE_OV;
 		ArrayView<const char*>	GetVulkanInstanceExtensions ()									__NE_OV;
 
 	private:

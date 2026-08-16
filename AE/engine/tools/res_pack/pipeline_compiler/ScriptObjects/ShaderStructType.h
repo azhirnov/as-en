@@ -59,13 +59,13 @@ namespace AE::PipelineCompiler
 			BufferLayout	= 1 << 3,
 			BufferReference	= 1 << 4,
 			_Last,
-			All				= ((_Last - 1) << 1) - 1
+			All				= CT_AllBitMask2<EUsage>,
 		};
 
 		enum class EFlags : ushort
 		{
 			Unknown						= 0,
-			_BITOPS_,
+			_BITOPS_					= 0,
 
 			// precision
 			HighPrecision				= 0,

@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #ifdef AE_ENABLE_VULKAN
 # include "graphics_rhi/Vulkan/Resources/VBufferView.h"
@@ -15,7 +15,6 @@ namespace AE::Graphics
 */
 	VBufferView::~VBufferView () __NE___
 	{
-		DRC_EXLOCK( _drCheck );
 		ASSERT( _bufferView == Default );
 	}
 
@@ -26,7 +25,6 @@ namespace AE::Graphics
 */
 	bool  VBufferView::Create (ResourceManager &resMngr, const BufferViewDesc &desc, BufferID bufferId, StringView dbgName) __NE___
 	{
-		DRC_EXLOCK( _drCheck );
 		CHECK_ERR( _bufferView == Default );
 
 		const VBuffer*	buffer = resMngr.GetResource( bufferId, True{"incRef"} );
@@ -65,7 +63,6 @@ namespace AE::Graphics
 */
 	bool  VBufferView::Create (ResourceManager &resMngr, const VulkanBufferViewDesc &desc, BufferID bufferId, StringView dbgName) __NE___
 	{
-		DRC_EXLOCK( _drCheck );
 		CHECK_ERR( _bufferView == Default );
 		CHECK_ERR( desc.view != Default );
 
@@ -95,8 +92,6 @@ namespace AE::Graphics
 */
 	void  VBufferView::Destroy (ResourceManager &resMngr) __NE___
 	{
-		DRC_EXLOCK( _drCheck );
-
 		auto&	dev = resMngr.GetDevice();
 
 		if ( _canBeDestroyed and _bufferView != Default )

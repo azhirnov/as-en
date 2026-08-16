@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #include "UnitTest_Common.h"
 
@@ -180,10 +180,10 @@ namespace
 		enum class EE1
 		{
 			Unknown = 0,
-			Bit1 = 1 << 1,
-			Bit2 = 1 << 3,
+			Bit1	= 1 << 1,
+			Bit2	= 1 << 3,
 			_Last,
-			All = ((_Last - 1) << 1) - 1
+			All		= CT_AllBitMask2<EE1>,	//((_Last - 1) << 1) - 1
 		};
 		StaticAssert( AllowEnumBitOps< EE1 >);
 
@@ -206,14 +206,14 @@ namespace AE::Graphics
 
 	enum class EE3
 	{
-		Unknown = 0,
-		Bit1 = 1 << 1,
-		Bit2 = 1 << 3,
+		Bit1		= 1 << 1,
+		Bit2		= 1 << 3,
 		_Last,
-		_BITOPS_
+		_BITOPS_	= 0
 	};
 
-	constexpr EE3  EE3_12 = EE3::Bit1 | EE3::Bit2;
+	constexpr EE3  EE3_12	= EE3::Bit1 | EE3::Bit2;
+	constexpr EE3  EE3_0	= Default;
 }
 
 

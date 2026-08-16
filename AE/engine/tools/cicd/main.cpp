@@ -1,9 +1,11 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #include "cicd/Client.h"
 #include "cicd/Server.h"
 #include "cicd/BuildMachine.h"
 #include "cicd/TestMachine.h"
+
+#include "base/../../GlobalConfig.h"	// TODO: remove
 
 using namespace AE;
 using namespace AE::Threading;

@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #pragma once
 
@@ -36,8 +36,7 @@ namespace AE::Graphics
 
 		RTShaderBindingDesc				_desc;
 
-		GFX_DBG_ONLY(	DebugName_t		_debugName;	)
-		DRC_ONLY(		RWDataRaceCheck	_drCheck;	)
+		GFX_DBG_ONLY( DebugName_t		_debugName;	)
 
 
 	// methods
@@ -48,13 +47,13 @@ namespace AE::Graphics
 		ND_ bool  Create (ResourceManager &, const CreateInfo &ci)	__NE___;
 			void  Destroy (ResourceManager &)						__NE___;
 
-		ND_ RTShaderBindingTable const&	GetSBT ()					C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _sbt; }
-		ND_ BufferID					BufferId ()					C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _bufferId; }
-		ND_ RayTracingPipelineID		RTPipelineId ()				C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _pipelineId; }
+		ND_ RTShaderBindingTable const&	GetSBT ()					C_NE___	{ return _sbt; }
+		ND_ BufferID					BufferId ()					C_NE___	{ return _bufferId; }
+		ND_ RayTracingPipelineID		RTPipelineId ()				C_NE___	{ return _pipelineId; }
 
-		ND_ RTShaderBindingDesc const&	Description ()				C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _desc; }
+		ND_ RTShaderBindingDesc const&	Description ()				C_NE___	{ return _desc; }
 
-		GFX_DBG_ONLY( ND_ StringView	GetDebugName ()				C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _debugName; })
+		GFX_DBG_ONLY( ND_ StringView	GetDebugName ()				C_NE___	{ return _debugName; })
 	};
 
 

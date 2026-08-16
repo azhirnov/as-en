@@ -1,4 +1,4 @@
-# Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+# Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 set( PLATFORM_DIR "${MAIN_SOURCE_DIR}/engine/src/platform" )
 set( PLATFORM_SRC

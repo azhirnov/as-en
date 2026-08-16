@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #include "Scripting/ScriptExe.h"
 #include "Scripting/PipelineCompiler.inl.h"
@@ -1420,15 +1420,25 @@ namespace
 			ValueMask	= Float | Int,
 			DimMask		= Vec | Array | Scalar,
 
-			_BITOPS_
+			_BITOPS_	= 0
 		};
 
-		Array< Array<StringView> >							rows;
-		Array< Tuple< StringView, EType, Array<uint> >>		column_groups;
+		Array< Array<StringView> >						rows;
+		Array< Tuple< String, EType, Array<uint> >>		column_groups;
 		{
-			HashMap<StringView, uint>	column_names;
-			CHECK_THROW( Parser::ParseCSV( csv_data, OUT column_names, OUT rows ));
+			const auto	ValidateName = [] (INOUT String &name)
+			{{
+				// TODO: or cut all before dot
+				for (char& c : name)
+				{
+					if ( not Parser::CPP.IsWord( c ))
+						c = '_';
+				}
+			}};
 
+			HashMap<StringView, uint>	column_names;
+
+			CHECK_THROW( Parser::ParseCSV( csv_data, OUT column_names, OUT rows ));
 			CHECK_THROW( not column_names.empty() and not rows.empty() );
 
 			// find vectors and arrays
@@ -1465,6 +1475,8 @@ namespace
 						col_arr.push_back( it->second );
 						it->second = UMax;
 					}
+
+					ValidateName( INOUT group_name );
 					continue;
 				}
 
@@ -1489,6 +1501,8 @@ namespace
 						col_arr.push_back( it->second );
 						it->second = UMax;
 					}
+
+					ValidateName( INOUT group_name );
 					continue;
 				}
 			}
@@ -1506,6 +1520,8 @@ namespace
 
 				col_arr.push_back( col );
 				col = UMax;
+
+				ValidateName( INOUT group_name );
 			}
 
 			// detect type
@@ -1537,10 +1553,14 @@ namespace
 		_staticCount = uint(rows.size());
 		_layout.typeName = elemTypeName;
 
-		Bytes	elem_size;
+		Bytes			row_size;
+		Bytes			max_align	= 1_b;
+		Array<Bytes>	offsets;	offsets.reserve( column_groups.size() );
+
 		for (auto& [name, type, col_arr] : column_groups)
 		{
 			Bytes	size = 4_b;
+			max_align = Max( max_align, size );
 
 			switch ( type & EType::ValueMask )
 			{
@@ -1558,8 +1578,9 @@ namespace
 
 				case EType::Vec :
 					_layout.source << ToString( col_arr.size() ) << "  " << name << ";\n";
-					size *= (col_arr.size() == 3 ? 4 : col_arr.size());
-					elem_size = AlignUp( elem_size, size );
+					size		*= (col_arr.size() == 3 ? 4 : col_arr.size());
+					max_align	= Max( max_align, size );
+					row_size	= AlignUp( row_size, size );
 					break;
 
 				case EType::Array :
@@ -1573,10 +1594,14 @@ namespace
 					break;
 			}
 
-			elem_size += size;
+			offsets.push_back( size );
+			row_size += size;
 		}
 
-		_layout._data.reserve( usize{ elem_size * _staticCount });  // throw
+		row_size = AlignUp( row_size, max_align );
+		CHECK( offsets.size() == column_groups.size() );
+
+		_layout._data.reserve( usize{ row_size * _staticCount });  // throw
 
 		AddUsage( EResourceUsage::UploadedData );  // throw
 
@@ -1584,12 +1609,14 @@ namespace
 		// copy data with correct alignment
 		for (const auto& columns : rows)
 		{
-			const Bytes	begin = Bytes{_layout._data.size()};
+			const Bytes	begin			= Bytes{_layout._data.size()};
+			auto		ref_offset_it	= offsets.begin();
 
 			for (const auto& [name, type, col_arr] : column_groups)
 			{
-				Bytes	align	= 4_b;
-				Bytes	size	= 4_b * col_arr.size();
+				Bytes	align		= 4_b;
+				Bytes	size		= 4_b * col_arr.size();
+				Bytes	ref_offset	= *(ref_offset_it++);
 
 				if ( AllBits( type, EType::Vec ))
 				{
@@ -1599,6 +1626,9 @@ namespace
 
 				Bytes	offset	= AlignUp( Bytes{_layout._data.size()}, align );
 				_layout._data.resize( usize{ offset + size });
+
+				ASSERT( align <= max_align );
+				//ASSERT_Eq( offset - begin, ref_offset );
 
 				switch ( type & EType::ValueMask )
 				{
@@ -1626,11 +1656,14 @@ namespace
 				}
 			}
 
-			Bytes	row_size = Bytes{_layout._data.size()} - begin;
-			ASSERT_Eq( row_size, elem_size );
+			Bytes	offset	= AlignUp( Bytes{_layout._data.size()}, max_align );
+			_layout._data.resize( usize{ offset });
+
+			Bytes	curr_row_size = Bytes{_layout._data.size()} - begin;
+			ASSERT_Eq( curr_row_size, row_size );
 		}
 
-		ASSERT_Eq( _layout._data.size(), usize{elem_size * _staticCount} );
+		ASSERT_Eq( _layout._data.size(), usize{row_size * _staticCount} );
 	}
 
 /*

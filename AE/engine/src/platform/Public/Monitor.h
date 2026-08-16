@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #pragma once
 
@@ -79,10 +79,13 @@ namespace AE::App
 		ND_ bool		IsHorizontal ()							C_NE___	{ return region.pixels.Width() > region.pixels.Height(); }
 		ND_ bool		IsVertical ()							C_NE___	{ return not IsHorizontal(); }
 
-		ND_ float		MillimetersPerPixel ()					C_NE___	{ return 1.f / (ppi * _InchsInMillimeter()); }	// mm / pix, size of pixel
-		ND_ float		PixelsPerMillimeter ()					C_NE___	{ return ppi * _InchsInMillimeter(); }			// pix / mm
+		ND_ float		MillimetersPerPixel ()					C_NE___	{ return 1.f / (ppi * _InchesInMillimeter()); }	// mm / pix, size of pixel
+		ND_ float		PixelsPerMillimeter ()					C_NE___	{ return ppi * _InchesInMillimeter(); }			// pix / mm
 
 		ND_ float2		RegionSize ()							C_NE___	{ return float2{region.pixels.Size()}; }
+
+		ND_ float		DiagonalMm ()							C_NE___	{ return Sqrt( Square(physicalSize.meters.x) + Square(physicalSize.meters.y) ); }
+		ND_ float		DiagonalInch ()							C_NE___	{ return DiagonalMm() * _InchesInMeter(); }
 
 		ND_ ESurfaceTransform	SurfaceTransform ()				C_NE___;
 
@@ -130,9 +133,10 @@ namespace AE::App
 		ND_ float2		PixelsPerDegree (float distInMeters)	C_NE___;  // pix / deg
 		ND_ float		MaxPixelsPerDegree (float distInMeters)	C_NE___	{ float2 ppd = PixelsPerDegree( distInMeters );  return Max( ppd.x, ppd.y ); }
 
-		NdCx__ static float	_MetersInInch ()					__NE___	{ return 0.0254f; }
-		NdCx__ static float	_InchsInMillimeter ()				__NE___	{ return 0.0393700787f; }
-		NdCx__ static float	_DipToPixel ()						__NE___	{ return 160.0f; }	// Device Independent Pixels in Android
+		NdCx__ static float	_MetersInInch ()					__NE___	{ return 0.0254f; }			// inch / meter
+		NdCx__ static float	_InchesInMeter ()					__NE___	{ return 39.3700787f; }		// meter / inch
+		NdCx__ static float	_InchesInMillimeter ()				__NE___	{ return 0.0393700787f; }	// mm / inch
+		NdCx__ static float	_DipToPixel ()						__NE___	{ return 160.0f; }			// Device Independent Pixels in Android
 
 			void		Print ()								C_NE___;
 

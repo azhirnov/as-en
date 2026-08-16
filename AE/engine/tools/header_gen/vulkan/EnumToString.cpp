@@ -1,6 +1,7 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
-#include "VulkanLoaderGen.h"
+#ifdef VULKAN_HEADER_PATH
+# include "VulkanLoaderGen.h"
 
 namespace AE::Parsers
 {
@@ -52,7 +53,7 @@ namespace
 			"VkDependencyFlagBits", "VkSampleCountFlagBits", "VkAttachmentLoadOp", "VkAttachmentStoreOp",
 			"VkImageAspectFlagBits", "VkStructureType", "VkRenderPassCreateFlagBits", "VkAttachmentDescriptionFlagBits",
 			"VkSubpassDescriptionFlagBits", "VkPipelineBindPoint", "VkQueueFlagBits", "VkDeviceMemoryReportEventTypeEXT",
-			"VkComponentTypeKHR", "VkScopeKHR", "VkCopyMicromapModeEXT"
+			"VkComponentTypeKHR", "VkScopeKHR", "VkCopyMicromapModeEXT", "VkMemoryPropertyFlagBits"
 		};
 		const Pair<const char*, const char*>	req_bitfields[] = {
 			{ "VkPipelineStageFlags",			"VkPipelineStageFlagBits" },
@@ -64,7 +65,8 @@ namespace
 			{ "VkRenderPassCreateFlags",		"VkRenderPassCreateFlagBits" },
 			{ "VkAttachmentDescriptionFlags",	"VkAttachmentDescriptionFlagBits" },
 			{ "VkSubpassDescriptionFlags",		"VkSubpassDescriptionFlagBits" },
-			{ "VkQueueFlags",					"VkQueueFlagBits" }
+			{ "VkQueueFlags",					"VkQueueFlagBits" },
+			{ "VkMemoryPropertyFlags",			"VkMemoryPropertyFlagBits" }
 		};
 
 		const char*		req_const_set[]	= { "VkPipelineStageFlagBits2", "VkAccessFlagBits2" };
@@ -100,7 +102,8 @@ namespace
 		for (auto& name : req_enums)
 		{
 			auto	it = _enums.find( SearchableEnum{name} );
-			CHECK_ERR( it != _enums.end() );
+			CHECK_ERR_MSG( it != _enums.end(),
+				"Not found enum '"s << name << "'" );
 
 			str << "ND_ String  " << it->data.name << "ToString (const " << it->data.name << " value)\n{\n"
 				<< "\tswitch ( value )\n\t{";
@@ -168,3 +171,4 @@ namespace
 	}
 
 } // AE::Parsers
+#endif // VULKAN_HEADER_PATH

@@ -1,0 +1,151 @@
+#include <pipeline_compiler.as>
+
+
+void ASmain ()
+{
+	// include:
+	//	Lin-AMD-RDNA3-780M-1.4.313
+	//	Lin-NV-RTX2000-1.4.312
+	//	Mesa-Adreno-X1-85-1.4.305
+	//	Mesa-AMD-GCN4-RX580-1.4.318
+	//	Mesa-AMD-RDNA3-780M-1.4.328
+	//	Mesa-AMD-RDNA3.5-1.4.340-8060S
+	//	Mesa-AMD-RDNA3.5-890M-1.4.318
+	//	Mesa-AMD-RDNA4-1.4.328
+	//	Mesa-Intel-Arc-1.4.318
+	//	Mesa-Intel-Gen11-1.3.230
+	//	Mesa-Intel-Gen9.5-1.4.311
+	//	Mesa-Intel-Xe1-1.4.328
+	//	Mesa-Intel-Xe2-1.4.318
+	//	Win-Adreno-X1-45-1.3.295
+	//	Win-Adreno-X1-85-1.3.295
+	//	Win-Adreno-X2-90-1.4.295
+	//	Win-AMD-GCN4-RX580-1.4.264
+	//	Win-AMD-GCN5-IIV-1.3.260
+	//	Win-AMD-GCN5-RXVega10-1.3.260
+	//	Win-AMD-GCN5-RXVega56-1.3.264
+	//	Win-AMD-RDNA1-1.2.196
+	//	Win-AMD-RDNA1-1.4.315
+	//	Win-AMD-RDNA2-1.4.315
+	//	Win-AMD-RDNA2-610M-1.4.315
+	//	Win-AMD-RDNA3-1.4.315
+	//	Win-AMD-RDNA3-780M-1.3.237
+	//	Win-AMD-RDNA3-780M-1.4.329
+	//	Win-AMD-RDNA3.5-8060S-1.4.325
+	//	Win-AMD-RDNA3.5-890M-1.4.329
+	//	Win-AMD-RDNA4-1.4.329
+	//	Win-Intel-Xe1-1.3.297
+	//	Win-Intel-Xe1-1.4.325
+	//	Win-Intel-Xe1-LPG-1.4.325
+	//	Win-Intel-Xe2-1.4.325
+	//	Win-Intel-Xe2-LPG-1.4.323
+	//	Win-llvmpipe-1.4.328
+	//	Win-NV-GTX1000-1.4.329
+	//	Win-NV-GTX1600-1.4.312
+	//	Win-NV-GTX700-1.4.312
+	//	Win-NV-GTX800-1.4.329
+	//	Win-NV-GTX900-1.4.312
+	//	Win-NV-MX150-1.4.312
+	//	Win-NV-RTX2000-1.2.168
+	//	Win-NV-RTX2000-1.3.224
+	//	Win-NV-RTX2000-1.4.312
+	//	Win-NV-RTX3000-1.4.328
+	//	Win-NV-RTX4000-1.4.328
+	//	Win-NV-RTX5000-1.4.319
+	//	Win-NV-RTX5000-1.4.325
+	//	Adreno-660-1.1.128
+	//	Adreno-660-1.1.276
+	//	Adreno-660-1.1.295
+	//	Adreno-730-1.4.295
+	//	Adreno-740-1.3.128
+	//	Adreno-740-1.3.295
+	//	Adreno-830-1.3.284
+	//	Adreno-830-1.4.295-MS
+	//	Adreno-830-1.4.295
+	//	Adreno-840-1.4.295
+	//	AdrenoX1-45-Win-1.3.295
+	//	AdrenoX1-85-Linux-1.4.305
+	//	AdrenoX1-85-Win-1.3.295
+	//	Maleoon910-1.2.231
+	//	Maleoon910-1.2.309
+	//	Maleoon920-1.3.275
+	//	Maleoon920-1.3.309
+	//	Maleoon935-1.3.309
+	//	Mali-G1-1.3.305-Oppo
+	//	Mali-G1-1.3.305-Vivo
+	//	Mali-G57-1.1.191
+	//	Mali-G57-1.3.225
+	//	Mali-G57-1.3.283
+	//	Mali-G610-1.1.219
+	//	Mali-G615-1.3.247
+	//	Mali-G710-1.3.274
+	//	Mali-G710-1.4.305
+	//	Mali-G715-1.4.305
+	//	Mali-G720-1.3.247
+	//	Mali-G720-1.3.278
+	//	Mali-G78-1.1.177
+	//	Mali-G78-1.3.231
+	//	Mali-G78-1.4.303
+	//	Mali-G925-1.3.278
+	//	PanVk-Mali-G610-1.4.333
+	//	PVR-B-1.1.170
+	//	PVR-D-1.3.288
+	//	PVR-D-1.4.303
+	//	Rockchip-Orangepi5max-1.3.231
+	//	SamsungX530-1.3.279
+	//	SamsungX920-1.1.179
+	//	SamsungX920-1.3.279
+	//	SamsungX940-1.3.231
+	//	SamsungX940-1.3.279
+	//	Turnip-Adreno-650-1.3.328
+	//	Videocore7-1.3.295
+	//	OculusQuest3-1.3.295
+	//	Pico4-1.1.128
+	//	Pico4U-1.3.276
+
+	const EFeature  True = EFeature::RequireTrue;
+
+	RC<FeatureSet>  fset = FeatureSet( "part.MinBindless" );
+
+	fset.bufferDeviceAddress (True);
+	fset.runtimeDescriptorArray (True);
+	fset.descriptorBindingVariableDescriptorCount (True);
+
+	fset.shaderSampledImageArrayDynamicIndexing (True);
+	fset.shaderStorageBufferArrayDynamicIndexing (True);
+	fset.shaderStorageImageArrayDynamicIndexing (True);
+	fset.shaderUniformBufferArrayDynamicIndexing (True);
+	fset.shaderUniformTexelBufferArrayDynamicIndexing (True);
+	fset.shaderStorageTexelBufferArrayDynamicIndexing (True);
+
+	fset.shaderSampledImageArrayNonUniformIndexing (True);
+	fset.shaderStorageBufferArrayNonUniformIndexing (True);
+	fset.shaderStorageImageArrayNonUniformIndexing (True);
+	fset.shaderUniformTexelBufferArrayNonUniformIndexing (True);
+	fset.shaderStorageTexelBufferArrayNonUniformIndexing (True);
+
+	fset.maxSpirvVersion (140);
+	fset.maxMetalVersion (200);
+	fset.maxUniformBufferSize (64 << 10);
+	fset.maxStorageBufferSize (128 << 20);
+
+	fset.perPipeline_maxInputAttachments (7);
+	fset.perPipeline_maxSampledImages (393210);
+	fset.perPipeline_maxSamplers (576);
+	fset.perPipeline_maxStorageBuffers (393210);
+	fset.perPipeline_maxStorageImages (393210);
+	fset.perPipeline_maxUniformBuffers (90);
+
+	fset.perStage_maxInputAttachments (7);
+	fset.perStage_maxSampledImages (65535);
+	fset.perStage_maxSamplers (64);
+	fset.perStage_maxStorageBuffers (65535);
+	fset.perStage_maxStorageImages (65535);
+	fset.perStage_maxUniformBuffers (15);
+	fset.perStage_maxTotalResources (500000);
+	fset.perDescSet_maxTotalResources (1 << 10);
+	fset.maxDescriptorSets (4);
+	fset.maxFragmentOutputAttachments (8);
+	fset.maxFragmentCombinedOutputResources (8);
+	fset.maxPushConstantsSize (128);
+}

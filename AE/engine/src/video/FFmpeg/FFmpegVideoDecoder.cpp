@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #ifdef AE_ENABLE_FFMPEG
 # include "video/FFmpeg/FFmpegVideoDecoder.h"
@@ -64,10 +64,12 @@ namespace AE::Video
 
 			ASSERT( _ffmpeg->av_codec_is_decoder( codec ) != 0 );
 
-			if ( not (codec->capabilities & AV_CODEC_CAP_HARDWARE) and _config.hwAccelerated == EHwAcceleration::Require )
+			if ( not (codec->capabilities & (AV_CODEC_CAP_HARDWARE | AV_CODEC_CAP_HYBRID)) and
+				 _config.hwAccelerated == EHwAcceleration::Require )
 				return false;
 
-			if ( (codec->capabilities & AV_CODEC_CAP_HARDWARE) and _config.hwAccelerated == EHwAcceleration::Disable )
+			if ( (codec->capabilities & AV_CODEC_CAP_HARDWARE) and
+				 _config.hwAccelerated == EHwAcceleration::Disable )
 				return false;
 
 			codec_ctx = _ffmpeg->avcodec_alloc_context3( codec );
@@ -301,7 +303,7 @@ namespace AE::Video
 			_formatCtx = _ffmpeg->avformat_alloc_context();
 			CHECK_ERR( _formatCtx != null );
 
-			const int	avio_buf_size = int(AlignUp( 4096_b, _rstream->DirectAccessAlign().offsetAlign ));
+			const int	avio_buf_size = int(AlignUp( cfg.ioBufferSize, _rstream->DirectAccessAlign().offsetAlign ));
 
 			auto*	buf = Cast<unsigned char>( _ffmpeg->av_malloc( avio_buf_size ));
 			CHECK_ERR( buf != null );
@@ -317,7 +319,7 @@ namespace AE::Video
 			_ioCtx->direct		= 1;
 
 			_formatCtx->pb		= _ioCtx;
-			_formatCtx->flags	|= AVFMT_FLAG_CUSTOM_IO;
+			_formatCtx->flags	|= AVFMT_FLAG_CUSTOM_IO | AVFMT_FLAG_NONBLOCK;
 
 			FF_CHECK_ERR( _ffmpeg->avformat_open_input( &_formatCtx, null, null, null ));
 		}
@@ -425,24 +427,24 @@ namespace AE::Video
 	_PTStoFrameIdx / _FrameIdxToPTS / _TimestampToPTS
 =================================================
 */
-	ulong  FFmpegVideoDecoder::_PTStoFrameIdx (slong pts) C_NE___
+	ulong  FFmpegVideoDecoder::_PTStoFrameIdx (AVStream* stream, slong pts) C_NE___
 	{
-		return PTStoFrameIndex( _formatCtx->streams[ _config.videoStreamIdx ], pts );
+		return PTStoFrameIndex( stream, pts );
 	}
 
-	slong  FFmpegVideoDecoder::_FrameIdxToPTS (ulong frameIdx) C_NE___
+	slong  FFmpegVideoDecoder::_FrameIdxToPTS (AVStream* stream, ulong frameIdx) C_NE___
 	{
-		return FrameIndexToPTS( _formatCtx->streams[ _config.videoStreamIdx ], frameIdx );
+		return FrameIndexToPTS( stream, frameIdx );
 	}
 
-	slong  FFmpegVideoDecoder::_TimestampToPTS (Seconds_t timestamp) C_NE___
+	slong  FFmpegVideoDecoder::_TimestampToPTS (AVStream* stream, Seconds_t timestamp) C_NE___
 	{
-		return TimestampToPTS( _formatCtx->streams[ _config.videoStreamIdx ], _formatCtx->duration, timestamp );
+		return TimestampToPTS( stream, _formatCtx->duration, timestamp );
 	}
 
 /*
 =================================================
-	SeekTo
+	SeekTo (frame)
 =================================================
 */
 	bool  FFmpegVideoDecoder::SeekTo (ulong frameIdx) __NE___
@@ -452,11 +454,21 @@ namespace AE::Video
 		if_unlikely( not _decodingStarted )
 			return false;
 
-		ulong	target_pts = _FrameIdxToPTS( frameIdx );
+		ASSERT( _formatCtx != null			and
+				_config.videoStreamIdx >= 0	and
+				_config.videoStreamIdx < int(_formatCtx->nb_streams) );
+
+		AVStream*	vstream		= _formatCtx->streams[ _config.videoStreamIdx ];
+		ulong		target_pts	= _FrameIdxToPTS( vstream, frameIdx );
 
 		return _SeekTo( target_pts );
 	}
 
+/*
+=================================================
+	SeekTo (time)
+=================================================
+*/
 	bool  FFmpegVideoDecoder::SeekTo (Seconds_t timestamp) __NE___
 	{
 		EXLOCK( _guard );
@@ -464,24 +476,31 @@ namespace AE::Video
 		if_unlikely( not _decodingStarted )
 			return false;
 
-		ulong	target_pts = _TimestampToPTS( timestamp );
+		ASSERT( _formatCtx != null			and
+				_config.videoStreamIdx >= 0	and
+				_config.videoStreamIdx < int(_formatCtx->nb_streams) );
+
+		AVStream*	vstream		= _formatCtx->streams[ _config.videoStreamIdx ];
+		ulong		target_pts	= _TimestampToPTS( vstream, timestamp );
 
 		return _SeekTo( target_pts );
 	}
 
+/*
+=================================================
+	_SeekTo
+=================================================
+*/
 	bool  FFmpegVideoDecoder::_SeekTo (slong targetPTS) __NE___
 	{
-		ASSERT( _decodingStarted			and
-				_formatCtx		!= null		and
-				_config.videoStreamIdx >= 0	and
-				_config.videoStreamIdx < int(_formatCtx->nb_streams) );
-
 		AVStream*	vstream = _formatCtx->streams[ _config.videoStreamIdx ];
 		Unused( vstream );
 		ASSERT( vstream->nb_frames == 0 or targetPTS < vstream->nb_frames );
 
 		FF_CHECK_ERR( _ffmpeg->av_seek_frame( _formatCtx, _config.videoStreamIdx, targetPTS, AVSEEK_FLAG_BACKWARD ));
 		_ffmpeg->avcodec_flush_buffers( _video.codecCtx );
+
+		const double	scale	= av_q2d( vstream->time_base );
 
 		// av_seek_frame takes effect after one frame
 		for (; _ffmpeg->av_read_frame( _formatCtx, OUT _avPacket ) >= 0;)
@@ -503,6 +522,12 @@ namespace AE::Video
 
             _ffmpeg->av_frame_unref( _video.frame );
 			FF_CHECK_ERR( err );
+
+			//slong	ts = _video.frame->best_effort_timestamp;
+			slong	ts = _video.frame->pts;
+
+			_curTimestamp	= Seconds_t{ ts * scale };
+			_curFrameIdx	= _PTStoFrameIdx( vstream, ts );
 			break;
 		}
 		return true;
@@ -597,11 +622,25 @@ namespace AE::Video
 				//slong	ts = _video.frame->best_effort_timestamp;
 				slong	ts = _video.frame->pts;
 
-				//AE_LOGI( "ts: "s << ToString(ts) );
+				outInfo.duration = _video.frame->duration > 0 ? Seconds_t{ _video.frame->duration * scale } : Seconds_t{};
 
-				outInfo.timestamp	= Seconds_t{ ts * scale };
-				outInfo.duration	= _video.frame->duration > 0 ? Seconds_t{ _video.frame->duration * scale } : Seconds_t{};
-				outInfo.frameIdx	= _PTStoFrameIdx( ts );
+				// regular video
+				if ( ts >= 0 )
+				{
+					_curTimestamp		= Seconds_t{ ts * scale };
+					_curFrameIdx		= _PTStoFrameIdx( vstream, ts );
+
+					outInfo.timestamp	= _curTimestamp;
+					outInfo.frameIdx	= _curFrameIdx;
+				}
+				else
+				// bitstream or video without time stamps
+				{
+					_curTimestamp		+= outInfo.duration;
+					outInfo.timestamp	= _curTimestamp;
+					outInfo.frameIdx	= _curFrameIdx;
+					++_curFrameIdx;
+				}
 
 				EResult	res;
 				if ( memView.size() == 1 )
@@ -626,11 +665,30 @@ namespace AE::Video
 			for (uint j = 0; j < max_iter; ++j)
 			{
 				err = _ffmpeg->av_read_frame( _formatCtx, OUT _avPacket );
-				if ( err < 0 )
+
+				if_unlikely( err < 0 )
 				{
-					// demuxer EOF: flush decoder
-					_ffmpeg->avcodec_send_packet( _video.codecCtx, null );
-					break;
+					if ( _ioCtx and _ioCtx->error == AVERROR(EAGAIN) )
+					{
+						// otherwise av_read_frame() will not call _IOReadPacket()
+						_ioCtx->error = 0;
+						return EResult::NeedMoreData;
+					}
+
+					if ( err == AVERROR(EAGAIN) )
+					{
+						return EResult::NeedMoreData;
+					}
+
+					if ( err == AVERROR_EOF )
+					{
+						// demuxer EOF: flush decoder
+						_ffmpeg->avcodec_send_packet( _video.codecCtx, null );
+						break;
+					}
+
+					FF_CHECK( err );
+					return EResult::Error;
 				}
 
 				if ( _avPacket->stream_index != _config.videoStreamIdx )
@@ -864,6 +922,9 @@ namespace AE::Video
 		_decodingStarted	= false;
 		_config				= Default;
 		_rstream			= null;
+
+		_curTimestamp		= Zero;
+		_curFrameIdx		= 0;
 	}
 
 /*
@@ -898,13 +959,20 @@ namespace AE::Video
 
 		int	result = int(stream->ReadSeq( OUT buf, Bytes{ulong(buf_size)} ));
 
-		if_unlikely( result == 0 )
-		{
-			auto	pos_size = stream->PositionAndSize();
-			result = (pos_size.pos >= pos_size.size) ? AVERROR_EOF : result;
-		}
+		if_likely( result > 0 )
+			return result;
 
-		return result;
+		auto	pos_size = stream->PositionAndSize();
+
+		// If 'GetSourceType()' contains 'FixedSize' then 'size' must be valid, so it return EOF.
+		// Without 'FixedSize' 'size' must be UMax until size is not known (stream is finished), so it return EAGAIN.
+		if ( pos_size.pos >= pos_size.size )
+			return AVERROR_EOF;
+
+		// Warning: avformat_find_stream_info() hangs if this function returns EAGAIN.
+		// Prefer blokcing read instead of returning errors and then trying to continue reading.
+		// Don't return 0 because it cause infinite loop.
+		return AVERROR(EAGAIN);
 	}
 
 /*
@@ -916,17 +984,43 @@ namespace AE::Video
 	{
 		auto*	stream = Cast<RStream>( opaque );
 
-		if_unlikely( offset < 0 )
-			return AVERROR_UNKNOWN;
-
 		switch ( whence & ~AVSEEK_FORCE )
 		{
-			case SEEK_SET :		return stream->SeekSet( Bytes{ulong(offset)} )					? slong(stream->Position()) : AVERROR_UNKNOWN;
-			case SEEK_CUR :		return stream->SeekFwd( Bytes{ulong(offset)} )					? slong(stream->Position()) : AVERROR_UNKNOWN;
-			case SEEK_END :		return stream->SeekSet( stream->Size() - Bytes{ulong(offset)} )	? slong(stream->Position()) : AVERROR_UNKNOWN;
-			case AVSEEK_SIZE :	return slong(stream->Size());
+			case SEEK_SET :
+			{
+				if ( offset < 0 )
+					return AVERROR_UNKNOWN;
+
+				if ( not stream->SeekSet( Bytes{ulong(offset)} ))
+					return AVERROR_UNKNOWN;
+				break;
+			}
+
+			case SEEK_CUR :
+			{
+				if ( offset < 0 )
+					return AVERROR_UNKNOWN;
+
+				if ( not stream->SeekFwd( Bytes{ulong(offset)} ))
+					return AVERROR_UNKNOWN;
+				break;
+			}
+
+			case SEEK_END :
+			{
+				if ( not stream->SeekSet( stream->Size() - Bytes{ulong(offset)} ))
+					return AVERROR_UNKNOWN;
+				break;
+			}
+
+			case AVSEEK_SIZE :
+				return slong(stream->Size());
+
+			default :
+				return AVERROR_UNKNOWN;
 		}
-		return AVERROR_UNKNOWN;
+
+		return slong(stream->Position());
 	}
 
 /*
@@ -1077,7 +1171,7 @@ namespace AE::Video
 		ctx.ioCtx->direct	= 1;
 
 		ctx.formatCtx->pb		= ctx.ioCtx;
-		ctx.formatCtx->flags	|= AVFMT_FLAG_CUSTOM_IO;
+		ctx.formatCtx->flags	|= AVFMT_FLAG_CUSTOM_IO | AVFMT_FLAG_NONBLOCK;
 
 		FF_CHECK_ERR( _ffmpeg->avformat_open_input( &ctx.formatCtx, null, null, null ));
 		FF_CHECK_ERR( _ffmpeg->avformat_find_stream_info( ctx.formatCtx, null ));

@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 /*
 	Approximate OIT
 	based on https://github.com/nvpro-samples/vk_order_independent_transparency (Apache-2.0 license)
@@ -78,6 +78,7 @@
 			draw.Output( "out_Weights",		rt1_weights,	RGBA32f(1.f) );
 			draw.Output(					ds,				DepthStencil( 1.f, 0 ));
 			draw.Slider( "iWeightScale",	0.0,	0.99,	0.7 );
+			draw.Slider( "iAlphaScale",		0.0,	2.0,	1.0 );
 			draw.Slider( "iPosScale",		1.0,	10.0,	1.0 );
 		}
 		{
@@ -85,6 +86,8 @@
 			pass.Output( "out_Color",		rt2 );
 			pass.ArgIn( "un_TexColor",		rt1_color,   Sampler_NearestClamp );
 			pass.ArgIn( "un_TexWeights",	rt1_weights, Sampler_NearestClamp );
+			pass.Slider( "iDbgView",		0,		2,		0 );
+			pass.Slider( "iDbgScale",		-10,	10,		0 );
 		}
 
 		Present( rt2 );
@@ -103,6 +106,14 @@
 
 		out_Color = float4( accum.rgb / Max(accum.a, 1.0e-5), 1.0 );
 		out_Color.rgb *= 1.0 - reveal;
+
+		float	scale = Exp2( float(iDbgScale) );
+
+		switch ( iDbgView )
+		{
+			case 1 :	out_Color = accum * scale;					break;
+			case 2 :	out_Color = float4(1.0 - reveal) * scale;	break;
+		}
 	}
 
 #endif

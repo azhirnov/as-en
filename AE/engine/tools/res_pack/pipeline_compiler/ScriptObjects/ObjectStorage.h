@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #pragma once
 
@@ -69,16 +69,26 @@ namespace AE::PipelineCompiler
 	struct ObjectStorage final
 	{
 	// types
+	public:
+		enum class EnableShaderFeatures : uint
+		{
+			Unknown			= 0,
+			DescriptorHeap	= 1 << 1,
+
+			_BITOPS_		= 0
+		};
+
 	private:
 		struct ShaderSrcKey
 		{
-			String			source;
-			String			resources;
-			Array<String>	include;
-			EShader			type		= Default;
-			EShaderVersion	version		= Default;
-			EShaderOpt		options		= Default;
-			ShaderDefines_t	defines;
+			String					source;
+			String					resources;
+			Array<String>			include;
+			EShader					type			= Default;
+			EShaderVersion			version			= Default;
+			EShaderOpt				options			= Default;
+			EnableShaderFeatures	enabledFeats	= Default;
+			ShaderDefines_t			defines;
 
 			ShaderSrcKey () {}
 
@@ -196,7 +206,8 @@ namespace AE::PipelineCompiler
 
 		void  CompileShaderGLSL (OUT CompiledShaderPtr &shader, const ScriptShaderPtr &inShader, EShaderVersion version,
 								 const String &defines, const String &resources, ArrayView<String> include,
-								 ArrayView<ScriptFeatureSetPtr> features, uint debugDSIndex, bool useMetalArgBuffer)				__Th___;
+								 ArrayView<ScriptFeatureSetPtr> features, uint debugDSIndex, bool useMetalArgBuffer,
+								 EnableShaderFeatures shaderFeats)																	__Th___;
 
 		void  CompileShaderMSL (OUT CompiledShaderPtr &shader, const ScriptShaderPtr &inShader, EShaderVersion version,
 								const String &defines, const String &resources, ArrayView<String> include,
@@ -207,7 +218,7 @@ namespace AE::PipelineCompiler
 								  ArrayView<ScriptFeatureSetPtr> features)															__Th___;
 
 		ND_ String  GetShaderExtensionsGLSL (INOUT Version2 &spirvVer, EShaderStages stage, bool hasDebugInfo,
-											 ArrayView<ScriptFeatureSetPtr> features)												__Th___;
+											 ArrayView<ScriptFeatureSetPtr> features, EnableShaderFeatures shaderFeats)				__Th___;
 		ND_ String  GetShaderExtensionsMSL  (INOUT Version2 &metalVer, EShaderStages stage, ArrayView<ScriptFeatureSetPtr> features)__Th___;
 
 

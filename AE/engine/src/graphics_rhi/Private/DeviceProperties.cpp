@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #include "graphics_rhi/Public/DeviceProperties.h"
 #include "graphics_rhi/Private/EnumToString.h"
@@ -136,7 +136,7 @@ namespace
 */
 	bool  DeviceProperties::CompareWithConstant (AnyTypeCRef vkExt_mtlFS) C_NE___
 	{
-		StaticAssert( sizeof(DeviceProperties) == 192 );
+		StaticAssert( sizeof(DeviceProperties) == 184 );
 
 		const auto	CheckLimitLess = [] (auto curr, auto constant, const char* name)
 		{{
@@ -367,7 +367,7 @@ namespace
 		}
 
 		// compute properties
-		StaticAssert( sizeof(compute) == 52 );
+		StaticAssert( sizeof(compute) == 48 );
 		{
 			const auto&		props = vk_props.properties.limits;
 			compute.computeGroupCount[0] = props.maxComputeWorkGroupCount[0];
@@ -391,7 +391,7 @@ namespace
 			compute.prefersCompactVertexOutput				= props.prefersCompactVertexOutput;
 			compute.prefersCompactPrimitiveOutput			= props.prefersCompactPrimitiveOutput;
 		}{
-			compute.subgroupSize = vk_props.subgroupProperties.subgroupSize;
+			compute.subgroupSize = POTValue32{vk_props.subgroupProperties.subgroupSize};
 		}
 
 		// indirect command buffer Properties
@@ -597,7 +597,7 @@ namespace
 
 			// compute
 			{
-				StaticAssert( sizeof(compute) == 52 );
+				StaticAssert( sizeof(compute) == 48 );
 				str << "\n  ComputeProperties:"
 					<< "\n    computeGroupCount: . . . . . . . . . . (" << ToString( compute.computeGroupCount[0] ) << ", " << ToString( compute.computeGroupCount[1] ) << ", " << ToString( compute.computeGroupCount[2] ) << ")";
 

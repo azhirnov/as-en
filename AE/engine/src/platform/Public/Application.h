@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 /*
 	--- IApplication ---
 	Contains array of windows.
@@ -92,15 +92,23 @@ namespace AE::App
 
 
 		// Open OS-specific file storage. Returns null if not supported.
+		// Result are internally cached, so second call with same 'type' will return same storage.
 		//   Thread safe: yes
 		//
 		ND_ virtual RC<IVirtualFileStorage>  OpenStorage (EAppStorage type)					__NE___	= 0;
 
 
+		// Mount storage which returned by 'OpenStorage()' with default storage name,
+		// for example 'Storage_Cache' for 'EAppStorage::Cache'.
+		//   Thread safe: yes
+		//
+		ND_ virtual bool  MountStorage (EAppStorage type)									__NE___	= 0;
+
+
 		// Returns OS-specific absolute path or empty is not supported.
 		//   Thread safe: yes
 		//
-		ND_ virtual Path  GetStoragePath (EAppStorage type)									__NE___	= 0;
+		ND_ virtual Path  GetStoragePath (EAppStorage type)									C_NE___	= 0;
 
 
 		// Returns array of monitors.

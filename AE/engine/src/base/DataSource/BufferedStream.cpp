@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #include "base/DataSource/BufferedStream.h"
 #include "base/Algorithms/ArrayUtils.h"
@@ -51,7 +51,7 @@ namespace AE::Base
 		constexpr auto	mask = ESourceType::FixedSize;
 
 		return	ESourceType::Buffered	| ESourceType::SequentialAccess |
-				ESourceType::ReadAccess	|
+				ESourceType::ReadOnly	|
 				(_stream->GetSourceType() & mask);
 	}
 

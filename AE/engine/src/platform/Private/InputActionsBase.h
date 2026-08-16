@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #pragma once
 
@@ -256,8 +256,8 @@ namespace AE::App
 			case EValueType::Float4x4 :
 			case EValueType::Unknown :
 			case EValueType::Chars :
-			case EValueType::GNS :		break;	// default
-			case EValueType::_Count :
+			case EValueType::GNS :
+			case EValueType::_Count :	break;	// default
 			default :					DBG_WARNING( "unknown value type" ); break;
 		}
 		switch_end

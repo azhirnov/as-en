@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #pragma once
 
@@ -9,106 +9,106 @@
 namespace AE::Base
 {
 
-	enum class EMatrixOrder
+	enum class EMatrixLayout
 	{
 		ColumnMajor,
 		RowMajor,
 	};
 
 
-	template <typename T, uint Columns, uint Rows, EMatrixOrder Order, usize Align = alignof(T)>
+	template <typename T, uint Columns, uint Rows, EMatrixLayout Layout, usize Align = alignof(T)>
 	struct MatrixStorage;
 
 
-	using half2x2_storage			= MatrixStorage< half,  2, 2, EMatrixOrder::ColumnMajor, 2*2 >;
-	using half2x3_storage			= MatrixStorage< half,  2, 3, EMatrixOrder::ColumnMajor, 2*4 >;
-	using half2x4_storage			= MatrixStorage< half,  2, 4, EMatrixOrder::ColumnMajor, 2*4 >;
-	using half3x2_storage			= MatrixStorage< half,  3, 2, EMatrixOrder::ColumnMajor, 2*2 >;
-	using half3x3_storage			= MatrixStorage< half,  3, 3, EMatrixOrder::ColumnMajor, 2*4 >;
-	using half3x4_storage			= MatrixStorage< half,  3, 4, EMatrixOrder::ColumnMajor, 2*4 >;
-	using half4x2_storage			= MatrixStorage< half,  4, 2, EMatrixOrder::ColumnMajor, 2*2 >;
-	using half4x3_storage			= MatrixStorage< half,  4, 3, EMatrixOrder::ColumnMajor, 2*4 >;
-	using half4x4_storage			= MatrixStorage< half,  4, 4, EMatrixOrder::ColumnMajor, 2*4 >;
+	using half2x2_storage			= MatrixStorage< half,  2, 2, EMatrixLayout::ColumnMajor, 2*2 >;
+	using half2x3_storage			= MatrixStorage< half,  2, 3, EMatrixLayout::ColumnMajor, 2*4 >;
+	using half2x4_storage			= MatrixStorage< half,  2, 4, EMatrixLayout::ColumnMajor, 2*4 >;
+	using half3x2_storage			= MatrixStorage< half,  3, 2, EMatrixLayout::ColumnMajor, 2*2 >;
+	using half3x3_storage			= MatrixStorage< half,  3, 3, EMatrixLayout::ColumnMajor, 2*4 >;
+	using half3x4_storage			= MatrixStorage< half,  3, 4, EMatrixLayout::ColumnMajor, 2*4 >;
+	using half4x2_storage			= MatrixStorage< half,  4, 2, EMatrixLayout::ColumnMajor, 2*2 >;
+	using half4x3_storage			= MatrixStorage< half,  4, 3, EMatrixLayout::ColumnMajor, 2*4 >;
+	using half4x4_storage			= MatrixStorage< half,  4, 4, EMatrixLayout::ColumnMajor, 2*4 >;
 
-	using half2x2_storage_std140	= MatrixStorage< half,  2, 2, EMatrixOrder::ColumnMajor, 16 >;
-	using half2x3_storage_std140	= MatrixStorage< half,  2, 3, EMatrixOrder::ColumnMajor, 16 >;
-	using half2x4_storage_std140	= MatrixStorage< half,  2, 4, EMatrixOrder::ColumnMajor, 16 >;
-	using half3x2_storage_std140	= MatrixStorage< half,  3, 2, EMatrixOrder::ColumnMajor, 16 >;
-	using half3x3_storage_std140	= MatrixStorage< half,  3, 3, EMatrixOrder::ColumnMajor, 16 >;
-	using half3x4_storage_std140	= MatrixStorage< half,  3, 4, EMatrixOrder::ColumnMajor, 16 >;
-	using half4x2_storage_std140	= MatrixStorage< half,  4, 2, EMatrixOrder::ColumnMajor, 16 >;
-	using half4x3_storage_std140	= MatrixStorage< half,  4, 3, EMatrixOrder::ColumnMajor, 16 >;
-	using half4x4_storage_std140	= MatrixStorage< half,  4, 4, EMatrixOrder::ColumnMajor, 16 >;
+	using half2x2_storage_std140	= MatrixStorage< half,  2, 2, EMatrixLayout::ColumnMajor, 16 >;
+	using half2x3_storage_std140	= MatrixStorage< half,  2, 3, EMatrixLayout::ColumnMajor, 16 >;
+	using half2x4_storage_std140	= MatrixStorage< half,  2, 4, EMatrixLayout::ColumnMajor, 16 >;
+	using half3x2_storage_std140	= MatrixStorage< half,  3, 2, EMatrixLayout::ColumnMajor, 16 >;
+	using half3x3_storage_std140	= MatrixStorage< half,  3, 3, EMatrixLayout::ColumnMajor, 16 >;
+	using half3x4_storage_std140	= MatrixStorage< half,  3, 4, EMatrixLayout::ColumnMajor, 16 >;
+	using half4x2_storage_std140	= MatrixStorage< half,  4, 2, EMatrixLayout::ColumnMajor, 16 >;
+	using half4x3_storage_std140	= MatrixStorage< half,  4, 3, EMatrixLayout::ColumnMajor, 16 >;
+	using half4x4_storage_std140	= MatrixStorage< half,  4, 4, EMatrixLayout::ColumnMajor, 16 >;
 
-	using packed_half2x2_storage	= MatrixStorage< half,  2, 2, EMatrixOrder::ColumnMajor, 2 >;
-	using packed_half2x3_storage	= MatrixStorage< half,  2, 3, EMatrixOrder::ColumnMajor, 2 >;
-	using packed_half2x4_storage	= MatrixStorage< half,  2, 4, EMatrixOrder::ColumnMajor, 2 >;
-	using packed_half3x2_storage	= MatrixStorage< half,  3, 2, EMatrixOrder::ColumnMajor, 2 >;
-	using packed_half3x3_storage	= MatrixStorage< half,  3, 3, EMatrixOrder::ColumnMajor, 2 >;
-	using packed_half3x4_storage	= MatrixStorage< half,  3, 4, EMatrixOrder::ColumnMajor, 2 >;
-	using packed_half4x2_storage	= MatrixStorage< half,  4, 2, EMatrixOrder::ColumnMajor, 2 >;
-	using packed_half4x3_storage	= MatrixStorage< half,  4, 3, EMatrixOrder::ColumnMajor, 2 >;
-	using packed_half4x4_storage	= MatrixStorage< half,  4, 4, EMatrixOrder::ColumnMajor, 2 >;
+	using packed_half2x2_storage	= MatrixStorage< half,  2, 2, EMatrixLayout::ColumnMajor, 2 >;
+	using packed_half2x3_storage	= MatrixStorage< half,  2, 3, EMatrixLayout::ColumnMajor, 2 >;
+	using packed_half2x4_storage	= MatrixStorage< half,  2, 4, EMatrixLayout::ColumnMajor, 2 >;
+	using packed_half3x2_storage	= MatrixStorage< half,  3, 2, EMatrixLayout::ColumnMajor, 2 >;
+	using packed_half3x3_storage	= MatrixStorage< half,  3, 3, EMatrixLayout::ColumnMajor, 2 >;
+	using packed_half3x4_storage	= MatrixStorage< half,  3, 4, EMatrixLayout::ColumnMajor, 2 >;
+	using packed_half4x2_storage	= MatrixStorage< half,  4, 2, EMatrixLayout::ColumnMajor, 2 >;
+	using packed_half4x3_storage	= MatrixStorage< half,  4, 3, EMatrixLayout::ColumnMajor, 2 >;
+	using packed_half4x4_storage	= MatrixStorage< half,  4, 4, EMatrixLayout::ColumnMajor, 2 >;
 
-	using float2x2_storage			= MatrixStorage< float,  2, 2, EMatrixOrder::ColumnMajor, 4*2 >;
-	using float2x3_storage			= MatrixStorage< float,  2, 3, EMatrixOrder::ColumnMajor, 4*4 >;
-	using float2x4_storage			= MatrixStorage< float,  2, 4, EMatrixOrder::ColumnMajor, 4*4 >;
-	using float3x2_storage			= MatrixStorage< float,  3, 2, EMatrixOrder::ColumnMajor, 4*2 >;
-	using float3x3_storage			= MatrixStorage< float,  3, 3, EMatrixOrder::ColumnMajor, 4*4 >;
-	using float3x4_storage			= MatrixStorage< float,  3, 4, EMatrixOrder::ColumnMajor, 4*4 >;
-	using float4x2_storage			= MatrixStorage< float,  4, 2, EMatrixOrder::ColumnMajor, 4*2 >;
-	using float4x3_storage			= MatrixStorage< float,  4, 3, EMatrixOrder::ColumnMajor, 4*4 >;
-	using float4x4_storage			= MatrixStorage< float,  4, 4, EMatrixOrder::ColumnMajor, 4*4 >;
+	using float2x2_storage			= MatrixStorage< float,  2, 2, EMatrixLayout::ColumnMajor, 4*2 >;
+	using float2x3_storage			= MatrixStorage< float,  2, 3, EMatrixLayout::ColumnMajor, 4*4 >;
+	using float2x4_storage			= MatrixStorage< float,  2, 4, EMatrixLayout::ColumnMajor, 4*4 >;
+	using float3x2_storage			= MatrixStorage< float,  3, 2, EMatrixLayout::ColumnMajor, 4*2 >;
+	using float3x3_storage			= MatrixStorage< float,  3, 3, EMatrixLayout::ColumnMajor, 4*4 >;
+	using float3x4_storage			= MatrixStorage< float,  3, 4, EMatrixLayout::ColumnMajor, 4*4 >;
+	using float4x2_storage			= MatrixStorage< float,  4, 2, EMatrixLayout::ColumnMajor, 4*2 >;
+	using float4x3_storage			= MatrixStorage< float,  4, 3, EMatrixLayout::ColumnMajor, 4*4 >;
+	using float4x4_storage			= MatrixStorage< float,  4, 4, EMatrixLayout::ColumnMajor, 4*4 >;
 
-	using float2x2_storage_std140	= MatrixStorage< float,  2, 2, EMatrixOrder::ColumnMajor, 16 >;
-	using float2x3_storage_std140	= MatrixStorage< float,  2, 3, EMatrixOrder::ColumnMajor, 16 >;
-	using float2x4_storage_std140	= MatrixStorage< float,  2, 4, EMatrixOrder::ColumnMajor, 16 >;
-	using float3x2_storage_std140	= MatrixStorage< float,  3, 2, EMatrixOrder::ColumnMajor, 16 >;
-	using float3x3_storage_std140	= MatrixStorage< float,  3, 3, EMatrixOrder::ColumnMajor, 16 >;
-	using float3x4_storage_std140	= MatrixStorage< float,  3, 4, EMatrixOrder::ColumnMajor, 16 >;
-	using float4x2_storage_std140	= MatrixStorage< float,  4, 2, EMatrixOrder::ColumnMajor, 16 >;
-	using float4x3_storage_std140	= MatrixStorage< float,  4, 3, EMatrixOrder::ColumnMajor, 16 >;
-	using float4x4_storage_std140	= MatrixStorage< float,  4, 4, EMatrixOrder::ColumnMajor, 16 >;
+	using float2x2_storage_std140	= MatrixStorage< float,  2, 2, EMatrixLayout::ColumnMajor, 16 >;
+	using float2x3_storage_std140	= MatrixStorage< float,  2, 3, EMatrixLayout::ColumnMajor, 16 >;
+	using float2x4_storage_std140	= MatrixStorage< float,  2, 4, EMatrixLayout::ColumnMajor, 16 >;
+	using float3x2_storage_std140	= MatrixStorage< float,  3, 2, EMatrixLayout::ColumnMajor, 16 >;
+	using float3x3_storage_std140	= MatrixStorage< float,  3, 3, EMatrixLayout::ColumnMajor, 16 >;
+	using float3x4_storage_std140	= MatrixStorage< float,  3, 4, EMatrixLayout::ColumnMajor, 16 >;
+	using float4x2_storage_std140	= MatrixStorage< float,  4, 2, EMatrixLayout::ColumnMajor, 16 >;
+	using float4x3_storage_std140	= MatrixStorage< float,  4, 3, EMatrixLayout::ColumnMajor, 16 >;
+	using float4x4_storage_std140	= MatrixStorage< float,  4, 4, EMatrixLayout::ColumnMajor, 16 >;
 
-	using packed_float2x2_storage	= MatrixStorage< float,  2, 2, EMatrixOrder::ColumnMajor, 4 >;
-	using packed_float2x3_storage	= MatrixStorage< float,  2, 3, EMatrixOrder::ColumnMajor, 4 >;
-	using packed_float2x4_storage	= MatrixStorage< float,  2, 4, EMatrixOrder::ColumnMajor, 4 >;
-	using packed_float3x2_storage	= MatrixStorage< float,  3, 2, EMatrixOrder::ColumnMajor, 4 >;
-	using packed_float3x3_storage	= MatrixStorage< float,  3, 3, EMatrixOrder::ColumnMajor, 4 >;
-	using packed_float3x4_storage	= MatrixStorage< float,  3, 4, EMatrixOrder::ColumnMajor, 4 >;
-	using packed_float4x2_storage	= MatrixStorage< float,  4, 2, EMatrixOrder::ColumnMajor, 4 >;
-	using packed_float4x3_storage	= MatrixStorage< float,  4, 3, EMatrixOrder::ColumnMajor, 4 >;
-	using packed_float4x4_storage	= MatrixStorage< float,  4, 4, EMatrixOrder::ColumnMajor, 4 >;
+	using packed_float2x2_storage	= MatrixStorage< float,  2, 2, EMatrixLayout::ColumnMajor, 4 >;
+	using packed_float2x3_storage	= MatrixStorage< float,  2, 3, EMatrixLayout::ColumnMajor, 4 >;
+	using packed_float2x4_storage	= MatrixStorage< float,  2, 4, EMatrixLayout::ColumnMajor, 4 >;
+	using packed_float3x2_storage	= MatrixStorage< float,  3, 2, EMatrixLayout::ColumnMajor, 4 >;
+	using packed_float3x3_storage	= MatrixStorage< float,  3, 3, EMatrixLayout::ColumnMajor, 4 >;
+	using packed_float3x4_storage	= MatrixStorage< float,  3, 4, EMatrixLayout::ColumnMajor, 4 >;
+	using packed_float4x2_storage	= MatrixStorage< float,  4, 2, EMatrixLayout::ColumnMajor, 4 >;
+	using packed_float4x3_storage	= MatrixStorage< float,  4, 3, EMatrixLayout::ColumnMajor, 4 >;
+	using packed_float4x4_storage	= MatrixStorage< float,  4, 4, EMatrixLayout::ColumnMajor, 4 >;
 
-	using double2x2_storage			= MatrixStorage< double, 2, 2, EMatrixOrder::ColumnMajor, 8*2 >;
-	using double2x3_storage			= MatrixStorage< double, 2, 3, EMatrixOrder::ColumnMajor, 8*4 >;
-	using double2x4_storage			= MatrixStorage< double, 2, 4, EMatrixOrder::ColumnMajor, 8*4 >;
-	using double3x2_storage			= MatrixStorage< double, 3, 2, EMatrixOrder::ColumnMajor, 8*2 >;
-	using double3x3_storage			= MatrixStorage< double, 3, 3, EMatrixOrder::ColumnMajor, 8*4 >;
-	using double3x4_storage			= MatrixStorage< double, 3, 4, EMatrixOrder::ColumnMajor, 8*4 >;
-	using double4x2_storage			= MatrixStorage< double, 4, 2, EMatrixOrder::ColumnMajor, 8*2 >;
-	using double4x3_storage			= MatrixStorage< double, 4, 3, EMatrixOrder::ColumnMajor, 8*4 >;
-	using double4x4_storage			= MatrixStorage< double, 4, 4, EMatrixOrder::ColumnMajor, 8*4 >;
+	using double2x2_storage			= MatrixStorage< double, 2, 2, EMatrixLayout::ColumnMajor, 8*2 >;
+	using double2x3_storage			= MatrixStorage< double, 2, 3, EMatrixLayout::ColumnMajor, 8*4 >;
+	using double2x4_storage			= MatrixStorage< double, 2, 4, EMatrixLayout::ColumnMajor, 8*4 >;
+	using double3x2_storage			= MatrixStorage< double, 3, 2, EMatrixLayout::ColumnMajor, 8*2 >;
+	using double3x3_storage			= MatrixStorage< double, 3, 3, EMatrixLayout::ColumnMajor, 8*4 >;
+	using double3x4_storage			= MatrixStorage< double, 3, 4, EMatrixLayout::ColumnMajor, 8*4 >;
+	using double4x2_storage			= MatrixStorage< double, 4, 2, EMatrixLayout::ColumnMajor, 8*2 >;
+	using double4x3_storage			= MatrixStorage< double, 4, 3, EMatrixLayout::ColumnMajor, 8*4 >;
+	using double4x4_storage			= MatrixStorage< double, 4, 4, EMatrixLayout::ColumnMajor, 8*4 >;
 
-	using double2x2_storage_std140	= MatrixStorage< double, 2, 2, EMatrixOrder::ColumnMajor, 8*2 >;
-	using double2x3_storage_std140	= MatrixStorage< double, 2, 3, EMatrixOrder::ColumnMajor, 8*4 >;
-	using double2x4_storage_std140	= MatrixStorage< double, 2, 4, EMatrixOrder::ColumnMajor, 8*4 >;
-	using double3x2_storage_std140	= MatrixStorage< double, 3, 2, EMatrixOrder::ColumnMajor, 8*2 >;
-	using double3x3_storage_std140	= MatrixStorage< double, 3, 3, EMatrixOrder::ColumnMajor, 8*4 >;
-	using double3x4_storage_std140	= MatrixStorage< double, 3, 4, EMatrixOrder::ColumnMajor, 8*4 >;
-	using double4x2_storage_std140	= MatrixStorage< double, 4, 2, EMatrixOrder::ColumnMajor, 8*2 >;
-	using double4x3_storage_std140	= MatrixStorage< double, 4, 3, EMatrixOrder::ColumnMajor, 8*4 >;
-	using double4x4_storage_std140	= MatrixStorage< double, 4, 4, EMatrixOrder::ColumnMajor, 8*4 >;
+	using double2x2_storage_std140	= MatrixStorage< double, 2, 2, EMatrixLayout::ColumnMajor, 8*2 >;
+	using double2x3_storage_std140	= MatrixStorage< double, 2, 3, EMatrixLayout::ColumnMajor, 8*4 >;
+	using double2x4_storage_std140	= MatrixStorage< double, 2, 4, EMatrixLayout::ColumnMajor, 8*4 >;
+	using double3x2_storage_std140	= MatrixStorage< double, 3, 2, EMatrixLayout::ColumnMajor, 8*2 >;
+	using double3x3_storage_std140	= MatrixStorage< double, 3, 3, EMatrixLayout::ColumnMajor, 8*4 >;
+	using double3x4_storage_std140	= MatrixStorage< double, 3, 4, EMatrixLayout::ColumnMajor, 8*4 >;
+	using double4x2_storage_std140	= MatrixStorage< double, 4, 2, EMatrixLayout::ColumnMajor, 8*2 >;
+	using double4x3_storage_std140	= MatrixStorage< double, 4, 3, EMatrixLayout::ColumnMajor, 8*4 >;
+	using double4x4_storage_std140	= MatrixStorage< double, 4, 4, EMatrixLayout::ColumnMajor, 8*4 >;
 
-	using packed_double2x2_storage	= MatrixStorage< double, 2, 2, EMatrixOrder::ColumnMajor, 8 >;
-	using packed_double2x3_storage	= MatrixStorage< double, 2, 3, EMatrixOrder::ColumnMajor, 8 >;
-	using packed_double2x4_storage	= MatrixStorage< double, 2, 4, EMatrixOrder::ColumnMajor, 8 >;
-	using packed_double3x2_storage	= MatrixStorage< double, 3, 2, EMatrixOrder::ColumnMajor, 8 >;
-	using packed_double3x3_storage	= MatrixStorage< double, 3, 3, EMatrixOrder::ColumnMajor, 8 >;
-	using packed_double3x4_storage	= MatrixStorage< double, 3, 4, EMatrixOrder::ColumnMajor, 8 >;
-	using packed_double4x2_storage	= MatrixStorage< double, 4, 2, EMatrixOrder::ColumnMajor, 8 >;
-	using packed_double4x3_storage	= MatrixStorage< double, 4, 3, EMatrixOrder::ColumnMajor, 8 >;
-	using packed_double4x4_storage	= MatrixStorage< double, 4, 4, EMatrixOrder::ColumnMajor, 8 >;
+	using packed_double2x2_storage	= MatrixStorage< double, 2, 2, EMatrixLayout::ColumnMajor, 8 >;
+	using packed_double2x3_storage	= MatrixStorage< double, 2, 3, EMatrixLayout::ColumnMajor, 8 >;
+	using packed_double2x4_storage	= MatrixStorage< double, 2, 4, EMatrixLayout::ColumnMajor, 8 >;
+	using packed_double3x2_storage	= MatrixStorage< double, 3, 2, EMatrixLayout::ColumnMajor, 8 >;
+	using packed_double3x3_storage	= MatrixStorage< double, 3, 3, EMatrixLayout::ColumnMajor, 8 >;
+	using packed_double3x4_storage	= MatrixStorage< double, 3, 4, EMatrixLayout::ColumnMajor, 8 >;
+	using packed_double4x2_storage	= MatrixStorage< double, 4, 2, EMatrixLayout::ColumnMajor, 8 >;
+	using packed_double4x3_storage	= MatrixStorage< double, 4, 3, EMatrixLayout::ColumnMajor, 8 >;
+	using packed_double4x4_storage	= MatrixStorage< double, 4, 4, EMatrixLayout::ColumnMajor, 8 >;
 
 
 
@@ -117,7 +117,7 @@ namespace AE::Base
 	//
 
 	template <typename T, uint Columns, uint Rows, usize Align>
-	struct MatrixStorage< T, Columns, Rows, EMatrixOrder::ColumnMajor, Align >
+	struct MatrixStorage< T, Columns, Rows, EMatrixLayout::ColumnMajor, Align >
 	{
 		StaticAssert( IsAnyFloatPoint<T> );
 
@@ -128,11 +128,10 @@ namespace AE::Base
 			T	data [Rows] = {};
 		};
 
-		using Self			= MatrixStorage< T, Columns, Rows, EMatrixOrder::ColumnMajor, Align >;
-		using Transposed_t	= MatrixStorage< T, Rows, Columns, EMatrixOrder::ColumnMajor, Align >;
+		using Self			= MatrixStorage< T, Columns, Rows, EMatrixLayout::ColumnMajor, Align >;
+		using Transposed_t	= MatrixStorage< T, Rows, Columns, EMatrixLayout::ColumnMajor, Align >;
 		using Column_t		= Vec< T, Rows >;
 		using Row_t			= Vec< T, Columns >;
-		using Dim_t			= Base::_hidden_::_MatrixDim;
 
 	private:
 		using _Columns_t	= StaticArray< _AlignedVec, Columns >;
@@ -159,25 +158,25 @@ namespace AE::Base
 		template <typename Arg0, typename ...Args>
 		__Cx__ explicit MatrixStorage (const Arg0 &arg0, const Args& ...args) __NE___
 		{
+			StaticAssert( (CountOf<Arg0, Args...>() == Columns * Rows) or
+						  (CountOf<Arg0, Args...>() == Columns) );
+
 			if constexpr( CountOf<Arg0, Args...>() == Columns * Rows )
 				_CopyScalars<0>( arg0, args... );
 			else
 			if constexpr( CountOf<Arg0, Args...>() == Columns )
 				_CopyColumns<0>( arg0, args... );
-			else
-				StaticAssert( (CountOf<Arg0, Args...>() == Columns * Rows) or
-							  (CountOf<Arg0, Args...>() == Columns) );
 		}
 
 
 		template <usize Align2>
-		__Cx__ MatrixStorage (const MatrixStorage< T, Columns, Rows, EMatrixOrder::ColumnMajor, Align2 > &other) __NE___
+		__Cx__ MatrixStorage (const MatrixStorage< T, Columns, Rows, EMatrixLayout::ColumnMajor, Align2 > &other) __NE___
 		{
 			_CopyColumnMajor< Columns, Rows >( other );
 		}
 
 		template <usize Align2>
-		__Cx__ MatrixStorage (const MatrixStorage< T, Rows, Columns, EMatrixOrder::RowMajor, Align2 > &other) __NE___
+		__Cx__ MatrixStorage (const MatrixStorage< T, Rows, Columns, EMatrixLayout::RowMajor, Align2 > &other) __NE___
 		{
 			_CopyRowMajor< Columns, Rows >( other );
 		}
@@ -190,14 +189,14 @@ namespace AE::Base
 
 
 		template <uint Columns2, uint Rows2, usize Align2>
-		__Cx__ explicit MatrixStorage (const MatrixStorage< T, Columns2, Rows2, EMatrixOrder::ColumnMajor, Align2 > &other) __NE___
+		__Cx__ explicit MatrixStorage (const MatrixStorage< T, Columns2, Rows2, EMatrixLayout::ColumnMajor, Align2 > &other) __NE___
 		{
 			StaticAssert( Columns != Columns2 or Rows != Rows2 );
 			_CopyColumnMajor< Columns2, Rows2 >( other );
 		}
 
 		template <uint Columns2, uint Rows2, usize Align2>
-		__Cx__ explicit MatrixStorage (const MatrixStorage< T, Rows2, Columns2, EMatrixOrder::RowMajor, Align2 > &other) __NE___
+		__Cx__ explicit MatrixStorage (const MatrixStorage< T, Rows2, Columns2, EMatrixLayout::RowMajor, Align2 > &other) __NE___
 		{
 			StaticAssert( Columns != Columns2 or Rows != Rows2 );
 			_CopyRowMajor< Columns2, Rows2 >( other );
@@ -283,7 +282,7 @@ namespace AE::Base
 		}
 
 		NdCx__ static usize		size ()					__NE___	{ return Columns; }
-		NdCx__ static Dim_t		Dimension ()			__NE___	{ return {Columns, Rows}; }
+		NdCx__ static MatrixDim	Dimension ()			__NE___	{ return MatrixDim{ Columns, Rows }; }
 
 		NdCx__ static bool		IsColumnMajor ()		__NE___	{ return true; }
 		NdCx__ static bool		IsRowMajor ()			__NE___	{ return not IsColumnMajor(); }
@@ -336,7 +335,7 @@ namespace AE::Base
 	//
 
 	template <typename T, uint Rows, uint Columns, usize Align>
-	struct MatrixStorage< T, Rows, Columns, EMatrixOrder::RowMajor, Align >
+	struct MatrixStorage< T, Rows, Columns, EMatrixLayout::RowMajor, Align >
 	{
 		StaticAssert( IsAnyFloatPoint<T> );
 
@@ -347,12 +346,11 @@ namespace AE::Base
 			T	data [Columns] = {};
 		};
 
-		using Self			= MatrixStorage< T, Rows, Columns, EMatrixOrder::RowMajor, Align >;
-		using Transposed_t	= MatrixStorage< T, Columns, Rows, EMatrixOrder::RowMajor, Align >;
-		using ColumnMajor_t	= MatrixStorage< T, Columns, Rows, EMatrixOrder::ColumnMajor, Align >;
+		using Self			= MatrixStorage< T, Rows, Columns, EMatrixLayout::RowMajor, Align >;
+		using Transposed_t	= MatrixStorage< T, Columns, Rows, EMatrixLayout::RowMajor, Align >;
+		using ColumnMajor_t	= MatrixStorage< T, Columns, Rows, EMatrixLayout::ColumnMajor, Align >;
 		using Row_t			= Vec< T, Columns >;
 		using Column_t		= Vec< T, Rows >;
-		using Dim_t			= Base::_hidden_::_MatrixDim;
 
 	private:
 		using _Rows_t		= StaticArray< _AlignedVec, Rows >;
@@ -382,25 +380,25 @@ namespace AE::Base
 		template <typename Arg0, typename ...Args>
 		__Cx__ explicit MatrixStorage (const Arg0 &arg0, const Args& ...args) __NE___
 		{
+			StaticAssert( (CountOf<Arg0, Args...>() == Columns * Rows) or
+						  (CountOf<Arg0, Args...>() == Rows) );
+
 			if constexpr( CountOf<Arg0, Args...>() == Columns * Rows )
 				_CopyScalars<0>( arg0, args... );
 			else
 			if constexpr( CountOf<Arg0, Args...>() == Rows )
 				_CopyRows<0>( arg0, args... );
-			else
-				StaticAssert( (CountOf<Arg0, Args...>() == Columns * Rows) or
-							  (CountOf<Arg0, Args...>() == Rows) );
 		}
 
 
 		template <usize Align2>
-		__Cx__ MatrixStorage (const MatrixStorage< T, Rows, Columns, EMatrixOrder::RowMajor, Align2 > &other) __NE___
+		__Cx__ MatrixStorage (const MatrixStorage< T, Rows, Columns, EMatrixLayout::RowMajor, Align2 > &other) __NE___
 		{
 			_CopyRowMajor< Columns, Rows >( other );
 		}
 
 		template <usize Align2>
-		__Cx__ MatrixStorage (const MatrixStorage< T, Columns, Rows, EMatrixOrder::ColumnMajor, Align2 > &other) __NE___
+		__Cx__ MatrixStorage (const MatrixStorage< T, Columns, Rows, EMatrixLayout::ColumnMajor, Align2 > &other) __NE___
 		{
 			_CopyColumnMajor< Columns, Rows >( other );
 		}
@@ -413,14 +411,14 @@ namespace AE::Base
 
 
 		template <uint Columns2, uint Rows2, usize Align2>
-		__Cx__ explicit MatrixStorage (const MatrixStorage< T, Rows2, Columns2, EMatrixOrder::RowMajor, Align2 > &other) __NE___
+		__Cx__ explicit MatrixStorage (const MatrixStorage< T, Rows2, Columns2, EMatrixLayout::RowMajor, Align2 > &other) __NE___
 		{
 			StaticAssert( Columns != Columns2 or Rows != Rows2 );
 			_CopyRowMajor< Columns2, Rows2 >( other );
 		}
 
 		template <uint Columns2, uint Rows2, usize Align2>
-		__Cx__ explicit MatrixStorage (const MatrixStorage< T, Columns2, Rows2, EMatrixOrder::ColumnMajor, Align2 > &other) __NE___
+		__Cx__ explicit MatrixStorage (const MatrixStorage< T, Columns2, Rows2, EMatrixLayout::ColumnMajor, Align2 > &other) __NE___
 		{
 			StaticAssert( Columns != Columns2 or Rows != Rows2 );
 			_CopyColumnMajor< Columns2, Rows2 >( other );
@@ -505,7 +503,7 @@ namespace AE::Base
 		}
 
 		NdCx__ static usize		size ()				__NE___	{ return Rows; }
-		NdCx__ static Dim_t		Dimension ()		__NE___	{ return {Columns, Rows}; }
+		NdCx__ static MatrixDim	Dimension ()		__NE___	{ return MatrixDim{ Columns, Rows }; }
 
 		NdCx__ static bool		IsColumnMajor ()	__NE___	{ return false; }
 		NdCx__ static bool		IsRowMajor ()		__NE___	{ return not IsColumnMajor(); }
@@ -553,17 +551,17 @@ namespace AE::Base
 //-----------------------------------------------------------------------------
 
 
-	template <typename T, uint Columns, uint Rows, EMatrixOrder Order, usize Align>
-	struct TMemCopyAvailable< MatrixStorage< T, Columns, Rows, Order, Align >>		: CT_Bool< IsMemCopyAvailable<T> >{};
+	template <typename T, uint Columns, uint Rows, EMatrixLayout Layout, usize Align>
+	struct TMemCopyAvailable< MatrixStorage< T, Columns, Rows, Layout, Align >>		: CT_Bool< IsMemCopyAvailable<T> >{};
 
-	template <typename T, uint Columns, uint Rows, EMatrixOrder Order, usize Align>
-	struct TZeroMemAvailable< MatrixStorage< T, Columns, Rows, Order, Align >>		: CT_Bool< IsZeroMemAvailable<T> >{};
+	template <typename T, uint Columns, uint Rows, EMatrixLayout Layout, usize Align>
+	struct TZeroMemAvailable< MatrixStorage< T, Columns, Rows, Layout, Align >>		: CT_Bool< IsZeroMemAvailable<T> >{};
 
 	// alignment is same on all platforms
-	template <typename T, uint Columns, uint Rows, EMatrixOrder Order, usize Align>
-	struct TTriviallySerializable< MatrixStorage< T, Columns, Rows, Order, Align >>	: CT_Bool< IsTriviallySerializable<T> >{};
+	template <typename T, uint Columns, uint Rows, EMatrixLayout Layout, usize Align>
+	struct TTriviallySerializable< MatrixStorage< T, Columns, Rows, Layout, Align >>: CT_Bool< IsTriviallySerializable<T> >{};
 
-	template <typename T, uint Columns, uint Rows, EMatrixOrder Order, usize Align>
-	struct TUnwrap< MatrixStorage< T, Columns, Rows, Order, Align >>				: TUnwrap<T> {};
+	template <typename T, uint Columns, uint Rows, EMatrixLayout Layout, usize Align>
+	struct TUnwrap< MatrixStorage< T, Columns, Rows, Layout, Align >>				: TUnwrap<T> {};
 
 } // AE::Base

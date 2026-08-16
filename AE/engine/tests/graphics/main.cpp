@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #include "../tests/shared/UnitTest_Shared.h"
 #include "pch/VFS.h"
@@ -62,12 +62,13 @@ TEST_ENTRY()
 		asset_path	= curr;
 
 	#else
-		#if defined(AE_PLATFORM_WINDOWS) or defined(AE_PLATFORM_LINUX) or defined(AE_PLATFORM_MACOS)
+		#if defined(AE_PLATFORM_WINDOWS) or defined(AE_PLATFORM_LINUX) or defined(AE_PLATFORM_MACOS) or defined(AE_ANDROID_CONSOLE_MODE)
 		{
 			Path	data_path = curr;
-			for (uint i = 0; i < 10; ++i)
+			for (uint i = 0; i < 10 and not data_path.empty(); ++i)
 			{
-				if ( FileSystem::IsDirectory( data_path / "AE-Data" ))
+				if ( FileSystem::IsDirectory( data_path / "AE-Data" ) or
+					 FileSystem::IsDirectory( data_path / "AE-Temp" ))
 				{
 					ref_path	= data_path / "AE-Data/tests/graphics";
 					asset_path	= data_path / "AE-Temp/engine/graphics";
@@ -77,6 +78,10 @@ TEST_ENTRY()
 				data_path = data_path.parent_path();
 			}
 		}
+		#elif defined(AE_PLATFORM_ANDROID)
+			CHECK_FATAL( false, "use Tests_Graphics() instead" );
+		#else
+		#	error not supported
 		#endif
 
 		#if defined(AE_ENABLE_METAL)
@@ -89,6 +94,9 @@ TEST_ENTRY()
 		#	error not implemented
 		#endif
 	#endif
+
+	CHECK_FATAL( not ref_path.empty() );
+	CHECK_FATAL( not asset_path.empty() );
 
 	auto	ref_storage		= VFS::VirtualFileStorageFactory::CreateDynamicFolder( ref_path, Default, True{"createFolder"} );
 	auto	asset_storage	= VFS::VirtualFileStorageFactory::CreateStaticFolder( asset_path, Default );

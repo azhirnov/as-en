@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #pragma once
 
@@ -41,7 +41,7 @@
 #	pragma GCC diagnostic pop
 # endif
 
-# if GLSLANG_VERSION_MAJOR != 16 or GLSLANG_VERSION_MINOR != 2
+# if GLSLANG_VERSION_MAJOR != 16 or GLSLANG_VERSION_MINOR != 3
 #	pragma message("invalid glslang version")
 # endif
 #endif // AE_ENABLE_GLSLANG

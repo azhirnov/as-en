@@ -1,4 +1,4 @@
-# Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+# Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 set( ENGINE_CMAKE_FOLDER		"${MAIN_SOURCE_DIR}/engine/cmake"	)
 set( AE_ENGINE_EXTERNAL_CMAKE	"${MAIN_SOURCE_DIR}/engine/external" CACHE INTERNAL "" FORCE )
@@ -124,6 +124,10 @@ if (${AE_PORTABLE_APP})
 	target_compile_definitions( "ProjectTemplate" PUBLIC AE_PORTABLE_APP=true )
 else()
 	target_compile_definitions( "ProjectTemplate" PUBLIC AE_PORTABLE_APP=false )
+endif()
+
+if (${AE_ANDROID_CONSOLE_MODE})
+	target_compile_definitions( "ProjectTemplate" PUBLIC AE_ANDROID_CONSOLE_MODE=1 )
 endif()
 
 target_compile_definitions( "ProjectTemplate" PUBLIC

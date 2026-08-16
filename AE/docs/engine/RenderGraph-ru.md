@@ -13,9 +13,9 @@ __Далее идут проходы рисования и вычислений.
 __Синхронизации между очередями.__<br/>
 Есть 2 подхода:
 1. Сделать ресурсы общими для всех очередей (`VK_SHARING_MODE_CONCURRENT`), тогда достаточно сделать синхронизации семафорами, чтобы избежать одновременной записи или чтения и записи (data race), в движке это делается через `CommandBatch::AddInputDependency (CommandBatch &)`. Минус этого подхода - на AMD на общих ресурсах не включается компрессия рендер таргетов (DCC), что снижает производительность.<br/>
-Пример: [Test_RG_AsyncCompute1.cpp](https://github.com/azhirnov/as-en/blob/dev/AE/engine/tests/graphics_rhi/RenderGraph/Test_RG_AsyncCompute1.cpp)
+Пример: [Test_AsyncCompute1.cpp](https://github.com/azhirnov/as-en/blob/dev/AE/engine/tests/graphics_rhi/RenderGraph/Test_AsyncCompute1.cpp)
 2. Явно передавать ресурсы между очередями (queue ownership transfer). Внутри рендер таска это сложнее отслеживать, поэтому такие барьеры удобнее вынести в интерфейс `CommandBatch`, так появился метод `CommandBatch::DeferredBarriers()` и `initial, final` параметры при создании рендер таска. Теперь управление перемещением ресурсов происходит на этапе планирования батчей команд.<br/>
-Пример: [Test_RG_AsyncCompute2.cpp](https://github.com/azhirnov/as-en/blob/dev/AE/engine/tests/graphics_rhi/RenderGraph/Test_RG_AsyncCompute2.cpp)
+Пример: [Test_AsyncCompute2.cpp](https://github.com/azhirnov/as-en/blob/dev/AE/engine/tests/graphics_rhi/RenderGraph/Test_AsyncCompute2.cpp)
 
 
 ## Синхронизации с помощью рендер графа
@@ -62,7 +62,7 @@ AsyncTask end = rg.EndFrame( Tuple{ gfx_task, comp_task });
 
 В рендер графе порядок создания батчей имеет значение, поэтому желательно создать все батчи в одном потоке.
 
-Пример: [Test_RG_AsyncCompute3.cpp](https://github.com/azhirnov/as-en/blob/dev/AE/engine/tests/graphics_rhi/RenderGraph/Test_RG_AsyncCompute3.cpp)
+Пример: [Test_AsyncCompute3.cpp](https://github.com/azhirnov/as-en/blob/dev/AE/engine/tests/graphics_rhi/RenderGraph/Test_AsyncCompute3.cpp)
 
 
 #### Производительность

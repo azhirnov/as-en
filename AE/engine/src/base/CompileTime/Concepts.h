@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #pragma once
 
@@ -91,8 +91,9 @@ namespace AE::Base
 	concept AllowEnumBitOps = IsEnum<T> and
 		((requires{
 			T::_BITOPS_;
-		 })
-		 or
+		 } and
+		 (ulong(T::_BITOPS_) == 0))
+		or
 		 (requires{
 			T::Unknown;
 			T::_Last;
@@ -100,5 +101,19 @@ namespace AE::Base
 		 } and
 		 (ulong(T::Unknown) == 0))
 		);
+
+
+	template <typename T>
+	concept	ClockType = requires{
+		typename T::rep;
+		typename T::period;
+		typename T::duration;
+		typename T::time_point;
+
+		{ T::is_steady } -> std::convertible_to<const bool>;
+
+		{ T::now() } -> std::same_as<typename T::time_point>;
+	};
+
 
 } // AE::Base

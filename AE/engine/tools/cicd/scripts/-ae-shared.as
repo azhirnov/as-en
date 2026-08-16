@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 #include <cicd.as>
 
 const string		ci_test				= " -DAE_CI_BUILD_TEST=ON -DAE_ENABLE_LOGS=ON -DAE_GRAPHICS_STRONG_VALIDATION=OFF -DAE_ENABLE_MEMLEAK_CHECKS=ON  -DAE_EXCLUDE_PACK_RES=ON";

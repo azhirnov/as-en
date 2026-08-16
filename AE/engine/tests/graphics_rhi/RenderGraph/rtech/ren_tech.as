@@ -305,6 +305,17 @@ void DeclRenderTech_OpacityMicromap ()
 		RC<ComputePass>	pass = rtech.AddComputePass( "RayTrace_1" );
 	}
 }
+
+
+void DeclRenderTech_Bindless ()
+{
+	RC<RenderTechnique>	rtech = RenderTechnique( "Bindless.RTech" );
+	rtech.AddFeatureSet( "part.MinBindless" );
+
+	{
+		RC<ComputePass>	pass = rtech.AddComputePass( "Compute_1" );
+	}
+}
 //-----------------------------------------------------------------------------
 
 
@@ -326,4 +337,5 @@ void ASmain ()
 	DeclRenderTech_MultiView();
 	DeclRenderTech_IndirectCmds();
 	DeclRenderTech_OpacityMicromap();
+	DeclRenderTech_Bindless();
 }

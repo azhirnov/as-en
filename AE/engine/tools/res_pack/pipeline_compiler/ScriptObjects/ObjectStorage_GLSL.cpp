@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #include "res_pack/pipeline_compiler/Compiler/MetalCompiler.h"
 #include "res_pack/pipeline_compiler/ScriptObjects/Common.inl.h"
@@ -67,7 +67,7 @@ namespace AE::PipelineCompiler
 		// add header
 		{
 			Version2	max_spv_ver;
-			header = GetShaderExtensionsGLSL( INOUT max_spv_ver, EShaderStages::Unknown | info.type, AllBits( info.options, EShaderOpt::DebugInfo ), features);
+			header = GetShaderExtensionsGLSL( INOUT max_spv_ver, EShaderStages::Unknown | info.type, AllBits( info.options, EShaderOpt::DebugInfo ), features, info.enabledFeats );
 
 			Version2	req_spv_ver = EShaderVersion_Ver2( info.version );
 			CHECK_THROW_MSG( req_spv_ver <= max_spv_ver );
@@ -166,9 +166,10 @@ namespace AE::PipelineCompiler
 	GetShaderExtensionsGLSL
 =================================================
 */
-	String  ObjectStorage::GetShaderExtensionsGLSL (INOUT Version2 &spirvVer, const EShaderStages stage, bool hasDebugInfo, ArrayView<ScriptFeatureSetPtr> features) __Th___
+	String  ObjectStorage::GetShaderExtensionsGLSL (INOUT Version2 &spirvVer, const EShaderStages stage, bool hasDebugInfo,
+													ArrayView<ScriptFeatureSetPtr> features, EnableShaderFeatures shaderFeats) __Th___
 	{
-		StaticAssert( Graphics::FeatureSet::GetFeatureCount() == 278 );
+		StaticAssert( Graphics::FeatureSet::GetFeatureCount() == 281 );
 
 		ASSERT( IsSingleBitSet( stage ));
 
@@ -317,14 +318,6 @@ namespace AE::PipelineCompiler
 
 			if ( un_control_flow.IsTrue() and spirvVer >= Version2{1,3} )
 			{
-				// not supported by glslang
-				ext	<< "#ifdef GL_EXT_subgroupuniform_qualifier\n"
-					<< "# extension GL_EXT_subgroupuniform_qualifier               : require\n"
-					<< "#endif\n";
-				def << "#ifdef GL_EXT_subgroupuniform_qualifier\n"
-					<< "# define AE_subgroup_uniform_qualifier  1\n"
-					<< "#endif\n";
-
 				ext	<< "#extension GL_EXT_subgroup_uniform_control_flow            : require\n";
 				def << "#define AE_subgroup_uniform_control_flow  1\n";
 			}
@@ -1000,6 +993,7 @@ namespace AE::PipelineCompiler
 		}
 
 		// descriptor heap
+		if ( AllBits( shaderFeats, EnableShaderFeatures::DescriptorHeap ))
 		{
 			FeatureSetCounter	supported;
 			for (auto& ptr : features) {
@@ -1082,7 +1076,7 @@ namespace AE::PipelineCompiler
 */
 	void  ObjectStorage::CompileShaderGLSL (OUT CompiledShaderPtr &outShader, const ScriptShaderPtr &inShader, const EShaderVersion version,
 											const String &defines, const String &resources, ArrayView<String> include, ArrayView<ScriptFeatureSetPtr> features,
-											const uint debugDSIndex, const bool useMetalArgBuffer) __Th___
+											const uint debugDSIndex, const bool useMetalArgBuffer, const EnableShaderFeatures shaderFeats) __Th___
 	{
 		CHECK_THROW_MSG( not outShader );
 		CHECK_THROW_MSG( inShader );
@@ -1110,13 +1104,14 @@ namespace AE::PipelineCompiler
 			switch_end
 		}
 
-		ShaderSrcKey	key;
-		key.source		= inShader->GetSource();
-		key.resources	= resources;
-		key.type		= inShader->type;
-		key.version		= version;
-		key.options		= inShader->options;
-		key.include		= Array<String>{ include };
+		ShaderSrcKey		key;
+		key.source			= inShader->GetSource();
+		key.resources		= resources;
+		key.type			= inShader->type;
+		key.version			= version;
+		key.options			= inShader->options;
+		key.include			= Array<String>{ include };
+		key.enabledFeats	= shaderFeats;
 		_SetAndSortDefines( OUT key.defines, String{defines} << inShader->GetDefines() << this->defaultShaderDefines );
 
 		// find in existing shader source

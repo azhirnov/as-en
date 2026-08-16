@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #pragma once
 
@@ -440,7 +440,6 @@ namespace AE::RemoteGraphics
 		void  _Cb_ResMngr_IsSupported_RTSceneDesc (const Msg::ResMngr_IsSupported_RTSceneDesc &);
 		void  _Cb_ResMngr_IsSupported_RTSceneBuild (const Msg::ResMngr_IsSupported_RTSceneBuild &);
 		void  _Cb_ResMngr_ReleaseResource (const Msg::ResMngr_ReleaseResource &);
-		void  _Cb_ResMngr_CreateDescriptorSets2 (const Msg::ResMngr_CreateDescriptorSets2 &);
 		void  _Cb_ResMngr_CreateDescriptorSets3 (const Msg::ResMngr_CreateDescriptorSets3 &);
 		void  _Cb_ResMngr_CreateGraphicsPipeline (const Msg::ResMngr_CreateGraphicsPipeline &);
 		void  _Cb_ResMngr_CreateMeshPipeline (const Msg::ResMngr_CreateMeshPipeline &);

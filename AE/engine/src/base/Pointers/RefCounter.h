@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #pragma once
 
@@ -9,6 +9,12 @@
 #include "base/Utils/Helpers.h"
 #include "base/Utils/Atomic.h"
 #include "base/Platforms/ThreadUtils.h"
+
+#ifdef AE_RC_TRACK_ALL_REFS
+# define RC_TRACK_ALL_REFS( ... )	__VA_ARGS__
+#else
+# define RC_TRACK_ALL_REFS( ... )
+#endif
 
 namespace AE::Base
 {
@@ -82,11 +88,24 @@ namespace AE::Base
 	//
 	struct RefCounterUtils final : Noninstanceable
 	{
-		// returns previous value of ref counter
-			forceinline static int   IncRef (EnableRCBase &obj)			__NE___	{ return obj._counter.fetch_add( 1 ); }
+	  #ifdef AE_RC_TRACK_ALL_REFS
+			static int   IncRef (EnableRCBase &obj)						__NE___;
+			static int   DecRef (EnableRCBase &obj)						__NE___;
+
+			static int   IncRef (EnableRCBase &obj, OUT uint &rcUID)	__NE___;
+			static int   DecRef (EnableRCBase &obj, uint rcUID)			__NE___;
+
+		template <typename T>
+			static int   DecRefAndRelease (INOUT T* &ptr, uint rcUID)	__NE___;
+
+		template <typename T>
+			static int   DecRefAndRelease (INOUT T* &ptr)				__NE___	{ return DecRefAndRelease( INOUT ptr, 0 ); }
+
+			static void  PrintRefs ()									__NE___;
+	  #else
 
 		// returns previous value of ref counter
-			forceinline static int   AddRef (EnableRCBase &obj, int cnt)__NE___	{ return obj._counter.fetch_add( cnt ); }
+			forceinline static int   IncRef (EnableRCBase &obj)			__NE___	{ return obj._counter.fetch_add( 1 ); }
 
 		// returns '1' if object must be destroyed
 			forceinline static int   DecRef (EnableRCBase &obj)			__NE___	{ return obj._counter.fetch_sub( 1 ); }
@@ -95,6 +114,8 @@ namespace AE::Base
 		// 'ptr' can be null
 		template <typename T>
 			forceinline static int   DecRefAndRelease (INOUT T* &ptr)	__NE___;
+	  #endif
+
 
 		ND_ forceinline static int   UseCount (EnableRCBase &obj)		__NE___	{ return obj._counter.load(); }
 	};
@@ -117,6 +138,10 @@ namespace AE::Base
 	private:
 		T *		_ptr = null;
 
+	  RC_TRACK_ALL_REFS(
+		public: uint	_uid = 0;
+	  )
+
 
 	// methods
 	public:
@@ -131,50 +156,50 @@ namespace AE::Base
 
 		template <typename B>
 				  requires( IsBaseOf< B, T >)
-		explicit RC (B* ptr)								__NE___ : _ptr{static_cast<T*>(ptr)}	{ _IncSelf(); }
+		explicit RC (B* ptr)								__NE___ : _ptr{static_cast<T*>(ptr)}	{ _Inc(); }
 
-		explicit RC (Ptr<T> ptr)							__NE___ : _ptr{ptr}				{ _IncSelf(); }
-		explicit RC (Ref<T> ref)							__NE___ : _ptr{&ref}			{ _IncSelf(); }
+		explicit RC (Ptr<T> ptr)							__NE___ : _ptr{ptr}						{ _Inc(); }
+		explicit RC (Ref<T> ref)							__NE___ : _ptr{&ref}					{ _Inc(); }
 
-		RC (Self &&other)									__NE___ : _ptr{other.release()}	{}
-		RC (const Self &other)								__NE___ : _ptr{other._ptr}		{ _IncSelf(); }
-
-		template <typename B>
-				  requires( IsBaseOfNotSame< T, B >)
-		__Cx__ RC (RC<B> &&other)							__NE___ : _ptr{other.release()}	{}
+		RC (Self &&other)									__NE___ : _ptr{other.release()}			{ RC_TRACK_ALL_REFS( _uid = other._uid;  other._uid = 0; )}
+		RC (const Self &other)								__NE___ : _ptr{other._ptr}				{ _Inc(); }
 
 		template <typename B>
 				  requires( IsBaseOfNotSame< T, B >)
-		RC (const RC<B> &other)								__NE___ : _ptr{other.get()}		{ _IncSelf(); }
+		__Cx__ RC (RC<B> &&other)							__NE___ : _ptr{other.release()}			{ RC_TRACK_ALL_REFS( _uid = other._uid;  other._uid = 0; )}
+
+		template <typename B>
+				  requires( IsBaseOfNotSame< T, B >)
+		RC (const RC<B> &other)								__NE___ : _ptr{other.get()}				{ _Inc(); }
 
 
 		template <typename B>
 				  requires( IsBaseOfNotSame< B, T >)
-		explicit RC (RC<B> &&other)							__NE___ : _ptr{static_cast<T*>(other.release())}	{}
+		explicit RC (RC<B> &&other)							__NE___ : _ptr{static_cast<T*>(other.release())} { RC_TRACK_ALL_REFS( _uid = other._uid;  other._uid = 0; )}
 
 		template <typename B>
 				  requires( IsBaseOfNotSame< B, T >)
-		explicit RC (const RC<B> &other)					__NE___ : _ptr{static_cast<T*>(other.get())}		{ _IncSelf(); }
+		explicit RC (const RC<B> &other)					__NE___ : _ptr{static_cast<T*>(other.get())} 	{ _Inc(); }
 
 
 		~RC ()												__NE___ { _Dec(); }
 
-		Self&  operator = (std::nullptr_t)					__NE___ {						_Dec();  _ptr = null;			return *this; }
-		Self&  operator = (Default_t)						__NE___ {						_Dec();  _ptr = null;			return *this; }
-		Self&  operator = (T* rhs)							__NE___ { _Inc( rhs );			_Dec();  _ptr = rhs;			return *this; }
-		Self&  operator = (Ptr<T> rhs)						__NE___ { _Inc( rhs.get() );	_Dec();  _ptr = rhs.get();		return *this; }
-		Self&  operator = (Ref<T> rhs)						__NE___ { _Inc( &rhs );			_Dec();  _ptr = &rhs;			return *this; }
-		Self&  operator = (const Self &rhs)					__NE___ { _Inc( rhs._ptr );		_Dec();  _ptr = rhs._ptr;		return *this; }
+		Self&  operator = (std::nullptr_t)					__NE___ {						_Dec();  _ptr = null;	return *this; }
+		Self&  operator = (Default_t)						__NE___ {						_Dec();  _ptr = null;	return *this; }
+		Self&  operator = (T* rhs)							__NE___ { _Set( rhs );			return *this; }
+		Self&  operator = (Ptr<T> rhs)						__NE___ { _Set( rhs.get() );	return *this; }
+		Self&  operator = (Ref<T> rhs)						__NE___ { _Set( &rhs );			return *this; }
+		Self&  operator = (const Self &rhs)					__NE___ { _Set( rhs._ptr );		return *this; }
 
-		Self&  operator = (Self &&rhs)						__NE___ { ASSERT( this != &rhs );	_Dec();  _ptr = rhs.release();	return *this; }
-
-		template <typename B>
-				  requires( IsBaseOfNotSame< T, B >)
-		Self&  operator = (RC<B> &&rhs)						__NE___ { _Dec();  _ptr = static_cast<T*>(rhs.release());  return *this; }
+		Self&  operator = (Self &&rhs)						__NE___;
 
 		template <typename B>
 				  requires( IsBaseOfNotSame< T, B >)
-		Self&  operator = (const RC<B> &rhs)				__NE___ { _Inc( static_cast<T*>(rhs.get()) );  _Dec();  _ptr = static_cast<T*>(rhs.get());	return *this; }
+		Self&  operator = (RC<B> &&rhs)						__NE___;
+
+		template <typename B>
+				  requires( IsBaseOfNotSame< T, B >)
+		Self&  operator = (const RC<B> &rhs)				__NE___;
 
 		NdCx__ bool  operator == (const T* rhs)				C_NE___ { return _ptr == rhs; }
 		NdCx__ bool  operator == (Ptr<T> rhs)				C_NE___ { return _ptr == rhs.get(); }
@@ -201,15 +226,15 @@ namespace AE::Base
 		NdCx__ explicit operator bool ()					C_NE___ { return _ptr != null; }
 
 			void	attach (T* ptr)							__NE___ {				_Dec();  _ptr = ptr; }
-			void	reset (T* ptr)							__NE___ { _Inc( ptr );	_Dec();  _ptr = ptr; }
 			void	reset ()								__NE___ {				_Dec();  _ptr = null; }
+			void	reset (T* ptr)							__NE___ { _Set( ptr ); }
 
 			void	Swap (INOUT Self &rhs)					__NE___;
 
 	private:
-		static	void	_Inc (T* ptr)						__NE___;
-				void	_IncSelf ()							__NE___;
-				void	_Dec ()								__NE___;
+			void	_Set (T* ptr)							__NE___;
+			void	_Inc ()									__NE___;
+			void	_Dec ()									__NE___;
 	};
 
 
@@ -467,7 +492,7 @@ namespace AE::Base
 =================================================
 */
 	template <typename T>
-	int  RefCounterUtils::DecRefAndRelease (INOUT T* &ptr) __NE___
+	int  RefCounterUtils::DecRefAndRelease (INOUT T* &ptr RC_TRACK_ALL_REFS(, uint rcUID)) __NE___
 	{
 		StaticAssert( sizeof(T) > 0 );
 
@@ -475,7 +500,7 @@ namespace AE::Base
 		{
 			auto&		ref = *const_cast< RemoveConst<T> *>( ptr );
 
-			const auto	res = DecRef( ref );
+			const auto	res = DecRef( ref RC_TRACK_ALL_REFS(, rcUID ));
 			ASSERT_Gt( res, 0 );
 
 			if_unlikely( res == 1 )
@@ -493,35 +518,112 @@ namespace AE::Base
 
 /*
 =================================================
-	_Inc / _Dec
+	_Set
+----
+	inc other ref
+	dec self
+	copy ref to self
 =================================================
 */
 	template <typename T>
-	void  RC<T>::_Inc (T* ptr) __NE___
+	void  RC<T>::_Set (T* ptr) __NE___
 	{
 		StaticAssert( IsBaseOf< EnableRCBase, T >);
 
+		uint	uid = 0;
+
 		if_likely( ptr != null )
+		{
+		  #ifdef AE_RC_TRACK_ALL_REFS
+			RefCounterUtils::IncRef( *ptr, OUT uid );
+		  #else
 			RefCounterUtils::IncRef( *ptr );
+			Unused( uid );
+		  #endif
+		}
+
+		_Dec();
+
+		_ptr = ptr;
+		RC_TRACK_ALL_REFS( _uid = uid; )
 	}
 
+/*
+=================================================
+	_Inc (self)
+=================================================
+*/
 	template <typename T>
-	void  RC<T>::_IncSelf () __NE___
+	void  RC<T>::_Inc () __NE___
 	{
 		StaticAssert( IsBaseOf< EnableRCBase, T >);
 
 		if_likely( _ptr != null )
 		{
 			auto&	ref = *const_cast< RemoveConst<T> *>( _ptr );
-			RefCounterUtils::IncRef( ref );
+			RefCounterUtils::IncRef( ref RC_TRACK_ALL_REFS(, OUT _uid ));
 		}
 	}
 
+/*
+=================================================
+	_Dec (self)
+=================================================
+*/
 	template <typename T>
 	void  RC<T>::_Dec () __NE___
 	{
 		StaticAssert( IsBaseOf< EnableRCBase, T >);
+
+	  #ifdef AE_RC_TRACK_ALL_REFS
+		RefCounterUtils::DecRefAndRelease( INOUT _ptr, _uid );
+		_uid = 0;
+	  #else
 		RefCounterUtils::DecRefAndRelease( INOUT _ptr );
+	  #endif
+	}
+
+/*
+=================================================
+	operator =
+=================================================
+*/
+	template <typename T>
+	RC<T>&  RC<T>::operator = (RC<T> &&rhs) __NE___
+	{
+		ASSERT( this != &rhs );
+		if ( this == &rhs )
+			return *this;
+
+		_Dec();
+
+		_ptr = rhs.release();
+		RC_TRACK_ALL_REFS( _uid = rhs._uid;  rhs._uid = 0; )
+
+		return *this;
+	}
+
+	template <typename T>
+	template <typename B>
+		requires( IsBaseOfNotSame< T, B >)
+	RC<T>&  RC<T>::operator = (RC<B> &&rhs) __NE___
+	{
+		_Dec();
+
+		_ptr = static_cast<T*>(rhs.release());
+		RC_TRACK_ALL_REFS( _uid = rhs._uid;  rhs._uid = 0; )
+
+		return *this;
+	}
+
+	template <typename T>
+	template <typename B>
+		requires( IsBaseOfNotSame< T, B >)
+	RC<T>&  RC<T>::operator = (const RC<B> &rhs) __NE___
+	{
+		_Set( static_cast<T*>(rhs.get()) );
+		RC_TRACK_ALL_REFS( _uid = rhs._uid; )
+		return *this;
 	}
 
 /*

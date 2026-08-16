@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 /*
 	based on:
 	https://github.com/chromium/chromium/blob/main/media/capture/video/android/java/src/org/chromium/media/VideoCaptureCamera2.java

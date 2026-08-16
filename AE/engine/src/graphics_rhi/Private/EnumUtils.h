@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #pragma once
 
@@ -212,7 +212,7 @@ namespace AE::Graphics
 			sRGB		= 1 << 15,
 
 			Unknown		= 0,
-			_BITOPS_
+			_BITOPS_	= 0
 		};
 
 		EType				valueType		= Default;
@@ -254,6 +254,7 @@ namespace AE::Graphics
 		ND_ bool	HasStencil ()					C_NE___	{ return AllBits( valueType, EType::Stencil ); }
 		ND_ bool	HasDepthOrStencil ()			C_NE___	{ return AnyBits( valueType, EType::DepthStencil ); }
 		ND_ bool	IsYcbcr ()						C_NE___	{ return AllBits( valueType, EType::Ycbcr ); }
+		ND_ bool	IsSRGB ()						C_NE___	{ return AllBits( valueType, EType::sRGB ); }
 		ND_ bool	IsMultiPlanar ()				C_NE___	{ return AnyBits( aspectMask, EImageAspect::_PlaneMask ); }
 		ND_ bool	IsNormalized ()					C_NE___;
 		ND_ bool	IsInteger ()					C_NE___;
@@ -472,7 +473,6 @@ namespace AE::Graphics
 			case EShaderIO::Depth :			return false;
 			case EShaderIO::Stencil :		return false;
 			case EShaderIO::DepthStencil :	return false;
-			case EShaderIO::Unknown :
 			case EShaderIO::_Count :		break;
 		}
 		switch_end

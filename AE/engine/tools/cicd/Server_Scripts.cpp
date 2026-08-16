@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #ifdef CICD_SERVER
 # include "pch/Scripting.h"
@@ -537,76 +537,19 @@ namespace AE::CICD
 		{
 			EnumBinder<ECPUArch>	binder {_engine};
 			binder.Create();
-			switch_enum( ECPUArch::Unknown )
-			{
-				case ECPUArch::Unknown :
-				case ECPUArch::_Count :
-				case ECPUArch::X86 :		binder.AddValue( "x86",			ECPUArch::X86 );
-				case ECPUArch::X64 :		binder.AddValue( "x64",			ECPUArch::X64 );
-				case ECPUArch::ARM_32 :		binder.AddValue( "Armv7",		ECPUArch::ARM_32 );
-				case ECPUArch::ARM_64 :		binder.AddValue( "Armv8",		ECPUArch::ARM_64 );
-											binder.AddValue( "Arm64",		ECPUArch::ARM_64 );
-				case ECPUArch::RISCV :		binder.AddValue( "RISCV",		ECPUArch::RISCV );
-				case ECPUArch::RISCV_64 :	binder.AddValue( "RISCV_64",	ECPUArch::RISCV_64 );
-				case ECPUArch::Loong64 :	binder.AddValue( "Loong64",		ECPUArch::Loong64 );
-				case ECPUArch::E2K :		binder.AddValue( "E2K",			ECPUArch::E2K );
-				default :					break;
-			}
-			switch_end
+			binder.BindAll();
 		}{
-			EnumBinder<EOSType>	binder {_engine};
+			EnumBinder<EOSType>		binder {_engine};
 			binder.Create();
-			switch_enum( EOSType::Unknown )
-			{
-				case EOSType::Unknown :
-				#define ENUM( _name_ )	case EOSType::_name_ : binder.AddValue( #_name_, EOSType::_name_ );
-				ENUM( Windows )
-				ENUM( Android )
-				ENUM( Linux )
-				ENUM( MacOS )
-				ENUM( BSD )
-				#undef ENUM
-				case EOSType::iOS :
-				case EOSType::Emscripten :
-				case EOSType::_Count :
-				default : break;
-			}
-			switch_end
+			binder.BindAll();
 		}{
 			EnumBinder<ECompiler>	binder {_engine};
 			binder.Create();
-			switch_enum( ECompiler::Unknown )
-			{
-				case ECompiler::Unknown :
-				#define ENUM( _name_ )	case ECompiler::_name_ : binder.AddValue( #_name_, ECompiler::_name_ );
-				ENUM( MSVC )
-				ENUM( MSVC_Clang )
-				ENUM( Linux_GCC )
-				ENUM( Linux_Clang )
-				ENUM( Linux_Clang_Ninja )
-				ENUM( MacOS_Clang )
-				ENUM( iOS_Clang )
-				#undef ENUM
-				default : break;
-			}
-			switch_end
+			binder.BindAll();
 		}{
 			EnumBinder<ECopyMode>	binder {_engine};
 			binder.Create();
-			switch_enum( ECopyMode::Unknown )
-			{
-				case ECopyMode::Unknown :
-				#define ENUM( _name_ )	case ECopyMode::_name_ : binder.AddValue( #_name_, ECopyMode::_name_ );
-				ENUM( FileReplace )
-				ENUM( FileMerge )
-				ENUM( FolderReplace )
-				ENUM( FolderMerge_FileReplace )
-				ENUM( FolderMerge_FileMerge )
-				ENUM( FolderMerge_FileKeep )
-				#undef ENUM
-				default : break;
-			}
-			switch_end
+			binder.BindAll();
 		}
 
 		AS_GLOBAL_FN( _engine, _Namespace,			"Server_SetFolder",		{} );

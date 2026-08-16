@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #ifdef AE_ENABLE_REMOTE_GRAPHICS
 # include "graphics_rhi/Remote/Resources/RMeshPipeline.h"
@@ -37,6 +37,7 @@ namespace AE::Graphics
 		_dynamicState	= ci.ref.dynamicState;
 		_options		= ci.ref.options;
 		_subpassIndex	= ci.ref.subpassIndex;
+		_activeStages	= ci.ref.activeStages;
 		_releaseRef		= ci.releaseRef;
 		_dbgTrace		= RVRef(ci.ref.shaderTrace);
 
@@ -65,6 +66,7 @@ namespace AE::Graphics
 		_dynamicState	= Default;
 		_options		= Default;
 		_subpassIndex	= Default;
+		_activeStages	= Default;
 	}
 
 /*

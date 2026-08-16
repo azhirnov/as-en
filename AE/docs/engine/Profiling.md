@@ -98,11 +98,11 @@ no source
 </details>
 
 Examples in GraphicsRHI tests:
-* [Compute shader](https://github.com/azhirnov/as-en/blob/dev/AE/engine/tests/graphics_rhi/RenderGraph/Test_RG_Debugger1.cpp)
-* [Vertex & fragment shader](https://github.com/azhirnov/as-en/blob/dev/AE/engine/tests/graphics_rhi/RenderGraph/Test_RG_Debugger2.cpp)
-* [Mesh shader](https://github.com/azhirnov/as-en/blob/dev/AE/engine/tests/graphics_rhi/RenderGraph/Test_RG_Debugger3.cpp)
-* [Ray tracing shaders](https://github.com/azhirnov/as-en/blob/dev/AE/engine/tests/graphics_rhi/RenderGraph/Test_RG_Debugger4.cpp)
-* [Ray query](https://github.com/azhirnov/as-en/blob/dev/AE/engine/tests/graphics_rhi/RenderGraph/Test_RG_Debugger5.cpp)
+* [Compute shader](https://github.com/azhirnov/as-en/blob/dev/AE/engine/tests/graphics_rhi/RenderGraph/Test_Debugger1.cpp)
+* [Vertex & fragment shader](https://github.com/azhirnov/as-en/blob/dev/AE/engine/tests/graphics_rhi/RenderGraph/Test_Debugger2.cpp)
+* [Mesh shader](https://github.com/azhirnov/as-en/blob/dev/AE/engine/tests/graphics_rhi/RenderGraph/Test_Debugger3.cpp)
+* [Ray tracing shaders](https://github.com/azhirnov/as-en/blob/dev/AE/engine/tests/graphics_rhi/RenderGraph/Test_Debugger4.cpp)
+* [Ray query](https://github.com/azhirnov/as-en/blob/dev/AE/engine/tests/graphics_rhi/RenderGraph/Test_Debugger5.cpp)
 
 
 ## Shader Statistics

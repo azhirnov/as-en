@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #include "res_loaders/AE/AEImageLoader.h"
 #include "res_loaders/AE/AEImageSaver.h"

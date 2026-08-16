@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #pragma once
 
@@ -72,7 +72,12 @@ namespace AE::Base
 
 namespace AE::Base
 {
+  #ifdef __cpp_lib_jthread
+	using StdThread				= std::jthread;
+  #else
 	using StdThread				= std::thread;
+  #endif
+
 	using ThreadID				= std::thread::id;
 	using ThreadHandle			= std::thread::native_handle_type;
 

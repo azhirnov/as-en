@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #ifdef AE_ENABLE_VULKAN
 # include "graphics_rhi/Vulkan/Descriptors/VDescriptorUpdater.h"
@@ -137,6 +137,7 @@ namespace
 					_updDesc.count		 = Max( _dsLayout->GetBindingCount(), _MaxDescSetCount );
 					_updDesc.index		 = 0;
 					_updDesc.descriptors = _allocator.Allocate< VkWriteDescriptorSet >( _updDesc.count );
+					CHECK_ERR( _updDesc.descriptors != null );
 				}
 				break;
 			}
@@ -146,9 +147,10 @@ namespace
 
 				_updDescTempl.tmplDataSize	= _dsLayout->GetUpdateTemplateSize();
 				_updDescTempl.tmplData		= _allocator.Allocate( SizeAndAlign{ _updDescTempl.tmplDataSize, Bytes{_UpdTmplAlign} });
+				CHECK_ERR( _updDescTempl.tmplData != null );
 				break;
 			}
-			case EDescUpdateMode::Unknown :
+			case EDescUpdateMode::_Count :
 			default_unlikely :
 				RETURN_ERR( "unknown update mode" );
 		}
@@ -187,7 +189,7 @@ namespace
 				dev.vkUpdateDescriptorSetWithTemplateKHR( dev.GetVkDevice(), _dsHandle, _dsLayout->GetUpdateTemplate(), _updDescTempl.tmplData );
 				break;
 
-			case EDescUpdateMode::Unknown :
+			case EDescUpdateMode::_Count :
 			default_unlikely :
 				RETURN_ERR( "unknown update mode" );
 		}
@@ -778,6 +780,7 @@ namespace
 
 			GFX_DBG_ONLY(
 				const auto&	desc = buf->Description();
+				CHECK( bufferOffset < desc.size );
 				CHECK( bufferOffset + bufferSize <= desc.size );
 				CHECK( not is_uniform or is_uniform == AllBits( desc.usage, EBufferUsage::Uniform ));
 				CHECK( not is_storage or is_storage == AllBits( desc.usage, EBufferUsage::Storage ));

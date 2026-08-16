@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 /*
 	File - any data source with fixed size.
 
@@ -81,6 +81,8 @@ namespace AE::VFS
 		ND_ virtual bool  _OpenByIter (OUT RC<WDataSource> &ds, FileName::Ref name, const void* ref)		C_NE___ { Unused( ds, name, ref );		return false; }
 		ND_ virtual bool  _OpenByIter (OUT RC<AsyncWStream> &stream, FileName::Ref name, const void* ref)	C_NE___ { Unused( stream, name, ref );	return false; }
 		ND_ virtual bool  _OpenByIter (OUT RC<AsyncWDataSource> &ds, FileName::Ref name, const void* ref)	C_NE___ { Unused( ds, name, ref );		return false; }
+
+		ND_ virtual bool  _GetPath (FileName::Ref name, OUT Path &path)										C_NE___ = 0;
 	};
 
 
@@ -169,6 +171,10 @@ namespace AE::VFS
 
 		ND_ bool  Exists (FileName::Ref name)													C_NE___;
 		ND_ bool  Exists (FileGroupName::Ref name)												C_NE___;
+
+		// Convert VFS name to path on disk.
+		// If 'name' is in archive or on network storage, etc, then returns 'false'.
+		ND_ bool  GetPath (FileName::Ref name, OUT Path &path)									C_NE___;
 
 
 	private:

@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #if defined(AE_PLATFORM_MACOS) or defined(AE_PLATFORM_IOS)
 # include "base/FileSystem/AppleFileWatch.h"

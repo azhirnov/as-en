@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 /*
 	references:
 	* [Benchmark](https://github.com/jeffbolznv/vk_cooperative_matrix_perf)
@@ -21,8 +21,8 @@
 	{
 		// initialize
 		RC<FeatureSet>		fs			= GetFeatureSet();
-		const bool			nv_type		= fs.hasCooperativeMatrixConfig( ECoopMatrixCfg::Afp16_Bfp16_Cfp16_Rfp16_M16_N16_K16 );
-		const bool			intel_type	= fs.hasCooperativeMatrixConfig( ECoopMatrixCfg::Afp16_Bfp16_Cfp32_Rfp32_M8_N8_K16 );
+		const bool			nv_type		= fs.hasCooperativeMatrixConfig( ECoopMatrixCfg::ABfp16_CRfp16_M16_N16_K16 );
+		const bool			intel_type	= fs.hasCooperativeMatrixConfig( ECoopMatrixCfg::ABfp16_CRfp32_M8_N8_K16 );
 		Assert( nv_type or intel_type, "unsupported cooperative matrix config" );
 
 		const uint			M			= nv_type ? 16 : (intel_type ? 8 : 0);

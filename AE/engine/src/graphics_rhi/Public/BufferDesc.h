@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #pragma once
 
@@ -14,33 +14,37 @@ namespace AE::Graphics
 	struct BufferDesc
 	{
 	// variables
-		Bytes			size;
-		EBufferUsage	usage		= Default;
-		EBufferOpt		options		= Default;
-		EQueueMask		queues		= Default;
-		EMemoryType		memType		= EMemoryType::DeviceLocal;
+		Bytes				size;
+		EBufferUsage		usage		= Default;
+		EBufferOpt			options		= Default;
+		EQueueMask			queues		= Default;
+		EMemoryType			memType		= EMemoryType::DeviceLocal;
+		EMemAliasingGroup	aliasGroup	= Default;
 
 	// methods
 		BufferDesc ()									__NE___ {}
 
-		BufferDesc (Bytes			size,
-					EBufferUsage	usage,
-					EBufferOpt		options	= Default,
-					EQueueMask		queues	= Default,
-					EMemoryType		memType	= EMemoryType::DeviceLocal) __NE___ :
-			size{size}, usage{usage}, options{options}, queues{queues}, memType{memType} {}
+		BufferDesc (Bytes				size,
+					EBufferUsage		usage,
+					EBufferOpt			options		= Default,
+					EQueueMask			queues		= Default,
+					EMemoryType			memType		= EMemoryType::DeviceLocal,
+					EMemAliasingGroup	aliasGroup	= Default) __NE___ :
+			size{size}, usage{usage}, options{options}, queues{queues},
+			memType{memType}, aliasGroup{aliasGroup} {}
 
 		// Will remove unsupported combinations
-		void  Validate ()								__NE___;
+		void  Validate ()										__NE___;
 
-		ND_ bool  operator == (const BufferDesc &rhs)	C_NE___;
-		ND_ bool  IsExclusiveSharing ()					C_NE___	{ return queues == Default; }
+		ND_ bool  operator == (const BufferDesc &rhs)			C_NE___;
+		ND_ bool  IsExclusiveSharing ()							C_NE___	{ return queues == Default; }
 
-		BufferDesc&  SetSize (Bytes value)				__NE___	{ size		= value;	return *this; }
-		BufferDesc&  SetUsage (EBufferUsage value)		__NE___	{ usage		= value;	return *this; }
-		BufferDesc&  SetOptions (EBufferOpt value)		__NE___	{ options	= value;	return *this; }
-		BufferDesc&  SetQueues (EQueueMask value)		__NE___	{ queues	= value;	return *this; }
-		BufferDesc&  SetMemory (EMemoryType value)		__NE___	{ memType	= value;	return *this; }
+		BufferDesc&  SetSize (Bytes value)						__NE___	{ size		= value;	return *this; }
+		BufferDesc&  SetUsage (EBufferUsage value)				__NE___	{ usage		= value;	return *this; }
+		BufferDesc&  SetOptions (EBufferOpt value)				__NE___	{ options	= value;	return *this; }
+		BufferDesc&  SetQueues (EQueueMask value)				__NE___	{ queues	= value;	return *this; }
+		BufferDesc&  SetMemory (EMemoryType value)				__NE___	{ memType	= value;	return *this; }
+		BufferDesc&  SetAliasingGroup (EMemAliasingGroup value)	__NE___	{ aliasGroup= value;	return *this; }
 	};
 
 

@@ -121,33 +121,6 @@ namespace AE::Base
 		RETURN_ERR( "invalid multisample stencil resolve filter" );
 	}
 
-/*
-=================================================
-	ToString (MtlAttachmentFlags)
-=================================================
-*/
-	Nd__In String  ToString (MtlAttachmentFlags values)
-	{
-		String	str;
-		for (auto t : BitfieldIterate( values ))
-		{
-			if ( not str.empty() )
-				str << " | ";
-
-			switch_enum( t )
-			{
-				case MtlAttachmentFlags::Color :	str << "Color";		break;
-				case MtlAttachmentFlags::Depth :	str << "Depth";		break;
-				case MtlAttachmentFlags::Stencil :	str << "Stencil";	break;
-				case MtlAttachmentFlags::Unknown :
-				case MtlAttachmentFlags::_BITOPS_ :
-				default :							RETURN_ERR( "invalid attachment flags" );
-			}
-			switch_end
-		}
-		return str;
-	}
-
 } // AE::Base
 
 #endif // AE_BUILD_PIPELINE_COMPILER or AE_TEST_PIPELINE_COMPILER

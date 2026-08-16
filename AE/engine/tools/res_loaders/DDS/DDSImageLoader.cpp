@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #include "res_loaders/DDS/DDSImageLoader.h"
 #include "res_loaders/DDS/DDSUtils.cpp.h"
@@ -81,7 +81,8 @@ namespace
 						break;
 				}
 
-				ASSERT( dds_pitch == 0 or Bytes32u{uint(dds_pitch >> mm)} == image_level.rowPitch );
+				if ( dds_pitch != 0 and mm == 0 )
+					ASSERT( Bytes32u{uint(dds_pitch >> mm)} == image_level.rowPitch );
 
 				CHECK_ERR( image_level.SetPixelData( SharedMem::Create( allocator, image_level.slicePitch * image_level.dimension.z )));
 

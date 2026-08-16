@@ -1,4 +1,4 @@
-# Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+# Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 set( AE_ENABLE_ASSIMP	 		OFF CACHE INTERNAL "" FORCE )
 set( AE_ENABLE_ASTC_ENCODER	 	OFF CACHE INTERNAL "" FORCE )

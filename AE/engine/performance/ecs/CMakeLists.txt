@@ -1,8 +1,8 @@
-# Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+# Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 if (TARGET "ECS")
 	file( GLOB SOURCES "*.*" )
-	if (ANDROID)
+	if (${AE_ANDROID_UI_MODE})
 		set( TEST_NAME "PerfECS" )
 		add_library( ${TEST_NAME} SHARED ${SOURCES} )
 	elseif (APPLE)
@@ -18,5 +18,8 @@ if (TARGET "ECS")
 	target_link_libraries( ${TEST_NAME} PUBLIC "ECS" "Threading" )
 
 	UseEnginePCH2( ${TEST_NAME} )
-	#add_test( NAME ${TEST_NAME} COMMAND ${TEST_NAME} )
+
+	if (${AE_ANDROID_CONSOLE_MODE})
+		add_test( NAME ${TEST_NAME} COMMAND ${TEST_NAME} )
+	endif()
 endif()

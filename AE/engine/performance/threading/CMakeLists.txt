@@ -1,8 +1,8 @@
-# Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+# Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 if (TARGET "Threading")
 	file( GLOB_RECURSE SOURCES "*.*" )
-	if (ANDROID)
+	if (${AE_ANDROID_UI_MODE})
 		set( TEST_NAME "PerfThreading" )
 		add_library( ${TEST_NAME} SHARED ${SOURCES} )
 	elseif (APPLE)
@@ -20,5 +20,8 @@ if (TARGET "Threading")
 	target_include_directories( ${TEST_NAME} PUBLIC "${MAIN_SOURCE_DIR}/engine" )
 
 	UseEnginePCH2( ${TEST_NAME} )
-	#add_test( NAME ${TEST_NAME} COMMAND ${TEST_NAME} )
+
+	if (${AE_ANDROID_CONSOLE_MODE})
+		add_test( NAME ${TEST_NAME} COMMAND ${TEST_NAME} )
+	endif()
 endif()

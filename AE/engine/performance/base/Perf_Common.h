@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #pragma once
 
@@ -60,7 +60,7 @@ Nd__In String  FindNearestCacheType (const Bytes size, const ECoreType coreType)
 
 	for (auto cache_type : IndicesOnly<CpuArchInfo::ECacheType>())
 	{
-		if ( cache_type == CpuArchInfo::ECacheType::L1_Instuction )
+		if ( cache_type == CpuArchInfo::ECacheType::L1I )
 			continue;
 
 		if ( auto* cache = cpu_info.GetCache( cache_type, coreType ))

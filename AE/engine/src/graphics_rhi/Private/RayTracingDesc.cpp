@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #include "graphics_rhi/Public/RayTracingDesc.h"
 #include "graphics_rhi/GraphicsImpl.h"

@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #pragma once
 
@@ -172,6 +172,22 @@ namespace
 
 		return SetShaderStages( OUT outStages, OUT outCount,
 								shaders, specData, allocator, AddCustomSpec );
+	}
+
+/*
+=================================================
+	ExtractActiveStages
+=================================================
+*/
+	void  ExtractActiveStages (OUT EShaderStages							&activeStages,
+							   ArrayView<VPipelinePack::ShaderModuleRef>	 shaders)
+	{
+		activeStages = Default;
+
+		for (auto& sh : shaders)
+		{
+			activeStages |= AEEnumCast( sh.stage );
+		}
 	}
 
 /*
@@ -544,6 +560,78 @@ namespace
 				*(ptr++) = sh.dbgTrace;
 		}
 		return true;
+	}
+
+/*
+=================================================
+	AddDescriptorHeap
+----
+	Vulkan docs: "applications should generally stick to the same heap throughout the lifetime of the application",
+	so use heaps if they are enabled or disable extension using 'VDeviceInitializer::DeviceCreateInfo::disableFeatures'.
+=================================================
+*/
+	template <typename PipeType>
+		requires( requires{ &PipeType::stage; })
+	ND_ bool  AddDescriptorHeap (INOUT PipeType &pplnCI, INOUT VkPipelineCreateFlags2 &flags, const VPipelineLayout &layout) __NE___
+	{
+		// Vulkan docs:
+		// "If the shader declares any resource variables with set and binding values, this structure must specify mappings for them."
+
+		VNextChain	p_next	{pplnCI.stage};
+		auto*		mapping	= layout.GetHeapMapping();
+
+		CHECK_ERR( mapping != null );
+		p_next.Add( ConstCast( *mapping ));
+
+		pplnCI.layout	= Default;
+		flags			|= VK_PIPELINE_CREATE_2_DESCRIPTOR_HEAP_BIT_EXT;
+
+		return true;
+	}
+
+	template <typename PipeType>
+		requires( requires{ &PipeType::stageCount; })
+	ND_ bool  AddDescriptorHeap (INOUT PipeType &pplnCI, INOUT VkPipelineCreateFlags2 &flags, const VPipelineLayout &layout) __NE___
+	{
+		for (uint i = 0; i < pplnCI.stageCount; ++i)
+		{
+			// Vulkan docs:
+			// "If the shader declares any resource variables with set and binding values, this structure must specify mappings for them."
+
+			VNextChain	p_next	{ const_cast<VkPipelineShaderStageCreateInfo&>( pplnCI.pStages[i] )};
+			auto*		mapping	= layout.GetHeapMapping();
+
+			CHECK_ERR( mapping != null );
+			p_next.Add( ConstCast( *mapping ));
+		}
+
+		pplnCI.layout	= Default;
+		flags			|= VK_PIPELINE_CREATE_2_DESCRIPTOR_HEAP_BIT_EXT;
+
+		return true;
+	}
+
+/*
+=================================================
+	SetPipelineLayout
+=================================================
+*/
+	template <typename PipeType>
+	ND_ bool  SetPipelineLayout (const VDevice::VExtensions &ext, INOUT PipeType &pplnCI, INOUT VkPipelineCreateFlags2 &flags, OUT VkPipelineLayout &outLayout, const VPipelineLayout &pplnLayout) __NE___
+	{
+		if ( ext.descriptorHeap )
+		{
+			outLayout = Default;
+			return AddDescriptorHeap( pplnCI, flags, pplnLayout );
+		}else
+		// TODO: descriptor buffer
+		{
+			outLayout = pplnLayout.Handle();
+			CHECK_ERR( outLayout != Default );
+
+			pplnCI.layout = outLayout;
+			return true;
+		}
 	}
 
 /*

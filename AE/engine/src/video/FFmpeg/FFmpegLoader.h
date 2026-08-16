@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #pragma once
 
@@ -101,7 +101,8 @@ namespace AE::Video
 		_builder_( avio_open						)\
 		_builder_( avio_closep						)\
 		_builder_( avio_alloc_context				)\
-		_builder_( avio_context_free				)
+		_builder_( avio_context_free				)\
+		_builder_( avio_flush						)
 
 
 #	define AE_FFMPEG_AVUTIL_FUNCS( _builder_ )\

@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 /*
 	Use 'Mode' to switch depth offset method.
 */
@@ -23,7 +23,7 @@
 		RC<Image>			rt				= Image( hdr_fmt, dim );							rt.Name( "Main-RT" );
 		RC<Image>			rt_col			= Image( EPixelFormat::RGB10_A2_UNorm, dim );		rt_col.Name( "Albedo" );
 		RC<Image>			rt_norm			= Image( EPixelFormat::RGB10_A2_UNorm, dim );		rt_norm.Name( "Normals" );
-		RC<Image>			ds				= Image( Supported_DepthStencilFormat(), dim );		ds.Name( "Depth" );
+		RC<Image>			ds				= Image( Supported_DepthFormat(), dim );			ds.Name( "Depth" );
 		RC<Image>			sm				= Image( Supported_DepthFormat(), sm_dim );			sm.Name( "ShadowMap" );
 		RC<Image>			sm_col			= Image( EPixelFormat::RGBA8_UNorm, sm_dim );
 		RC<Buffer>			obj_buf			= Buffer();

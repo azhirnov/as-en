@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 /*
 	Requirements:
 	 * src stream must be unique
@@ -73,7 +73,7 @@ namespace AE::Base
 
 		bool		IsOpen ()													C_NE_OV	{ return _stream and _stream->IsOpen() and _data.capacity() > 0; }
 		Bytes		Position ()													C_NE_OV;
-		ESourceType	GetSourceType ()											C_NE_OV	{ return ESourceType::Buffered | ESourceType::SequentialAccess | ESourceType::WriteAccess; }
+		ESourceType	GetSourceType ()											C_NE_OV	{ return ESourceType::Buffered | ESourceType::SequentialAccess | ESourceType::WriteOnly; }
 
 		bool		SeekFwd (Bytes offset)										__NE_OV;
 		bool		UpdateAt (Bytes pos)										__NE_OV;

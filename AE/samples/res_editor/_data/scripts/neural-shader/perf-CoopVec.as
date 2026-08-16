@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 /*
 	references:
 	* [Neural Shading Course: Part 8 - Getting Peak Performance from Tensor Cores](https://youtu.be/BPlc1CLaZXw)

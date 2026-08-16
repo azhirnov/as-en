@@ -1,11 +1,11 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #include "UnitTest_Common.h"
 
 namespace
 {
 	static const FrameUID	c_InitialFrameId = FrameUID::Init( 2 );
-	static const ushort		c_Port			 = AE_TEST_TCP_PORT_2;
+	static const ushort		c_Port			 = AE_TEST_TCP_PORT_1 + 2;
 
 
 	class ServerProvider final : public IServerProvider

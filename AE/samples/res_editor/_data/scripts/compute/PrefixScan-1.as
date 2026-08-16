@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 /*
 	Move random distributed IDs to the left.
 	Limited to subgroup size (16 - 64 threads depends on GPU).

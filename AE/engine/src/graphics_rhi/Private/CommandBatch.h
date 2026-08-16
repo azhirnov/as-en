@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 /*
 	Command batch allows to records multiple command buffers in parallel and submit them as a single batch.
 	Software command buffers are supported to and will be automatically recorded to Vulkan command buffer before submitting.

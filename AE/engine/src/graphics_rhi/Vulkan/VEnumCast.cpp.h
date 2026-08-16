@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #ifdef AE_ENABLE_VULKAN
 # include "graphics_rhi/Vulkan/VEnumCast.h"
@@ -75,8 +75,8 @@ namespace AE::Graphics
 			StateInfo{ VK_PIPELINE_STAGE_2_RAY_TRACING_SHADER_BIT_KHR,						VK_ACCESS_2_SHADER_BINDING_TABLE_READ_BIT_KHR | /*deprecated*/VK_ACCESS_2_SHADER_STORAGE_READ_BIT,										VK_IMAGE_LAYOUT_MAX_ENUM,									_EResState::RTShaderBindingTable			},
 			StateInfo{ VK_PIPELINE_STAGE_2_MICROMAP_BUILD_BIT_EXT,							VK_ACCESS_2_MICROMAP_READ_BIT_EXT | VK_ACCESS_SHADER_READ_BIT | VK_ACCESS_TRANSFER_READ_BIT,											VK_IMAGE_LAYOUT_MAX_ENUM,									_EResState::BuildMicromap_Read				},
 			StateInfo{ VK_PIPELINE_STAGE_2_MICROMAP_BUILD_BIT_EXT,							VK_ACCESS_2_MICROMAP_READ_BIT_EXT | VK_ACCESS_2_MICROMAP_WRITE_BIT_EXT | VK_ACCESS_TRANSFER_WRITE_BIT,									VK_IMAGE_LAYOUT_MAX_ENUM,									_EResState::BuildMicromap_RW				},
-			StateInfo{ VK_PIPELINE_STAGE_2_CONVERT_COOPERATIVE_VECTOR_MATRIX_BIT_NV,		VK_ACCESS_2_SHADER_READ_BIT,																											VK_IMAGE_LAYOUT_MAX_ENUM,									_EResState::CoopVecConvert_Read				},
-			StateInfo{ VK_PIPELINE_STAGE_2_CONVERT_COOPERATIVE_VECTOR_MATRIX_BIT_NV,		VK_ACCESS_2_SHADER_WRITE_BIT,																											VK_IMAGE_LAYOUT_MAX_ENUM,									_EResState::CoopVecConvert_Write			},
+			StateInfo{ VK_PIPELINE_STAGE_2_CONVERT_COOPERATIVE_VECTOR_MATRIX_BIT_NV,		VK_ACCESS_2_TRANSFER_READ_BIT,																											VK_IMAGE_LAYOUT_MAX_ENUM,									_EResState::CoopVecConvert_Read				},
+			StateInfo{ VK_PIPELINE_STAGE_2_CONVERT_COOPERATIVE_VECTOR_MATRIX_BIT_NV,		VK_ACCESS_2_TRANSFER_WRITE_BIT,																											VK_IMAGE_LAYOUT_MAX_ENUM,									_EResState::CoopVecConvert_Write			},
 			StateInfo{ VK_PIPELINE_STAGE_2_COMMAND_PREPROCESS_BIT_EXT,						VK_ACCESS_2_COMMAND_PREPROCESS_READ_BIT_EXT,																							VK_IMAGE_LAYOUT_MAX_ENUM,									_EResState::ICB_Preprocess_Read				},
 			StateInfo{ VK_PIPELINE_STAGE_2_COMMAND_PREPROCESS_BIT_EXT,						VK_ACCESS_2_COMMAND_PREPROCESS_READ_BIT_EXT | VK_ACCESS_2_COMMAND_PREPROCESS_WRITE_BIT_EXT,												VK_IMAGE_LAYOUT_MAX_ENUM,									_EResState::ICB_Preprocess_Write			},
 			StateInfo{ VK_PIPELINE_STAGE_2_VIDEO_DECODE_BIT_KHR,							VK_ACCESS_2_VIDEO_DECODE_READ_BIT_KHR,																									VK_IMAGE_LAYOUT_VIDEO_DECODE_SRC_KHR,						_EResState::VideoDecodeSrc					},
@@ -86,7 +86,7 @@ namespace AE::Graphics
 			StateInfo{ VK_PIPELINE_STAGE_2_VIDEO_ENCODE_BIT_KHR,							VK_ACCESS_2_VIDEO_ENCODE_WRITE_BIT_KHR,																									VK_IMAGE_LAYOUT_VIDEO_ENCODE_DST_KHR,						_EResState::VideoEncodeDst					},
 			StateInfo{ VK_PIPELINE_STAGE_2_VIDEO_ENCODE_BIT_KHR,							VK_ACCESS_2_VIDEO_ENCODE_READ_BIT_KHR | VK_ACCESS_2_VIDEO_ENCODE_WRITE_BIT_KHR,															VK_IMAGE_LAYOUT_VIDEO_ENCODE_DPB_KHR,						_EResState::VideoEncodeDpb					}
 		};
-		StaticAssert( CountOf(info_arr) == _EResState::_AccessCount );
+		StaticAssert( CountOf(info_arr) == _EResState::_Count );
 
 		constexpr auto VertexProcessingShaders =
 			VK_PIPELINE_STAGE_2_VERTEX_SHADER_BIT |

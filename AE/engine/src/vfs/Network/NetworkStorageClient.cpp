@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #ifdef AE_ENABLE_NETWORKING
 # include "vfs/Network/NetworkStorageClient.h"
@@ -254,7 +254,7 @@ namespace AE::VFS
 	IDataSource::ESourceType  NetworkStorageClient::NetRDataSource::GetSourceType () C_NE___
 	{
 		return	ESourceType::RandomAccess | ESourceType::Async | ESourceType::FixedSize |
-				ESourceType::ThreadSafe	| ESourceType::ReadAccess | ESourceType::DeferredOpen;
+				ESourceType::ThreadSafe	| ESourceType::ReadOnly | ESourceType::DeferredOpen;
 	}
 
 /*
@@ -367,7 +367,7 @@ namespace AE::VFS
 */
 	IDataSource::ESourceType  NetworkStorageClient::NetWDataSource::GetSourceType () C_NE___
 	{
-		return	ESourceType::RandomAccess | ESourceType::WriteAccess |
+		return	ESourceType::RandomAccess | ESourceType::WriteOnly |
 				ESourceType::ThreadSafe | ESourceType::Async | ESourceType::DeferredOpen;
 	}
 
@@ -400,6 +400,7 @@ namespace AE::VFS
 		EXLOCK( req->Guard() );
 
 		auto	task = Scheduler().Run(
+						ETaskQueue::Background,
 						_AsyncWriteBlock( NDSRequestID{ idx, req->Generation() }, data, dataSize, pos, RVRef(mem) ));
 
 		if_unlikely( not req->Init( RVRef(task), pos ))
@@ -805,7 +806,7 @@ namespace AE::VFS
 			}
 
 			if ( dataSize > sent )
-				Coro_Continue();  // try again after delay
+				Coro_Delay( milliseconds{20} );  // try again after delay
 		}
 
 		ASSERT( dataSize == sent );
@@ -828,7 +829,7 @@ namespace AE::VFS
 				}
 			}
 
-			Coro_Continue();  // try again
+			Coro_Delay( milliseconds{20} );  // try again
 		}
 	}
 

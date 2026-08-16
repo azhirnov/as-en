@@ -14,3 +14,11 @@ cp "temp/stable-diffusion.h" "../../../../../AE-Bin/external/macos-x64/stable-di
 rm -rf "temp"
 rm -rf "build"
 read -p "press any key..."
+
+exit 0
+
+pauseOnError() {
+	echo -e "\033[31m*** failed ***\033[0m"
+	read -p "press any key..."
+	exit 1
+}

@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #include "VulkanExtEmulation.h"
 
@@ -63,7 +63,7 @@ namespace
 		Task			= 1 << 3,
 		Timeline		= 1 << 4,
 		Unknown			= 0,
-		_BITOPS_
+		_BITOPS_		= 0
 	};
 
 	using SemaphoreID	= HandleTmpl< 32, 32, 0x654145 >;

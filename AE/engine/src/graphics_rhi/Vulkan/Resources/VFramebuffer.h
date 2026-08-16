@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #pragma once
 
@@ -56,29 +56,28 @@ namespace AE::Graphics
 		Attachments_t				_attachments;	// weak references
 		CachePtr_t					_cachePtr		= Default;
 
-		GFX_DBG_ONLY(	DebugName_t		_debugName;	)
-		DRC_ONLY(		RWDataRaceCheck	_drCheck;	)
+		GFX_DBG_ONLY( DebugName_t	_debugName;	)
 
 
 	// methods
 	public:
-		VFramebuffer ()									__NE___	{}
-		~VFramebuffer ()								__NE___;
+		VFramebuffer ()											__NE___	{}
+		~VFramebuffer ()										__NE___;
 
 		ND_ bool  Create (ResourceManager &, const RenderPassDesc &desc, RenderPassID rpId, StringView dbgName = Default) __NE___;
-			void  Destroy (ResourceManager &)			__NE___;
-		ND_ bool  SetCachePtr (CachePtr_t ptr)			__NE___;
+			void  Destroy (ResourceManager &)					__NE___;
+		ND_ bool  SetCachePtr (CachePtr_t ptr)					__NE___;
 
 		ND_ bool  IsAllResourcesAlive (const ResourceManager &) C_NE___;
 
-		ND_ VkFramebuffer			Handle ()			C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _framebuffer; }
-		ND_ RenderPassID			RenderPass ()		C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _renderPassId; }
-		ND_ uint2					Dimension ()		C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return uint2{_dimension}; }
-		ND_ uint					LayerCount ()		C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _layers.Get(); }
-		ND_ ArrayView<ImageViewID>	Attachments ()		C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _attachments; }
-		ND_ ArrayView<ImageID>		Images ()			C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _images; }
+		ND_ VkFramebuffer			Handle ()					C_NE___	{ return _framebuffer; }
+		ND_ RenderPassID			RenderPass ()				C_NE___	{ return _renderPassId; }
+		ND_ uint2					Dimension ()				C_NE___	{ return uint2{_dimension}; }
+		ND_ uint					LayerCount ()				C_NE___	{ return _layers.Get(); }
+		ND_ ArrayView<ImageViewID>	Attachments ()				C_NE___	{ return _attachments; }
+		ND_ ArrayView<ImageID>		Images ()					C_NE___	{ return _images; }
 
-		GFX_DBG_ONLY( ND_ StringView  GetDebugName ()	C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _debugName; })
+		GFX_DBG_ONLY( ND_ StringView  GetDebugName ()			C_NE___	{ return _debugName; })
 	};
 
 

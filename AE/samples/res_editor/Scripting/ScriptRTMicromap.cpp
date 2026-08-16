@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #include "Scripting/ScriptExe.h"
 #include "Scripting/PipelineCompiler.inl.h"
@@ -106,6 +106,7 @@ namespace
 				break;
 
 			case EOpacityMicromapFormat::Unknown :
+			case EOpacityMicromapFormat::_Count :
 			default :
 				CHECK_THROW_MSG( false, "unknown opacity format" );
 		}

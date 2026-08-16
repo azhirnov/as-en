@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #pragma once
 
@@ -22,8 +22,7 @@ namespace AE::Graphics
 
 		Strong<BufferID>			_bufferId;
 
-		GFX_DBG_ONLY(	DebugName_t		_debugName;	)
-		DRC_ONLY(		RWDataRaceCheck	_drCheck;	)
+		GFX_DBG_ONLY( DebugName_t	_debugName;	)
 
 
 	// methods
@@ -35,11 +34,11 @@ namespace AE::Graphics
 		ND_ bool  Create (ResourceManager &, const VulkanBufferViewDesc &, BufferID, StringView dbgName)	__NE___;
 			void  Destroy (ResourceManager &)																__NE___;
 
-		ND_ VkBufferView			Handle ()			C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _bufferView; }
-		ND_ BufferViewDesc const&	Description ()		C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _desc; }
-		ND_ BufferID				BufferId ()			C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _bufferId; }
+		ND_ VkBufferView			Handle ()			C_NE___	{ return _bufferView; }
+		ND_ BufferViewDesc const&	Description ()		C_NE___	{ return _desc; }
+		ND_ BufferID				BufferId ()			C_NE___	{ return _bufferId; }
 
-		GFX_DBG_ONLY( ND_ StringView  GetDebugName ()	C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _debugName; })
+		GFX_DBG_ONLY( ND_ StringView  GetDebugName ()	C_NE___	{ return _debugName; })
 	};
 
 

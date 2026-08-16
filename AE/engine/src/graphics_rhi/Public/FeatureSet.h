@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 /*
 	FeatureSet is used to:
 	- validate shaders & pipelines:
@@ -54,7 +54,7 @@ namespace AE::Graphics
 			_Count
 		};
 
-		struct PerDescriptorSet
+		struct PerPipeline
 		{
 			uint	maxInputAttachments;	// maxDescriptorSetInputAttachments			-	maxPerStageDescriptorInputAttachments
 			uint	maxSampledImages;		// maxDescriptorSetSampledImages			-	maxPerStageDescriptorSampledImages
@@ -63,14 +63,13 @@ namespace AE::Graphics
 			uint	maxStorageImages;		// maxDescriptorSetStorageImages			-	maxPerStageDescriptorStorageImages
 			uint	maxUniformBuffers;		// maxDescriptorSetUniformBuffers			-	maxPerStageDescriptorUniformBuffers
 			uint	maxAccelStructures;		// maxDescriptorSetAccelerationStructures	-	maxPerStageDescriptorAccelerationStructures
-			uint	maxTotalResources;		// maxPerSetDescriptors						-	maxPerStageResources
 
-			ND_ bool  operator == (const PerDescriptorSet &rhs) C_NE___;
-			ND_ bool  operator >= (const PerDescriptorSet &rhs) C_NE___;
+			ND_ bool  operator == (const PerPipeline &rhs) C_NE___;
+			ND_ bool  operator >= (const PerPipeline &rhs) C_NE___;
 
-			ND_ HashVal  CalcHash ()							C_NE___;
+			ND_ HashVal  CalcHash ()						C_NE___;
 		};
-		using PerShaderStage		= PerDescriptorSet;	// Metal: for argument buffer
+		using PerShaderStage		= PerPipeline;	// Metal: for argument buffer
 
 		using SubgroupOperationBits	= EnumSet< ESubgroupOperation >;
 		using PixelFormatSet_t		= EnumSet< EPixelFormat >;
@@ -194,7 +193,7 @@ namespace AE::Graphics
 		_visitorF_( EFeature,			subgroup,								: 2 )\
 		_visitorF_( EFeature,			subgroupBroadcastDynamicId,				: 2 )	/* GL_ARB_shader_ballot																*/\
 		_visitorF_( EFeature,			subgroupSizeControl,					: 2 )	/* VK_EXT_subgroup_size_control														*/\
-		_visitorF_( EFeature,			shaderSubgroupUniformControlFlow,		: 2 )	/* GL_EXT_subgroupuniform_qualifier, GL_EXT_subgroup_uniform_control_flow			*/\
+		_visitorF_( EFeature,			shaderSubgroupUniformControlFlow,		: 2 )	/* GL_EXT_subgroup_uniform_control_flow												*/\
 		_visitorF_( EFeature,			shaderMaximalReconvergence,				: 2 )	/* GL_EXT_maximal_reconvergence														*/\
 		_visitorF_( EFeature,			shaderQuadControl,						: 2 )	/* GL_EXT_shader_quad_control														*/\
 		/* types */\
@@ -272,6 +271,7 @@ namespace AE::Graphics
 		_visitorF_( EFeature,			shaderResourceMinLod,					: 2 )	/* GL_ARB_sparse_texture_clamp														*/\
 		_visitorF_( EFeature,			shaderDrawParameters,					: 2 )	/* BaseVertexID, BaseInstanceID, DrawIndexID										*/\
 		_visitorF_( EFeature,			runtimeDescriptorArray,					: 2 )	/* SPIRV: RuntimeDescriptorArrayEXT													*/\
+		_visitorF_( EFeature,			descriptorBindingVariableDescriptorCount,:2 )	/* array size of last entry in descriptor set defined at DS creation time			*/\
 		_visitorF_( EFeature,			shaderSMBuiltinsNV,						: 2 )	/* GL_NV_shader_sm_builtins															*/\
 		_visitorF_( EFeature,			shaderCoreBuiltinsARM,					: 2 )	/* GL_ARM_shader_core_builtins														*/\
 		_visitorF_( EFeature,			shaderSampleRateInterpolationFunctions,	: 2 )\
@@ -383,8 +383,10 @@ namespace AE::Graphics
 		_visitor1_( ubyte,				perPipeline_maxUniformBuffersDynamic,		)	/* maxDescriptorSetUniformBuffersDynamic, maxDescriptorSetTotalUniformBuffersDynamic*/\
 		_visitor1_( ubyte,				perPipeline_maxStorageBuffersDynamic,		)	/* maxDescriptorSetStorageBuffersDynamic, maxDescriptorSetTotalStorageBuffersDynamic*/\
 		_visitor1_( ubyte,				perPipeline_maxTotalBuffersDynamic,			)	/* maxDescriptorSetTotalBuffersDynamic												*/\
-		_visitor4_( PerDescriptorSet,	perPipeline,								)	/* Metal: no limits																	*/\
+		_visitor4_( PerPipeline,		perPipeline,								)	/* Metal: no limits																	*/\
 		_visitor4_( PerShaderStage,		perStage,									)\
+		_visitor4_( uint,				perStage_maxTotalResources,					)	/* maxPerStageResources																*/\
+		_visitor4_( uint,				perDescSet_maxTotalResources,				)	/* maxPerSetDescriptors or 512														*/\
 		_visitor1_( ubyte,				maxDescriptorSets,							)	/* maxBoundDescriptorSets															*/\
 		_visitor1_( ubyte,				maxTexelOffset,								)	/* maxTexelOffset, minTexelOffset  - [-N-1...+N] for textureOffset()				*/\
 		_visitor1_( ubyte,				maxTexelGatherOffset,						)	/* maxTexelGatherOffset, minTexelGatherOffset										*/\

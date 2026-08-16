@@ -162,7 +162,7 @@ InputActionsGLFW {
     InputKey: MouseBtn2, state: Begin
     {
       name:    '1f88c31b'
-      value:   none
+      value:   Unknown
       gesture: Down
       swizzle: 0000
       scale:   ( 1.00, 1.00, 1.00, 1.00 )
@@ -170,7 +170,7 @@ InputActionsGLFW {
     InputKey: Escape, state: Begin
     {
       name:    'cdfc6e09'
-      value:   none
+      value:   Unknown
       gesture: Down
       swizzle: 0000
       scale:   ( 1.00, 1.00, 1.00, 1.00 )
@@ -178,7 +178,7 @@ InputActionsGLFW {
     InputKey: Enter, state: Begin
     {
       name:    '78b1ef6a'
-      value:   none
+      value:   Unknown
       gesture: Down
       swizzle: 0000
       scale:   ( 1.00, 1.00, 1.00, 1.00 )
@@ -218,7 +218,7 @@ InputActionsGLFW {
     InputKey: MouseBtn2, state: End
     {
       name:    '1f88c31b'
-      value:   none
+      value:   Unknown
       gesture: Down
       swizzle: 0000
       scale:   ( 1.00, 1.00, 1.00, 1.00 )
@@ -226,7 +226,7 @@ InputActionsGLFW {
     InputKey: Escape, state: End
     {
       name:    'cdfc6e09'
-      value:   none
+      value:   Unknown
       gesture: Down
       swizzle: 0000
       scale:   ( 1.00, 1.00, 1.00, 1.00 )
@@ -234,7 +234,7 @@ InputActionsGLFW {
     InputKey: Enter, state: End
     {
       name:    '78b1ef6a'
-      value:   none
+      value:   Unknown
       gesture: Down
       swizzle: 0000
       scale:   ( 1.00, 1.00, 1.00, 1.00 )
@@ -264,7 +264,7 @@ InputActionsWinAPI {
     InputKey: MouseBtn1, state: Begin
     {
       name:    '1f88c31b'
-      value:   none
+      value:   Unknown
       gesture: Down
       swizzle: 0000
       scale:   ( 1.00, 1.00, 1.00, 1.00 )
@@ -272,7 +272,7 @@ InputActionsWinAPI {
     InputKey: Enter, state: Begin
     {
       name:    '78b1ef6a'
-      value:   none
+      value:   Unknown
       gesture: Down
       swizzle: 0000
       scale:   ( 1.00, 1.00, 1.00, 1.00 )
@@ -280,7 +280,7 @@ InputActionsWinAPI {
     InputKey: Escape, state: Begin
     {
       name:    'cdfc6e09'
-      value:   none
+      value:   Unknown
       gesture: Down
       swizzle: 0000
       scale:   ( 1.00, 1.00, 1.00, 1.00 )
@@ -288,7 +288,7 @@ InputActionsWinAPI {
     InputKey: MouseBtn0, state: Begin
     {
       name:    'ff08b95a'
-      value:   none
+      value:   Unknown
       gesture: Hold
       swizzle: 0000
       scale:   ( 1.00, 1.00, 1.00, 1.00 )
@@ -304,7 +304,7 @@ InputActionsWinAPI {
     InputKey: MouseBtn0, state: Update
     {
       name:    'ff08b95a'
-      value:   none
+      value:   Unknown
       gesture: Hold
       swizzle: 0000
       scale:   ( 1.00, 1.00, 1.00, 1.00 )
@@ -320,7 +320,7 @@ InputActionsWinAPI {
     InputKey: MouseBtn1, state: End
     {
       name:    '1f88c31b'
-      value:   none
+      value:   Unknown
       gesture: Down
       swizzle: 0000
       scale:   ( 1.00, 1.00, 1.00, 1.00 )
@@ -328,7 +328,7 @@ InputActionsWinAPI {
     InputKey: Enter, state: End
     {
       name:    '78b1ef6a'
-      value:   none
+      value:   Unknown
       gesture: Down
       swizzle: 0000
       scale:   ( 1.00, 1.00, 1.00, 1.00 )
@@ -336,7 +336,7 @@ InputActionsWinAPI {
     InputKey: Escape, state: End
     {
       name:    'cdfc6e09'
-      value:   none
+      value:   Unknown
       gesture: Down
       swizzle: 0000
       scale:   ( 1.00, 1.00, 1.00, 1.00 )
@@ -344,7 +344,7 @@ InputActionsWinAPI {
     InputKey: MouseBtn0, state: End
     {
       name:    'ff08b95a'
-      value:   none
+      value:   Unknown
       gesture: Hold
       swizzle: 0000
       scale:   ( 1.00, 1.00, 1.00, 1.00 )

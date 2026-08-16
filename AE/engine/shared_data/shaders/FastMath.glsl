@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 /*
 	Approximations for math functions.
 
@@ -35,3 +35,66 @@
 
 // TODO:
 // Exponentiation  https://docs.nvidia.com/cuda/cuda-c-best-practices-guide/index.html#exponentiation-with-small-fractional-arguments
+
+
+/*
+=================================================
+	FastSubULP
+----
+	valid for positive values
+=================================================
+*/
+float  FastSubULP (float x)
+{
+	uint bits = floatBitsToUint( x );
+	bits = bits == 0 ? bits : bits - 1u;
+	return uintBitsToFloat( bits );
+}
+
+#if AE_ENABLE_HALF_TYPE and AE_ENABLE_SHORT_TYPE
+	half  FastSubULP (half x)
+	{
+		ushort bits = halfBitsToUint16( x );
+		bits = bits == 0 ? bits : bits - 1us;
+		return uint16BitsToHalf( bits );
+	}
+#endif
+#if AE_ENABLE_DOUBLE_TYPE and AE_ENABLE_LONG_TYPE
+	double  FastSubULP (double x)
+	{
+		ulong bits = doubleBitsToUint64( x );
+		bits = bits == 0 ? bits : bits - 1ul;
+		return uint64BitsToDouble( bits );
+	}
+#endif
+
+/*
+=================================================
+	FastAddULP
+----
+	valid for positive values
+=================================================
+*/
+float  FastAddULP (float x)
+{
+	uint bits = floatBitsToUint( x );
+	bits += 1u;
+	return uintBitsToFloat( bits );
+}
+
+#if AE_ENABLE_HALF_TYPE and AE_ENABLE_SHORT_TYPE
+	half  FastAddULP (half x)
+	{
+		ushort bits = halfBitsToUint16( x );
+		bits += 1us;
+		return uint16BitsToHalf( bits );
+	}
+#endif
+#if AE_ENABLE_DOUBLE_TYPE and AE_ENABLE_LONG_TYPE
+	double  FastAddULP (double x)
+	{
+		ulong bits = doubleBitsToUint64( x );
+		bits += 1ul;
+		return uint64BitsToDouble( bits );
+	}
+#endif

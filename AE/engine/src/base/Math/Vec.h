@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #pragma once
 
@@ -1623,6 +1623,33 @@ namespace _hidden_
 	ND_ TVec<T,I,Q>  FusedMulAdd (const TVec<T,I,Q> &a, const TVec<T,I,Q> &b, const TVec<T,I,Q> &c) __NE___
 	{
 		return glm::fma( a, b, c );
+	}
+
+/*
+=================================================
+	FusedMulSub
+----
+	faster and more precise version of (a * b) - c
+=================================================
+*/
+	template <typename T> requires(IsFloatPoint<T>)
+	NdCx__ T  FusedMulSub (const T a, const T b, const T c) __NE___
+	{
+	#if AE_SIMD_FMA and defined(AE_CPU_ARCH_X86_64)
+		if constexpr( IsSame< T, float >)
+			return __fmsub_ss( a, b, c );
+		else
+		if constexpr( IsSame< T, double >)
+			return __fmsub_sd( a, b, c );
+	#else
+		return (a * b) - c;
+	#endif
+	}
+
+	template <typename T, int I, glm::qualifier Q> requires(IsFloatPoint<T>)
+	ND_ TVec<T,I,Q>  FusedMulSub (const TVec<T,I,Q> &a, const TVec<T,I,Q> &b, const TVec<T,I,Q> &c) __NE___
+	{
+		return glm::fma( a, b, -c );	// TODO
 	}
 
 /*

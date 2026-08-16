@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #include "Executor.h"
 
@@ -22,23 +22,23 @@ bool  Executor::Initialize ()
 
 	VDeviceInitializer::InstanceCreateInfo	inst_ci;
 	inst_ci.appName			= "CoopMatTest";
-	inst_ci.instanceLayers	= vulkan.GetRecommendedInstanceLayers();
+	inst_ci.instanceLayers	= _vulkan.GetRecommendedInstanceLayers();
 
-	CHECK_ERR( vulkan.CreateInstance( inst_ci ));
+	CHECK_ERR( _vulkan.CreateInstance( inst_ci ));
 
-	vulkan.CreateDebugCallback( VDeviceInitializer::c_DefaultDebugMessageSeverity,
-                                VDeviceInitializer::c_DefaultDebugMessageTypes,
-								[] (const VDeviceInitializer::DebugReport &rep) { AE_LOGW(rep.message);  CHECK(not rep.isError); });
+	_vulkan.CreateDebugCallback( VDeviceInitializer::c_DefaultDebugMessageSeverity,
+                                 VDeviceInitializer::c_DefaultDebugMessageTypes,
+								 [] (const VDeviceInitializer::DebugReport &rep) { AE_LOGW(rep.message);  CHECK(not rep.isError); });
 
-	CHECK_ERR( vulkan.ChooseHighPerformanceDevice() );
-	CHECK_ERR( vulkan.CreateDefaultQueue() );
-	CHECK_ERR( vulkan.CreateLogicalDevice() );
+	CHECK_ERR( _vulkan.ChooseHighPerformanceDevice() );
+	CHECK_ERR( _vulkan.CreateDefaultQueue() );
+	CHECK_ERR( _vulkan.CreateLogicalDevice() );
 
-	CHECK_ERR( vulkan.IsInitialized() );
-	CHECK_ERR( vulkan.CheckConstantLimits() );
-	CHECK_ERR( vulkan.CheckExtensions() );
+	CHECK_ERR( _vulkan.IsInitialized() );
+	CHECK_ERR( _vulkan.CheckConstantLimits() );
+	CHECK_ERR( _vulkan.CheckExtensions() );
 
-	RenderTaskScheduler::InstanceCtor::Create( vulkan );
+	RenderTaskScheduler::InstanceCtor::Create( _vulkan );
 	CHECK_ERR( GraphicsScheduler().Initialize( Default ));
 
 	return true;
@@ -56,9 +56,9 @@ void  Executor::Deinitialize ()
 
 	RenderTaskScheduler::InstanceCtor::Destroy();
 
-	CHECK_ERRV( vulkan.DestroyLogicalDevice() );
-	CHECK_ERRV( vulkan.DestroyInstance() );
-	CHECK_ERRV( not vulkan.IsInitialized() );
+	CHECK_ERRV( _vulkan.DestroyLogicalDevice() );
+	CHECK_ERRV( _vulkan.DestroyInstance() );
+	CHECK_ERRV( not _vulkan.IsInitialized() );
 
 	Scheduler().Release();
 	TaskScheduler::InstanceCtor::Destroy();
@@ -69,13 +69,16 @@ void  Executor::Deinitialize ()
 	Run
 =================================================
 */
-bool  Executor::Run (StringView source, ByteBuffer inputA, ByteBuffer inputB, ByteBuffer inputC, ByteBuffer output, uint elementSize)
+bool  Executor::Run (StringView source, ByteBuffer inputA, ByteBuffer inputB, ByteBuffer inputC, ByteBuffer output, uint elementSize, const WGConfig &wgCfg)
 {
+	CHECK_ERR( wgCfg.subgroupCount > 0 );
+	CHECK_ERR( All( wgCfg.wgCount > 0u ));
+
 	Graphics::GAutorelease<Graphics::PipelinePackID>	pack_id;
 	Graphics::RenderTechPipelinesPtr					rtech;
 
 	try {
-		_Compile( source, elementSize, OUT pack_id, OUT rtech );
+		_Compile( source, elementSize, wgCfg.subgroupCount, OUT pack_id, OUT rtech );
 	}
 	catch(...)
 	{
@@ -83,7 +86,7 @@ bool  Executor::Run (StringView source, ByteBuffer inputA, ByteBuffer inputB, By
 		return false;
 	}
 
-	CHECK_ERR( _RunPipe( inputA, inputB, inputC, output, rtech ));
+	CHECK_ERR( _RunPipe( inputA, inputB, inputC, output, rtech, wgCfg.wgCount ));
 	return true;
 }
 
@@ -92,7 +95,7 @@ bool  Executor::Run (StringView source, ByteBuffer inputA, ByteBuffer inputB, By
 	_RunPipe
 =================================================
 */
-bool  Executor::_RunPipe (ByteBuffer inputA, ByteBuffer inputB, ByteBuffer inputC, ByteBuffer output, Graphics::RenderTechPipelinesPtr rtech)
+bool  Executor::_RunPipe (ByteBuffer inputA, ByteBuffer inputB, ByteBuffer inputC, ByteBuffer output, Graphics::RenderTechPipelinesPtr rtech, const uint2 wgCount)
 {
 	using namespace Threading;
 	using namespace Graphics;
@@ -149,14 +152,14 @@ bool  Executor::_RunPipe (ByteBuffer inputA, ByteBuffer inputB, ByteBuffer input
 							DirectCtx::Compute	ctx { RenderCoro_Get(), RVRef(cmdbuf) };
 
 							ctx.AccumBarriers()
-								.MemoryBarrier( EResourceState::CopyDst, EResourceState::CoopVecConvert_Read );
+								.MemoryBarrier( EResourceState::CopyDst, EResourceState::ShaderAddress_Read | EResourceState::ComputeShader );
 
 							ctx.BindPipeline( pipe_id );
 							ctx.BindDescriptorSet( DescSetBinding{0}, ds );
-							ctx.Dispatch( 1 );
+							ctx.Dispatch( wgCount );
 
 							ctx.AccumBarriers()
-								.MemoryBarrier( EResourceState::ShaderAddress_Write, EResourceState::CopySrc );
+								.MemoryBarrier( EResourceState::ShaderAddress_Write | EResourceState::ComputeShader, EResourceState::CopySrc );
 
 							cmdbuf = ctx.ReleaseCommandBuffer();
 						}{
@@ -199,7 +202,7 @@ bool  Executor::_RunPipe (ByteBuffer inputA, ByteBuffer inputB, ByteBuffer input
 	_Compile
 =================================================
 */
-void  Executor::_Compile (StringView source, uint elementSize,
+void  Executor::_Compile (StringView source, uint elementSize, uint wgSubgroupCount,
 						  OUT Graphics::GAutorelease<Graphics::PipelinePackID> &outPackId,
 						  OUT Graphics::RenderTechPipelinesPtr &outRTech) __Th___
 {
@@ -266,13 +269,13 @@ void  Executor::_Compile (StringView source, uint elementSize,
 		ppln_templ->Disable();
 		ppln_templ->SetLayout2( ppln_layout );
 
-		{
-			const uint	subgroup_size = GraphicsScheduler().GetDevice().GetDeviceProperties().compute.subgroupSize;
+		const uint	subgroup_size = GetDevice().GetDeviceProperties().compute.subgroupSize;
 
+		{
 			ScriptShaderPtr		sh{ new ScriptShader{}};
 			sh->SetSource( EShader::Compute, String{source} );
 			sh->options = EShaderOpt::Optimize;
-			sh->SetComputeLocalSize3( subgroup_size, 1, 1 );
+			sh->SetComputeLocalSize3( subgroup_size, wgSubgroupCount, 1 );
 
 			ppln_templ->SetShader( sh );
 		}
@@ -281,6 +284,12 @@ void  Executor::_Compile (StringView source, uint elementSize,
 			ppln_spec->Disable();
 			ppln_spec->AddToRenderTech( "rtech", "Compute" );
 			ppln_spec->SetOptions( EPipelineOpt::Optimize );
+
+			// fix for Intel
+			if ( GetDevice().GetVExtensions().subgroupSizeControl )
+			{
+				ppln_spec->SetSubgroupSize( subgroup_size );
+			}
 
 			// if successfully compiled
 			ppln_spec->Enable();
@@ -349,4 +358,3 @@ bool  Executor::SupportsIntDotProduct () const
 {
 	return GraphicsScheduler().GetDevice().GetVExtensions().shaderIntegerDotProduct;
 }
-

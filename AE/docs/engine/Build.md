@@ -1,51 +1,60 @@
 Build instructions.
 
-## Install dependencies
+# Install dependencies
 
-### Android (PC)
+## Android (PC)
 
 When building from PC:
 * Install [Android Studio](https://developer.android.com/studio) with NDK.
 
-### Android (device)
+## Android (device)
 
 When building from Android device:
-* Install Linux terminal: **termux** ([github](https://github.com/termux/termux-app), [f-droid](https://f-droid.org/en/packages/com.termux/), [play store](https://play.google.com/store/apps/details?id=com.termux))
+
+**CxStudio**
+* Install **CxStudio** and go to next chapter.
+* Warning: if CxStudio frequently crashed use **Termux** or find similar IDE.
+
+**Termux**
+* Install Linux terminal: **Termux** ([github](https://github.com/termux/termux-app), [f-droid](https://f-droid.org/en/packages/com.termux/), [play store](https://play.google.com/store/apps/details?id=com.termux))
 * In terminal install: git, clang, cmake.<br/>
   ```
   pkg install git
   pkg install clang
   pkg install cmake
+  pkg install less     # git diff
+  pkg install lldb     # debug
+  pkg install openssh  # git without password
   ```
-* Optional: github and f-droid version of **termux** can access to external storage, allow this and clone repository to public path like `/sdcard/Code`.
+* Optional: github and f-droid version of **Termux** can access to external storage, allow this and clone repository to public path like `/sdcard/Code`.
 * Optional: install any code editor.
+* Optional: install **Termux:Widget** ([f-droid](https://f-droid.org/packages/com.termux.widget/), [github](https://github.com/termux/termux-widget/releases)) to run commands from shortcuts.
 
-### Linux
+## Linux
 
-* In terminal run:
-	```
-	sudo apt install build-essential pkg-config libx11-dev libxcursor-dev \
-		libxinerama-dev libgl1-mesa-dev libasound2-dev \
-		libxi-dev libxrandr-dev yasm liburing-dev libpng-dev libbz2-dev libwayland-dev \
-		libxkbcommon-dev libc++-dev libc++abi-dev \
-		mesa-vulkan-drivers libvulkan1 vulkan-validationlayers \
-		libpng-dev libzip-dev libbz2-dev
-	```
-
-* Optional: install clang
-	```
-	sudo apt install clang libc++-dev libc++abi-dev
-	```
-
+* In terminal run:<br/>
+  ```sh
+  sudo apt install build-essential pkg-config libx11-dev libxcursor-dev \
+    libxinerama-dev libgl1-mesa-dev libasound2-dev \
+    libxi-dev libxrandr-dev yasm liburing-dev libpng-dev libbz2-dev libwayland-dev \
+    libxkbcommon-dev libc++-dev libc++abi-dev \
+    mesa-vulkan-drivers libvulkan1 vulkan-validationlayers \
+    libpng-dev libzip-dev libbz2-dev
+  ```
+* Optional: install clang<br/>
+  ```sh
+  sudo apt install clang libc++-dev libc++abi-dev
+  ```
 * Install [CMake](https://cmake.org/download/).
 * Install [VSCode](https://code.visualstudio.com/) with CMake and C++ plugins.
+	- Extensions: cmake tools, CodeLLDB, clangd
 
-### MacOS
+## MacOS
 
 * Install [CMake](https://cmake.org/download/)
 * Install XCode.
 
-### Windows
+## Windows
 
 * Install [CMake](https://cmake.org/download/).
 * Install [Visual Studio 2022](https://visualstudio.microsoft.com/downloads/).
@@ -53,7 +62,7 @@ When building from Android device:
 * Optional: install ClangCL in Visual Studio components.
 
 
-## Build third party dependencies
+# Build third party dependencies
 
 Open folder `AE/engine/external` and run scripts for required platforms and compiler version.
 
@@ -63,21 +72,21 @@ Libraries and headers will be installed to the `AE/../AE-Bin/external` folder.
 Use `download-<platform>-<compiler>` scripts in `AE-Bin` folder to download and extract binaries.<br/>
 Then [Build engine and samples](#Build-engine-and-samples)
 
-### Android (PC)
+## Android (PC)
 
 `update-all-win.bat` - to load header-only sources.<br/>
 `update-all-android-clang.bat` - to compile static (.a) libs.
 
-### Android (device)
+## Android (device)
 
 You should build dependencies on PC or download them.
 
-### Linux
+## Linux
 
 `update-all-linux.sh` - to load header-only sources.<br/>
 `update-all-linux-x64-clang.sh` or `update-all-linux-x64-gcc.sh` - to compile static (.a) libs.
 
-### MacOS
+## MacOS
 
 `update-all-macos.sh` - to load header-only sources.<br/>
 
@@ -89,7 +98,7 @@ You should build dependencies on PC or download them.
 
 From [stackoverflow](https://stackoverflow.com/questions/67386941/using-x86-libraries-and-openmp-on-macos-arm64-architecture/67418208#67418208) :
 
-```
+```sh
 # launch x86_64 shell
 arch -x86_64 zsh
 # install x86_64 variant of brew
@@ -106,7 +115,7 @@ arch -x86_64 /usr/local/bin/brew install llvm
 **x64:**<br/>
 `update-all-macos-x64-clang.sh` - to compile static (.a) libs.
 
-### Windows
+## Windows
 
 `update-all-win.bat` - to load header-only sources.<br/>
 `update-all-win-x64-msvc.bat` or `update-all-win-x64-clang.bat` - to compile static (.lib) and dynamic (.dll) libs.
@@ -122,19 +131,19 @@ lib
 ```
 
 
-## Build engine and samples
+# Build engine and samples
 
 Open folder `AE/build_scripts`, select target platform and compiler, for example `win_x64_clang`.
 Then call `init_*` script to create solution or call `build_*` script to build project from console.
 
 Run `HeaderGen` (*VS: in 'Engine/ToolApps'*) to generate Vulkan and OpenXR loader from current header files.
 
-### Android (PC)
+## Android (PC)
 
 Script `AE/build_scripts/build-*.bat` will build project from console.<br/>
 To use Android IDE open project in folder `AE/android`.
 
-### Android (device)
+## Android (device)
 
 For example you have folder structure:
 ```
@@ -145,16 +154,62 @@ For example you have folder structure:
   build   -- empty
 ```
 
-Then, in **termux**:
-```
-cd /sdcard/Code/build
-cmake -DAE_ENABLE_VULKAN=ON "../AE"
-cmake --build . --config Debug
+Then, in **Termux**:
+```sh
+mkdir ~/build
+cd ~/build
+cmake -DCMAKE_BUILD_TYPE=Debug -DAE_ENABLE_VULKAN=ON -DAE_ANDROID_CONSOLE_MODE=ON -DAE_ARM_ARCH=82 -S "/sdcard/Code/AE" -B .
+cmake --build . -j 8
+#ctest -R Tests.Base -V
 ```
 
-**Note**: app launcher is in progress.
+**Note**: app launcher is in progress, but `AE_ANDROID_CONSOLE_MODE` allows to run console apps/tests from termux.
 
-## Compile resources
+Android prevent to run executable from shared folder, so you need to use Termux home (`cd ~`) to store your build files or full project.
+
+Additionaly install **Termux:Widgets** and add shortcuts for build commands:
+* in Termux create folder `~/.shortcuts`
+	```sh
+	mkdir -p /data/data/com.termux/files/home/.shortcuts
+	chmod 700 -R /data/data/com.termux/files/home/.shortcuts
+	```
+* add script: `nano ~/.shortcuts/build-AsEn`
+	```sh
+	set -u
+
+	main() {
+	  mkdir ~/build
+	  cd ~/build
+	  cmake -DCMAKE_BUILD_TYPE=Debug -DAE_ENABLE_VULKAN=ON -DAE_ANDROID_CONSOLE_MODE=ON -DAE_ARM_ARCH=82 -S "/sdcard/Code/AE" -B .
+	  cmake --build . -j 8
+	  ctest -R Tests.Base -V
+	}
+
+	main
+	status=$?
+
+	#exit "$status"
+	exec bash
+	```
+
+	Or copy from engine:
+	```sh
+	cp "/sdcard/Code/AE/build_scripts/android_termux/build.sh" "~/.shortcuts/build-AsEn"
+	```
+
+* on Android home screen:
+	- long tap
+	- tap Widgets
+	- select Termux:Widgets
+	- script `build-AsEn` should be in widget
+
+* Android may require additional permission to run script from widget:
+	- open Settings -> Apps -> App management -> Termux
+	- allow display over other apps
+	- if requested permission: tap three dots at top right corner, tap "Allow restricted settings"
+
+
+# Compile resources
 
 Projects which requires precompiled resources has cmake targets with `.PackRes` suffixes.<br/>
 You should run it first to compile resources.
@@ -165,17 +220,17 @@ From IDE: build target `<project>.PackRes`.
 Compiled resources will be stored in `AE/../AE-Temp` folder. They can be used on all platforms.
 
 
-## Update file paths (optional)
+# Update file paths (optional)
 
 Visual Studio, VSCode, Notepad++ and some other IDEs allows to open file in URL format like a `file:///absolute/path/to/a/file.txt`, but it requires absolute paths. Source code may contain links to other source files or docs which is written as URLs.<br/>
 Use IDE or another tool to replace path `[](https://github.com/azhirnov/as-en/blob/dev/AE/)` to an absolute path like a `file:///C:/Projects/AE/`.
 
 
-## Setup IDE and environment (optional)
+# Setup IDE and environment (optional)
 
 Associate file extensions `.as`, `.glsl` with Visual Studio, Notepad++ or other IDE or text editor. This text editor will be used to open files by links like `file:///path`.
 
-### Visual Studio
+## Visual Studio
 
 Open `TOOLS- > Options...`, select `Text Editor -> File Extension` and add file extensions as a C++ source:<br/>
 `.as` - AngelScript file with AsEn preprocessor.<br/>
@@ -185,6 +240,6 @@ Open `TOOLS- > Options...`, select `Text Editor -> File Extension` and add file 
 `.mm` - for ObjC code.
 
 
-### VSCode
+## VSCode
 
 Already setup, see `AE/.vscode/settings.json`.

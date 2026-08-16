@@ -23,13 +23,14 @@ public:
 		// sort
 		SortByName				= 1 << 0,
 		SortByTime				= 1 << 1,
+		SortByUserData			= 1 << 2,		// using string lexical compare
 
 		// include
 		IncludeDelta			= 1 << 8,		// difference from previous to current, depends on sorting
 		IncludeTime				= 1 << 9,
 		IncludeDiffFromFastest	= 1 << 10,		// difference from fastest to current
 
-		_BITOPS_
+		_BITOPS_				= 0
 	};
 
 private:
@@ -43,8 +44,8 @@ private:
 		TimePoint_t			lastStartPoint	= Default;
 		String				name;
 		Array< Duration_t >	iterations;
-		Duration_t			medium			= Default;
-		bool				isEnded			= false;
+		Duration_t			average			= Default;
+		bool				isComplete		= false;
 		AddInfoFn_t			addInfoFn;
 	};
 
@@ -76,6 +77,9 @@ public:
 
 private:
 	static void  _FormatTable (ArrayView<String> lines, INOUT String &str);
+
+	static bool  _UserDataCmp (StringView lhs, StringView rhs);
+	static Pair<double, StringView>  _ParseNumber (StringView str);
 };
 
 using TsIntervalProfiler = AE::Threading::Synchronized< Mutex, IntervalProfiler >;
@@ -91,21 +95,55 @@ inline void  IntervalProfiler::PrintAndReset ()
 	if ( _tests.empty() )
 		return;
 
-	Duration_t	min_time {MaxValue<slong>()};
+	Duration_t				min_time	{MaxValue<slong>()};
+	bool					sorted		= false;
+	Array<TestInfo const*>	sorted_tests;
+	sorted_tests.resize( _tests.size() );
 
-	if ( AllBits( _flags, EFlags::SortByTime ))
+	if ( AllBits( _flags, EFlags::SortByUserData ) and not sorted )
 	{
-		std::sort( _tests.begin(), _tests.end(), [](const auto& lhs, const auto& rhs) { return lhs.medium < rhs.medium; });
-		min_time = _tests.begin()->medium;
+		Array<Pair<usize, String>>	user_data;
+		for (auto [t, i] : WithIndex(_tests))
+		{
+			String	tmp;
+			if ( t.addInfoFn )
+				tmp = t.addInfoFn( t.average );
+
+			user_data.emplace_back( i, RVRef(tmp) );
+		}
+
+		std::sort( user_data.begin(), user_data.end(), [](const auto& lhs, const auto& rhs) { return _UserDataCmp( lhs.second, rhs.second ); });
+
+		for (auto [i_str, dst_idx] : WithIndex(user_data)) {
+			sorted_tests[dst_idx] = &_tests[ i_str.first ];
+		}
+		sorted = true;
+	}
+
+	if ( not sorted )
+	{
+		for (auto [t, i] : WithIndex(_tests)) {
+			sorted_tests[i] = &t;
+		}
+	}
+
+	if ( AllBits( _flags, EFlags::SortByTime ) and not sorted )
+	{
+		std::sort( sorted_tests.begin(), sorted_tests.end(), [](const auto& lhs, const auto& rhs) { return lhs->average < rhs->average; });
+		min_time = (*sorted_tests.begin())->average;
+		sorted	 = true;
 	}
 	else
 	{
 		for (auto& t : _tests)
-			min_time = Min( min_time, t.medium );
+			min_time = Min( min_time, t.average );
 	}
 
-	if ( AllBits( _flags, EFlags::SortByName ))
-		std::sort( _tests.begin(), _tests.end(), [](const auto& lhs, const auto& rhs) { return lhs.name < rhs.name; });		// TODO: lexical compare?
+	if ( AllBits( _flags, EFlags::SortByName ) and not sorted )
+	{
+		std::sort( sorted_tests.begin(), sorted_tests.end(), [](const auto& lhs, const auto& rhs) { return lhs->name < rhs->name; });		// TODO: lexical compare?
+		sorted = true;
+	}
 
 	String	str;
 	str << '\n' << _testName << ':';
@@ -115,20 +153,20 @@ inline void  IntervalProfiler::PrintAndReset ()
 	Duration_t		prev	{-1};
 	Array<String>	lines;
 
-	for (auto& t : _tests)
+	for (const auto* t : sorted_tests)
 	{
 		auto&	line = lines.emplace_back();
-		line << t.name << '|';
+		line << t->name << '|';
 
 		if ( AnyBits( _flags, EFlags::IncludeTime ))
 		{
-			line << ToString(t.medium) << '|';
+			line << ToString(t->average) << '|';
 		}
 
 		// perf diff
 		if ( AnyBits( _flags, EFlags::IncludeDiffFromFastest ))
 		{
-			double	fract	= min_time.count() == 0 ? 0.0 : (ToDouble( t.medium - min_time ) / ToDouble( min_time )) * 100.0;
+			double	fract	= min_time.count() == 0 ? 0.0 : (ToDouble( t->average - min_time ) / ToDouble( min_time )) * 100.0;
 					fract	= Round( Abs( fract ));
 
 			if ( fract != 0.0 )
@@ -146,9 +184,9 @@ inline void  IntervalProfiler::PrintAndReset ()
 		// diff from previous
 		if ( AnyBits( _flags, EFlags::IncludeDelta ))
 		{
-			double	fract	= prev.count() < 0 ? 0.0 :  (ToDouble( t.medium - prev ) / ToDouble( prev )) * 100.0;
+			double	fract	= prev.count() < 0 ? 0.0 :  (ToDouble( t->average - prev ) / ToDouble( prev )) * 100.0;
 					fract	= Round( Abs( fract ));
-					prev	= t.medium;
+					prev	= t->average;
 
 			if ( fract != 0.0 )
 			{
@@ -162,14 +200,84 @@ inline void  IntervalProfiler::PrintAndReset ()
 			line << '|';
 		}
 
-		if ( t.addInfoFn )
-			line << t.addInfoFn( t.medium );
+		if ( t->addInfoFn )
+			line << t->addInfoFn( t->average );
 	}
 
 	_FormatTable( lines, INOUT str );
 	AE_LOGI( str );
 
 	_tests.clear();
+}
+
+/*
+=================================================
+	_UserDataCmp
+=================================================
+*/
+inline Pair<double, StringView>  IntervalProfiler::_ParseNumber (StringView str)
+{
+	double	num		= 1.0;
+	usize	pos		= 0;
+
+	// parse number
+	for (; pos < str.size(); ++pos)
+	{
+		char	c = str[pos];
+		if ( c >= '0' and c <= '9' )
+			num = num * 10.0 + double(c - '0');
+		else
+			break;
+	}
+
+	// parse fractional
+	if ( pos < str.size() and str[pos] == '.' )
+	{
+		++pos;
+		for (double scale = 0.1; pos < str.size(); ++pos)
+		{
+			char	c = str[pos];
+			if ( c >= '0' and c <= '9' )
+			{
+				num = num + double(c - '0') * scale;
+				scale *= 0.1;
+			}else
+				break;
+		}
+	}
+
+	// parse suffix
+	if ( pos < str.size() )
+	{
+		char	c = str[pos];
+		++pos;
+		switch ( c )
+		{
+			case 'T' :	num *= 1.0e+12; break;
+			case 'G' :	num *= 1.0e+9;	break;
+			case 'M' :	num *= 1.0e+6;	break;
+			case 'K' :	num *= 1.0e+3;	break;
+			case 'm' :	num *= 1.0e-3;	break;
+			case 'u' :	num *= 1.0e-6;	break;
+			case 'n' :	num *= 1.0e-9;	break;
+			case 'p' :	num *= 1.0e-12;	break;
+			default :	--pos;			break;
+		}
+	}
+
+	return { num, SubString( str, pos )};
+}
+
+
+inline bool  IntervalProfiler::_UserDataCmp (StringView lhs, StringView rhs)
+{
+	auto	[l_val, l_sfx] = _ParseNumber( lhs );
+	auto	[r_val, r_sfx] = _ParseNumber( rhs );
+
+	if ( l_val == r_val )
+		return Base::StringLessThan( r_sfx, l_sfx );
+
+	return l_val > r_val;
 }
 
 /*
@@ -204,8 +312,8 @@ forceinline void  IntervalProfiler::EndTest ()
 	CHECK_ERRV( not _tests.empty() );
 
 	auto&	test = _tests.back();
-	CHECK_ERRV( not test.isEnded );
-	test.isEnded = true;
+	CHECK_ERRV( not test.isComplete );
+	test.isComplete = true;
 
 	CHECK_ERRV( not test.iterations.empty() );
 
@@ -213,7 +321,9 @@ forceinline void  IntervalProfiler::EndTest ()
 	for (auto& dt : test.iterations) {
 		sum += dt;
 	}
-	test.medium = sum / test.iterations.size();
+	test.average = sum / test.iterations.size();
+
+	test.iterations.clear();
 }
 
 /*
@@ -229,7 +339,7 @@ forceinline void  IntervalProfiler::BeginIteration ()
 	CompilerBarrier( EMemoryOrder::Acquire );
 
 	auto&	test = _tests.back();
-	CHECK_ERRV( not test.isEnded );
+	CHECK_ERRV( not test.isComplete );
 
 	test.iterations.emplace_back();
 	test.lastStartPoint = Clock_t::now();
@@ -253,7 +363,7 @@ forceinline void  IntervalProfiler::EndIteration ()
 	CHECK_ERRV( not _tests.empty() );
 
 	auto&	test = _tests.back();
-	CHECK_ERRV( not test.isEnded );
+	CHECK_ERRV( not test.isComplete );
 
 	ASSERT( end_time >= test.lastStartPoint );
 	ASSERT( not test.iterations.empty() );

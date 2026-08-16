@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 /*
 	used only for auto-complete in shader code
 */
@@ -10,6 +10,9 @@
 #endif
 
 #include <type_traits>
+
+#define AE_bfloat16
+#define AE_float8_e5m2_e4m3
 
 #define isinf	_IsInf
 #define isnan	_IsNaN
@@ -244,7 +247,7 @@ template <typename T, int C, int R>	ND_ _Matrix<T,R,C>	transpose (const _Matrix<
 								ND_ ushort2			unpackUint2x16 (const uint v);
 								ND_ ushort4			unpackUint4x16 (const ulong v);
 
-#if AE_ENABLE_HALF_TYPE
+#if AE_ENABLE_HALF_TYPE and AE_ENABLE_SHORT_TYPE
 								ND_ uint			packFloat2x16 (const half2 v);
 								ND_ half2			unpackFloat2x16 (const uint v);
 
@@ -269,6 +272,7 @@ template <typename T, int C, int R>	ND_ _Matrix<T,R,C>	transpose (const _Matrix<
 	template <int I>			ND_ _Vec<half,I>	uint16BitsToFloat16 (const _Vec<ushort,I>);	// inverse float16BitsToUint16
 #endif
 
+#if AE_ENABLE_DOUBLE_TYPE and AE_ENABLE_LONG_TYPE
 								ND_ slong			doubleBitsToInt64 (const double);			// inverse int64BitsToDouble
 template <int I>				ND_ _Vec<slong,I>	doubleBitsToInt64 (const _Vec<double,I>);	// inverse int64BitsToDouble
 								ND_ ulong			doubleBitsToUint64 (const double);			// inverse uint64BitsToDouble
@@ -278,9 +282,9 @@ template <int I>				ND_ _Vec<ulong,I>	doubleBitsToUint64 (const _Vec<double,I>);
 template <int I>				ND_ _Vec<double,I>	int64BitsToDouble (const _Vec<slong,I>);	// inverse doubleBitsToInt64
 								ND_ double			uint64BitsToDouble (const ulong);			// inverse doubleBitsToUint64
 template <int I>				ND_ _Vec<double,I>	uint64BitsToDouble (const _Vec<ulong,I>);	// inverse doubleBitsToUint64
+#endif
 
-
-#ifdef AE_bfloat16
+#if defined(AE_bfloat16) and AE_ENABLE_SHORT_TYPE
 # ifdef AE_bfloat16_dotprod
 	template <int I>			ND_ bfloat			dot (_Vec<bfloat,I> x, _Vec<bfloat,I> y);
 # endif
@@ -296,7 +300,7 @@ template <int I>				ND_ _Vec<double,I>	uint64BitsToDouble (const _Vec<ulong,I>);
 	template <int I>			ND_ _Vec<bfloat,I>	uintBitsToBFloat16 (const ushort);			// inverse bfloat16BitsToUint
 #endif
 
-#ifdef AE_float8_e5m2_e4m3
+#if defined(AE_float8_e5m2_e4m3) and AE_ENABLE_BYTE_TYPE
 								ND_ sbyte				floate5m2BitsToInt (const floatE5M2);			// inverse intBitsToFloate5m2
 								ND_ ubyte				floate5m2BitsToUint (const floatE5M2);			// inverse uintBitsToFloate5m2
 								ND_ floatE5M2			intBitsToFloate5m2 (const sbyte);				// inverse floate5m2BitsToInt
@@ -317,7 +321,7 @@ template <int I>				ND_ _Vec<double,I>	uint64BitsToDouble (const _Vec<ulong,I>);
 	template <int I>			ND_ _Vec<floatE4M3,I>	intBitsToFloate4m3 (const _Vec<sbyte,I>);		// inverse floate4m3BitsToInt
 	template <int I>			ND_ _Vec<floatE4M3,I>	uintBitsToFloate4m3 (const _Vec<ubyte,I>);		// inverse floate4m3BitsToUint
 
-# ifdef AE_ENABLE_HALF_TYPE
+# if AE_ENABLE_HALF_TYPE
 									void			saturatedConvert (out floatE5M2 result, half value);
 									void			saturatedConvert (out floatE4M3 result, half value);
 	template <int I>				void			saturatedConvert (out _Vec<floatE5M2,I> &result, const _Vec<half,I> value);
@@ -329,7 +333,7 @@ template <int I>				ND_ _Vec<double,I>	uint64BitsToDouble (const _Vec<ulong,I>);
 	template <int I>				void			saturatedConvert (out _Vec<floatE5M2,I> &result, const _Vec<bfloat,I> value);
 	template <int I>				void			saturatedConvert (out _Vec<floatE4M3,I> &result, const _Vec<bfloat,I> value);
 # endif
-# ifdef AE_ENABLE_DOUBLE_TYPE
+# if AE_ENABLE_DOUBLE_TYPE
 									void			saturatedConvert (out floatE5M2 result, double value);
 									void			saturatedConvert (out floatE4M3 result, double value);
 	template <int I>				void			saturatedConvert (out _Vec<floatE5M2,I> &result, const _Vec<double,I> value);
@@ -437,17 +441,6 @@ public:
   #ifdef AE_nonuniform_qualifier
 	ND_ nonuniform int   Nonuniform (int);
 	ND_ nonuniform uint  Nonuniform (uint);
-  #endif
-
-	// GL_EXT_subgroupuniform_qualifier
-  #ifdef AE_subgroup_uniform_qualifier
-	// It can be applied to:
-	//  * variable declarations qualified as 'in'
-	//  * global variable declarations with no storage qualifier
-	//  * local variable declarations with no storage qualifier
-	//  * function parameter declarations and function return types.
-	template <typename T>
-	ND_ sg_uniform T	SubgroupUniform (const T &);
   #endif
 
 
@@ -958,11 +951,11 @@ public:
 		ND_ uint	BallotFindMSB (uint4) const;
 
 		// in
-		const	uint4	EqMask;
+		const	uint4	EqMask;		// 1 << Index
 		const	uint4	GeMask;
 		const	uint4	GtMask;
 		const	uint4	LeMask;
-		const	uint4	LtMask;
+		const	uint4	LtMask;		// (1 << Index) - 1
 	  #endif
 
 	  #ifdef AE_shader_subgroup_shuffle
@@ -1679,8 +1672,8 @@ public:
 		ND_ CoopMat		operator ~ ()					const;
 	};
 
-	// read 'm' from 'buf[ firstElement * stride * rows ]' for row major or
-	// 'buf[ firstElement * stride * cols ]' to column major
+	// read 'm' from 'buf[ firstElement + stride * rows ]' for row major or
+	// 'buf[ firstElement + stride * cols ]' to column major
 	template <typename T, Scope S, uint R, uint C, MatrixUse U, typename B>
 	void  CoopMatLoad  (OUT CoopMat<T,S,R,C,U>	&m,
 						volatile coherent B*	buf,
@@ -1688,8 +1681,8 @@ public:
 						uint					stride,				// in elements (B)
 						CooperativeMatrixLayout	layout);
 
-	// write 'm' to 'buf[ firstElement * stride * rows ]' for row major or
-	// 'buf[ firstElement * stride * cols ]' to column major
+	// write 'm' to 'buf[ firstElement + stride * rows ]' for row major or
+	// 'buf[ firstElement + stride * cols ]' to column major
 	template <typename T, Scope S, uint R, uint C, MatrixUse U, typename B>
 	void  CoopMatStore (CoopMat<T,S,R,C,U>			m,
 						OUT volatile coherent B*	buf,
@@ -1707,6 +1700,8 @@ public:
   #endif // AE_cooperative_matrix and AE_memory_scope_semantics
 
 	// GLSL_NV_cooperative_vector
+	// glsl specs:
+	// "All functions in this section are supported in all shader stages (subject to API-specific limitations) and don't require uniform control flow or fully occupied subgroups."
   #if defined(AE_cooperative_vector)
 
 	template <typename T, uint NumComps>
@@ -1769,6 +1764,7 @@ public:
 		UInt8Packed,		// u32 as 4x u8
 		FloatE4M3,			// fp8
 		FloatE5M2,			// fp8
+		BFloat16,
 	};
 
 	enum class CoopVectorMatrixLayout
@@ -1779,6 +1775,7 @@ public:
 		TrainingOptimal
 	};
 
+	// R[M] = A[K] * B[MxK] + C[M]
 	template <typename ResultTy, uint ResultComps,
 			  typename InputTy,  uint InputComps,
 			  typename MatrixTy,
@@ -1799,6 +1796,7 @@ public:
 							bool					transpose,
 							uint					matrixStride);			// 16b align, in bytes, ignored for optimal layouts
 
+	// R[M] = A[K] * B[MxK]
 	template <typename ResultTy, uint ResultComps,
 			  typename InputTy,  uint InputComps,
 			  typename MatrixTy
@@ -1831,6 +1829,7 @@ public:
 	// The following function computes the outer product between column vectors v1
 	// and v2, i.e. v1*transpose(v2), and the resulting MxN matrix is atomically
 	// (with device scope) accumulated in memory.
+	// From tests: all subgroup threads must execute this instruction, see [Test_CoopVecTraining](https://github.com/azhirnov/as-en/blob/dev/AE/engine/tests/coop_mat/Test_CoopVecTraining.cpp).
 	template <typename T, uint M, uint N>
 	void  CoopVecOuterProductAccum (const CoopVec<T, M>		&v1,			// [M],  'T' must be half of float
 									const CoopVec<T, N>		&v2,			// [N]

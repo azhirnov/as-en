@@ -1,4 +1,4 @@
-# Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+# Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 if ( ${AE_ENABLE_VULKAN} AND ${AE_ENABLE_LOGS} )
 	file( GLOB_RECURSE SOURCES "*.*" )

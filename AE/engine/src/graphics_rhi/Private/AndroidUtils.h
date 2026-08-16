@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #pragma once
 
@@ -21,12 +21,12 @@ namespace AE::Graphics
 		NV16				= 0x00000010,
 		NV21				= 0x00000011,
 
-		PRIVATE				= 0x00000022,
+	//	PRIVATE				= 0x00000022,
 
 		RAW10				= 0x00000025,
 		RAW12				= 0x00000026,
-		RAW_PRIVATE			= 0x00000024,
-		RAW_SENSOR			= 0x00000020,
+	//	RAW_PRIVATE			= 0x00000024,
+	//	RAW_SENSOR			= 0x00000020,
 		RAW16				= 0x00000020,	// from NDK, same as RAW_SENSOR
 
 		YUV_420_888			= 0x00000023,
@@ -67,9 +67,9 @@ namespace AE::Graphics
 
 			case AImageFormat::JPEG :				return EPixelFormatExternal::Android_JPEG;
 
-			case AImageFormat::PRIVATE :			return EPixelFormatExternal::Android_Private;
+			//case AImageFormat::PRIVATE :			return EPixelFormatExternal::Android_Private;
+			//case AImageFormat::RAW_PRIVATE :		return EPixelFormatExternal::Android_RawPrivate;
 
-			case AImageFormat::RAW_PRIVATE :		return EPixelFormatExternal::Android_RawPrivate;
 			case AImageFormat::RAW16 :				return EPixelFormatExternal::Android_Raw16;
 			case AImageFormat::RAW12 :				return EPixelFormatExternal::Android_Raw12;
 			case AImageFormat::RAW10 :				return EPixelFormatExternal::Android_Raw10;
@@ -114,9 +114,9 @@ namespace AE::Graphics
 
 			case EPixelFormatExternal::Android_JPEG :			return AImageFormat::JPEG;
 
-			case EPixelFormatExternal::Android_Private :		return AImageFormat::PRIVATE;
+			//case EPixelFormatExternal::Android_Private :		return AImageFormat::PRIVATE;
+			//case EPixelFormatExternal::Android_RawPrivate :	return AImageFormat::RAW_PRIVATE;
 
-			case EPixelFormatExternal::Android_RawPrivate :		return AImageFormat::RAW_PRIVATE;
 			case EPixelFormatExternal::Android_Raw16 :			return AImageFormat::RAW16;
 			case EPixelFormatExternal::Android_Raw12 :			return AImageFormat::RAW12;
 			case EPixelFormatExternal::Android_Raw10 :			return AImageFormat::RAW10;

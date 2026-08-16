@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #pragma once
 
@@ -43,9 +43,13 @@ namespace AE::Graphics
 		EnableRenderDoc			= 1 << 3,		// allow to use RenderDoc API to trigger capture
 
 		EnableMemoryReport		= 1 << 4,		// allow to set callback in 'Device::CreateMemoryReport()', may crash on some implementations
+		MaxRobustness			= 1 << 5,		// will not crash when accessing out-of-bounds, null descriptors, etc.
+
+		DisableDescBuffer		= 1 << 6,		// if not set, descriptor sets automatically replaced by new descriptor buffers
+		DisableDescHeap			= 1 << 7,		// if not set, descriptor sets automatically replaced by new descriptor heaps
 
 		_Last,
-		All						= ((_Last - 1) << 1) - 1,
+		All						= CT_AllBitMask2<EDeviceFlags>,
 		_NvApiMask				= SetStableClock | EnablePerfCounters,
 		_AmdApiMask				= SetStableClock | SetStableMemClock | EnablePerfCounters,
 	};

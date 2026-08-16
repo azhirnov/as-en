@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #pragma once
 
@@ -133,7 +133,7 @@ namespace AE
 
 #ifdef AE_ENABLE_LOGS
 # define AE_PRIVATE_LOGX( /*ELogLevel*/_level_, /*ELogScope*/ _scope_, _msg_, _srcLoc_ )									\
-	if_not_consteval () {																									\
+	{if_not_consteval () {																									\
 		TRY{																												\
 			{switch_enum( AE::Base::StaticLogger::Process( AE::Base::StringView{_msg_}, (_srcLoc_), (_level_), (_scope_) ))	\
 			{																												\
@@ -143,7 +143,7 @@ namespace AE
 			}}																												\
 			switch_end																										\
 		}CATCH_ALL();	/* to catch exceptions in string formatting */														\
-	}
+	}}
 
 #else
 # define AE_PRIVATE_LOGX( ... )	{}

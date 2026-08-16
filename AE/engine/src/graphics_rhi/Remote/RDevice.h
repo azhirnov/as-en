@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #pragma once
 
@@ -107,9 +107,9 @@ namespace AE::Graphics
 		void  _SetMemoryUsage (DevMemoryUsageOpt value)								C_NE___	{ _memUsage.Write( value ); }
 
 		// requires 'FeatureSet::cooperativeVector'
-		ND_ bool  ConvertCooperativeVectorMatrix (ArrayView<ConvertCoopMatrixOnHost>)			C_NE___;
+		ND_ bool  ConvertCooperativeVectorMatrix (ArrayView<ConvertCoopMatrixOnHost>)				C_NE___;
 		ND_ bool  GetCooperativeVectorMatrixDstSize (ArrayView<ConvertCoopMatrixOnHost>,
-													 MutableArrayView<BytesUSize> dstSizeArray)	C_NE___;
+													 OUT MutableArrayView<BytesUSize> dstSizeArray)	C_NE___;
 
 	private:
 		void  _ProcessMessage (RemoteGraphics::RConnection &, RC<BaseMsg>)			C_NE___;

@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #include "Common.h"
 
@@ -484,6 +484,7 @@ namespace
 			aggr1->getSequence().push_back( linker_objs );
 		}
 
+		Unused( assert_found );
 		//CHECK_ERR_MSG( assert_found, "'dbg_Assert' function is not found" );
 		return true;
 	}

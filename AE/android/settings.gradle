@@ -3,6 +3,7 @@ plugins {
 }
 include ':test',
 		':demo',
+		':res_editor',
 		':rg-device',
 		':remote-ctrl',
 		':cicd',

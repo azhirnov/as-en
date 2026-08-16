@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #pragma once
 
@@ -23,11 +23,12 @@ namespace AE::Base
 			RandomAccess	= 1 << 0,	// access is intended to be random
 			SequentialScan	= 1 << 1,	// access is intended to be sequential from beginning to end
 			Direct			= 1 << 2,	// Try to minimize cache effects of the I/O to and from this file.
+										// Warning: on some Android devices '/storage/emulated/...' path may not support direct access and will silently write zeros.
 
 			Unix_LargeFile	= 1 << 16,	// 64 bit address
 
 			Unknown			= 0,
-			_BITOPS_
+			_BITOPS_		= 0
 		};
 
 	private:
@@ -96,7 +97,7 @@ namespace AE::Base
 			Unix_LargeFile	= 1 << 16,	// 64 bit address
 
 			Unknown			= 0,
-			_BITOPS_
+			_BITOPS_		= 0
 		};
 
 	private:

@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #include "base/Defines/StdInclude.h"
 
@@ -7,6 +7,7 @@
 # include <sys/stat.h>
 # include <unistd.h>
 # include <fcntl.h>
+# include <linux/stat.h>
 
 # include "base/Algorithms/ToString.h"
 # include "base/DataSource/UnixFile.h"
@@ -24,7 +25,7 @@ namespace AE::Base
 	UnixFileRStream::UnixFileRStream (Handle_t file DEBUG_ONLY(, Path filename)) __NE___ :
 		_file{ file },
 		_fileSize{ GetFileSize( _file )},
-		_align{ GetDirectAccessAlign( _file )}
+		_align{ GetDirectAccessAlign( _file DEBUG_ONLY(, filename ))}
 		DEBUG_ONLY(, _filename{ FileSystem::ToAbsolute( filename )})
 	{
 		if_unlikely( not IsOpen() )
@@ -58,7 +59,7 @@ namespace AE::Base
 	IDataSource::ESourceType  UnixFileRStream::GetSourceType () C_NE___
 	{
 		return	ESourceType::SequentialAccess	| ESourceType::RandomAccess |	// allow SeekFwd() & SeekSet()
-				ESourceType::FixedSize			| ESourceType::ReadAccess	|
+				ESourceType::FixedSize			| ESourceType::ReadOnly	|
 				ESourceType::ThreadSafe;
 	}
 
@@ -119,7 +120,7 @@ namespace AE::Base
 */
 	UnixFileWStream::UnixFileWStream (Handle_t file DEBUG_ONLY(, Path filename)) __NE___ :
 		_file{ file },
-		_align{ GetDirectAccessAlign( _file )}
+		_align{ GetDirectAccessAlign( _file DEBUG_ONLY(, filename ))}
 		DEBUG_ONLY(, _filename{ FileSystem::ToAbsolute( filename )})
 	{
 		if_unlikely( not IsOpen() )
@@ -152,8 +153,8 @@ namespace AE::Base
 */
 	IDataSource::ESourceType  UnixFileWStream::GetSourceType () C_NE___
 	{
-		return	ESourceType::SequentialAccess | ESourceType::WriteAccess |
-				ESourceType::ThreadSafe;
+		return	ESourceType::SequentialAccess | ESourceType::WriteOnly |
+				ESourceType::ThreadSafe | ESourceType::RandomAccess;
 	}
 
 /*
@@ -247,7 +248,7 @@ namespace AE::Base
 	UnixFileRDataSource::UnixFileRDataSource (Handle_t file DEBUG_ONLY(, Path filename)) __NE___ :
 		_file{ file },
 		_fileSize{ GetFileSize( _file )},
-		_align{ GetDirectAccessAlign( _file )}
+		_align{ GetDirectAccessAlign( _file DEBUG_ONLY(, filename ))}
 		DEBUG_ONLY(, _filename{ FileSystem::ToAbsolute( filename )})
 	{
 		if_unlikely( not IsOpen() )
@@ -281,7 +282,7 @@ namespace AE::Base
 	IDataSource::ESourceType  UnixFileRDataSource::GetSourceType () C_NE___
 	{
 		return	ESourceType::SequentialAccess	| ESourceType::RandomAccess	|
-				ESourceType::FixedSize			| ESourceType::ReadAccess	|
+				ESourceType::FixedSize			| ESourceType::ReadOnly	|
 				ESourceType::ThreadSafe;
 	}
 
@@ -312,7 +313,7 @@ namespace AE::Base
 */
 	UnixFileWDataSource::UnixFileWDataSource (Handle_t file DEBUG_ONLY(, Path filename)) __NE___ :
 		_file{ file },
-		_align{ GetDirectAccessAlign( _file )}
+		_align{ GetDirectAccessAlign( _file DEBUG_ONLY(, filename ))}
 		DEBUG_ONLY(, _filename{ FileSystem::ToAbsolute( filename )})
 	{
 		if_unlikely( not IsOpen() )
@@ -345,7 +346,7 @@ namespace AE::Base
 */
 	IDataSource::ESourceType  UnixFileWDataSource::GetSourceType () C_NE___
 	{
-		return	ESourceType::RandomAccess | ESourceType::WriteAccess |
+		return	ESourceType::RandomAccess | ESourceType::WriteOnly |
 				ESourceType::ThreadSafe;
 	}
 

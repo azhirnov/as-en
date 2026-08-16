@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #pragma once
 
@@ -62,54 +62,64 @@ namespace AE::Base
 
 	// methods
 	public:
-		__Cx__ Date ()											__NE___;
+		__Cx__ Date ()												__NE___;
 
-		__Cx__ Date (const Date &)								__NE___ = default;
-		__Cx__ Date&		operator = (const Date &)			__NE___	= default;
+		__Cx__ Date (const Date &)									__NE___ = default;
+		__Cx__ Date&		operator = (const Date &)				__NE___	= default;
 
-		ND_ static Date		Now ()								__NE___;
+		ND_ static Date		Now ()									__NE___;
 
-		NdCx__ uint			Year ()								C_NE___	{ return _year; }
-		NdCx__ EMonth		Month ()							C_NE___	{ return EMonth( _month ); }
-		NdCx__ uint			MonthIndex ()						C_NE___	{ return _month+1; }
-		NdCx__ uint			WeekOfYear ()						C_NE___	{ return (_dayOfYear / 7) + 1; }
-		NdCx__ uint			DayOfYear ()						C_NE___	{ return _dayOfYear + 1; }
-		NdCx__ uint			DayOfMonth ()						C_NE___	{ return _dayOfMonth + 1; }
-		NdCx__ EWeekDay		DayOfWeek ()						C_NE___	{ return EWeekDay( _dayOfWeek ); }
-		NdCx__ uint			Hour ()								C_NE___	{ return _hour; }
-		NdCx__ uint			Minute ()							C_NE___	{ return _minute; }
-		NdCx__ uint			Second ()							C_NE___	{ return _second; }
-		NdCx__ uint			Milliseconds ()						C_NE___	{ return _millis; }
+		NdCx__ uint			Year ()									C_NE___	{ return _year; }
+		NdCx__ EMonth		Month ()								C_NE___	{ return EMonth( _month ); }
+		NdCx__ uint			MonthIndex ()							C_NE___	{ return _month+1; }
+		NdCx__ uint			WeekOfYear ()							C_NE___	{ return (_dayOfYear / 7) + 1; }
+		NdCx__ uint			DayOfYear ()							C_NE___	{ return _dayOfYear + 1; }
+		NdCx__ uint			DayOfMonth ()							C_NE___	{ return _dayOfMonth + 1; }
+		NdCx__ EWeekDay		DayOfWeek ()							C_NE___	{ return EWeekDay( _dayOfWeek ); }
+		NdCx__ uint			Hour ()									C_NE___	{ return _hour; }
+		NdCx__ uint			Minute ()								C_NE___	{ return _minute; }
+		NdCx__ uint			Second ()								C_NE___	{ return _second; }
+		NdCx__ uint			Milliseconds ()							C_NE___	{ return _millis; }
 
-		Nd____ StringView	MonthName ()						C_NE___;
-		Nd____ StringView	DayOfWeekName ()					C_NE___;
+		Nd____ StringView	MonthName ()							C_NE___;
+		Nd____ StringView	DayOfWeekName ()						C_NE___;
 
-		NdCe__ static ulong	MillisInDay ()						__NE___	{ return 24 * MillisInHour(); }
-		NdCe__ static ulong	MillisInHour ()						__NE___	{ return 60 * MillisInMinute(); }
-		NdCe__ static ulong	MillisInMinute ()					__NE___	{ return 60 * MillisInSecond(); }
-		NdCe__ static ulong	MillisInSecond ()					__NE___	{ return 1000; }
+		NdCe__ static ulong	MillisInDay ()							__NE___	{ return 24 * MillisInHour(); }
+		NdCe__ static ulong	MillisInHour ()							__NE___	{ return 60 * MillisInMinute(); }
+		NdCe__ static ulong	MillisInMinute ()						__NE___	{ return 60 * MillisInSecond(); }
+		NdCe__ static ulong	MillisInSecond ()						__NE___	{ return 1000; }
 
-
-		NdCx__ bool			IsLeapYear ()						C_NE___	{ return _IsLeapYear( _year ); }
-		NdCx__ uint			DaysInYear ()						C_NE___	{ return _MaxDaysOfYear( _year ); }
-		NdCx__ uint			DaysInMonth ()						C_NE___	{ return _DaysInMonth( _year, _month ); }
-
-
-		NdCx__ ulong	ToMillisecondsSince1970 ()				C_NE___	{ return _ToMilliseconds( 1970 ); }
-		__Cx__ Date&	SetMillisecondsSince1970 (ulong ms)		__NE___	{ return _SetMilliseconds( 1970, ms ); }
-
-		NdCx__ ulong	ToMillisecondsSinceEpoch ()				C_NE___	{ return _ToMilliseconds( 0 ); }
-		__Cx__ Date&	SetMillisecondsSinceEpoch (ulong ms)	__NE___	{ return _SetMilliseconds( 0, ms ); }
+	  #ifdef AE_COMPILER_MSVC
+		Nd____ static ulong CurrentZoneUTCOffsetInSeconds ()		__NE___;
+	  #endif
 
 
-		ND_ String  ToString (StringView fmt)					C_NE___;
+		NdCx__ bool			IsLeapYear ()							C_NE___	{ return _IsLeapYear( _year ); }
+		NdCx__ uint			DaysInYear ()							C_NE___	{ return _MaxDaysOfYear( _year ); }
+		NdCx__ uint			DaysInMonth ()							C_NE___	{ return _DaysInMonth( _year, _month ); }
 
-		NdCx__ bool  operator == (const Date &other)			C_NE___;
-		NdCx__ bool  operator <  (const Date &other)			C_NE___;
-		NdCx__ bool  operator >  (const Date &other)			C_NE___	{ return other < *this; }
-		NdCx__ bool  operator != (const Date &other)			C_NE___	{ return not (*this == other); }
-		NdCx__ bool  operator >= (const Date &other)			C_NE___	{ return not (*this < other); }
-		NdCx__ bool  operator <= (const Date &other)			C_NE___	{ return not (*this > other); }
+		// same as since epoch (UNIX epoch)
+		NdCx__ ulong	ToMillisecondsSince1970 ()					C_NE___	{ return _ToMilliseconds( 1970 ); }
+		__Cx__ Date&	SetMillisecondsSince1970 (ulong ms)			__NE___	{ return _SetMilliseconds( 1970, ms ); }
+
+		NdCx__ ulong	ToMillisecondsSinceEraBegan ()				C_NE___	{ return _ToMilliseconds( 0 ); }
+		__Cx__ Date&	SetMillisecondsSinceEraBegan (ulong ms)		__NE___	{ return _SetMilliseconds( 0, ms ); }
+
+	  #ifdef AE_COMPILER_MSVC
+		template <typename T>
+		  requires( std::chrono::is_clock_v< typename T::clock > )
+			   Date&	SetTime (const T &tp)										__NE___	{ return SetTime( std::chrono::clock_cast< std::chrono::system_clock >( tp )); }	// warning: this cause false-positive memleaks reports
+			   Date&	SetTime (const std::chrono::system_clock::time_point &tp)	__NE___	{ return _SetTime( std::chrono::system_clock::to_time_t( tp )); }
+	  #endif
+
+		ND_ String  ToString (StringView fmt)						C_NE___;
+
+		NdCx__ bool  operator == (const Date &other)				C_NE___;
+		NdCx__ bool  operator <  (const Date &other)				C_NE___;
+		NdCx__ bool  operator >  (const Date &other)				C_NE___	{ return other < *this; }
+		NdCx__ bool  operator != (const Date &other)				C_NE___	{ return not (*this == other); }
+		NdCx__ bool  operator >= (const Date &other)				C_NE___	{ return not (*this < other); }
+		NdCx__ bool  operator <= (const Date &other)				C_NE___	{ return not (*this > other); }
 
 
 	private:
@@ -122,7 +132,11 @@ namespace AE::Base
 
 		NdCx__ ulong  _ToMilliseconds (uint startYear) const;
 		__Cx__ Date&  _SetMilliseconds (uint startYear, ulong ms);
+
+			   Date&  _SetTime (time_t t);
 	};
+
+	StaticAssert( sizeof(Date) == 8 );
 
 
 
@@ -368,6 +382,11 @@ namespace AE::Base
 		_date._dayOfMonth	= dm;
 		return *this;
 	}
+//-----------------------------------------------------------------------------
 
+
+	template <>	struct TMemCopyAvailable< Date >		: CT_True {};
+	template <> struct TZeroMemAvailable< Date >		: CT_True {};
+	template <> struct TTriviallySerializable< Date >	: CT_True {};
 
 } // AE::Base

@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #pragma once
 
@@ -149,7 +149,11 @@ namespace AE::Base
 		Base::_hidden_::MemCopyChecks( inDst, inSrc, size, 64, 256 );
 
 		#if AE_SIMD_AVX >= 30
+		# ifdef AE_COMPILER_GCC
+			auto*	src	= static_cast<__m512i *>( const_cast<void*>( inSrc ));
+		# else
 			auto*	src	= static_cast<__m512i const *>( inSrc );
+		# endif
 			auto*	dst = static_cast<__m512i *>( inDst );
 			for (auto* end = dst + size; dst < end;)
 			{

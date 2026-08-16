@@ -1,4 +1,4 @@
-# Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+# Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 if (TARGET "GLSLang-lib")
 	if ( (TARGET "Vulkan-lib") OR (EXISTS "${AE_EXTERNAL_SHARED_PATH}/Vulkan/vulkan/vulkan.h") )
@@ -23,6 +23,7 @@ if (TARGET "GLSLang-lib")
 		"${GRAPHICS_DIR}/Private/EnumUtils.cpp.h"
 		"${GRAPHICS_DIR}/Private/ImageDesc.cpp.h"
 		"${GRAPHICS_DIR}/Private/BufferDesc.cpp.h"
+		"${GRAPHICS_DIR}/Private/CoopVector.cpp.h"
 		"${GRAPHICS_DIR}/Private/Shared.cpp" )
 	if (${HAS_VULKAN_HEADERS})
 		set( GRAPHICS_CPP_SRC ${GRAPHICS_CPP_SRC} "${GRAPHICS_DIR}/Vulkan/VEnumCast.cpp.h" )

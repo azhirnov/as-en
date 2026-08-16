@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #include "Executor.h"
 
@@ -622,7 +622,8 @@ namespace
 		}
 		AE_LOGI( "Max diff: "s << ToString( max_diff, 2, True{"exp"} ));
 	}
-}
+
+} // namespace
 
 
 extern void Test_MLPTraining (Executor &)

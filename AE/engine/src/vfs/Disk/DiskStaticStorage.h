@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 /*
 	Will cache all files during initialization.
 */
@@ -63,6 +63,8 @@ namespace AE::VFS
 		bool  _OpenByIter (OUT RC<WDataSource> &ds, FileName::Ref, const void* ref)			C_NE_OV;
 		bool  _OpenByIter (OUT RC<AsyncWStream> &stream, FileName::Ref, const void* ref)	C_NE_OV;
 		bool  _OpenByIter (OUT RC<AsyncWDataSource> &ds, FileName::Ref, const void* ref)	C_NE_OV;
+
+		bool  _GetPath (FileName::Ref, OUT Path &)											C_NE_OV;
 
 		using IVirtualFileStorage::_OpenByIter;
 

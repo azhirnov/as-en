@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #pragma once
 
@@ -21,7 +21,7 @@ namespace AE::Base
 		const Bytes		_offset;
 		const Bytes		_size;
 
-		static constexpr ESourceType	_TypeMask = ESourceType::RandomAccess | ESourceType::FixedSize | ESourceType::ReadAccess;
+		static constexpr ESourceType	_TypeMask = ESourceType::RandomAccess | ESourceType::FixedSize | ESourceType::ReadOnly;
 
 
 	// methods
@@ -72,7 +72,7 @@ namespace AE::Base
 	IDataSource::ESourceType  RDataSourceAsStream<T>::GetSourceType () C_NE___
 	{
 		return	ESourceType::SequentialAccess	| ESourceType::RandomAccess |
-				ESourceType::FixedSize			| ESourceType::ReadAccess;
+				ESourceType::FixedSize			| ESourceType::ReadOnly;
 		//		(_dataSource->GetSourceType() & ESourceType::ThreadSafe);	// TODO ?
 	}
 

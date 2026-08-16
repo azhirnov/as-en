@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 namespace AE::Base
 {
@@ -35,7 +35,6 @@ namespace AE::Base
 		StaticAssert( sizeof(VRow_t) == sizeof(QRow_t) );
 
 		using Inversed_t	= PhysicalQuantityMatrix< typename Quantity::Inversed_t, Columns, Rows, Q >;
-		using _Dim_t		= typename VMatrix_t::Dim_t;
 
 
 	// variables
@@ -152,7 +151,7 @@ namespace AE::Base
 
 		NdCe__ static usize		size ()											__NE___	{ return VMatrix_t::size(); }
 		NdCe__ static usize		ElementCount ()									__NE___	{ return VMatrix_t::ElementCount(); }
-		NdCe__ static _Dim_t	Dimension ()									__NE___	{ return VMatrix_t::Dimension(); }
+		NdCe__ static MatrixDim	Dimension ()									__NE___	{ return VMatrix_t::Dimension(); }
 		NdCe__ static bool		IsColumnMajor ()								__NE___	{ return VMatrix_t::IsColumnMajor(); }
 	};
 

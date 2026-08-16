@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #pragma once
 
@@ -6,22 +6,21 @@
 # include "graphics_rhi/Private/EnumUtils.h"
 # include "video/Public/Common.h"
 # include "video/FFmpeg/FFmpegLoader.h"
-# include "video/Private/EnumToString.cpp.h"
 
-# if LIBAVCODEC_VERSION_MAJOR != 62 or LIBAVCODEC_VERSION_MINOR != 11
-#	pragma message( "required AVcodec version 62.11" )
+# if LIBAVCODEC_VERSION_MAJOR != 62 or LIBAVCODEC_VERSION_MINOR != 28
+#	pragma message( "required AVcodec version 62.28" )
 # endif
-# if LIBAVDEVICE_VERSION_MAJOR != 62 or LIBAVDEVICE_VERSION_MINOR != 1
-#	pragma message( "required AVdevice version 62.1" )
+# if LIBAVDEVICE_VERSION_MAJOR != 62 or LIBAVDEVICE_VERSION_MINOR != 3
+#	pragma message( "required AVdevice version 62.3" )
 # endif
-# if LIBAVFORMAT_VERSION_MAJOR != 62 or LIBAVFORMAT_VERSION_MINOR != 3
-#	pragma message( "required AVformat version 62.3" )
+# if LIBAVFORMAT_VERSION_MAJOR != 62 or LIBAVFORMAT_VERSION_MINOR != 12
+#	pragma message( "required AVformat version 62.12" )
 # endif
-# if LIBAVUTIL_VERSION_MAJOR != 60 or LIBAVUTIL_VERSION_MINOR != 8
-#	pragma message( "required AVutil version 60.8" )
+# if LIBAVUTIL_VERSION_MAJOR != 60 or LIBAVUTIL_VERSION_MINOR != 26
+#	pragma message( "required AVutil version 60.26" )
 # endif
-# if LIBSWSCALE_VERSION_MAJOR != 9 or LIBSWSCALE_VERSION_MINOR != 1
-#	pragma message( "required SWscale version 9.1" )
+# if LIBSWSCALE_VERSION_MAJOR != 9 or LIBSWSCALE_VERSION_MINOR != 5
+#	pragma message( "required SWscale version 9.5" )
 # endif
 
 namespace AE::Video
@@ -913,8 +912,8 @@ namespace AE::Base
 			case AVCOL_PRI_SMPTE431 :		return "SMPTE431";
 			case AVCOL_PRI_SMPTE432 :		return "SMPTE432";
 			case AVCOL_PRI_EBU3213 :		return "EBU3213";
-		//	case AVCOL_PRI_EXT_BASE :
-		//	case AVCOL_PRI_EXT_NB :
+			case AVCOL_PRI_EXT_BASE :
+			case AVCOL_PRI_EXT_NB :
 			case AVCOL_PRI_NB :				break;
 		}
 		switch_end
@@ -949,8 +948,8 @@ namespace AE::Base
 			case AVCOL_TRC_SMPTE2084 :		return "SMPTE2084";
 			case AVCOL_TRC_SMPTE428 :		return "SMPTE428";
 			case AVCOL_TRC_ARIB_STD_B67 :	return "ARIB_STD_B67";
-		//	case AVCOL_TRC_EXT_BASE :
-		//	case AVCOL_TRC_EXT_NB :
+			case AVCOL_TRC_EXT_BASE :
+			case AVCOL_TRC_EXT_NB :
 			case AVCOL_TRC_NB :				break;
 		}
 		switch_end

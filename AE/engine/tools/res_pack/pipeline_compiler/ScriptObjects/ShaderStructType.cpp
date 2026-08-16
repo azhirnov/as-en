@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 /*
 	Alignment rules:
 		std140	- https://registry.khronos.org/OpenGL/extensions/ARB/ARB_uniform_buffer_object.txt
@@ -113,64 +113,6 @@ namespace
 			return true;
 
 		return false;
-	}
-
-/*
-=================================================
-	EValueType_ToString
-=================================================
-*/
-	ND_ static StringView  EValueType_ToString (EValueType type)
-	{
-		switch_enum( type )
-		{
-			case EValueType::Bool8 :		return "Bool8";
-			case EValueType::Bool32 :		return "Bool32";
-			case EValueType::Int8 :			return "Int8";
-			case EValueType::Int16 :		return "Int16";
-			case EValueType::Int32 :		return "Int32";
-			case EValueType::Int64 :		return "Int64";
-			case EValueType::UInt8 :		return "UInt8";
-			case EValueType::UInt16 :		return "UInt16";
-			case EValueType::UInt32 :		return "UInt32";
-			case EValueType::UInt64 :		return "UInt64";
-			case EValueType::Float16 :		return "Float16";
-			case EValueType::Float32 :		return "Float32";
-			case EValueType::Float64 :		return "Float64";
-			case EValueType::Int8_Norm :	return "Int8_Norm";
-			case EValueType::Int16_Norm :	return "Int16_Norm";
-			case EValueType::UInt8_Norm :	return "UInt8_Norm";
-			case EValueType::UInt16_Norm :	return "UInt16_Norm";
-			case EValueType::DeviceAddress:	return "DeviceAddress";
-			case EValueType::Unknown :
-			case EValueType::_Count :		break;
-		}
-		switch_end
-		RETURN_ERR( "unknown EValueType" );
-	}
-
-/*
-=================================================
-	EStructLayout_ToString
-=================================================
-*/
-	ND_ static StringView  EStructLayout_ToString (EStructLayout type)
-	{
-		switch_enum( type )
-		{
-			case EStructLayout::Compatible_Std140 :	return "Compatible_Std140";
-			case EStructLayout::Compatible_Std430 :	return "Compatible_Std430";
-			case EStructLayout::Metal :				return "Metal";
-			case EStructLayout::Std140 :			return "Std140";
-			case EStructLayout::Std430 :			return "Std430";
-			case EStructLayout::InternalIO :		return "InternalIO";
-			case EStructLayout::HLSL_Const :		return "HLSL_Const";
-			case EStructLayout::HLSL_Struct :		return "HLSL_Struct";
-			case EStructLayout::_Count :
-			case EStructLayout::Unknown :			break;
-		}
-		switch_end
-		RETURN_ERR( "unknown EStructLayout" );
 	}
 
 } // namespace
@@ -694,25 +636,25 @@ namespace
 				if ( AnyEqual( layout, EStructLayout::Compatible_Std140, EStructLayout::Compatible_Std430 ))
 				{
 					CHECK_THROW_MSG( not AnyEqual( field.type, EValueType::Bool8, EValueType::Bool32, EValueType::Float64 ),
-						"In Struct '"s << stName << "', field '" << field.name << "', type '" << EValueType_ToString(field.type) << "': "
+						"In Struct '"s << stName << "', field '" << field.name << "', type '" << Base::ToString(field.type) << "': "
 						"must not be Bool8/Bool32/Float64 for compatible layout" );
 				}
 				if ( AnyEqual( layout, EStructLayout::Compatible_Std140, EStructLayout::Compatible_Std430, EStructLayout::HLSL_Const, EStructLayout::HLSL_Struct ))
 				{
 					CHECK_THROW_MSG( not AnyEqual( field.type, EValueType::Int8, EValueType::UInt8, EValueType::Int8_Norm, EValueType::UInt8_Norm ),
-						"In Struct '"s << stName << "', field '" << field.name << "', type '" << EValueType_ToString(field.type) << "': "
+						"In Struct '"s << stName << "', field '" << field.name << "', type '" << Base::ToString(field.type) << "': "
 						"int8 types are not supported in HLSL" );
 				}
 				if ( AnyEqual( layout, EStructLayout::Std140, EStructLayout::Std430, EStructLayout::HLSL_Const, EStructLayout::HLSL_Struct ))
 				{
 					CHECK_THROW_MSG( not AnyEqual( field.type, EValueType::Bool8 ),
-						"In Struct '"s << stName << "', field '" << field.name << "', type '" << EValueType_ToString(field.type) << "': "
+						"In Struct '"s << stName << "', field '" << field.name << "', type '" << Base::ToString(field.type) << "': "
 						"must not be Bool8, use Bool32 or UInt instead" );
 				}
 				if ( IsStd140( layout ))
 				{
 					CHECK_THROW_MSG( not (field.IsPacked() and field.IsArray()),
-						"In Struct '"s << stName << "', field '" << field.name << "', type '" << EValueType_ToString(field.type) << "': "
+						"In Struct '"s << stName << "', field '" << field.name << "', type '" << Base::ToString(field.type) << "': "
 						"can not use packed type in array when used std140 layout" );
 				}
 
@@ -722,7 +664,7 @@ namespace
 														EValueType::UInt64, EValueType::Float32 );
 
 					CHECK_THROW_MSG( not is_compat_type,
-						"In Struct '"s << stName << "', field '" << field.name << "', type '" << EValueType_ToString(field.type) << "': "
+						"In Struct '"s << stName << "', field '" << field.name << "', type '" << Base::ToString(field.type) << "': "
 						"in MSL atomic type must be bool/int/uint/ulong/float" );
 				}
 				if ( (is_glsl or is_hlsl) and field.IsAtomic() )
@@ -732,7 +674,7 @@ namespace
 					// TODO: check extensions
 
 					CHECK_THROW_MSG( not is_compat_type,
-						"In Struct '"s << stName << "', field '" << field.name << "', type '" << EValueType_ToString(field.type) << "': "
+						"In Struct '"s << stName << "', field '" << field.name << "', type '" << Base::ToString(field.type) << "': "
 						"in GLSL atomic type must be int/uint" );
 				}
 
@@ -788,7 +730,7 @@ namespace
 					case EStructLayout::Metal :
 					{
 						CHECK_THROW_MSG( not AnyEqual( field.type, EValueType::Bool32, EValueType::Float64 ),
-							"In Struct '"s << stName << "', field '" << field.name << "', type '" << EValueType_ToString(field.type) << "': "
+							"In Struct '"s << stName << "', field '" << field.name << "', type '" << Base::ToString(field.type) << "': "
 							"must not be Bool32/Float64" );
 
 						if ( not field.IsPacked() and field.rows > 1 )
@@ -1365,7 +1307,7 @@ namespace {
 			{
 				CHECK_THROW_MSG( IsCompatibleLayouts( data.layout, field.stType->Layout() ),
 					"Struct '"s << stName << "' field '" << field.name << "' uses Struct '" << field.stType->Name() << "' with layout '" <<
-					EStructLayout_ToString(field.stType->Layout()) << "' which is not compatible with layout '" << EStructLayout_ToString(data.layout) << "'" );
+					Base::ToString(field.stType->Layout()) << "' which is not compatible with layout '" << Base::ToString(data.layout) << "'" );
 
 				const Bytes		st_align = field.stType->_structAlign;
 				data.baseOffset	= AlignUp( data.baseOffset, st_align );
@@ -1715,7 +1657,7 @@ namespace {
 			Version2	spv_ver {1,0};
 			String		header, source;
 
-			header	<< storage.GetShaderExtensionsGLSL( INOUT spv_ver, EShaderStages::Fragment, false, _features )
+			header	<< storage.GetShaderExtensionsGLSL( INOUT spv_ver, EShaderStages::Fragment, false, _features, Default )
 					<< dsl_hdr
 					<< "layout(set=0, binding=0, "
 					<< (IsStd430( _layout ) ? "std430" : "std140")
@@ -2041,7 +1983,6 @@ namespace {
 				case EFlags::Invariant :					qual << "invariant ";		break;
 
 				case EFlags::LowPrecision :
-				case EFlags::Unknown :
 				case EFlags::Packed :
 				case EFlags::PackedAlias :
 				case EFlags::Padding_GLSL :

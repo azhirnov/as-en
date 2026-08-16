@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #ifdef AE_PLATFORM_WINDOWS
 # include "platform/WinAPI/ScreenCaptureDXGI.h"
@@ -592,7 +592,7 @@ namespace AE::App
 
 		for (; not self->_complete.load(); )
 		{
-			Coro_Continue();
+			Coro_Delay( milliseconds{100} );
 		}
 
 		// should not block
@@ -670,6 +670,11 @@ namespace AE::App
 			}
 
 			_MapNextImage();
+		}
+
+		if ( _syncRead )
+		{
+			Unused( _syncRead( ImageMemView{}, FrameInfo{}, ErrorCode::StopCapture ));
 		}
 
 		_DestroyStagingImages();
@@ -847,7 +852,8 @@ namespace AE::App
 
 			if_unlikely( not ok )
 			{
-				sync->error = ErrorCode::Failed_UserException;
+				_syncRead	= {};
+				sync->error	= ErrorCode::Failed_UserException;
 				_looping.store( false );
 			}
 		}

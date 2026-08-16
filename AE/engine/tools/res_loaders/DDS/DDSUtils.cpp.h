@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 /*
 	DDS specs:
 	https://docs.microsoft.com/en-us/windows/desktop/direct3ddds/dx-graphics-dds-pguide

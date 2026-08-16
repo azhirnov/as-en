@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #include "DrawTestCore.h"
 
@@ -46,6 +46,7 @@ DrawTestCore::DrawTestCore (StringView testName) :
 bool  DrawTestCore::Run (FStorage_t assetStorage, FStorage_t refStorage)
 {
 	CHECK_ERR( _Create( refStorage ));
+	AE_LOGI( "Test references path: "s << ToString(_refImagePath) );
 
 	for (uint i = 0; i < c_MaxRenderThreads; ++i) {
 		Scheduler().AddThread( ThreadMngr::CreateThread( ThreadMngr::ThreadConfig{

@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #pragma once
 
@@ -87,7 +87,7 @@ namespace AE::Graphics
 		}
 		_pplnLayouts = Default;
 
-		// pipeline layout has strong reference on descriptor set layout
+		// descriptor sets has strong reference on descriptor set layout
 		for (auto& dsl : _dsLayouts) {
 			DEV_CHECK( resMngr.ImmediatelyRelease2( INOUT dsl ));
 		}
@@ -963,7 +963,7 @@ namespace AE::Graphics
 			FSNameArr_t					features;
 			UniformOffsets_t			desc_offsets	= {};
 			uint						sampler_count	= 0;
-			SamplerID *					samplers		= null;
+			SamplerID *					tmp_samplers	= null;
 
 			CHECK_ERR( des( OUT dsl_name, OUT usage, OUT stages, OUT features, OUT desc_offsets, OUT sampler_count ));
 
@@ -983,8 +983,8 @@ namespace AE::Graphics
 
 			if ( sampler_count > 0 )
 			{
-				samplers = stackAlloc.Allocate< SamplerID >( sampler_count );
-				CHECK_ERR( samplers != null );
+				tmp_samplers = stackAlloc.Allocate<SamplerID>( sampler_count );
+				CHECK_ERR( tmp_samplers != null );
 
 				for (uint j = 0; j < sampler_count; ++j)
 				{
@@ -993,12 +993,12 @@ namespace AE::Graphics
 
 					if ( not supported )
 					{
-						samplers[j] = Default;
+						tmp_samplers[j] = Default;
 						continue;
 					}
 
-					samplers[j] = GetSampler( SamplerName{samp_name} );
-					if_unlikely( not samplers[j] )
+					tmp_samplers[j] = GetSampler( SamplerName{samp_name} );
+					if_unlikely( not tmp_samplers[j] )
 					{
 						GFX_DBG_ONLY(
 							AE_LOGW( "Sampler '"s << resMngr.HashToName( samp_name ) << "' is used by DescriptorSetLayout '" <<
@@ -1041,14 +1041,40 @@ namespace AE::Graphics
 				continue;
 			}
 
-			const auto	usage_mask = ~EDescSetUsage::_PrivateMask;
+			const auto	usage_mask	= ~EDescSetUsage::_PrivateMask;
+			SamplerID*	samplers	= tmp_samplers;
 
-			Strong<DescriptorSetLayoutID>	item = _CreateDescriptorSetLayout( resMngr,
-																			   Uniforms_t{ uniform_count, un_names, un_data, un_offsets },
-																			   ArrayView{ samplers, sampler_count },
-																			   desc_offsets,
-																			   (usage & usage_mask), stages, stackAlloc );
+		  #ifdef AE_ENABLE_VULKAN
+			if ( tmp_samplers != null and resMngr.GetDevice().GetVExtensions().descriptorHeap )
+			{
+				samplers = _allocator->Allocate<SamplerID>( sampler_count );
+				CHECK_ERR( samplers != null );
+				MemCopy( OUT samplers, tmp_samplers, SizeOf<SamplerID> * sampler_count );
+			}
+		  #endif
+
+			DescriptorSetLayout_t::CreateInfo	ci;
+			ci.uniforms			= Uniforms_t{ uniform_count, un_names, un_data, un_offsets };
+			ci.samplerStorage	= ArrayView{ samplers, sampler_count };
+			ci.unOffsets		= desc_offsets;
+			ci.usage			= usage & usage_mask;
+			ci.dbgName			= Default;
+
+			Strong<DescriptorSetLayoutID>	item = resMngr.CreateDescriptorSetLayout( ci );
 			CHECK_ERR( item );
+
+			// validate
+			{
+			#ifdef AE_DEBUG
+				auto*	sampler = resMngr.GetResource( item );
+			# ifdef AE_ENABLE_VULKAN
+				if ( resMngr.GetDevice().GetVExtensions().descriptorHeap )
+					CHECK( sampler->GetSamplerStorage().data() == samplers )	// can hold pointer
+				else
+			# endif
+					CHECK( sampler->GetSamplerStorage().empty() );	// don't hold pointer to temporary memory
+			#endif
+			}
 
 			layoutMap.emplace( dsl_name, DescriptorSetLayoutID{item} );  // throw
 
@@ -1117,7 +1143,8 @@ namespace AE::Graphics
 			auto	item = resMngr.CreatePipelineLayout( PipelineLayout_t::CreateInfo{
 															desc_sets,
 															desc.pushConstants.items,
-															empty_ds->Handle()
+															empty_ds->Handle(),
+															_allocator.get()
 															GFX_DBG_ONLY(, "pl-"s+ToString(i))
 														});
 			CHECK_ERR( item );
@@ -2283,6 +2310,7 @@ namespace AE::Graphics
 		if_unlikely( it == _execSetMap.end() )
 		{
 			// TODO: print available
+			Unused( silent );
 			return Default;
 		}
 

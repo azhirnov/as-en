@@ -1,4 +1,4 @@
-# Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+# Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 if ( (${AE_ENABLE_METAL} OR ${AE_ENABLE_VULKAN}) AND (TARGET "GraphicsRHI") )
 	file( GLOB_RECURSE SOURCES "*.*" )
@@ -6,7 +6,7 @@ if ( (${AE_ENABLE_METAL} OR ${AE_ENABLE_VULKAN}) AND (TARGET "GraphicsRHI") )
 	set( RG_PATH "${MAIN_SOURCE_DIR}/engine/src/graphics_rhi/Remote" )
 	set( RG_FILES "${RG_PATH}/RConnection.h" "${RG_PATH}/RConnection.cpp" "${RG_PATH}/RMessages.h" "${RG_PATH}/RMessages.cpp" "${RG_PATH}/RMessages.cpp.h" )
 
-	if (ANDROID)
+	if (${AE_ANDROID_UI_MODE})
 		add_library( "RemoteGraphicsDevice" SHARED ${SOURCES} ${RG_FILES} )
 
 	elseif (APPLE)

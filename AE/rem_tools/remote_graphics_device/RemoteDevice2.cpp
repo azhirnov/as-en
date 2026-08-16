@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #include "remote_graphics_device/RemoteDevice.h"
 #include "graphics_rhi/Remote/RMessages.cpp.h"

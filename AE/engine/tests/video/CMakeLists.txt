@@ -1,9 +1,9 @@
-# Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+# Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 if (TARGET "Video")
 	file( GLOB_RECURSE SOURCES "*.h" "*.cpp" )
 
-	if (ANDROID)
+	if (${AE_ANDROID_UI_MODE})
 		set( TEST_NAME "TestsVideo" )
 		add_library( ${TEST_NAME} SHARED ${SOURCES} )
 	elseif (APPLE)

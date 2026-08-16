@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #include "UnitTest_Common.h"
 
@@ -154,13 +154,13 @@ extern void  UnitTest_DSLayout_MSL ()
 	fs->fs.perPipeline.maxStorageImages = 8;
 	fs->fs.perPipeline.maxSampledImages = 8;
 	fs->fs.perPipeline.maxSamplers = 8;
-	fs->fs.perPipeline.maxTotalResources = 1024;
+	fs->fs.perDescSet_maxTotalResources = 512;
 	fs->fs.perStage.maxUniformBuffers = 8;
 	fs->fs.perStage.maxStorageBuffers = 8;
 	fs->fs.perStage.maxStorageImages = 8;
 	fs->fs.perStage.maxSampledImages = 8;
 	fs->fs.perStage.maxSamplers = 8;
-	fs->fs.perStage.maxTotalResources = 1024;
+	fs->fs.perStage_maxTotalResources = 1024;
 
 	try {
 		DSLayout_Test1();

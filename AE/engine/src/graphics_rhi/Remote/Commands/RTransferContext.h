@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #pragma once
 
@@ -93,6 +93,9 @@ namespace AE::Graphics
 		void  GenerateMipmaps (ImageID image, EResourceState state)													__Th_OV;
 		void  GenerateMipmaps (ImageID image, ArrayView<ImageSubresourceRange> ranges, EResourceState state)		__Th_OV;
 		void  GenerateMipmaps (RmImageID image, EResourceState state, ArrayView<ImageSubresourceRange> ranges)		__Th___;
+
+		void  ConvertCooperativeVectorMatrix (ArrayView<ConvertCoopMatrixCmd>)										__Th_OV	{}	// TODO
+		void  ConvertCooperativeVectorMatrix (ArrayView<ConvertCoopMatrixCmd2>)										__Th_OV	{}
 
 		using ITransferContext::UpdateHostBuffer;
 		using ITransferContext::UploadBuffer;

@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #include "res_pack/asset_packer/ScriptObjects/ObjectStorage.h"
 #include "res_pack/asset_packer/ScriptObjects/ScriptTexture.h"
@@ -356,19 +356,7 @@ namespace AE::AssetPacker
 		{
 			EnumBinder<ECubeFace>	binder{ se };
 			binder.Create();
-			switch_enum( ECubeFace::XPos )
-			{
-				#define BIND( _name_ )	case ECubeFace::_name_ : binder.AddValue( #_name_, ECubeFace::_name_ );
-				BIND( XPos )
-				BIND( XNeg )
-				BIND( YPos )
-				BIND( YNeg )
-				BIND( ZPos )
-				BIND( ZNeg )
-				#undef BIND
-				default : break;
-			}
-			switch_end
+			binder.BindAll();
 		}
 
 		ScriptResourceMeta::Bind( se );

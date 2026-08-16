@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #pragma once
 
@@ -71,9 +71,9 @@ namespace AE::Base
 	  #endif // AE_SIMD_SHA=20
 
 
-		// requires 'SHA512' feature //
+		// requires 'SHA2_512' feature //
 	  #if AE_SIMD_SHA >= 21 and defined(AE_SIMD_SimdTInt256)
-		struct SHA512	// SHA2-512 ?
+		struct SHA2_512
 		{
 			// Perform an Intermediate Calculation for the Next Four SHA512 Message Qwords
 			ND_ static SimdULong4	Next4Msg (const SimdULong4 &a, const SimdULong2 &b)		__NE___	{ return SimdULong4{_mm256_sha512msg1_epi64( a.Ref(), b.Ref() )}; }
@@ -84,7 +84,7 @@ namespace AE::Base
 			// Perform Two Rounds of SHA512 Operation
 			ND_ static SimdULong4	Rounds2 (const SimdULong4 &a, const SimdULong4 &b, const SimdULong2 &c) __NE___ { return SimdULong4{_mm256_sha512rnds2_epi64( a.Ref(), b.Ref(), c.Ref() )}; }
 		};
-		static constexpr SHA512		sh512		= {};
+		static constexpr SHA2_512	sha512		= {};
 		static constexpr bool		has_sha512	= true;
 	  #else
 		static constexpr bool		has_sha512	= false;

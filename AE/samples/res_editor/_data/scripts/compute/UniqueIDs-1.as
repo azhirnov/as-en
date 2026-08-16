@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 /*
 	Each warp will find set of unique IDs and store it to the dst buffer.
 	This is similar as some GPUs handle non-uniform indices, it also known as waterfall loop.

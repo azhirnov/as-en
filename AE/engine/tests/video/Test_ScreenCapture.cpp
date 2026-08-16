@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #include "pch/Base.h"
 #include "pch/Platform.h"
@@ -144,7 +144,7 @@ namespace
 				TEST( _encoder->Begin( cfg, path ));
 			}
 
-			AE_LOG_DBG( "Encode frame "s << ToString(_frameCount.load()) );
+			//AE_LOG_DBG( "Encode frame "s << ToString(_frameCount.load()) );
 
 			TEST( _encoder->AddFrame( memView, True{} ));
 			_frameCount.Inc();

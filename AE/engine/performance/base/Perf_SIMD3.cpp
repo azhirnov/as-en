@@ -1,6 +1,6 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 /*
-	Operations on registers.
+	Operations on registers, but with scalar op in the middle.
 */
 
 #include "Perf_Common.h"

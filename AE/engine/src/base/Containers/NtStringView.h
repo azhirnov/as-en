@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 /*
 	This string_view type guaranties that contains non-null pointer to null-terminated string (C-style string).
 	Use NtStringView only as function argument.

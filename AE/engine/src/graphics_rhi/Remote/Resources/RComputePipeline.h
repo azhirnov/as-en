@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #pragma once
 
@@ -59,6 +59,7 @@ namespace AE::Graphics
 		ND_ uint3		 			LocalSize ()								C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return uint3{_localSize}; }
 		ND_ EPipelineDynamicState	DynamicState ()								C_NE___	{ return Default; }
 		ND_ bool					AllowDispatchBase ()						C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return AllBits( _options, EPipelineOpt::CS_DispatchBase ); }
+		ND_ EShaderStages			GetActiveStages ()							C_NE___	{ return EShaderStages::Compute; }
 
 		GFX_DBG_ONLY( ND_ StringView  GetDebugName ()							C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return Default; })
 	};

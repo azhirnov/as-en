@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #pragma once
 
@@ -458,6 +458,11 @@
 
 		_rg.reset();
 
+		// TODO: some tasks may hold reference to command batch
+		// possible solution:
+		// * use move-semantic when waiting: 'co_await Tuple{RVRef(batch)};'
+		// * complete all tasks
+
 		_batchPool.Release( True{"check for assigned"} );
 
 		if ( _resMngr )
@@ -789,9 +794,9 @@
 
 			const auto	old_bits = BitCast<QueueData::Bitfield>( _queueMap[ uint(desc.queue) ].bits.fetch_or( bf.value ));
 
-			CHECK_ERR_MSG( NoBits( old_bits.packed.required,  bf.packed.required ), "batch with 'submitIdx' is already created" );
+			CHECK_ERR_MSG( NoBits( old_bits.packed.required,  bf.packed.required ), "batch with submitIdx("s << ToString(desc.submitIdx) << ") is already created" );
 			CHECK_ERR_MSG( NoBits( old_bits.packed.pending,   bf.packed.required ) or
-						   NoBits( old_bits.packed.submitted, bf.packed.required ), "batch with 'submitIdx' is marked as unused" );
+						   NoBits( old_bits.packed.submitted, bf.packed.required ), "batch with submitIdx("s << ToString(desc.submitIdx) << ") is marked as unused" );
 		}
 
 		uint	index;
@@ -1035,7 +1040,6 @@
 	template struct GAutorelease< PipelineCacheID >;
 	template struct GAutorelease< PipelinePackID >;
 	template struct GAutorelease< DescriptorSetID >;
-	template struct GAutorelease< DescriptorSetLayoutID >;
 	template struct GAutorelease< BufferID >;
 	template struct GAutorelease< ImageID >;
 	template struct GAutorelease< BufferViewID >;

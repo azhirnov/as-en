@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #include "UnitTest_Common.h"
 
@@ -77,7 +77,7 @@ namespace
 								const auto	queue		= Coro_Get().QueueType();
 
 								TEST( not is_canceled );
-								TEST( status == ETaskStatus::InProgress );
+								TEST_Eq( status, ETaskStatus::InProgress );
 								TEST( queue == ETaskQueue::PerFrame );
 
 								auto	t00 = t0;
@@ -118,10 +118,10 @@ namespace
 		scheduler->AddThread( ThreadMngr::CreateThread( ThreadMngr::ThreadConfig{} ));
 
 		TEST( scheduler->Wait( List{ AsyncTask{p3}, AsyncTask{p0}, AsyncTask{p1}, AsyncTask{p2} }, c_MaxTimeout ));
-		TEST( p3->Status() == ETaskStatus::Completed );
-		TEST( p0->Status() == ETaskStatus::Completed );
-		TEST( p1->Status() == ETaskStatus::Completed );
-		TEST( p2->Status() == ETaskStatus::Completed );
+		TEST_Eq( p3->Status(), ETaskStatus::Completed );
+		TEST_Eq( p0->Status(), ETaskStatus::Completed );
+		TEST_Eq( p1->Status(), ETaskStatus::Completed );
+		TEST_Eq( p2->Status(), ETaskStatus::Completed );
 
 		DeferExLock  guard {value.guard};
 		TEST( guard.try_lock() );
@@ -152,7 +152,7 @@ namespace
 								const auto	queue		= Coro_Get().QueueType();
 
 								TEST( not is_canceled );
-								TEST( status == ETaskStatus::InProgress );
+								TEST_Eq( status, ETaskStatus::InProgress );
 								TEST( queue == ETaskQueue::PerFrame );
 
 								auto	t00		= t0;
@@ -193,10 +193,10 @@ namespace
 		scheduler->AddThread( ThreadMngr::CreateThread( ThreadMngr::ThreadConfig{} ));
 
 		TEST( scheduler->Wait( List{ AsyncTask{p3}, AsyncTask{p0}, AsyncTask{p1}, AsyncTask{p2} }, c_MaxTimeout ));
-		TEST( p3->Status() == ETaskStatus::Completed );
-		TEST( p0->Status() == ETaskStatus::Completed );
-		TEST( p1->Status() == ETaskStatus::Completed );
-		TEST( p2->Status() == ETaskStatus::Completed );
+		TEST_Eq( p3->Status(), ETaskStatus::Completed );
+		TEST_Eq( p0->Status(), ETaskStatus::Completed );
+		TEST_Eq( p1->Status(), ETaskStatus::Completed );
+		TEST_Eq( p2->Status(), ETaskStatus::Completed );
 
 		DeferExLock  guard {value.guard};
 		TEST( guard.try_lock() );
@@ -223,7 +223,7 @@ namespace
 								const auto	queue		= Coro_Get().QueueType();
 
 								TEST( not is_canceled );
-								TEST( status == ETaskStatus::InProgress );
+								TEST_Eq( status, ETaskStatus::InProgress );
 								TEST( queue == ETaskQueue::PerFrame );
 
 								auto	t00 = t0;
@@ -265,10 +265,10 @@ namespace
 		scheduler->AddThread( ThreadMngr::CreateThread( ThreadMngr::ThreadConfig{} ));
 
 		TEST( scheduler->Wait( List{ AsyncTask{p3}, AsyncTask{p0}, AsyncTask{p1}, AsyncTask{p2} }, c_MaxTimeout ));
-		TEST( p3->Status() == ETaskStatus::Completed );
-		TEST( p0->Status() == ETaskStatus::Completed );
-		TEST( p1->Status() == ETaskStatus::Completed );
-		TEST( p2->Status() == ETaskStatus::Completed );
+		TEST_Eq( p3->Status(), ETaskStatus::Completed );
+		TEST_Eq( p0->Status(), ETaskStatus::Completed );
+		TEST_Eq( p1->Status(), ETaskStatus::Completed );
+		TEST_Eq( p2->Status(), ETaskStatus::Completed );
 
 		DeferExLock  guard {value.guard};
 		TEST( guard.try_lock() );
@@ -342,11 +342,11 @@ namespace
 		scheduler->AddThread( ThreadMngr::CreateThread( ThreadMngr::ThreadConfig{} ));
 
 		TEST( scheduler->Wait( List{ AsyncTask{p0}, AsyncTask{p1}, AsyncTask{pa} }, c_MaxTimeout ));
-		TEST( p0->Status() == ETaskStatus::Completed );
-		TEST( p1->Status() == ETaskStatus::Canceled );
-		TEST( p2->Status() == ETaskStatus::Canceled );
-		TEST( p3->Status() == ETaskStatus::Completed );
-		TEST( pa->Status() == ETaskStatus::Error );
+		TEST_Eq( p0->Status(), ETaskStatus::Completed );
+		TEST_Eq( p1->Status(), ETaskStatus::Canceled );
+		TEST_Eq( p2->Status(), ETaskStatus::Canceled );
+		TEST_Eq( p3->Status(), ETaskStatus::Completed );
+		TEST_Eq( pa->Status(), ETaskStatus::Error );
 
 		DeferExLock  guard {value.guard};
 		TEST( guard.try_lock() );
@@ -406,10 +406,10 @@ namespace
 		auto	t0 = scheduler->WaitAsync( ETaskQueue::PerFrame, Tuple{ArrayView{arr}} );
 
 		TEST( scheduler->Wait( {t0}, c_MaxTimeout ));
-		TEST( p0->Status() == ETaskStatus::Completed );
-		TEST( p1->Status() == ETaskStatus::Canceled );
-		TEST( p2->Status() == ETaskStatus::Canceled );
-		TEST( p3->Status() == ETaskStatus::Canceled );
+		TEST_Eq( p0->Status(), ETaskStatus::Completed );
+		TEST_Eq( p1->Status(), ETaskStatus::Canceled );
+		TEST_Eq( p2->Status(), ETaskStatus::Canceled );
+		TEST_Eq( p3->Status(), ETaskStatus::Canceled );
 
 		DeferExLock  guard {value.guard};
 		TEST( guard.try_lock() );
@@ -463,9 +463,9 @@ namespace
 		scheduler->AddThread( ThreadMngr::CreateThread( ThreadMngr::ThreadConfig{} ));
 
 		TEST( scheduler->Wait( List{ AsyncTask{t1}, AsyncTask{t2} }, c_MaxTimeout ));
-		TEST( p1->Status() == ETaskStatus::Completed );
-		TEST( t1->Status() == ETaskStatus::Completed );
-		TEST( t2->Status() == ETaskStatus::Completed );
+		TEST_Eq( p1->Status(), ETaskStatus::Completed );
+		TEST_Eq( t1->Status(), ETaskStatus::Completed );
+		TEST_Eq( t2->Status(), ETaskStatus::Completed );
 
 		DeferExLock  guard {value.guard};
 		TEST( guard.try_lock() );
@@ -492,7 +492,7 @@ namespace
 									}
 									co_return "2";
 								}( value );
-		TEST( p1->Status() == ETaskStatus::Pending );
+		TEST_Eq( p1->Status(), ETaskStatus::Pending );
 
 		Promise<String>	p2 =	[] (ExeOrder &val, auto t1) -> ScheduledPromise< String, ETaskQueue::Background >
 								{
@@ -512,7 +512,7 @@ namespace
 									}
 									co_return "3";
 								}( value, p1 );
-		TEST( p2->Status() == ETaskStatus::Pending );
+		TEST_Eq( p2->Status(), ETaskStatus::Pending );
 
 		AsyncCoro		p3 =	[] (ExeOrder &val, auto t2) -> ScheduledCoro<>
 								{
@@ -536,14 +536,14 @@ namespace
 									}
 									co_return;
 								}( value, p2 );
-		TEST( p3->Status() == ETaskStatus::Pending );
+		TEST_Eq( p3->Status(), ETaskStatus::Pending );
 
 		scheduler->AddThread( ThreadMngr::CreateThread( ThreadMngr::ThreadConfig{} ));
 
 		TEST( scheduler->Wait( List{ AsyncTask{p1}, AsyncTask{p2}, AsyncTask{p3} }, c_MaxTimeout ));
-		TEST( p1->Status() == ETaskStatus::Completed );
-		TEST( p2->Status() == ETaskStatus::Completed );
-		TEST( p3->Status() == ETaskStatus::Completed );
+		TEST_Eq( p1->Status(), ETaskStatus::Completed );
+		TEST_Eq( p2->Status(), ETaskStatus::Completed );
+		TEST_Eq( p3->Status(), ETaskStatus::Completed );
 
 		DeferExLock  guard {value.guard};
 		TEST( guard.try_lock() );
@@ -588,10 +588,10 @@ namespace
 		scheduler->AddThread( ThreadMngr::CreateThread( ThreadMngr::ThreadConfig{} ));
 
 		TEST( scheduler->Wait( List{ AsyncTask{p3}, AsyncTask{p0}, AsyncTask{p1}, AsyncTask{p2} }, c_MaxTimeout ));
-		TEST( p0->Status() == ETaskStatus::Completed );
-		TEST( p1->Status() == ETaskStatus::Completed );
-		TEST( p2->Status() == ETaskStatus::Completed );
-		TEST( p3->Status() == ETaskStatus::Completed );
+		TEST_Eq( p0->Status(), ETaskStatus::Completed );
+		TEST_Eq( p1->Status(), ETaskStatus::Completed );
+		TEST_Eq( p2->Status(), ETaskStatus::Completed );
+		TEST_Eq( p3->Status(), ETaskStatus::Completed );
 
 		DeferExLock  guard {value.guard};
 		TEST( guard.try_lock() );
@@ -606,17 +606,17 @@ namespace
 		LocalTaskScheduler	scheduler {WorkerQueueCount(1)};
 
 		Promise<String>	p0 = []() -> InlinePromise<String>	{ co_return "a"s; }();
-		TEST( p0->Status() == ETaskStatus::Completed );
+		TEST_Eq( p0->Status(), ETaskStatus::Completed );
 
 		auto			p1 = []() -> Promise<String>		{ co_return "b"s; }();
-		TEST( p1->Status() == ETaskStatus::Initial );
+		TEST_Eq( p1->Status(), ETaskStatus::Initial );
 
 		ExeOrder		value;
 		Promise<String>	p2 = [](ExeOrder &val, Promise<String> t0, Promise<String> t1) -> InlinePromise<String>
 							{
 								// by default it is 'PerFrame' but it has no effect until coroutine is suspended
 								TEST( Coro_Get().QueueType() == ETaskQueue::Unknown );
-								TEST( Coro_Get().Status() == ETaskStatus::InProgress );
+								TEST_Eq( Coro_Get().Status(), ETaskStatus::InProgress );
 
 								{
 									DeferExLock  guard {val.guard};
@@ -628,7 +628,7 @@ namespace
 								auto res = Coro_WaitResult( t0, t1 );
 								TEST( res );
 
-								TEST( Coro_Get().Status() == ETaskStatus::InProgress );
+								TEST_Eq( Coro_Get().Status(), ETaskStatus::InProgress );
 								TEST( not Coro_IsCanceled );
 								TEST( Coro_Get().QueueType() == ETaskQueue::PerFrame );  // as in template parameter
 
@@ -643,7 +643,7 @@ namespace
 								co_return "c";
 							}
 							( value, p0, p1 );
-		TEST( p2->Status() == ETaskStatus::Pending );
+		TEST_Eq( p2->Status(), ETaskStatus::Pending );
 
 		AsyncTask		p3 = [](ExeOrder &val, Promise<String> t2) -> InlineCoro<>
 							{
@@ -662,7 +662,7 @@ namespace
 								}
 								co_return;
 							}( value, p2 );
-		TEST( p3->Status() == ETaskStatus::Pending );
+		TEST_Eq( p3->Status(), ETaskStatus::Pending );
 
 		{
 			DeferExLock  guard {value.guard};
@@ -675,10 +675,10 @@ namespace
 		scheduler->AddThread( ThreadMngr::CreateThread( ThreadMngr::ThreadConfig{} ));
 
 		TEST( scheduler->Wait( List{ AsyncTask{p3}, AsyncTask{p0}, AsyncTask{p1}, AsyncTask{p2} }, c_MaxTimeout ));
-		TEST( p0->Status() == ETaskStatus::Completed );
-		TEST( p1->Status() == ETaskStatus::Completed );
-		TEST( p2->Status() == ETaskStatus::Completed );
-		TEST( p3->Status() == ETaskStatus::Completed );
+		TEST_Eq( p0->Status(), ETaskStatus::Completed );
+		TEST_Eq( p1->Status(), ETaskStatus::Completed );
+		TEST_Eq( p2->Status(), ETaskStatus::Completed );
+		TEST_Eq( p3->Status(), ETaskStatus::Completed );
 
 		DeferExLock  guard {value.guard};
 		TEST( guard.try_lock() );
@@ -723,9 +723,9 @@ namespace
 		scheduler->AddThread( ThreadMngr::CreateThread( ThreadMngr::ThreadConfig{} ));
 
 		TEST( scheduler->Wait( List{ AsyncTask{p2}, AsyncTask{p0}, AsyncTask{p1} }, c_MaxTimeout ));
-		TEST( p0->Status() == ETaskStatus::Completed );
-		TEST( p1->Status() == ETaskStatus::Completed );
-		TEST( p2->Status() == ETaskStatus::Completed );
+		TEST_Eq( p0->Status(), ETaskStatus::Completed );
+		TEST_Eq( p1->Status(), ETaskStatus::Completed );
+		TEST_Eq( p2->Status(), ETaskStatus::Completed );
 
 		DeferExLock  guard {value.guard};
 		TEST( guard.try_lock() );

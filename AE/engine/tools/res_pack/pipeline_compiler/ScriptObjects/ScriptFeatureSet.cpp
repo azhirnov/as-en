@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #include "res_pack/pipeline_compiler/ScriptObjects/ScriptFeatureSet.h"
 #include "res_pack/pipeline_compiler/ScriptObjects/Common.inl.h"
@@ -36,7 +36,7 @@ namespace
 //-----------------------------------------------------------------------------
 
 
-	using PerDescriptorSet		= Graphics::FeatureSet::PerDescriptorSet;
+	using PerPipeline			= Graphics::FeatureSet::PerPipeline;
 	using PerShaderStage		= Graphics::FeatureSet::PerShaderStage;
 	using SubgroupOperationBits	= Graphics::FeatureSet::SubgroupOperationBits;
 	using VendorIDs_t			= Graphics::FeatureSet::VendorIDs_t;
@@ -89,7 +89,6 @@ namespace
 		_visitor_( uint,	maxStorageImages	);\
 		_visitor_( uint,	maxUniformBuffers	);\
 		_visitor_( uint,	maxAccelStructures	);\
-		_visitor_( uint,	maxTotalResources	);\
 
 	#define AE_FEATURE_SET_PER_DS_VISIT( _type_, _name_ )\
 		static void		Set_FS_perPipeline_ ## _name_ (ScriptFeatureSet* ptr, const _type_ val)	{ ptr->fs.perPipeline._name_ = val; }\
@@ -470,27 +469,8 @@ namespace
 		{
 			EnumBinder<EFormatFeature>	binder{ se };
 			binder.Create();
-			switch_enum( EFormatFeature::Unknown )
-			{
-				case EFormatFeature::Unknown :
-				case EFormatFeature::_Count :
-				#define BIND( _name_ )		case EFormatFeature::_name_ : binder.AddValue( #_name_, EFormatFeature::_name_ );
-				BIND( StorageImageAtomic )
-				BIND( StorageImage )
-				BIND( AttachmentBlend )
-				BIND( Attachment )
-				BIND( LinearSampled )
-				BIND( UniformTexelBuffer )
-				BIND( StorageTexelBuffer )
-				BIND( StorageTexelBufferAtomic )
-				BIND( HWCompressedAttachment )
-				BIND( LossyCompressedAttachment )
-				#undef BIND
-				default : break;
-			}
-			switch_end
-		}
-		{
+			binder.BindAll();
+		}{
 			ClassBinder<ScriptFeatureSet>	binder{ se };
 			binder.CreateRef( 0, False{} );
 
@@ -551,7 +531,7 @@ namespace
 			AS_METHOD( binder, Has_FS_integerDotProductFeature,		"hasIntegerDotProductFeature",		{} );
 
 			#define AE_FEATURE_SET_VISIT( _type_, _name_, _bits_ )					\
-				if constexpr( (not IsSame< _type_, PerDescriptorSet			>)	and \
+				if constexpr( (not IsSame< _type_, PerPipeline				>)	and \
 							  (not IsSame< _type_, ShaderVersion			>)	and \
 							  (not IsSame< _type_, SubgroupOperationBits	>)	and \
 							  (not IsSame< _type_, SampleCountBits			>)	and \

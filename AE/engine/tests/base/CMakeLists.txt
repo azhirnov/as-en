@@ -1,4 +1,4 @@
-# Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+# Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 if (TARGET "Base")
 	set( EXP_DIR "${MAIN_SOURCE_DIR}/engine/tests/_experimental/base" )
@@ -6,7 +6,7 @@ if (TARGET "Base")
 	file( GLOB SOURCES		"*.*" )
 	file( GLOB EXP_SOURCES	"${EXP_DIR}/*.*" )
 
-	if (ANDROID)
+	if (${AE_ANDROID_UI_MODE})
 		set( TEST_NAME "TestsBase" )
 		add_library( ${TEST_NAME} SHARED ${SOURCES} ${EXP_SOURCES} )
 	elseif (APPLE)

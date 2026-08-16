@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #pragma once
 
@@ -200,10 +200,10 @@ namespace AE::Base
 	Swizzle
 =================================================
 */
-#if AE_SIMD_AVX >= 2
 	template <uint V0, uint V1, uint V2, uint V3, uint V4, uint V5, uint V6, uint V7>
 	SimdFloat8  SimdFloat8::Swizzle () C_NE___
 	{
+	#if AE_SIMD_AVX >= 2
 		StaticAssert( Has_Swizzle() );
 		StaticAssert( V0 < count );
 		StaticAssert( V1 < count );
@@ -214,61 +214,11 @@ namespace AE::Base
 		StaticAssert( V6 < count );
 		StaticAssert( V7 < count );
 
-		using Req	= UIntSequence< V0, V1, V2, V3, V4, V5, V6, V7 >;
-		using ReqHi	= UIntSequence< V4, V5, V6, V7 >;
-		using ReqLo	= UIntSequence< V0, V1, V2, V3 >;
-		using DefHi	= UIntSequence< 4, 5, 6, 7 >;
-		using DefLo	= UIntSequence< 0, 1, 2, 3 >;
-
-		constexpr bool	is_def_hi = IsSame< ReqHi, DefHi >;
-		constexpr bool	is_def_lo = IsSame< ReqLo, DefLo >;
-
-		if constexpr( is_def_lo and is_def_hi )
-		{
-			return *this;
-		}else
-		if constexpr( IsSame< ReqLo, DefHi > and IsSame< ReqHi, DefLo >)
-		{
-			return Self{_mm256_permute2f128_ps( _value, _value, 1 )};
-		}else
-		if constexpr( IsSame< Req, UIntSequence< V0,V0,V0,V0, V0,V0,V0,V0 >>)
-		{
-		  #if AE_SIMD_AVX >= 2
-			constexpr uint i = V0&3;
-			auto	a = _mm256_extractf128_ps( _value, V0/4 );
-			auto	b = _mm_permute_ps( a, _MM_SHUFFLE(i,i,i,i) );
-			return Self{_mm256_broadcastss_ps( b )};
-		  #else
-			return Self{ this->get<V0>() };
-		  #endif
-		}else
-		if constexpr( V0 <= 3 and V1 <= 3 and V2 <= 3 and V3 <= 3 and
-					  V4 >= 4 and V5 >= 4 and V6 >= 4 and V7 >= 4 )
-		{
-			if constexpr( V0+4 == V4 and V1+4 == V5 and V2+4 == V6 and V3+4 == V7 )
-				return Self{_mm256_permute_ps( _value, _MM_SHUFFLE( V3, V2, V1, V0 ))};
-		}else
-		if constexpr( V4 <= 3 and V5 <= 3 and V6 <= 3 and V7 <= 3 and
-					  V0 >= 4 and V1 >= 4 and V2 >= 4 and V3 >= 4 )
-		{
-			auto	lohi = _mm256_permute2f128_ps( _value, _value, 1 );
-			if constexpr( V4+4 == V0 and V5+4 == V1 and V6+4 == V2 and V7+4 == V3 )
-				return Self{_mm256_permute_ps( lohi, _MM_SHUFFLE( V7, V6, V5, V4 ))};
-		}else
-		if constexpr( IsSame< Req, UIntSequence< 1,1, 3,3, 5,5, 7,7 >>)
-		{
-			return Self{ _mm256_movehdup_ps( _value )};
-		}else
-		if constexpr( IsSame< Req, UIntSequence< 0,0, 2,2, 4,4, 6,6 >>)
-		{
-			return Self{ _mm256_moveldup_ps( _value )};
-		}
-
-		// AVX2
+		// GCC/clang will optimize it
 		__m256i indices = _mm256_set_epi32( V7, V6, V5, V4, V3, V2, V1, V0 );
-		return Self{ _mm256_permutevar8x32_ps( _value, indices )};
+		return Self{ _mm256_permutevar8x32_ps( _value, indices )};	// lat: 4, tp: 0.5
+	#endif
 	}
-#endif
 
 /*
 =================================================
@@ -276,8 +226,9 @@ namespace AE::Base
 =================================================
 */
 	template <uint V0, uint V1, uint V2, uint V3, uint V4, uint V5, uint V6, uint V7>
-	SimdFloat8  SimdFloat8::Shuffle (const Self &) C_NE___
+	SimdFloat8  SimdFloat8::Shuffle (const Self &b) C_NE___
 	{
+	#if AE_SIMD_AVX >= 2
 		StaticAssert( Has_Shuffle() );
 		StaticAssert( V0 < count*2 );
 		StaticAssert( V1 < count*2 );
@@ -288,8 +239,38 @@ namespace AE::Base
 		StaticAssert( V6 < count*2 );
 		StaticAssert( V7 < count*2 );
 
-		// TODO
-		return {};
+	  #if AE_SIMD_AVX >= 31 // AVX512VL
+		__m256i		idx = _mm256_setr_epi32( V0, V1, V2, V3, V4, V5, V6, V7 );
+		return Self{ _mm256_permutex2var_ps( _value, idx, b._value )};	// 1 uop, lat 3
+
+	  #else
+		// generic: 2x vperm + vblend = 3 uops, lat 4
+		constexpr int bmask =	(V0 >= 8 ? 0x01 : 0) | (V1 >= 8 ? 0x02 : 0) | (V2 >= 8 ? 0x04 : 0) | (V3 >= 8 ? 0x08 : 0) |
+								(V4 >= 8 ? 0x10 : 0) | (V5 >= 8 ? 0x20 : 0) | (V6 >= 8 ? 0x40 : 0) | (V7 >= 8 ? 0x80 : 0);
+
+		__m256i		ia = _mm256_setr_epi32( V0 < 8 ? V0 : 0,
+											V1 < 8 ? V1 : 0,
+											V2 < 8 ? V2 : 0,
+											V3 < 8 ? V3 : 0,
+											V4 < 8 ? V4 : 0,
+											V5 < 8 ? V5 : 0,
+											V6 < 8 ? V6 : 0,
+											V7 < 8 ? V7 : 0 );
+		__m256i		ib = _mm256_setr_epi32( V0 >= 8 ? V0 - 8 : 0,
+											V1 >= 8 ? V1 - 8 : 0,
+											V2 >= 8 ? V2 - 8 : 0,
+											V3 >= 8 ? V3 - 8 : 0,
+											V4 >= 8 ? V4 - 8 : 0,
+											V5 >= 8 ? V5 - 8 : 0,
+											V6 >= 8 ? V6 - 8 : 0,
+											V7 >= 8 ? V7 - 8 : 0 );
+		__m256		pa = _mm256_permutevar8x32_ps( _value, ia );
+		__m256		pb = _mm256_permutevar8x32_ps( b._value, ib );
+		return Self{ _mm256_blend_ps( pa, pb, bmask )};
+	  #endif
+	#else
+		Unused( b );
+	#endif // AVX2
 	}
 
 /*
@@ -307,12 +288,12 @@ namespace AE::Base
 
 /*
 =================================================
-	PrefixSum
+	ReduceAdd
 =================================================
 */
-	inline SimdFloat8  SimdFloat8::Sum ()  C_NE___
+	inline SimdFloat8  SimdFloat8::ReduceAdd ()  C_NE___
 	{
-		StaticAssert( Has_PrefixSum() );
+		StaticAssert( Has_ReduceAdd() );
 		auto	lohi = _mm256_permute2f128_ps( _value, _value, 1 );
 		auto	a	 = _mm256_hadd_ps( _value, lohi );						// 0+1, 2+3, 4+5, 6+7, ...
 		auto	a1	 = _mm256_permute_ps( a, _MM_SHUFFLE( 2, 3, 0, 1 ));
@@ -322,19 +303,14 @@ namespace AE::Base
 		return Self{c};
 	}
 
-	inline float  SimdFloat8::PrefixSum ()  C_NE___
-	{
-		return Sum().get<0>();
-	}
-
 /*
 =================================================
-	PrefixMax
+	ReduceMax
 =================================================
 */
-	inline SimdFloat8  SimdFloat8::Max ()  C_NE___
+	inline SimdFloat8  SimdFloat8::ReduceMax ()  C_NE___
 	{
-		StaticAssert( Has_PrefixMinMax() );
+		StaticAssert( Has_ReduceMinMax() );
 		auto	lohi = _mm256_permute2f128_ps( _value, _value, 1 );
 		auto	a	 = _mm256_max_ps( _value, lohi );						// max(0,4), max(1,5), max(2,6), max(3,7), ...
 		auto	a1	 = _mm256_permute_ps( a, _MM_SHUFFLE( 2, 3, 0, 1 ));
@@ -344,19 +320,14 @@ namespace AE::Base
 		return Self{c};
 	}
 
-	inline float  SimdFloat8::PrefixMax ()  C_NE___
-	{
-		return Max().get<0>();
-	}
-
 /*
 =================================================
-	PrefixMin
+	ReduceMin
 =================================================
 */
-	inline SimdFloat8  SimdFloat8::Min ()  C_NE___
+	inline SimdFloat8  SimdFloat8::ReduceMin ()  C_NE___
 	{
-		StaticAssert( Has_PrefixMinMax() );
+		StaticAssert( Has_ReduceMinMax() );
 		auto	lohi = _mm256_permute2f128_ps( _value, _value, 1 );
 		auto	a	 = _mm256_min_ps( _value, lohi );						// min(0,4), min(1,5), min(2,6), min(3,7), ...
 		auto	a1	 = _mm256_permute_ps( a, _MM_SHUFFLE( 2, 3, 0, 1 ));
@@ -366,9 +337,85 @@ namespace AE::Base
 		return Self{c};
 	}
 
-	inline float  SimdFloat8::PrefixMin ()  C_NE___
+/*
+=================================================
+	InclusiveAdd
+=================================================
+*/
+	inline SimdFloat8  SimdFloat8::InclusiveAdd () C_NE___
 	{
-		return Min().get<0>();
+		StaticAssert( Has_InclusiveAdd() );
+	#if AE_SIMD_AVX >= 2
+		__m256	v = _value;
+		__m256i t = _mm256_slli_si256( _mm256_castps_si256( v ), 4 );
+		v = _mm256_add_ps( v, _mm256_castsi256_ps( t ));
+		t = _mm256_slli_si256( _mm256_castps_si256( v ), 8 );
+		v = _mm256_add_ps( v, _mm256_castsi256_ps( t ));
+
+		__m256	lo = _mm256_permute2f128_ps( v, v, 0x08 );
+		v = _mm256_add_ps( v, _mm256_permute_ps( lo, _MM_SHUFFLE(3,3,3,3) ));
+		return Self{v};
+
+	#else
+		const __m256	zero	= _mm256_setzero_ps();
+		__m256			v		= _value;
+
+		// shift left by one element: [0, x0, x1, x2 | 0, x4, x5, x6]
+		__m256 t = _mm256_permute_ps( v, _MM_SHUFFLE(2, 1, 0, 0) );		// [x0,x0,x1,x2] per lane
+		t = _mm256_blend_ps( zero, t, 0xEE );							// zero element 0 of each lane
+		v = _mm256_add_ps( v, t );
+
+		// [0, 0, x0, x1 | 0, 0, x4, x5]  (x = values after step 1)
+		t = _mm256_permute_ps( v, _MM_SHUFFLE(1, 0, 1, 0) );			// [x0,x1,x0,x1] per lane
+		t = _mm256_blend_ps( zero, t, 0xCC );							// zero elements 0,1
+		v = _mm256_add_ps( v, t );
+
+		// broadcast v[3] (sum of low lane) into the high half only
+		t = _mm256_permute2f128_ps( v, v, 0x08 );						// [0,0,0,0 | v0,v1,v2,v3]
+		t = _mm256_permute_ps( t, _MM_SHUFFLE(3, 3, 3, 3) );			// [0,0,0,0 | v3,v3,v3,v3]
+		v = _mm256_add_ps( v, t );
+
+		return Self{v};
+	#endif
+	}
+
+/*
+=================================================
+	ExclusiveAdd
+=================================================
+*/
+	inline SimdFloat8  SimdFloat8::ExclusiveAdd () C_NE___
+	{
+	#if AE_SIMD_AVX >= 2
+		__m256i	v = _mm256_castps_si256( _value );
+		__m256i	c = _mm256_permute2x128_si256( v, v, 0x08 );   // [0 0  0  0  | v0 v1 v2 v3]
+				v = _mm256_alignr_epi8( v, c, 12 );            // [0 v0 v1 v2 | v3 v4 v5 v6]
+
+		return Self{ _mm256_castsi256_ps( v )}.InclusiveAdd();
+
+	#else
+		const __m256	zero	= _mm256_setzero_ps();
+		__m256			v		= _value;
+
+		__m256	t = _mm256_permute_ps( v, _MM_SHUFFLE(2, 1, 0, 0) );	// [v0 v0 v1 v2 | v4 v4 v5 v6]
+				t = _mm256_blend_ps( zero, t, 0xEE );					// [0  v0 v1 v2 | 0  v4 v5 v6]
+		__m256	c = _mm256_permute2f128_ps( v, v, 0x08 );				// [0  0  0  0  | v0 v1 v2 v3]
+				c = _mm256_permute_ps( c, _MM_SHUFFLE(0, 0, 0, 3) );	// [0  0  0  0  | v3 .. .. ..]
+				v = _mm256_blend_ps( t, c, 0x10 );						// element 4 = v3
+
+		return Self{v}.InclusiveAdd();
+	#endif
+	}
+
+/*
+=================================================
+	ToArray
+=================================================
+*/
+	inline void  SimdFloat8::ToArray (OUT Scalar_t* dst, Mask_t mask) C_NE___
+	{
+		NonNull( dst );
+		_mm256_maskstore_ps( OUT dst, SimdInt8{mask}.Ref(), _value );
 	}
 
 #endif // AE_SIMD_SimdFloat8
@@ -441,7 +488,6 @@ namespace AE::Base
 	Swizzle
 =================================================
 */
-#if AE_SIMD_AVX >= 2
 	template <uint X, uint Y, uint Z, uint W>
 	SimdDouble4  SimdDouble4::Swizzle ()  C_NE___
 	{
@@ -451,10 +497,30 @@ namespace AE::Base
 		StaticAssert( Z < count );
 		StaticAssert( W < count );
 
+	  #if AE_SIMD_AVX >= 2
 		constexpr int mask = (W << 6) | (Z << 4) | (Y << 2) | X;
 		return Self{ _mm256_permute4x64_pd( _value, mask )};
+	  #else
+		if constexpr ( X <= 1 and Y <= 1 and Z >= 2 and W >= 2 )
+		{
+			// fast path: all elements stay in their 128-bit half -> single shuffle
+			constexpr int mask = (X & 1) | ((Y & 1) << 1) | ((Z & 1) << 2) | ((W & 1) << 3);
+			return Self{ _mm256_permute_pd( _value, mask )};
+		}
+		else
+		{
+			// general path: 3 instructions
+			// a = [ half containing V[X], half containing V[Z] ]
+			// b = [ half containing V[Y], half containing V[W] ]
+			const __m256d	a = _mm256_permute2f128_pd( _value, _value, (X >> 1) | ((Z >> 1) << 4) );
+			const __m256d	b = _mm256_permute2f128_pd( _value, _value, (Y >> 1) | ((W >> 1) << 4) );
+
+			// pick the exact element inside each half
+			constexpr int	mask = (X & 1) | ((Y & 1) << 1) | ((Z & 1) << 2) | ((W & 1) << 3);
+			return Self{ _mm256_shuffle_pd( a, b, mask )};
+		}
+	  #endif
 	}
-#endif
 
 /*
 =================================================
@@ -462,7 +528,7 @@ namespace AE::Base
 =================================================
 */
 	template <uint X, uint Y, uint Z, uint W>
-	SimdDouble4  SimdDouble4::Shuffle (const SimdDouble4 &)  C_NE___
+	SimdDouble4  SimdDouble4::Shuffle (const SimdDouble4 &v4567)  C_NE___
 	{
 		StaticAssert( Has_Shuffle() );
 		StaticAssert( X < count*2 );
@@ -470,8 +536,31 @@ namespace AE::Base
 		StaticAssert( Z < count*2 );
 		StaticAssert( W < count*2 );
 
-		// TODO
-		return {};
+		constexpr uint	bmask = (X >= 4 ? 0x1 : 0) | (Y >= 4 ? 0x2 : 0) | (Z >= 4 ? 0x4 : 0) | (W >= 4 ? 0x8 : 0);
+		StaticAssert( bmask < 16 );
+
+		if constexpr( bmask == 0 )
+			return Swizzle< X, Y, Z, W >();
+		else
+		if constexpr( bmask == 0xF )
+			return v4567.template Swizzle< X-4, Y-4, Z-4, W-4 >();
+		else
+		{
+		  #if AE_SIMD_AVX >= 31 // AVX512VL
+			__m256i	idx = _mm256_setr_epi64x( X, Y, Z, W );
+			return Self{ _mm256_permutex2var_pd( _value, idx, v4567._value )};	// lat 3
+		  #elif AE_SIMD_AVX >= 2
+			// lat ~5
+			__m256d	pa = _mm256_permute4x64_pd( _value,		  _MM_SHUFFLE( W <  4 ? W   : 0, Z <  4 ? Z   : 0, Y <  4 ? Y   : 0, X <  4 ? X   : 0 ));
+			__m256d	pb = _mm256_permute4x64_pd( v4567._value, _MM_SHUFFLE( W >= 4 ? W-4 : 0, Z >= 4 ? Z-4 : 0, Y >= 4 ? Y-4 : 0, X >= 4 ? X-4 : 0 ));
+			return Self{ _mm256_blend_pd( pa, pb, bmask )};
+		  #else
+			// lat 4
+			__m256d x = _mm256_permute2f128_pd( _value, v4567._value, (X/2) | ((Z/2) << 4) );
+			__m256d y = _mm256_permute2f128_pd( _value, v4567._value, (Y/2) | ((W/2) << 4) );
+			return Self{ _mm256_shuffle_pd( x, y, (X%2) | ((Y%2) << 1) | ((Z%2) << 2) | ((W%2) << 3) )};
+		  #endif
+		}
 	}
 
 /*
@@ -624,53 +713,93 @@ namespace AE::Base
 
 /*
 =================================================
-	PrefixSum
+	ReduceAdd
 =================================================
 */
-	inline SimdDouble4  SimdDouble4::Sum ()  C_NE___
+	inline SimdDouble4  SimdDouble4::ReduceAdd ()  C_NE___
 	{
-		StaticAssert( Has_PrefixSum() );
+		StaticAssert( Has_ReduceAdd() );
 		auto	a = this->Add( this->Swizzle<1,0,3,2>() );
 		return a.Add( a.Swizzle<2,3,0,1>() );
 	}
 
-	inline double  SimdDouble4::PrefixSum ()  C_NE___
-	{
-		return Sum().get<0>();
-	}
-
 /*
 =================================================
-	PrefixMax
+	ReduceMax
 =================================================
 */
-	inline SimdDouble4  SimdDouble4::Max ()  C_NE___
+	inline SimdDouble4  SimdDouble4::ReduceMax ()  C_NE___
 	{
-		StaticAssert( Has_PrefixMinMax() );
+		StaticAssert( Has_ReduceMinMax() );
 		auto	a = this->Max( this->Swizzle<1,0,3,2>() );
 		return a.Max( a.Swizzle<2,3,0,1>() );
 	}
 
-	inline double  SimdDouble4::PrefixMax ()  C_NE___
-	{
-		return Max().get<0>();
-	}
-
 /*
 =================================================
-	PrefixMin
+	ReduceMin
 =================================================
 */
-	inline SimdDouble4  SimdDouble4::Min ()  C_NE___
+	inline SimdDouble4  SimdDouble4::ReduceMin ()  C_NE___
 	{
-		StaticAssert( Has_PrefixMinMax() );
+		StaticAssert( Has_ReduceMinMax() );
 		auto	a = this->Min( this->Swizzle<1,0,3,2>() );	// min(1,0), min(0,1), min(3,2), min(2,3)
 		return a.Min( a.Swizzle<2,3,0,1>() );				// min(1,0,3,2)
 	}
 
-	inline double  SimdDouble4::PrefixMin ()  C_NE___
+/*
+=================================================
+	InclusiveAdd
+=================================================
+*/
+	inline SimdDouble4  SimdDouble4::InclusiveAdd ()  C_NE___
 	{
-		return Min().get<0>();
+		StaticAssert( Has_InclusiveAdd() );
+
+	  #if AE_SIMD_AVX >= 2
+		__m256d	v = _value;													// [x0, x1 | x2, x3]
+		__m256i	t = _mm256_slli_si256( _mm256_castpd_si256( v ), 8 );		// [0,  x0 | 0, x2]
+				v = _mm256_add_pd( v, _mm256_castsi256_pd( t ));			// [y0, y1 | y2, y3]
+
+		__m256d	b = _mm256_permute4x64_pd( v, _MM_SHUFFLE(1,1,1,1) );		// [y1, y1 | y1, y1]
+				b = _mm256_blend_pd( _mm256_setzero_pd(), b, 0xC );			// [0,   0 | y1, y1]
+		return Self{ _mm256_add_pd( v, b ) };
+
+	  #else
+		const __m256d	zero = _mm256_setzero_pd();
+		__m256d			v	 = _value;										// [x0, x1 | x2, x3]
+
+		// [0, x0 | 0, x2]
+		__m256d	t = _mm256_permute_pd( v, 0x0 );							// [x0, x0 | x2, x2]
+		t = _mm256_blend_pd( zero, t, 0xA );								// zero elements 0, 2
+		v = _mm256_add_pd( v, t );											// [y0, y1 | y2, y3]
+
+		// broadcast y1 into the high half only
+		t = _mm256_permute2f128_pd( v, v, 0x08 );							// [0, 0 | y0, y1]
+		t = _mm256_permute_pd( t, 0xF );									// [0, 0 | y1, y1]
+		return Self{ _mm256_add_pd( v, t ) };
+	  #endif
+	}
+
+/*
+=================================================
+	ExclusiveAdd
+=================================================
+*/
+	inline SimdDouble4  SimdDouble4::ExclusiveAdd ()  C_NE___
+	{
+	  #if AE_SIMD_AVX >= 2
+		__m256i	v = _mm256_castpd_si256( _value );
+		__m256i	c = _mm256_permute2x128_si256( v, v, 0x08 );				// [0, 0  | x0, x1]
+				v = _mm256_alignr_epi8( v, c, 8 );							// [0, x0 | x1, x2]
+		return Self{ _mm256_castsi256_pd( v )}.InclusiveAdd();
+
+	  #else
+		__m256d	v = _value;
+		__m256d	a = _mm256_permute2f128_pd( v, v, 0x08 );					// [0, 0  | x0, x1]
+		__m256d	s = _mm256_shuffle_pd( a, v, 0x4 );							// [0, x0 | x1, x2]
+		return Self{s}.InclusiveAdd();
+	  #endif
 	}
 
 #endif // AE_SIMD_SimdDouble4
@@ -748,6 +877,51 @@ namespace AE::Base
 	SimdTInt256<IT>::SimdTInt256 (const SimdTInt128<Scalar_t> &low, const SimdTInt128<Scalar_t> &high) __NE___ :
 		_value{ _mm256_set_m128i( high.Ref(), low.Ref() )}
 	{}
+
+	template <typename IT>
+	template <uint Step>
+	SimdTInt256<IT>::SimdTInt256 (MSBMask<count, Step> mask) __NE___
+	{
+		if constexpr( is8 )
+		{
+			#define M(x)	char(mask.template get< 0>() ? -1 : 0)
+			_value = _mm256_setr_epi8(	M( 0), M( 1), M( 2), M( 3),
+										M( 4), M( 5), M( 6), M( 7),
+										M( 8), M( 9), M(10), M(11),
+										M(12), M(13), M(14), M(15),
+										M(16), M(17), M(18), M(19),
+										M(20), M(21), M(22), M(23),
+										M(24), M(25), M(26), M(27),
+										M(28), M(29), M(30), M(31) );
+			#undef M
+		}else
+		if constexpr( is16 )
+		{
+			#define M(x)	short(mask.template get< 0>() ? -1 : 0)
+			_value = _mm256_setr_epi16( M(0), M(1), M( 2), M( 3), M( 4), M( 5), M( 6), M( 7),
+										M(8), M(9), M(10), M(11), M(12), M(13), M(14), M(15) );
+			#undef M
+		}else
+		if constexpr( is32 )
+		{
+			#define M(x)	int(mask.template get< 0>() ? -1 : 0)
+			_value = _mm256_setr_epi32( M(0), M(1), M(2), M(3), M(4), M(5), M(6), M(7) );
+			#undef M
+		}else
+		if constexpr( is64 )
+		{
+			#define M(x)	(mask.template get< 0>() ? -1ll : 0)
+			_value = _mm256_setr_epi64x( M(0), M(1), M(2), M(3) );
+			#undef M
+		}else
+		if constexpr( is128 )
+		{
+			#define M(x)	_mm_cvtsi32_si128( mask.template get< 0>() ? -1 : 0 )
+			_value = _mm256_set_m128i( M(0), M(1) );
+			#undef M
+		}else
+			_value = mask; // compilation error
+	}
 
 /*
 =================================================
@@ -1636,6 +1810,80 @@ namespace AE::Base
 
 /*
 =================================================
+	Swizzle (Int8)
+=================================================
+*/
+	template <typename IT>
+	template <uint V0, uint V1, uint V2, uint V3, uint V4, uint V5, uint V6, uint V7, typename T> requires( sizeof(T)==4 )
+	SimdTInt256<IT>  SimdTInt256<IT>::Swizzle () C_NE___
+	{
+		StaticAssert( Has_Swizzle() );
+		StaticAssert( V0 < count );
+		StaticAssert( V1 < count );
+		StaticAssert( V2 < count );
+		StaticAssert( V3 < count );
+		StaticAssert( V4 < count );
+		StaticAssert( V5 < count );
+		StaticAssert( V6 < count );
+		StaticAssert( V7 < count );
+
+		// GCC/clang will optimize it
+		__m256i indices = _mm256_set_epi32( V7, V6, V5, V4, V3, V2, V1, V0 );
+		return Self{ _mm256_permutevar8x32_epi32( _value, indices )};	// lat: 4, tp: 0.5
+	}
+
+/*
+=================================================
+	Shuffle (Int8)
+=================================================
+*/
+	template <typename IT>
+	template <uint V0, uint V1, uint V2, uint V3, uint V4, uint V5, uint V6, uint V7, typename T> requires( sizeof(T)==4 )
+	SimdTInt256<IT>  SimdTInt256<IT>::Shuffle (const Self &b) C_NE___
+	{
+		StaticAssert( Has_Shuffle() );
+		StaticAssert( V0 < count*2 );
+		StaticAssert( V1 < count*2 );
+		StaticAssert( V2 < count*2 );
+		StaticAssert( V3 < count*2 );
+		StaticAssert( V4 < count*2 );
+		StaticAssert( V5 < count*2 );
+		StaticAssert( V6 < count*2 );
+		StaticAssert( V7 < count*2 );
+
+	  #if AE_SIMD_AVX >= 31 // AVX512VL
+		__m256i		idx = _mm256_setr_epi32( V0, V1, V2, V3, V4, V5, V6, V7 );
+		return Self{ _mm256_permutex2var_epi32( _value, idx, b._value )};	// 1 uop, lat 3
+
+	  #else
+		// generic: 2x vperm + vblend = 3 uops, lat 4
+		constexpr int bmask =	(V0 >= 8 ? 0x01 : 0) | (V1 >= 8 ? 0x02 : 0) | (V2 >= 8 ? 0x04 : 0) | (V3 >= 8 ? 0x08 : 0) |
+								(V4 >= 8 ? 0x10 : 0) | (V5 >= 8 ? 0x20 : 0) | (V6 >= 8 ? 0x40 : 0) | (V7 >= 8 ? 0x80 : 0);
+
+		__m256i		ia = _mm256_setr_epi32( V0 < 8 ? V0 : 0,
+											V1 < 8 ? V1 : 0,
+											V2 < 8 ? V2 : 0,
+											V3 < 8 ? V3 : 0,
+											V4 < 8 ? V4 : 0,
+											V5 < 8 ? V5 : 0,
+											V6 < 8 ? V6 : 0,
+											V7 < 8 ? V7 : 0 );
+		__m256i		ib = _mm256_setr_epi32( V0 >= 8 ? V0 - 8 : 0,
+											V1 >= 8 ? V1 - 8 : 0,
+											V2 >= 8 ? V2 - 8 : 0,
+											V3 >= 8 ? V3 - 8 : 0,
+											V4 >= 8 ? V4 - 8 : 0,
+											V5 >= 8 ? V5 - 8 : 0,
+											V6 >= 8 ? V6 - 8 : 0,
+											V7 >= 8 ? V7 - 8 : 0 );
+		__m256i		pa = _mm256_permutevar8x32_epi32( _value, ia );
+		__m256i		pb = _mm256_permutevar8x32_epi32( b._value, ib );
+		return Self{ _mm256_blend_epi32( pa, pb, bmask )};
+	  #endif
+	}
+
+/*
+=================================================
 	Swizzle (Long4)
 =================================================
 */
@@ -1649,31 +1897,8 @@ namespace AE::Base
 		StaticAssert( Z < count );
 		StaticAssert( W < count );
 
-		// TODO: optimize
-		auto	v = ToArray();
-		return Self{ v[X], v[Y], v[Z], v[W] };
-	}
-
-/*
-=================================================
-	Shuffle (Int8)
-=================================================
-*/
-	template <typename IT>
-	template <uint V0, uint V1, uint V2, uint V3, uint V4, uint V5, uint V6, uint V7, typename T> requires( sizeof(T)==4 )
-	SimdTInt256<IT>  SimdTInt256<IT>::Shuffle (const Self &) C_NE___
-	{
-		StaticAssert( Has_Shuffle() );
-		StaticAssert( V0 < count*2 );
-		StaticAssert( V1 < count*2 );
-		StaticAssert( V2 < count*2 );
-		StaticAssert( V3 < count*2 );
-		StaticAssert( V4 < count*2 );
-		StaticAssert( V5 < count*2 );
-		StaticAssert( V6 < count*2 );
-		StaticAssert( V7 < count*2 );
-
-		// TODO
+		constexpr int mask = (W << 6) | (Z << 4) | (Y << 2) | X;
+		return Self{ _mm256_permute4x64_epi64( _value, mask )};	// lat 3
 	}
 
 /*
@@ -1683,7 +1908,7 @@ namespace AE::Base
 */
 	template <typename IT>
 	template <uint X, uint Y, uint Z, uint W,  typename T> requires( sizeof(T)==8 )
-	SimdTInt256<IT>  SimdTInt256<IT>::Shuffle (const Self &) C_NE___
+	SimdTInt256<IT>  SimdTInt256<IT>::Shuffle (const Self &v4567) C_NE___
 	{
 		StaticAssert( Has_Shuffle() );
 		StaticAssert( X < count*2 );
@@ -1691,7 +1916,25 @@ namespace AE::Base
 		StaticAssert( Z < count*2 );
 		StaticAssert( W < count*2 );
 
-		// TODO
+		constexpr int bmask = (X >= 4 ? 0x03 : 0) | (Y >= 4 ? 0x0C : 0) | (Z >= 4 ? 0x30 : 0) | (W >= 4 ? 0xC0 : 0);
+
+		if constexpr( bmask == 0 )
+			return Swizzle< X, Y, Z, W >();
+		else
+		if constexpr( bmask == 0xFF )
+			return v4567.template Swizzle< X-4, Y-4, Z-4, W-4 >();
+		else
+		{
+		  #if AE_SIMD_AVX >= 31 // AVX512VL
+			__m256i idx = _mm256_setr_epi64x( X, Y, Z, W );
+			return Self{ _mm256_permutex2var_epi64( _value, idx, v4567._value )};	// lat 3
+		  #else
+			// lat ~5
+			__m256i pa = _mm256_permute4x64_epi64( _value,		 _MM_SHUFFLE( W <  4 ? W   : 0, Z <  4 ? Z   : 0, Y <  4 ? Y   : 0, X <  4 ? X   : 0 ));
+			__m256i pb = _mm256_permute4x64_epi64( v4567._value, _MM_SHUFFLE( W >= 4 ? W-4 : 0, Z >= 4 ? Z-4 : 0, Y >= 4 ? Y-4 : 0, X >= 4 ? X-4 : 0 ));
+			return Self{ _mm256_blend_epi32( pa, pb, bmask )};
+		  #endif
+		}
 	}
 
 /*
@@ -1812,13 +2055,13 @@ namespace AE::Base
 
 /*
 =================================================
-	PrefixSum
+	ReduceAdd
 =================================================
 */
 	template <typename IT>
-	SimdTInt256<IT>  SimdTInt256<IT>::Sum () C_NE___
+	SimdTInt256<IT>  SimdTInt256<IT>::ReduceAdd () C_NE___
 	{
-		StaticAssert( Has_PrefixSum() );
+		StaticAssert( Has_ReduceAdd() );
 
 		if constexpr( is64 )
 		{
@@ -1828,13 +2071,7 @@ namespace AE::Base
 	}
 
 	template <typename IT>
-	IT  SimdTInt256<IT>::PrefixSum () C_NE___
-	{
-		return Sum().template get<0>();
-	}
-
-	template <typename IT>
-	__Ce__ bool  SimdTInt256<IT>::Has_PrefixSum ()
+	__Ce__ bool  SimdTInt256<IT>::Has_ReduceAdd ()
 	{
 		if constexpr( is64 )
 			return true;
@@ -1844,45 +2081,45 @@ namespace AE::Base
 
 /*
 =================================================
-	PrefixSumExt
+	ReduceAddExt
 =================================================
 */
 	template <typename IT>
-	auto  SimdTInt256<IT>::SumExt () C_NE___
+	auto  SimdTInt256<IT>::ReduceAddExt () C_NE___
 	{
-		StaticAssert( Has_PrefixSumExt() );
+		StaticAssert( Has_ReduceAddExt() );
 
 		/*if constexpr( is8 )
 		{
 			auto	a0 = this->ToShort<0>();
 			auto	a1 = this->ToShort<1>();
 			auto	b  = a0.Add( a1 );
-			return b.Sum();
+			return b.ReduceAdd();
 		}
 		if constexpr( is16 )
 		{
 			auto	a0 = this->ToInt<0>();
 			auto	a1 = this->ToInt<1>();
 			auto	b  = a0.Add( a1 );
-			return b.Sum();
+			return b.ReduceAdd();
 		}*/
 		if constexpr( is32 )
 		{
 			auto	a0 = this->ToLong<0>();
 			auto	a1 = this->ToLong<1>();
 			auto	b  = a0.Add( a1 );
-			return b.Sum();
+			return b.ReduceAdd();
 		}
 	}
 
 	template <typename IT>
-	auto  SimdTInt256<IT>::PrefixSumExt () C_NE___
+	auto  SimdTInt256<IT>::ReduceAddExtScalar () C_NE___
 	{
-		return SumExt().template get<0>();
+		return ReduceAddExt().template get<0>();
 	}
 
 	template <typename IT>
-	__Ce__ bool  SimdTInt256<IT>::Has_PrefixSumExt ()
+	__Ce__ bool  SimdTInt256<IT>::Has_ReduceAddExt ()
 	{
 		if constexpr( is32 )
 			return true;
@@ -1892,13 +2129,13 @@ namespace AE::Base
 
 /*
 =================================================
-	PrefixMax
+	ReduceMax
 =================================================
 */
 	template <typename IT>
-	SimdTInt256<IT>  SimdTInt256<IT>::Max () C_NE___
+	SimdTInt256<IT>  SimdTInt256<IT>::ReduceMax () C_NE___
 	{
-		StaticAssert( Has_PrefixMinMax() );
+		StaticAssert( Has_ReduceMinMax() );
 
 		if constexpr( is64 )
 		{
@@ -1907,21 +2144,15 @@ namespace AE::Base
 		}
 	}
 
-	template <typename IT>
-	IT  SimdTInt256<IT>::PrefixMax () C_NE___
-	{
-		return Max().template get<0>();
-	}
-
 /*
 =================================================
-	PrefixMin
+	ReduceMin
 =================================================
 */
 	template <typename IT>
-	SimdTInt256<IT>  SimdTInt256<IT>::Min () C_NE___
+	SimdTInt256<IT>  SimdTInt256<IT>::ReduceMin () C_NE___
 	{
-		StaticAssert( Has_PrefixMinMax() );
+		StaticAssert( Has_ReduceMinMax() );
 
 		if constexpr( is64 )
 		{
@@ -1930,22 +2161,76 @@ namespace AE::Base
 		}
 	}
 
+/*
+=================================================
+	Has_ReduceMinMax
+=================================================
+*/
 	template <typename IT>
-	IT  SimdTInt256<IT>::PrefixMin () C_NE___
+	__Ce__ bool  SimdTInt256<IT>::Has_ReduceMinMax ()
 	{
-		return Min().template get<0>();
+		if constexpr( is64 )
+			return Has_MinMax();
+		else
+			return false;
 	}
 
 /*
 =================================================
-	Has_PrefixMinMax
+	InclusiveAdd
 =================================================
 */
 	template <typename IT>
-	__Ce__ bool  SimdTInt256<IT>::Has_PrefixMinMax ()
+	SimdTInt256<IT>  SimdTInt256<IT>::InclusiveAdd () C_NE___
 	{
-		if constexpr( is64 )
-			return Has_MinMax();
+		if constexpr( is32 )
+		{
+			StaticAssert( Has_InclusiveAdd() );
+
+			__m256i	v = _value;
+
+			__m256i	t = _mm256_slli_si256( v, 4 );	// lshift 4 bytes
+			v = _mm256_add_epi32( v, t );
+
+			t = _mm256_slli_si256( v, 8 );			// lshift 8 bytes
+			v = _mm256_add_epi32( v, t );
+
+			__m256i lo = _mm256_permute2x128_si256( v, v, 0x08 );	// [0 | low]
+			t = _mm256_shuffle_epi32( lo, _MM_SHUFFLE(3,3,3,3) );	// [0,0,0,0 | v3,v3,v3,v3]
+			v = _mm256_add_epi32( v, t );
+
+			return Self{v};
+		}
+	}
+
+/*
+=================================================
+	ExclusiveAdd
+=================================================
+*/
+	template <typename IT>
+	SimdTInt256<IT>  SimdTInt256<IT>::ExclusiveAdd () C_NE___
+	{
+		if constexpr( is32 )
+		{
+			__m256i	v = _value;
+			__m256i	c = _mm256_permute2x128_si256( v, v, 0x08 );   // [0 0  0  0  | v0 v1 v2 v3]
+					v = _mm256_alignr_epi8( v, c, 12 );            // [0 v0 v1 v2 | v3 v4 v5 v6]
+
+			return Self{ v }.InclusiveAdd();
+		}
+	}
+
+/*
+=================================================
+	Has_InclusiveAdd
+=================================================
+*/
+	template <typename IT>
+	__Ce__ bool  SimdTInt256<IT>::Has_InclusiveAdd ()
+	{
+		if constexpr( is32 )
+			return true;
 		else
 			return false;
 	}
@@ -1961,9 +2246,10 @@ namespace AE::Base
 	template <typename IT>	__Ce__ bool  SimdTInt256<IT>::Has_VecLShift_Logic ()		{ return false; }
 	template <typename IT>	__Ce__ bool  SimdTInt256<IT>::Has_VecRShift_Logic ()		{ return false; }
 	template <typename IT>	__Ce__ bool  SimdTInt256<IT>::Has_VecRShift_Arithmetic ()	{ return false; }
-	template <typename IT>	__Ce__ bool  SimdTInt256<IT>::Has_PrefixSum ()				{ return false; }
-	template <typename IT>	__Ce__ bool  SimdTInt256<IT>::Has_PrefixSumExt ()			{ return false; }
-	template <typename IT>	__Ce__ bool  SimdTInt256<IT>::Has_PrefixMinMax ()			{ return false; }
+	template <typename IT>	__Ce__ bool  SimdTInt256<IT>::Has_ReduceAdd ()				{ return false; }
+	template <typename IT>	__Ce__ bool  SimdTInt256<IT>::Has_ReduceAddExt ()			{ return false; }
+	template <typename IT>	__Ce__ bool  SimdTInt256<IT>::Has_ReduceMinMax ()			{ return false; }
+	template <typename IT>	__Ce__ bool  SimdTInt256<IT>::Has_InclusiveAdd ()			{ return false; }
 
 # endif // AVX2
 #endif // AE_SIMD_SimdTInt256
@@ -1972,6 +2258,60 @@ namespace AE::Base
 
 
 #ifdef AE_SIMD_Int256b
+
+/*
+=================================================
+	GetBit
+=================================================
+*
+	template <uint I>
+	bool  Int256b::GetBit () C_NE___
+	{
+		StaticAssert( I < 256 );
+
+		// TODO
+		constexpr uint	I2 = I & (count/2-1);
+
+		if constexpr( I < count/2 )
+			return SimdTInt128<IT>{ _mm256_castsi256_si128( _value )}.template get<I2>();
+		else
+			return SimdTInt128<IT>{ _mm256_extractf128_si256( _value, 1 )}.template get<I2>();
+	}
+
+/*
+=================================================
+	SetBit
+=================================================
+*
+	template <uint I>
+	Int256b  Int256b::SetBit (bool val) C_NE___
+	{
+		StaticAssert( I < 256 );
+
+		// TODO
+	}
+
+/*
+=================================================
+	LByteShift / RByteShift
+=================================================
+*/
+	template <uint ShiftBytes>
+	Int256b  Int256b::LByteShift () C_NE___
+	{
+		StaticAssert( ShiftBytes > 0 );		// 0 - valid but has no effect
+		StaticAssert( ShiftBytes < 16 );	// 16 - valid but always zero
+		return Self{ _mm256_slli_si256( _value, ShiftBytes )};
+	}
+
+	template <uint ShiftBytes>
+	Int256b  Int256b::RByteShift () C_NE___
+	{
+		StaticAssert( ShiftBytes > 0 );		// 0 - valid but has no effect
+		StaticAssert( ShiftBytes < 16 );	// 16 - valid but always zero
+		return Self{ _mm256_srli_si256( _value, ShiftBytes )};
+	}
+
 /*
 =================================================
 	ToArray

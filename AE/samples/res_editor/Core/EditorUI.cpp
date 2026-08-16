@@ -1,6 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
-
-#include "video/Private/EnumToString.cpp.h"
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #include "Core/EditorUI.h"
 #include "Core/EditorCore.h"
@@ -40,62 +38,6 @@ namespace ImGui
 	}
 
 } // ImGui
-//-----------------------------------------------------------------------------
-
-
-namespace AE::Base
-{
-/*
-=================================================
-	ToString (EDebugMode)
-=================================================
-*/
-	ND_ StringView  ToString (AE::ResEditor::IPass::EDebugMode mode)
-	{
-		using EDebugMode = AE::ResEditor::IPass::EDebugMode;
-		switch_enum( mode )
-		{
-			case EDebugMode::Trace :		return "Trace";
-			case EDebugMode::FnProfiling :	return "FnProfiling";
-			case EDebugMode::TimeHeatMap :	return "TimeHeatMap";
-			case EDebugMode::Asserts :		ASSERT(false);
-			case EDebugMode::Unknown :
-			case EDebugMode::_Count :
-			default :						return "";
-		}
-		switch_end
-	}
-
-/*
-=================================================
-	ToString (EImageFormat)
-=================================================
-*/
-	ND_ StringView  ToString (AE::ResEditor::EImageFormat fmt)
-	{
-		using EImageFormat = AE::ResEditor::EImageFormat;
-		switch_enum( fmt )
-		{
-			case EImageFormat::DDS :		return "DDS";
-			case EImageFormat::BMP :		return "BMP";
-			case EImageFormat::JPG :		return "JPG";
-			case EImageFormat::PCX :		return "PCX";
-			case EImageFormat::PNG :		return "PNG";
-			case EImageFormat::TGA :		return "TGA";
-			case EImageFormat::TIF :		return "TIFF";
-			case EImageFormat::PSD :		return "PSD";
-			case EImageFormat::RadianceHDR:	return "RadianceHDR";
-			case EImageFormat::OpenEXR :	return "OpenEXR";
-			case EImageFormat::KTX :		return "KTX";
-			case EImageFormat::AEImg :		return "AEImg";
-			case EImageFormat::Unknown :
-			case EImageFormat::_Count :
-			default :						return "";
-		}
-		switch_end
-	}
-
-} // AE::Base
 //-----------------------------------------------------------------------------
 
 
@@ -838,12 +780,12 @@ namespace
 		g_mode->colorModeIdx		= color_mode;
 		g_mode->presentModeIdx		= present_mode;
 
-		const auto	cur_color_mode	= color_mode < g_data->surfaceFormats.size() ?
-										String{ToString( g_data->surfaceFormats[color_mode].colorFormat )} << " | " <<
-										ToString( g_data->surfaceFormats[color_mode].colorSpace ) :
-										"";
-		const auto	cur_present		= present_mode < g_data->presentModes.size() ?
-										ToString( g_data->presentModes[present_mode] ) : "";
+		const String	cur_color_mode	= color_mode < g_data->surfaceFormats.size() ?
+											String{ToString( g_data->surfaceFormats[color_mode].colorFormat )} << " | " <<
+											ToString( g_data->surfaceFormats[color_mode].colorSpace ) :
+											"";
+		const String	cur_present		= present_mode < g_data->presentModes.size() ?
+											String{ToString( g_data->presentModes[present_mode] )} : "";
 
 		if ( ImGui::BeginCombo( "Surface format", cur_color_mode.c_str() ))
 		{
@@ -856,12 +798,12 @@ namespace
 			ImGui::EndCombo();
 		}
 
-		if ( ImGui::BeginCombo( "Present mode", cur_present.data() ))
+		if ( ImGui::BeginCombo( "Present mode", cur_present.c_str() ))
 		{
 			for (usize i = 0; i < g_data->presentModes.size(); ++i)
 			{
 				const auto&	item = g_data->presentModes[i];
-				if ( ImGui::Selectable( ToString( item ).data(), present_mode == i ))
+				if ( ImGui::Selectable( NtStringView{ToString( item )}.c_str(), present_mode == i ))
 					present_mode = uint(i);
 			}
 			ImGui::EndCombo();
@@ -1046,10 +988,10 @@ namespace
 
 		const auto	DbgMode_ShaderStages = [this] (const EDebugModeBits inModes, const EShaderStages inStages)
 		{{
-			const char*	cur_mode	= ToString( IPass::EDebugMode(imgui->dbgModeIdx) ).data();
-			const char*	cur_stage	= imgui->dbgStageIdx < uint(EShader::_Count) ? ToString( EShader(imgui->dbgStageIdx) ).data() : "";
+			const String	cur_mode	{ToString( IPass::EDebugMode(imgui->dbgModeIdx) )};
+			const String	cur_stage	{imgui->dbgStageIdx < uint(EShader::_Count) ? ToString( EShader(imgui->dbgStageIdx) ) : ""};
 
-			if ( ImGui::BeginCombo( "Mode", cur_mode ))
+			if ( ImGui::BeginCombo( "Mode", cur_mode.c_str() ))
 			{
 				for (auto modes = inModes; modes.Any();)
 				{
@@ -1057,17 +999,17 @@ namespace
 					if ( mode == Default )
 						continue;
 
-					if ( ImGui::Selectable( ToString( mode ).data(), imgui->dbgModeIdx == uint(mode) ))
+					if ( ImGui::Selectable( NtStringView{ToString( mode )}.c_str(), imgui->dbgModeIdx == uint(mode) ))
 						imgui->dbgModeIdx = uint(mode);
 				}
 				ImGui::EndCombo();
 			}
 
-			if ( ImGui::BeginCombo( "Stage", cur_stage ))
+			if ( ImGui::BeginCombo( "Stage", cur_stage.c_str() ))
 			{
 				for (auto sh : BitIndexIterate<EShader>( inStages ))
 				{
-					if ( ImGui::Selectable( ToString( sh ).data(), imgui->dbgStageIdx == uint(sh) ))
+					if ( ImGui::Selectable( NtStringView{ToString( sh )}.c_str(), imgui->dbgStageIdx == uint(sh) ))
 						imgui->dbgStageIdx = uint(sh);
 				}
 				ImGui::EndCombo();
@@ -1156,11 +1098,11 @@ namespace
 		if ( ImGui::Button( "Screenshot (I)" ))
 			capture->screenshot = true;
 
-		if ( ImGui::BeginCombo( "Image format", ToString(capture->imageFormat).data() ))
+		if ( ImGui::BeginCombo( "Image format", NtStringView{ToString( capture->imageFormat )}.c_str() ))
 		{
 			for (uint i = 1; i < uint(EImageFormat::_Count); ++i)
 			{
-				if ( ImGui::Selectable( ToString( EImageFormat(i) ).data(), uint(capture->imageFormat) == i ))
+				if ( ImGui::Selectable( NtStringView{ToString( EImageFormat(i) )}.c_str(), uint(capture->imageFormat) == i ))
 					capture->imageFormat = EImageFormat(i);
 			}
 			ImGui::EndCombo();
@@ -1185,31 +1127,31 @@ namespace
 
 		ImGui::InputFloat( "Bitrate (Mbit/s)", INOUT &capture->bitrate, 1.f, 102.4f );
 
-		if ( ImGui::BeginCombo( "Video format", ToString(capture->videoFormat).data() ))
+		if ( ImGui::BeginCombo( "Video format", NtStringView{ToString( capture->videoFormat )}.c_str() ))
 		{
 			for (uint i = 1; i < uint(EVideoFormat::_Count); ++i)
 			{
-				if ( ImGui::Selectable( ToString( EVideoFormat(i) ).data(), uint(capture->videoFormat) == i ))
+				if ( ImGui::Selectable( NtStringView{ToString( EVideoFormat(i) )}.c_str(), uint(capture->videoFormat) == i ))
 					capture->videoFormat = EVideoFormat(i);
 			}
 			ImGui::EndCombo();
 		}
 
-		if ( ImGui::BeginCombo( "Video codec", ToString(capture->videoCodec).data() ))
+		if ( ImGui::BeginCombo( "Video codec", NtStringView{ToString( capture->videoCodec )}.c_str() ))
 		{
 			for (uint i = 1; i < uint(EVideoCodec::_Count); ++i)
 			{
-				if ( ImGui::Selectable( ToString( EVideoCodec(i) ).data(), uint(capture->videoCodec) == i ))
+				if ( ImGui::Selectable( NtStringView{ToString( EVideoCodec(i) )}.c_str(), uint(capture->videoCodec) == i ))
 					capture->videoCodec = EVideoCodec(i);
 			}
 			ImGui::EndCombo();
 		}
 
-		if ( ImGui::BeginCombo( "Color preset", ToString(capture->colorPreset).data() ))
+		if ( ImGui::BeginCombo( "Color preset", NtStringView{ToString( capture->colorPreset )}.c_str() ))
 		{
 			for (uint i = 1; i < uint(EVideoColorPreset::_Count); ++i)
 			{
-				if ( ImGui::Selectable( ToString( EVideoColorPreset(i) ).data(), uint(capture->colorPreset) == i ))
+				if ( ImGui::Selectable( NtStringView{ToString( EVideoColorPreset(i) )}.c_str(), uint(capture->colorPreset) == i ))
 					capture->colorPreset = EVideoColorPreset(i);
 			}
 			ImGui::EndCombo();
@@ -1870,8 +1812,8 @@ namespace
 	constructor
 =================================================
 */
-	EditorUI::EditorUI (ResEditorCore &core, Path scriptPath) :
-		_core{core}, _scriptDir{RVRef(scriptPath)}
+	EditorUI::EditorUI (ResEditorCore &core) :
+		_core{core}
 	{
 		SetHelpText( "" );
 	}
@@ -1900,10 +1842,14 @@ namespace
 	Init
 =================================================
 */
-	bool  EditorUI::Init (IOutputSurface &surface, EWindowMode wndMode, float uiScale)
+	bool  EditorUI::Init (IOutputSurface &surface, EWindowMode wndMode, float uiScale, Path scriptPath)
 	{
 		if ( _initialized.load() )
 			return true;
+
+		_scriptDir.root = RVRef(scriptPath);
+		CHECK( not _scriptDir.root.empty() );
+		CHECK( FileSystem::IsDirectory( _scriptDir.root ));
 
 		CHECK_ERR( surface.IsInitialized() );
 
@@ -2347,6 +2293,9 @@ R"(UI controls:
 		// TODO: use FileWatch
 
 		scriptDir.rootInfo	= Default;
+
+		if ( scriptDir.root.empty() )
+			return;
 
 		usize	node_id = 0;
 		_RecursiveCheckScriptDir( INOUT scriptDir.rootInfo, INOUT node_id, scriptDir.root, 0, scriptDir.maxDepth );

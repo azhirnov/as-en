@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #pragma once
 
@@ -71,7 +71,10 @@ namespace AE::Graphics
 
 	// methods
 	public:
-		VulkanDeviceFnTable () __NE___ {}
+		VulkanDeviceFnTable ()					__NE___ {}
+
+		void  DescriptorBuffer_DisableOldAPI ()	__NE___;
+		void  DescriptorHeap_DisableOldAPI ()	__NE___;
 	};
 
 

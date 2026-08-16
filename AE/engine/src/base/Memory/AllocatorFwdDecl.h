@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 /*
 	There are 2 concepts:
 	 - allocator as static object which doesn't add 8-byte overhead for pointer to allocator.

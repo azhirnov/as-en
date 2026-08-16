@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #include "UnitTest_Common.h"
 
@@ -67,11 +67,12 @@ namespace
 	// enum bits
 	enum class EEnumBit : uint
 	{
-		Value1	= 1 << 0,
-		Value2	= 1 << 2,
-		Value3	= 1 << 3,
-		Value4	= 1 << 5,
-		_BITOPS_
+		Value1		= 1 << 0,
+		Value2		= 1 << 2,
+		Value3		= 1 << 3,
+		Value4		= 1 << 5,
+		_Last,
+		_BITOPS_	= 0
 	};
 
 
@@ -255,10 +256,7 @@ namespace
 		TEST_NOTHROW(
 			EnumBinder<EEnum>	binder{ se };
 			binder.Create();
-			binder.AddValue( "Value1", EEnum::Value1 );
-			binder.AddValue( "Value2", EEnum::Value2 );
-			binder.AddValue( "Value3", EEnum::Value3 );
-			binder.AddValue( "Value4", EEnum::Value4 );
+			binder.BindAll();
 		)
 
 		static const int  line		= __LINE__ + 1;
@@ -485,10 +483,7 @@ namespace
 		TEST_NOTHROW(
 			EnumBinder<EEnumBit>	binder{ se };
 			binder.Create();
-			binder.AddValue( "Value1", EEnumBit::Value1 );
-			binder.AddValue( "Value2", EEnumBit::Value2 );
-			binder.AddValue( "Value3", EEnumBit::Value3 );
-			binder.AddValue( "Value4", EEnumBit::Value4 );
+			binder.BindAll();
 		)
 
 		static const int  line		= __LINE__ + 1;

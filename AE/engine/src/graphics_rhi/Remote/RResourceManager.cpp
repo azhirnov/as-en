@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #ifdef AE_ENABLE_REMOTE_GRAPHICS
 # include "graphics_rhi/Remote/RResourceManager.h"
@@ -45,7 +45,7 @@ namespace AE::Graphics
 	template <typename PplnID>
 	bool  ResourceManager::_CreateDescriptorSets (OUT DescSetBinding &binding, OUT Strong<DescriptorSetID> *dst, const usize count,
 												   PplnID pplnId, DescriptorSetName::Ref dsName,
-												   DescriptorAllocatorPtr allocator, StringView dbgName) __NE___
+												   DescriptorAllocatorPtr allocator, StringView dbgName, const DescSetParams* params) __NE___
 	{
 		auto*	ppln = GetResource( pplnId );
 		CHECK_ERR( ppln != null );
@@ -56,7 +56,7 @@ namespace AE::Graphics
 		DescriptorSetLayoutID	layoutId;
 		CHECK_ERR( ppln_layout->GetDescriptorSetLayout( dsName, OUT layoutId, OUT binding ));
 
-		return CreateDescriptorSets( OUT dst, count, layoutId, RVRef(allocator), dbgName );
+		return CreateDescriptorSets( OUT dst, count, layoutId, RVRef(allocator), dbgName, params );
 	}
 
 /*
@@ -65,8 +65,8 @@ namespace AE::Graphics
 =================================================
 */
 	bool  ResourceManager::CreateDescriptorSets (OUT Strong<DescriptorSetID> *dst, usize count,
-												  PipelinePackID packId, DSLayoutName::Ref dslName,
-												  DescriptorAllocatorPtr allocator, StringView dbgName) __NE___
+												 PipelinePackID packId, DSLayoutName::Ref dslName, DescriptorAllocatorPtr allocator,
+												 StringView dbgName, const DescSetParams* params) __NE___
 	{
 		auto*	pack = GetResource( packId );
 		CHECK_ERR( pack != null );
@@ -74,7 +74,7 @@ namespace AE::Graphics
 		auto	layout_id = pack->GetDSLayout( dslName );
 		CHECK_ERR( layout_id );
 
-		return CreateDescriptorSets( OUT dst, count, layout_id, RVRef(allocator), dbgName );
+		return CreateDescriptorSets( OUT dst, count, layout_id, RVRef(allocator), dbgName, params );
 	}
 
 /*
@@ -82,8 +82,8 @@ namespace AE::Graphics
 	CreateDescriptorSets
 =================================================
 */
-	bool  ResourceManager::CreateDescriptorSets (OUT Strong<DescriptorSetID> *dst, const usize count,
-												  DescriptorSetLayoutID layoutId, DescriptorAllocatorPtr allocator, StringView dbgName) __NE___
+	bool  ResourceManager::CreateDescriptorSets (OUT Strong<DescriptorSetID> *dst, const usize count, DescriptorSetLayoutID layoutId,
+												 DescriptorAllocatorPtr allocator, StringView dbgName, const DescSetParams* params) __NE___
 	{
 		Msg::ResMngr_CreateDescriptorSets3				msg;
 		RC<Msg::ResMngr_CreateDescriptorSets_Response>	res;
@@ -96,6 +96,9 @@ namespace AE::Graphics
 		msg.count		= uint(count);
 		msg.dsAlloc		= dev.Cast( allocator );
 		msg.dbgName		= dbgName;
+
+		if ( params != null )
+			msg.params = *params;
 
 		CHECK_ERR( dev.SendAndWait( msg, OUT res ));
 		CHECK_ERR( not res->ds.empty() );

@@ -1,4 +1,4 @@
-//a534824f
+//744d6cfb
 #pragma once
 #include <vector>
 #include <string>
@@ -24,64 +24,66 @@ using array = std::vector<T>;
 
 using namespace std::string_literals;
 
-struct AlignedLayout;
-struct sbyte4;
-struct ushort4;
-struct short2;
-struct Texture;
-struct short3;
-struct sbyte3;
-struct float4;
-struct ButtonController;
-struct RasterFont;
-struct float3;
-struct float2;
-struct MultiSamples;
-struct UIColorStyle;
-struct ubyte3;
-struct ubyte2;
-struct ubyte4;
-struct PaddingLayout;
-struct HSVColor;
-struct RGBA32f;
-struct bool2;
-struct bool4;
-struct bool3;
-struct RGBA32i;
-struct RectF;
-struct RGBA32u;
-struct FillStackLayout;
-struct ImageAtlas;
-struct RGBA8u;
+struct RectU;
 struct UIImageStyle;
 struct uint4;
-struct RectI;
-struct RectU;
-struct uint3;
-struct RectangleDrawable;
 struct MetaData;
+struct RectI;
+struct RectangleDrawable;
+struct uint3;
 struct uint2;
-struct UIWidget;
-struct UIStyleCollection;
-struct BaseLayout;
+struct FillStackLayout;
+struct RGBA32u;
+struct RectF;
+struct RGBA8u;
+struct ImageAtlas;
+struct TextDrawable;
 struct BaseUIController;
-struct Mesh;
-struct FixedLayout;
-struct Material;
-struct DepthStencil;
+struct BaseLayout;
+struct UIStyleCollection;
+struct UIWidget;
 struct MipmapLevel;
-struct Model;
-struct short4;
-struct SharedImage;
+struct FixedLayout;
+struct DepthStencil;
+struct Mesh;
+struct Material;
+struct BaseUIDrawable;
+struct ImageDrawable;
 struct sbyte2;
 struct ushort3;
 struct ushort2;
-struct BaseUIDrawable;
-struct ImageDrawable;
+struct short4;
+struct SharedImage;
+struct UIFontStyle;
+struct int3;
+struct int2;
 struct int4;
 struct ImageLayer;
-struct int2;
-struct int3;
+struct Model;
+struct float4;
+struct ButtonController;
+struct short2;
+struct ushort4;
+struct short3;
+struct sbyte4;
+struct sbyte3;
+struct Texture;
+struct AlignedLayout;
+struct MultiSamples;
+struct UIColorStyle;
+struct float2;
+struct float3;
+struct RasterFont;
+struct ubyte4;
+struct ubyte3;
+struct ubyte2;
+struct RGBA32f;
+struct HSVColor;
+struct PaddingLayout;
+struct bool4;
+struct RGBA32i;
+struct bool2;
+struct bool3;
 
 enum class EImage : uint8
 {
@@ -291,7 +293,6 @@ uint8  operator | (EPixelFormat lhs, uint8 rhs);
 
 enum class EPixelFormatExternal : uint8
 {
-	Android_Depth16,
 	Android_DepthJPEG,
 	Android_DepthPointCloud,
 	Android_JPEG,
@@ -552,9 +553,9 @@ uint8  operator | (EPrimitive lhs, uint8 rhs);
 
 enum class ECullMode : uint8
 {
-	None,
 	Front,
 	Back,
+	None,
 	FontAndBack,
 };
 uint8  operator | (ECullMode lhs, ECullMode rhs);
@@ -563,7 +564,6 @@ uint8  operator | (ECullMode lhs, uint8 rhs);
 
 enum class EPipelineDynamicState : uint16
 {
-	None,
 	StencilCompareMask,
 	StencilWriteMask,
 	StencilReference,
@@ -659,10 +659,11 @@ enum class EImageAspect : uint8
 	Color,
 	Depth,
 	Stencil,
-	DepthStencil,
+	Metadata,
 	Plane_0,
 	Plane_1,
 	Plane_2,
+	DepthStencil,
 };
 uint8  operator | (EImageAspect lhs, EImageAspect rhs);
 uint8  operator | (uint8 lhs, EImageAspect rhs);
@@ -689,12 +690,12 @@ uint8  operator | (EShaderIO lhs, uint8 rhs);
 
 enum class ESubgroupTypes : uint8
 {
-	Float16,
 	Float32,
+	Int32,
 	Int8,
 	Int16,
-	Int32,
 	Int64,
+	Float16,
 };
 uint8  operator | (ESubgroupTypes lhs, ESubgroupTypes rhs);
 uint8  operator | (uint8 lhs, ESubgroupTypes rhs);
@@ -781,8 +782,8 @@ uint32  operator | (ESubgroupOperation lhs, uint32 rhs);
 enum class EFeature : uint8
 {
 	Ignore,
-	RequireTrue,
 	RequireFalse,
+	RequireTrue,
 };
 uint8  operator | (EFeature lhs, EFeature rhs);
 uint8  operator | (uint8 lhs, EFeature rhs);
@@ -827,14 +828,14 @@ enum class EShaderStages : uint16
 	RayMiss,
 	RayIntersection,
 	RayCallable,
-	All,
-	AllGraphics,
 	GraphicsPipeStages,
 	MeshPipeStages,
 	VertexProcessingStages,
 	PreRasterizationStages,
 	PostRasterizationStages,
+	AllGraphics,
 	AllRayTracing,
+	All,
 };
 uint16  operator | (EShaderStages lhs, EShaderStages rhs);
 uint16  operator | (uint16 lhs, EShaderStages rhs);
@@ -1083,8 +1084,8 @@ uint8  operator | (EReductionMode lhs, uint8 rhs);
 enum class ESamplerOpt : uint8
 {
 	ArgumentBuffer,
-	UnnormalizedCoordinates,
 	NonSeamlessCubeMap,
+	UnnormalizedCoordinates,
 	Subsampled,
 	SubsampledCoarseReconstruction,
 };
@@ -1105,6 +1106,7 @@ enum class EDescSetUsage : uint8
 {
 	AllowPartialyUpdate,
 	UpdateTemplate,
+	DescriptorHeap,
 	ArgumentBuffer,
 	MutableArgBuffer,
 	MaybeUnsupported,
@@ -1127,6 +1129,7 @@ enum class EPipelineOpt : uint16
 	RT_SkipAABBs,
 	RT_AllowClusterAccelStruct,
 	OpacityMicromap,
+	DescriptorHeap,
 
 	// Pipeline creation will fail if it is not exists in cache.
 	DontCompile,
@@ -1155,7 +1158,6 @@ enum class EQueueMask : uint8
 	AsyncTransfer,
 	VideoEncode,
 	VideoDecode,
-	All,
 };
 uint8  operator | (EQueueMask lhs, EQueueMask rhs);
 uint8  operator | (uint8 lhs, EQueueMask rhs);
@@ -1263,8 +1265,8 @@ enum class EImageOpt : uint32
 	FragmentPplnStore,
 	LossyRTCompression,
 	ExtendedUsage,
-	SeparatePlanes,
 	Subsampled,
+	SeparatePlanes,
 	All,
 	SparseResidencyAliased,
 	Blit,
@@ -1288,8 +1290,8 @@ enum class EBufferUsage : uint32
 	ShaderBindingTable,
 	ASBuild_ReadOnly,
 	ASBuild_Scratch,
-	MMBuild_ReadOnly,
 	RTAS_Storage,
+	MMBuild_ReadOnly,
 	ICB_Preprocess,
 	All,
 	Transfer,
@@ -1430,15 +1432,20 @@ uint8  operator | (ECoopVecMatrixLayout lhs, uint8 rhs);
 
 enum class ECoopMatrixCfg : uint8
 {
-	Afp16_Bfp16_Cfp16_Rfp16_M16_N16_K16,
-	Afp16_Bfp16_Cfp32_Rfp32_M16_N16_K16,
-	Afp16_Bfp16_Cfp32_Rfp32_M8_N8_K16,
-	Au8_Bu8_Cu32_Ru32_M16_N16_K32,
-	As8_Bs8_Cs32_Rs32_M16_N16_K32,
-	Au8_Bu8_Cu32_Ru32_M16_N16_K16,
-	As8_Bs8_Cs32_Rs32_M16_N16_K16,
-	Au8_Bu8_Cu32_Ru32_M8_N8_K32,
-	As8_Bs8_Cs32_Rs32_M8_N8_K32,
+	ABfp16_CRfp16_M16_N16_K16,
+	ABfp16_CRfp16_M64_N64_K16,
+	ABfp16_CRfp16_M64_N32_K16,
+	ABfp16_CRfp16_M64_N16_K16,
+	ABfp16_CRfp32_M16_N16_K16,
+	ABfp16_CRfp32_M8_N8_K16,
+	ABfp32_CRfp32_M64_N64_K8,
+	ABfp32_CRfp32_M64_N32_K8,
+	ABfp32_CRfp32_M64_N16_K8,
+	ABbf16_CRbf16_M16_N16_K16,
+	ABe5m2_CRfp16_M16_N16_K32,
+	ABe5m2_CRfp32_M16_N16_K32,
+	ABe4m3_CRfp16_M16_N16_K32,
+	ABe4m3_CRfp32_M16_N16_K32,
 };
 uint8  operator | (ECoopMatrixCfg lhs, ECoopMatrixCfg rhs);
 uint8  operator | (uint8 lhs, ECoopMatrixCfg rhs);
@@ -1446,10 +1453,10 @@ uint8  operator | (ECoopMatrixCfg lhs, uint8 rhs);
 
 enum class ECoopVecCfg : uint8
 {
-	Tfp16_Ifp16_Mfp16_Bfp16_Rfp16_Tp,
-	Tfp16_Ifp8e4m3_Mfp8e4m3_Bfp16_Rfp16,
-	Tfp16_Ifp8e5m2_Mfp8e5m2_Bfp16_Rfp16,
-	Ts8_Is8_Ms8_Bs32_Rs32,
+	Tfp16_IMfp16_BRfp16_Tp,
+	Tfp16_IMe4m3_BRfp16,
+	Tfp16_IMe5m2_BRfp16,
+	Ts8_IMs8_BRs32,
 };
 uint8  operator | (ECoopVecCfg lhs, ECoopVecCfg rhs);
 uint8  operator | (uint8 lhs, ECoopVecCfg rhs);
@@ -1475,12 +1482,21 @@ uint8  operator | (EMicromapType lhs, uint8 rhs);
 
 enum class EOpacityMicromapFormat : uint16
 {
+	Unknown,
 	TwoState,
 	FourState,
 };
 uint16  operator | (EOpacityMicromapFormat lhs, EOpacityMicromapFormat rhs);
 uint16  operator | (uint16 lhs, EOpacityMicromapFormat rhs);
 uint16  operator | (EOpacityMicromapFormat lhs, uint16 rhs);
+
+enum class EDescriptorFlags : uint8
+{
+	VariableSize,
+};
+uint8  operator | (EDescriptorFlags lhs, EDescriptorFlags rhs);
+uint8  operator | (uint8 lhs, EDescriptorFlags rhs);
+uint8  operator | (EDescriptorFlags lhs, uint8 rhs);
 
 enum class ECubeFace : uint32
 {
@@ -1513,6 +1529,7 @@ uint32  operator | (ERasterFontMode lhs, uint32 rhs);
 
 enum class ELayoutType : uint8
 {
+	Unknown,
 	FixedLayoutPx,
 	FixedLayoutMm,
 	PaddingLayoutPx,
@@ -1526,6 +1543,7 @@ enum class ELayoutType : uint8
 	StackLayoutB,
 	StackLayoutT,
 	FillStackLayout,
+	FillStackLayout_Cell,
 };
 uint8  operator | (ELayoutType lhs, ELayoutType rhs);
 uint8  operator | (uint8 lhs, ELayoutType rhs);
@@ -1535,9 +1553,9 @@ enum class ELayoutAlign : uint8
 {
 	Left,
 	Right,
+	CenterX,
 	Bottom,
 	Top,
-	CenterX,
 	CenterY,
 	FillX,
 	FillY,
@@ -2898,6 +2916,17 @@ struct UIImageStyle
 	void  Image (const string & atlasMetaResName, const string & imageInAtlas);
 };
 
+struct UIFontStyle
+{
+	void  Disabled (const RGBA8u & colorWhenDisabled);
+	void  Enabled (const RGBA8u & colorWhenEnabled);
+	void  MouseOver (const RGBA8u & colorWhenMouseOver);
+	void  TouchDown (const RGBA8u & colorWhenTouchDown);
+	void  Selected (const RGBA8u & colorWhenSelected);
+	void  Font (const string & fontName);
+	void  Pipeline (const string & pplnName);
+};
+
 struct UIStyleCollection
 {
 	UIStyleCollection ();
@@ -2905,6 +2934,7 @@ struct UIStyleCollection
 	void  DebugPipeline (const string & pplnName);
 	RC<UIColorStyle>  AddColorStyle (const string & name);
 	RC<UIImageStyle>  AddImageStyle (const string & name);
+	RC<UIFontStyle>  AddFontStyle (const string & name);
 	void  Store (const string & nameInArchive);
 };
 
@@ -2920,6 +2950,12 @@ struct RectangleDrawable
 struct ImageDrawable
 {
 	ImageDrawable (const string & styleName);
+};
+
+struct TextDrawable
+{
+	TextDrawable (const string & styleName);
+	TextDrawable (const string & styleName, const string & text);
 };
 
 struct BaseUIController
@@ -2990,39 +3026,21 @@ struct UIWidget
 };
 
 template <>
-struct RC<AlignedLayout> : AlignedLayout
+struct RC<UIImageStyle> : UIImageStyle
 {
-	RC (const AlignedLayout &);
+	RC (const UIImageStyle &);
 };
 
 template <>
-struct RC<Texture> : Texture
+struct RC<MetaData> : MetaData
 {
-	RC (const Texture &);
+	RC (const MetaData &);
 };
 
 template <>
-struct RC<ButtonController> : ButtonController
+struct RC<RectangleDrawable> : RectangleDrawable
 {
-	RC (const ButtonController &);
-};
-
-template <>
-struct RC<RasterFont> : RasterFont
-{
-	RC (const RasterFont &);
-};
-
-template <>
-struct RC<UIColorStyle> : UIColorStyle
-{
-	RC (const UIColorStyle &);
-};
-
-template <>
-struct RC<PaddingLayout> : PaddingLayout
-{
-	RC (const PaddingLayout &);
+	RC (const RectangleDrawable &);
 };
 
 template <>
@@ -3038,39 +3056,9 @@ struct RC<ImageAtlas> : ImageAtlas
 };
 
 template <>
-struct RC<UIImageStyle> : UIImageStyle
+struct RC<TextDrawable> : TextDrawable
 {
-	RC (const UIImageStyle &);
-};
-
-template <>
-struct RC<RectangleDrawable> : RectangleDrawable
-{
-	RC (const RectangleDrawable &);
-};
-
-template <>
-struct RC<MetaData> : MetaData
-{
-	RC (const MetaData &);
-};
-
-template <>
-struct RC<UIWidget> : UIWidget
-{
-	RC (const UIWidget &);
-};
-
-template <>
-struct RC<UIStyleCollection> : UIStyleCollection
-{
-	RC (const UIStyleCollection &);
-};
-
-template <>
-struct RC<BaseLayout> : BaseLayout
-{
-	RC (const BaseLayout &);
+	RC (const TextDrawable &);
 };
 
 template <>
@@ -3080,9 +3068,21 @@ struct RC<BaseUIController> : BaseUIController
 };
 
 template <>
-struct RC<Mesh> : Mesh
+struct RC<BaseLayout> : BaseLayout
 {
-	RC (const Mesh &);
+	RC (const BaseLayout &);
+};
+
+template <>
+struct RC<UIStyleCollection> : UIStyleCollection
+{
+	RC (const UIStyleCollection &);
+};
+
+template <>
+struct RC<UIWidget> : UIWidget
+{
+	RC (const UIWidget &);
 };
 
 template <>
@@ -3092,21 +3092,15 @@ struct RC<FixedLayout> : FixedLayout
 };
 
 template <>
+struct RC<Mesh> : Mesh
+{
+	RC (const Mesh &);
+};
+
+template <>
 struct RC<Material> : Material
 {
 	RC (const Material &);
-};
-
-template <>
-struct RC<Model> : Model
-{
-	RC (const Model &);
-};
-
-template <>
-struct RC<SharedImage> : SharedImage
-{
-	RC (const SharedImage &);
 };
 
 template <>
@@ -3119,5 +3113,59 @@ template <>
 struct RC<ImageDrawable> : ImageDrawable
 {
 	RC (const ImageDrawable &);
+};
+
+template <>
+struct RC<SharedImage> : SharedImage
+{
+	RC (const SharedImage &);
+};
+
+template <>
+struct RC<UIFontStyle> : UIFontStyle
+{
+	RC (const UIFontStyle &);
+};
+
+template <>
+struct RC<Model> : Model
+{
+	RC (const Model &);
+};
+
+template <>
+struct RC<ButtonController> : ButtonController
+{
+	RC (const ButtonController &);
+};
+
+template <>
+struct RC<Texture> : Texture
+{
+	RC (const Texture &);
+};
+
+template <>
+struct RC<AlignedLayout> : AlignedLayout
+{
+	RC (const AlignedLayout &);
+};
+
+template <>
+struct RC<UIColorStyle> : UIColorStyle
+{
+	RC (const UIColorStyle &);
+};
+
+template <>
+struct RC<RasterFont> : RasterFont
+{
+	RC (const RasterFont &);
+};
+
+template <>
+struct RC<PaddingLayout> : PaddingLayout
+{
+	RC (const PaddingLayout &);
 };
 

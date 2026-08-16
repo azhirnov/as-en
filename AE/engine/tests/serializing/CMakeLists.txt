@@ -1,8 +1,8 @@
-# Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+# Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 if (TARGET "Serializing")
 	file( GLOB_RECURSE SOURCES "*.*" )
-	if (ANDROID)
+	if (${AE_ANDROID_UI_MODE})
 		set( TEST_NAME "TestsSerializing" )
 		add_library( ${TEST_NAME} SHARED ${SOURCES} )
 	elseif (APPLE)

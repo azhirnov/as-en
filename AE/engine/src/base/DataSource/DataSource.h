@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 /*
 	Thread safe:	optional
 	Exceptions:		no
@@ -46,11 +46,11 @@ namespace AE::Base
 			SequentialAccess	= 1 << 2,		// allow ReadSeq() and SeekFwd()
 			RandomAccess		= 1 << 3,		// allow ReadBlock(), SeekSet() and UpdateAt()
 			FixedSize			= 1 << 4,		// total size is known, not supported for compressed stream
-			ReadAccess			= 1 << 5,
-			WriteAccess			= 1 << 6,
+			ReadOnly			= 1 << 5,
+			WriteOnly			= 1 << 6,
 			Async				= 1 << 7,		// must be 'ThreadSafe' too
 			DeferredOpen		= 1 << 8,		// async file can be opened even if it not exists, but read/write request will fail
-			_BITOPS_
+			_BITOPS_			= 0
 		};
 
 		struct ReqAlign
@@ -139,7 +139,7 @@ namespace AE::Base
 	{
 	// interface
 	public:
-			ESourceType		GetSourceType ()										C_NE_OV	{ return ESourceType::RandomAccess | ESourceType::WriteAccess; }
+			ESourceType		GetSourceType ()										C_NE_OV	{ return ESourceType::RandomAccess | ESourceType::WriteOnly; }
 
 		ND_ virtual Bytes	Capacity ()												C_NE___	{ DBG_WARNING( "Capacity() is not supported" );  return 0_b; }
 
@@ -251,7 +251,7 @@ namespace AE::Base
 */
 	inline IDataSource::ESourceType  RDataSource::GetSourceType () C_NE___
 	{
-		return ESourceType::RandomAccess | ESourceType::ReadAccess | ESourceType::FixedSize;
+		return ESourceType::RandomAccess | ESourceType::ReadOnly | ESourceType::FixedSize;
 	}
 
 /*

@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 /*
 	UI Layouts with data oriented design (DOD).
 	- Layout data stored sequentially for cache friendly access.
@@ -92,7 +92,7 @@ namespace AE::UI
 			Drawable	= 1 << 0,
 			Controller	= 1 << 1,
 			Childs		= 1 << 2,
-			_BITOPS_
+			_BITOPS_	= 0
 		};
 
 

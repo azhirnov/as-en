@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #ifdef AE_PLATFORM_ANDROID
 # include "platform/Android/ApplicationAndroid.h"
@@ -18,7 +18,7 @@ namespace {
 			EGestureState::Begin,	// ACTION_DOWN		= 0
 			EGestureState::End,		// ACTION_UP		= 1
 			EGestureState::Update,	// ACTION_MULTIPLE	= 2
-			EGestureState::Unknown
+			Default
 		};
 		ASSERT( action < 3 );
 		return states[ action & 3 ];
@@ -40,7 +40,7 @@ namespace {
 			EGestureState::Outside,		// ACTION_OUTSIDE		= 4
 			EGestureState::Begin,		// ACTION_POINTER_DOWN	= 5
 			EGestureState::End,			// ACTION_POINTER_UP	= 6
-			EGestureState::Unknown
+			Default
 		};
 		ASSERT( action < 7 );
 		return states[ action & 7 ];

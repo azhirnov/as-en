@@ -502,6 +502,8 @@ namespace AE::Base
 /*
 =================================================
 	ToBitMask
+----
+	safe version of '(1 << count) - 1'
 =================================================
 */
 	template <typename R, typename T>
@@ -566,7 +568,7 @@ namespace AE::Base
 	NdCx__ T  SetBit (const T x, const bool bit) __NE___
 	{
 		StaticAssert( Index < CT_SizeOfInBits<T> );
-		SetBit( x, bit, Index );
+		return SetBit( x, bit, Index );
 	}
 
 /*
@@ -749,7 +751,17 @@ namespace AE::Base
 namespace EnumBitOperators
 {
 	template <AllowEnumBitOps T>
-	NdCx__ T	operator |  (T lhs, T rhs)			__NE___	{ return static_cast<T>( ToNearUInt(lhs) | ToNearUInt(rhs) ); }
+	NdCx__ T	operator |  (T lhs, T rhs)			__NE___
+	{
+		// validate
+		if constexpr( requires{ T::_BITOPS_; })
+			StaticAssert( ulong(T::_BITOPS_) == 0 );
+
+		if constexpr( requires{ T::Unknown; })
+			StaticAssert( ulong(T::Unknown) == 0 );
+
+		return static_cast<T>( ToNearUInt(lhs) | ToNearUInt(rhs) );
+	}
 
 	template <AllowEnumBitOps T>
 	NdCx__ T	operator &  (T lhs, T rhs)			__NE___	{ return static_cast<T>( ToNearUInt(lhs) & ToNearUInt(rhs) ); }

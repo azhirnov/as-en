@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #include "Perf_Common.h"
 
@@ -12,9 +12,12 @@ extern void PerfTest_SIMD ();
 extern void PerfTest_SIMD2 ();
 extern void PerfTest_SIMD3 ();
 extern void PerfTest_VertSIMD ();
+extern void PerfTest_SimdGEMM ();
+extern void PerfTest_SimdGEMV ();
 extern void PerfTest_MemCopy ();
 extern void PerfTest_CacheSize ();
 extern void PerfTest_Compression ();
+extern void PerfTest_RadixSort ();
 
 
 TEST_ENTRY()
@@ -23,6 +26,10 @@ TEST_ENTRY()
 	BEGIN_TEST();
 
 	Unused( PlatformUtils::SetSystemSleepState( ESystemSleepState::DisplayAlwaysOn ));
+
+	//test_name = "PerfTest_SimdGEMV";
+
+	AE_LOGI( CpuArchInfo::Get().Print() );
 
 	RUN_TEST( PerfTest_HashSet );
 	RUN_TEST( PerfTest_HashMap );
@@ -36,11 +43,14 @@ TEST_ENTRY()
 	RUN_TEST( PerfTest_SIMD2 );				// measure FLOPS with memory access
 	RUN_TEST( PerfTest_SIMD3 );				// measure FLOPS with mixed SIMD & scalar
 	RUN_TEST( PerfTest_VertSIMD );
+	RUN_TEST( PerfTest_SimdGEMM );			// mat += mat * mat
+	RUN_TEST( PerfTest_SimdGEMV );			// vec += vec * mat
 
 	RUN_TEST( PerfTest_MemCopy );			// find fastest memcpy implementation
 	RUN_TEST( PerfTest_CacheSize );			// measure cache sizes
 
 	RUN_TEST( PerfTest_Compression );		// compare compression algorithms
+	RUN_TEST( PerfTest_RadixSort );
 
 	AE_LOGI( "PerformanceTests.Base finished" );
 

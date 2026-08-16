@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #ifdef AE_ENABLE_VULKAN
 # include "graphics_rhi/Vulkan/Resources/VImageView.h"
@@ -15,7 +15,6 @@ namespace AE::Graphics
 */
 	VImageView::~VImageView () __NE___
 	{
-		DRC_EXLOCK( _drCheck );
 		ASSERT( _imageView == Default );
 	}
 
@@ -26,7 +25,6 @@ namespace AE::Graphics
 */
 	bool  VImageView::Create (ResourceManager &resMngr, const ImageViewDesc &desc, ImageID imageId, StringView dbgName) __NE___
 	{
-		DRC_EXLOCK( _drCheck );
 		CHECK_ERR( _imageView == Default );
 
 		const VImage*	image = resMngr.GetResource( imageId, True{"incRef"} );
@@ -59,10 +57,11 @@ namespace AE::Graphics
 		info.subresourceRange.layerCount		= _desc.layerCount;
 
 		auto&	dev = resMngr.GetDevice();
-		if ( desc.extUsage   != Default			and
-			 dev.GetVExtensions().maintenance2	)
+		if ( _desc.usage != img_desc.usage )
 		{
-			ext_usage_info.usage = VEnumCast( desc.extUsage, img_desc.memType );
+			CHECK_ERR( dev.GetVExtensions().maintenance2 );	// same as 'imageViewExtendedUsage' feature
+
+			ext_usage_info.usage = VEnumCast( _desc.usage, img_desc.memType );
 			info.pNext = &ext_usage_info;
 		}
 
@@ -81,7 +80,6 @@ namespace AE::Graphics
 */
 	bool  VImageView::Create (ResourceManager &resMngr, const VulkanImageViewDesc &desc, ImageID imageId, StringView dbgName) __NE___
 	{
-		DRC_EXLOCK( _drCheck );
 		CHECK_ERR( _imageView == Default );
 		CHECK_ERR( desc.view != Default );
 
@@ -117,7 +115,6 @@ namespace AE::Graphics
 */
 	bool  VImageView::Create (ResourceManager &resMngr, const VulkanImageViewDesc2 &desc, ImageID imageId, StringView dbgName) __NE___
 	{
-		DRC_EXLOCK( _drCheck );
 		CHECK_ERR( _imageView == Default );
 		CHECK_ERR( desc.viewHandle != Default );
 
@@ -144,8 +141,6 @@ namespace AE::Graphics
 */
 	void  VImageView::Destroy (ResourceManager &resMngr) __NE___
 	{
-		DRC_EXLOCK( _drCheck );
-
 		auto&	dev = resMngr.GetDevice();
 
 		if ( _canBeDestroyed and _imageView != Default )

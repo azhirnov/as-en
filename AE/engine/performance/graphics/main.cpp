@@ -1,9 +1,10 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #include "Perf_Common.h"
 #include "LowLevel/LowLevelPerfCore.h"
 
 extern void  PerfTest_UI ();
+extern void  PerfTest_Vulkan ();
 
 
 static void  GraphicsPerfTests (RC<VFS::IVirtualFileStorage> assetStorage)
@@ -12,6 +13,11 @@ static void  GraphicsPerfTests (RC<VFS::IVirtualFileStorage> assetStorage)
 	{
 		Graphics::LowLevelPerfCore	ll;
 		TEST( ll.Run( assetStorage ));
+	}
+	{
+	#ifdef AE_ENABLE_VULKAN
+		PerfTest_Vulkan();
+	#endif
 	}
 
 	// CPU tests

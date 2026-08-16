@@ -324,4 +324,36 @@ Quat  DecodeQuat32 (const uint u)
 	return res;
 }
 
+/*
+float2 PackGBufferNormal(float3 N, float3 V)
+{
+    uint index = CubeMapFaceID(V) * 0.5;  // CubeMapFaceID - AMD intrinsic
+    V = index == 0 ? V.yzx : index == 1 ? V.xzy : V;
+    N = index == 0 ? N.yzx : index == 1 ? N.xzy : N;
+
+    float s = FastSign(V.z);
+    V *= s;
+    N *= s;
+
+    N = FromToRotationZInverse(V, N);
+    return NormalToHemiOctahedralUv(N);
+}
+
+float3 UnpackGBufferNormal(float4 data, float3 V)
+{
+    float3 N = HemiOctahedralUvToNormal(data.rg);
+
+    uint index = CubeMapFaceID(V) * 0.5;
+    V = index == 0u ? V.yzx : index == 1u ? V.xzy : V;
+
+    float s = FastSign(V.z);
+    V *= s;
+    N *= s;
+
+    N = FromToRotationZ(V, N);
+    N = index == 0u ? N.zxy : index == 1u ? N.xzy : N;
+
+    return N;
+}
+*/
 #endif // AE_LICENSE_UNLICENSE

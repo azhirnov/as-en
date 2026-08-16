@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #ifdef AE_ENABLE_VULKAN
 # include "graphics_rhi/Vulkan/Resources/VRenderPass.h"
@@ -16,7 +16,6 @@ namespace AE::Graphics
 */
 	VRenderPass::~VRenderPass () __NE___
 	{
-		DRC_EXLOCK( _drCheck );
 		CHECK( _renderPass == Default );
 	}
 
@@ -28,7 +27,6 @@ namespace AE::Graphics
 	bool  VRenderPass::Create (ResourceManager& resMngr, const SerializableRenderPassInfo &compatInfo, const SerializableVkRenderPass &vkInfo,
 							   RenderPassID compatId, StringView dbgName) __NE___
 	{
-		DRC_EXLOCK( _drCheck );
 		CHECK_ERR( _renderPass == Default );
 		CHECK_ERR( not _compatibleRP );
 
@@ -82,8 +80,6 @@ namespace AE::Graphics
 */
 	void  VRenderPass::Destroy (ResourceManager& resMngr) __NE___
 	{
-		DRC_EXLOCK( _drCheck );
-
 		resMngr.ImmediatelyRelease( INOUT _compatibleRP );
 
 		if ( _renderPass != Default )
@@ -110,7 +106,6 @@ namespace AE::Graphics
 */
 	bool  VRenderPass::GetMaxTileWorkgroupSize (const VDevice &dev, OUT uint2 &tileSize) C_NE___
 	{
-		DRC_SHAREDLOCK( _drCheck );
 		CHECK_ERR( _renderPass != Default );
 		CHECK_ERR( dev.GetVExtensions().subpassShadingHW );
 
@@ -147,8 +142,6 @@ namespace AE::Graphics
 */
 	EPixelFormat  VRenderPass::GetPixelFormat (AttachmentName::Ref name) C_NE___
 	{
-		DRC_SHAREDLOCK( _drCheck );
-
 		auto	it = _attachmentMap.find( name );
 		if_likely( it != _attachmentMap.end() )
 		{

@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 /*
 	based on slang examples
 	https://github.com/shader-slang/slang/tree/master/examples/mlp-training (Apache-2.0 license)

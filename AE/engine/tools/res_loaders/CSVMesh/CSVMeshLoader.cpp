@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #include "res_loaders/CSVMesh/CSVMeshLoader.h"
 #include "res_loaders/Intermediate/IntermMesh.h"
@@ -138,6 +138,7 @@ namespace
 										   OUT Bytes												&vertStride)
 	{
 		// TODO
+		Unused( tokens, values, columnToVertex, vertMapping, vertStride );
 		return false;
 	}
 

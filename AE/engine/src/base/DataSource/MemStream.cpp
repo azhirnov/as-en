@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #include "base/DataSource/MemStream.h"
 #include "base/Math/Vec.h"
@@ -55,7 +55,7 @@ namespace AE::Base
 	{
 		return	ESourceType::RandomAccess	| ESourceType::SequentialAccess |	// allow SeekFwd() & SeekSet()
 				ESourceType::Buffered		| ESourceType::FixedSize		|
-				ESourceType::ReadAccess;
+				ESourceType::ReadOnly;
 	}
 
 /*
@@ -388,8 +388,8 @@ namespace AE::Base
 */
 	IDataSource::ESourceType  MemRefWStream::GetSourceType () C_NE___
 	{
-		return	ESourceType::RandomAccess	| ESourceType::SequentialAccess |	// allow SeekFwd() & SeekSet()
-				ESourceType::Buffered		| ESourceType::WriteAccess;
+		return	ESourceType::RandomAccess	| ESourceType::SequentialAccess |	// allow SeekFwd(), SeekSet(), UpdateAt()
+				ESourceType::Buffered		| ESourceType::WriteOnly;
 	}
 
 /*

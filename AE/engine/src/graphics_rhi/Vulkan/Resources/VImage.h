@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #pragma once
 
@@ -24,8 +24,7 @@ namespace AE::Graphics
 
 		Strong<MemoryID>			_memoryId;
 
-		GFX_DBG_ONLY(	DebugName_t		_debugName;	)
-		DRC_ONLY(		RWDataRaceCheck	_drCheck;	)
+		GFX_DBG_ONLY( DebugName_t	_debugName;	)
 
 
 	// methods
@@ -40,23 +39,23 @@ namespace AE::Graphics
 
 		ND_ VulkanImageDesc		GetNativeDescription ()		C_NE___;
 
-		ND_ VkImage				Handle ()					C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _image; }
-		ND_ MemoryID			MemoryId ()					C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _memoryId; }
-		ND_ ImageDesc const&	Description ()				C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _desc; }
-		ND_ VkImageAspectFlags	AspectMask ()				C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _aspectMask; }
+		ND_ VkImage				Handle ()					C_NE___	{ return _image; }
+		ND_ MemoryID			MemoryId ()					C_NE___	{ return _memoryId; }
+		ND_ ImageDesc const&	Description ()				C_NE___	{ return _desc; }
+		ND_ VkImageAspectFlags	AspectMask ()				C_NE___	{ return _aspectMask; }
 
-		ND_ uint3 const			Dimension ()				C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _desc.Dimension(); }
-		ND_ uint				Width ()					C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _desc.dimension.x; }
-		ND_ uint				Height ()					C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _desc.dimension.y; }
-		ND_ uint				Depth ()					C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _desc.dimension.z; }
-		ND_ uint				ArrayLayers ()				C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _desc.arrayLayers.Get(); }
-		ND_ uint				MipmapLevels ()				C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _desc.mipLevels.Get(); }
-		ND_ EPixelFormat		PixelFormat ()				C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _desc.format; }
-		ND_ uint				Samples ()					C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _desc.samples.Get(); }
+		ND_ uint3 const			Dimension ()				C_NE___	{ return _desc.Dimension(); }
+		ND_ uint				Width ()					C_NE___	{ return _desc.dimension.x; }
+		ND_ uint				Height ()					C_NE___	{ return _desc.dimension.y; }
+		ND_ uint				Depth ()					C_NE___	{ return _desc.dimension.z; }
+		ND_ uint				ArrayLayers ()				C_NE___	{ return _desc.arrayLayers.Get(); }
+		ND_ uint				MipmapLevels ()				C_NE___	{ return _desc.mipLevels.Get(); }
+		ND_ EPixelFormat		PixelFormat ()				C_NE___	{ return _desc.format; }
+		ND_ uint				Samples ()					C_NE___	{ return _desc.samples.Get(); }
 
-		ND_ bool				IsExclusiveSharing ()		C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _desc.queues == Default; }
+		ND_ bool				IsExclusiveSharing ()		C_NE___	{ return _desc.queues == Default; }
 
-		GFX_DBG_ONLY( ND_ StringView  GetDebugName ()		C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _debugName; })
+		GFX_DBG_ONLY( ND_ StringView  GetDebugName ()		C_NE___	{ return _debugName; })
 
 
 		ND_ static bool	 IsSupported (const ResourceManager &, const ImageDesc &desc)						__NE___;

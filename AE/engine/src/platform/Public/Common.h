@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 /*
 	[supported platforms and features](https://github.com/azhirnov/as-en/blob/dev/AE/docs/engine/Platforms.md)
 */

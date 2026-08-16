@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #pragma once
 
@@ -33,7 +33,7 @@ namespace AE::VFS
 		//	Encrypted	= 1 << 3,		// SequentialAccess
 			ZStd		= 1 << 4,		// SequentialAccess
 			_Last,
-			All			= ((_Last - 1) << 1) - 1,
+			All			= CT_AllBitMask2<EFileType>,
 			Unknown		= 0,
 
 			BrotliInMemory			= Brotli | InMemory,
@@ -102,6 +102,8 @@ namespace AE::VFS
 		bool  _OpenByIter (OUT RC<RDataSource> &ds, FileName::Ref, const void* ref)			C_NE_OV;
 		bool  _OpenByIter (OUT RC<AsyncRStream> &stream, FileName::Ref, const void* ref)	C_NE_OV;
 		bool  _OpenByIter (OUT RC<AsyncRDataSource> &ds, FileName::Ref, const void* ref)	C_NE_OV;
+
+		bool  _GetPath (FileName::Ref, OUT Path &)											C_NE_OV	{ return false; }
 
 		using IVirtualFileStorage::_OpenByIter;
 

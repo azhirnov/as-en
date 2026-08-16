@@ -1,12 +1,14 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #pragma once
 
-#define XR_NO_PROTOTYPES
-#include "base/Defines/StdInclude.h"
-#include "openxr.h"
+#ifdef XR_HEADER_PATH
 
-#include "shared/HeaderParser.h"
+# define XR_NO_PROTOTYPES
+# include "base/Defines/StdInclude.h"
+# include "openxr.h"
+
+# include "shared/HeaderParser.h"
 
 namespace AE::Parsers
 {
@@ -34,3 +36,5 @@ namespace AE::Parsers
 	};
 
 } // AE::Parsers
+
+#endif // XR_HEADER_PATH

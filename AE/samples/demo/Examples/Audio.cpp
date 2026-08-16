@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #if defined(AE_ENABLE_IMGUI) and defined(AE_ENABLE_AUDIO)
 # include "Examples/Audio.h"

@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #include "res_pack/pipeline_compiler/Compiler/AEStyleGLSLPreprocessor.h"
 
@@ -509,9 +509,6 @@ namespace AE::PipelineCompiler
 		_typeMap.emplace( "gl.subgroup.Rotate",					"subgroupRotate" );
 		_typeMap.emplace( "gl.subgroup.ClusteredRotate",		"subgroupClusteredRotate" );
 
-		// https://github.com/KhronosGroup/GLSL/blob/master/extensions/ext/GL_EXT_subgroupuniform_qualifier.txt
-		_typeMap.emplace( "gl::SubgroupUniform",				"subgroupuniformEXT" );
-
 		// ray query & ray tracing
 		_typeMap.emplace( "gl::RayFlags",									"uint" );
 		_typeMap.emplace( "gl::RayFlags::None",								"gl_RayFlagsNoneEXT" );
@@ -770,6 +767,7 @@ namespace AE::PipelineCompiler
 		_typeMap.emplace( "gl::ComponentType::UInt8Packed",			"gl_ComponentTypeUnsignedInt8PackedNV" );
 		_typeMap.emplace( "gl::ComponentType::FloatE4M3",			"gl_ComponentTypeFloatE4M3NV" );
 		_typeMap.emplace( "gl::ComponentType::FloatE5M2",			"gl_ComponentTypeFloatE5M2NV" );
+		_typeMap.emplace( "gl::ComponentType::BFloat16",			"gl_ComponentTypeBFloat16" );	// TODO: use VK_COMPONENT_TYPE_BFLOAT16_KHR value?
 		_typeMap.emplace( "gl::CoopVectorMatrixLayout",						"int" );
 		_typeMap.emplace( "gl::CoopVectorMatrixLayout::RowMajor",			"gl_CooperativeVectorMatrixLayoutRowMajorNV" );
 		_typeMap.emplace( "gl::CoopVectorMatrixLayout::ColumnMajor",		"gl_CooperativeVectorMatrixLayoutColumnMajorNV" );

@@ -1,3 +1,16 @@
+
+@echo off
+rem Enable virtual terminal processing so that ANSI escapes work
+for /f "tokens=*" %%i in ('reg query HKCU\Console /v VirtualTerminalLevel ^| findstr /r "[0-9]"') do (
+    set vt=%%i
+)
+if "%vt%"=="VirtualTerminalLevel REG_DWORD 0x1" (
+    rem already enabled – nothing to do
+) else (
+    reg add "HKCU\Console" /v VirtualTerminalLevel /t REG_DWORD /d 1 /f >nul
+)
+
+@echo on
 mkdir "..\..\..\..\..\..\AE-Bin\external\android-clang\imgui"
 mkdir "..\..\..\..\..\..\AE-Bin\external\android-clang\imgui\lib"
 
@@ -28,3 +41,10 @@ copy /Y "temp\imgui_internal.h" "..\..\..\..\..\AE-Bin\external\android-clang\im
 copy /Y "temp\imstb_textedit.h" "..\..\..\..\..\AE-Bin\external\android-clang\imgui\include\imstb_textedit.h"
 copy /Y "temp\LICENSE.txt" "..\..\..\..\..\AE-Bin\external\android-clang\imgui\LICENSE.txt"
 rmdir /Q /S "temp"
+
+exit /b 0
+
+:pauseOnError
+echo ^[[31m"*** failed ***"^[[0m
+pause
+exit /b 1

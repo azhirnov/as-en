@@ -1,8 +1,20 @@
-## 26.03.xxx
+## 26.03.316
 
 - Threading: improve data race checks
 - Networking: SocketDependency
 - Networking: TcpStream2 - same as TcpStream but uses coroutines
+- Threading: add DelayedTaskRunner
+- Threading: TsFixedTaskStack
+- Graphics|Vulkan: add support for descriptorBindingVariableDescriptorCount
+- Base: PackedPtr fixed for android tagged pointer
+- Base|SIMD: update Swizzle, implement Shuffle, InclusiveAdd, update tests.
+- PipelineCompiler for Android
+- Graphics: move ConvertCooperativeVectorMatrix to TransferContext
+- Android: improved on device build and run
+- CoopMatTest: fixed, tested on Intel and Qualcomm
+- Base: GEMM, GEMV
+- Base: EnumToString based on function signature
+- add block compression test (BC/ETC)
 
 
 ## 26.02.311
@@ -76,7 +88,7 @@
 
 ## 25.01.277
 
-- Base: added FloatConversion, it is used in SFloat16, UFloat16, UFloat8, BFloat16
+- Base: added FloatConversion, it is used in SFloat16, UFloat16, UFloatM4E4, BFloat16
 - Base: remove Math namespace
 - Base: add BFloat16
 - Base: add X64Crypto (SSE, AVX, SHA, AES instructions)

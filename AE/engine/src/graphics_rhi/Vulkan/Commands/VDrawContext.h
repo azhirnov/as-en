@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 /*
 	DrawCtx --> DirectDrawCtx   --> BarrierMngr --> Vulkan device
 			\-> IndirectDrawCtx --> BarrierMngr --> Backed commands

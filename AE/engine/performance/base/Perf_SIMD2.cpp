@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 /*
 	With memory access.
 */
@@ -6,6 +6,8 @@
 #include "Perf_Common.h"
 #include "threading/Primitives/Barrier.h"
 using namespace AE::Threading;
+
+#define ENABLE_SCALAR_OPS	0
 
 namespace
 {
@@ -66,7 +68,7 @@ namespace
 
 		forceinline void  operator () (ArrayView<T> arr, usize i) __NE___
 		{
-			i *= 2;
+			i *= readCount;
 			const T		p0 = arr[i+0];
 			const T		p1 = arr[i+1];
 
@@ -118,7 +120,7 @@ namespace
 
 		forceinline void  operator () (ArrayView<T> arr, usize i) __NE___
 		{
-			i *= 4;
+			i *= readCount;
 			const T		p0 = arr[i+0];
 			const T		p1 = arr[i+1];
 			const T		p2 = arr[i+2];
@@ -172,7 +174,7 @@ namespace
 
 		forceinline void  operator () (ArrayView<T> arr, usize i) __NE___
 		{
-			i *= 8;
+			i *= readCount;
 			const T		p0 = arr[i+0];
 			const T		p1 = arr[i+1];
 			const T		p2 = arr[i+2];
@@ -230,7 +232,7 @@ namespace
 
 		forceinline void  operator () (ArrayView<T> arr, usize i) __NE___
 		{
-			i *= 16;
+			i *= readCount;
 			const T		p0  = arr[i+0];
 			const T		p1  = arr[i+1];
 			const T		p2  = arr[i+2];
@@ -296,7 +298,7 @@ namespace
 
 		forceinline void  operator () (ArrayView<T> arr, usize i) __NE___
 		{
-			i *= 2;
+			i *= readCount;
 			const T		p0 = arr[i+0];
 			const T		p1 = arr[i+1];
 
@@ -332,7 +334,7 @@ namespace
 
 		forceinline void  operator () (ArrayView<T> arr, usize i) __NE___
 		{
-			i *= 4;
+			i *= readCount;
 			const T		p0 = arr[i+0];
 			const T		p1 = arr[i+1];
 			const T		p2 = arr[i+2];
@@ -370,7 +372,7 @@ namespace
 
 		forceinline void  operator () (ArrayView<T> arr, usize i) __NE___
 		{
-			i *= 8;
+			i *= readCount;
 			const T		p0 = arr[i+0];
 			const T		p1 = arr[i+1];
 			const T		p2 = arr[i+2];
@@ -412,7 +414,7 @@ namespace
 
 		forceinline void  operator () (ArrayView<T> arr, usize i) __NE___
 		{
-			i *= 16;
+			i *= readCount;
 			const T		p0  = arr[i+0];
 			const T		p1  = arr[i+1];
 			const T		p2  = arr[i+2];
@@ -449,6 +451,137 @@ namespace
 			r1 = p13 - r1;
 			r2 = p14 - r2;
 			r3 = p15 - r3;
+		}
+	};
+
+	template <typename T>
+	struct VFloat_FMA_8r4 : SimdVal_Base<T>
+	{
+		REUSE_MEMBERS;
+
+		static constexpr uint  opCount   = 32;	// flops
+		static constexpr uint  readCount = 4;
+
+		forceinline void  operator () (ArrayView<T> arr, usize i) __NE___
+		{
+			i *= readCount;
+			const T		p0 = arr[i+0];
+			const T		p1 = arr[i+1];
+			const T		p2 = arr[i+2];
+			const T		p3 = arr[i+3];
+
+			r0 = FusedMulAdd( r0, p0, p1 );
+			r1 = FusedMulAdd( r1, p0, p1 );
+			r2 = FusedMulAdd( r2, p0, p1 );
+			r3 = FusedMulAdd( r3, p0, p1 );
+			r4 = FusedMulAdd( r4, p0, p1 );
+			r5 = FusedMulAdd( r5, p0, p1 );
+			r6 = FusedMulAdd( r6, p0, p1 );
+			r7 = FusedMulAdd( r7, p0, p1 );
+
+			r0 = FusedMulAdd( r0, p2, p3 );
+			r1 = FusedMulAdd( r1, p2, p3 );
+			r2 = FusedMulAdd( r2, p2, p3 );
+			r3 = FusedMulAdd( r3, p2, p3 );
+			r4 = FusedMulAdd( r4, p2, p3 );
+			r5 = FusedMulAdd( r5, p2, p3 );
+			r6 = FusedMulAdd( r6, p2, p3 );
+			r7 = FusedMulAdd( r7, p2, p3 );
+		}
+	};
+
+	template <typename T>
+	struct VFloat_FMA_8r8 : SimdVal_Base<T>
+	{
+		REUSE_MEMBERS;
+
+		static constexpr uint  opCount   = 32;	// flops
+		static constexpr uint  readCount = 8;
+
+		forceinline void  operator () (ArrayView<T> arr, usize i) __NE___
+		{
+			i *= readCount;
+			const T		p0 = arr[i+0];
+			const T		p1 = arr[i+1];
+			const T		p2 = arr[i+2];
+			const T		p3 = arr[i+3];
+			const T		p4 = arr[i+4];
+			const T		p5 = arr[i+5];
+			const T		p6 = arr[i+6];
+			const T		p7 = arr[i+7];
+
+			r0 = FusedMulAdd( r0, p0, p1 );
+			r1 = FusedMulAdd( r1, p0, p1 );
+			r2 = FusedMulAdd( r2, p0, p1 );
+			r3 = FusedMulAdd( r3, p0, p1 );
+			r4 = FusedMulAdd( r4, p2, p3 );
+			r5 = FusedMulAdd( r5, p2, p3 );
+			r6 = FusedMulAdd( r6, p2, p3 );
+			r7 = FusedMulAdd( r7, p2, p3 );
+
+			r0 = FusedMulAdd( r0, p4, p5 );
+			r1 = FusedMulAdd( r1, p4, p5 );
+			r2 = FusedMulAdd( r2, p4, p5 );
+			r3 = FusedMulAdd( r3, p4, p5 );
+			r4 = FusedMulAdd( r4, p6, p7 );
+			r5 = FusedMulAdd( r5, p6, p7 );
+			r6 = FusedMulAdd( r6, p6, p7 );
+			r7 = FusedMulAdd( r7, p6, p7 );
+		}
+	};
+
+	template <typename T>
+	struct VFloat_AddFMA_8r4 : SimdVal_Base<T>
+	{
+		REUSE_MEMBERS;
+
+		static constexpr uint  opCount   = 32;	// flops
+		static constexpr uint  readCount = 4;
+
+		forceinline void  operator () (ArrayView<T> arr, usize i) __NE___
+		{
+			i *= readCount;
+			const T		p0 = arr[i+0];
+			const T		p1 = arr[i+1];
+			const T		p2 = arr[i+2];
+			const T		p3 = arr[i+3];
+			const T		one {1.f};
+
+			r0 = p0 + r0;
+			r1 = p0 + r1;
+			r2 = p0 + r2;
+			r3 = p0 + r3;
+			r4 = FusedMulAdd( p0, one, r4 );
+			r5 = FusedMulAdd( p0, one, r5 );
+			r6 = FusedMulAdd( p0, one, r6 );
+			r7 = FusedMulAdd( p0, one, r7 );
+
+			r0 = p1 - r0;
+			r1 = p1 - r1;
+			r2 = p1 - r2;
+			r3 = p1 - r3;
+			r4 = FusedMulSub( p1, one, r4 );
+			r5 = FusedMulSub( p1, one, r5 );
+			r6 = FusedMulSub( p1, one, r6 );
+			r7 = FusedMulSub( p1, one, r7 );
+
+			r0 = p2 + r0;
+			r1 = p2 + r1;
+			r2 = p2 + r2;
+			r3 = p2 + r3;
+			r4 = FusedMulAdd( p2, one, r4 );
+			r5 = FusedMulAdd( p2, one, r5 );
+			r6 = FusedMulAdd( p2, one, r6 );
+			r7 = FusedMulAdd( p2, one, r7 );
+
+			r0 = p3 - r0;
+			r1 = p3 - r1;
+			r2 = p3 - r2;
+			r3 = p3 - r3;
+			r4 = FusedMulSub( p3, one, r4 );
+			r5 = FusedMulSub( p3, one, r5 );
+			r6 = FusedMulSub( p3, one, r6 );
+			r7 = FusedMulSub( p3, one, r7 );
 		}
 	};
 	//-------------------------------------------------------------------------
@@ -508,6 +641,11 @@ namespace
 		VFloat_Op< VFloat_Add_4r4<T>  >( profiler, data, count, String{typeName} << " - Add ilp4 r4" );
 		VFloat_Op< VFloat_Add_4r8<T>  >( profiler, data, count, String{typeName} << " - Add ilp4 r8" );
 		VFloat_Op< VFloat_Add_4r16<T> >( profiler, data, count, String{typeName} << " - Add ilp4 r16" );
+
+		VFloat_Op< VFloat_FMA_8r4<T> >( profiler, data, count, String{typeName} << " - FMA ilp8 r4" );
+		VFloat_Op< VFloat_FMA_8r8<T> >( profiler, data, count, String{typeName} << " - FMA ilp8 r8" );	// memory bound
+
+		VFloat_Op< VFloat_AddFMA_8r4<T> >( profiler, data, count, String{typeName} << " - ADD+FMA ilp8 r4" );
 	}
 
 
@@ -519,10 +657,10 @@ namespace
 				setAffinity();
 
 				IntervalProfiler	profiler{ "SIMD-2 test, single thread, "s << ToString( core.type ) << " core",
-												IntervalProfiler::EFlags::SortByTime };
+												IntervalProfiler::EFlags::SortByUserData };
 
 				// Clang converts scalar to SIMD, so test is not correct
-				#if not defined(AE_COMPILER_CLANG) or not defined(AE_COMPILER_CLANG_CL)
+				#if ENABLE_SCALAR_OPS and not defined(AE_COMPILER_CLANG) or not defined(AE_COMPILER_CLANG_CL)
 					TestVFloat< packed_float4 >( profiler, "Scalar Float4" );
 					profiler.PrintAndReset();
 				#endif

@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 /*
 	Helper functions to get workgroup coords in compute shader and
 	global coord for fragment/compute/ray_tracing/mesh/task shaders.
@@ -69,7 +69,7 @@ ND_ float3  GetGlobalCoordSNorm ();					// -1..1
 ND_ float3  GetGlobalCoordUNorm (int3 offset);		//  0..1
 ND_ float3  GetGlobalCoordSNorm (int3 offset);		// -1..1
 ND_ float3  GetGlobalCoordSF ();					// -size/2 .. +size/2
-ND_ float3  GetGlobalCoordUF ();					// 0..size-1
+ND_ float3  GetGlobalCoordUF ();					// 0..size-1, without subpixel offset
 ND_ float3  GetGlobalSizeRcp ();					// 1/size
 
 // global normalized coordinate in 2D with same aspect ratio
@@ -130,20 +130,20 @@ float3  MapPixCoordToUNormCorrected (const float3 posPx, const float3 sizePx)
 
 float2  MapPixCoordToSNormCorrected (const float2 posPx, const float2 sizePx)
 {
-	const float2	hsize = sizePx * 0.5f;
-	return Clamp( (posPx - hsize) / Max( hsize.x, hsize.y ), -1.0, 1.0 );
+	float2	hsize = sizePx * 0.5f;
+	return	Clamp( (posPx - hsize) / Max( hsize.x, hsize.y ), -1.0, 1.0 );
 }
 
 float3  MapPixCoordToSNormCorrected (const float3 posPx, const float3 sizePx)
 {
-	const float3	hsize = sizePx * 0.5f;
-	return Clamp( (posPx - hsize) / Max( hsize.x, hsize.y ), -1.0, 1.0 );
+	float3	hsize = sizePx * 0.5f;
+	return	Clamp( (posPx - hsize) / Max( hsize.x, hsize.y ), -1.0, 1.0 );
 }
 
 float2  MapPixCoordToSNormCorrected2 (const float2 posPx, const float2 sizePx)
 {
-	const float2	hsize = sizePx * 0.5f;
-	return (posPx - hsize) / Min( hsize.x, hsize.y );
+	float2	hsize = sizePx * 0.5f;
+	return	(posPx - hsize) / Min( hsize.x, hsize.y );
 }
 
 
@@ -154,35 +154,35 @@ float2  MapPixCoordToUNormCorrected (const float2 srcPosPx, const float2 srcSize
 
 float2  _MapPixCoordToUNormCorrected_CalcScale (const float2 srcSizePx, const float2 dstSizePx)
 {
-	const float		src_ratio	= srcSizePx.x / srcSizePx.y;
-	const float		dst_ratio	= dstSizePx.x / dstSizePx.y;
-	const float		scale1		= Max( src_ratio, dst_ratio ) / dst_ratio;
-	const float		scale2		= Min( src_ratio, dst_ratio ) / dst_ratio;
-	const float2	scale		= src_ratio >= dst_ratio ? float2(scale1, 1.0f) : float2(1.0f, 1.0f/scale2);
-	return scale;
+	float	src_ratio	= srcSizePx.x / srcSizePx.y;
+	float	dst_ratio	= dstSizePx.x / dstSizePx.y;
+	float	scale1		= Max( src_ratio, dst_ratio ) / dst_ratio;
+	float	scale2		= Min( src_ratio, dst_ratio ) / dst_ratio;
+	float2	scale		= src_ratio >= dst_ratio ? float2(scale1, 1.0f) : float2(1.0f, 1.0f/scale2);
+	return	scale;
 }
 
 float2  MapPixCoordToUNormCorrected (const float2 srcPosPx, const float2 srcSizePx, const float2 dstSizePx, const float snormScale)
 {
-	const float2	snorm	= ToSNorm( srcPosPx / srcSizePx );
-	const float2	scale	= _MapPixCoordToUNormCorrected_CalcScale( srcSizePx, dstSizePx );
-	return ToUNorm( snorm * scale * snormScale );
+	float2	snorm	= ToSNorm( srcPosPx / srcSizePx );
+	float2	scale	= _MapPixCoordToUNormCorrected_CalcScale( srcSizePx, dstSizePx );
+	return	ToUNorm( snorm * scale * snormScale );
 }
 
 float2  MapUNormCorrectedToSrcPixCoord (const float2 srcUNorm, const float2 srcSizePx, const float2 dstSizePx)
 {
-	const float2	scale	= _MapPixCoordToUNormCorrected_CalcScale( srcSizePx, dstSizePx );
-	const float2	snorm	= ToSNorm( srcUNorm );
-	const float2	uv		= ToUNorm( snorm / scale );
-	return uv * srcSizePx;
+	float2	scale	= _MapPixCoordToUNormCorrected_CalcScale( srcSizePx, dstSizePx );
+	float2	snorm	= ToSNorm( srcUNorm );
+	float2	uv		= ToUNorm( snorm / scale );
+	return	uv * srcSizePx;
 }
 
 float2  MapUNormCorrectedToDstPixCoord (const float2 dstUNorm, const float2 srcSizePx, const float2 dstSizePx)
 {
-	const float2	scale	= _MapPixCoordToUNormCorrected_CalcScale( srcSizePx, dstSizePx );
-	const float2	snorm	= ToSNorm( dstUNorm );
-	const float2	uv		= ToUNorm( snorm * scale );
-	return uv * dstSizePx;
+	float2	scale	= _MapPixCoordToUNormCorrected_CalcScale( srcSizePx, dstSizePx );
+	float2	snorm	= ToSNorm( dstUNorm );
+	float2	uv		= ToUNorm( snorm * scale );
+	return	uv * dstSizePx;
 }
 //-----------------------------------------------------------------------------
 

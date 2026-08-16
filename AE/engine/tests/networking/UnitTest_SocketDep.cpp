@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #include "threading/TaskSystem/ThreadManager.h"
 #include "UnitTest_Common.h"
@@ -6,7 +6,7 @@
 
 namespace
 {
-	static const ushort		c_Port = AE_TEST_TCP_PORT_1;
+	static const ushort		c_Port = AE_TEST_TCP_PORT_1 + 4;
 
 
 	struct ExeOrder

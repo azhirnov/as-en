@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #pragma once
 
@@ -33,6 +33,8 @@ namespace AE::Graphics
 		EPipelineOpt				_options			= Default;
 		ubyte						_subpassIndex		= UMax;
 		bool						_releaseRef			= false;
+		EShaderStages				_activeStages		= Default;
+
 		Strong<PipelineLayoutID>	_layoutId;
 		Array<ShaderTracePtr>		_dbgTrace;
 
@@ -61,6 +63,7 @@ namespace AE::Graphics
 		ND_ PipelineLayoutID		LayoutId ()						C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _layoutId; }
 		ND_ EPipelineDynamicState	DynamicState ()					C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _dynamicState; }
 		ND_ uint					RenderPassSubpassIndex ()		C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _subpassIndex; }
+		ND_ EShaderStages			GetActiveStages ()				C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _activeStages; }
 
 		ND_ uint3					TaskLocalSize ()				C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return uint3{_taskLocalSize}; }
 		ND_ uint3					MeshLocalSize ()				C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return uint3{_meshLocalSize}; }

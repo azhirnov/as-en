@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #pragma once
 
@@ -17,11 +17,13 @@
 
 # include "base/Common.h"
 # include "base/Algorithms/Iterators.h"
+# include "base/Algorithms/ArrayUtils.h"
 
 # include "base/SIMD/ARMRuntimeConfig.h"
 
 # include "base/SIMD/Neon.h"
 # include "base/SIMD/SVE.h"
+//# include "base/SIMD/SME.h"
 # include "base/SIMD/ARMCrypto.h"
 
 #endif // AE_SIMD_NEON or AE_SIMD_SVE

@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #pragma once
 
@@ -33,7 +33,7 @@ namespace AE::ResEditor
 			Update				= 1 << 16,
 			Export				= 1 << 17,	// will pause rendering
 			Unknown				= 0,
-			_BITOPS_
+			_BITOPS_			= 0
 		};
 
 		enum class EDebugMode : uint

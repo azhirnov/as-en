@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 /*
 	Async task states:
 		TaskScheduler::Run() {
@@ -140,6 +140,7 @@ namespace AE::Threading
 	{
 		File,		// async file IO
 		Network,
+		DelayedRun,
 	};
 
 

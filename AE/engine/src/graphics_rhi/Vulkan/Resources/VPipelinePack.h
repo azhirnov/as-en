@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #pragma once
 
@@ -19,11 +19,11 @@ namespace AE::Graphics
 	class VMeshPipeline;
 	class VTilePipeline;
 	class VRayTracingPipeline;
+	class VDescriptorSetLayout;
 	class VPipelineLayout;
 	class VRTShaderBindingTable;
 
 	using ShaderTracePtr = Ptr< const PipelineCompiler::ShaderTrace >;
-
 
 } // AE::Graphics
 

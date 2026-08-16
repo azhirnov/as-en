@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #include "res_pack/pipeline_compiler/ScriptObjects/DescriptorSetLayout.h"
 #include "res_pack/pipeline_compiler/ScriptObjects/Common.inl.h"
@@ -337,6 +337,7 @@ namespace
 				case EShaderStages::PreRasterizationStages :
 				case EShaderStages::PostRasterizationStages :
 				case EShaderStages::Unknown :
+				case EShaderStages::_Last :
 				default :
 					CHECK_THROW_MSG( false, "unknown shader stage" );
 			}
@@ -594,26 +595,16 @@ namespace
 
 /*
 =================================================
-	Build
+	_AddDescSets
 =================================================
 */
-	bool  PipelineLayout::Build () __NE___
+	bool  PipelineLayout::_AddDescSets (INOUT MSLBindingsPerState_t &mslPerStage) __Th___
 	{
-		NOTHROW_ERR( return _Build() );
-	}
-
-	bool  PipelineLayout::_Build () __Th___
-	{
-		using MSLBindingsPerState_t = FixedMap< EShaderStages, MSLBindings, uint(EShader::_Count) >;
-
-		if ( _uid.has_value() )
-			return true;
-
 		uint					idx				= 0;
 		DescriptorCount			total			= {};
 		PerStageDescCount_t		per_stage;
-		MSLBindingsPerState_t	msl_per_stage;
 		const bool				is_metal		= AnyEqual( ObjectStorage::Instance()->target, ECompilationTarget::Metal_Mac, ECompilationTarget::Metal_iOS );
+		const bool				has_desc_heap	= HasDescriptorHeap();
 
 		for (auto& ds : _dsLayouts)
 		{
@@ -621,6 +612,14 @@ namespace
 			{
 				CHECK_ERR( ptr->Build() );
 				CHECK_ERR( ptr->_uid.has_value() );
+
+				if ( has_desc_heap )
+				{
+					CHECK_ERR_MSG( AllBits( ptr->GetUsage(), EDescSetUsage::DescriptorHeap ),
+						"In PipelineLayout '"s << _name << "' at least one DescriptorSetLayout have 'DescriptorHeap' usage,"
+						" but DescriptorSetLayout '" << ptr->Name() << "' doesn't have 'DescriptorHeap' usage.\n"
+						"In PipelineLayout all DescriptorSetLayouts must have same 'DescriptorHeap' usage (set or unset)." );
+				}
 
 				PipelineLayoutDesc::DescSetLayout	dsl;
 				dsl.vkIndex	= idx;
@@ -638,7 +637,7 @@ namespace
 							continue;
 						}
 
-						auto&	msl_bindings = msl_per_stage( stage );
+						auto&	msl_bindings = mslPerStage( stage );
 						CHECK_ERR( CastAndCheck( OUT *dst, msl_bindings.BufferCount() ));
 
 						CHECK_ERR( ptr->CountMSLBindings( stage, INOUT msl_bindings ));
@@ -656,17 +655,26 @@ namespace
 			++idx;
 		}
 
-		ScriptFeatureSet::Minimize( INOUT _features );
 		CHECK_ERR( DescriptorSetLayout::CheckDescriptorLimits_PerStage(	per_stage, _features, ("In PipelineLayout '"s << _name << "'") ));
 		CHECK_ERR( DescriptorSetLayout::CheckDescriptorLimits_PerPipeline( total, _features, ("In PipelineLayout '"s << _name << "'") ));
 
-		// TODO: check metal limits
+		TestFeature_Min( _features, &FeatureSet::maxDescriptorSets, idx, "maxDescriptorSets", "DescriptorLayouts" );	// throw
+		return true;
+	}
 
-		Bytes	pc_offset;
+/*
+=================================================
+	_AddPushConst
+=================================================
+*/
+	bool  PipelineLayout::_AddPushConst (INOUT MSLBindingsPerState_t &mslPerStage) __Th___
+	{
+		const bool	is_metal	= AnyEqual( ObjectStorage::Instance()->target, ECompilationTarget::Metal_Mac, ECompilationTarget::Metal_iOS );
+		Bytes		pc_offset;
 
 		for (auto& src : _pushConstants)
 		{
-			auto&		msl_bindings	= msl_per_stage( EShaderStages(0) | src.Get<2>() );
+			auto&		msl_bindings	= mslPerStage( EShaderStages(0) | src.Get<2>() );
 			const uint	buf_idx			= msl_bindings.bufferIdx++;
 
 			if ( is_metal )
@@ -686,8 +694,34 @@ namespace
 
 		ASSERT( _pushConstants.size() == _desc.pushConstants.items.size() );
 
-		TestFeature_Min( _features, &FeatureSet::maxDescriptorSets,		idx,		"maxDescriptorSets",	"DescriptorLayouts" );
-		TestFeature_Min( _features, &FeatureSet::maxPushConstantsSize,	pc_offset,	"maxPushConstantsSize",	"PushConstantsSize" );
+		TestFeature_Min( _features, &FeatureSet::maxPushConstantsSize, pc_offset, "maxPushConstantsSize", "PushConstantsSize" );	// throw
+		return true;
+	}
+
+/*
+=================================================
+	Build
+=================================================
+*/
+	bool  PipelineLayout::Build () __NE___
+	{
+		NOTHROW_ERR( return _Build() );
+	}
+
+	bool  PipelineLayout::_Build () __Th___
+	{
+		if ( _uid.has_value() )
+			return true;
+
+		MSLBindingsPerState_t	msl_per_stage;
+		const bool				is_metal		= AnyEqual( ObjectStorage::Instance()->target, ECompilationTarget::Metal_Mac, ECompilationTarget::Metal_iOS );
+
+		ScriptFeatureSet::Minimize( INOUT _features );
+
+		CHECK_ERR( _AddDescSets( INOUT msl_per_stage ));
+		CHECK_ERR( _AddPushConst( INOUT msl_per_stage ));
+
+		// TODO: check metal limits
 
 		if ( is_metal )
 		{
@@ -702,6 +736,12 @@ namespace
 				CHECK_ERR_MSG( bindings.textureIdx     <= MetalLimits::maxImages,
 					"Number of textures ("s << ToString(bindings.textureIdx) << ") exceed the maximum allowed (" << ToString(MetalLimits::maxImages) << ")" );
 			}
+		}
+
+		if ( HasDescriptorHeap() )
+		{
+			//TODO("???");
+			return true;
 		}
 
 		_uid = ObjectStorage::Instance()->pplnStorage->AddPipelineLayout( _desc );
@@ -778,5 +818,22 @@ namespace
 		return false;
 	}
 
+/*
+=================================================
+	HasDescriptorHeap
+=================================================
+*/
+	bool  PipelineLayout::HasDescriptorHeap () const
+	{
+		for (auto& ds : _dsLayouts)
+		{
+			if ( auto ptr = ds.Get<0>() )
+			{
+				if ( AllBits( ptr->GetUsage(), EDescSetUsage::DescriptorHeap ))
+					return true;
+			}
+		}
+		return false;
+	}
 
 } // AE::PipelineCompiler

@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #include "graphics_rhi/Private/ContextValidation.h"
 #include "graphics_rhi/GraphicsImpl.h"
@@ -233,7 +233,7 @@ namespace
 
 		GCTX_CHECK( cmd.indirectBufferOffset < indirectBufferDesc.size );
 		GCTX_CHECK( cmd.indirectSize == UMax or cmd.indirectBufferOffset + cmd.indirectSize <= indirectBufferDesc.size );
-		GCTX_CHECK( AllBits( indirectBufferDesc.usage, EBufferUsage::ShaderAddress ));
+		GCTX_CHECK( AllBits( indirectBufferDesc.usage, EBufferUsage::Indirect ));
 
 		if ( cmd.sequenceCountBuffer )
 		{

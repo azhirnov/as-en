@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 /*
 	local_pos * model_mat		= world_pos  (world space)
 	world_pos - camera_offset	= camera_pos (world space, camera relative coords)

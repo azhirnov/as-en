@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 #ifdef __INTELLISENSE__
 #	include <pipeline_compiler.as>
 #	include <glsl.h>
@@ -100,9 +100,9 @@
 			return;
 
 		//           /
-		//  /
-		//  \ 
-		//  cone0    \
+		//  /       /
+		//  \       \.
+		//  cone0    \.
 		//          cone1
 
 		const uint	cone0_idx	= un_RayStorage.rayToCone[ In[0].rayIdx ].x + In[0].coneIdx;

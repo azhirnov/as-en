@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #include "UnitTest_Common.h"
 
@@ -80,6 +80,15 @@ namespace
 		s = ToString( 0.f );		TEST_Eq( s, "0.00" );
 		s = ToString( 1.0e-20f );	TEST_Eq( s, "1.00e-20" );
 	}
+
+
+	static void  Test_PathToString ()
+	{
+		String	p = "/storage/emulated/0/Android/data/AE.Test";
+		String	s = ToString( Path{p} );
+
+		TEST_Eq( p, s );
+	}
 }
 
 
@@ -90,6 +99,7 @@ extern void UnitTest_ToString ()
 	Test_DivStringByStep();
 	Test_ToStringWithSuffix();
 	Test_FloatToString();
+	Test_PathToString();
 
 	TEST_PASSED();
 }

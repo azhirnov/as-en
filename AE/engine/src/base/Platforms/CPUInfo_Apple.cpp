@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #include "base/Defines/StdInclude.h"
 
@@ -73,9 +73,10 @@ namespace AE::Base
 		feats.NEON		= ReadUInt("hw.optional.neon") > 0 or
 						  ReadUInt("hw.optional.AdvSIMD") > 0;
 		feats.NEON_fp16	= ReadUInt("hw.optional.neon_fp16") > 0 or		// fp16 arithmetic
-						  ReadUInt("hw.optional.arm.FEAT_FP16") > 0;
-		feats.FP16C		= ReadUInt("hw.optional.neon_hpfp") > 0 or		// Advanced SIMD half-precision conversion instructions.
-						  ReadUInt("hw.optional.AdvSIMD_HPFPCvt") > 0;
+						  ReadUInt("hw.optional.neon_hpfp") > 0;
+		feats.FP16C		= feats.NEON_fp16 or
+						  ReadUInt("hw.optional.AdvSIMD_HPFPCvt") > 0;	// Advanced SIMD half-precision conversion instructions.
+		feats.FP16		= ReadUInt("hw.optional.arm.FEAT_FP16") > 0;
 		feats.BF16		= ReadUInt("hw.optional.arm.FEAT_BF16") > 0;
 
 		feats.CRC32		= ReadUInt("hw.optional.armv8_crc32") > 0;
@@ -165,12 +166,12 @@ namespace AE::Base
 
 			// P
 			{
-				auto&	c = cache( CacheKey_t{ ECacheType::L1_Instuction, ECoreType::P });
+				auto&	c = cache( CacheKey_t{ ECacheType::L1I, ECoreType::P });
 				c.size				= Bytes32u{ReadUInt("hw.perflevel0.l1icachesize")};
 				c.associativity		= 4;
 				c.logicalCoreCount	= 1;
 			}{
-				auto&	c = cache( CacheKey_t{ ECacheType::L1_Data, ECoreType::P });
+				auto&	c = cache( CacheKey_t{ ECacheType::L1D, ECoreType::P });
 				c.lineSize			= cache_line;
 				c.size				= Bytes32u{ReadUInt("hw.perflevel0.l1dcachesize")};
 				c.associativity		= 4;
@@ -185,12 +186,12 @@ namespace AE::Base
 
 			// EE
 			{
-				auto&	c = cache( CacheKey_t{ ECacheType::L1_Instuction, ECoreType::EE });
+				auto&	c = cache( CacheKey_t{ ECacheType::L1I, ECoreType::EE });
 				c.size				= Bytes32u{ReadUInt("hw.perflevel1.l1icachesize")};
 				c.associativity		= 4;
 				c.logicalCoreCount	= 1;
 			}{
-				auto&	c = cache( CacheKey_t{ ECacheType::L1_Data, ECoreType::EE });
+				auto&	c = cache( CacheKey_t{ ECacheType::L1D, ECoreType::EE });
 				c.lineSize			= cache_line;
 				c.size				= Bytes32u{ReadUInt("hw.perflevel1.l1dcachesize")};
 				c.associativity		= 4;
@@ -209,12 +210,12 @@ namespace AE::Base
 			uint	cache_line		= ReadUInt("hw.cachelinesize");
 			CHECK( cache_line == AE_CACHE_LINE );
 			{
-				auto&	c = cache( CacheKey_t{ ECacheType::L1_Instuction, ECoreType::Unknown });
+				auto&	c = cache( CacheKey_t{ ECacheType::L1I, ECoreType::Unknown });
 				c.size				= Bytes32u{ReadUInt("hw.l1icachesize")};
 				c.associativity		= 4;
 				c.logicalCoreCount	= 1;
 			}{
-				auto&	c = cache( CacheKey_t{ ECacheType::L1_Data, ECoreType::Unknown });
+				auto&	c = cache( CacheKey_t{ ECacheType::L1D, ECoreType::Unknown });
 				c.lineSize			= cache_line;
 				c.size				= Bytes32u{ReadUInt("hw.l1dcachesize")};
 				c.associativity		= 4;

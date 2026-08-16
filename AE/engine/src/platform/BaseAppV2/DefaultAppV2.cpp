@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #include "platform/BaseAppV2/DefaultAppV2.h"
 #include "platform/Private/ApplicationBase.h"
@@ -165,15 +165,23 @@ namespace AE::AppV2
 */
 	bool  AppCore::_InitVFS2 () __NE___
 	{
+		#ifndef AE_PLATFORM_ANDROID
 		{
 			auto	shared_data = GetApplication()->OpenStorage( EAppStorage::SharedData );
-			CHECK_ERR( shared_data );
-			CHECK_ERR( GetVFS().AddStorage( VFS::StorageName{"shared-data/"}, shared_data ));
+
+			// it will happens on Android without enabled 'android.permission.MANAGE_EXTERNAL_STORAGE'
+			CHECK_MSG( shared_data, "Failed to open SharedData storage" );
+
+			if ( shared_data ) {
+				CHECK_ERR( GetVFS().AddStorage( Storage_SharedData, shared_data ));
+			}
 		}
+		#endif
+
 		{
 			auto	user_data = GetApplication()->OpenStorage( EAppStorage::UserData );
 			CHECK_ERR( user_data );
-			CHECK_ERR( GetVFS().AddStorage( VFS::StorageName{"user-data/"}, user_data ));
+			CHECK_ERR( GetVFS().AddStorage( Storage_UserData, user_data ));
 		}
 
 		GetVFS().MakeImmutable();
@@ -505,8 +513,9 @@ namespace AE::AppV2
 
 		// create VR device
 		{
-			bool							enable	= cfg.enableVR;
-			Array<IVRSession::EDeviceType>	devices	{ cfg.vrDevices.begin(), cfg.vrDevices.end() };
+			auto&							vr_cfg	= cfg.vr;
+			bool							enable	= vr_cfg.enableVR;
+			Array<IVRSession::EDeviceType>	devices	{ vr_cfg.devices.begin(), vr_cfg.devices.end() };
 
 			if ( _callbacks.overrideVRDevice )
 				_callbacks.overrideVRDevice( INOUT enable, INOUT devices );

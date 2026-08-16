@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #pragma once
 
@@ -214,40 +214,62 @@ namespace
 =================================================
 */
 #ifdef AE_PLATFORM_ANDROID
+	#ifndef STATX_DIOALIGN
+	# define STATX_DIOALIGN 0x00002000U
+	#endif
+
 	#ifndef AT_EMPTY_PATH
 	# define AT_EMPTY_PATH 0x1000
 	#endif
 
+	#ifndef __NR_statx
+	# if defined(__aarch64__)
+	#  define __NR_statx 291
+	# elif defined(__arm__)
+	#  define __NR_statx 397
+	# elif defined(__i386__)
+	#  define __NR_statx 383
+	# elif defined(__x86_64__)
+	#  define __NR_statx 332
+	# else
+	# error "Unknown Android architecture: define __NR_statx for this target"
+	# endif
+	#endif
+
 	bool  android_statx (int fd, unsigned mask, OUT struct statx* sx)
 	{
+		long rc = 1;
 		#ifdef SYS_statx
-			return syscall( SYS_statx, fd, "", AT_EMPTY_PATH, mask, sx ) == 0;
+			rc = syscall( SYS_statx, fd, "", AT_EMPTY_PATH, mask, sx );
 		#elif defined(__NR_statx)
-			return syscall( __NR_statx, fd, "", AT_EMPTY_PATH, mask, sx ) == 0;
+			rc = syscall( __NR_statx, fd, "", AT_EMPTY_PATH, mask, sx );
 		#else
 			errno = ENOSYS;
-			return false;
 		#endif
+		return rc == 0;
 	}
+
 	#define STATX( _fd_, _mask_, _outStx_ )		android_statx( _fd_, _mask_, _outStx_ )
 #else
 	#define STATX( _fd_, _mask_, _outStx_ )		(::statx( _fd_, "", AT_EMPTY_PATH | AT_STATX_SYNC_AS_STAT, _mask_, _outStx_ ) != -1)
 #endif
 
-	IDataSource::ReqAlign  GetDirectAccessAlign (int fd) __NE___
+	IDataSource::ReqAlign  GetDirectAccessAlign (int fd DEBUG_ONLY(, const Path &filename)) __NE___
 	{
 		static constexpr POTBytes	logical_sector_size		{PowerOfTwo(9)};	// 512_b
 		static constexpr POTBytes	physical_sector_size	{PowerOfTwo(12)};	// 4_KiB
 
 		struct statx	stx{};
 
-		if ( not STATX( fd, STATX_DIOALIGN, OUT &stx ) or
-			 NoBits( stx.stx_mask, STATX_DIOALIGN ))
+		if ( not STATX( fd, STATX_BASIC_STATS | STATX_DIOALIGN, OUT &stx )	or
+			 NoBits( stx.stx_mask, STATX_DIOALIGN )							or
+			 stx.stx_dio_mem_align == 0										or
+			 stx.stx_dio_offset_align == 0 )
 		{
 			// default
+			AE_LOGW( "Used default file alignment" DEBUG_ONLY(" in '"s << ToString(filename) << "'"));
 			return IDataSource::ReqAlign{ logical_sector_size, physical_sector_size };
 		}
-
 		return IDataSource::ReqAlign{ POTBytes{stx.stx_dio_offset_align}, POTBytes{stx.stx_dio_mem_align} };
 	}
 

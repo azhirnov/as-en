@@ -1,8 +1,9 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #pragma once
 
 #include "base/Common.h"
+#include "base/CompileTime/Math.h"
 
 namespace AE::AssetPacker
 {
@@ -17,7 +18,7 @@ namespace AE::AssetPacker
 		Folder						= 1 << 1,
 		RecursiveFolder				= 1 << 2,
 		_Last,
-		All							= ((_Last - 1) << 1) - 1,
+		All							= Base::CT_AllBitMask2<EPathParamsFlags>,
 	};
 
 	struct PathParams

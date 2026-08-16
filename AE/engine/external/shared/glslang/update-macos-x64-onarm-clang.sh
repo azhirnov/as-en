@@ -5,15 +5,23 @@ rm -rf "temp"
 mkdir "build"
 export CC=/usr/local/opt/llvm/bin/clang
 export CXX=/usr/local/opt/llvm/bin/clang++
-git clone --branch "vulkan-sdk-1.4.341.0" "https://github.com/KhronosGroup/glslang.git" "temp"
-git clone --branch "vulkan-sdk-1.4.341.0" "https://github.com/KhronosGroup/SPIRV-Tools.git" "temp/External/spirv-tools"
-git clone --branch "vulkan-sdk-1.4.341.0" "https://github.com/KhronosGroup/SPIRV-Headers.git" "temp/External/spirv-tools/external/spirv-headers"
+git clone --branch "vulkan-sdk-1.4.350.1" "https://github.com/KhronosGroup/glslang.git" "temp"
+git clone --branch "vulkan-sdk-1.4.350.1" "https://github.com/KhronosGroup/SPIRV-Tools.git" "temp/External/spirv-tools"
+git clone --branch "vulkan-sdk-1.4.350.1" "https://github.com/KhronosGroup/SPIRV-Headers.git" "temp/External/spirv-tools/external/spirv-headers"
 cp "temp/CMakeLists.txt" "temp/origin_CMakeLists.txt"
 cp "glslang_CMakeLists.txt" "temp/CMakeLists.txt"
-arch -x86_64 /usr/local/bin/cmake -S temp -B build -G "Xcode" -DAE_ENABLE_COMPILER_WARNINGS=OFF -DCMAKE_BUILD_TYPE=Debug -DCMAKE_OSX_DEPLOYMENT_TARGET=10.15 -DCMAKE_OSX_ARCHITECTURES=x86_64 -DAE_SIMD_SSE=20 -DAE_SIMD_AES=0 -DCMAKE_INSTALL_PREFIX="../../../../../AE-Bin/external/macos-x64-clang17/glslang" 
-arch -x86_64 /usr/local/bin/cmake --build build --config Debug --target install -j 6
-arch -x86_64 /usr/local/bin/cmake -S temp -B build -G "Xcode" -DAE_ENABLE_COMPILER_WARNINGS=OFF -DCMAKE_BUILD_TYPE=Release -DCMAKE_OSX_DEPLOYMENT_TARGET=10.15 -DCMAKE_OSX_ARCHITECTURES=x86_64 -DAE_SIMD_SSE=20 -DAE_SIMD_AES=0 -DCMAKE_INSTALL_PREFIX="../../../../../AE-Bin/external/macos-x64-clang17/glslang" 
-arch -x86_64 /usr/local/bin/cmake --build build --config Release --target install -j 6
+arch -x86_64 /usr/local/bin/cmake -S temp -B build -G "Xcode" -DAE_ENABLE_COMPILER_WARNINGS=OFF -DCMAKE_BUILD_TYPE=Debug -DCMAKE_OSX_DEPLOYMENT_TARGET=10.15 -DCMAKE_OSX_ARCHITECTURES=x86_64 -DAE_SIMD_SSE=20 -DAE_SIMD_AES=0 -DCMAKE_INSTALL_PREFIX="../../../../../AE-Bin/external/macos-x64-clang17/glslang"  || pauseOnError
+arch -x86_64 /usr/local/bin/cmake --build build --config Debug --target install -j 6 || pauseOnError
+arch -x86_64 /usr/local/bin/cmake -S temp -B build -G "Xcode" -DAE_ENABLE_COMPILER_WARNINGS=OFF -DCMAKE_BUILD_TYPE=Release -DCMAKE_OSX_DEPLOYMENT_TARGET=10.15 -DCMAKE_OSX_ARCHITECTURES=x86_64 -DAE_SIMD_SSE=20 -DAE_SIMD_AES=0 -DCMAKE_INSTALL_PREFIX="../../../../../AE-Bin/external/macos-x64-clang17/glslang"  || pauseOnError
+arch -x86_64 /usr/local/bin/cmake --build build --config Release --target install -j 6 || pauseOnError
 rm -rf "temp"
 rm -rf "build"
 read -p "press any key..."
+
+exit 0
+
+pauseOnError() {
+	echo -e "\033[31m*** failed ***\033[0m"
+	read -p "press any key..."
+	exit 1
+}

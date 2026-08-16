@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #pragma once
 
@@ -38,7 +38,7 @@ namespace AE::App
 		MonitorsView_t			GetMonitors (bool update = false)						__NE_OV;
 		MonitorsView_t			GetCachedMonitors ()									C_NE_OV;
 		RC<IVirtualFileStorage> OpenStorage (EAppStorage)								__NE_OV;
-		Path					GetStoragePath (EAppStorage)							__NE_OV;
+		Path					GetStoragePath (EAppStorage)							C_NE_OV;
 		ArrayView<const char*>	GetVulkanInstanceExtensions ()							__NE_OV;
 		RC<IScreenCapture>		StartScreenCapture (const IScreenCapture::Config &)		__NE_OV;
 		Unique<ISendInput>		CreateInputSender ()									__NE_OV;

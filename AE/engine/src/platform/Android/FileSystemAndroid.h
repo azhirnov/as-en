@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #pragma once
 
@@ -131,6 +131,7 @@ namespace AE::App
 		bool  _OpenByIter (OUT RC<RDataSource> &ds, FileName::Ref, const void* ref)			C_NE_OV;
 		bool  _OpenByIter (OUT RC<AsyncRStream> &, FileName::Ref, const void*)				C_NE_OV	{ return false; }
 		bool  _OpenByIter (OUT RC<AsyncRDataSource> &, FileName::Ref, const void*)			C_NE_OV	{ return false; }
+		bool  _GetPath (FileName::Ref, OUT Path &)									        C_NE_OV { return false; }
 
 		template <typename ImplType, typename ResultType>
 		ND_ bool  _Open (OUT ResultType &, FileName::Ref)									C_NE___;

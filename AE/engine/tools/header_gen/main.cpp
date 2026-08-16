@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #include "vulkan/VulkanLoaderGen.h"
 #include "openxr/OpenXRLoaderGen.h"
@@ -12,6 +12,7 @@ using namespace AE::Parsers;
 */
 int GenerateVulkanLoader (const char* headerPath, const char* loaderPath, Version2 minVer)
 {
+#ifdef VULKAN_HEADER_PATH
 	AE_LOGI( "Load vulkan headers from: '"s << headerPath << "'" );
 
 	VulkanLoaderGen	generator;
@@ -26,6 +27,7 @@ int GenerateVulkanLoader (const char* headerPath, const char* loaderPath, Versio
 
 	generator.RemoveEnumValDuplicates();
 	CHECK_ERR( generator.GenEnumToString( loaderPath ), -7 );
+#endif
 	return 0;
 }
 
@@ -36,6 +38,7 @@ int GenerateVulkanLoader (const char* headerPath, const char* loaderPath, Versio
 */
 int GenerateOpenXRLoader (const char* headerPath, const char* loaderPath, Version2 minVer)
 {
+#ifdef XR_HEADER_PATH
 	AE_LOGI( "Load OpenXR headers from: '"s << headerPath << "'" );
 
 	OpenXRLoaderGen	generator;
@@ -50,6 +53,7 @@ int GenerateOpenXRLoader (const char* headerPath, const char* loaderPath, Versio
 
 	generator.RemoveEnumValDuplicates();
 	CHECK_ERR( generator.GenEnumToString( loaderPath ), -7 );
+#endif
 	return 0;
 }
 
@@ -62,7 +66,7 @@ int main ()
 {
 	StaticLogger::LoggerScope	log{};
 
-	#if 1
+	#ifdef VULKAN_HEADER_PATH
 	{
 		int	res = GenerateVulkanLoader( VULKAN_HEADER_PATH, VULKAN_LOADER_PATH, Version2{1,0} );
 		if (res < 0)
@@ -70,7 +74,7 @@ int main ()
 	}
 	#endif
 
-	#if 1
+	#ifdef XR_HEADER_PATH
 	{
 		int res = GenerateOpenXRLoader( XR_HEADER_PATH, XR_LOADER_PATH, Version2{1,0} );
 		if (res < 0)

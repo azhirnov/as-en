@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 /*
 	Compare gl.texture.Sample() with SwSampling().
 	Use bilinear, triliniar and anisotropy filtering.

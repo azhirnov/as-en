@@ -300,26 +300,3 @@ TODO
 	| 1M   | 512x512   | 49.3 | 1.32 | 59 | near to RAM bandwidth, should be L2 cache |
 	| 2M   | 512x1024  | 95.4 | **1.93** | 31 |
 	| 4M   | 1024x1024 | 120  | 1.26 | 24 |
-
-## Nonuniform
-
-* __depth pre-pass__ [[14.2](../GPU_Benchmarks.md#14-Nonuniform)]<br/>
-	dpp = 1.8ms,
-	Scale=0.6, Dim=8K, ObjCount=4K
-
-	| nonuniform              | per object (ms) | per warp (ms) | per quad (ms) | per pixel (ms) |
-	|-------------------------|-----------------|---------------|---------------|----------------|
-	| texture layer           | 1.6             | 2.7           | 4.4           | 7.3            |
-	| texture index           | 1.65            | 2.65          | 4.35          | 7.2            |
-	| texture & sampler index | 1.7             | 2.6           | 4.2           | 7.0            |
-
-* __visibility buffer__ [[14.3](../GPU_Benchmarks.md#14-Nonuniform)]<br/>
-	visibility buffer build = 1.2ms<br/>
-	visibility buffer FS overhead = 1.5ms<br/>
-	Scale=0.6, Dim=4K, ObjCount=4K
-
-	| nonuniform              | per object (ms) | per warp (ms) | per quad (ms) | per pixel (ms) |
-	|-------------------------|-----------------|---------------|---------------|----------------|
-	| texture layer           | 1.6             | 1.84          | 1.92          | 2.0            |
-	| texture index           | 1.69            | 1.82          | 1.93          | 2.14           |
-	| texture & sampler index | 1.74            | 1.85          | 1.95          | 2.14           |

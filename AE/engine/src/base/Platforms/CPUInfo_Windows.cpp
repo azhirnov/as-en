@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #if defined(AE_COMPILER_MSVC) and defined(AE_PLATFORM_WINDOWS)
 # include "base/Platforms/WindowsHeader.cpp.h"
@@ -131,6 +131,8 @@ namespace AE::Base
 					//  The Windows Kernel creates a PerformanceSchedulingClass ranking based on this information and uses it during scheduling. Logical processor 0 and CCD0 may not be the fastest."
 				}
 
+				ASSERT( eff_class_map.size() < 4 );
+
 				uint	i = 0;
 				for (auto [cl, core] : eff_class_map)
 				{
@@ -233,10 +235,10 @@ namespace AE::Base
 						c.associativity	= info.Associativity;	// if 0xFF, the cache is fully associative
 						c.size			= Bytes32u{info.CacheSize};
 
-						if ( info.Level == 1 and info.Type == CacheInstruction )	AddCacheInfo( ECacheType::L1_Instuction, c );	else
-						if ( info.Level == 1 and info.Type == CacheData )			AddCacheInfo( ECacheType::L1_Data, c );			else
-						if ( info.Level == 2 and info.Type == CacheUnified )		AddCacheInfo( ECacheType::L2, c );				else
-						if ( info.Level == 3 and info.Type == CacheUnified )		AddCacheInfo( ECacheType::L3, c );				else
+						if ( info.Level == 1 and info.Type == CacheInstruction )	AddCacheInfo( ECacheType::L1I, c );		else
+						if ( info.Level == 1 and info.Type == CacheData )			AddCacheInfo( ECacheType::L1D, c );		else
+						if ( info.Level == 2 and info.Type == CacheUnified )		AddCacheInfo( ECacheType::L2, c );		else
+						if ( info.Level == 3 and info.Type == CacheUnified )		AddCacheInfo( ECacheType::L3, c );		else
 																					DBG_WARNING( "unsupported cache type" );
 					}
 					info_ptr = info_ptr + Bytes{info_ptr->Size};

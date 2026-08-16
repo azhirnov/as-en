@@ -687,7 +687,7 @@
                         "maxVertexInputAttributeOffset": 2047,
                         "maxVertexInputAttributes": 32,
                         "maxVertexInputBindingStride": 4095,
-                        "maxVertexInputBindings": 32,
+                        "maxVertexInputBindings": 31,
                         "maxVertexOutputComponents": 128,
                         "maxViewports": 16,
                         "minInterpolationOffset": -0.5,

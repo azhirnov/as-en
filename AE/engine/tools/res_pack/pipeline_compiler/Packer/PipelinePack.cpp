@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #include "res_pack/pipeline_compiler/Packer/PipelinePack.h"
 #include "base/Algorithms/StringUtils.h"
@@ -155,7 +155,7 @@ namespace AE::PipelineCompiler
 			CHECK_ERR( i >= min_offset );
 			CHECK_ERR( i <  max_offset );
 
-			result &= ser( un.type, un.stages, un.binding.vkIndex, un.binding.mtlIndex, un.arraySize );
+			result &= ser( un.type, un.flags, un.stages, un.binding.vkIndex, un.binding.mtlIndex, un.arraySize );
 
 			switch_enum( un.type )
 			{
@@ -204,7 +204,7 @@ namespace AE::PipelineCompiler
 				case EDescriptorType::RayTracingPartitionedScene :
 					break;
 
-				case EDescriptorType::Unknown :
+				case EDescriptorType::_Count :
 				default :
 					RETURN_ERR( "unknown descriptor type" );
 			}
@@ -227,16 +227,16 @@ namespace AE::PipelineCompiler
 		{
 			// see 'SortUniforms()'
 			if ( dst->second.type == src->second.type ?
-				 dst->first > src->first				:
-				 dst->second.type > src->second.type )
+					dst->first > src->first				:
+					dst->second.type > src->second.type )
 			{
 				++src;
 				continue;
 			}
 
 			if ( dst->second.type == src->second.type ?
-				 dst->first < src->first				:
-				 dst->second.type < src->second.type )
+					dst->first < src->first				:
+					dst->second.type < src->second.type )
 			{
 				++dst;
 				continue;
@@ -252,6 +252,7 @@ namespace AE::PipelineCompiler
 				CHECK_ERR( dst_un.arraySize	== src_un.arraySize );	// TODO: runtime-sized arrays
 
 				dst_un.stages |= src_un.stages;
+				dst_un.flags  |= src_un.flags;
 
 				switch_enum( dst_un.type )
 				{
@@ -339,7 +340,7 @@ namespace AE::PipelineCompiler
 					case EDescriptorType::RayTracingPartitionedScene :
 						break;
 
-					case EDescriptorType::Unknown :
+					case EDescriptorType::_Count :
 					default :
 						RETURN_ERR( "unknown descriptor type" );
 				}
@@ -533,7 +534,7 @@ namespace AE::PipelineCompiler
 					break;
 				}
 
-				case EDescriptorType::Unknown :
+				case EDescriptorType::_Count :
 				default :
 					RETURN_ERR( "unknown descriptor type" );
 			}
@@ -656,7 +657,7 @@ namespace AE::PipelineCompiler
 				case EDescriptorType::RayTracingPartitionedScene :
 					break;
 
-				case EDescriptorType::Unknown :
+				case EDescriptorType::_Count :
 				default :
 					RETURN_ERR( "unknown descriptor type" );
 			}
@@ -729,7 +730,7 @@ namespace AE::PipelineCompiler
 				case EDescriptorType::RayTracingPartitionedScene :
 					break;
 
-				case EDescriptorType::Unknown :
+				case EDescriptorType::_Count :
 				default :
 					RETURN_ERR( "unknown descriptor type" );
 			}

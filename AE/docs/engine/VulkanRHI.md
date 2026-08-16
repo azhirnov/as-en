@@ -19,6 +19,7 @@ Source folder: [Vulkan backend](https://github.com/azhirnov/as-en/blob/dev/AE/en
 - [x] VK_KHR_sampler_ycbcr_conversion
 - [x] VK_KHR_draw_indirect_count
 - [x] VK_EXT_descriptor_indexing
+	* [x] feature: descriptorBindingVariableDescriptorCount
 - [x] VK_KHR_timeline_semaphore
 - [x] VK_KHR_buffer_device_address
 - [x] VK_EXT_sampler_filter_minmax
@@ -72,7 +73,7 @@ Source folder: [Vulkan backend](https://github.com/azhirnov/as-en/blob/dev/AE/en
 - [x] VK_EXT_conservative_rasterization
 - [x] VK_KHR_driver_properties
 - [x] VK_EXT_device_generated_commands
-- [x] VK_EXT_opacity_micromap, GL_EXT_opacity_micromap, VK_ARM_pipeline_opacity_micromap
+- [x] VK_EXT_opacity_micromap, VK_KHR_opacity_micromap, GL_EXT_opacity_micromap, VK_ARM_pipeline_opacity_micromap
 - [x] VK_KHR_video_queue, VK_KHR_video_encode_queue, VK_KHR_video_decode_queue
 - [x] VK_KHR_video_maintenance1
 
@@ -228,6 +229,44 @@ Source folder: [Vulkan backend](https://github.com/azhirnov/as-en/blob/dev/AE/en
 - VK_NV_low_latency2
 - VK_EXT_ray_tracing_invocation_reorder, GL_EXT_shader_invocation_reorder
 - VK_ARM_performance_counters_by_region
+- VK_NV_cooperative_matrix2
+- VK_KHR_copy_memory_indirect, VK_NV_copy_memory_indirect
+- VK_KHR_device_address_commands
+- VK_KHR_extended_flags
+- VK_KHR_internally_synchronized_queues ?
+- VK_KHR_maintenance10
+- VK_KHR_maintenance11
+- VK_KHR_shader_abort
+- VK_KHR_shader_constant_data
+- VK_KHR_shader_fma
+- VK_KHR_video_encode_feedback2
+- VK_EXT_cooperative_matrix_maintenance1
+- VK_EXT_custom_resolve
+- VK_EXT_image_tiling_control
+- VK_EXT_memory_decompression
+- VK_EXT_multisampled_render_to_swapchain
+- VK_EXT_present_timing
+- VK_EXT_primitive_restart_index
+- VK_EXT_shader_long_vector
+- VK_EXT_shader_ocp_microscaling_types
+- VK_EXT_shader_split_barrier
+- VK_EXT_shader_subgroup_partitioned
+- VK_EXT_shader_uniform_buffer_unsized_array
+- VK_EXT_texture_compression_astc_3d
+- VK_ARM_data_graph_instruction_set_tosa
+- VK_ARM_data_graph_neural_accelerator_statistics
+- VK_ARM_data_graph_optical_flow
+- VK_ARM_shader_instrumentation
+- VK_ARM_tensor_controls
+- VK_NV_compute_occupancy_priority ?
+- VK_NV_cooperative_matrix_decode_vector
+- VK_NV_present_metering ?
+- VK_NV_raw_access_chains ?
+- VK_QCOM_cooperative_matrix_conversion
+- VK_QCOM_data_graph_model
+- VK_QCOM_elapsed_timer_query
+- VK_QCOM_queue_perf_hint
+- VK_QCOM_shader_multiple_wait_queues
 
 **Pending for debugging:**
 - VK_EXT_device_fault
@@ -250,7 +289,6 @@ Source folder: [Vulkan backend](https://github.com/azhirnov/as-en/blob/dev/AE/en
 - VK_KHR_pipeline_library
 - VK_NV_raw_access_chains - for HLSL
 - VK_KHR_index_type_uint8, VK_EXT_index_type_uint8
-- VK_NV_copy_memory_indirect
 - VK_KHR_dynamic_rendering_local_read
 - VK_EXT_dynamic_rendering_unused_attachments
 - VK_KHR_line_rasterization, VK_EXT_line_rasterization
@@ -285,6 +323,7 @@ Source folder: [Vulkan backend](https://github.com/azhirnov/as-en/blob/dev/AE/en
 - VK_NV_ray_tracing_invocation_reorder, GL_NV_shader_invocation_reorder
 - VK_NV_display_stereo
 - VK_NV_viewport_array2, GL_NV_viewport_array2 - add gl_ViewportMask
+- VK_AMD_gpa_interface ??
 
 **Pending shader extensions:**
 - GL_EXT_null_initializer
@@ -316,7 +355,7 @@ Source folder: [Vulkan backend](https://github.com/azhirnov/as-en/blob/dev/AE/en
 - GL_EXT_uniform_buffer_unsized_array, VK_EXT_shader_uniform_buffer_unsized_array
 - GL_EXT_descriptor_heap
 - GL_EXT_structured_descriptor_heap
-- GL_EXT_shader_64bit_indexing
+- VK_EXT_shader_64bit_indexing, GL_EXT_shader_64bit_indexing
 
 **Will not be supported**
 - GL_EXT_vulkan_glsl_relaxed
@@ -332,9 +371,8 @@ Source folder: [Vulkan backend](https://github.com/azhirnov/as-en/blob/dev/AE/en
 **TODO:**
 - sparse memory
 - reuse device memory immediately, destroy object with delay - memory on GPU side will be synchronized
-- unbounded array descriptors
+- unbounded array descriptors (runtimeDescriptorArray)
 - push descriptors
 - queue ownership transfer for RTAS / micromap
 - VK_DEPENDENCY_QUEUE_FAMILY_OWNERSHIP_TRANSFER_USE_ALL_STAGES_BIT_KHR
-- per-buffer barriers mode (instead of global memory barrier)
-
+- per-buffer barriers/images mode (instead of global memory barrier)

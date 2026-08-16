@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #ifdef AE_ENABLE_SLANG
 
@@ -864,6 +864,9 @@ namespace {
 			case SLANG_SCALAR_TYPE_VOID :
 			case SLANG_SCALAR_TYPE_BOOL :
 			case SLANG_SCALAR_TYPE_FLOAT64 :
+			case SLANG_SCALAR_TYPE_BFLOAT16 :
+			case SLANG_SCALAR_TYPE_FLOAT_E4M3 :
+			case SLANG_SCALAR_TYPE_FLOAT_E5M2 :
 			default :							RETURN_ERR( "unsupported scalar type" );
 		}
 		switch_end

@@ -1,8 +1,8 @@
 
 DescrSetLayouts {
   [0]
-    name   = 'DbgDS_Trace_Cs'
-    usage  = 0
+    name   = '0'
+    usage  = <none>
     stages = Compute
     [0] StorageBuffer {
       name         = 'dbg_ShaderTrace'
@@ -48,7 +48,7 @@ DescrSetLayouts {
   ----------------------
   [3]
     name   = 'DS_InputAttach'
-    usage  = 0
+    usage  = <none>
     stages = Fragment
     [0] SubpassInput {
       name         = 'in_Depth'
@@ -69,7 +69,7 @@ DescrSetLayouts {
   ----------------------
   [4]
     name   = 'DS_Compute'
-    usage  = 0
+    usage  = <none>
     stages = Compute
     [0] StorageImage {
       name         = 'un_OutImage'
@@ -81,35 +81,8 @@ DescrSetLayouts {
     }
   ----------------------
   [5]
-    name   = 'DS_Compute_2'
-    usage  = 0
-    stages = Compute
-    [0] StorageImage {
-      name         = 'un_Image'
-      vkIndex      = 0
-      mtlIndex     = Compute: 0
-      state        = ShaderStorage_RW | ComputeShader
-      type         = UInt_2D
-      format       = R32U
-    }
-  ----------------------
-  [6]
-    name   = 'DS_Compute_3'
-    usage  = 0
-    stages = Compute
-    [0] UniformBuffer {
-      name         = 'bufferRef'
-      vkIndex      = 0
-      mtlIndex     = Compute: 0
-      state        = ShaderUniform | ComputeShader
-      staticSize   = 32 B
-      arrayStride  = 0 B
-      typeName     = BufferRef
-    }
-  ----------------------
-  [7]
     name   = 'DS_RayTracing'
-    usage  = 0
+    usage  = <none>
     stages = RayGen
     [0] StorageImage {
       name         = 'un_OutImage'
@@ -121,6 +94,33 @@ DescrSetLayouts {
     [1] RayTracingScene {
       name         = 'un_TLAS'
       vkIndex      = 1
+    }
+  ----------------------
+  [6]
+    name   = 'DS_Compute_2'
+    usage  = <none>
+    stages = Compute
+    [0] StorageImage {
+      name         = 'un_Image'
+      vkIndex      = 0
+      mtlIndex     = Compute: 0
+      state        = ShaderStorage_RW | ComputeShader
+      type         = UInt_2D
+      format       = R32U
+    }
+  ----------------------
+  [7]
+    name   = 'DS_Compute_3'
+    usage  = <none>
+    stages = Compute
+    [0] UniformBuffer {
+      name         = 'bufferRef'
+      vkIndex      = 0
+      mtlIndex     = Compute: 0
+      state        = ShaderUniform | ComputeShader
+      staticSize   = 32 B
+      arrayStride  = 0 B
+      typeName     = BufferRef
     }
   ----------------------
 }
@@ -148,7 +148,7 @@ PipelineLayouts {
   [2]
     [0] DescrSet {
       name     = 'DS_Compute_2'
-      uid      = 5
+      uid      = 6
       vkIndex  = 0
     }
   ----------------------
@@ -226,14 +226,14 @@ PipelineLayouts {
   [8]
     [0] DescrSet {
       name     = 'DS_Compute_3'
-      uid      = 6
+      uid      = 7
       vkIndex  = 0
     }
   ----------------------
   [9]
     [0] DescrSet {
       name     = 'DS_RayTracing'
-      uid      = 7
+      uid      = 5
       vkIndex  = 0
     }
   ----------------------
@@ -303,8 +303,8 @@ PipelineTemplNames {
   [6]  'graphics_1', 10000000
   [7]  'mesh_2', 20000001
   [8]  'raytracing_1', 40000000
-  [9]  'raster_order', 10000002
-  [10]  'graphics_4', 10000003
+  [9]  'raster_order', 10000003
+  [10]  'graphics_4', 10000002
 }
 
 GraphicsPipelineTempl {
@@ -345,27 +345,9 @@ GraphicsPipelineTempl {
     features = { 'MinimalFS' }
   ----------------------
   [2]
-    layout  = 5
-    shaders = {
-      Vertex = 10000006
-      Fragment = 10000007
-    }
-    topology      = Point | LineList | LineStrip | TriangleList | TriangleStrip | TriangleFan
-    vertexAttribs = {
-      type   = Float3
-      index  = 0
-      -------------
-      type   = Float2
-      index  = 1
-    }
-    patchControlPoints = 0
-    earlyFragmentTests = true
-    features = { 'MinimalFS', 'part.RasterOrderAttachment' }
-  ----------------------
-  [3]
     layout  = 4
     shaders = {
-      Vertex = 10000006
+      Vertex = 1000000e
       Fragment = 10000003
     }
     topology      = Point | LineList | LineStrip | TriangleList | TriangleStrip | TriangleFan
@@ -380,14 +362,32 @@ GraphicsPipelineTempl {
     earlyFragmentTests = true
     features = { 'MinimalFS' }
   ----------------------
+  [3]
+    layout  = 5
+    shaders = {
+      Vertex = 1000000e
+      Fragment = 10000011
+    }
+    topology      = Point | LineList | LineStrip | TriangleList | TriangleStrip | TriangleFan
+    vertexAttribs = {
+      type   = Float3
+      index  = 0
+      -------------
+      type   = Float2
+      index  = 1
+    }
+    patchControlPoints = 0
+    earlyFragmentTests = true
+    features = { 'MinimalFS', 'part.RasterOrderAttachment' }
+  ----------------------
 }
 
 MeshPipelineTempl {
   [0]
     layout  = 3
     shaders = {
-      Mesh = 1000000e
-      Fragment = 1000000f
+      Mesh = 1000000b
+      Fragment = 1000000c
     }
     outputTopology       = TriangleList
     maxVertices          = 3
@@ -399,8 +399,8 @@ MeshPipelineTempl {
   [1]
     layout  = 3
     shaders = {
-      Mesh = 10000010
-      Fragment = 10000011
+      Mesh = 1000000f
+      Fragment = 10000010
     }
     outputTopology       = TriangleList
     maxVertices          = 32
@@ -443,29 +443,29 @@ RayTracingPipelineTempl {
     generalShaders = {
       [0] {
         name   = 'Main'
-        shader = 10000008
+        shader = 10000006
       }
       [1] {
         name   = 'Miss'
-        shader = 10000009
+        shader = 10000007
       }
     }
     triangleGroups = {
       [0] {
         name       = 'TriHit1'
-        closestHit = 1000000a
+        closestHit = 10000008
         anyHit     = none
       }
       [1] {
         name       = 'TriHit2'
-        closestHit = 1000000a
-        anyHit     = 1000000b
+        closestHit = 10000008
+        anyHit     = 10000009
       }
     }
     proceduralGroups = {
       [0] {
         name         = 'ProcHit1'
-        intersection = 1000000c
+        intersection = 1000000a
         closestHit   = none
         anyHit       = none
       }
@@ -481,7 +481,7 @@ GraphicsPipelineSpec {
     renderPass    = 'Simple'
     subpass       = 'Main'
     viewportCount = 1
-    dynamicState  = 0
+    dynamicState  = <none>
     options       = Optimize
     vertexBuffers = {
       [0] {
@@ -509,7 +509,7 @@ GraphicsPipelineSpec {
     renderPass    = 'UIRenderPass'
     subpass       = 'Main'
     viewportCount = 1
-    dynamicState  = 0
+    dynamicState  = <none>
     options       = Optimize
     vertexBuffers = {
       [0] {
@@ -534,10 +534,10 @@ GraphicsPipelineSpec {
     templUID      = 10000002
     rStateUID     = 1
     dsStateUID    = 1
-    renderPass    = 'RasterOrderAttachment.RPass'
+    renderPass    = 'Simple'
     subpass       = 'Main'
     viewportCount = 1
-    dynamicState  = 0
+    dynamicState  = <none>
     options       = Optimize
     vertexBuffers = {
       [0] {
@@ -571,10 +571,10 @@ GraphicsPipelineSpec {
     templUID      = 10000003
     rStateUID     = 1
     dsStateUID    = 1
-    renderPass    = 'Simple'
+    renderPass    = 'RasterOrderAttachment.RPass'
     subpass       = 'Main'
     viewportCount = 1
-    dynamicState  = 0
+    dynamicState  = <none>
     options       = Optimize
     vertexBuffers = {
       [0] {
@@ -614,7 +614,7 @@ MeshPipelineSpec {
     renderPass    = 'Simple'
     subpass       = 'Main'
     viewportCount = 1
-    dynamicState  = 0
+    dynamicState  = <none>
     options       = Optimize
   [1]
     templUID      = 20000001
@@ -623,7 +623,7 @@ MeshPipelineSpec {
     renderPass    = 'Simple'
     subpass       = 'Main'
     viewportCount = 1
-    dynamicState  = 0
+    dynamicState  = <none>
     options       = Optimize
     meshLocalSize = { 3, Default, Default }
 }
@@ -631,22 +631,22 @@ MeshPipelineSpec {
 ComputePipelineSpec {
   [0]
     templUID     = 30000000
-    dynamicState = 0
+    dynamicState = <none>
     options      = Optimize
   [1]
     templUID     = 30000001
-    dynamicState = 0
+    dynamicState = <none>
     options      = Optimize
   [2]
     templUID     = 30000002
-    dynamicState = 0
+    dynamicState = <none>
     options      = Optimize
 }
 
 RayTracingPipelineSpec {
   [0]
     templUID       = 40000000
-    dynamicState   = 0
+    dynamicState   = <none>
     options        = Optimize
     maxRecursionDepth              = 1
     maxPipelineRayPayloadSize      = 0 B
@@ -675,18 +675,18 @@ RenderTechniques {
     }
     passes = {
       [0] Pass {
-        name       = 'Graphics1'
+        name       = '645d7d6e'
         renderPass = 'Simple.RenderTarget'
         subpass    = 'Main'
       }
       [1] Pass {
-        name       = 'Compute1'
+        name       = 'b43bd5da'
       }
     }
     pipelines = {
       [0]  'compute_1.def', 30000002
       [1]  'compute_2.def', 30000000
-      [2]  'graphics_4 rp:Simple', 10000003
+      [2]  'graphics_4 rp:Simple', 10000002
       [3]  'graphics_1 rp:Simple', 10000000
     }
   ----------------------
@@ -697,7 +697,7 @@ RenderTechniques {
     }
     passes = {
       [0] Pass {
-        name       = 'Graphics1'
+        name       = '645d7d6e'
         renderPass = 'Simple.Present'
         subpass    = 'Main'
       }
@@ -730,7 +730,7 @@ RenderTechniques {
     }
     passes = {
       [0] Pass {
-        name       = 'Trace1'
+        name       = '2590222a'
       }
     }
     pipelines = {
@@ -754,7 +754,7 @@ RenderTechniques {
       }
     }
     pipelines = {
-      [0]  'raster_order', 10000002
+      [0]  'raster_order', 10000003
     }
   ----------------------
 }
@@ -762,41 +762,41 @@ RenderTechniques {
 SpirvShaders {
   [0]  offset = 0 B
   [1]  offset = 1792 B
-  [2]  offset = 3760 B
+  [2]  offset = 3728 B
   [3]  offset = 5 KiB
   [4]  offset = 6 KiB
   [5]  offset = 8 KiB
   [6]  offset = 9 KiB
-  [7]  offset = 11 KiB
-  [8]  offset = 12 KiB
-  [9]  offset = 15 KiB
-  [10]  offset = 16 KiB
-  [11]  offset = 18 KiB
-  [12]  offset = 20 KiB
-  [13]  offset = 22 KiB
-  [14]  offset = 31 KiB
-  [15]  offset = 34 KiB
-  [16]  offset = 39 KiB
-  [17]  offset = 42 KiB
+  [7]  offset = 12 KiB
+  [8]  offset = 14 KiB
+  [9]  offset = 16 KiB
+  [10]  offset = 18 KiB
+  [11]  offset = 21 KiB
+  [12]  offset = 25 KiB
+  [13]  offset = 29 KiB
+  [14]  offset = 38 KiB
+  [15]  offset = 39 KiB
+  [16]  offset = 43 KiB
+  [17]  offset = 45 KiB
 }
 
 SpirvShaderData {
-  [0]  offset = 49 KiB
-  [1]  offset = 51 KiB
-  [2]  offset = 53 KiB
-  [3]  offset = 55 KiB
-  [4]  offset = 56 KiB
-  [5]  offset = 58 KiB
-  [6]  offset = 59 KiB
-  [7]  offset = 61 KiB
-  [8]  offset = 62 KiB
-  [9]  offset = 65 KiB
-  [10]  offset = 66 KiB
-  [11]  offset = 68 KiB
-  [12]  offset = 70 KiB
-  [13]  offset = 72 KiB
-  [14]  offset = 80 KiB
-  [15]  offset = 84 KiB
-  [16]  offset = 88 KiB
-  [17]  offset = 92 KiB
+  [0]  offset = 50 KiB
+  [1]  offset = 52 KiB
+  [2]  offset = 54 KiB
+  [3]  offset = 56 KiB
+  [4]  offset = 57 KiB
+  [5]  offset = 59 KiB
+  [6]  offset = 60 KiB
+  [7]  offset = 63 KiB
+  [8]  offset = 65 KiB
+  [9]  offset = 67 KiB
+  [10]  offset = 69 KiB
+  [11]  offset = 72 KiB
+  [12]  offset = 76 KiB
+  [13]  offset = 80 KiB
+  [14]  offset = 88 KiB
+  [15]  offset = 90 KiB
+  [16]  offset = 94 KiB
+  [17]  offset = 96 KiB
 }

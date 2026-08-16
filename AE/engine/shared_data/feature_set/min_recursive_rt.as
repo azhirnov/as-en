@@ -107,6 +107,7 @@ void ASmain ()
 	fset.shaderCullDistance (True);
 	fset.shaderDrawParameters (True);
 	fset.runtimeDescriptorArray (True);
+	fset.descriptorBindingVariableDescriptorCount (True);
 	fset.shaderSampleRateInterpolationFunctions (True);
 	fset.shaderSampledImageArrayDynamicIndexing (True);
 	fset.shaderStorageBufferArrayDynamicIndexing (True);
@@ -159,7 +160,6 @@ void ASmain ()
 	fset.perPipeline_maxStorageImages (1000000);
 	fset.perPipeline_maxUniformBuffers (180);
 	fset.perPipeline_maxAccelStructures (16);
-	fset.perPipeline_maxTotalResources (1024);
 	fset.perStage_maxInputAttachments (7);
 	fset.perStage_maxSampledImages (1000000);
 	fset.perStage_maxSamplers (1000000);
@@ -168,6 +168,7 @@ void ASmain ()
 	fset.perStage_maxUniformBuffers (15);
 	fset.perStage_maxAccelStructures (16);
 	fset.perStage_maxTotalResources (1000000);
+	fset.perDescSet_maxTotalResources (1 << 10);
 	fset.maxDescriptorSets (8);
 	fset.maxTexelOffset (7);
 	fset.maxTexelGatherOffset (31);
@@ -186,7 +187,7 @@ void ASmain ()
 	fset.vertexDivisor (True);
 	fset.maxVertexAttribDivisor (0xfffffff);
 	fset.maxVertexAttributes (29);
-	fset.maxVertexBuffers (32);
+	fset.maxVertexBuffers (31);
 	fset.AddVertexFormats({
 		EVertexType::Byte, EVertexType::Byte2, EVertexType::Byte3, EVertexType::Byte4, 
 		EVertexType::UByte, EVertexType::UByte2, EVertexType::UByte3, EVertexType::UByte4, 

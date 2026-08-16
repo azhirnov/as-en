@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 /*
 	Set emulation on static array with binary/linear search.
 	Use only for small number of elements.
@@ -126,6 +126,9 @@ namespace AE::Base
 */
 	template <typename V, usize S, typename CS>
 	__Cx__ FixedSet<V,S,CS>::FixedSet () __NE___
+		#ifdef AE_COMPILER_GCC
+		: _buffer{}
+		#endif
 	{
 		DEBUG_ONLY( DbgInitMem( _indices ));
 		DEBUG_ONLY( DbgInitMem( _array   ));

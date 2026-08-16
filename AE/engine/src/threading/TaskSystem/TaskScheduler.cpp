@@ -1,9 +1,10 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
-#include "threading/TaskSystem/TaskScheduler.h"
 #include "threading/Memory/GlobalLinearAllocator.h"
+#include "threading/TaskSystem/TaskScheduler.h"
 #include "threading/TaskSystem/ThreadManager.h"
 #include "threading/TaskSystem/LfTaskQueue.h"
+#include "threading/TaskSystem/DelayedTaskRunner.h"
 #include "threading/DataSource/FileAsyncDataSource.h"
 
 namespace AE::Threading
@@ -122,6 +123,8 @@ DEBUG_ONLY(
 */
 	void  AsyncTaskImpl::Run (OUT bool& rerun) __NE___
 	{
+		//AE_LOG_DBG( "Begin task: "s << DbgName() );
+
 		DEBUG_ONLY(
 			ASSERT( Status() == EStatus::InProgress );
 			_isRunning.store( true );
@@ -153,6 +156,8 @@ DEBUG_ONLY(
 		)
 
 		_OnFinish( OUT rerun );
+
+		//AE_LOG_DBG( "End task: "s << DbgName() );
 	}
 
 /*
@@ -325,13 +330,13 @@ DEBUG_ONLY(
 	{
 		ASSERT( not _isRunning.load() );
 
-		AE_LOG_DBG( "Cancel task '"s << DbgName() << "'" );
-
 		EXLOCK( _output );	// TODO: move inside branch ?
 
 		// Pending/InProgress -> Cancellation
 		if ( _SetCancellationState() )
 		{
+			AE_LOG_DBG( "Cancel task '"s << DbgName() << "'" );
+
 			// cache is invalidated in 'EXLOCK( _output )'
 			OnCancel();
 
@@ -515,30 +520,10 @@ DEBUG_ONLY(
 			return;
 
 		if ( dbgName.empty() )
-		{
-		#if 1
 			self._SetDebugName( loc );
-
-		#else //defined(__cpp_lib_stacktrace) and not defined(AE_COMPILER_GCC)
-			auto		stack	= std::stacktrace::current();
-			auto		it		= stack.begin() + 2;
-			const usize	cnt		= Min( 7u, stack.size() );
-			String		tmp;
-
-			for (usize i = 2; i < cnt; ++i, ++it)
-			{
-				if ( it->source_file().empty() )
-					break;
-
-				tmp << FileSystem::ToShortPath( it->source_file() ) << '(' << ToString( it->source_line() ) << "): " << it->description() << '\n';
-			}
-			self._SetDebugName( tmp );
-		#endif
-		}
 		else
-		{
 			self._SetDebugName( dbgName );
-		}
+
 		Unused( dbgName );
 	}
 #endif
@@ -697,23 +682,34 @@ namespace AE::Threading
 */
 	bool  TaskScheduler::_InitIOServices (const Config &cfg) __NE___
 	{
-		auto	io_dep_mngr = RC<AsyncDSRequestDependencyManager>{ new AsyncDSRequestDependencyManager{} };
-		CHECK_ERR( RegisterDependency< AsyncDSRequest >( io_dep_mngr ));
-		CHECK_ERR( RegisterDependency< WeakAsyncDSRequest >( io_dep_mngr ));
-		//CHECK_ERR( RegisterDependency< StrongAsyncDSRequest >( io_dep_mngr ));
+		// file IO
+		{
+			auto	io_dep_mngr = RC<AsyncDSRequestDependencyManager>{ new AsyncDSRequestDependencyManager{} };
+			CHECK_ERR( RegisterDependency< AsyncDSRequest >( io_dep_mngr ));
+			CHECK_ERR( RegisterDependency< WeakAsyncDSRequest >( io_dep_mngr ));
+			//CHECK_ERR( RegisterDependency< StrongAsyncDSRequest >( io_dep_mngr ));
+		}
 
-		#ifdef AE_PLATFORM_WINDOWS
-		if ( cfg.maxIOAccessThreads > 0 )
-			_fileIOService = RC<WindowsIOService>{ new WindowsIOService{ cfg.maxIOAccessThreads }};
-		#endif
+		// delayed run
+		{
+			CHECK_ERR( DelayedTaskRunner::Register() );
+		}
 
-		#ifdef AE_PLATFORM_UNIX_BASED
-		if ( cfg.maxIOAccessThreads > 0 )
-			_fileIOService = RC<UnixIOService>{ new UnixIOService{ cfg.maxIOAccessThreads }};
-		#endif
+		// file IO
+		{
+			#ifdef AE_PLATFORM_WINDOWS
+			if ( cfg.maxIOAccessThreads > 0 )
+				_fileIOService = RC<WindowsIOService>{ new WindowsIOService{ cfg.maxIOAccessThreads }};
+			#endif
 
-		if ( _fileIOService )
-			AddIOService( _fileIOService );
+			#ifdef AE_PLATFORM_UNIX_BASED
+			if ( cfg.maxIOAccessThreads > 0 )
+				_fileIOService = RC<UnixIOService>{ new UnixIOService{ cfg.maxIOAccessThreads }};
+			#endif
+
+			if ( _fileIOService )
+				AddIOService( _fileIOService );
+		}
 
 		return true;
 	}
@@ -727,7 +723,7 @@ namespace AE::Threading
 	{
 		CHECK_ERRV( ptr );
 
-		_ioServices->insert( ptr );
+		_ioServices->insert( RVRef(ptr) );
 	}
 
 /*
@@ -1335,6 +1331,7 @@ namespace AE::Threading
 
 				case ETaskStatus::_Interrupted :
 				case ETaskStatus::_Finished :
+				case ETaskStatus::_Count :
 				default :							log << ", status: Unknown";		break;
 			}
 			switch_end

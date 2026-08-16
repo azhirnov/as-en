@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #pragma once
 
@@ -78,7 +78,8 @@ namespace AE::Graphics
 
 		static constexpr auto	_TransferComputeStageMask =
 			_TransferStageMask |
-			VK_PIPELINE_STAGE_2_CLEAR_BIT;									// color only
+			VK_PIPELINE_STAGE_2_CLEAR_BIT |									// color only
+			VK_PIPELINE_STAGE_2_CONVERT_COOPERATIVE_VECTOR_MATRIX_BIT_NV;	// VK_NV_cooperative_vector		// TODO: in specs 2 different requirements: Gfx or Comp | Gfx or Comp or Copy
 
 		static constexpr auto	_TransferGraphicsStageMask =
 			_TransferComputeStageMask |
@@ -88,8 +89,7 @@ namespace AE::Graphics
 
 		static constexpr auto	_ComputeStageMask =
 			VK_PIPELINE_STAGE_2_DRAW_INDIRECT_BIT |
-			VK_PIPELINE_STAGE_2_COMPUTE_SHADER_BIT |
-			VK_PIPELINE_STAGE_2_CONVERT_COOPERATIVE_VECTOR_MATRIX_BIT_NV;	// VK_NV_cooperative_vector
+			VK_PIPELINE_STAGE_2_COMPUTE_SHADER_BIT;
 
 		static constexpr auto	_RTAccelStructBuildStageMask =
 			VK_PIPELINE_STAGE_2_ACCELERATION_STRUCTURE_BUILD_BIT_KHR |		// VK_KHR_acceleration_structure

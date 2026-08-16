@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #include "graphics_rhi/Public/ImageDesc.h"
 #include "graphics_rhi/Public/ImageUtils.h"
@@ -227,6 +227,9 @@ namespace AE::Graphics
 			}
 		}
 
+		if ( not viewFormats.empty() )
+			options |= EImageOpt::MutableFormat;
+
 		ASSERT( usage != Default );
 	}
 
@@ -237,16 +240,19 @@ namespace AE::Graphics
 */
 	bool  ImageDesc::operator == (const ImageDesc &rhs) C_NE___
 	{
+		StaticAssert( sizeof(ImageDesc) == 24 );
 		return	(All( dimension	== rhs.dimension ))	and
 				(arrayLayers	== rhs.arrayLayers)	and
-				(mipLevels		== rhs.mipLevels)	and
 				(imageDim		== rhs.imageDim)	and
-				(options		== rhs.options)		and
-				(usage			== rhs.usage)		and
+				(mipLevels		== rhs.mipLevels)	and
 				(format			== rhs.format)		and
 				(samples		== rhs.samples)		and
+				(options		== rhs.options)		and
+				(usage			== rhs.usage)		and
 				(memType		== rhs.memType)		and
-				(queues			== rhs.queues);
+				(queues			== rhs.queues)		and
+				(aliasGroup		== rhs.aliasGroup)	and
+				(viewFormats	== rhs.viewFormats);
 	}
 
 /*
@@ -383,7 +389,9 @@ namespace AE::Graphics
 			}
 		}
 
-		if ( AllBits( desc.options, EImageOpt::BlockTexelViewCompatible ) and not EPixelFormat_IsCompressed( format ))
+		const auto&	fmt_info = EPixelFormat_GetInfo( format );
+
+		if ( AllBits( desc.options, EImageOpt::BlockTexelViewCompatible ) and not fmt_info.IsCompressed() )
 		{
 			ASSERT( mipmapCount == 1 );
 			mipmapCount = 1;
@@ -394,7 +402,7 @@ namespace AE::Graphics
 
 
 		// validate aspect mask
-		EImageAspect	mask = EPixelFormat_ToImageAspect( format );
+		EImageAspect	mask = fmt_info.aspectMask;
 		if ( aspectMask == Default ) {
 			aspectMask = mask;
 		}else{
@@ -504,6 +512,25 @@ namespace AE::Graphics
 			}
 			switch_end
 		}
+
+		// validate usage
+		if ( usage != Default )
+		{
+			ASSERT( AllBits( desc.usage, usage ));
+			ASSERT( NoBits( usage, ~desc.usage ));
+			usage &= desc.usage;
+		}
+		else
+		{
+			usage = desc.usage;
+
+			// remove unsupported
+			if ( AllBits( desc.options, EImageOpt::ExtendedUsage ))
+			{
+				if ( fmt_info.IsCompressed() )
+					usage &= ~(EImageUsage::Storage | EImageUsage::ColorAttachment | EImageUsage::InputAttachment);
+			}
+		}
 	}
 
 /*
@@ -513,14 +540,18 @@ namespace AE::Graphics
 */
 	bool ImageViewDesc::operator == (const ImageViewDesc &rhs) C_NE___
 	{
+		StaticAssert( sizeof(ImageViewDesc) == 20 );
 		return	(this->viewType		== rhs.viewType)	and
 				(this->format		== rhs.format)		and
+				(this->aspectMask	== rhs.aspectMask)	and
+				(this->options		== rhs.options)		and
+				(this->usage		== rhs.usage)		and
 				(this->baseMipmap	== rhs.baseMipmap)	and
 				(this->mipmapCount	== rhs.mipmapCount)	and
 				(this->baseLayer	== rhs.baseLayer)	and
 				(this->layerCount	== rhs.layerCount)	and
-				(this->aspectMask	== rhs.aspectMask)	and
-				(this->swizzle		== rhs.swizzle);
+				(this->swizzle		== rhs.swizzle)		and
+				All(this->dimension	== rhs.dimension);
 	}
 
 } // AE::Graphics

@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #pragma once
 
@@ -528,18 +528,11 @@ namespace AE::RemoteGraphics::Msg
 		bool					released;
 	)
 
-	DECL_MSG( ResMngr_CreateDescriptorSets2,
-		RmPipelinePackID				packId;
-		uint							count;
-		DSLayoutName::Optimized_t		dslName;
-		RmDescriptorAllocatorID			dsAlloc;
-		StringView						dbgName;
-	)
-
 	DECL_MSG( ResMngr_CreateDescriptorSets3,
 		RmDescriptorSetLayoutID			layoutId;
 		uint							count;
 		RmDescriptorAllocatorID			dsAlloc;
+		DescSetParams					params;
 		StringView						dbgName;
 	)
 
@@ -570,6 +563,7 @@ namespace AE::RemoteGraphics::Msg
 		EPipelineOpt					options;
 		EPrimitive						topology;
 		ubyte							subpassIndex;
+		EShaderStages					activeStages;
 		VBtoIndex_t						vertexBuffers;
 		RmPipelineLayoutID				pipelineLayoutId;
 		Array<ShaderTracePtr>			shaderTrace;
@@ -589,6 +583,7 @@ namespace AE::RemoteGraphics::Msg
 		WGLocalSize_t					meshLocalSize;
 		WGLocalSize_t					taskLocalSize;
 		ubyte							subpassIndex;
+		EShaderStages					activeStages;
 		RmPipelineLayoutID				pipelineLayoutId;
 		Array<ShaderTracePtr>			shaderTrace;
 	)
@@ -623,6 +618,7 @@ namespace AE::RemoteGraphics::Msg
 		EPipelineDynamicState			dynamicState;
 		EPipelineOpt					options;
 		Bytes16u						shaderGroupHandleSize;
+		EShaderStages					activeStages;
 		NameToHandle_t					nameToHandle;
 		Array< ulong >					groupHandles;
 		RmPipelineLayoutID				pipelineLayoutId;

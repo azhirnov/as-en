@@ -487,36 +487,3 @@ When part of a single triangle clipped by depth test or `gl_ClipDistance` the re
 Possible explanation: triangle is clipped, but hardware can not rasterize rectangle, so it divide rectangle on 2 new triangles. It is needed to avoid rasterization of hidden parts of triangle.
 
 ![](img/triangle-clip/nv-turing.png)
-
-
-## Nonuniform
-
-* __stress test__ [[14.1](../GPU_Benchmarks.md#14-Nonuniform)]<br/>
-	Scale=0.9, Dim=8K, ObjCount=4K, TexBias=4
-
-	| nonuniform              | per object (ms) | per warp (ms) | per quad (ms) | per pixel (ms) |
-	|-------------------------|-----------------|---------------|---------------|----------------|
-	| texture layer           | 2.25            | 2.27          | 2.27          | 2.31           |
-	| texture index           | 2.25            | 2.27          | 2.30          | 4.0            |
-	| texture & sampler index | 2.25            | 2.27          | 2.30          | 3.95           |
-
-* __depth pre-pass__ [[14.2](../GPU_Benchmarks.md#14-Nonuniform)]<br/>
-	dpp = 0.5ms,
-	Scale=0.2, Dim=8K, ObjCount=32K
-
-	| nonuniform              | per object (ms) | per warp (ms) | per quad (ms) | per pixel (ms) |
-	|-------------------------|-----------------|---------------|---------------|----------------|
-	| texture layer           | 2.17            | 2.2           | 2.24          | 4.34           |
-	| texture index           | 2.17            | 2.23          | 2.52          | 8.64           |
-	| texture & sampler index | 2.17            | 2.24          | 2.48          | 8.56           |
-
-* __visibility buffer__ [[14.3](../GPU_Benchmarks.md#14-Nonuniform)]<br/>
-	visibility buffer build = 1.2ms<br/>
-	visibility buffer FS overhead = 1.26ms<br/>
-	Scale=0.2, Dim=8K, ObjCount=32K
-
-	| nonuniform              | per object (ms) | per warp (ms) | per quad (ms) | per pixel (ms) |
-	|-------------------------|-----------------|---------------|---------------|----------------|
-	| texture layer           | 1.38            | 1.40          | 1.42          | 1.55           |
-	| texture index           | 1.39            | 1.41          | 1.45          | 2.22           |
-	| texture & sampler index | 1.39            | 1.41          | 1.46          | 2.18           |

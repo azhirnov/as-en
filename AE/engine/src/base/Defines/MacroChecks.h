@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #pragma once
 
@@ -459,6 +459,28 @@
 #	pragma detect_mismatch( "AE_SIMD_NEON_HALF", "1" )
 #  else
 #	pragma detect_mismatch( "AE_SIMD_NEON_HALF", "0" )
+#  endif
+
+#  if AE_SIMD_SVE
+#	if AE_SIMD_SVE == 0
+#	  pragma detect_mismatch( "AE_SIMD_SVE", "0" )
+#	elif AE_SIMD_SVE == 1
+#	  pragma detect_mismatch( "AE_SIMD_SVE", "1" )
+#	elif AE_SIMD_SVE == 2
+#	  pragma detect_mismatch( "AE_SIMD_SVE", "2" )
+#	else
+#	  error unsupported value in 'AE_SIMD_SVE'
+#	endif
+#  endif
+
+#  if AE_SIMD_SME
+#	if AE_SIMD_SME == 0
+#	  pragma detect_mismatch( "AE_SIMD_SME", "0" )
+#	elif AE_SIMD_SME == 1
+#	  pragma detect_mismatch( "AE_SIMD_SME", "1" )
+#	else
+#	  error unsupported value in 'AE_SIMD_SME'
+#	endif
 #  endif
 
 #  ifdef AE_SIMD_AVX

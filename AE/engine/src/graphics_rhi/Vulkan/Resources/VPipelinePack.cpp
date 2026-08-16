@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #ifdef AE_ENABLE_VULKAN
 # include "graphics_rhi/Vulkan/VEnumCast.h"
@@ -251,51 +251,10 @@ namespace AE::Graphics
 				return Default;
 		}
 
-		SamplerID	id = resMngr.CreateSampler( desc, dbgName, ycbcrDesc.has_value() ? &conv_ci : null ).Release();
+		SamplerID	id = resMngr.CreateSampler( desc, dbgName, ycbcrDesc.has_value() ? &conv_ci : null, _allocator.get() ).Release();
 
 		alloc.Discard();
 		return id;
-	}
-
-/*
-=================================================
-	_CreateDescriptorSetLayout
-=================================================
-*/
-	Strong<DescriptorSetLayoutID>  VPipelinePack::_CreateDescriptorSetLayout (ResourceManager			&resMngr,
-																			  const Uniforms_t			&uniforms,
-																			  ArrayView<SamplerID>		 samplers,
-																			  const UniformOffsets_t	&offsets,
-																			  EDescSetUsage				 usage,
-																			  EShaderStages				 stages,
-																			  StackAllocator_t			&stackAlloc) __NE___
-	{
-		Unused( stages );
-
-		VkSampler *		vk_samplers = null;
-
-		if ( not samplers.empty() )
-		{
-			vk_samplers = stackAlloc.Allocate< VkSampler >( samplers.size() );
-			CHECK_ERR( vk_samplers != null );
-
-			for (usize i = 0; i < samplers.size(); ++i)
-			{
-				const VSampler*		samp = resMngr.GetResource( samplers[i] );
-				CHECK_ERR( samp != null );
-
-				vk_samplers[i] = samp->Handle();
-			}
-		}
-
-		VDescriptorSetLayout::CreateInfo	ci;
-		ci.uniforms			= uniforms;
-		ci.samplerStorage	= ArrayView{ vk_samplers, samplers.size() };
-		ci.unOffsets		= offsets;
-		ci.usage			= usage;
-		ci.dbgName			= Default;
-
-		return resMngr.CreateDescriptorSetLayout( ci );
 	}
 //-----------------------------------------------------------------------------
 
@@ -412,13 +371,14 @@ namespace AE::Graphics
 		NOTHROW_ERR( vk_pipelines.resize( desc.pipelines.size() ));
 
 		VIndirectExecutionSet::InitialState	initial;
-		const auto	SetInitial = [&initial] (auto* pipe, PipelineName::Ref name)
+		const auto	SetInitial = [&initial] (auto* pipe)
 		{{
 			initial.bindPoint	 = pipe->BindPoint();
 			initial.pipeline	 = pipe->Handle();
 			initial.layout		 = pipe->Layout();
+			initial.layoutId	 = pipe->LayoutId();
 			initial.dynamicState = pipe->DynamicState();
-			initial.pplnName	 = name;
+			initial.activeStages = pipe->GetActiveStages();
 		}};
 
 		switch ( desc.pipeType )
@@ -431,7 +391,7 @@ namespace AE::Graphics
 					auto*	pipe = resMngr.GetResource( id );
 					CHECK_ERR( pipe != null );
 					vk_pipelines[i] = pipe->Handle();
-					if_unlikely( i == 0 ) SetInitial( pipe, PipelineName{desc.pipelines[i]} );
+					if_unlikely( i == 0 ) SetInitial( pipe );
 				}
 				break;
 			}
@@ -443,7 +403,7 @@ namespace AE::Graphics
 					auto*	pipe = resMngr.GetResource( id );
 					CHECK_ERR( pipe != null );
 					vk_pipelines[i] = pipe->Handle();
-					if_unlikely( i == 0 ) SetInitial( pipe, PipelineName{desc.pipelines[i]} );
+					if_unlikely( i == 0 ) SetInitial( pipe );
 				}
 				break;
 			}
@@ -455,7 +415,7 @@ namespace AE::Graphics
 					auto*	pipe = resMngr.GetResource( id );
 					CHECK_ERR( pipe != null );
 					vk_pipelines[i] = pipe->Handle();
-					if_unlikely( i == 0 ) SetInitial( pipe, PipelineName{desc.pipelines[i]} );
+					if_unlikely( i == 0 ) SetInitial( pipe );
 				}
 				break;
 			}
@@ -467,7 +427,7 @@ namespace AE::Graphics
 					auto*	pipe = resMngr.GetResource( id );
 					CHECK_ERR( pipe != null );
 					vk_pipelines[i] = pipe->Handle();
-					if_unlikely( i == 0 ) SetInitial( pipe, PipelineName{desc.pipelines[i]} );
+					if_unlikely( i == 0 ) SetInitial( pipe );
 				}
 				break;
 			}

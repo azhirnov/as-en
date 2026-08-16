@@ -1,9 +1,11 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #include "base/FileSystem/FileSystem.h"
 #include "platform/Public/Application.h"
 #include "../tests/shared/UnitTest_Shared.h"
 using namespace AE::App;
+
+extern void  UnitTest_Utils ();
 
 extern void  Test_FFmpeg ();
 extern void  Test_FFmpegStream ();
@@ -27,6 +29,8 @@ TEST_ENTRY()
 	FileSystem::DeleteDirectory( folder );
 	FileSystem::CreateDirectories( folder );
 	TEST( FileSystem::SetCurrentPath( folder ));
+
+	RUN_TEST( UnitTest_Utils );
 
 	RUN_TEST( Test_FFmpeg );
 	RUN_TEST( Test_FFmpegStream );

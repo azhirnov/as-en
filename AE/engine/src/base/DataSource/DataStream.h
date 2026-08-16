@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 /*
 	Stream is used for sequential data access.
 */
@@ -73,7 +73,7 @@ namespace AE::Base
 
 
 		// IDataSource //
-			ESourceType		GetSourceType ()											C_NE_OV	{ return ESourceType::SequentialAccess | ESourceType::ReadAccess; }
+			ESourceType		GetSourceType ()											C_NE_OV	{ return ESourceType::SequentialAccess | ESourceType::ReadOnly; }
 
 		ND_ Bytes			Position ()													C_NE___	{ return PositionAndSize().pos; }
 		ND_ Bytes			Size ()														C_NE___	{ return PositionAndSize().size; }
@@ -158,7 +158,7 @@ namespace AE::Base
 
 
 		// IDataSource //
-		ESourceType		GetSourceType ()												C_NE_OV	{ return ESourceType::SequentialAccess | ESourceType::WriteAccess; }
+		ESourceType		GetSourceType ()												C_NE_OV	{ return ESourceType::SequentialAccess | ESourceType::WriteOnly; }
 
 
 		ND_ bool  Write (const void* buffer, Bytes size)								__NE___;

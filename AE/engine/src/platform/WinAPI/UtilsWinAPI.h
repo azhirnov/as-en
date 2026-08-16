@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #pragma once
 
@@ -16,7 +16,7 @@ namespace AE::App
 	{
 			static void		SetMonitorNames (INOUT ApplicationBase::Monitors_t &monitors)	__NE___;
 
-		ND_ static Path		GetStoragePath (EAppStorage)									__NE___;
+		ND_ static Path		GetStoragePath (EAppStorage, StringView appName)				__NE___;
 	};
 
 

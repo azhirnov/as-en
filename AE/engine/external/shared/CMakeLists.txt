@@ -1,4 +1,4 @@
-# Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+# Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 # External dependencies
 set( AE_ENABLE_ABSEIL 				ON  CACHE BOOL "use Absel" )

@@ -26,6 +26,7 @@ void ASmain ()
 	//	Mesa-Intel-Xe2-1.4.318
 	//	Win-Adreno-X1-45-1.3.295
 	//	Win-Adreno-X1-85-1.3.295
+	//	Win-Adreno-X2-90-1.4.295
 	//	Win-AMD-GCN4-RX580-1.4.264
 	//	Win-AMD-GCN5-IIV-1.3.260
 	//	Win-AMD-GCN5-RXVega10-1.3.260
@@ -140,7 +141,6 @@ void ASmain ()
 	fset.perPipeline_maxStorageBuffers (155);
 	fset.perPipeline_maxStorageImages (40);
 	fset.perPipeline_maxUniformBuffers (90);
-	fset.perPipeline_maxTotalResources (700);
 	fset.perStage_maxInputAttachments (7);
 	fset.perStage_maxSampledImages (128);
 	fset.perStage_maxSamplers (16);
@@ -148,6 +148,7 @@ void ASmain ()
 	fset.perStage_maxStorageImages (8);
 	fset.perStage_maxUniformBuffers (15);
 	fset.perStage_maxTotalResources (159);
+	fset.perDescSet_maxTotalResources (700);
 	fset.maxDescriptorSets (7);
 	fset.maxTexelOffset (7);
 	fset.maxTexelGatherOffset (7);

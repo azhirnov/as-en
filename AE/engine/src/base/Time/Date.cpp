@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #include "base/Defines/StdInclude.h"
 #include <ctime>
@@ -157,6 +157,33 @@ namespace AE::Base
 
 /*
 =================================================
+	SetTime
+=================================================
+*/
+	Date&  Date::_SetTime (time_t t)
+	{
+	#ifdef AE_COMPILER_MSVC
+		return SetMillisecondsSince1970( (ulong(t) + CurrentZoneUTCOffsetInSeconds()) * 1000 );
+
+	#else
+		std::tm		now	= {};
+		Unused( localtime2( OUT &now, &t ));
+
+		_year		= now.tm_year + 1900;
+		_month		= now.tm_mon;
+		_dayOfMonth	= now.tm_mday - 1;
+		_dayOfWeek	= now.tm_wday == 0 ? 6 : now.tm_wday-1;
+		_dayOfYear	= now.tm_yday;
+		_hour		= now.tm_hour;
+		_minute		= now.tm_min;
+		_second		= now.tm_sec;
+		_millis		= 0;
+		return *this;
+	#endif
+	}
+
+/*
+=================================================
 	Now
 =================================================
 */
@@ -178,25 +205,13 @@ namespace AE::Base
 
 		#if DATE_NOW_MODE == 0
 		{
-			std::time_t	t	= std::time(0);
-			std::tm		now	= {};
-			Unused( localtime2( OUT &now, &t ));
-
-			res._year		= now.tm_year + 1900;
-			res._month		= now.tm_mon;
-			res._dayOfMonth	= now.tm_mday - 1;
-			res._dayOfWeek	= now.tm_wday == 0 ? 6 : now.tm_wday-1;
-			res._dayOfYear	= now.tm_yday;
-			res._hour		= now.tm_hour;
-			res._minute		= now.tm_min;
-			res._second		= now.tm_sec;
-			res._millis		= 0;
+			res._SetTime( std::time(0) );
 		}
 		#elif DATE_NOW_MODE == 1
 		{
 			using namespace std::chrono;
 
-			const auto				tp			= get_tzdb().current_zone()->to_local( system_clock::now() );
+			const auto				tp			= get_tzdb().current_zone()->to_local( system_clock::now() );	// warning: this cause false-positive memleaks reports
 			const year_month_day	yy_mm_dd	{ floor< std::chrono::days >( tp )};
 			const hh_mm_ss			hh_mm_ss	{tp.time_since_epoch()};
 
@@ -243,5 +258,18 @@ namespace AE::Base
 
 #undef DATE_NOW_MODE
 
+/*
+=================================================
+	CurrentZoneUTCOffsetInSeconds
+----
+	warning: this cause false-positive memleaks reports
+=================================================
+*/
+#ifdef AE_COMPILER_MSVC
+	ulong  Date::CurrentZoneUTCOffsetInSeconds () __NE___
+	{
+		return std::chrono::current_zone()->get_info( std::chrono::system_clock::now() ).offset.count();
+	}
+#endif
 
 } // AE::Base

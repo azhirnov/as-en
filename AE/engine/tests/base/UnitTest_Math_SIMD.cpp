@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #include "UnitTest_Common.h"
 
@@ -45,100 +45,6 @@ namespace
 		if constexpr( X < Max )
 			TestAllSwizzles4< X + 1, 0, 0, 0 >( checkSwizzle, v );
 	}
-
-	// too complex to compile it
-#if 0
-	template <uint V0, uint V1, uint V2, uint V3, uint V4, uint V5, uint V6, uint V7,
-			  typename Fn, typename Simd>
-	void  TestAllSwizzles8 (const Fn &checkSwizzle, const Simd &v)
-	{
-		checkSwizzle( v.template Swizzle<V0,V1,V2,V3, V4,V5,V6,V7>(), V0,V1,V2,V3, V4,V5,V6,V7 );
-
-		constexpr uint Max = 7;
-
-		if constexpr( V7 < Max )
-			TestAllSwizzles8< V0, V1, V2, V3, V4, V5, V6, V7 + 1 >( checkSwizzle, v );
-		else
-		if constexpr( V6 < Max )
-			TestAllSwizzles8< V0, V1, V2, V3, V4, V5, V6 + 1, 0 >( checkSwizzle, v );
-		else
-		if constexpr( V5 < Max )
-			TestAllSwizzles8< V0, V1, V2, V3, V4, V5 + 1, 0, 0 >( checkSwizzle, v );
-		else
-		if constexpr( V4 < Max )
-			TestAllSwizzles8< V0, V1, V2, V3, V4 + 1, 0, 0, 0 >( checkSwizzle, v );
-		else
-		if constexpr( V3 < Max )
-			TestAllSwizzles8< V0, V1, V2, V3 + 1, 0, 0, 0, 0 >( checkSwizzle, v );
-		else
-		if constexpr( V2 < Max )
-			TestAllSwizzles8< V0, V1, V2 + 1, 0, 0, 0, 0, 0 >( checkSwizzle, v );
-		else
-		if constexpr( V1 < Max )
-			TestAllSwizzles8< V0, V1 + 1, 0, 0, 0, 0, 0, 0 >( checkSwizzle, v );
-		else
-		if constexpr( V0 < Max )
-			TestAllSwizzles8< V0 + 1, 0, 0, 0, 0, 0, 0, 0 >( checkSwizzle, v );
-	}
-
-	template <uint V0, uint V1, uint V2,  uint V3,  uint V4,  uint V5,  uint V6,  uint V7,
-			  uint V8, uint V9, uint V10, uint V11, uint V12, uint V13, uint V14, uint V15,
-			  typename Fn, typename Simd>
-	void  TestAllSwizzles16 (const Fn &checkSwizzle, const Simd &v)
-	{
-		checkSwizzle( v.template Swizzle<V0,V1,V2,V3, V4,V5,V6,V7, V8,V9,V10,V11, V12,V13,V14,V15>(), V0,V1,V2,V3, V4,V5,V6,V7, V8,V9,V10,V11, V12,V13,V14,V15 );
-
-		constexpr uint Max = 15;
-
-		if constexpr( V15 < Max )
-			TestAllSwizzles16< V0, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13, V14, V15 + 1 >( checkSwizzle, v );
-		else
-		if constexpr( V14 < Max )
-			TestAllSwizzles16< V0, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13, V14 + 1, 0 >( checkSwizzle, v );
-		else
-		if constexpr( V13 < Max )
-			TestAllSwizzles16< V0, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13 + 1, 0, 0 >( checkSwizzle, v );
-		else
-		if constexpr( V12 < Max )
-			TestAllSwizzles16< V0, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12 + 1, 0, 0, 0 >( checkSwizzle, v );
-		else
-		if constexpr( V11 < Max )
-			TestAllSwizzles16< V0, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11 + 1, 0, 0, 0, 0 >( checkSwizzle, v );
-		else
-		if constexpr( V10 < Max )
-			TestAllSwizzles16< V0, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10 + 1, 0, 0, 0, 0, 0 >( checkSwizzle, v );
-		else
-		if constexpr( V9 < Max )
-			TestAllSwizzles16< V0, V1, V2, V3, V4, V5, V6, V7, V8, V9 + 1, 0, 0, 0, 0, 0, 0 >( checkSwizzle, v );
-		else
-		if constexpr( V8 < Max )
-			TestAllSwizzles16< V0, V1, V2, V3, V4, V5, V6, V7, V8 + 1, 0, 0, 0, 0, 0, 0, 0 >( checkSwizzle, v );
-		else
-		if constexpr( V7 < Max )
-			TestAllSwizzles16< V0, V1, V2, V3, V4, V5, V6, V7 + 1, 0, 0, 0, 0, 0, 0, 0, 0 >( checkSwizzle, v );
-		else
-		if constexpr( V6 < Max )
-			TestAllSwizzles16< V0, V1, V2, V3, V4, V5, V6 + 1, 0, 0, 0, 0, 0, 0, 0, 0, 0 >( checkSwizzle, v );
-		else
-		if constexpr( V5 < Max )
-			TestAllSwizzles16< V0, V1, V2, V3, V4, V5 + 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 >( checkSwizzle, v );
-		else
-		if constexpr( V4 < Max )
-			TestAllSwizzles16< V0, V1, V2, V3, V4 + 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 >( checkSwizzle, v );
-		else
-		if constexpr( V3 < Max )
-			TestAllSwizzles16< V0, V1, V2, V3 + 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 >( checkSwizzle, v );
-		else
-		if constexpr( V2 < Max )
-			TestAllSwizzles16< V0, V1, V2 + 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 >( checkSwizzle, v );
-		else
-		if constexpr( V1 < Max )
-			TestAllSwizzles16< V0, V1 + 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 >( checkSwizzle, v );
-		else
-		if constexpr( V0 < Max )
-			TestAllSwizzles16< V0 + 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 >( checkSwizzle, v );
-	}
-#endif
 //-----------------------------------------------------------------------------
 
 
@@ -178,6 +84,14 @@ namespace
 			TEST( a4.ToArray() == arr_1234 );
 			TEST( a5.ToArray() == arr_1234 );
 			TEST( a6.ToArray() == arr_neg  );
+		}
+
+		if constexpr( IsInteger<B> )
+		{
+			const Simd	m0{ MSBMask<2,0>{} };
+			const Simd	m1{ MSBMask<2,1>{} };
+			const Simd	m2{ MSBMask<2,2>{} };
+			const Simd	m3{ MSBMask<2,3>{} };
 		}
 
 		// get
@@ -224,7 +138,27 @@ namespace
 		// shuffle
 		if constexpr( Simd::Has_Shuffle() )
 		{
-			// TODO
+			StaticArray<A,4>	arr;
+			for (usize i = 0; i < arr.size(); ++i)
+				arr[i] = AB(i+1);
+
+			const auto	CheckShuffle = [&arr](Simd v, uint v0, uint v1)
+			{{
+				auto	a = v.ToArray();
+				Arr_t	b = {arr[v0], arr[v1]};
+				TEST( a == b );
+			}};
+
+			Simd	a {arr.data()};
+			Simd	b {arr.data() + 2};
+
+			#define CHECK_SHUFFLE( v0,v1 )	CheckShuffle( a.template Shuffle<v0,v1>( b ), v0,v1 );
+			CHECK_SHUFFLE( 2,2 );
+			CHECK_SHUFFLE( 2,3 );
+			CHECK_SHUFFLE( 2,0 );
+			CHECK_SHUFFLE( 0,2 );
+			CHECK_SHUFFLE( 3,1 );
+			#undef CHECK_SHUFFLE
 		}
 	}
 
@@ -265,6 +199,14 @@ namespace
 			TEST( a4.ToArray() == arr_1234 );
 			TEST( a5.ToArray() == arr_1234 );
 			TEST( a6.ToArray() == arr_neg  );
+		}
+
+		if constexpr( IsInteger<B> )
+		{
+			const Simd	m0{ MSBMask<4,0>{} };
+			const Simd	m1{ MSBMask<4,1>{} };
+			const Simd	m2{ MSBMask<4,2>{} };
+			const Simd	m3{ MSBMask<4,3>{} };
 		}
 
 		// get
@@ -319,7 +261,27 @@ namespace
 		// shuffle
 		if constexpr( Simd::Has_Shuffle() )
 		{
-			// TODO
+			StaticArray<A,8>	arr;
+			for (usize i = 0; i < arr.size(); ++i)
+				arr[i] = AB(i+1);
+
+			const auto	CheckShuffle = [&arr](Simd v, uint v0, uint v1, uint v2, uint v3)
+			{{
+				auto	a = v.ToArray();
+				Arr_t	b = {arr[v0], arr[v1], arr[v2], arr[v3]};
+				TEST( a == b );
+			}};
+
+			Simd	a {arr.data()};
+			Simd	b {arr.data() + 4};
+
+			#define CHECK_SHUFFLE( v0,v1,v2,v3 )	CheckShuffle( a.template Shuffle<v0,v1,v2,v3>( b ), v0,v1,v2,v3 );
+			CHECK_SHUFFLE( 4,4,4,4 );
+			CHECK_SHUFFLE( 4,5,6,7 );
+			CHECK_SHUFFLE( 3,2,1,0 );
+			CHECK_SHUFFLE( 1,4,0,2 );
+			CHECK_SHUFFLE( 3,0,1,4 );
+			#undef CHECK_SHUFFLE
 		}
 	}
 
@@ -360,6 +322,14 @@ namespace
 			TEST( a4.ToArray() == arr_1234 );
 			TEST( a5.ToArray() == arr_1234 );
 			TEST( a6.ToArray() == arr_neg  );
+		}
+
+		if constexpr( IsInteger<B> )
+		{
+			const Simd	m0{ MSBMask<8,0>{} };
+			const Simd	m1{ MSBMask<8,1>{} };
+			const Simd	m2{ MSBMask<8,2>{} };
+			const Simd	m3{ MSBMask<8,3>{} };
 		}
 
 		// get
@@ -424,31 +394,93 @@ namespace
 
 			Simd	v {arr.data()};
 
-			//TestAllSwizzles8< 0,0,0,0, 0,0,0,0 >( CheckSwizzle, v );  // TODO
-
 			#define CHECK_SWIZZLE( v0,v1,v2,v3,v4,v5,v6,v7 )	CheckSwizzle( v.template Swizzle<v0,v1,v2,v3,v4,v5,v6,v7>(), v0,v1,v2,v3,v4,v5,v6,v7 );
 			CHECK_SWIZZLE( 0,0,0,0, 0,0,0,0 );
-			CHECK_SWIZZLE( 1,1,1,1, 1,1,1,1 );
-			CHECK_SWIZZLE( 4,4,4,4, 4,4,4,4 );
-			CHECK_SWIZZLE( 7,7,7,7, 7,7,7,7 );
-			CHECK_SWIZZLE( 0,1,2,3, 4,5,6,7 );
-			CHECK_SWIZZLE( 0,0,0,0, 4,4,4,4 );
-			CHECK_SWIZZLE( 0,1,0,1, 4,5,4,5 );
-			CHECK_SWIZZLE( 4,5,4,5, 0,1,0,1 );
 			CHECK_SWIZZLE( 4,5,6,7, 0,1,2,3 );
-
-			CHECK_SWIZZLE( 0,0,1,1, 2,2,3,3 );
 			CHECK_SWIZZLE( 4,4,5,5, 6,6,7,7 );
-			CHECK_SWIZZLE( 0,4,1,5, 2,6,3,7 );
-			CHECK_SWIZZLE( 4,7,6,5, 2,3,1,0 );
-			CHECK_SWIZZLE( 0,1,4,5, 2,3,6,7 );
+
+			CHECK_SWIZZLE( 7,3,0,5, 4,7,1,1 );
+			CHECK_SWIZZLE( 2,3,7,6, 1,0,5,4 );
 			#undef CHECK_SWIZZLE
 		}
 
 		// shuffle
 		if constexpr( Simd::Has_Shuffle() )
 		{
-			// TODO
+			StaticArray<A,16>	arr;
+			for (usize i = 0; i < arr.size(); ++i)
+				arr[i] = AB(i+1);
+
+			const auto	CheckShuffle = [&arr](Simd v, uint v0, uint v1, uint v2, uint v3, uint v4, uint v5, uint v6, uint v7)
+			{{
+				auto	a = v.ToArray();
+				Arr_t	b = {arr[v0], arr[v1], arr[v2], arr[v3], arr[v4], arr[v5], arr[v6], arr[v7]};
+				TEST( a == b );
+			}};
+
+			Simd	a {arr.data()};
+			Simd	b {arr.data() + 8};
+
+			#define CHECK_SHUFFLE( v0,v1,v2,v3,v4,v5,v6,v7 )	CheckShuffle( a.template Shuffle<v0,v1,v2,v3,v4,v5,v6,v7>( b ), v0,v1,v2,v3,v4,v5,v6,v7 );
+
+			// identity / pass-through
+			CHECK_SHUFFLE( 0,1,2,3,		4,5,6,7 );			// 'a' unchanged
+			CHECK_SHUFFLE( 8,9,10,11,	12,13,14,15 );		// 'b' unchanged
+
+			// broadcast (splat)
+			CHECK_SHUFFLE( 0,0,0,0,		0,0,0,0 );
+			CHECK_SHUFFLE( 7,7,7,7,		7,7,7,7 );
+			CHECK_SHUFFLE( 8,8,8,8,		8,8,8,8 );
+			CHECK_SHUFFLE( 15,15,15,15,	15,15,15,15 );
+			CHECK_SHUFFLE( 8,8,8,8,		0,0,0,0 );			// splat b[0] | a[0]
+			CHECK_SHUFFLE( 3,3,3,3,		11,11,11,11 );		// splat a[3] | b[3]
+
+			// reverse
+			CHECK_SHUFFLE( 7,6,5,4,		3,2,1,0 );			// reverse 'a'
+			CHECK_SHUFFLE( 15,14,13,12,	11,10,9,8 );		// reverse 'b'
+			CHECK_SHUFFLE( 15,14,13,12,	3,2,1,0 );			// high 'b' reversed | low 'a' reversed
+
+			// half selection / lane swap
+			CHECK_SHUFFLE( 8,9,10,11,	0,1,2,3 );			// low(b) | low(a)
+			CHECK_SHUFFLE( 12,13,14,15,	4,5,6,7 );			// high(b) | high(a)
+			CHECK_SHUFFLE( 4,5,6,7,		0,1,2,3 );			// swap 128-bit lanes of 'a'
+			CHECK_SHUFFLE( 12,13,14,15,	8,9,10,11 );		// swap 128-bit lanes of 'b'
+
+			// interleave (unpack lo/hi style)
+			CHECK_SHUFFLE( 0,8,1,9,		2,10,3,11 );		// interleave low halves
+			CHECK_SHUFFLE( 4,12,5,13,	6,14,7,15 );		// interleave high halves
+
+			// deinterleave
+			CHECK_SHUFFLE( 0,2,4,6,		8,10,12,14 );		// even elements
+			CHECK_SHUFFLE( 1,3,5,7,		9,11,13,15 );		// odd elements
+
+			// alternating lanes (blend style)
+			CHECK_SHUFFLE( 0,9,2,11,	4,13,6,15 );		// even lanes from 'a', odd from 'b'
+			CHECK_SHUFFLE( 8,1,10,3,	12,5,14,7 );		// even lanes from 'b', odd from 'a'
+
+			// rotate
+			CHECK_SHUFFLE( 1,2,3,4,		5,6,7,0 );			// rotate 'a' left
+			CHECK_SHUFFLE( 7,0,1,2,		3,4,5,6 );			// rotate 'a' right
+			CHECK_SHUFFLE( 9,10,11,12,	13,14,15,8 );		// rotate 'b' left
+			CHECK_SHUFFLE( 15,8,9,10,	11,12,13,14 );		// rotate 'b' right
+
+			// duplicate pairs
+			CHECK_SHUFFLE( 0,0,1,1,		2,2,3,3 );
+			CHECK_SHUFFLE( 4,4,5,5,		6,6,7,7 );
+			CHECK_SHUFFLE( 8,8,9,9,		10,10,11,11 );
+			CHECK_SHUFFLE( 12,12,13,13,	14,14,15,15 );
+
+			// boundary indices
+			CHECK_SHUFFLE( 7,8,7,8,		7,8,7,8 );			// a[7]/b[0] boundary
+			CHECK_SHUFFLE( 0,15,0,15,	0,15,0,15 );		// min/max indices
+
+			// pseudo-random mixes
+			CHECK_SHUFFLE( 12,4,9,13,	3,11,7,15 );
+			CHECK_SHUFFLE( 5,14,0,9,	7,10,2,13 );
+			CHECK_SHUFFLE( 15,0,14,1,	13,2,12,3 );
+			CHECK_SHUFFLE( 6,2,15,8,	10,5,1,12 );
+
+			#undef CHECK_SHUFFLE
 		}
 	}
 
@@ -491,6 +523,13 @@ namespace
 			TEST( a4.ToArray() == arr_1234 );
 			TEST( a5.ToArray() == arr_1234 );
 			TEST( a6.ToArray() == arr_neg  );
+		}
+
+		if constexpr( IsInteger<B> )
+		{
+			const Simd	m0{ MSBMask<16,0>{} };
+			const Simd	m1{ MSBMask<16,1>{} };
+			const Simd	m2{ MSBMask<16,2>{} };
 		}
 
 		// get
@@ -580,36 +619,160 @@ namespace
 			for (usize i = 0; i < arr.size(); ++i)
 				arr[i] = AB(i+1);
 
-			const auto	CheckSwizzle = [&arr](Simd v, uint v0, uint v1, uint v2, uint v3, uint v4, uint v5, uint v6, uint v7,
-											  uint v8, uint v9, uint v10, uint v11, uint v12, uint v13, uint v14, uint v15)
+			const auto	CheckSwizzle = [&arr](Simd v, const List<uint> &idx)
 			{{
+				TEST_Eq( idx.size(), 16 );
 				auto	a = v.ToArray();
-				Arr_t	b = {arr[v0], arr[v1], arr[v2], arr[v3], arr[v4], arr[v5], arr[v6], arr[v7],
-							 arr[v8], arr[v9], arr[v10], arr[v11], arr[v12], arr[v13], arr[v14], arr[v15]};
+				Arr_t	b;
+				usize	i = 0;
+				for (uint x : idx) b[i++] = arr[x];
 				TEST( a == b );
 			}};
 
 			Simd	v {arr.data()};
 
-			//TestAllSwizzles16< 0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,0 >( CheckSwizzle, v );  // TODO
+			#define CHECK_SWIZZLE( ... )	CheckSwizzle( v.template Swizzle< __VA_ARGS__ >(), { __VA_ARGS__ });
 
-			#define CHECK_SWIZZLE( v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15 )\
-				CheckSwizzle( v.template Swizzle< v0,v1,v2,v3, v4,v5,v6,v7, v8,v9,v10,v11, v12,v13,v14,v15 >(), \
-							  v0,v1,v2,v3, v4,v5,v6,v7, v8,v9,v10,v11, v12,v13,v14,v15 );
-
-			CHECK_SWIZZLE( 0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,0 );
-			CHECK_SWIZZLE( 1,1,1,1, 1,1,1,1, 1,1,1,1, 1,1,1,1 );
-			CHECK_SWIZZLE( 4,4,4,4, 4,4,4,4, 4,4,4,4, 4,4,4,4 );
-			CHECK_SWIZZLE( 7,7,7,7, 7,7,7,7, 7,7,7,7, 7,7,7,7 );
 			CHECK_SWIZZLE( 0,1,2,3, 4,5,6,7, 4,4,4,4, 0,1,0,1 );
+			CHECK_SWIZZLE( 15,14,13,12, 11,10,9,8, 7,6,5,4, 3,2,1,0 );
 
+			// identity
+			CHECK_SWIZZLE( 0,1,2,3, 4,5,6,7, 8,9,10,11, 12,13,14,15 );
+
+			// broadcast single element to all lanes
+			CHECK_SWIZZLE( 0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,0 );
+			CHECK_SWIZZLE( 15,15,15,15, 15,15,15,15, 15,15,15,15, 15,15,15,15 );
+			CHECK_SWIZZLE( 7,7,7,7, 7,7,7,7, 7,7,7,7, 7,7,7,7 );
+
+			// broadcast 128-bit lane
+			CHECK_SWIZZLE( 0,1,2,3, 0,1,2,3, 0,1,2,3, 0,1,2,3 );
+			CHECK_SWIZZLE( 12,13,14,15, 12,13,14,15, 12,13,14,15, 12,13,14,15 );
+
+			// duplicate low / high half
+			CHECK_SWIZZLE( 0,1,2,3, 4,5,6,7, 0,1,2,3, 4,5,6,7 );
+			CHECK_SWIZZLE( 8,9,10,11, 12,13,14,15, 8,9,10,11, 12,13,14,15 );
+
+			// swap halves
+			CHECK_SWIZZLE( 8,9,10,11, 12,13,14,15, 0,1,2,3, 4,5,6,7 );
+
+			// rotate left / right by 1
+			CHECK_SWIZZLE( 1,2,3,4, 5,6,7,8, 9,10,11,12, 13,14,15,0 );
+			CHECK_SWIZZLE( 15,0,1,2, 3,4,5,6, 7,8,9,10, 11,12,13,14 );
+
+			// rotate by one 128-bit lane
+			CHECK_SWIZZLE( 4,5,6,7, 8,9,10,11, 12,13,14,15, 0,1,2,3 );
+
+			// swap adjacent pairs
+			CHECK_SWIZZLE( 1,0,3,2, 5,4,7,6, 9,8,11,10, 13,12,15,14 );
+
+			// reverse within each 128-bit lane
+			CHECK_SWIZZLE( 3,2,1,0, 7,6,5,4, 11,10,9,8, 15,14,13,12 );
+
+			// interleave (zip) low and high halves
+			CHECK_SWIZZLE( 0,8,1,9, 2,10,3,11, 4,12,5,13, 6,14,7,15 );
+
+			// deinterleave (unzip) evens / odds
+			CHECK_SWIZZLE( 0,2,4,6, 8,10,12,14, 1,3,5,7, 9,11,13,15 );
+
+			// 4x4 matrix transpose
+			CHECK_SWIZZLE( 0,4,8,12, 1,5,9,13, 2,6,10,14, 3,7,11,15 );
+
+			// duplicate each element
+			CHECK_SWIZZLE( 0,0,1,1, 2,2,3,3, 4,4,5,5, 6,6,7,7 );
+			CHECK_SWIZZLE( 0,0,2,2, 4,4,6,6, 8,8,10,10, 12,12,14,14 );
+
+			// alternating extremes
+			CHECK_SWIZZLE( 0,15,1,14, 2,13,3,12, 4,11,5,10, 6,9,7,8 );
+
+			// repeated cross-lane pattern
+			CHECK_SWIZZLE( 3,11,3,11, 5,13,5,13, 0,8,0,8, 15,7,15,7 );
+
+			// pseudo-random permutation (each index used once)
+			CHECK_SWIZZLE( 5,2,9,0, 14,7,3,11, 6,13,1,8, 12,4,15,10 );
 			#undef CHECK_SWIZZLE
 		}
 
 		// shuffle
 		if constexpr( Simd::Has_Shuffle() )
 		{
-			// TODO
+			StaticArray<A,32>	arr;
+			for (usize i = 0; i < arr.size(); ++i)
+				arr[i] = AB(i+1);
+
+			const auto	CheckShuffle = [&arr](Simd v, const StaticArray<uint,16> &idx)
+			{{
+				auto	a = v.ToArray();
+				Arr_t	b {};
+				for (usize i = 0; i < a.size(); ++i)
+					b[i] = arr[idx[i]];
+				TEST( a == b );
+			}};
+
+			Simd	a {arr.data()};
+			Simd	b {arr.data() + 16};
+
+			#define CHECK_SHUFFLE( ... )	CheckShuffle( a.template Shuffle<__VA_ARGS__>( b ), StaticArray<uint,16>{ __VA_ARGS__ });
+
+			// identity / pass-through
+			CHECK_SHUFFLE( 0,1,2,3,			4,5,6,7,		8,9,10,11,		12,13,14,15 );		// 'a' unchanged
+			CHECK_SHUFFLE( 16,17,18,19,		20,21,22,23,	24,25,26,27,	28,29,30,31 );		// 'b' unchanged
+
+			// broadcast (splat)
+			CHECK_SHUFFLE( 0,0,0,0,			0,0,0,0,		0,0,0,0,		0,0,0,0 );
+			CHECK_SHUFFLE( 15,15,15,15,		15,15,15,15,	15,15,15,15,	15,15,15,15 );
+			CHECK_SHUFFLE( 16,16,16,16,		16,16,16,16,	16,16,16,16,	16,16,16,16 );
+			CHECK_SHUFFLE( 31,31,31,31,		31,31,31,31,	31,31,31,31,	31,31,31,31 );
+			CHECK_SHUFFLE( 16,16,16,16,		16,16,16,16,	0,0,0,0,		0,0,0,0 );			// splat b[0] | a[0]
+			CHECK_SHUFFLE( 3,3,3,3,			3,3,3,3,		19,19,19,19,	19,19,19,19 );		// splat a[3] | b[3]
+
+			// reverse
+			CHECK_SHUFFLE( 15,14,13,12,		11,10,9,8,		7,6,5,4,		3,2,1,0 );			// reverse 'a'
+			CHECK_SHUFFLE( 31,30,29,28,		27,26,25,24,	23,22,21,20,	19,18,17,16 );		// reverse 'b'
+			CHECK_SHUFFLE( 31,30,29,28,		27,26,25,24,	7,6,5,4,		3,2,1,0 );			// high 'b' reversed | low 'a' reversed
+
+			// half selection / lane swap
+			CHECK_SHUFFLE( 16,17,18,19,		20,21,22,23,	0,1,2,3,		4,5,6,7 );			// low(b)  | low(a)
+			CHECK_SHUFFLE( 24,25,26,27,		28,29,30,31,	8,9,10,11,		12,13,14,15 );		// high(b) | high(a)
+			CHECK_SHUFFLE( 8,9,10,11,		12,13,14,15,	0,1,2,3,		4,5,6,7 );			// swap halves of 'a'
+			CHECK_SHUFFLE( 24,25,26,27,		28,29,30,31,	16,17,18,19,	20,21,22,23 );		// swap halves of 'b'
+			CHECK_SHUFFLE( 12,13,14,15,		8,9,10,11,		4,5,6,7,		0,1,2,3 );			// reverse 128-bit lanes of 'a'
+			CHECK_SHUFFLE( 28,29,30,31,		24,25,26,27,	20,21,22,23,	16,17,18,19 );		// reverse 128-bit lanes of 'b'
+
+			// interleave (unpack lo/hi style)
+			CHECK_SHUFFLE( 0,16,1,17,		2,18,3,19,		4,20,5,21,		6,22,7,23 );		// interleave low halves
+			CHECK_SHUFFLE( 8,24,9,25,		10,26,11,27,	12,28,13,29,	14,30,15,31 );		// interleave high halves
+
+			// deinterleave
+			CHECK_SHUFFLE( 0,2,4,6,			8,10,12,14,		16,18,20,22,	24,26,28,30 );		// even elements
+			CHECK_SHUFFLE( 1,3,5,7,			9,11,13,15,		17,19,21,23,	25,27,29,31 );		// odd elements
+
+			// alternating lanes (blend style)
+			CHECK_SHUFFLE( 0,17,2,19,		4,21,6,23,		8,25,10,27,		12,29,14,31 );		// even lanes from 'a', odd from 'b'
+			CHECK_SHUFFLE( 16,1,18,3,		20,5,22,7,		24,9,26,11,		28,13,30,15 );		// even lanes from 'b', odd from 'a'
+
+			// rotate
+			CHECK_SHUFFLE( 1,2,3,4,			5,6,7,8,		9,10,11,12,		13,14,15,0 );		// rotate 'a' left
+			CHECK_SHUFFLE( 15,0,1,2,		3,4,5,6,		7,8,9,10,			11,12,13,14 );		// rotate 'a' right
+			CHECK_SHUFFLE( 17,18,19,20,		21,22,23,24,	25,26,27,28,	29,30,31,16 );		// rotate 'b' left
+			CHECK_SHUFFLE( 31,16,17,18,		19,20,21,22,	23,24,25,26,	27,28,29,30 );		// rotate 'b' right
+
+			// duplicate pairs
+			CHECK_SHUFFLE( 0,0,1,1,			2,2,3,3,		4,4,5,5,		6,6,7,7 );
+			CHECK_SHUFFLE( 8,8,9,9,			10,10,11,11,	12,12,13,13,	14,14,15,15 );
+			CHECK_SHUFFLE( 16,16,17,17,		18,18,19,19,	20,20,21,21,	22,22,23,23 );
+			CHECK_SHUFFLE( 24,24,25,25,		26,26,27,27,	28,28,29,29,	30,30,31,31 );
+
+			// boundary indices
+			CHECK_SHUFFLE( 15,16,15,16,		15,16,15,16,	15,16,15,16,	15,16,15,16 );		// a[15]/b[0] boundary
+			CHECK_SHUFFLE( 0,31,0,31,		0,31,0,31,		0,31,0,31,		0,31,0,31 );		// min/max indices
+
+			// pseudo-random mixes
+			CHECK_SHUFFLE( 12,20,9,25,		3,27,7,31,		0,18,14,22,		5,29,11,16 );
+			CHECK_SHUFFLE( 31,4,17,9,		0,22,13,27,		6,19,30,11,		24,2,15,16 );
+			CHECK_SHUFFLE( 5,30,0,25,		7,18,2,29,		12,21,14,17,	9,28,3,20 );
+			CHECK_SHUFFLE( 0,31,1,30,		2,29,3,28,		4,27,5,26,		6,25,7,24 );		// converging extremes
+
+			#undef CHECK_SHUFFLE
 		}
 	}
 
@@ -656,6 +819,12 @@ namespace
 			TEST( a4.ToArray() == arr_1234 );
 			TEST( a5.ToArray() == arr_1234 );
 			TEST( a6.ToArray() == arr_neg  );
+		}
+
+		if constexpr( IsInteger<B> )
+		{
+			const Simd	m0{ MSBMask<32,0>{} };
+			const Simd	m1{ MSBMask<32,1>{} };
 		}
 
 		// set/get
@@ -739,13 +908,209 @@ namespace
 		// swizzle
 		if constexpr( Simd::Has_Swizzle() )
 		{
-			// TODO
+			Arr_t	arr;
+			for (usize i = 0; i < arr.size(); ++i)
+				arr[i] = AB(i+1);
+
+			const auto	CheckSwizzle = [&arr](Simd v, const List<uint> &idx)
+			{{
+				TEST_Eq( idx.size(), 32 );
+				auto	a = v.ToArray();
+				Arr_t	b;
+				usize	i = 0;
+				for (uint x : idx) b[i++] = arr[x];
+				TEST( a == b );
+			}};
+
+			#define CHECK_SWIZZLE( ... )	CheckSwizzle( v.template Swizzle< __VA_ARGS__ >(), { __VA_ARGS__ });
+
+			Simd	v {arr.data()};
+
+			// identity
+			CHECK_SWIZZLE( 0,1,2,3, 4,5,6,7, 8,9,10,11, 12,13,14,15, 16,17,18,19, 20,21,22,23, 24,25,26,27, 28,29,30,31 );
+
+			// full reverse
+			CHECK_SWIZZLE( 31,30,29,28, 27,26,25,24, 23,22,21,20, 19,18,17,16, 15,14,13,12, 11,10,9,8, 7,6,5,4, 3,2,1,0 );
+
+			// broadcast single element to all lanes
+			CHECK_SWIZZLE( 0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,0 );
+			CHECK_SWIZZLE( 31,31,31,31, 31,31,31,31, 31,31,31,31, 31,31,31,31, 31,31,31,31, 31,31,31,31, 31,31,31,31, 31,31,31,31 );
+			CHECK_SWIZZLE( 15,15,15,15, 15,15,15,15, 15,15,15,15, 15,15,15,15, 15,15,15,15, 15,15,15,15, 15,15,15,15, 15,15,15,15 );
+
+			// broadcast 128-bit lane
+			CHECK_SWIZZLE( 0,1,2,3, 0,1,2,3, 0,1,2,3, 0,1,2,3, 0,1,2,3, 0,1,2,3, 0,1,2,3, 0,1,2,3 );
+			CHECK_SWIZZLE( 28,29,30,31, 28,29,30,31, 28,29,30,31, 28,29,30,31, 28,29,30,31, 28,29,30,31, 28,29,30,31, 28,29,30,31 );
+
+			// duplicate low / high half
+			CHECK_SWIZZLE( 0,1,2,3, 4,5,6,7, 8,9,10,11, 12,13,14,15, 0,1,2,3, 4,5,6,7, 8,9,10,11, 12,13,14,15 );
+			CHECK_SWIZZLE( 16,17,18,19, 20,21,22,23, 24,25,26,27, 28,29,30,31, 16,17,18,19, 20,21,22,23, 24,25,26,27, 28,29,30,31 );
+
+			// swap halves
+			CHECK_SWIZZLE( 16,17,18,19, 20,21,22,23, 24,25,26,27, 28,29,30,31, 0,1,2,3, 4,5,6,7, 8,9,10,11, 12,13,14,15 );
+
+			// rotate left / right by 1
+			CHECK_SWIZZLE( 1,2,3,4, 5,6,7,8, 9,10,11,12, 13,14,15,16, 17,18,19,20, 21,22,23,24, 25,26,27,28, 29,30,31,0 );
+			CHECK_SWIZZLE( 31,0,1,2, 3,4,5,6, 7,8,9,10, 11,12,13,14, 15,16,17,18, 19,20,21,22, 23,24,25,26, 27,28,29,30 );
+
+			// rotate by one 128-bit lane
+			CHECK_SWIZZLE( 4,5,6,7, 8,9,10,11, 12,13,14,15, 16,17,18,19, 20,21,22,23, 24,25,26,27, 28,29,30,31, 0,1,2,3 );
+
+			// swap adjacent pairs
+			CHECK_SWIZZLE( 1,0,3,2, 5,4,7,6, 9,8,11,10, 13,12,15,14, 17,16,19,18, 21,20,23,22, 25,24,27,26, 29,28,31,30 );
+
+			// reverse within each 128-bit lane
+			CHECK_SWIZZLE( 3,2,1,0, 7,6,5,4, 11,10,9,8, 15,14,13,12, 19,18,17,16, 23,22,21,20, 27,26,25,24, 31,30,29,28 );
+
+			// interleave (zip) low and high halves
+			CHECK_SWIZZLE( 0,16,1,17, 2,18,3,19, 4,20,5,21, 6,22,7,23, 8,24,9,25, 10,26,11,27, 12,28,13,29, 14,30,15,31 );
+
+			// deinterleave (unzip) evens / odds
+			CHECK_SWIZZLE( 0,2,4,6, 8,10,12,14, 16,18,20,22, 24,26,28,30, 1,3,5,7, 9,11,13,15, 17,19,21,23, 25,27,29,31 );
+
+			// 4x4 transpose within each half
+			CHECK_SWIZZLE( 0,4,8,12, 1,5,9,13, 2,6,10,14, 3,7,11,15, 16,20,24,28, 17,21,25,29, 18,22,26,30, 19,23,27,31 );
+
+			// duplicate each element
+			CHECK_SWIZZLE( 0,0,1,1, 2,2,3,3, 4,4,5,5, 6,6,7,7, 8,8,9,9, 10,10,11,11, 12,12,13,13, 14,14,15,15 );
+
+			// alternating extremes
+			CHECK_SWIZZLE( 0,31,1,30, 2,29,3,28, 4,27,5,26, 6,25,7,24, 8,23,9,22, 10,21,11,20, 12,19,13,18, 14,17,15,16 );
+
+			// repeated cross-lane pattern
+			CHECK_SWIZZLE( 3,27,3,27, 5,29,5,29, 0,16,0,16, 31,15,31,15, 7,23,7,23, 12,20,12,20, 1,30,1,30, 8,24,8,24 );
+
+			// strided gather (step 3 mod 32)
+			CHECK_SWIZZLE( 0,3,6,9, 12,15,18,21, 24,27,30,1, 4,7,10,13, 16,19,22,25, 28,31,2,5, 8,11,14,17, 20,23,26,29 );
+
+			// pseudo-random permutation (each index used once)
+			CHECK_SWIZZLE( 5,22,9,0, 17,30,3,12, 25,7,14,28, 1,19,10,24, 31,6,13,20, 2,27,16,8, 29,11,23,4, 18,26,15,21 );
+			#undef CHECK_SWIZZLE
 		}
 
 		// shuffle
 		if constexpr( Simd::Has_Shuffle() )
 		{
-			// TODO
+			StaticArray<A,64>	arr;
+			for (usize i = 0; i < arr.size(); ++i)
+				arr[i] = AB(i+1);
+
+			const auto	CheckShuffle = [&arr](Simd v, const StaticArray<uint,32> &idx)
+			{{
+				auto	a = v.ToArray();
+				Arr_t	b {};
+				for (usize i = 0; i < a.size(); ++i)
+					b[i] = arr[idx[i]];
+				TEST( a == b );
+			}};
+
+			Simd	a {arr.data()};
+			Simd	b {arr.data() + 32};
+
+			#define CHECK_SHUFFLE( ... )	CheckShuffle( a.template Shuffle<__VA_ARGS__>( b ), StaticArray<uint,32>{ __VA_ARGS__ } );
+
+			// identity / pass-through
+			CHECK_SHUFFLE( 0,1,2,3,			4,5,6,7,		8,9,10,11,		12,13,14,15,
+						   16,17,18,19,		20,21,22,23,	24,25,26,27,	28,29,30,31 );		// 'a' unchanged
+			CHECK_SHUFFLE( 32,33,34,35,		36,37,38,39,	40,41,42,43,	44,45,46,47,
+						   48,49,50,51,		52,53,54,55,	56,57,58,59,	60,61,62,63 );		// 'b' unchanged
+
+			// broadcast (splat)
+			CHECK_SHUFFLE( 0,0,0,0,			0,0,0,0,		0,0,0,0,		0,0,0,0,
+						   0,0,0,0,			0,0,0,0,		0,0,0,0,		0,0,0,0 );
+			CHECK_SHUFFLE( 31,31,31,31,		31,31,31,31,	31,31,31,31,	31,31,31,31,
+						   31,31,31,31,		31,31,31,31,	31,31,31,31,	31,31,31,31 );
+			CHECK_SHUFFLE( 32,32,32,32,		32,32,32,32,	32,32,32,32,	32,32,32,32,
+						   32,32,32,32,		32,32,32,32,	32,32,32,32,	32,32,32,32 );
+			CHECK_SHUFFLE( 63,63,63,63,		63,63,63,63,	63,63,63,63,	63,63,63,63,
+						   63,63,63,63,		63,63,63,63,	63,63,63,63,	63,63,63,63 );
+			CHECK_SHUFFLE( 32,32,32,32,		32,32,32,32,	32,32,32,32,	32,32,32,32,
+						   0,0,0,0,			0,0,0,0,		0,0,0,0,		0,0,0,0 );			// splat b[0] | a[0]
+			CHECK_SHUFFLE( 3,3,3,3,			3,3,3,3,		3,3,3,3,		3,3,3,3,
+						   35,35,35,35,		35,35,35,35,	35,35,35,35,	35,35,35,35 );		// splat a[3] | b[3]
+
+			// reverse
+			CHECK_SHUFFLE( 31,30,29,28,		27,26,25,24,	23,22,21,20,	19,18,17,16,
+						   15,14,13,12,		11,10,9,8,		7,6,5,4,		3,2,1,0 );			// reverse 'a'
+			CHECK_SHUFFLE( 63,62,61,60,		59,58,57,56,	55,54,53,52,	51,50,49,48,
+						   47,46,45,44,		43,42,41,40,	39,38,37,36,	35,34,33,32 );		// reverse 'b'
+			CHECK_SHUFFLE( 63,62,61,60,		59,58,57,56,	55,54,53,52,	51,50,49,48,
+						   15,14,13,12,		11,10,9,8,		7,6,5,4,		3,2,1,0 );			// high 'b' reversed | low 'a' reversed
+
+			// half selection / lane swap
+			CHECK_SHUFFLE( 32,33,34,35,		36,37,38,39,	40,41,42,43,	44,45,46,47,
+						   0,1,2,3,			4,5,6,7,		8,9,10,11,		12,13,14,15 );		// low(b)  | low(a)
+			CHECK_SHUFFLE( 48,49,50,51,		52,53,54,55,	56,57,58,59,	60,61,62,63,
+						   16,17,18,19,		20,21,22,23,	24,25,26,27,	28,29,30,31 );		// high(b) | high(a)
+			CHECK_SHUFFLE( 16,17,18,19,		20,21,22,23,	24,25,26,27,	28,29,30,31,
+						   0,1,2,3,			4,5,6,7,		8,9,10,11,		12,13,14,15 );		// swap halves of 'a'
+			CHECK_SHUFFLE( 48,49,50,51,		52,53,54,55,	56,57,58,59,	60,61,62,63,
+						   32,33,34,35,		36,37,38,39,	40,41,42,43,	44,45,46,47 );		// swap halves of 'b'
+			CHECK_SHUFFLE( 16,17,18,19,		20,21,22,23,	24,25,26,27,	28,29,30,31,
+						   32,33,34,35,		36,37,38,39,	40,41,42,43,	44,45,46,47 );		// concat shift across operands: high(a) | low(b)
+			CHECK_SHUFFLE( 28,29,30,31,		24,25,26,27,	20,21,22,23,	16,17,18,19,
+						   12,13,14,15,		8,9,10,11,		4,5,6,7,		0,1,2,3 );			// reverse 128-bit lanes of 'a'
+			CHECK_SHUFFLE( 60,61,62,63,		56,57,58,59,	52,53,54,55,	48,49,50,51,
+						   44,45,46,47,		40,41,42,43,	36,37,38,39,	32,33,34,35 );		// reverse 128-bit lanes of 'b'
+			CHECK_SHUFFLE( 24,25,26,27,		28,29,30,31,	16,17,18,19,	20,21,22,23,
+						   8,9,10,11,		12,13,14,15,	0,1,2,3,		4,5,6,7 );			// reverse 256-bit lanes of 'a'
+			CHECK_SHUFFLE( 56,57,58,59,		60,61,62,63,	48,49,50,51,	52,53,54,55,
+						   40,41,42,43,		44,45,46,47,	32,33,34,35,	36,37,38,39 );		// reverse 256-bit lanes of 'b'
+
+			// interleave (unpack lo/hi style)
+			CHECK_SHUFFLE( 0,32,1,33,		2,34,3,35,		4,36,5,37,		6,38,7,39,
+						   8,40,9,41,		10,42,11,43,	12,44,13,45,	14,46,15,47 );		// interleave low halves
+			CHECK_SHUFFLE( 16,48,17,49,		18,50,19,51,	20,52,21,53,	22,54,23,55,
+						   24,56,25,57,		26,58,27,59,	28,60,29,61,	30,62,31,63 );		// interleave high halves
+
+			// deinterleave
+			CHECK_SHUFFLE( 0,2,4,6,			8,10,12,14,		16,18,20,22,	24,26,28,30,
+						   32,34,36,38,		40,42,44,46,	48,50,52,54,	56,58,60,62 );		// even elements
+			CHECK_SHUFFLE( 1,3,5,7,			9,11,13,15,		17,19,21,23,	25,27,29,31,
+						   33,35,37,39,		41,43,45,47,	49,51,53,55,	57,59,61,63 );		// odd elements
+
+			// alternating lanes (blend style)
+			CHECK_SHUFFLE( 0,33,2,35,		4,37,6,39,		8,41,10,43,		12,45,14,47,
+						   16,49,18,51,		20,53,22,55,	24,57,26,59,	28,61,30,63 );		// even lanes from 'a', odd from 'b'
+			CHECK_SHUFFLE( 32,1,34,3,		36,5,38,7,		40,9,42,11,		44,13,46,15,
+						   48,17,50,19,		52,21,54,23,	56,25,58,27,	60,29,62,31 );		// even lanes from 'b', odd from 'a'
+
+			// rotate
+			CHECK_SHUFFLE( 1,2,3,4,			5,6,7,8,		9,10,11,12,		13,14,15,16,
+						   17,18,19,20,		21,22,23,24,	25,26,27,28,	29,30,31,0 );		// rotate 'a' left
+			CHECK_SHUFFLE( 31,0,1,2,		3,4,5,6,		7,8,9,10,		11,12,13,14,
+						   15,16,17,18,		19,20,21,22,	23,24,25,26,	27,28,29,30 );		// rotate 'a' right
+			CHECK_SHUFFLE( 33,34,35,36,		37,38,39,40,	41,42,43,44,	45,46,47,48,
+						   49,50,51,52,		53,54,55,56,	57,58,59,60,	61,62,63,32 );		// rotate 'b' left
+			CHECK_SHUFFLE( 63,32,33,34,		35,36,37,38,	39,40,41,42,	43,44,45,46,
+						   47,48,49,50,		51,52,53,54,	55,56,57,58,	59,60,61,62 );		// rotate 'b' right
+
+			// duplicate pairs
+			CHECK_SHUFFLE( 0,0,1,1,			2,2,3,3,		4,4,5,5,		6,6,7,7,
+						   8,8,9,9,			10,10,11,11,	12,12,13,13,	14,14,15,15 );
+			CHECK_SHUFFLE( 16,16,17,17,		18,18,19,19,	20,20,21,21,	22,22,23,23,
+						   24,24,25,25,		26,26,27,27,	28,28,29,29,	30,30,31,31 );
+			CHECK_SHUFFLE( 32,32,33,33,		34,34,35,35,	36,36,37,37,	38,38,39,39,
+						   40,40,41,41,		42,42,43,43,	44,44,45,45,	46,46,47,47 );
+			CHECK_SHUFFLE( 48,48,49,49,		50,50,51,51,	52,52,53,53,	54,54,55,55,
+						   56,56,57,57,		58,58,59,59,	60,60,61,61,	62,62,63,63 );
+
+			// boundary indices
+			CHECK_SHUFFLE( 31,32,31,32,		31,32,31,32,	31,32,31,32,	31,32,31,32,
+						   31,32,31,32,		31,32,31,32,	31,32,31,32,	31,32,31,32 );		// a[31]/b[0] boundary
+			CHECK_SHUFFLE( 0,63,0,63,		0,63,0,63,		0,63,0,63,		0,63,0,63,
+						   0,63,0,63,		0,63,0,63,		0,63,0,63,		0,63,0,63 );		// min/max indices
+
+			// pseudo-random mixes
+			CHECK_SHUFFLE( 12,36,9,57,		3,43,7,63,		0,50,14,38,		5,61,11,32,
+						   20,44,17,49,		27,35,23,55,	16,58,30,40,	21,47,29,34 );
+			CHECK_SHUFFLE( 63,4,33,41,		0,54,13,59,		6,35,62,11,		56,2,47,48,
+						   31,38,17,45,		26,53,8,60,		22,37,51,1,		44,19,58,28 );
+			CHECK_SHUFFLE( 0,63,1,62,		2,61,3,60,		4,59,5,58,		6,57,7,56,
+						   8,55,9,54,		10,53,11,52,	12,51,13,50,	14,49,15,48 );		// converging extremes
+			CHECK_SHUFFLE( 31,32,30,33,		29,34,28,35,	27,36,26,37,	25,38,24,39,
+						   23,40,22,41,		21,42,20,43,	19,44,18,45,	17,46,16,47 );		// diverging from center
+
+			#undef CHECK_SHUFFLE
 		}
 	}
 
@@ -906,17 +1271,19 @@ namespace
 		if constexpr( Simd::Has_FusedMulAdd() )
 		{
 			const Simd	a1 = FusedMulAdd( Simd{B(1.1)}, Simd{B(2.2)}, Simd{B(3.3)} );
-			const Simd	a2 = FusedNegMulAdd( Simd{B(1.1)}, Simd{B(2.2)}, Simd{B(3.3)} );
+			const Simd	a2 = FusedNegMulAdd( Simd{B(1.1)}, Simd{B(2.2)}, Simd{B(3.3)} );	// -a * b + c
+			const Simd	a3 = FusedMulSub( Simd{B(1.1)}, Simd{B(2.2)}, Simd{B(3.3)} );		// a * b - c
 			const auto	acc1 = sizeof(A) < 4 ? EnabledBitCount(16) : EnabledBitCount(30);
 
-			AllEqual( a1, B(5.72f), acc1 );
-			AllEqual( a2, B(0.88f), acc1 );
+			AllEqual( a1, B(5.72f),  acc1 );
+			AllEqual( a2, B(0.88f),  acc1 );
+			AllEqual( a3, B(-0.88f), acc1 );
 		}
 		if constexpr( Simd::Has_BitEqual() )
 		{
 			// TODO
 		}
-		if constexpr( Simd::Has_PrefixSum() )
+		if constexpr( Simd::Has_ReduceAdd() )
 		{
 			typename Simd::Array_t	arr;
 			A						sum = A(0);
@@ -925,16 +1292,48 @@ namespace
 				sum += arr[i];
 			}
 
-			const auto	a1 = Simd{arr.data()}.PrefixSum();	TEST( BitEqual( B(a1), B(sum), acc ));
+			const auto	a1 = Simd{arr.data()}.ReduceAddScalar();	TEST( BitEqual( B(a1), B(sum), acc ));
 		}
-		if constexpr( Simd::Has_PrefixMinMax() )
+		if constexpr( Simd::Has_ReduceMinMax() )
 		{
 			typename Simd::Array_t	arr;
 			for (usize i = 0; i < arr.size(); ++i)
 				arr[i] = AB(i+1);
 
-			const auto	a1 = Simd{arr.data()}.PrefixMin();	TEST( a1 == arr.front() );
-			const auto	a2 = Simd{arr.data()}.PrefixMax();	TEST( a2 == arr.back() );
+			const auto	a1 = Simd{arr.data()}.ReduceMinScalar();	TEST( a1 == arr.front() );
+			const auto	a2 = Simd{arr.data()}.ReduceMaxScalar();	TEST( a2 == arr.back() );
+		}
+		if constexpr( Simd::Has_InclusiveAdd() )
+		{
+			typename Simd::Array_t	arr;
+			typename Simd::Array_t	scan;
+			A						sum = A(0);
+			for (usize i = 0; i < arr.size(); ++i) {
+				arr[i]	= AB(i+1);
+				sum		+= arr[i];
+				scan[i]	= sum;
+			}
+
+			const auto	a1 = Simd{arr.data()}.InclusiveAdd().ToArray();
+			for (usize i = 0; i < scan.size(); ++i) {
+				TEST( BitEqual( B(a1[i]), B(scan[i]), acc ));
+			}
+		}
+		if constexpr( Simd::Has_InclusiveAdd() )
+		{
+			typename Simd::Array_t	arr;
+			typename Simd::Array_t	scan;
+			A						sum = A(0);
+			for (usize i = 0; i < arr.size(); ++i) {
+				scan[i]	= sum;
+				arr[i]	= AB(i+1);
+				sum		+= arr[i];
+			}
+
+			const auto	a1 = Simd{arr.data()}.ExclusiveAdd().ToArray();
+			for (usize i = 0; i < scan.size(); ++i) {
+				TEST( BitEqual( B(a1[i]), B(scan[i]), acc ));
+			}
 		}
 		if constexpr( Simd::Has_Trigonometry() )
 		{
@@ -1321,22 +1720,54 @@ namespace
 		}
 	#endif
 
-		if constexpr( Simd::Has_PrefixSum() )
+		if constexpr( Simd::Has_ReduceAdd() )
 		{
-			const auto	a1 = Simd{A(1)}.PrefixSum();		TEST_Eq( a1, A(VecSize<Simd>) );
+			const auto	a1 = Simd{A(1)}.ReduceAddScalar();		TEST_Eq( a1, A(VecSize<Simd>) );
 		}
-		if constexpr( Simd::Has_PrefixSumExt() )
+		if constexpr( Simd::Has_ReduceAddExt() )
 		{
-			const auto	a1 = Simd{A(1)}.PrefixSumExt();		TEST_Eq( a1, A(VecSize<Simd>) );
+			const auto	a1 = Simd{A(1)}.ReduceAddExtScalar();		TEST_Eq( a1, A(VecSize<Simd>) );
 		}
-		if constexpr( Simd::Has_PrefixMinMax() )
+		if constexpr( Simd::Has_ReduceMinMax() )
 		{
 			typename Simd::Array_t	arr;
 			for (usize i = 0; i < arr.size(); ++i)
 				arr[i] = A(i+1);
 
-			const auto	a1 = Simd{arr.data()}.PrefixMin();	TEST( a1 == arr.front() );
-			const auto	a2 = Simd{arr.data()}.PrefixMax();	TEST( a2 == arr.back() );
+			const auto	a1 = Simd{arr.data()}.ReduceMinScalar();	TEST( a1 == arr.front() );
+			const auto	a2 = Simd{arr.data()}.ReduceMaxScalar();	TEST( a2 == arr.back() );
+		}
+		if constexpr( Simd::Has_InclusiveAdd() )
+		{
+			typename Simd::Array_t	arr;
+			typename Simd::Array_t	scan;
+			A						sum = A(0);
+			for (usize i = 0; i < arr.size(); ++i) {
+				arr[i]	= A(i+1);
+				sum		+= arr[i];
+				scan[i]	= sum;
+			}
+
+			const auto	a1 = Simd{arr.data()}.InclusiveAdd().ToArray();
+			for (usize i = 0; i < scan.size(); ++i) {
+				TEST_Eq( a1[i], scan[i] );
+			}
+		}
+		if constexpr( Simd::Has_InclusiveAdd() )
+		{
+			typename Simd::Array_t	arr;
+			typename Simd::Array_t	scan;
+			A						sum = A(0);
+			for (usize i = 0; i < arr.size(); ++i) {
+				scan[i]	= sum;
+				arr[i]	= A(i+1);
+				sum		+= arr[i];
+			}
+
+			const auto	a1 = Simd{arr.data()}.ExclusiveAdd().ToArray();
+			for (usize i = 0; i < scan.size(); ++i) {
+				TEST( a1[i] == scan[i] );
+			}
 		}
 	}
 
@@ -1551,15 +1982,15 @@ namespace
 			if constexpr( IsSame< Dst, half >)
 			{
 				if ( ref.IsNaN() or ref.IsInfinity() ){
-					CHECK( dst == half::Max() or dst.IsNaN() or dst.IsInfinity() );
+					TEST( dst == half::Max() or dst.IsNaN() or dst.IsInfinity() );
 				}else
 				if ( Abs(float(src)) > float(half::Max())*0.5f ){
-					CHECK( (ref.AsInteger() ^ dst.AsInteger()) <= 3 );	// allow 1-2 bit difference
+					TEST( (ref.AsInteger() ^ dst.AsInteger()) <= 3 );	// allow 1-2 bit difference
 				}else{
-					CHECK_Eq( ref, dst );
+					TEST_Eq( ref, dst );
 				}
 			}else{
-				CHECK_Eq( ref, dst );
+				TEST_Eq( ref, dst );
 			}
 		}
 	}

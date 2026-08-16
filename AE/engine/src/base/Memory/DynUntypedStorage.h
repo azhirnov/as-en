@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 /*
 	DynUntypedStorage can be used as static variable.
 	For RC object use SharedMem type.
@@ -53,6 +53,13 @@ namespace AE::Base
 		ND_ RstPtr<void>		Data ()									__NE___	{ return _ptr; }
 		ND_ RstPtr<const void>	Data ()									C_NE___	{ return _ptr; }
 
+		template <typename T>
+		ND_ RstPtr<T>			Data ()									__NE___	{ return RstPtr<T>{ Cast<T>( _ptr.get() )}; }
+
+		template <typename T>
+		ND_ RstPtr<const T>		Data ()									C_NE___	{ return RstPtr<const T>{ Cast<T>( _ptr.get() )}; }
+
+		ND_ const void*			Begin ()								C_NE___	{ return _ptr.get(); }
 		ND_ const void*			End ()									C_NE___	{ return _ptr.get() + Size(); }
 
 		ND_ explicit operator bool ()									C_NE___	{ return _ptr != null; }
@@ -79,11 +86,6 @@ namespace AE::Base
 
 	StaticAssertDbg( sizeof(DynUntypedStorage) == sizeof(void*)*2 + sizeof(RC<IAllocator>) );
 	StaticAssertRel( sizeof(DynUntypedStorage) == sizeof(void*)*2 );
-
-
-	template <typename T, usize Capacity>
-	using UninitializedStaticArray = UntypedStorage< sizeof(T) * Capacity, alignof(T) >;
-
 //-----------------------------------------------------------------------------
 
 

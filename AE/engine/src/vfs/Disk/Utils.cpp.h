@@ -1,10 +1,6 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #pragma once
-
-#ifndef AE_ENABLE_UTF8PROC
-#	error Utf8Proc is required
-#endif
 
 namespace AE::VFS
 {

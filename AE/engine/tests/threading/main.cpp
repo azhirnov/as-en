@@ -1,10 +1,11 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #include "UnitTest_Common.h"
 
 extern void UnitTest_AsyncMutex ();
 extern void UnitTest_AsyncDataSource (const Path &curr);
 extern void UnitTest_Barrier ();
+extern void UnitTest_DelayedRun ();
 extern void UnitTest_Promise ();
 extern void UnitTest_Semaphore ();
 extern void UnitTest_SyncPoint ();
@@ -52,6 +53,7 @@ TEST_ENTRY()
 
 	RUN_TEST( UnitTest_AsyncMutex );
 	RUN_TEST( UnitTest_SyncPoint );
+	RUN_TEST( UnitTest_DelayedRun );
 
 	AE_LOGI( "Tests.Threading finished" );
 	return 0;

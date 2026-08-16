@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #include "UnitTest_Common.h"
 
@@ -34,6 +34,7 @@ extern void UnitTest_Math_PhysicalQuantity ();
 extern void UnitTest_Math_Rectangle ();
 extern void UnitTest_Math_SIMD ();
 extern void UnitTest_Math_SimdVector ();
+extern void UnitTest_Math_SimdMatrix ();
 extern void UnitTest_Math_Transformation ();
 extern void UnitTest_Math_Vec ();
 extern void UnitTest_MemChunkList ();
@@ -59,12 +60,30 @@ TEST_ENTRY()
 {
 	BEGIN_TEST();
 
+	String	config = "\n\tConfig: ";
+	#ifdef CMAKE_INTDIR
+		config << CMAKE_INTDIR;
+	#else
+	# ifdef AE_CFG_DEBUG
+		config << "Debug";
+	# elif defined(AE_CFG_DEVELOP)
+		config << "Develop";
+	# elif defined(AE_CFG_PROFILE)
+		config << "Profile";
+	# elif defined(AE_CFG_RELEASE)
+		config << "Release";
+	# else
+	#	error unknown config
+	# endif
+	#endif
+
 	AE_LOGI( "Engine: "s <<  AE_ENGINE_NAME << " (" << ToString( AE_VERSION ) << ')' );
 	AE_LOGI(
 		"\n\tPlatform name: "s << AE_PLATFORM_NAME <<
 		"\n\tCPU arch: " << AE_CPU_ARCH_NAME <<
 		"\n\tCompiler: " << AE_COMPILER_NAME <<
 		"\n\tCompiler ver: " << ToString(AE_COMPILER_VERSION) <<
+		config <<
 		"\n\tOS name: " << PlatformUtils::GetOSName() <<
 		"\n\tOS ver: " << ToString(PlatformUtils::GetOSVersion()) <<
 		"\n\tStack size: " << ToString(PlatformUtils::GetDefaultStackSize()) <<
@@ -102,6 +121,7 @@ TEST_ENTRY()
 	RUN_TEST( UnitTest_Math_Rectangle );
 	RUN_TEST( UnitTest_Math_SIMD );
 	RUN_TEST( UnitTest_Math_SimdVector );
+	RUN_TEST( UnitTest_Math_SimdMatrix );
 	RUN_TEST( UnitTest_Math_Transformation );
 	RUN_TEST( UnitTest_Math_Vec );
 	RUN_TEST( UnitTest_MemChunkList );
@@ -122,6 +142,9 @@ TEST_ENTRY()
 	#ifdef AE_EXPERIMENTAL
 		RUN_TEST( UnitTest_Crypto );
 	#endif
+	RC_TRACK_ALL_REFS(
+		Base::RefCounterUtils::PrintRefs();
+	)
 
 	AE_LOGI( "Tests.Base finished" );
 	return 0;

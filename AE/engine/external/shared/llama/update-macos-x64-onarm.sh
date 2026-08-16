@@ -16,29 +16,37 @@ find . -type d -exec mkdir -p "../../../../../../../../AE-Bin/external/macos-x64
 find . -type f -name '*.h' -exec cp {} "../../../../../../../../AE-Bin/external/macos-x64/llama/include/"{} \;
 cd "../../.."
 rm -rf "build"
-arch -x86_64 /usr/local/bin/cmake -S temp -B build -G "Xcode" -DAE_ENABLE_COMPILER_WARNINGS=OFF -DCMAKE_BUILD_TYPE=Release -DCMAKE_OSX_DEPLOYMENT_TARGET=10.15 -DCMAKE_OSX_ARCHITECTURES=x86_64 -DAE_SIMD_SSE=20 -DAE_SIMD_AES=0 -DCMAKE_INSTALL_PREFIX="../../../../../AE-Bin/external/macos-x64/llama"  -DCPU_TYPE=1
-arch -x86_64 /usr/local/bin/cmake --build build --config Release --target "ggml-cpu" -j 6
+arch -x86_64 /usr/local/bin/cmake -S temp -B build -G "Xcode" -DAE_ENABLE_COMPILER_WARNINGS=OFF -DCMAKE_BUILD_TYPE=Release -DCMAKE_OSX_DEPLOYMENT_TARGET=10.15 -DCMAKE_OSX_ARCHITECTURES=x86_64 -DAE_SIMD_SSE=20 -DAE_SIMD_AES=0 -DCMAKE_INSTALL_PREFIX="../../../../../AE-Bin/external/macos-x64/llama"  -DCPU_TYPE=1 || pauseOnError
+arch -x86_64 /usr/local/bin/cmake --build build --config Release --target "ggml-cpu" -j 6 || pauseOnError
 rm -rf "build"
-arch -x86_64 /usr/local/bin/cmake -S temp -B build -G "Xcode" -DAE_ENABLE_COMPILER_WARNINGS=OFF -DCMAKE_BUILD_TYPE=Release -DCMAKE_OSX_DEPLOYMENT_TARGET=10.15 -DCMAKE_OSX_ARCHITECTURES=x86_64 -DAE_SIMD_SSE=20 -DAE_SIMD_AES=0 -DCMAKE_INSTALL_PREFIX="../../../../../AE-Bin/external/macos-x64/llama"  -DCPU_TYPE=2
-arch -x86_64 /usr/local/bin/cmake --build build --config Release --target "ggml-cpu" -j 6
+arch -x86_64 /usr/local/bin/cmake -S temp -B build -G "Xcode" -DAE_ENABLE_COMPILER_WARNINGS=OFF -DCMAKE_BUILD_TYPE=Release -DCMAKE_OSX_DEPLOYMENT_TARGET=10.15 -DCMAKE_OSX_ARCHITECTURES=x86_64 -DAE_SIMD_SSE=20 -DAE_SIMD_AES=0 -DCMAKE_INSTALL_PREFIX="../../../../../AE-Bin/external/macos-x64/llama"  -DCPU_TYPE=2 || pauseOnError
+arch -x86_64 /usr/local/bin/cmake --build build --config Release --target "ggml-cpu" -j 6 || pauseOnError
 rm -rf "build"
-arch -x86_64 /usr/local/bin/cmake -S temp -B build -G "Xcode" -DAE_ENABLE_COMPILER_WARNINGS=OFF -DCMAKE_BUILD_TYPE=Release -DCMAKE_OSX_DEPLOYMENT_TARGET=10.15 -DCMAKE_OSX_ARCHITECTURES=x86_64 -DAE_SIMD_SSE=20 -DAE_SIMD_AES=0 -DCMAKE_INSTALL_PREFIX="../../../../../AE-Bin/external/macos-x64/llama"  -DCPU_TYPE=3
-arch -x86_64 /usr/local/bin/cmake --build build --config Release --target "ggml-cpu" -j 6
+arch -x86_64 /usr/local/bin/cmake -S temp -B build -G "Xcode" -DAE_ENABLE_COMPILER_WARNINGS=OFF -DCMAKE_BUILD_TYPE=Release -DCMAKE_OSX_DEPLOYMENT_TARGET=10.15 -DCMAKE_OSX_ARCHITECTURES=x86_64 -DAE_SIMD_SSE=20 -DAE_SIMD_AES=0 -DCMAKE_INSTALL_PREFIX="../../../../../AE-Bin/external/macos-x64/llama"  -DCPU_TYPE=3 || pauseOnError
+arch -x86_64 /usr/local/bin/cmake --build build --config Release --target "ggml-cpu" -j 6 || pauseOnError
 rm -rf "build"
-arch -x86_64 /usr/local/bin/cmake -S temp -B build -G "Xcode" -DAE_ENABLE_COMPILER_WARNINGS=OFF -DCMAKE_BUILD_TYPE=Release -DCMAKE_OSX_DEPLOYMENT_TARGET=10.15 -DCMAKE_OSX_ARCHITECTURES=x86_64 -DAE_SIMD_SSE=20 -DAE_SIMD_AES=0 -DCMAKE_INSTALL_PREFIX="../../../../../AE-Bin/external/macos-x64/llama"  -DCPU_TYPE=4
-arch -x86_64 /usr/local/bin/cmake --build build --config Release --target "ggml-cpu" -j 6
+arch -x86_64 /usr/local/bin/cmake -S temp -B build -G "Xcode" -DAE_ENABLE_COMPILER_WARNINGS=OFF -DCMAKE_BUILD_TYPE=Release -DCMAKE_OSX_DEPLOYMENT_TARGET=10.15 -DCMAKE_OSX_ARCHITECTURES=x86_64 -DAE_SIMD_SSE=20 -DAE_SIMD_AES=0 -DCMAKE_INSTALL_PREFIX="../../../../../AE-Bin/external/macos-x64/llama"  -DCPU_TYPE=4 || pauseOnError
+arch -x86_64 /usr/local/bin/cmake --build build --config Release --target "ggml-cpu" -j 6 || pauseOnError
 rm -rf "build"
-arch -x86_64 /usr/local/bin/cmake -S temp -B build -G "Xcode" -DAE_ENABLE_COMPILER_WARNINGS=OFF -DCMAKE_BUILD_TYPE=Release -DCMAKE_OSX_DEPLOYMENT_TARGET=10.15 -DCMAKE_OSX_ARCHITECTURES=x86_64 -DAE_SIMD_SSE=20 -DAE_SIMD_AES=0 -DCMAKE_INSTALL_PREFIX="../../../../../AE-Bin/external/macos-x64/llama"  -DCPU_TYPE=5
-arch -x86_64 /usr/local/bin/cmake --build build --config Release --target "ggml-cpu" -j 6
+arch -x86_64 /usr/local/bin/cmake -S temp -B build -G "Xcode" -DAE_ENABLE_COMPILER_WARNINGS=OFF -DCMAKE_BUILD_TYPE=Release -DCMAKE_OSX_DEPLOYMENT_TARGET=10.15 -DCMAKE_OSX_ARCHITECTURES=x86_64 -DAE_SIMD_SSE=20 -DAE_SIMD_AES=0 -DCMAKE_INSTALL_PREFIX="../../../../../AE-Bin/external/macos-x64/llama"  -DCPU_TYPE=5 || pauseOnError
+arch -x86_64 /usr/local/bin/cmake --build build --config Release --target "ggml-cpu" -j 6 || pauseOnError
 rm -rf "build"
-arch -x86_64 /usr/local/bin/cmake -S temp -B build -G "Xcode" -DAE_ENABLE_COMPILER_WARNINGS=OFF -DCMAKE_BUILD_TYPE=Release -DCMAKE_OSX_DEPLOYMENT_TARGET=10.15 -DCMAKE_OSX_ARCHITECTURES=x86_64 -DAE_SIMD_SSE=20 -DAE_SIMD_AES=0 -DCMAKE_INSTALL_PREFIX="../../../../../AE-Bin/external/macos-x64/llama"  -DCPU_TYPE=6
-arch -x86_64 /usr/local/bin/cmake --build build --config Release --target "ggml-cpu" -j 6
+arch -x86_64 /usr/local/bin/cmake -S temp -B build -G "Xcode" -DAE_ENABLE_COMPILER_WARNINGS=OFF -DCMAKE_BUILD_TYPE=Release -DCMAKE_OSX_DEPLOYMENT_TARGET=10.15 -DCMAKE_OSX_ARCHITECTURES=x86_64 -DAE_SIMD_SSE=20 -DAE_SIMD_AES=0 -DCMAKE_INSTALL_PREFIX="../../../../../AE-Bin/external/macos-x64/llama"  -DCPU_TYPE=6 || pauseOnError
+arch -x86_64 /usr/local/bin/cmake --build build --config Release --target "ggml-cpu" -j 6 || pauseOnError
 rm -rf "build"
-arch -x86_64 /usr/local/bin/cmake -S temp -B build -G "Xcode" -DAE_ENABLE_COMPILER_WARNINGS=OFF -DCMAKE_BUILD_TYPE=Release -DCMAKE_OSX_DEPLOYMENT_TARGET=10.15 -DCMAKE_OSX_ARCHITECTURES=x86_64 -DAE_SIMD_SSE=20 -DAE_SIMD_AES=0 -DCMAKE_INSTALL_PREFIX="../../../../../AE-Bin/external/macos-x64/llama"  -DCPU_TYPE=1 -DENABLE_VULKAN=ON
-arch -x86_64 /usr/local/bin/cmake --build build --config Release --target "ggml-vulkan" -j 6
+arch -x86_64 /usr/local/bin/cmake -S temp -B build -G "Xcode" -DAE_ENABLE_COMPILER_WARNINGS=OFF -DCMAKE_BUILD_TYPE=Release -DCMAKE_OSX_DEPLOYMENT_TARGET=10.15 -DCMAKE_OSX_ARCHITECTURES=x86_64 -DAE_SIMD_SSE=20 -DAE_SIMD_AES=0 -DCMAKE_INSTALL_PREFIX="../../../../../AE-Bin/external/macos-x64/llama"  -DCPU_TYPE=1 -DENABLE_VULKAN=ON || pauseOnError
+arch -x86_64 /usr/local/bin/cmake --build build --config Release --target "ggml-vulkan" -j 6 || pauseOnError
 rm -rf "build"
-arch -x86_64 /usr/local/bin/cmake -S temp -B build -G "Xcode" -DAE_ENABLE_COMPILER_WARNINGS=OFF -DCMAKE_BUILD_TYPE=Release -DCMAKE_OSX_DEPLOYMENT_TARGET=10.15 -DCMAKE_OSX_ARCHITECTURES=x86_64 -DAE_SIMD_SSE=20 -DAE_SIMD_AES=0 -DCMAKE_INSTALL_PREFIX="../../../../../AE-Bin/external/macos-x64/llama"  -DCPU_TYPE=1
-arch -x86_64 /usr/local/bin/cmake --build build --config Release --target "llama" -j 6
+arch -x86_64 /usr/local/bin/cmake -S temp -B build -G "Xcode" -DAE_ENABLE_COMPILER_WARNINGS=OFF -DCMAKE_BUILD_TYPE=Release -DCMAKE_OSX_DEPLOYMENT_TARGET=10.15 -DCMAKE_OSX_ARCHITECTURES=x86_64 -DAE_SIMD_SSE=20 -DAE_SIMD_AES=0 -DCMAKE_INSTALL_PREFIX="../../../../../AE-Bin/external/macos-x64/llama"  -DCPU_TYPE=1 || pauseOnError
+arch -x86_64 /usr/local/bin/cmake --build build --config Release --target "llama" -j 6 || pauseOnError
 rm -rf "temp"
 rm -rf "build"
 read -p "press any key..."
+
+exit 0
+
+pauseOnError() {
+	echo -e "\033[31m*** failed ***\033[0m"
+	read -p "press any key..."
+	exit 1
+}

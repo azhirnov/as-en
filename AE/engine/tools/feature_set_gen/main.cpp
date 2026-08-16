@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 /*
 	popular desktop GPUs:
 	https://store.steampowered.com/hwsurvey/videocard/
@@ -14,6 +14,7 @@
 #include "graphics_rhi/Private/FeatureSet.cpp.h"
 #include "graphics_rhi/Private/RenderState.cpp.h"
 #include "graphics_rhi/Private/EnumUtils.cpp.h"
+#include "graphics_rhi/Private/CoopVector.cpp.h"
 #include "graphics_rhi/Metal/MFeatureSet.cpp"
 
 using namespace AE;
@@ -83,7 +84,7 @@ ND_ static T  FS_Validate (T feat)
 
 static void  ValidateFS (INOUT FeatureSet &fs)
 {
-	using PerDescriptorSet		= Graphics::FeatureSet::PerDescriptorSet;
+	using PerPipeline			= Graphics::FeatureSet::PerPipeline;
 	using PerShaderStage		= Graphics::FeatureSet::PerShaderStage;
 	using SubgroupOperationBits	= Graphics::FeatureSet::SubgroupOperationBits;
 	using VendorIDs_t			= Graphics::FeatureSet::VendorIDs_t;
@@ -215,16 +216,20 @@ static bool  GenMinDescriptorIndexing (ArrayView<FeatureSetInfo> fsInfo)
 		_visitor_( shaderStorageTexelBufferArrayDynamicIndexing	)
 
 	#define FS_LIST2( _visitor_ ) \
-		_visitor_( quadDivergentImplicitLod				)\
-		_visitor_( runtimeDescriptorArray				)\
-		_visitor_( perPipeline							)\
-		_visitor_( perStage								)\
-		_visitor_( maxUniformBufferSize					)\
-		_visitor_( maxStorageBufferSize					)\
-		_visitor_( maxDescriptorSets					)\
-		_visitor_( maxPushConstantsSize					)\
-		_visitor_( maxFragmentOutputAttachments			)\
-		_visitor_( maxFragmentCombinedOutputResources	)
+		_visitor_( quadDivergentImplicitLod					)\
+		_visitor_( runtimeDescriptorArray					)\
+		_visitor_( descriptorBindingVariableDescriptorCount	)\
+		_visitor_( perPipeline								)\
+		_visitor_( perDescSet_maxTotalResources				)\
+		_visitor_( perStage									)\
+		_visitor_( perStage_maxTotalResources				)\
+		_visitor_( maxUniformBufferSize						)\
+		_visitor_( maxStorageBufferSize						)\
+		_visitor_( maxDescriptorSets						)\
+		_visitor_( maxPushConstantsSize						)\
+		_visitor_( maxFragmentOutputAttachments				)\
+		_visitor_( maxFragmentCombinedOutputResources		)\
+		_visitor_( maxShaderVersion							)
 
 	FeatureSet	min_fs;
 	String		comment;
@@ -239,6 +244,10 @@ static bool  GenMinDescriptorIndexing (ArrayView<FeatureSetInfo> fsInfo)
 		const auto&	fs = info.fs;
 
 		if ( not (FS_LIST( FS_ANY_TRUE ) false) )
+			continue;
+
+		if ( fs.shaderUniformBufferArrayDynamicIndexing != EFeature::RequireTrue	or
+			 fs.shaderSampledImageArrayDynamicIndexing != EFeature::RequireTrue		)
 			continue;
 
 		if ( init )
@@ -292,6 +301,7 @@ static bool  GenMinNonUniformDescIndexing (ArrayView<FeatureSetInfo> fsInfo)
 	#define FS_LIST2( _visitor_ ) \
 		_visitor_( quadDivergentImplicitLod								)\
 		_visitor_( runtimeDescriptorArray								)\
+		_visitor_( descriptorBindingVariableDescriptorCount				)\
 		_visitor_( shaderUniformTexelBufferArrayNonUniformIndexing		)\
 		_visitor_( shaderStorageTexelBufferArrayNonUniformIndexing		)\
 		_visitor_( shaderSampledImageArrayDynamicIndexing				)\
@@ -302,13 +312,16 @@ static bool  GenMinNonUniformDescIndexing (ArrayView<FeatureSetInfo> fsInfo)
 		_visitor_( shaderUniformTexelBufferArrayDynamicIndexing			)\
 		_visitor_( shaderStorageTexelBufferArrayDynamicIndexing			)\
 		_visitor_( perPipeline											)\
+		_visitor_( perDescSet_maxTotalResources							)\
 		_visitor_( perStage												)\
+		_visitor_( perStage_maxTotalResources							)\
 		_visitor_( maxUniformBufferSize									)\
 		_visitor_( maxStorageBufferSize									)\
 		_visitor_( maxDescriptorSets									)\
 		_visitor_( maxPushConstantsSize									)\
 		_visitor_( maxFragmentOutputAttachments							)\
-		_visitor_( maxFragmentCombinedOutputResources					)
+		_visitor_( maxFragmentCombinedOutputResources					)\
+		_visitor_( maxShaderVersion										)
 
 	FeatureSet	min_fs;
 	String		comment;
@@ -364,6 +377,115 @@ static bool  GenMinNonUniformDescIndexing (ArrayView<FeatureSetInfo> fsInfo)
 
 /*
 =================================================
+	GenMinBindless
+=================================================
+*/
+static bool  GenMinBindless (ArrayView<FeatureSetInfo> fsInfo)
+{
+	#define FS_LIST( _visitor_ ) \
+		_visitor_( runtimeDescriptorArray						)\
+		_visitor_( descriptorBindingVariableDescriptorCount		)\
+		_visitor_( shaderUniformBufferArrayNonUniformIndexing	)\
+		_visitor_( shaderSampledImageArrayNonUniformIndexing	)\
+		_visitor_( shaderStorageBufferArrayNonUniformIndexing	)\
+		_visitor_( shaderStorageImageArrayNonUniformIndexing	)\
+		_visitor_( shaderInputAttachmentArrayNonUniformIndexing	)\
+
+	#define FS_LIST2( _visitor_ ) \
+		_visitor_( quadDivergentImplicitLod								)\
+		_visitor_( shaderUniformTexelBufferArrayNonUniformIndexing		)\
+		_visitor_( shaderStorageTexelBufferArrayNonUniformIndexing		)\
+		_visitor_( shaderSampledImageArrayDynamicIndexing				)\
+		_visitor_( shaderStorageBufferArrayDynamicIndexing				)\
+		_visitor_( shaderStorageImageArrayDynamicIndexing				)\
+		_visitor_( shaderUniformBufferArrayDynamicIndexing				)\
+		_visitor_( shaderInputAttachmentArrayDynamicIndexing			)\
+		_visitor_( shaderUniformTexelBufferArrayDynamicIndexing			)\
+		_visitor_( shaderStorageTexelBufferArrayDynamicIndexing			)\
+		_visitor_( perPipeline											)\
+		_visitor_( perDescSet_maxTotalResources							)\
+		_visitor_( perStage												)\
+		_visitor_( perStage_maxTotalResources							)\
+		_visitor_( maxUniformBufferSize									)\
+		_visitor_( maxStorageBufferSize									)\
+		_visitor_( maxDescriptorSets									)\
+		_visitor_( maxPushConstantsSize									)\
+		_visitor_( maxFragmentOutputAttachments							)\
+		_visitor_( maxFragmentCombinedOutputResources					)\
+		_visitor_( bufferDeviceAddress									)\
+		_visitor_( descriptorHeap										)\
+		_visitor_( maxShaderVersion										)
+
+	FeatureSet	min_fs;
+	String		comment;
+	bool		init	= false;
+
+	min_fs.Init( EFeature::Ignore );
+
+	comment << "\t// include:\n";
+
+	for (auto& info : fsInfo)
+	{
+		const auto&	fs = info.fs;
+
+		if ( not (FS_LIST( FS_ANY_TRUE ) false) )
+			continue;
+
+		if ( fs.runtimeDescriptorArray != EFeature::RequireTrue						or
+			 fs.descriptorBindingVariableDescriptorCount != EFeature::RequireTrue	or
+			 fs.shaderSampledImageArrayNonUniformIndexing != EFeature::RequireTrue	or
+			 fs.perStage.maxSampledImages < 1'000									or
+			 fs.perStage_maxTotalResources < 1'100									or
+			 fs.perDescSet_maxTotalResources < 1'000								)
+			continue;
+
+		if ( init )
+		{
+			FS_LIST( FS_MERGE );
+			FS_LIST2( FS_MERGE );
+			CHECK( FS_LIST( FS_ANY_TRUE2 ) false );
+		}
+		else
+		{
+			FS_LIST( FS_INIT );
+			FS_LIST2( FS_INIT );
+			init = true;
+		}
+
+		comment << "\t//\t" << info.name << "\n";
+	}
+
+	CHECK_ERR( init );
+
+	comment << "\n";
+
+	ValidateFS( INOUT min_fs );
+	//min_fs.Validate();
+	//CHECK( min_fs.IsValid() );
+
+	Path	dst_path = FEATURE_SET_FOLDER;
+	dst_path.append( "parts/min_bindless.as" );
+
+	CHECK_ERR( FeatureSetToScript( dst_path, "part.MinBindless", min_fs, comment ));
+	return true;
+
+#undef FS_LIST
+#undef FS_LIST2
+}
+
+/*
+=================================================
+	GenMinBindless2
+=================================================
+*/
+static bool  GenMinBindless2 (ArrayView<FeatureSetInfo>)
+{
+	// TODO: descriptorHeap, bufferDeviceAddress
+	return true;
+}
+
+/*
+=================================================
 	GenMinRecursiveRayTracing
 =================================================
 */
@@ -381,10 +503,10 @@ static bool  GenMinRecursiveRayTracing (ArrayView<FeatureSetInfo> fsInfo)
 	{
 		const auto&	fs = info.fs;
 
-		if ( fs.rayTracingPipeline != EFeature::RequireTrue )
+		if ( fs.rayTracingPipeline != EFeature::RequireTrue or
+			 fs.maxRayRecursionDepth < 4 )
 			continue;
 
-		CHECK( fs.maxRayRecursionDepth > 1 );
 		CHECK( fs.ext.maxRayDispatchInvocationCount > 0 );
 
 		if ( init )
@@ -1755,6 +1877,8 @@ int main ()
 	CHECK_ERR( GenMinimalFS					( fs_infos ),	-10 );
 	CHECK_ERR( GenMinDescriptorIndexing		( fs_infos ),	-10 );
 	CHECK_ERR( GenMinNonUniformDescIndexing	( fs_infos ),	-10 );
+	CHECK_ERR( GenMinBindless				( fs_infos ),	-10 );
+	CHECK_ERR( GenMinBindless2				( fs_infos ),	-10 );
 	CHECK_ERR( GenMinRecursiveRayTracing	( fs_infos ),	-10 );
 	CHECK_ERR( GenMinInlineRayTracing		( fs_infos ),	-10 );
 	CHECK_ERR( GenMinMeshShader				( fs_infos ),	-10 );

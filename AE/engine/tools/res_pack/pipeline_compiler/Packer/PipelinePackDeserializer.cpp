@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #include "res_pack/pipeline_compiler/Packer/PipelinePack.h"
 #include "graphics_rhi/Private/EnumUtils.h"
@@ -69,14 +69,16 @@ namespace AE::PipelineCompiler
 			return false;
 
 		EImageType	lhs_val	= (lhs & EImageType::_ValMask);
-		EImageType	rhs_val	= (lhs & EImageType::_ValMask);
+		EImageType	rhs_val	= (rhs & EImageType::_ValMask);
 
 		switch ( lhs_val ) {
+			case EImageType::Depth :
 			case EImageType::Half :
 			case EImageType::SNorm :
 			case EImageType::UNorm :	lhs_val = EImageType::Float;
 		}
 		switch ( rhs_val ) {
+			case EImageType::Depth :
 			case EImageType::Half :
 			case EImageType::SNorm :
 			case EImageType::UNorm :	rhs_val = EImageType::Float;
@@ -262,7 +264,7 @@ namespace AE::PipelineCompiler
 		}};
 
 		bool	result = true;
-		result &= des( OUT un.type, OUT un.stages, OUT un.binding.vkIndex, OUT un.binding.mtlIndex, OUT un.arraySize );
+		result &= des( OUT un.type, OUT un.flags, OUT un.stages, OUT un.binding.vkIndex, OUT un.binding.mtlIndex, OUT un.arraySize );
 
 		switch_enum( un.type )
 		{
@@ -309,7 +311,7 @@ namespace AE::PipelineCompiler
 			case EDescriptorType::RayTracingPartitionedScene :
 				break;
 
-			case EDescriptorType::Unknown :
+			case EDescriptorType::_Count :
 			default :
 				RETURN_ERR( "unknown descriptor type" );
 		}
@@ -877,35 +879,6 @@ namespace {
 # ifdef AE_TEST_PIPELINE_COMPILER
 /*
 =================================================
-	EDescriptorTypeToString
-=================================================
-*/
-	Nd__In StringView  EDescriptorTypeToString (EDescriptorType type)
-	{
-		switch_enum( type )
-		{
-			case EDescriptorType::UniformBuffer :					return "UniformBuffer";
-			case EDescriptorType::StorageBuffer :					return "StorageBuffer";
-			case EDescriptorType::UniformTexelBuffer :				return "UniformTexelBuffer";
-			case EDescriptorType::StorageTexelBuffer :				return "StorageTexelBuffer";
-			case EDescriptorType::StorageImage :					return "StorageImage";
-			case EDescriptorType::SampledImage :					return "SampledImage";
-			case EDescriptorType::CombinedImage :					return "CombinedImage";
-			case EDescriptorType::SubpassInput :					return "SubpassInput";
-			case EDescriptorType::CombinedImage_ImmutableSampler:	return "CombinedImage_ImmutableSampler";
-			case EDescriptorType::Sampler :							return "Sampler";
-			case EDescriptorType::ImmutableSampler :				return "ImmutableSampler";
-			case EDescriptorType::RayTracingScene :					return "RayTracingScene";
-			case EDescriptorType::RayTracingPartitionedScene :		return "RayTracingPartitionedScene";
-			case EDescriptorType::Unknown :
-			default :												break;
-		}
-		switch_end
-		RETURN_ERR( "unknown descriptor type" );
-	}
-
-/*
-=================================================
 	ToString (DescriptorSetLayoutDesc)
 =================================================
 */
@@ -921,7 +894,7 @@ namespace {
 		usize	idx = 0;
 		for (auto& [un_name, un] : uniforms)
 		{
-			str << "\n    [" << Base::ToString(idx++) << "] " << EDescriptorTypeToString( un.type ) << " {"
+			str << "\n    [" << Base::ToString(idx++) << "] " << Base::ToString( un.type ) << " {"
 				<< "\n      name         = '" << nameMap( un_name ) << "'";
 
 			if ( un.binding.vkIndex != UMax )
@@ -1016,7 +989,7 @@ namespace {
 				case EDescriptorType::RayTracingPartitionedScene :
 					break;
 
-				case EDescriptorType::Unknown :
+				case EDescriptorType::_Count :
 				default :
 					RETURN_ERR( "unknown descriptor type" );
 			}
@@ -1580,7 +1553,7 @@ namespace {
 	ToString (SerializableIndirectExecutionSet)
 =================================================
 */
-	String  SerializableIndirectExecutionSet::ToString (const HashToName &nameMap) const
+	String  SerializableIndirectExecutionSet::ToString (const HashToName &) const
 	{
 		// TODO
 		return "";

@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 /*
 	Put NaN to different indices of triangle and different component of vertex.
 	Only 2 triangle on right side doesn't have NaNs and must be visible.

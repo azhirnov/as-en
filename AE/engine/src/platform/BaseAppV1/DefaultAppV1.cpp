@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #include "platform/BaseAppV1/DefaultAppV1.h"
 
@@ -165,15 +165,15 @@ namespace AE::AppV1
 
 /*
 =================================================
-	_OnStartImpl
+	_CreateWindow
 =================================================
 */
-	bool  AppCoreV1::_OnStartImpl (IApplication &app) __NE___
+	bool  AppCoreV1::_CreateWindow (IApplication &app, const AppConfig::WindowDesc &wndCfg, const AppConfig::VRConfig &vrCfg) __NE___
 	{
 		// create VR device without window
-		if ( _config.enableVR and _config.onlyVR )
+		if ( vrCfg.enableVR and vrCfg.onlyVR )
 		{
-			_CreateVRDevice( app, _config.vrDevices );
+			_CreateVRDevice( app, vrCfg.devices );
 
 			if ( not _windows.empty() )
 				return true;
@@ -181,7 +181,7 @@ namespace AE::AppV1
 
 		// create window
 		{
-			auto	wnd = app.CreateWindow( MakeUnique<AppCoreV1::WindowEventListener>( _impl, *this ), _config.window );
+			auto	wnd = app.CreateWindow( MakeUnique<AppCoreV1::WindowEventListener>( _impl, *this ), wndCfg );
 			CHECK_ERR( wnd );
 			_windows.emplace_back( RVRef(wnd) );
 		}
@@ -189,7 +189,7 @@ namespace AE::AppV1
 		// create second window
 		#if 0
 		{
-			WindowDesc	desc = _config.window;
+			WindowDesc	desc = wndCfg;
 			desc.title << "-2";
 
 			auto	wnd = app.CreateWindow( MakeUnique<AppCoreV1::WindowEventListener>( _impl, *this ), desc, &_windows[0]->InputActions() );
@@ -199,10 +199,16 @@ namespace AE::AppV1
 		#endif
 
 		// create VR device with window
-		if ( _config.enableVR and _windows.size() >= 1 )
+		if ( vrCfg.enableVR and _windows.size() >= 1 )
 		{
-			_CreateVRDevice( app, _config.vrDevices );
+			_CreateVRDevice( app, vrCfg.devices );
 		}
+
+		if ( &_config.window != &wndCfg )
+			_config.window = wndCfg;
+
+		if ( &_config.vr != &vrCfg )
+			_config.vr = vrCfg;
 
 		return true;
 	}
@@ -304,6 +310,10 @@ namespace AE::AppV1
 		CHECK_ERR( _device.CheckExtensions() );
 
 		CHECK_ERR( GraphicsScheduler().Initialize( graphicsCfg ));
+
+		if ( &_config.graphics != &graphicsCfg )
+			_config.graphics = graphicsCfg;
+
 		return true;
 	}
 

@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #include "Test_Common.h"
 using namespace AE::PipelineCompiler;
@@ -60,7 +60,7 @@ namespace
 
 		uint	count = 0;
 		TEST( des( OUT count ));
-		TEST_Eq( count, 54 );
+		TEST_Eq( count, 56 );
 
 		for (uint i = 0; i < count; ++i)
 		{

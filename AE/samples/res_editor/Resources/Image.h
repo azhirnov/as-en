@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #pragma once
 
@@ -23,7 +23,7 @@ namespace AE::ResEditor
 			Unknown		= 0,
 			GenMipmaps	= 1 << 0,
 			_Last,
-			All			= ((_Last - 1) << 1) - 1,
+			All			= CT_AllBitMask2<ELoadOpFlags>,
 		};
 
 		struct LoadOp

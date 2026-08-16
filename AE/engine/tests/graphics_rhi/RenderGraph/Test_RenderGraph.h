@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #pragma once
 
@@ -45,6 +45,8 @@ protected:
 	RenderTechPipelinesPtr		_mvPipelines;			// multiview, viewport array
 	RenderTechPipelinesPtr		_icbPipelines;			// indirect command buffer (device generated commands)
 	RenderTechPipelinesPtr		_ommPipelines;			// opacity micromap
+	RenderTechPipelinesPtr		_blsPipelines;			// bindless
+	RenderTechPipelinesPtr		_dhPipelines;			// descriptor heap (bindless v2)
 
 	TestQueue_t					_tests;
 	uint						_testsPassed		= 0;
@@ -139,6 +141,9 @@ private:
 	ECode  Test_Ycbcr1 ();
 	ECode  Test_MultiView ();
 	ECode  Test_ViewportArray ();
+	ECode  Test_Bindless1 ();
+	ECode  Test_Bindless2 ();
+	ECode  Test_UpdateTemplate1 ();
 
 	ECode  Test_IndirectCommandBuffer1 ();
 	ECode  Test_IndirectCommandBuffer2 ();

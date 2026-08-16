@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 // [Performance test](https://github.com/azhirnov/as-en/blob/dev/AE/engine/performance/threading/Perf_AsyncMutex.cpp)
 
@@ -56,7 +56,7 @@ namespace
 		TEST_Eq( data.counter, data.repeat_count * data.task_count );
 
 		for (auto& task : tasks) {
-			TEST( task->Status() == ETaskStatus::Completed );
+			TEST_Eq( task->Status(), ETaskStatus::Completed );
 		}
 	}
 //-----------------------------------------------------------------------------

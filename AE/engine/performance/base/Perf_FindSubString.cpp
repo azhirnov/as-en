@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #include "base/Math/Random.h"
 #include "Perf_Common.h"
@@ -667,6 +667,7 @@ extern void PerfTest_FindSubString ()
 		[&] (auto& core, Function<void()> setAffinity)
 		{
 			setAffinity();
+
 			FindSubString_Test( core.type );
 		});
 

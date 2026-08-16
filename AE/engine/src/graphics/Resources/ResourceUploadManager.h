@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 /*
 	Thread-safe:  yes
 */
@@ -19,7 +19,7 @@ namespace AE::Graphics
 		// If flag is not enabled, single barrier will be issued when uploading complete or failed.
 		UsedWhileUploading		= 1 << 0,
 
-		_BITOPS_
+		_BITOPS_				= 0
 	};
 
 

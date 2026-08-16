@@ -1,4 +1,4 @@
-# Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+# Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 file( GLOB_RECURSE HPP_SOURCES "*.h" )
 file( GLOB_RECURSE CPP_SOURCES "*.cpp" )
@@ -8,14 +8,10 @@ set( EXT_SOURCES "${MAIN_SOURCE_DIR}/engine/src/graphics_rhi/Private/Shared.cpp"
 file( GLOB_RECURSE AS_SOURCES "*.as" )
 set( SOURCES ${HPP_SOURCES} ${CPP_SOURCES} ${AS_SOURCES} )
 
-if (ANDROID)
+if (${AE_ANDROID_UI_MODE})
 	add_library( "CICD" SHARED ${SOURCES} ${EXT_SOURCES} )
 	target_compile_definitions( "CICD" PUBLIC CICD_TEST_MACHINE )
 	target_link_libraries( "CICD" PUBLIC "Platform" )
-
-elseif (NOT (TARGET "Scripting"))
-	add_executable( "CICD" MACOSX_BUNDLE ${SOURCES} ${EXT_SOURCES} )
-	target_compile_definitions( "CICD" PUBLIC CICD_TEST_MACHINE CICD_BUILD_MACHINE CICD_CLIENT )
 
 else()
 	if (${AE_INCLUDE_ANDROID_SRC})
@@ -27,7 +23,11 @@ else()
 		list( APPEND ANDROID_SOURCES "${ANDROID_SRC_PATH}/../../build.gradle" )
 	endif()
 
-	add_executable( "CICD" ${SOURCES} ${ANDROID_SOURCES} ${EXT_SOURCES} )
+	if (APPLE)
+		add_executable( "CICD" MACOSX_BUNDLE ${SOURCES} ${EXT_SOURCES} )
+	else()
+		add_executable( "CICD" ${SOURCES} ${ANDROID_SOURCES} ${EXT_SOURCES} )
+	endif()
 
 	source_group( "Apk" FILES ${ANDROID_SOURCES} )
 	set_source_files_properties( ${ANDROID_SOURCES} PROPERTIES HEADER_FILE_ONLY TRUE )

@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 /*
 	RTGeometry			- Bottom Level Acceleration Structure (BLAS).
 						  Triangle BLAS can provide better ray intersection performance.
@@ -26,7 +26,7 @@ namespace AE::Graphics
 	// [0,0]  [0,1]  [0,2]    [0,3]
 	// [1,0]  [1,1]  [1,2]    [1,3]
 	// [2,0]  [2,1]  [2,2]    [2,3]
-	using RTMatrixStorage = MatrixStorage< float, 3, 4, EMatrixOrder::RowMajor, sizeof(float) >;
+	using RTMatrixStorage = MatrixStorage< float, 3, 4, EMatrixLayout::RowMajor, sizeof(float) >;
 
 
 	//

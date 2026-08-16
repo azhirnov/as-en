@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #include "Core/SampleCore.h"
 #include "threading/DataSource/FileAsyncDataSource.h"
@@ -21,9 +21,9 @@ namespace AE::Samples::Demo
 */
 	SampleCore::SampleCore () __NE___
 	{
-		//_sample = MakeRC< ImGuiSample >();
+		_sample = MakeRC< ImGuiSample >();
 		//_sample = MakeRC< Canvas2DSample >();
-		_sample = MakeRC< Camera3DSample >();
+		//_sample = MakeRC< Camera3DSample >();
 		//_sample = MakeRC< AudioSample >();
 	}
 //-----------------------------------------------------------------------------
@@ -74,22 +74,24 @@ namespace
 
 		// window
 		{
-			cfg.window.title	= "Demo";
-			cfg.window.size		= {1600, 896};
-			cfg.window.mode		= EWindowMode::Resizable;
+			auto&	wnd = cfg.window;
+			wnd.title	= "Demo";
+			wnd.size	= {1600, 896};
+			wnd.mode	= EWindowMode::Resizable;
 		}
 
 		// VR
 		{
-			cfg.enableVR		= false;
-			cfg.onlyVR			= true;
-			cfg.vr.dimension	= {1024, 1024};
-			cfg.vr.colorFormat	= EPixelFormat::RGBA8_UNorm;
-			cfg.vr.usage		= EImageUsage::ColorAttachment | EImageUsage::Sampled | EImageUsage::Transfer;	// default
+			auto&	vr				= cfg.vr;
+			vr.enableVR				= false;
+			vr.onlyVR				= true;
+			vr.imageDesc.dimension	= {1024, 1024};
+			vr.imageDesc.colorFormat= EPixelFormat::RGBA8_UNorm;
+			vr.imageDesc.usage		= EImageUsage::ColorAttachment | EImageUsage::Sampled | EImageUsage::Transfer;	// default
 
-		//	cfg.vrDevices.push_back( IVRSession::EDeviceType::OpenXR );
-		//	cfg.vrDevices.push_back( IVRSession::EDeviceType::OpenVR );
-			cfg.vrDevices.push_back( IVRSession::EDeviceType::Emulator );
+		//	vr.devices.push_back( IVRSession::EDeviceType::OpenXR );
+		//	vr.devices.push_back( IVRSession::EDeviceType::OpenVR );
+			vr.devices.push_back( IVRSession::EDeviceType::Emulator );
 		}
 
 		cfg.enableAudio = true;
@@ -168,7 +170,7 @@ namespace
 
 		AppCoreV1::OnStart( app );
 
-		CHECK_FATAL( _OnStartImpl( app ));
+		CHECK_FATAL( _CreateWindow( app, GetConfig().window, GetConfig().vr ));
 	}
 //-----------------------------------------------------------------------------
 

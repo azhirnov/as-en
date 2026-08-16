@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #pragma once
 
@@ -96,6 +96,7 @@ namespace AE::Video
 	{
 		OK					= 0,
 		EndOfFile			= 1,
+		NeedMoreData		= 2,
 
 		Error				= -1,
 		Failed_RGBtoYUV		= -2,
@@ -108,7 +109,8 @@ namespace AE::Video
 		Fragmented			= 1 << 0,		// compatible with streaming
 		Remux				= 1 << 1,		// can be used for 'Bitstream' to write correct duration after encoding
 		Bitstream			= 1 << 2,		// write bitstream instead of 'mp4' or any container, compatible with streaming
-		_BITOPS_
+		LowLatency			= 1 << 3,
+		_BITOPS_			= 0
 	};
 
 } // AE::Video

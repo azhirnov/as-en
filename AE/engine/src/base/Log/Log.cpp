@@ -1,8 +1,10 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #ifdef AE_PLATFORM_WINDOWS
 #	include "base/Platforms/WindowsHeader.cpp.h"
 #endif
+
+#include <iostream>
 
 #include "base/Common.h"
 #include "base/Containers/InPlace.h"
@@ -40,8 +42,10 @@ namespace
 				//if ( PlatformUtils::IsUnderDebugger() )
 				//	AE_PRIVATE_BREAK_POINT();
 
+				std::cout << "uninitialized logger: " << info.message << std::endl;
 				return StaticLogger::EResult::Continue;
 			}
+
 			if_unlikely( s_loggers->empty() )
 			{
 				return StaticLogger::EResult::Continue;
@@ -116,8 +120,18 @@ namespace
 
 		Unused( checkMemLeaks );
 	  #ifdef AE_ENABLE_MEMLEAK_CHECKS
-		if ( checkMemLeaks )
 		{
+			/*{
+				ILogger::MessageInfo	info;
+				info.message	= "before AE_DUMP_MEMLEAKS";
+				info.loc		= SourceLoc::current();
+				info.threadId	= 0;
+				info.level		= ILogger::ELevel::Error;
+				info.scope		= ILogger::EScope::Engine;
+
+				Unused( ILogger::CreateDialogOutput()->Process( info ));
+			}//*/
+
 			if ( not AE_DUMP_MEMLEAKS() )
 			{
 				ILogger::MessageInfo	info;
@@ -127,13 +141,16 @@ namespace
 				info.level		= ILogger::ELevel::Fatal;
 				info.scope		= ILogger::EScope::Engine;
 
-			  #ifdef AE_CI_BUILD_TEST
-				Unused( ILogger::CreateConsoleOutput()->Process( info ));
-			  #elif defined(AE_PLATFORM_WINDOWS)
-				Unused( ILogger::CreateDialogOutput()->Process( info ));
-			  #else
-				Unused( ILogger::CreateConsoleOutput()->Process( info ));
-			  #endif
+				if ( checkMemLeaks )
+				{
+				  #ifdef AE_CI_BUILD_TEST
+					Unused( ILogger::CreateConsoleOutput()->Process( info ));
+				  #elif defined(AE_PLATFORM_WINDOWS)
+					Unused( ILogger::CreateDialogOutput()->Process( info ));
+				  #else
+					Unused( ILogger::CreateConsoleOutput()->Process( info ));
+				  #endif
+				}
 			}
 		}
 	  #endif
@@ -198,6 +215,9 @@ namespace
 			#else
 				AddLogger( ILogger::CreateIDEOutput() );
 				AddLogger( ILogger::CreateDialogOutput() );
+			#endif
+			#ifdef AE_ANDROID_CONSOLE_MODE
+				AddLogger( ILogger::CreateFileOutput( "log" ));
 			#endif
 		}
 		CATCH_ALL();

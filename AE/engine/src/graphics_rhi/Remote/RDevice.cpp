@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #ifdef AE_ENABLE_REMOTE_GRAPHICS
 # include "graphics_rhi/Private/EnumToString.h"
@@ -155,7 +155,7 @@ namespace {
 		return false;
 	}
 
-	bool  RDevice::GetCooperativeVectorMatrixDstSize (ArrayView<ConvertCoopMatrixOnHost>, MutableArrayView<BytesUSize>) C_NE___
+	bool  RDevice::GetCooperativeVectorMatrixDstSize (ArrayView<ConvertCoopMatrixOnHost>, OUT MutableArrayView<BytesUSize>) C_NE___
 	{
 		// TODO
 		return false;

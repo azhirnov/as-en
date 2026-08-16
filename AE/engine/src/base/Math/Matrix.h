@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #pragma once
 
@@ -70,18 +70,25 @@ namespace AE::Base
 	using packed_double4x3	= PackedMatrix< double, 4, 3 >;
 	using packed_double4x4	= PackedMatrix< double, 4, 4 >;
 
-namespace _hidden_
-{
-	struct _MatrixDim
+
+	struct MatrixDim
 	{
-		ubyte		columns;
-		ubyte		rows;
+		uint	columns	: 16;
+		uint	rows	: 16;
 
-		__Cx__ _MatrixDim (ubyte c, ubyte r)				__NE___ : columns{c}, rows{r} {}
+		__Cx__ explicit MatrixDim (uint c, uint r)			__NE___ : columns{c}, rows{r} {}
+		__Cx__ MatrixDim (const MatrixDim &)				__NE___ = default;
+		__Cx__ MatrixDim ()									__NE___ : columns{0}, rows{0} {}
 
-		NdCx__ bool  operator == (const _MatrixDim &rhs)	C_NE___	{ return columns == rhs.columns and rows == rhs.rows; }
+		__Cx__ MatrixDim&  operator = (const MatrixDim &)	__NE___	= default;
+
+		NdCx__ bool  operator == (const MatrixDim &rhs)		C_NE___	= default;
+
+		NdCx__ uint  Size ()								C_NE___	{ return columns * rows; }
+
+		ND_ explicit operator uint2 ()						C_NE___	{ return uint2{columns, rows}; }
 	};
-}
+
 } // AE::Base
 
 

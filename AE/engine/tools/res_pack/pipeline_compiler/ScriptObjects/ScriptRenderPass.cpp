@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #include "res_pack/pipeline_compiler/ScriptObjects/ScriptRenderPass.h"
 #include "res_pack/pipeline_compiler/ScriptObjects/Common.inl.h"
@@ -13,64 +13,6 @@ AE_DECL_SCRIPT_OBJ_RC(	AE::PipelineCompiler::RenderPassSpec,			"RenderPass"			);
 AE_DECL_SCRIPT_OBJ_RC(	AE::PipelineCompiler::CompatibleRenderPassDesc,	"CompatibleRenderPass"	);
 AE_DECL_SCRIPT_OBJ(		AE::PipelineCompiler::RPAttachment::ShaderIO,	"ShaderIO"				);
 AE_DECL_SCRIPT_OBJ(		AE::PipelineCompiler::CompatibleRenderPassDesc::ViewMask,	"MultiViewMask" );
-
-
-namespace AE::Base
-{
-	using namespace AE::PipelineCompiler;
-
-	Nd__In StringView  ToString (EAttachment value)
-	{
-		switch_enum( value )
-		{
-			case EAttachment::Invalidate :		return "Invalidate";
-			case EAttachment::Color :			return "Color";
-			case EAttachment::ColorResolve :	return "ColorResolve";
-			case EAttachment::ReadWrite :		return "ReadWrite";
-			case EAttachment::Input :			return "Input";
-			case EAttachment::Depth :			return "Depth";
-			case EAttachment::Preserve :		return "Preserve";
-			case EAttachment::ShadingRate :		return "ShadingRate";
-			case EAttachment::FragmentDensity :	return "FragmentDensity";
-			case EAttachment::RasterOrder :		return "RasterOrder";
-			case EAttachment::Unknown :			return "Unknown";
-			case EAttachment::_Count :			break;
-		}
-		switch_end
-		RETURN_ERR( "unknown attachment usage" );
-	}
-
-	Nd__In StringView  ToString (EAttachmentLoadOp value)
-	{
-		switch_enum( value )
-		{
-			case EAttachmentLoadOp::Invalidate :	return "Invalidate";
-			case EAttachmentLoadOp::Load :			return "Load";
-			case EAttachmentLoadOp::Clear :			return "Clear";
-			case EAttachmentLoadOp::None :			return "None";
-			case EAttachmentLoadOp::_Count :
-			case EAttachmentLoadOp::Unknown :		break;
-		}
-		switch_end
-		RETURN_ERR( "unknown attachment load op" );
-	}
-
-	Nd__In StringView  ToString (EAttachmentStoreOp value)
-	{
-		switch_enum( value )
-		{
-			case EAttachmentStoreOp::Invalidate :					return "Invalidate";
-			case EAttachmentStoreOp::Store :						return "Store";
-			case EAttachmentStoreOp::None :							return "None";
-			case EAttachmentStoreOp::StoreCustomSamplePositions :	return "StoreCustomSamplePositions";
-			case EAttachmentStoreOp::_Count :
-			case EAttachmentStoreOp::Unknown :	break;
-		}
-		switch_end
-		RETURN_ERR( "unknown attachment store op" );
-	}
-
-} // AE::Base
 
 
 namespace AE::PipelineCompiler
@@ -98,7 +40,7 @@ namespace
 			CHECK_THROW_MSG( *type != Default );
 			CHECK_THROW_MSG( *type < EShaderIO::_Count );
 		}
-		PlacementNew<RPAttachment::ShaderIO>( OUT mem, name, type.value_or(EShaderIO::Unknown), index );
+		PlacementNew<RPAttachment::ShaderIO>( OUT mem, name, type.value_or(EShaderIO::_Count), index );
 	}
 
 	static void  ShaderIO_Ctor1 (void* mem, const String &name)

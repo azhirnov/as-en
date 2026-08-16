@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 /*
 	Visibility buffer prototype.
 	- Implemented using ray tracing pass which already has storage buffer for all vertices.

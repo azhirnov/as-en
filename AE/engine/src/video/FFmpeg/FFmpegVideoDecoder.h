@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #pragma once
 
@@ -43,6 +43,10 @@ namespace AE::Video
 		AVIOContext *			_ioCtx				= null;		// wrapper for file stream
 		RC<RStream>				_rstream;
 
+		// used for bitstream
+		Seconds					_curTimestamp;
+		ulong					_curFrameIdx		= 0;
+
 		bool					_decodingStarted	= false;
 
 		Config					_config;
@@ -82,9 +86,9 @@ namespace AE::Video
 
 		ND_ bool  _SeekTo (slong targetPTS)									__NE___;
 
-		ND_ ulong  _PTStoFrameIdx (slong pts)								C_NE___;
-		ND_ slong  _FrameIdxToPTS (ulong frameIdx)							C_NE___;
-		ND_ slong  _TimestampToPTS (Seconds time)							C_NE___;
+		ND_ ulong  _PTStoFrameIdx (AVStream*, slong pts)					C_NE___;
+		ND_ slong  _FrameIdxToPTS (AVStream*, ulong frameIdx)				C_NE___;
+		ND_ slong  _TimestampToPTS (AVStream*, Seconds time)				C_NE___;
 
 		ND_ bool  _CreateVideoCodec (const AVStream*,
 									 OUT AVCodec const* &codec,

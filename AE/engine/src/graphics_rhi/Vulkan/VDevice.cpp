@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #ifdef AE_ENABLE_VULKAN
 # include "graphics_rhi/Public/CommandBufferTypes.h"
@@ -36,7 +36,7 @@ namespace
 
 	StaticAssert( FrameUID::MaxFramesLimit() == GraphicsConfig::MaxFrames );
 
-	StaticAssert( VK_HEADER_VERSION == 341 );
+	StaticAssert( VK_HEADER_VERSION == 350 );
 
 	static constexpr usize	c_MaxMemTypes = List<EMemoryType>{
 												EMemoryType::DeviceLocal,	EMemoryType::Transient,		EMemoryType::HostCoherent,
@@ -194,6 +194,7 @@ namespace
 			case VK_OBJECT_TYPE_TENSOR_VIEW_ARM :
 			case VK_OBJECT_TYPE_DATA_GRAPH_PIPELINE_SESSION_ARM :
 			case VK_OBJECT_TYPE_EXTERNAL_COMPUTE_QUEUE_NV :
+			case VK_OBJECT_TYPE_SHADER_INSTRUMENTATION_ARM :
 			case VK_OBJECT_TYPE_MAX_ENUM :	break;
 		}
 		switch_end
@@ -294,6 +295,7 @@ namespace
 			case VK_OBJECT_TYPE_TENSOR_VIEW_ARM :
 			case VK_OBJECT_TYPE_DATA_GRAPH_PIPELINE_SESSION_ARM :
 			case VK_OBJECT_TYPE_EXTERNAL_COMPUTE_QUEUE_NV :
+			case VK_OBJECT_TYPE_SHADER_INSTRUMENTATION_ARM :
 			case VK_OBJECT_TYPE_MAX_ENUM :
 				break;
 		}
@@ -1097,7 +1099,7 @@ namespace
 	GetCooperativeVectorMatrixDstSize
 =================================================
 */
-	bool  VDevice::GetCooperativeVectorMatrixDstSize (ArrayView<ConvertCoopMatrixOnHost> inCommands, MutableArrayView<BytesUSize> dstSizeArray) C_NE___
+	bool  VDevice::GetCooperativeVectorMatrixDstSize (ArrayView<ConvertCoopMatrixOnHost> inCommands, OUT MutableArrayView<BytesUSize> dstSizeArray) C_NE___
 	{
 		CHECK_ERR( _extensions.cooperativeVectorNV );
 		CHECK_ERR( _vkLogicalDevice != Default );
@@ -1443,6 +1445,8 @@ namespace
 											   uint appVer, uint engineVer, const VkValidationFeaturesEXT* pValidation,
 											   EDeviceFlags devFlags) __Th___
 	{
+		StaticAssert( uint(EDeviceFlags::All) == 0xFF );
+
 		CHECK_ERR( _vkInstance == Default );
 		CHECK_ERR( VulkanLoader::Initialize() );
 
@@ -1518,6 +1522,7 @@ namespace
 			LoadRenderDoc();
 	  #endif
 
+		_devInitFlags = devFlags;
 		return true;
 	}
 
@@ -1958,13 +1963,13 @@ namespace {
 			outResFlags.imageOptions =	EImageOpt::ColorAttachmentBlend | EImageOpt::SampledLinear | EImageOpt::CubeCompatible |
 										EImageOpt::MutableFormat | EImageOpt::BlitSrc | EImageOpt::BlitDst;
 
-			if ( GetVkVersion() >= Version2{1,1} )
+			if ( GetVkVersion() >= Version2{1,1} or _extensions.bindMemory2 )
 				outResFlags.imageOptions |= EImageOpt::Alias;
 
-			if ( _extensions.maintenance1 )
+			if ( GetVkVersion() >= Version2{1,1} or _extensions.maintenance1 )
 				outResFlags.imageOptions |= EImageOpt::Array2DCompatible;
 
-			if ( _extensions.maintenance2 )
+			if ( GetVkVersion() >= Version2{1,1} or _extensions.maintenance2 )
 				outResFlags.imageOptions |= EImageOpt::BlockTexelViewCompatible | EImageOpt::ExtendedUsage;
 
 			if ( props.accelerationStructureFeats.accelerationStructure )
@@ -2025,7 +2030,7 @@ namespace {
 			if ( _extensions.sampleLocations )
 				outResFlags.imageOptions |= EImageOpt::SampleLocationsCompatible;
 
-			if ( _extensions.samplerYcbcrConversion )
+			if ( GetVkVersion() >= Version2{1,1} or _extensions.samplerYcbcrConversion )
 				outResFlags.imageOptions |= EImageOpt::SeparatePlanes;
 		}
 	}
@@ -2055,6 +2060,9 @@ namespace {
 
 			if ( dst == Default )
 				continue;
+
+			if ( AllBits( mt.propertyFlags, VK_MEMORY_PROPERTY_PROTECTED_BIT ))
+				continue;  // not supported
 
 			const auto	AddBit = [&result, dst, bit] (EMemoryType expected)
 			{{
@@ -2238,7 +2246,7 @@ namespace {
 	{
 	#ifdef AE_ENABLE_LOGS
 		String	str;
-		str << "Memory types:";
+		str << "\nMemory types:";
 
 		for (const auto [type, bits] : _memTypeToBits)
 		{
@@ -2246,6 +2254,16 @@ namespace {
 			for (uint bit : BitIndexIterate( bits )) {
 				str << ' ' << ToString( bit );
 			}
+		}
+
+		const auto&	mem_props = GetVProperties().memoryProperties;
+
+		str << "\nVk memory types:";
+
+		for (uint i = 0; i < mem_props.memoryTypeCount; ++i)
+		{
+			str << "\n  " << ToString( i ) << ": flags (" << VkMemoryPropertyFlagsToString( mem_props.memoryTypes[i].propertyFlags )
+				 << "), heap size (" << ToString(Bytes{ mem_props.memoryHeaps[ mem_props.memoryTypes[i].heapIndex ].size }) << ")";
 		}
 
 		AE_LOGI( str );
@@ -2449,6 +2467,8 @@ namespace {
 
 	bool  VDeviceInitializer::_CreateLogicalDevice (const DeviceCreateInfo &devCI) __Th___
 	{
+		StaticAssert( uint(EDeviceFlags::All) == 0xFF );
+
 		DRC_EXLOCK( _drCheck );
 		CHECK_ERR( _vkPhysicalDevice != Default );
 		CHECK_ERR( _vkLogicalDevice == Default );
@@ -2602,6 +2622,12 @@ namespace {
 		CHECK_ERR( VulkanLoader::LoadDevice( _vkLogicalDevice, OUT _deviceFnTable ));
 		VulkanLoader::SetupDeviceBackwardCompatibility( _vkDeviceVersion.Cast<0>(), INOUT _deviceFnTable );
 
+		if ( _extensions.descriptorHeap )
+			_deviceFnTable.DescriptorHeap_DisableOldAPI();
+		else
+		if ( _extensions.descriptorBuffer )
+			_deviceFnTable.DescriptorBuffer_DisableOldAPI();
+
 		_queueMask = Default;
 		for (usize i = 0, cnt = _queueCount; i < cnt; ++i)
 		{
@@ -2708,9 +2734,13 @@ namespace {
 		// disable extensions here, only for tests!
 		//ext.hostQueryReset = false;
 
-		// wait for support in validation layers
-		ext.clusterAccelStructNV		= false;
-		ext.partitionedAccelStructNV	= false;
+		//if ( AllBits( _devInitFlags, EDeviceFlags::DisableDescHeap ))
+			ext.descriptorHeap = false;
+
+		//if ( AllBits( _devInitFlags, EDeviceFlags::DisableDescBuffer ))
+		//	ext.descriptorBuffer = false;
+
+		ext.pipelineRobustness		= false;	// not supported yet
 
 	  #ifdef AE_CFG_RELEASE
 		ext.memoryReport			= false;
@@ -2721,6 +2751,11 @@ namespace {
 	//	ext.toolingInfo				= false;
 		ext.memoryReport			= false;
 		ext.rayTracingValidation	= false;
+		ext.frameBoundary			= false;
+		ext.shaderSMBuiltinsNV		= false;
+	//	ext.shaderCoreBuiltinsARM	= false;
+	//	ext.shaderCorePropsAMD		= false;
+	//	ext.shaderCorePropsAMD2		= false;
 
 	  #else
 		Unused( ext );
@@ -2734,23 +2769,45 @@ namespace {
 */
 	void  VDeviceInitializer::_SetupFeatures (INOUT VProperties2 &feats) C_NE___
 	{
+		if ( NoBits( _devInitFlags, EDeviceFlags::MaxRobustness ))
+		{
+			feats.features.robustBufferAccess = VK_FALSE;	// this feature affects performance
+
+			feats.pipelineRobustnessFeats.pipelineRobustness = VK_FALSE;	// not supported yet
+
+			feats.cooperativeMatrixFeats.cooperativeMatrixRobustBufferAccess = VK_FALSE;
+		}
+
 		// disable some features
 		{
-			feats.features.robustBufferAccess	= VK_FALSE;	// this feature affects performance
-
 			feats.bufferDeviceAddressFeats.bufferDeviceAddressCaptureReplay	= VK_FALSE;
 			feats.bufferDeviceAddressFeats.bufferDeviceAddressMultiDevice	= VK_FALSE;
 
-			feats.accelerationStructureFeats.accelerationStructureCaptureReplay	= VK_FALSE;
-			feats.accelerationStructureFeats.accelerationStructureHostCommands	= VK_FALSE;
+			feats.accelerationStructureFeats.accelerationStructureCaptureReplay						= VK_FALSE;
+			feats.accelerationStructureFeats.accelerationStructureHostCommands						= VK_FALSE;		// deprecated
+			feats.accelerationStructureFeats.descriptorBindingAccelerationStructureUpdateAfterBind	= VK_FALSE;
 
 			feats.rayTracingPipelineFeats.rayTracingPipelineShaderGroupHandleCaptureReplay		= VK_FALSE;
 			feats.rayTracingPipelineFeats.rayTracingPipelineShaderGroupHandleCaptureReplayMixed	= VK_FALSE;
 
-			feats.cooperativeMatrixFeats.cooperativeMatrixRobustBufferAccess = VK_FALSE;
-
 			feats.fragDensityMapFeats.fragmentDensityMapNonSubsampledImages	= VK_FALSE;
 			feats.fragDensityMap2Feats.fragmentDensityMapDeferred			= VK_FALSE;
+
+			feats.descriptorHeapFeats.descriptorHeapCaptureReplay			= VK_FALSE;
+
+			feats.descriptorIndexingFeats.descriptorBindingUniformBufferUpdateAfterBind		 = VK_FALSE;
+			feats.descriptorIndexingFeats.descriptorBindingSampledImageUpdateAfterBind		 = VK_FALSE;
+			feats.descriptorIndexingFeats.descriptorBindingStorageImageUpdateAfterBind		 = VK_FALSE;
+			feats.descriptorIndexingFeats.descriptorBindingStorageBufferUpdateAfterBind		 = VK_FALSE;
+			feats.descriptorIndexingFeats.descriptorBindingUniformTexelBufferUpdateAfterBind = VK_FALSE;
+			feats.descriptorIndexingFeats.descriptorBindingStorageTexelBufferUpdateAfterBind = VK_FALSE;
+			feats.descriptorIndexingFeats.descriptorBindingUpdateUnusedWhilePending			 = VK_FALSE;
+			feats.descriptorIndexingFeats.descriptorBindingPartiallyBound					 = VK_FALSE;
+
+			feats.inlineUniformBlockFeats.descriptorBindingInlineUniformBlockUpdateAfterBind = VK_FALSE;
+
+			feats.opacityMicromapFeats.micromapCaptureReplay	= VK_FALSE;
+			feats.opacityMicromapFeats.micromapHostCommands		= VK_FALSE;		// deprecated
 		}
 
 		if ( not IsEnabledDebugCallback() )
@@ -3409,8 +3466,40 @@ namespace {
 	#else
 
 		AE_LOGW( "Vulkan debug utils should not be used in release build" );
-		Unused( severity, callback );
+		Unused( severity, types, callback );
 
+	#endif
+		return false;
+	}
+
+/*
+=================================================
+	SetDebugCallback
+=================================================
+*/
+	bool  VDeviceInitializer::SetDebugCallback (DebugReport_t callback) __NE___
+	{
+	#ifndef AE_CFG_RELEASE
+		DRC_EXLOCK( _drCheck );
+		CHECK_ERR( GetVkInstance() != Default );
+
+		auto	dbg_report = _dbgReport.WriteLock();
+
+		if ( _extensions.debugUtils )
+		{
+			CHECK_ERR( dbg_report->debugUtilsMessenger != Default );
+
+			dbg_report->callback = RVRef(callback);
+			return true;
+		}
+
+		if ( _extensions.debugReport )
+		{
+			CHECK_ERR( dbg_report->debugReportCallback != Default );
+
+			dbg_report->callback = RVRef(callback);
+			return true;
+		}
 	#endif
 		return false;
 	}
@@ -3533,13 +3622,8 @@ namespace {
 			return VK_FALSE;
 
 		// skip false positive
-		if ( HasSubString( pCallbackData->pMessage, "VUID-VkSwapchainPresentScalingCreateInfoEXT-presentGravityX-07772" )	or
-			 HasSubString( pCallbackData->pMessage, "VUID-VkSwapchainPresentScalingCreateInfoEXT-presentGravityY-07774" )	or
-			 HasSubString( pCallbackData->pMessage, ".dstComponentType (VK_COMPONENT_TYPE_FLOAT8_E4M3_EXT) requires the extensions VK_EXT_shader_float8" ) or
-			 HasSubString( pCallbackData->pMessage, ".dstComponentType (VK_COMPONENT_TYPE_FLOAT8_E5M2_EXT) requires the extensions VK_EXT_shader_float8" ) or
-			 HasSubString( pCallbackData->pMessage, "(VK_ACCESS_2_SHADER_WRITE_BIT) is not supported by stage mask (VK_PIPELINE_STAGE_2_CONVERT_COOPERATIVE_VECTOR_MATRIX_BIT_NV)" ) or
-			 HasSubString( pCallbackData->pMessage, "(VK_ACCESS_2_SHADER_READ_BIT) is not supported by stage mask (VK_PIPELINE_STAGE_2_CONVERT_COOPERATIVE_VECTOR_MATRIX_BIT_NV)" ) or
-			 HasSubString( pCallbackData->pMessage, "VkAccelerationStructureTrianglesOpacityMicromapEXT>.indexBuffer.deviceAddress is 0x0 but indexType is VK_INDEX_TYPE_NONE_KHR" ))
+		if ( HasSubString( pCallbackData->pMessage, "Most recently acquired image indices:" )					or		// TODO: fix it
+			 HasSubString( pCallbackData->pMessage, "vkDestroySwapchainKHR(): can't be called on VkSwapchainKHR" ))		// TODO: fix it
 			return VK_FALSE;
 
 		auto	dbg_report	= self->_dbgReport.WriteLock();

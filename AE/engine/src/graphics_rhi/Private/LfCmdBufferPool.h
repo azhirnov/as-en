@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 /*
 	NativeCmdBufferType - trivial type which initialized by zero/null and supports ZeroMem().
 	BakedCommandsType	- trivial type which default state may be non-zero.

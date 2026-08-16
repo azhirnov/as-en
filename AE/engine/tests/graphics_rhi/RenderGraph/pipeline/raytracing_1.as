@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 #include <pipeline_compiler.as>
 
 void ASmain ()
@@ -6,10 +6,12 @@ void ASmain ()
 	if ( !IsVulkan() )
 		return;
 
-	RC<DescriptorSetLayout>		ds = DescriptorSetLayout( "rtrace1.ds0" );
-	ds.AddFeatureSet( "MinRecursiveRayTracing" );
-	ds.StorageImage( EShaderStages::RayGen, "un_OutImage", EImageType::2D, EPixelFormat::RGBA8_UNorm, EAccessType::Coherent, EResourceState::ShaderStorage_Write );
-	ds.RayTracingScene( EShaderStages::RayGen, "un_RtScene" );
+	{
+		RC<DescriptorSetLayout>		ds = DescriptorSetLayout( "rtrace1.ds0" );
+		ds.AddFeatureSet( "MinRecursiveRayTracing" );
+		ds.StorageImage( EShaderStages::RayGen, "un_OutImage", EImageType::2D, EPixelFormat::RGBA8_UNorm, EAccessType::Coherent, EResourceState::ShaderStorage_Write );
+		ds.RayTracingScene( EShaderStages::RayGen, "un_RtScene" );
+	}
 
 	RC<PipelineLayout>		pl = PipelineLayout( "rtrace1.pl" );
 	pl.DSLayout( 0, "rtrace1.ds0" );

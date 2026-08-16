@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #include "base/Platforms/WindowsHeader.cpp.h"
 #include "base/FileSystem/FileSystem.h"
@@ -233,7 +233,7 @@ namespace {
 			fname = folder / (((Path{name} += '-') += ToString(idx)) += ext);
 		}};
 
-		const auto	Consume = [&] (const Path &path) -> bool
+		const auto	Consume = [&] (const Path &path) __NE___ -> bool
 		{{
 			inoutPath = FileSystem::Normalize( path );
 			return true; // exit
@@ -373,6 +373,51 @@ namespace {
 		}
 		return ok;
 	}
+
+/*
+=================================================
+	IsSubPath
+=================================================
+*/
+	bool  FileSystem::IsSubPath (const Path &p, const Path &base, OUT Path* outSubPath) __NE___
+	{
+		Path	rel = ToRelative( p, base );
+
+		if ( rel.empty() or *rel.begin() != ".." )
+		{
+			if ( outSubPath != null )
+				*outSubPath = RVRef(rel);
+
+			return true;
+		}
+		return false;
+	}
+
+/*
+=================================================
+	ReplaceFirstFolder
+=================================================
+*/
+	Path  FileSystem::ReplaceFirstFolder (const Path &input, const Path &replacement) __NE___
+	{
+		if ( input.empty() )
+			return replacement;
+
+		Path	result;
+		bool	replaced = false;
+
+		for (const auto& part : input)
+		{
+			if ( not replaced )
+			{
+				result	/= replacement;
+				replaced = true;
+			}else{
+				result	/= part;
+			}
+		}
+		return result;
+	}
 //-----------------------------------------------------------------------------
 
 
@@ -390,7 +435,46 @@ namespace {
 		return Path{ WStringView{ buf, len }};
 	}
 
-#endif // AE_PLATFORM_WINDOWS
+/*
+=================================================
+	GetLogicalDrives
+=================================================
+*/
+	Array<Path>  FileSystem::GetLogicalDrives () __NE___
+	{
+		BitSet<64>		drives {::GetLogicalDrives()};	// winxp
+		Array<Path>		folders;
 
+		for (char letter = 'A'; letter <= 'Z'; ++letter)
+		{
+			if ( drives.test( letter ))
+				folders.push_back( String{letter} << ":\\" );
+		}
+		return folders;
+	}
+
+#endif // AE_PLATFORM_WINDOWS
+//-----------------------------------------------------------------------------
+
+
+#ifdef AE_PLATFORM_LINUX
+/*
+=================================================
+	GetMountPoints
+=================================================
+*/
+	Array<Path>  FileSystem::GetMountPoints () __NE___
+	{
+		Array<Path>		folders;
+
+		for (auto entry : FileSystem::Enum( "/mnt" ))
+		{
+			if ( entry.IsDirectory() )
+				folders.push_back( entry.Get() );
+		}
+		return folders;
+	}
+
+#endif // AE_PLATFORM_LINUX
 
 } // AE::Base

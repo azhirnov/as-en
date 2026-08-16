@@ -1,4 +1,4 @@
-# Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+# Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 if (TARGET "Graphics")
 	file( GLOB_RECURSE SOURCES "*.h" "*.cpp" "*.as" "*.glsl" )
@@ -46,5 +46,5 @@ if (TARGET "Graphics")
 
 	UseEnginePCH2( ${TEST_NAME} )
 
-	add_test( NAME ${TEST_NAME} COMMAND ${TEST_NAME} )
+	AddTest( ${TEST_NAME} )
 endif()

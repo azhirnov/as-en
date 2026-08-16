@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #pragma once
 
@@ -6,6 +6,9 @@
 #include "base/Math/BitMath.h"
 #include "base/Math/FloatConversion.h"
 #include "base/Pointers/AlignedPtr.h"
+
+// fallback to scalar
+#define AE_SIMD_ENABLE_FALLBACK		1
 
 namespace AE::Base
 {
@@ -273,6 +276,8 @@ namespace _hidden_
 	{
 		if constexpr( SimdType::Has_PreciseSqrt() )
 			return v.PreciseSqrt();
+
+	  #if AE_SIMD_ENABLE_FALLBACK
 		else
 		{
 			auto	arr = v.ToArray();
@@ -281,6 +286,7 @@ namespace _hidden_
 			}
 			return SimdType{ arr.data() };
 		}
+	  #endif
 	}
 
 /*
@@ -298,6 +304,8 @@ namespace _hidden_
 		else
 		if constexpr( SimdType::Has_PreciseSqrt() )
 			return v.PreciseSqrt();
+
+	  #if AE_SIMD_ENABLE_FALLBACK
 		else
 		{
 			auto	arr = v.ToArray();
@@ -306,6 +314,7 @@ namespace _hidden_
 			}
 			return SimdType{ arr.data() };
 		}
+	  #endif
 	}
 
 /*
@@ -323,6 +332,8 @@ namespace _hidden_
 		else
 		if constexpr( SimdType::Has_PreciseSqrt() )
 			return v.PreciseInvSqrt();
+
+	  #if AE_SIMD_ENABLE_FALLBACK
 		else
 		{
 			auto	arr = v.ToArray();
@@ -331,6 +342,7 @@ namespace _hidden_
 			}
 			return SimdType{ arr.data() };
 		}
+	  #endif
 	}
 
 /*
@@ -416,6 +428,54 @@ namespace _hidden_
 		return v.RoundEven();
 	}
 
+/*
+=================================================
+	MulAdd / MulSub
+=================================================
+*/
+	template <typename SimdType>
+		requires( HasSimdType<SimdType> )
+	ND_ SimdType  MulAdd (const SimdType &a, const SimdType &b, const SimdType &c) __NE___
+	{
+		if constexpr( SimdType::Has_FusedMulAdd() )
+			return FusedMulAdd( a, b, c );
+		else
+			return (a * b) + c;
+	}
+
+	template <typename SimdType>
+		requires( HasSimdType<SimdType> )
+	ND_ SimdType  MulSub (const SimdType &a, const SimdType &b, const SimdType &c) __NE___
+	{
+		if constexpr( SimdType::Has_FusedMulAdd() )
+			return FusedMulSub( a, b, c );
+		else
+			return (a * b) - c;
+	}
+
+/*
+=================================================
+	NegMulAdd / NegMulSub
+=================================================
+*/
+	template <typename SimdType>
+		requires( HasSimdType<SimdType> )
+	ND_ SimdType  NegMulAdd (const SimdType &a, const SimdType &b, const SimdType &c) __NE___
+	{
+		if constexpr( SimdType::Has_FusedMulAdd() )
+			return FusedNegMulAdd( a, b, c );
+		else
+			return c - (a * b);
+	}
+	template <typename SimdType>
+		requires( HasSimdType<SimdType> )
+	ND_ SimdType  NegMulSub (const SimdType &a, const SimdType &b, const SimdType &c) __NE___
+	{
+		if constexpr( SimdType::Has_FusedMulAdd() )
+			return FusedNegMulSub( a, b, c );
+		else
+			return -(a * b) - c;
+	}
 //-----------------------------------------------------------------------------
 
 # ifdef AE_COMPILER_GCC

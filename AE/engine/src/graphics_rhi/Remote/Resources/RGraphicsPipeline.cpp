@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #ifdef AE_ENABLE_REMOTE_GRAPHICS
 # include "graphics_rhi/Remote/Resources/RGraphicsPipeline.h"
@@ -36,6 +36,7 @@ namespace AE::Graphics
 		_options		= ci.ref.options;
 		_topology		= ci.ref.topology;
 		_subpassIndex	= ci.ref.subpassIndex;
+		_activeStages	= ci.ref.activeStages;
 		_vertexBuffers	= ci.ref.vertexBuffers;
 		_releaseRef		= ci.releaseRef;
 		_dbgTrace		= RVRef(ci.ref.shaderTrace);
@@ -64,6 +65,7 @@ namespace AE::Graphics
 		_options		= Default;
 		_topology		= Default;
 		_subpassIndex	= UMax;
+		_activeStages	= Default;
 		_vertexBuffers.clear();
 		_dbgTrace.clear();
 	}
@@ -78,7 +80,7 @@ namespace AE::Graphics
 		DRC_SHAREDLOCK( _drCheck );
 
 		auto	it = _vertexBuffers.find( name );
-		return it != _vertexBuffers.end() ? it->second : UMax;
+		return	it != _vertexBuffers.end() ? it->second : UMax;
 	}
 
 /*

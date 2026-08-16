@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #pragma once
 
@@ -157,6 +157,7 @@ namespace AE::Graphics
 
 		Self&  operator = (Strong<ID_t> rhs)	__NE___	{ _ReleaseRef();  _id = RVRef(rhs);		return *this; }
 		Self&  operator = (Self &&rhs)			__NE___	{ _ReleaseRef();  _id = RVRef(rhs._id);	return *this; }
+		Self&  operator = (Base::Default_t)		__NE___	{ _ReleaseRef();  return *this; }
 
 		ND_ ID_t			Get ()				C_NE___	{ return _id.Get(); }
 		ND_ Strong<ID_t>	Release ()			__NE___	{ Strong<ID_t> tmp = RVRef(_id);  return tmp; }
@@ -183,7 +184,6 @@ namespace AE::Graphics
 	extern template struct GAutorelease< PipelineCacheID >;
 	extern template struct GAutorelease< PipelinePackID >;
 	extern template struct GAutorelease< DescriptorSetID >;
-	extern template struct GAutorelease< DescriptorSetLayoutID >;
 	extern template struct GAutorelease< BufferID >;
 	extern template struct GAutorelease< ImageID >;
 	extern template struct GAutorelease< BufferViewID >;

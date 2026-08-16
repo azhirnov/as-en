@@ -1,4 +1,4 @@
-# Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+# Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 cmake_minimum_required( VERSION 3.22 FATAL_ERROR )
 
@@ -18,7 +18,7 @@ endif()
 #----------------------------------------------------------
 
 project( "AE"
-		 VERSION 26.2.312	# year, release per year, version
+		 VERSION 26.3.316	# year, release per year, version
 		 LANGUAGES C CXX
 		 DESCRIPTION "async game engine"
 		)

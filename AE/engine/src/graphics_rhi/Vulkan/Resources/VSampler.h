@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #pragma once
 
@@ -20,8 +20,7 @@ namespace AE::Graphics
 		VkSampler					_sampler			= Default;
 		VkSamplerYcbcrConversion	_ycbcrConversion	= Default;
 		VkFormat					_ycbcrFormat		= VK_FORMAT_UNDEFINED;
-
-		DRC_ONLY( RWDataRaceCheck	_drCheck;)
+		VkSamplerCreateInfo *		_samplerCI			= null;
 
 
 	// methods
@@ -30,12 +29,14 @@ namespace AE::Graphics
 		~VSampler ()																		__NE___;
 
 		ND_ bool  Create (const ResourceManager &, const SamplerDesc &,
-						  const VkSamplerYcbcrConversionCreateInfo *, StringView dbgName)	__NE___;
+						  const VkSamplerYcbcrConversionCreateInfo *,
+						  IAllocator*, StringView dbgName)									__NE___;
 			void  Destroy (ResourceManager &)												__NE___;
 
-		ND_ VkSampler					Handle ()											C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _sampler; }
-		ND_ VkSamplerYcbcrConversion	YcbcrConversion ()									C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _ycbcrConversion; }
-		ND_ VkFormat					YcbcrFormat ()										C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _ycbcrFormat; }
+		ND_ VkSampler					Handle ()											C_NE___	{ return _sampler; }
+		ND_ VkSamplerYcbcrConversion	YcbcrConversion ()									C_NE___	{ return _ycbcrConversion; }
+		ND_ VkFormat					YcbcrFormat ()										C_NE___	{ return _ycbcrFormat; }
+		ND_ VkSamplerCreateInfo const*	GetCreateInfo ()									C_NE___	{ return _samplerCI; }
 
 		GFX_DBG_ONLY( ND_ StringView	GetDebugName ()										C_NE___	{ return Default; })
 

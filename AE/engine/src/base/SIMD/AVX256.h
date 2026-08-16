@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 /*
 	256 bit SIMD
 */
@@ -25,9 +25,10 @@ namespace AE::Base
 		using Native_t		= __m256;
 		using Array_t		= StaticArray< Scalar_t, count >;
 		using Ptr_t			= AlignedPtr< sizeof(Native_t) >;
+		using CPtr_t		= AlignedPtr< sizeof(Native_t), true >;
 		using SimdInt_t		= SimdInt8;
 		using SimdUInt_t	= SimdUInt8;
-		using Mask_t		= Base::_hidden_::MSBMask< count, 0 >;
+		using Mask_t		= MSBMask< count, 0 >;
 		StaticAssert( sizeof(Array_t) == sizeof(Native_t) );
 
 
@@ -85,7 +86,7 @@ namespace AE::Base
 		explicit SimdFloat8 (Scalar_t v)						__NE___	: _value{ _mm256_set1_ps( v )} {}
 		explicit SimdFloat8 (const Native_t &v)					__NE___	: _value{ v } {}
 		explicit SimdFloat8 (const Scalar_t* ptr)				__NE___	: _value{ _mm256_loadu_ps( GetNonNull( ptr ))} {}
-		explicit SimdFloat8 (const Ptr_t ptr)					__NE___	: _value{ _mm256_load_ps( ptr.Cast<Scalar_t>() )} {}
+		explicit SimdFloat8 (const CPtr_t ptr)					__NE___	: _value{ _mm256_load_ps( ptr.Cast<Scalar_t>() )} {}
 
 		explicit SimdFloat8 (const SimdFloat4 &low)				__NE___;
 		SimdFloat8 (const SimdFloat4 &low, const SimdFloat4 &high) __NE___;
@@ -163,7 +164,7 @@ namespace AE::Base
 		ND_ Self	GEqualF   (const Self &rhs)					C_NE___	{ return Self{ _mm256_and_ps( _mm256_cmp_ps( _value, rhs._value, _CMP_GE_OQ  ), _mm256_set1_ps(1.f) )}; }
 		ND_ Self	LEqualF   (const Self &rhs)					C_NE___	{ return Self{ _mm256_and_ps( _mm256_cmp_ps( _value, rhs._value, _CMP_LE_OQ  ), _mm256_set1_ps(1.f) )}; }
 
-		ND_ Bool8	BitEqual (const Self&, EnabledBitCount acc)	C_NE___;
+		ND_ Bool8	BitEqual (const Self&, EnabledBitCount acc)	C_NE___;	// TODO
 
 		ND_ Self	Floor ()									C_NE___	{ return Self{ _mm256_round_ps( _value, _MM_FROUND_FLOOR )}; }
 		ND_ Self	Ceil ()										C_NE___	{ return Self{ _mm256_round_ps( _value, _MM_FROUND_CEIL  )}; }
@@ -219,13 +220,19 @@ namespace AE::Base
 		ND_ friend Self  Select  (const Bool8 &condition, const Self &ifTrue, const Self &ifFalse)		__NE___	{ return Self{ _mm256_blendv_ps( ifFalse._value, ifTrue._value, condition.Ref() )}; }
 		ND_ friend Self  SelectF (const Self &x, const Self &y, const Self &ifTrue, const Self &ifFalse)__NE___	{ return Lerp( ifFalse, ifTrue, x.LessF(y) ); }
 
-		ND_ Self		Sum ()									C_NE___;	// vector with PrefixSum()
-		ND_ Self		Max ()									C_NE___;	// vector with PrefixMax()
-		ND_ Self		Min ()									C_NE___;	// vector with PrefixMin()
+		// sum/max of all lanes, result written to all lanes
+		ND_ Self		ReduceAdd ()							C_NE___;	// GLSL: subgroup.Add
+		ND_ Self		ReduceMax ()							C_NE___;	// GLSL: subgroup.Max
+		ND_ Self		ReduceMin ()							C_NE___;	// GLSL: subgroup.Min
 
-		ND_ Scalar_t	PrefixSum ()							C_NE___;
-		ND_ Scalar_t	PrefixMax ()							C_NE___;
-		ND_ Scalar_t	PrefixMin ()							C_NE___;
+		// helper
+		ND_ Scalar_t	ReduceAddScalar ()						C_NE___	{ return ReduceAdd().get<0>(); }
+		ND_ Scalar_t	ReduceMaxScalar ()						C_NE___	{ return ReduceMax().get<0>(); }
+		ND_ Scalar_t	ReduceMinScalar ()						C_NE___	{ return ReduceMin().get<0>(); }
+
+		// set 'simd[lane] += simd[lane-1]'
+		ND_ Self		InclusiveAdd ()							C_NE___;	// GLSL: subgroup.InclusiveAdd
+		ND_ Self		ExclusiveAdd ()							C_NE___;	// GLSL: subgroup.ExclusiveAdd
 
 
 	// per bit operations //
@@ -266,6 +273,7 @@ namespace AE::Base
 		ND_ Array_t	ToArray ()									C_NE___	{ Array_t arr;  _mm256_storeu_ps( OUT arr.data(), _value );  return arr; }
 			void	ToArray (OUT Scalar_t* dst)					C_NE___	{ NonNull( dst );  _mm256_storeu_ps( OUT dst, _value ); }
 			void	ToAlignedArray (OUT Ptr_t dst)				C_NE___	{ _mm256_store_ps( OUT dst.Cast<Scalar_t>(), _value ); }
+			void	ToArray (OUT Scalar_t* dst, Mask_t mask)	C_NE___;
 
 		template <uint V0, uint V1, uint V2, uint V3, uint V4, uint V5, uint V6, uint V7>
 		ND_ Self	Swizzle ()									C_NE___;
@@ -294,11 +302,12 @@ namespace AE::Base
 		NdCe__ static bool  Has_PreciseDiv ()					{ return true; }
 		NdCe__ static bool  Has_ApproxReciprocal ()				{ return true; }
 		NdCe__ static bool  Has_ApproxInvSqrt ()				{ return true; }
-		NdCe__ static bool  Has_PrefixSum ()					{ return true; }
-		NdCe__ static bool  Has_PrefixMinMax ()					{ return true; }
+		NdCe__ static bool  Has_ReduceAdd ()					{ return true; }
+		NdCe__ static bool  Has_ReduceMinMax ()					{ return true; }
+		NdCe__ static bool  Has_InclusiveAdd ()					{ return true; }
 		NdCe__ static bool  Has_BitEqual ()						{ return false; }
 		NdCe__ static bool  Has_Swizzle ()						{ return AE_SIMD_AVX >= 2; }
-		NdCe__ static bool  Has_Shuffle ()						{ return true; }
+		NdCe__ static bool  Has_Shuffle ()						{ return AE_SIMD_AVX >= 2; }
 
 	  #if defined(AE_COMPILER_MSVC) and not defined(AE_COMPILER_CLANG_CL) // SVML library
 		NdCe__ static bool  Has_PreciseInvSqrt ()				{ return true; }
@@ -338,9 +347,10 @@ namespace AE::Base
 		using Native_t		= __m256d;
 		using Array_t		= StaticArray< Scalar_t, count >;
 		using Ptr_t			= AlignedPtr< sizeof(Native_t) >;
+		using CPtr_t		= AlignedPtr< sizeof(Native_t), true >;
 		using SimdInt_t		= SimdLong4;
 		using SimdUInt_t	= SimdULong4;
-		using Mask_t		= Base::_hidden_::MSBMask< count, 0 >;
+		using Mask_t		= MSBMask< count, 0 >;
 		StaticAssert( sizeof(Array_t) == sizeof(Native_t) );
 
 
@@ -397,7 +407,7 @@ namespace AE::Base
 		explicit SimdDouble4 (Scalar_t v)						__NE___	: _value{ _mm256_set1_pd( v )} {}
 		explicit SimdDouble4 (const Native_t &v)				__NE___	: _value{ v } {}
 		explicit SimdDouble4 (const Scalar_t* ptr)				__NE___	: _value{ _mm256_loadu_pd( GetNonNull( ptr ))} {}
-		explicit SimdDouble4 (const Ptr_t ptr)					__NE___	: _value{ _mm256_load_pd( ptr.Cast<Scalar_t>() )} {}
+		explicit SimdDouble4 (const CPtr_t ptr)					__NE___	: _value{ _mm256_load_pd( ptr.Cast<Scalar_t>() )} {}
 		SimdDouble4 (Scalar_t x, Scalar_t y, Scalar_t z, Scalar_t w) __NE___ : _value{ _mm256_set_pd( w, z, y, x )} {}
 
 		explicit SimdDouble4 (const SimdDouble2 &low)			__NE___;
@@ -475,7 +485,7 @@ namespace AE::Base
 		ND_ Self	GEqualF   (const Self &rhs)					C_NE___	{ return Self{ _mm256_and_pd( _mm256_cmp_pd( _value, rhs._value, _CMP_NLT_UQ ), _mm256_set1_pd(1.0) )}; }
 		ND_ Self	LEqualF   (const Self &rhs)					C_NE___	{ return Self{ _mm256_and_pd( _mm256_cmp_pd( _value, rhs._value, _CMP_NGT_UQ ), _mm256_set1_pd(1.0) )}; }
 
-		ND_ Bool4	BitEqual (const Self&, EnabledBitCount acc)	C_NE___;
+		ND_ Bool4	BitEqual (const Self&, EnabledBitCount acc)	C_NE___;	// TODO
 
 	  #if defined(AE_COMPILER_MSVC) and not defined(AE_COMPILER_CLANG_CL) // SVML library
 		ND_ Self	Sin ()										C_NE___	{ return Self{ _mm256_sin_pd( _value )}; }
@@ -526,13 +536,20 @@ namespace AE::Base
 		ND_ friend Self  SelectF (const Self &x, const Self &y, const Self &ifTrue, const Self &ifFalse)__NE___	{ return Lerp( ifFalse, ifTrue, x.LessF(y) ); }
 
 
-		ND_ Self		Sum ()									C_NE___;	// vector with PrefixSum()
-		ND_ Self		Max ()									C_NE___;	// vector with PrefixMax()
-		ND_ Self		Min ()									C_NE___;	// vector with PrefixMin()
+		// sum/max of all lanes, result written to all lanes
+		ND_ Self		ReduceAdd ()							C_NE___;	// GLSL: subgroup.Add
+		ND_ Self		ReduceMax ()							C_NE___;	// GLSL: subgroup.Max
+		ND_ Self		ReduceMin ()							C_NE___;	// GLSL: subgroup.Min
 
-		ND_ Scalar_t	PrefixSum ()							C_NE___;
-		ND_ Scalar_t	PrefixMax ()							C_NE___;
-		ND_ Scalar_t	PrefixMin ()							C_NE___;
+		// helper
+		ND_ Scalar_t	ReduceAddScalar ()						C_NE___	{ return ReduceAdd().get<0>(); }
+		ND_ Scalar_t	ReduceMaxScalar ()						C_NE___	{ return ReduceMax().get<0>(); }
+		ND_ Scalar_t	ReduceMinScalar ()						C_NE___	{ return ReduceMin().get<0>(); }
+
+		// set 'simd[lane] += simd[lane-1]'
+		ND_ Self		InclusiveAdd ()							C_NE___;	// GLSL: subgroup.InclusiveAdd
+		ND_ Self		ExclusiveAdd ()							C_NE___;	// GLSL: subgroup.ExclusiveAdd
+
 
 		ND_ Self	Floor ()									C_NE___	{ return Self{ _mm256_round_pd( _value, _MM_FROUND_FLOOR )}; }
 		ND_ Self	Ceil ()										C_NE___	{ return Self{ _mm256_round_pd( _value, _MM_FROUND_CEIL  )}; }
@@ -580,7 +597,7 @@ namespace AE::Base
 		ND_ explicit operator packed_double4 ()					C_NE___	{ packed_double4 tmp;  _mm256_storeu_pd( OUT &tmp.x, _value );  return tmp; }
 
 		ND_ SimdFloat4	ToFloat ()								C_NE___;
-		ND_ SimdLong4	ToLong ()								C_NE___;	// AVX512
+		ND_ SimdLong4	ToLong ()								C_NE___;	// AVX512 only, check 'Has_Convert<SimdLong4>()'
 		ND_ SimdInt4	ToInt ()								C_NE___;
 
 		template <typename DstType>
@@ -601,10 +618,11 @@ namespace AE::Base
 		NdCe__ static bool  Has_PreciseDiv ()					{ return true; }
 		NdCe__ static bool  Has_ApproxReciprocal ()				{ return AE_SIMD_AVX >= 31; }
 		NdCe__ static bool  Has_ApproxInvSqrt ()				{ return false; }
-		NdCe__ static bool  Has_PrefixSum ()					{ return true; }
-		NdCe__ static bool  Has_PrefixMinMax ()					{ return true; }
+		NdCe__ static bool  Has_ReduceAdd ()					{ return Has_Swizzle(); }
+		NdCe__ static bool  Has_ReduceMinMax ()					{ return Has_Swizzle(); }
+		NdCe__ static bool  Has_InclusiveAdd ()					{ return true; }
 		NdCe__ static bool  Has_BitEqual ()						{ return false; }
-		NdCe__ static bool  Has_Swizzle ()						{ return AE_SIMD_AVX >= 2; }
+		NdCe__ static bool  Has_Swizzle ()						{ return true; }
 		NdCe__ static bool  Has_Shuffle ()						{ return true; }
 
 	  #if defined(AE_COMPILER_MSVC) and not defined(AE_COMPILER_CLANG_CL) // SVML library
@@ -642,6 +660,7 @@ namespace AE::Base
 		using Self		= Int256b;
 		using Native_t	= __m256i;
 		using Ptr_t		= AlignedPtr< sizeof(Native_t) >;
+		using CPtr_t	= AlignedPtr< sizeof(Native_t), true >;
 
 
 	// variables
@@ -655,10 +674,13 @@ namespace AE::Base
 		Int256b (Zero_t)									__NE___	: _value{ _mm256_setzero_si256() } {}
 		Int256b (UMax_t)									__NE___	 { auto z = _mm256_setzero_si256();  _value = _mm256_cmpeq_epi32( z, z ); }
 		explicit Int256b (const Native_t &v)				__NE___	: _value{ v } {}
-		explicit Int256b (const Ptr_t ptr)					__NE___	: _value{ _mm256_load_si256( ptr.Cast<Native_t>() )} {}
+		explicit Int256b (const CPtr_t ptr)					__NE___	: _value{ _mm256_load_si256( ptr.Cast<Native_t>() )} {}
 
 		ND_ Native_t&		Ref ()							__NE___	{ return _value; }
 		ND_ Native_t const&	Ref ()							C_NE___	{ return _value; }
+
+		template <uint I> ND_ bool	GetBit ()				C_NE___;
+		template <uint I> ND_ Self	SetBit (bool val)		C_NE___;
 
 
 	// per bit operations //
@@ -675,13 +697,14 @@ namespace AE::Base
 		ND_ Self	Xor (const Self &rhs)					C_NE___	{ return Self{ _mm256_xor_si256( _value, rhs._value )}; }
 		ND_ Self	AndNot (const Self &rhs)				C_NE___	{ return Self{ _mm256_andnot_si256( _value, rhs._value )}; } // ~a & b
 
+		// return 0 or 1
 		ND_ int		TestAnd (const Self &mask)				C_NE___	{ return _mm256_testz_si256( _value, mask._value ); }		// a & mask == 0 ? 1 : 0
 		ND_ int		TestAndNot (const Self &mask)			C_NE___	{ return _mm256_testc_si256( _value, mask._value ); }		// a & ~mask == 0 ? 1 : 0
 		ND_ int		TestBoth_And_AndNot (const Self &mask)	C_NE___	{ return _mm256_testnzc_si256( _value, mask._value ); }		// (a & mask == 0) and (a & ~mask == 0) ? 1 : 0
 
-		// shift in bytes
-		template <int ShiftBytes> ND_ Self  LShiftB ()		C_NE___	{ return Self{ _mm256_slli_si256( _value, ShiftBytes )}; }
-		template <int ShiftBytes> ND_ Self  RShiftB ()		C_NE___	{ return Self{ _mm256_srli_si256( _value, ShiftBytes )}; }
+		// shift each 128bit lane in bytes
+		template <uint ShiftBytes> ND_ Self  LByteShift ()	C_NE___;
+		template <uint ShiftBytes> ND_ Self  RByteShift ()	C_NE___;
 
 
 	// conversion //
@@ -707,6 +730,7 @@ namespace AE::Base
 		using Bool_t		= SimdTInt256< ToUnsignedInteger< IntType >>;
 		using Native_t		= __m256i;
 		using Ptr_t			= AlignedPtr< sizeof(Native_t) >;
+		using CPtr_t		= AlignedPtr< sizeof(Native_t), true >;
 		using Signed_t		= SimdTInt256< ToSignedInteger< IntType >>;
 		using Unsigned_t	= SimdTInt256< ToUnsignedInteger< IntType >>;
 		using Shift64_t		= SimdTInt128< slong >;
@@ -716,7 +740,7 @@ namespace AE::Base
 		using Array_t					= StaticArray< Scalar_t, count >;
 		StaticAssert( sizeof(Array_t) == sizeof(Native_t) );
 
-		using Mask_t		= Base::_hidden_::MSBMask< count, CT_IntLog2< 32/count >>;
+		using Mask_t		= MSBMask< count, CT_IntLog2< 32/count >>;
 
 
 	// variables
@@ -749,9 +773,12 @@ namespace AE::Base
 		SimdTInt256 (Zero_t)								__NE___	: _value{ _mm256_setzero_si256() } {}
 		SimdTInt256 (UMax_t)								__NE___	 { auto z = _mm256_setzero_si256();  _value = _mm256_cmpeq_epi32( z, z ); }
 		explicit SimdTInt256 (const Native_t &v)			__NE___	: _value{ v } {}
-		explicit SimdTInt256 (const Ptr_t ptr)				__NE___	: _value{ _mm256_load_si256( ptr.Cast<Native_t>() )} {}
+		explicit SimdTInt256 (const CPtr_t ptr)				__NE___	: _value{ _mm256_load_si256( ptr.Cast<Native_t>() )} {}
 		explicit SimdTInt256 (const Scalar_t* ptr)			__NE___ : _value{ _mm256_loadu_si256( reinterpret_cast<Native_t const *>( GetNonNull( ptr )) )} {}
 		explicit SimdTInt256 (Scalar_t v)					__NE___;
+
+		template <uint Step>
+		explicit SimdTInt256 (MSBMask<count, Step> mask)	__NE___;
 
 		explicit SimdTInt256 (const SimdTInt128<Scalar_t> &low) __NE___;
 		SimdTInt256 (const SimdTInt128<Scalar_t> &low, const SimdTInt128<Scalar_t> &high) __NE___;
@@ -904,15 +931,22 @@ namespace AE::Base
 		ND_ Bool_t	IsZero ()								C_NE___	{ return Equal( Self{} ); }
 		ND_ Bool_t	IsNotZero ()							C_NE___	{ return NotEqual( Self{} ); }
 
-		ND_ Self		Sum ()								C_NE___;	// vector with PrefixSum()
-		ND_ auto		SumExt ()							C_NE___;	// vector with PrefixSumExt()
-		ND_ Self		Max ()								C_NE___;	// vector with PrefixMax()
-		ND_ Self		Min ()								C_NE___;	// vector with PrefixMin()
+		// sum/max of all lanes, result written to all lanes
+		ND_ Self		ReduceAdd ()						C_NE___;	// GLSL: subgroup.Add
+		ND_ auto		ReduceAddExt ()						C_NE___;	// 32bit int will return 64bit int, etc
+		ND_ Self		ReduceMax ()						C_NE___;	// GLSL: subgroup.Max
+		ND_ Self		ReduceMin ()						C_NE___;	// GLSL: subgroup.Min
 
-		ND_ Scalar_t	PrefixSum ()						C_NE___;
-		ND_ auto		PrefixSumExt ()						C_NE___;
-		ND_ Scalar_t	PrefixMax ()						C_NE___;
-		ND_ Scalar_t	PrefixMin ()						C_NE___;
+		// helper
+		ND_ Scalar_t	ReduceAddScalar ()					C_NE___	{ return ReduceAdd().template get<0>(); }
+		ND_ auto		ReduceAddExtScalar ()				C_NE___;
+		ND_ Scalar_t	ReduceMaxScalar ()					C_NE___	{ return ReduceMax().template get<0>(); }
+		ND_ Scalar_t	ReduceMinScalar ()					C_NE___	{ return ReduceMin().template get<0>(); }
+
+		// set 'simd[lane] += simd[lane-1]'
+		ND_ Self		InclusiveAdd ()						C_NE___;	// GLSL: subgroup.InclusiveAdd
+		ND_ Self		ExclusiveAdd ()						C_NE___;	// GLSL: subgroup.ExclusiveAdd
+
 
 		ND_ Mask_t	ToBitfield ()							C_NE___	{ return Mask_t{_mm256_movemask_epi8( _value )}; }
 
@@ -973,7 +1007,13 @@ namespace AE::Base
 
 
 	// conversion //
-		template <uint X, uint Y, uint Z, uint W,  typename T=Scalar_t> requires( sizeof(T)==8 )
+		template <uint V0, uint V1, uint V2, uint V3,
+				  uint V4, uint V5, uint V6, uint V7,
+				  typename T=Scalar_t> requires( sizeof(T)==4 )
+		ND_ Self	Swizzle ()								C_NE___;
+
+		template <uint X, uint Y, uint Z, uint W,
+				  typename T=Scalar_t> requires( sizeof(T)==8 )
 		ND_ Self	Swizzle ()								C_NE___;
 
 		template <uint V0, uint V1, uint V2, uint V3,
@@ -981,7 +1021,8 @@ namespace AE::Base
 				  typename T=Scalar_t> requires( sizeof(T)==4 )
 		ND_ Self	Shuffle (const Self &v8)				C_NE___;
 
-		template <uint X, uint Y, uint Z, uint W,  typename T=Scalar_t> requires( sizeof(T)==8 )
+		template <uint X, uint Y, uint Z, uint W,
+				  typename T=Scalar_t> requires( sizeof(T)==8 )
 		ND_ Self	Shuffle (const Self &v4567)				C_NE___;
 
 		template <uint Low, uint High>
@@ -991,6 +1032,7 @@ namespace AE::Base
 		template <uint I=0>	ND_ auto	ToInt ()			C_NE___;
 		template <uint I=0>	ND_ auto	ToLong ()			C_NE___;
 	  #endif // AVX2
+
 
 		ND_ Array_t	ToArray ()								C_NE___	{ Array_t arr;  ToArray( OUT arr.data() );  return arr; }
 		void		ToArray (OUT Scalar_t* dst)				C_NE___ { NonNull( dst );  _mm256_storeu_si256( OUT reinterpret_cast<Native_t *>(dst), _value ); }
@@ -1033,9 +1075,10 @@ namespace AE::Base
 		NdCe__ static bool  Has_VecRShift_Arithmetic ();
 		NdCe__ static bool  Has_ScalarShift_Logic ();
 		NdCe__ static bool  Has_ScalarShift_Arithmetic ();
-		NdCe__ static bool  Has_PrefixSum ();
-		NdCe__ static bool  Has_PrefixSumExt ();
-		NdCe__ static bool  Has_PrefixMinMax ();
+		NdCe__ static bool  Has_ReduceAdd ();
+		NdCe__ static bool  Has_ReduceAddExt ();
+		NdCe__ static bool  Has_ReduceMinMax ();
+		NdCe__ static bool  Has_InclusiveAdd ();
 		NdCe__ static bool  Has_Mul ();
 		NdCe__ static bool  Has_MulExt ();
 		NdCe__ static bool  Has_Div ()						{ return false; }
@@ -1043,8 +1086,8 @@ namespace AE::Base
 		NdCe__ static bool  Has_Greater ();
 		NdCe__ static bool  _Has_Native_Greater ();
 		NdCe__ static bool  Has_MinMax ();
-		NdCe__ static bool  Has_Swizzle ()					{ return AE_SIMD_AVX >= 2 and sizeof(Scalar_t)==8; }
-		NdCe__ static bool  Has_Shuffle ()					{ return true; }
+		NdCe__ static bool  Has_Swizzle ()					{ return AE_SIMD_AVX >= 2 and sizeof(Scalar_t)>=4; }
+		NdCe__ static bool  Has_Shuffle ()					{ return AE_SIMD_AVX >= 2 and sizeof(Scalar_t)>=4; }
 
 		template <typename DstType>	NdCe__ static bool  Has_BitCast ();
 		template <typename DstType>	NdCe__ static bool  Has_Convert ();

@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #include "platform/OpenXR/OpenXRCommon.h"
 #include "platform/OpenXR/SerializableInputActionsOpenXR.h"

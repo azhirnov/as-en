@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #pragma once
 
@@ -22,7 +22,7 @@ namespace AE::Graphics
 	struct ImageDesc
 	{
 	// types
-		using FormatList_t = StaticArray< EPixelFormat, 4 >;
+		using FormatList_t = StaticArray< EPixelFormat, 3 >;
 
 
 	// variables
@@ -36,41 +36,43 @@ namespace AE::Graphics
 		EImageUsage			usage			= Default;
 		EMemoryType			memType			= EMemoryType::DeviceLocal;
 		EQueueMask			queues			= Default;
-		FormatList_t		viewFormats		{ Default, Default, Default, Default };		// 'imageFormatList' extension
+		EMemAliasingGroup	aliasGroup		= Default;
+		FormatList_t		viewFormats		{ Default, Default, Default };		// requires 'imageFormatList' extension and 'EImageOpt::MutableFormat' flag
 
 
 	// methods
-		ImageDesc ()										__NE___ {}
+		ImageDesc ()											__NE___ {}
 
 		// Will remove unsupported combinations
-		void  Validate ()									__NE___;
+		void  Validate ()										__NE___;
 
-		ND_ bool	operator == (const ImageDesc &rhs)		C_NE___;
-		ND_ bool	IsExclusiveSharing ()					C_NE___	{ return queues == Default; }
-		ND_ bool	HasViewFormatList ()					C_NE___	{ return ViewFormatListSize() != 0; }
-		ND_ usize	ViewFormatListSize ()					C_NE___;
-		ND_ uint3	Dimension ()							C_NE___	{ return uint3{dimension}; }
-		ND_ uint2	Dimension2 ()							C_NE___	{ return uint2{dimension}; }
+		ND_ bool	operator == (const ImageDesc &rhs)			C_NE___;
+		ND_ bool	IsExclusiveSharing ()						C_NE___	{ return queues == Default; }
+		ND_ bool	HasViewFormatList ()						C_NE___	{ return ViewFormatListSize() != 0; }
+		ND_ usize	ViewFormatListSize ()						C_NE___;
+		ND_ uint3	Dimension ()								C_NE___	{ return uint3{dimension}; }
+		ND_ uint2	Dimension2 ()								C_NE___	{ return uint2{dimension}; }
 
-		ImageDesc&  SetType (EImage value)					__NE___;
-		ImageDesc&  SetType (EImageDim value)				__NE___	{ imageDim		= value;				return *this; }
-		ImageDesc&  SetOptions (EImageOpt value)			__NE___	{ options		= value;				return *this; }
-		ImageDesc&  SetDimension (const uint value)			__NE___;
-		ImageDesc&  SetDimension (uint2 value)				__NE___	{ return SetDimension( ImageDim2_t{CheckCast{ value }}); }
-		ImageDesc&  SetDimension (ImageDim2_t value)		__NE___;
-		ImageDesc&  SetDimension (uint w, uint h)			__NE___	{ return SetDimension( uint2{w,h} ); }
-		ImageDesc&  SetDimension (uint3 value)				__NE___	{ return SetDimension( ImageDim_t{CheckCast{ value }}); }
-		ImageDesc&  SetDimension (ImageDim_t value)			__NE___;
-		ImageDesc&  SetDimension (uint w, uint h, uint d)	__NE___	{ return SetDimension( uint3{w,h,d} ); }
-		ImageDesc&  SetUsage (EImageUsage value)			__NE___	{ usage			= value;				return *this; }
-		ImageDesc&  SetFormat (EPixelFormat value)			__NE___	{ format		= value;				return *this; }
-		ImageDesc&  SetArrayLayers (uint value)				__NE___	{ arrayLayers	= ImageLayer{value};	return *this; }
-		ImageDesc&  SetMaxMipmaps (uint value)				__NE___	{ mipLevels		= MipmapLevel{value};	return *this; }
-		ImageDesc&  SetSamples (uint value)					__NE___	{ samples		= MultiSamples{value};	return *this; }
-		ImageDesc&  SetAllMipmaps ()						__NE___	{ mipLevels		= MipmapLevel::Max();	return *this; }
-		ImageDesc&  SetQueues (EQueueMask value)			__NE___	{ queues		= value;				return *this; }
-		ImageDesc&  SetMemory (EMemoryType value)			__NE___	{ memType		= value;				return *this; }
-		ImageDesc&  AddViewFormat (EPixelFormat value)		__NE___;
+		ImageDesc&  SetType (EImage value)						__NE___;
+		ImageDesc&  SetType (EImageDim value)					__NE___	{ imageDim		= value;				return *this; }
+		ImageDesc&  SetOptions (EImageOpt value)				__NE___	{ options		= value;				return *this; }
+		ImageDesc&  SetDimension (const uint value)				__NE___;
+		ImageDesc&  SetDimension (uint2 value)					__NE___	{ return SetDimension( ImageDim2_t{CheckCast{ value }}); }
+		ImageDesc&  SetDimension (ImageDim2_t value)			__NE___;
+		ImageDesc&  SetDimension (uint w, uint h)				__NE___	{ return SetDimension( uint2{w,h} ); }
+		ImageDesc&  SetDimension (uint3 value)					__NE___	{ return SetDimension( ImageDim_t{CheckCast{ value }}); }
+		ImageDesc&  SetDimension (ImageDim_t value)				__NE___;
+		ImageDesc&  SetDimension (uint w, uint h, uint d)		__NE___	{ return SetDimension( uint3{w,h,d} ); }
+		ImageDesc&  SetUsage (EImageUsage value)				__NE___	{ usage			= value;				return *this; }
+		ImageDesc&  SetFormat (EPixelFormat value)				__NE___	{ format		= value;				return *this; }
+		ImageDesc&  SetArrayLayers (uint value)					__NE___	{ arrayLayers	= ImageLayer{value};	return *this; }
+		ImageDesc&  SetMaxMipmaps (uint value)					__NE___	{ mipLevels		= MipmapLevel{value};	return *this; }
+		ImageDesc&  SetSamples (uint value)						__NE___	{ samples		= MultiSamples{value};	return *this; }
+		ImageDesc&  SetAllMipmaps ()							__NE___	{ mipLevels		= MipmapLevel::Max();	return *this; }
+		ImageDesc&  SetQueues (EQueueMask value)				__NE___	{ queues		= value;				return *this; }
+		ImageDesc&  SetMemory (EMemoryType value)				__NE___	{ memType		= value;				return *this; }
+		ImageDesc&  SetAliasingGroup (EMemAliasingGroup value)	__NE___	{ aliasGroup	= value;				return *this; }
+		ImageDesc&  AddViewFormat (EPixelFormat value)			__NE___;
 
 		ND_ static ImageDesc  CreateColorAttachment (const uint2 &dim, EPixelFormat fmt, ImageLayer layers = 1_layer)	__NE___;
 		ND_ static ImageDesc  CreateDepthAttachment (const uint2 &dim, EPixelFormat fmt, ImageLayer layers = 1_layer)	__NE___;
@@ -91,13 +93,13 @@ namespace AE::Graphics
 		EPixelFormat		format			= Default;	// optional
 		EImageAspect		aspectMask		= Default;
 		EImageViewOpt		options			= Default;
-		EImageUsage			extUsage		= Default;	// 'maintenance2' extension
+		EImageUsage			usage			= Default;	// may override 'ImageDesc::usage' ('ExtendedUsage' must be supported, but not required to add this option to image)
 		MipmapLevel			baseMipmap;
 		MipmapCount_t		mipmapCount		= UMax;
 		ImageLayer			baseLayer;
 		LayerCount_t		layerCount		= UMax;
 		ImageSwizzle		swizzle;
-		ImageDim_t			dimension;			// may be different from image (if set 'BlockTexelViewCompatible', if non-zero mipmap, etc)
+		ImageDim_t			dimension;					// may be different from image (if set 'BlockTexelViewCompatible', if non-zero mipmap, etc)
 
 
 	// methods
@@ -130,7 +132,7 @@ namespace AE::Graphics
 		ImageViewDesc&  SetArrayLayers (uint base, uint count)			__NE___	{ baseLayer	= ImageLayer{base};		layerCount = CheckCast{count};  return *this; }
 		ImageViewDesc&  SetSwizzle (ImageSwizzle value)					__NE___	{ swizzle	= value;				return *this; }
 		ImageViewDesc&  SetAspect (EImageAspect value)					__NE___	{ aspectMask= value;				return *this; }
-		ImageViewDesc&  SetExtUsage (EImageUsage value)					__NE___	{ extUsage	= value;				return *this; }
+		ImageViewDesc&  OverrideUsage (EImageUsage value)				__NE___	{ usage		= value;				return *this; }
 	};
 
 

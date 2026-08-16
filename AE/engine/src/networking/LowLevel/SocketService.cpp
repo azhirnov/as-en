@@ -1,10 +1,49 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #include "networking/LowLevel/SocketService.h"
 #include "networking/LowLevel/PlatformSpecific.cpp.h"
 
 namespace AE::Networking
 {
+namespace {
+/*
+=================================================
+	GetIPRoute
+=================================================
+*/
+#if defined(AE_PLATFORM_LINUX) or defined(AE_PLATFORM_MACOS)
+	ND_ static bool  GetIPRoute (StringView prefix, OUT IpAddress &outAddr) __NE___
+	{
+		String	cmd = "ip route";
+		String	output;
+
+		CHECK_ERR( UnixProcess::Execute( cmd, OUT output, UnixProcess::EFlags::ReadOutput | UnixProcess::EFlags::NoWindow ));
+
+		AE_LOGW( "IP route: '"s << output << "'" );
+
+		const StringView	def {" src "};
+
+		usize	pos = output.find( def );
+		if ( pos == String::npos )
+			return false;
+
+		pos += def.size();
+		usize	end = output.find( ' ', pos );
+
+		outAddr = IpAddress::FromServiceUDP( SubStringBE( output, pos, end ), "0" );
+		return true;
+	}
+
+	ND_ static bool  GetIPRoute (StringView prefix, OUT IpAddress6 &) __NE___
+	{
+		String	cmd = "ip -6 route";
+		return false;
+	}
+
+#endif // AE_PLATFORM_LINUX or AE_PLATFORM_MACOS
+} // namespace
+//-----------------------------------------------------------------------------
+
 
 /*
 =================================================
@@ -156,12 +195,11 @@ namespace AE::Networking
 */
 	bool  SocketService::GetRouterIPAddress (OUT IpAddress &outAddr) C_NE___
 	{
-		using EFlags = OSProcess::EFlags;
-
 	#ifdef AE_PLATFORM_WINDOWS
 		String	cmd = "ipconfig";
 		String	output;
 
+		using EFlags = OSProcess::EFlags;
 		CHECK_ERR( WindowsProcess::Execute( cmd, OUT output, EFlags::UseCommandPrompt | EFlags::ReadOutput | EFlags::NoWindow ));
 
 		for (usize pos = 0; pos < output.size();)
@@ -183,9 +221,15 @@ namespace AE::Networking
 		}
 		return false;
 
-    #else
-        // TODO
-        return false;
+	#elif defined(AE_PLATFORM_LINUX) or defined(AE_PLATFORM_MACOS)
+		return GetIPRoute( "default via ", outAddr );
+
+	#elif defined(AE_PLATFORM_ANDROID)
+		CHECK_ERR( _cb.getRouterIPAddress != null );
+		return _cb.getRouterIPAddress( _cb.userData, OUT outAddr );
+
+	#else
+		return false;
 	#endif
 	}
 
@@ -196,9 +240,14 @@ namespace AE::Networking
 */
 	bool  SocketService::GetSelfLocalIPAddress (OUT IpAddress &self) C_NE___
 	{
+	#if defined(AE_PLATFORM_LINUX) or defined(AE_PLATFORM_MACOS)
+		return GetIPRoute( " src ", OUT self );
+
+	#else
 		IpAddress	router_ip;
 		return	GetRouterIPAddress( OUT router_ip )  and
 				GetSelfIPAddress( router_ip, OUT self );
+	#endif
 	}
 
 /*
@@ -272,5 +321,17 @@ namespace AE::Networking
 		// failed to parse response
 		return false;
 	}
+
+/*
+=================================================
+	SetCallbacks
+=================================================
+*/
+#ifdef AE_PLATFORM_ANDROID
+	void  SocketService::SetCallbacks (const Callbacks &cb) __NE___
+	{
+		_cb = cb;
+	}
+#endif
 
 } // AE::Networking

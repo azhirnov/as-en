@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #include "geometry_tools/Cylinder/CylinderGen.h"
 #include "geometry_tools/Utils/TBN.h"
@@ -253,6 +253,8 @@ namespace AE::GeometryTools
 */
 	void  CylinderGen::_AddCapsuleEnds (const uint segments)
 	{
+		TODO("");
+		Unused( segments );
 	}
 
 } // AE::GeometryTools

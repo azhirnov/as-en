@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #pragma once
 
@@ -86,6 +86,7 @@ AE_DECL_SCRIPT_TYPE( AE::Graphics::ECoopVecCfg,					"ECoopVecCfg"			);
 AE_DECL_SCRIPT_TYPE( AE::Graphics::EDeviceValidation,			"EDeviceValidation"		);
 AE_DECL_SCRIPT_TYPE( AE::Graphics::EMicromapType,				"EMicromapType"			);
 AE_DECL_SCRIPT_TYPE( AE::Graphics::EOpacityMicromapFormat,		"EOpacityMicromapFormat" );
+AE_DECL_SCRIPT_TYPE( AE::Graphics::EDescriptorFlags,			"EDescriptorFlags"		);
 
 AE_DECL_SCRIPT_TYPE( AE::Graphics::EPipelineDynamicState,			"EPipelineDynamicState"			);
 AE_DECL_SCRIPT_TYPE( AE::Graphics::ESamplerChromaLocation,			"ESamplerChromaLocation"		);

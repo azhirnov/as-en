@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #pragma once
 
@@ -111,10 +111,10 @@ namespace AE::Video
 		ND_ slong  _FrameIdxToPTS (ulong frameIdx)							C_NE___;
 		ND_ slong  _TimestampToPTS (Seconds time)							C_NE___;
 
-		ND_ static Bitrate  _CalcBitrate (const Config &cfg)				__NE___;
-
 		static int    _IOWritePacket (void*, const ubyte*, int)				__NE___;
 		static slong  _IOSeek (void*, slong, int)							__NE___;
+
+		void  _PrintEncoderInfo ()											C_NE___;
 
 	  #ifdef AE_ENABLE_VULKAN
 		ND_ bool  _CreateVulkanCtx (AVCodecHWConfig const*)					__NE___;

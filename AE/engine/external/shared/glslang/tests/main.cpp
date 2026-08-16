@@ -3,25 +3,35 @@
 # error AE_ENABLE_GLSLANG required
 #endif
 
+#ifdef ANDROID
+# include "TestHelper.h"
+
+extern int AE_glslang_Test ()
+{
+}
+
+#else
+
 // glslang includes
-#include "glslang/build_info.h"
-#include "glslang/Public/ShaderLang.h"
-#include "glslang/MachineIndependent/localintermediate.h"
-#include "glslang/Include/intermediate.h"
-#include "glslang/SPIRV/doc.h"
-#include "glslang/SPIRV/disassemble.h"
-#include "glslang/SPIRV/GlslangToSpv.h"
-#include "glslang/SPIRV/GLSL.std.450.h"
+# include "glslang/build_info.h"
+# include "glslang/Public/ShaderLang.h"
+# include "glslang/MachineIndependent/localintermediate.h"
+# include "glslang/Include/intermediate.h"
+
+# include "glslang/SPIRV/doc.h"
+# include "glslang/SPIRV/disassemble.h"
+# include "glslang/SPIRV/GlslangToSpv.h"
+# include "glslang/SPIRV/GLSL.std.450.h"
 
 // SPIRV-Tools includes
-#ifdef ENABLE_OPT
+# ifdef ENABLE_OPT
 #	include "spirv-tools/optimizer.hpp"
 #	include "spirv-tools/libspirv.h"
-#endif
+# endif
 
-#if GLSLANG_VERSION_MAJOR != 14 || GLSLANG_VERSION_MINOR != 0 || GLSLANG_VERSION_PATCH != 0
-# error invalid glslang version
-#endif
+# if GLSLANG_VERSION_MAJOR != 16 || GLSLANG_VERSION_MINOR != 3
+# 	error invalid glslang version
+# endif
 
 int main ()
 {
@@ -30,3 +40,5 @@ int main ()
 	glslang::FinalizeProcess();
 	return 0;
 }
+
+#endif

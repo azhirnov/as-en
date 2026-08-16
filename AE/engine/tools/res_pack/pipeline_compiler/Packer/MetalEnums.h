@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #pragma once
 
@@ -75,7 +75,7 @@ namespace AE::PipelineCompiler
 		Color		= 1 << 0,
 		Depth		= 1 << 1,
 		Stencil		= 1 << 2,
-		_BITOPS_
+		_BITOPS_	= 0
 	};
 
 

@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #pragma once
 
@@ -118,7 +118,7 @@
 # ifdef AE_DEBUG
 #	define AE_LOG_DBG								AE_LOGI
 # else
-#	define AE_LOG_DBG( /* msg, file, line */... )	{}
+#	define AE_LOG_DBG( /* msg, source loc */... )	{}
 # endif
 #endif
 
@@ -126,27 +126,27 @@
 # ifdef AE_DEBUG
 #	define AE_LOGW_DBG								AE_LOGW
 # else
-#	define AE_LOGW_DBG( /* msg, file, line */... )	{}
+#	define AE_LOGW_DBG( /* msg, source loc */... )	{}
 # endif
 #endif
 
 // log info
 #ifndef AE_LOGI
-#	define AE_LOGI( /* msg, file, line */... )														\
+#	define AE_LOGI( /* msg, source loc */... )														\
 			AE_PRIVATE_LOG_I( AE_PRIVATE_GETARG_0( __VA_ARGS__, "" ),								\
 							  AE_PRIVATE_GETARG_1( __VA_ARGS__, ::AE::Base::SourceLoc::current(), ))
 #endif
 
 // log error
 #ifndef AE_LOGE
-#	define AE_LOGE( /* msg, file, line */... )														\
+#	define AE_LOGE( /* msg, source loc */... )														\
 			AE_PRIVATE_LOG_E( AE_PRIVATE_GETARG_0( __VA_ARGS__, "" ),								\
 							  AE_PRIVATE_GETARG_1( __VA_ARGS__, ::AE::Base::SourceLoc::current(), ))
 #endif
 
 // log warning (silent)
 #ifndef AE_LOGW
-#	define AE_LOGW( /* msg, file, line */... )														\
+#	define AE_LOGW( /* msg, source loc */... )														\
 			AE_PRIVATE_LOG_W( AE_PRIVATE_GETARG_0( __VA_ARGS__, "" ),								\
 							  AE_PRIVATE_GETARG_1( __VA_ARGS__, ::AE::Base::SourceLoc::current(), ))
 #endif
@@ -165,6 +165,7 @@
 
 
 // check function return value and return error code
+// add to log as error
 #if 1
 #	define AE_PRIVATE_CHECK_ERR2( _expr_, _ret_, _text_ )	\
 		{cold_if_not( _expr_ ){								\
@@ -190,6 +191,7 @@
 
 
 // check function return value and return error code
+// add to log as warning
 #if 1
 #	define AE_PRIVATE_CHECK_WARN2( _expr_, _ret_, _text_ )	\
 		{cold_if_not( _expr_ ){								\
@@ -253,13 +255,13 @@
 #	define StaticAssertMsg( _expr_, _msg_ )			static_assert( bool{_expr_}, _msg_ )
 #	define StaticAssert( ... )						static_assert( bool{ __VA_ARGS__ }, AE_TOSTRING( __VA_ARGS__ ))
 
-# if AE_PLATFORM_BITS == 32
+# if AE_PLATFORM_BITS == 32 and not defined(AE_RC_TRACK_ALL_REFS)
 #	define StaticAssert32							StaticAssert
 # else
 #	define StaticAssert32( /* expr, msg */... )		static_assert(true)
 # endif
 
-# if AE_PLATFORM_BITS == 64
+# if AE_PLATFORM_BITS == 64 and not defined(AE_RC_TRACK_ALL_REFS)
 #	define StaticAssert64							StaticAssert
 # else
 #	define StaticAssert64( /* expr, msg */... )		static_assert(true)

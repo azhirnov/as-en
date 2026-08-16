@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #pragma once
 
@@ -86,7 +86,7 @@ namespace AE::AssetPacker
 			HasImage		= 1 << 0,	// image data in current file
 			SeparateData	= 1 << 1,	// load image data from another file
 			HasResName		= 1 << 2,	// get image from cache
-			_BITOPS_
+			_BITOPS_		= 0
 		};
 
 		struct FileHeader

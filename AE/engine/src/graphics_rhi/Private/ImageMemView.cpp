@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #include "graphics_rhi/Public/ImageMemView.h"
 #include "graphics_rhi/Private/EnumUtils.h"
@@ -778,6 +778,12 @@ namespace
 		}
 		ASSERT( offset == size );
 		return true;
+	}
+
+	bool  ImageMemView::CopyTo (BufferMemView &dst) C_NE___
+	{
+		Bytes	copied = dst.CopyFrom( _content );
+		return	copied == _content.DataSize();
 	}
 
 /*

@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #pragma once
 
@@ -117,6 +117,7 @@ namespace AE::Base
 		template <typename ...Args>
 		__Cx__ bool  try_emplace_back (Args&& ...args)		__NE___;
 
+		__Cx__ void  insert (usize pos, const T &value)		__NE___	{ insert( pos, T{value} ); }
 		__Cx__ void  insert (usize pos, T &&value)			__NE___;
 
 		__Cx__ void  resize (usize newSize)					__NE___;
@@ -144,6 +145,9 @@ namespace AE::Base
 */
 	template <typename T, usize S, typename CS>
 	__Cx__ FixedArray<T,S,CS>::FixedArray () __NE___
+		#ifdef AE_COMPILER_GCC
+		: _data{}
+		#endif
 	{
 		DEBUG_ONLY( DbgInitMem( data(), SizeOf<T> * capacity() ));
 

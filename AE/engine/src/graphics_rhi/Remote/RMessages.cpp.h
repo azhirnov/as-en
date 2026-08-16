@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #pragma once
 
@@ -196,7 +196,6 @@
 			_regMsg_( ResMngr_IsSupported_RTSceneDesc		)	and\
 			_regMsg_( ResMngr_IsSupported_RTSceneBuild		)	and\
 			_regMsg_( ResMngr_ReleaseResource				)	and\
-			_regMsg_( ResMngr_CreateDescriptorSets2			)	and\
 			_regMsg_( ResMngr_CreateDescriptorSets3			)	and\
 			_regMsg_( ResMngr_GetRTechPipeline				)	and\
 			_regMsg_( ResMngr_CreateGraphicsPipeline		)	and\

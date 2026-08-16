@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 /*
 	Output surface can be:
 		- window / display
@@ -151,6 +151,12 @@ namespace AE::App
 		// Returns 'true' if surface is initialized.
 		//
 		ND_ virtual bool  IsInitialized ()										C_NE___ = 0;
+
+
+		// Returns async task which state changed to 'complete' when surface complete initialization.
+		// State changed to 'cancelled' on error or if destroyed.
+		//
+		//ND_ virtual Promise<IOutputSurface&>  WhenInitialized ()				__NE___ = 0;
 
 
 		// Returns attachment parameters for render pass.

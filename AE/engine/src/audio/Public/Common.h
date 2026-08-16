@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #pragma once
 
@@ -24,7 +24,7 @@ namespace AE::Audio
 		Async			= 1 << 1,
 		MultiChannel	= 1 << 2,
 		Unknown			= 0,
-		_BITOPS_
+		_BITOPS_		= 0
 	};
 
 

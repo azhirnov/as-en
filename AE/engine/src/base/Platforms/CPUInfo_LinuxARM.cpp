@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #include "base/Defines/StdInclude.h"
 
@@ -439,8 +439,6 @@ namespace
 
 		  #ifdef AE_CPU_ARCH_ARM64
 			feats.NEON		= true;
-			feats.NEON_fp16	= true;     // TODO
-			feats.FP16C		= true;     // TODO
 
 			feats.SVE		= AllBits( caps2, HWCAP_SVE );
 			feats.SVE2		= AllBits( caps2, HWCAP2_SVE2 );	// Arm v9.0
@@ -473,6 +471,7 @@ namespace
 			{
 				FixedArray< TmpCore, max_cores >	cores;
 				String								line;
+				String								flags_str;
 
 				while ( std::getline( stream, OUT line ))
 				{
@@ -499,6 +498,10 @@ namespace
 							cores.back().vendor = ReadUint16( line );
 						}
 					}
+
+					// TODO: currently all cores have same flags, but somewhen this may be changed
+					if ( flags_str.empty() and StartsWith( line, "Features" ))
+						flags_str = SubString( line, line.find(':') );
 				}
 
 				FixedSet< ulong, max_cores >	unique_cores;
@@ -535,7 +538,52 @@ namespace
 				for (usize i = 0; i < cpu.coreTypes.size(); ++i, ++j) {
 					cpu.coreTypes[i].type = types[ Min( j, CountOf(types)-1 )];
 				}
+
+				// parse features
+				if ( not flags_str.empty() )
+				{
+					//AE_LOG_DBG( "CPU feats: "s << flags_str );
+
+					feats.NEON			= feats.NEON		or flags_str.contains( "asimd" );
+					feats.NEON_fp16		= feats.NEON_fp16	or flags_str.contains( "asimdhp" );
+					feats.NEON_i8MM		= feats.NEON_i8MM	or flags_str.contains( "i8mm" );
+					// TODO: NEON: asimdrdm, asimddp, asimdfhm
+
+					feats.SVE			= feats.SVE			or flags_str.contains( "sve" );
+					feats.SVE2			= feats.SVE2		or flags_str.contains( "sve2" );
+					feats.SVE_AES		= feats.SVE_AES		or flags_str.contains( "sveaes" );
+					feats.SVE_SHA3		= feats.SVE_SHA3	or flags_str.contains( "svesha3" );
+					// TODO: SVE: svei8mm, svebf16, svepmull, svebitperm
+
+					feats.SME			= feats.SME			or flags_str.contains( "sme" );
+					// TODO: SME: smei8i32, smef16f32, smeb16f32, smef32f32, smei16i32, smebi32i32
+
+					feats.FP16			= feats.FP16		or flags_str.contains( "fphp" );
+					feats.BF16			= feats.BF16		or flags_str.contains( "bf16" );
+					// TODO: FP: frint, afp, rpres
+
+					feats.CRC32			= feats.CRC32		or flags_str.contains( "crc32" );
+					feats.AES			= feats.AES			or flags_str.contains( "aes" );
+					feats.SHA2_256		= feats.SHA2_256	or flags_str.contains( "sha2" );
+					feats.SHA2_512		= feats.SHA2_512	or flags_str.contains( "sha512" );
+
+					feats.Atomics		= feats.Atomics		or flags_str.contains( "atomics" );
+					// TODO: atomics: lrcpc, uscat, ssbs, sb, lrcpc3
+
+					// TODO: cache: dcpop, dcpodp, rprfm
+
+					// TODO: branch: hbc, bti
+					// TODO: random: rng
+					// TODO: memory: paca, pacg
+				}
 			}
+		}
+
+		// fix features
+		{
+			feats.FP16C		= feats.FP16C or feats.NEON_fp16;
+			feats.SVE2		= feats.SVE2 or feats.SME;
+			feats.SVE		= feats.SVE or feats.SVE2;
 		}
 
 		// read CPU info

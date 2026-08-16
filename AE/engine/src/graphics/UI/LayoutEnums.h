@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #pragma once
 
@@ -18,7 +18,7 @@ namespace AE::UI
 		Moving		= 1 << 5,	// layout moving, align to pixels must be disabled
 		Focused		= 1 << 6,	//
 		_Last,
-		All			= ((_Last - 1) << 1) - 1,
+		All			= CT_AllBitMask2<EStyleState>,
 		_Inherited	= Invisible | Disabled | Moving,
 	};
 
@@ -40,7 +40,7 @@ namespace AE::UI
 		Right,		// horizontal stack, from right to left
 		Bottom,		// vertical stack, from bottom to top
 		Top,		// vertical stack, from top to bottom
-		Unknown		= 0xFF,
+		_Count
 	};
 
 
@@ -48,8 +48,7 @@ namespace AE::UI
 	{
 		Horizontal,
 		Vertical,
-		_Count,
-		Unknown		= 0xFF,
+		_Count
 	};
 
 
@@ -63,7 +62,7 @@ namespace AE::UI
 		Top			= 1 << 4,
 		CenterY		= 1 << 5,
 		_Last,
-		All			= ((_Last - 1) << 1) - 1,
+		All			= CT_AllBitMask2<ELayoutAlign>,
 
 		FillX		= Left | Right,
 		FillY		= Bottom | Top,

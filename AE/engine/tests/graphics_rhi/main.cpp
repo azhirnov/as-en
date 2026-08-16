@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #include "UnitTest_Common.h"
 
@@ -15,6 +15,7 @@ extern void UnitTest_ImageMemView ();
 extern void UnitTest_ImageUtils ();
 extern void UnitTest_PixelFormat ();
 extern void UnitTest_SurfaceTransform ();
+extern void UnitTest_CoopMatrixConfig ();
 
 #if defined(AE_ENABLE_VULKAN)
 	extern void Test_VulkanDevice (IApplication* app, IWindow* wnd);
@@ -55,6 +56,7 @@ static void  RenderTests (RC<VFS::IVirtualFileStorage> assetStorage, RC<VFS::IVi
 	RUN_TEST( UnitTest_ImageUtils );
 	RUN_TEST( UnitTest_PixelFormat );
 	RUN_TEST( UnitTest_SurfaceTransform );
+	RUN_TEST( UnitTest_CoopMatrixConfig );
 
 	#if defined(AE_ENABLE_VULKAN)
 		Test_VulkanRenderGraph( assetStorage, refStorage, test_name, args );
@@ -100,12 +102,13 @@ TEST_ENTRY()
 		asset_path	= curr;
 
 	#else
-		#if defined(AE_PLATFORM_WINDOWS) or defined(AE_PLATFORM_LINUX) or defined(AE_PLATFORM_MACOS)
+		#if defined(AE_PLATFORM_WINDOWS) or defined(AE_PLATFORM_LINUX) or defined(AE_PLATFORM_MACOS) or defined(AE_ANDROID_CONSOLE_MODE)
 		{
 			Path	data_path = curr;
-			for (uint i = 0; i < 10; ++i)
+			for (uint i = 0; i < 10 and not data_path.empty(); ++i)
 			{
-				if ( FileSystem::IsDirectory( data_path / "AE-Data" ))
+				if ( FileSystem::IsDirectory( data_path / "AE-Data" ) or
+					 FileSystem::IsDirectory( data_path / "AE-Temp" ))
 				{
 					ref_path	= data_path / "AE-Data/tests/graphics_rhi";
 					asset_path	= data_path / "AE-Temp/engine/graphics_rhi";
@@ -115,7 +118,13 @@ TEST_ENTRY()
 				data_path = data_path.parent_path();
 			}
 		}
+		#elif defined(AE_PLATFORM_ANDROID)
+			CHECK_FATAL( false, "use Tests_GraphicsRHI() instead" );
+		#else
+		#	error not supported
 		#endif
+
+		CHECK_FATAL( not ref_path.empty() );
 
 		#if defined(AE_ENABLE_METAL)
 			ref_path /= "metal";
@@ -127,6 +136,8 @@ TEST_ENTRY()
 		#	error not implemented
 		#endif
 	#endif
+
+	CHECK_FATAL( not asset_path.empty() );
 
 	auto	ref_storage		= VFS::VirtualFileStorageFactory::CreateDynamicFolder( ref_path, Default, True{"createFolder"} );
 	auto	asset_storage	= VFS::VirtualFileStorageFactory::CreateStaticFolder( asset_path, Default );

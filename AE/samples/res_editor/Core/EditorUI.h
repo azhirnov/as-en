@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #pragma once
 
@@ -269,10 +269,10 @@ namespace AE::ResEditor
 		{
 			Timer				timer;
 			const uint			maxDepth	{3};
-			const Path			root;
+			Path				root;				// changed in Init(), accessed in other thread
 			ScriptFolder		rootInfo;
 
-			explicit ScriptDirData (Path path) : root{RVRef(path)} { timer.StartSignaled(seconds{10}); }
+			ScriptDirData () { timer.StartSignaled(seconds{10}); }
 		};
 
 		struct PipelineSet
@@ -328,10 +328,10 @@ namespace AE::ResEditor
 
 	// methods
 	public:
-		EditorUI (ResEditorCore &core, Path scriptPath);
+		EditorUI (ResEditorCore &core);
 		~EditorUI ();
 
-		ND_ bool		Init (IOutputSurface &, EWindowMode, float uiScale);
+		ND_ bool		Init (IOutputSurface &, EWindowMode, float uiScale, Path scriptPath);
 		ND_ AsyncTask	Draw (ArrayView<AsyncTask> deps);
 			void		ProcessInput (ActionQueueReader reader, OUT bool &switchMode);
 			void		SetHelpText (String txt);

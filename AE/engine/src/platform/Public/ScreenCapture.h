@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 /*
 	Thread safe:  see method description.
 */
@@ -62,6 +62,7 @@ namespace AE::App
 		{
 			OK,
 			Timeout,				// try again later or increase 'timeout' argument.
+			StopCapture,			// capture will be finished for any reason ('Finish()' call, internal error, etc)
 			_Errors,
 			Error_NotSupported,		// unsupported method, use 'AcquireImage()' for GPU side access or 'ReadHostImage()' for CPU side.
 			Error_NeedRecreate,		//

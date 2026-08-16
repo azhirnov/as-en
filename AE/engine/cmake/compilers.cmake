@@ -1,4 +1,4 @@
-# Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+# Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 #
 # Build config:
 #	- Debug    -- enable all checks
@@ -17,7 +17,10 @@
 #	AE_SIMD_AVX						STRING :	0, 1, 2, 21(VNNI), 30(AVX512F), 31(Cannon Lake), 32(Ice Lake), 33(Zen4)
 #	AE_SIMD_SSE						STRING :	0, 20, 30, 31(SSSE3), 41, 42
 #	AE_SIMD_AES						STRING :	0, 1, 2(VAES), 3(AESKL)
-#	AE_SIMD_SHA						STRING :	0, 20(SHA2-256), 21(SHA2-512), 30(SHA3)
+#	AE_SIMD_SHA						STRING :	0, 20(SHA2-256), 21(SHA2-512), 30(SHA3 - ARM only)
+#	AE_SIMD_SVE						STRING :	0, 1(SVE), 2(SVE2)
+#	AE_SIMD_SME						STRING :	0, 1
+#	AE_ARM_ARCH						STRING :	70, 80, 81, 82, 83, 84, 85, 86, 87, 90, 92, ...
 
 
 # detect target platform
@@ -270,18 +273,82 @@ if ( (${TARGET_CPU_ARCH} STREQUAL "X64") OR (${TARGET_CPU_ARCH} STREQUAL "X86") 
 
 elseif ( (${TARGET_CPU_ARCH} STREQUAL "ARM64") OR (${TARGET_CPU_ARCH} STREQUAL "ARM32") )
 	# AE_SIMD_NEON defined in source
-	set( AE_SIMD_NEON_HALF	"0" CACHE STRING "enable NEON FP16: 0 or 1" )
+	set( AE_SIMD_NEON_HALF	"0"  CACHE STRING "enable NEON FP16: 0 or 1" )
+	set( AE_SIMD_SVE		"0"  CACHE STRING "SVE version: 0, 1(SVE), 2(SVE2)" )
+	set( AE_SIMD_SME		"0"  CACHE STRING "SME version: 0, 1" )
+	set( AE_ARM_ARCH		"82" CACHE STRING "Arch version: 70, 80, 81, 82, 83, 84, 85, 86, 87, 90, 92, ..." )
 
-	if ( NOT (${TARGET_CPU_ARCH} STREQUAL "ARM64") )
-		set( AE_SIMD_NEON_HALF "0" CACHE INTERNAL "" FORCE )
+	set( _march "" )
+	set( _extra "" )	# extra flags not expressible via -march
+
+	if (AE_ARM_ARCH STREQUAL "70")
+		# AArch32
+		set( _march "armv7-a" )
+
+		if (AE_SIMD_SVE GREATER 0 OR AE_SIMD_SME GREATER 0)
+			message( FATAL_ERROR "SVE/SME are not supported on ARMv7" )
+		endif()
+
+		if (AE_SIMD_NEON_HALF)
+			set( _extra "-mfpu=neon-fp16 -mfp16-format=ieee" )
+		else()
+			set( _extra "-mfpu=neon" )
+		endif()
+	else()
+		string( SUBSTRING "${AE_ARM_ARCH}" 0 1 _major )
+		string( SUBSTRING "${AE_ARM_ARCH}" 1 1 _minor )
+
+		if (_minor STREQUAL "0")
+			set( _march "armv${_major}-a" )
+		else()
+			set( _march "armv${_major}.${_minor}-a" )
+		endif()
+
+		if (AE_SIMD_NEON_HALF)
+			string( APPEND _march "+fp16" )
+		endif()
+
+		if (AE_SIMD_SVE EQUAL 2)
+			string( APPEND _march "+sve2" )		# implies +sve
+		elseif (AE_SIMD_SVE EQUAL 1)
+			string( APPEND _march "+sve" )
+		elseif (NOT AE_SIMD_SVE EQUAL 0)
+			message( FATAL_ERROR "unsupported AE_SIMD_SVE='${AE_SIMD_SVE}'" )
+		endif()
+
+		if (AE_SIMD_SME EQUAL 1)
+			string( APPEND _march "+sme" )		# implies SVE2 support
+		elseif (NOT AE_SIMD_SME EQUAL 0)
+			message( FATAL_ERROR "unsupported AE_SIMD_SME='${AE_SIMD_SME}'" )
+		endif()
+
+		# sanity checks per ARM ARM (GCC/Clang may be more permissive)
+		if (AE_SIMD_NEON_HALF AND AE_ARM_ARCH LESS 82)
+			message( FATAL_ERROR "FEAT_FP16 is architecturally valid only from armv8.2-a" )
+		endif()
+		if (AE_SIMD_SVE GREATER_EQUAL 1 AND AE_ARM_ARCH LESS 82)
+			message( FATAL_ERROR "SVE is architecturally valid only from armv8.2-a" )
+		endif()
+		if (AE_SIMD_SVE GREATER_EQUAL 2 AND AE_ARM_ARCH LESS 90)
+			message( FATAL_ERROR "SVE2 is architecturally valid only from armv9-a" )
+		endif()
+		if (AE_SIMD_SME GREATER_EQUAL 1 AND AE_ARM_ARCH LESS 92)
+			message( FATAL_ERROR "SME is architecturally valid only from armv9.2-a" )
+		endif()
 	endif()
+
+	set( MARCH "-march=${_march}" )
+	if (_extra)
+		string( APPEND MARCH " ${_extra}" )
+	endif()
+
 	message( STATUS "AE_SIMD_NEON_HALF: ${AE_SIMD_NEON_HALF}" )
+	message( STATUS "AE_SIMD_SVE:       ${AE_SIMD_SVE}" )
+	message( STATUS "AE_SIMD_SME:       ${AE_SIMD_SME}" )
+	message( STATUS "AE_ARM_ARCH:       ${AE_ARM_ARCH}" )
+	message( STATUS "MARCH:             ${MARCH}" )
 
-	if (${AE_SIMD_NEON_HALF} EQUAL 1)
-		set( COMPILER_FLAGS ${COMPILER_FLAGS} -march=armv8-a+fp16 )
-	endif()
-	set( PROJECTS_SHARED_DEFINES ${PROJECTS_SHARED_DEFINES}
-		 "AE_SIMD_NEON_HALF=${AE_SIMD_NEON_HALF}" )
+	set( COMPILER_FLAGS ${COMPILER_FLAGS} ${MARCH} )
 
 elseif (${TARGET_CPU_ARCH} STREQUAL "i686")
 	# no SIMD
@@ -382,7 +449,7 @@ if ( MSVC )
 		/we4002 /we4099 /we4129 /we4130 /we4172 /we4201 /we4238 /we4239 /we4240 /we4251 /we4263 /we4264 /we4266 /we4273 /we4293
 		/we4305 /we4390 /we4455 /we4456 /we4457 /we4458 /we4459 /we4473 /we4474 /we4522 /we4552 /we4553 /we4554 /we4700 /we4706 /we4715 /we4716 /we4717
 		/we4927 /we5062 /we5054 /we4565 /we5054 /we4291 /we4297 /we4584 /we4566 /we4033 /we5063 /we5030 /we5201 /we5244 /we4844 /we4067
-		/we5039 /we4806
+		/we5039 /we4806 /we4556
 		# disable warnings
 		/wd4061 /wd4062 /wd4063 /wd4310 /wd4324 /wd4365 /wd4503 /wd4514 /wd4530 /wd4623 /wd4625 /wd4626 /wd4710 /wd4714 /wd5026 /wd5027
 	)
@@ -594,7 +661,7 @@ if ( COMPILER_GCC AND NOT COMPILER_LCC )
 	set( AE_CONFIGURATION_DEPENDENT_PATH OFF CACHE INTERNAL "" FORCE )
 
 	# -Wno-shadow -Wno-enum-compare -Wno-narrowing -Wno-attributes
-	set( GCC_SHARED_OPTS         ${COMPILER_FLAGS} -Wmaybe-uninitialized -Wfree-nonheap-object -Wcast-align -Wlogical-op -Waddress -Wno-non-template-friend -Werror=return-local-addr -Werror=placement-new -Werror=sign-compare -Werror=literal-suffix -Werror=shadow=local -Werror=delete-incomplete -Werror=odr -Werror=subobject-linkage -Werror=multichar -Winvalid-offsetof -Werror=terminate -Werror=noexcept ${GCC_CLANG_SHARED_LOCAL_WARNING_LIST_CXX} )
+	set( GCC_SHARED_OPTS         ${COMPILER_FLAGS} -Wmaybe-uninitialized -Wfree-nonheap-object -Wcast-align -Wlogical-op -Waddress -Wno-non-template-friend -Werror=return-local-addr -Werror=placement-new -Werror=sign-compare -Werror=literal-suffix -Werror=shadow=local -Werror=delete-incomplete -Werror=odr -Werror=subobject-linkage -Werror=multichar -Winvalid-offsetof -Werror=terminate -Werror=noexcept -Wno-interference-size ${GCC_CLANG_SHARED_LOCAL_WARNING_LIST_CXX} )
 	set( PROJECTS_SHARED_DEFINES ${PROJECTS_SHARED_DEFINES} "AE_COMPILER_GCC" )
 
 	# Release  TODO: -Ofast ?
@@ -892,8 +959,6 @@ if ( COMPILER_CLANG_ANDROID )
 	endif()
 
 	set( CLANG_SHARED_OPTS ${COMPILER_FLAGS} ${CLANG_SHARED_LOCAL_WARNING_LIST_CXX} -fstack-protector-strong -fPIC )
-	# -mfloat-abi=hard
-
 	set( PROJECTS_SHARED_DEFINES ${PROJECTS_SHARED_DEFINES} "AE_COMPILER_CLANG" )
 
 	if (${AE_USE_SANITIZER})
@@ -901,6 +966,9 @@ if ( COMPILER_CLANG_ANDROID )
 		#set( CLANG_SHARED_OPTS ${CLANG_SHARED_OPTS} -fsanitize=thread )
 		#set( CLANG_SHARED_OPTS ${CLANG_SHARED_OPTS} -fsanitize=undefined )
 	endif()
+
+	# compatibility with older DWARF: -gdwarf-4
+	set( CLANG_SHARED_OPTS_DBG ${CLANG_SHARED_OPTS} -fno-omit-frame-pointer -funwind-tables -g -glldb )
 
 	# Release
 	set_property( DIRECTORY APPEND PROPERTY COMPILE_DEFINITIONS $<$<CONFIG:Release>: > )
@@ -927,7 +995,7 @@ if ( COMPILER_CLANG_ANDROID )
 	set( CMAKE_EXE_LINKER_FLAGS_DEVELOP "${CURRENT_EXE_LINKER_FLAGS} " CACHE STRING "" FORCE )
 	set( CMAKE_STATIC_LINKER_FLAGS_DEVELOP "${CURRENT_STATIC_LINKER_FLAGS} " CACHE STRING "" FORCE )
 	set( CMAKE_SHARED_LINKER_FLAGS_DEVELOP "${CURRENT_SHARED_LINKER_FLAGS} " CACHE STRING "" FORCE )
-	set( PROJECTS_SHARED_CXX_FLAGS_DEVELOP ${CLANG_SHARED_OPTS} -g -glldb -O2 CACHE INTERNAL "" FORCE )
+	set( PROJECTS_SHARED_CXX_FLAGS_DEVELOP ${CLANG_SHARED_OPTS_DBG} -O2 CACHE INTERNAL "" FORCE )
 	set( PROJECTS_SHARED_LINKER_FLAGS_DEVELOP " -static" CACHE INTERNAL "" FORCE )
 	# Debug
 	set_property( DIRECTORY APPEND PROPERTY COMPILE_DEFINITIONS $<$<CONFIG:Debug>: > )
@@ -936,7 +1004,7 @@ if ( COMPILER_CLANG_ANDROID )
 	set( CMAKE_EXE_LINKER_FLAGS_DEBUG "${CURRENT_EXE_LINKER_FLAGS} " CACHE STRING "" FORCE )
 	set( CMAKE_STATIC_LINKER_FLAGS_DEBUG "${CURRENT_STATIC_LINKER_FLAGS} " CACHE STRING "" FORCE )
 	set( CMAKE_SHARED_LINKER_FLAGS_DEBUG "${CURRENT_SHARED_LINKER_FLAGS} " CACHE STRING "" FORCE )
-	set( PROJECTS_SHARED_CXX_FLAGS_DEBUG ${CLANG_SHARED_OPTS} -g -glldb -O0 CACHE INTERNAL "" FORCE )
+	set( PROJECTS_SHARED_CXX_FLAGS_DEBUG ${CLANG_SHARED_OPTS_DBG} -O0 CACHE INTERNAL "" FORCE )
 	set( PROJECTS_SHARED_LINKER_FLAGS_DEBUG " -static" CACHE INTERNAL "" FORCE )
 
 	#message( FATAL_ERROR "PROJECTS_SHARED_CXX_FLAGS_DEBUG: ${PROJECTS_SHARED_CXX_FLAGS_DEBUG}" )

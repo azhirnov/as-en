@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #include "UnitTest_Common.h"
 
@@ -21,7 +21,7 @@ namespace
 		{
 			WFile	wfile {fname};
 			TEST( wfile.IsOpen() );
-			TEST( AllBits( wfile.GetSourceType(), ESourceType::RandomAccess | ESourceType::WriteAccess ));
+			TEST( AllBits( wfile.GetSourceType(), ESourceType::RandomAccess | ESourceType::WriteOnly ));
 
 			ulong	buf [c_RBufSize / sizeof(ulong)];
 			ulong	pos = 0;
@@ -41,7 +41,7 @@ namespace
 		{
 			RC<AsyncRDataSource>	rfile = MakeRC<RFile>( fname );
 			TEST( rfile->IsOpen() );
-			TEST( AllBits( rfile->GetSourceType(), ESourceType::RandomAccess | ESourceType::ReadAccess | ESourceType::Async ));
+			TEST( AllBits( rfile->GetSourceType(), ESourceType::RandomAccess | ESourceType::ReadOnly | ESourceType::Async ));
 			TEST_Eq( rfile->Size(), c_RFileSize );
 
 			auto	task = Scheduler().Run( ETaskQueue::Background, fn( rfile ));
@@ -144,7 +144,7 @@ namespace
 	template <typename RFile>
 	static auto  AsyncReadDS_Test2_Coro () -> InlineCoro<>
 	{
-		RC<AsyncRDataSource>	rfile	= MakeRC<RFile>( Path{ "ds99_data.bin" });
+		RC<AsyncRDataSource>	rfile	= MakeRC<RFile>( Path{ "unexisted_file.bin" });
 		TEST( not rfile->IsOpen() );
 
 		StaticLogger::Deinitialize( false );
@@ -182,7 +182,7 @@ namespace
 		AsyncTask	task = AsyncReadDS_Test2_Coro< RFile >();
 
 		TEST( scheduler->Wait( {task}, c_MaxTimeout ));
-		TEST( task->Status() == ETaskStatus::Completed );
+		TEST_Eq( task->Status(), ETaskStatus::Completed );
 	}
 //-----------------------------------------------------------------------------
 
@@ -248,7 +248,7 @@ namespace
 										  AsyncReadDS_Impl< RFile, WFile >( Path{"ds13_data.bin"}, fn ));
 
 		TEST( scheduler->Wait( {AsyncTask{task}}, c_MaxTimeout ));
-		TEST( task->Status() == ETaskStatus::Completed );
+		TEST_Eq( task->Status(), ETaskStatus::Completed );
 	}
 //-----------------------------------------------------------------------------
 
@@ -294,7 +294,7 @@ namespace
 										  AsyncReadDS_Impl< RFile, WFile >( Path{"ds14_data.bin"}, fn ));
 
 		TEST( scheduler->Wait( {AsyncTask{task}}, c_MaxTimeout ));
-		TEST( task->Status() == ETaskStatus::Canceled );
+		TEST_Eq( task->Status(), ETaskStatus::Canceled );
 	}
 //-----------------------------------------------------------------------------
 
@@ -311,7 +311,7 @@ namespace
 		{
 			RC<AsyncWDataSource>	wfile = MakeRC<WFile>( fname );
 			TEST( wfile->IsOpen() );
-			TEST( AllBits( wfile->GetSourceType(), ESourceType::RandomAccess | ESourceType::WriteAccess | ESourceType::Async ));
+			TEST( AllBits( wfile->GetSourceType(), ESourceType::RandomAccess | ESourceType::WriteOnly | ESourceType::Async ));
 
 			ulong	pos = 0;
 
@@ -351,7 +351,7 @@ namespace
 		{
 			RFile	rfile {fname};
 			TEST( rfile.IsOpen() );
-			TEST( AllBits( rfile.GetSourceType(), ESourceType::RandomAccess | ESourceType::ReadAccess ));
+			TEST( AllBits( rfile.GetSourceType(), ESourceType::RandomAccess | ESourceType::ReadOnly ));
 			TEST_Eq( rfile.Size(), file_size );
 
 			ulong	dst_buf [buf_size / sizeof(ulong)];
@@ -383,7 +383,7 @@ namespace
 
 		auto	task = scheduler->Run( ETaskQueue::Background, AsyncWriteDS_Test1_Coro< RFile, WFile >() );
 		TEST( scheduler->Wait( {AsyncTask{task}}, c_MaxTimeout ));
-		TEST( task->Status() == ETaskStatus::Completed );
+		TEST_Eq( task->Status(), ETaskStatus::Completed );
 	}
 //-----------------------------------------------------------------------------
 }

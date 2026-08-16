@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #include "graphics_rhi/Public/BufferDesc.h"
 
@@ -46,11 +46,13 @@ namespace AE::Graphics
 */
 	bool  BufferDesc::operator == (const BufferDesc &rhs) C_NE___
 	{
-		return	(size		== rhs.size)	and
-				(usage		== rhs.usage)	and
-				(options	== rhs.options)	and
-				(queues		== rhs.queues)	and
-				(memType	== rhs.memType);
+		StaticAssert( sizeof(BufferDesc) == 24 );
+		return	(size		== rhs.size)		and
+				(usage		== rhs.usage)		and
+				(options	== rhs.options)		and
+				(queues		== rhs.queues)		and
+				(memType	== rhs.memType)		and
+				(aliasGroup	== rhs.aliasGroup);
 	}
 //-----------------------------------------------------------------------------
 
@@ -77,6 +79,7 @@ namespace AE::Graphics
 */
 	bool  BufferViewDesc::operator == (const BufferViewDesc &rhs) C_NE___
 	{
+		StaticAssert( sizeof(BufferViewDesc) == 24 );
 		return	(format	== rhs.format)	and
 				(offset	== rhs.offset)	and
 				(size	== rhs.size);

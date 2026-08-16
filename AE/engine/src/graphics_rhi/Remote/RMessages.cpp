@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #include "graphics_rhi/Remote/RMessages.h"
 
@@ -133,7 +133,7 @@ namespace AE::RemoteGraphics::Msg
 
 	StaticAssert64( sizeof(ImageViewDesc) == 20 );
 	#define Ser_ImageViewDesc( _desc_ )\
-		_desc_.viewType, _desc_.format, _desc_.aspectMask, _desc_.extUsage, _desc_.baseMipmap, \
+		_desc_.viewType, _desc_.format, _desc_.aspectMask, _desc_.usage, _desc_.baseMipmap, \
 		_desc_.mipmapCount, _desc_.baseLayer, _desc_.layerCount, _desc_.dimension, _desc_.swizzle
 
 	StaticAssert64( sizeof(BufferDesc) == 24 );
@@ -275,23 +275,22 @@ namespace AE::RemoteGraphics::Msg
 	DECL_SERIALIZER( ResMngr_ReleaseResource,				id, index )
 	DECL_SERIALIZER( ResMngr_ReleaseResource_Response,		index, released )
 
-	DECL_SERIALIZER( ResMngr_CreateDescriptorSets2,			packId, count, dslName, dsAlloc, dbgName )
-	DECL_SERIALIZER( ResMngr_CreateDescriptorSets3,			layoutId, count, dsAlloc, dbgName )
+	DECL_SERIALIZER( ResMngr_CreateDescriptorSets3,			layoutId, count, dsAlloc, params, dbgName )
 	DECL_SERIALIZER( ResMngr_CreateDescriptorSets_Response,	ds )
 
 	DECL_SERIALIZER( ResMngr_GetRTechPipeline,				rtechId, name, index )
 
 	DECL_SERIALIZER( ResMngr_CreateGraphicsPipeline,		packId, name, Ser_GraphicsPipelineDesc( desc ), cacheId )
-	DECL_SERIALIZER( ResMngr_CreateGraphicsPipeline_Response, pplnId, dynamicState, options, topology, subpassIndex, vertexBuffers, pipelineLayoutId, shaderTrace )
+	DECL_SERIALIZER( ResMngr_CreateGraphicsPipeline_Response, pplnId, dynamicState, options, topology, subpassIndex, activeStages, vertexBuffers, pipelineLayoutId, shaderTrace )
 
 	DECL_SERIALIZER( ResMngr_CreateMeshPipeline,			packId, name, Ser_MeshPipelineDesc( desc ), cacheId )
-	DECL_SERIALIZER( ResMngr_CreateMeshPipeline_Response,	pplnId, dynamicState, options, meshLocalSize, taskLocalSize, subpassIndex, pipelineLayoutId, shaderTrace )
+	DECL_SERIALIZER( ResMngr_CreateMeshPipeline_Response,	pplnId, dynamicState, options, meshLocalSize, taskLocalSize, subpassIndex, activeStages, pipelineLayoutId, shaderTrace )
 
 	DECL_SERIALIZER( ResMngr_CreateComputePipeline,			packId, name, Ser_ComputePipelineDesc( desc ), cacheId )
 	DECL_SERIALIZER( ResMngr_CreateComputePipeline_Response, pplnId, dynamicState, options, localSize, pipelineLayoutId, shaderTrace )
 
 	DECL_SERIALIZER( ResMngr_CreateRayTracingPipeline,		packId, name, Ser_RayTracingPipelineDesc( desc ), cacheId )
-	DECL_SERIALIZER( ResMngr_CreateRayTracingPipeline_Response, pplnId, dynamicState, options, shaderGroupHandleSize, nameToHandle, groupHandles, pipelineLayoutId, shaderTrace )
+	DECL_SERIALIZER( ResMngr_CreateRayTracingPipeline_Response, pplnId, dynamicState, options, shaderGroupHandleSize, activeStages, nameToHandle, groupHandles, pipelineLayoutId, shaderTrace )
 
 	DECL_SERIALIZER( ResMngr_CreateTilePipeline,			packId, name, Ser_TilePipelineDesc( desc ), cacheId )
 	DECL_SERIALIZER( ResMngr_CreateTilePipeline_Response,	pplnId, dynamicState, options, localSize, subpassIndex, pipelineLayoutId, shaderTrace )

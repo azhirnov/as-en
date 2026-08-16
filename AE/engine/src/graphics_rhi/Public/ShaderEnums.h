@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #pragma once
 
@@ -63,6 +63,8 @@ namespace AE::Graphics
 
 		ClusterCulling	= 1 << uint(EShader::ClusterCulling),
 		SubpassShading	= 1 << uint(EShader::SubpassShading),
+
+		_Last			= (1 << (uint(EShader::_Count) - 1)) + 1,
 		All				= (1 << uint(EShader::_Count)) - 1,
 
 		GraphicsPipeStages		= Vertex | TessControl | TessEvaluation | Geometry | Fragment,
@@ -73,7 +75,7 @@ namespace AE::Graphics
 		AllGraphics				= GraphicsPipeStages | MeshPipeStages,
 		AllRayTracing			= RayGen | RayAnyHit | RayClosestHit | RayMiss | RayIntersection | RayCallable,
 		Unknown					= 0,
-		_BITOPS_
+		_BITOPS_				= 0
 	};
 	StaticAssert( uint(EShader::_Count) < sizeof(EShaderStages)*8 );
 

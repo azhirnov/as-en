@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 package AE.engine;
 
@@ -7,8 +7,14 @@ import android.content.Context;
 import android.content.Intent;
 import android.graphics.Point;
 import android.graphics.Rect;
+
 import android.net.ConnectivityManager;
+import android.net.Network;
 import android.net.NetworkInfo;
+import android.net.LinkProperties;
+import android.net.RouteInfo;
+import java.net.InetAddress;
+
 import android.os.Environment;
 import android.os.LocaleList;
 import android.os.Build;
@@ -54,6 +60,12 @@ public class BaseApplication
 		File	externalPath	= getExternalFilesDir(null);
 		File	externalCache	= getExternalCacheDir();
 		File	sharedData		= Environment.getExternalStorageDirectory();
+
+		Log.i( TAG, "internalPath:  " + (internalPath	== null ? "" : internalPath .getAbsolutePath()) );
+		Log.i( TAG, "internalCache: " + (internalCache	== null ? "" : internalCache.getAbsolutePath()) );
+		Log.i( TAG, "externalPath:  " + (externalPath	== null ? "" : externalPath .getAbsolutePath()) );
+		Log.i( TAG, "externalCache: " + (externalCache	== null ? "" : externalCache.getAbsolutePath()) );
+		Log.i( TAG, "sharedData:    " + (sharedData		== null ? "" : sharedData   .getAbsolutePath()) );
 
 		native_SetDirectories(
 			(internalPath	== null ? "" : internalPath .getAbsolutePath()),
@@ -154,6 +166,7 @@ public class BaseApplication
 				cutout_count = c;
 			}
 
+			/*
 			if ( (display.getFlags() & Display.FLAG_ROUND) != 0 )
 				Log.i( TAG, "Round display" );
 
@@ -168,6 +181,7 @@ public class BaseApplication
 				Log.i( TAG, "HdrSdrRatio: " + display.getHdrSdrRatio() );
 				Log.i( TAG, "isHdrSdrRatioAvailable: " + display.isHdrSdrRatioAvailable() );
 			}
+			*/
 
 			Display.HdrCapabilities	hdr = display.getHdrCapabilities();		// api 24
 			if (hdr != null)
@@ -227,6 +241,39 @@ public class BaseApplication
 		}
 		return false;
 	}
+
+	@SuppressWarnings("unused")
+	public final String  GetDefaultIpv4Gateway ()
+	{
+		try {
+			ConnectivityManager	cm		= (ConnectivityManager)getSystemService( Context.CONNECTIVITY_SERVICE );
+			Network 			network	= cm.getActiveNetwork();
+
+			if ( network == null )
+				return "";
+
+			LinkProperties	lp = cm.getLinkProperties( network );
+			if ( lp == null )
+				return "";
+
+			for (RouteInfo route : lp.getRoutes())
+			{
+				InetAddress	gateway = route.getGateway();
+
+				if ( route.isDefaultRoute()			&&
+					 gateway != null				&&
+					 gateway.getAddress().length == 4 )
+				{
+					return gateway.getHostAddress();
+				}
+			}
+
+		} catch (Exception e) {
+			//Log.e( TAG, "exception: " + e.toString() );
+		}
+		return "";
+	}
+
 
 //-----------------------------------------------------------------------------
 // native

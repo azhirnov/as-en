@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #include "UnitTest_Common.h"
 
@@ -157,6 +157,7 @@ namespace
 
 	static void  PackedPtr_Test1 ()
 	{
+	#if not (defined(AE_PLATFORM_ANDROID) and defined(AE_CPU_ARCH_ARM64))
 		{
 			PackedPtr<void>		p;
 
@@ -223,6 +224,52 @@ namespace
 			TEST_Eq( p.Extra(), extra );
 			TEST_Eq( BitCast<usize>(p.Ptr()), BitCast<usize>(ptr) );
 		}
+	#endif
+	}
+
+
+	static void  PackedPtr_Test2 ()
+	{
+	#if defined(AE_PLATFORM_ANDROID) and defined(AE_CPU_ARCH_ARM64)
+
+		// test android tagged pointers
+		{
+			String				s = "q;kmdouqejpqdnqwbh192jewmsjnbclajqwkzsjdnll.mk";
+			PackedPtr<char>		p;
+
+			//AE_LOGI( "Pointer: 0x"s << ToString<16>( BitCast<usize>( s.data() )) );
+
+			//     |   48 bits   |
+			// b400 0072 a907 b080
+			//      ^^^^ ^^^^ ^^^^ -- pointer
+			//   ^^ -- free 8 bits
+			// ^^ -- tag
+
+			p.SetPtr( s.data() );
+			TEST_Eq( BitCast<usize>(p.Ptr()), BitCast<usize>(s.data()) );
+			TEST_Eq( p.Extra(), 0u );
+
+			uint	extra = 0xAE;
+			p.SetExtra( extra );
+			TEST_Eq( p.Extra(), extra );
+
+			StaticAssert( p.ExtraBits() == 8 );
+		}
+		{
+			PackedPtr<ulong>	p;
+			ulong*				ptr = BitCast<ulong*>( 0xFF00'FFFF'FFFF'FFF8 );
+
+			p.SetPtr( ptr );
+			TEST_Eq( BitCast<usize>(p.Ptr()), BitCast<usize>(ptr) );
+			TEST_Eq( p.Extra(), 0u );
+
+			uint	extra = 0x2AE;
+			p.SetExtra( extra );
+			TEST_Eq( p.Extra(), extra );
+
+			StaticAssert( p.ExtraBits() == 8+3 );
+		}
+	#endif
 	}
 }
 
@@ -238,6 +285,7 @@ extern void UnitTest_RC ()
 	PackedRC_Test2();
 
 	PackedPtr_Test1();
+	PackedPtr_Test2();
 
 	TEST_PASSED();
 }

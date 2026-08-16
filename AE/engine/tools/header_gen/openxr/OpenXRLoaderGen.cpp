@@ -1,6 +1,7 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
-#include "OpenXRLoaderGen.h"
+#ifdef XR_HEADER_PATH
+# include "OpenXRLoaderGen.h"
 
 namespace AE::Parsers
 {
@@ -691,3 +692,4 @@ namespace AE::Parsers
 
 } // AE::Parsers
 
+#endif // XR_HEADER_PATH

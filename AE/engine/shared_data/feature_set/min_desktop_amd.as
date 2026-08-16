@@ -98,6 +98,7 @@ void ASmain ()
 	fset.shaderResourceMinLod (True);
 	fset.shaderDrawParameters (True);
 	fset.runtimeDescriptorArray (True);
+	fset.descriptorBindingVariableDescriptorCount (True);
 	fset.shaderSampleRateInterpolationFunctions (True);
 	fset.shaderStencilExport (True);
 	fset.shaderSampledImageArrayDynamicIndexing (True);
@@ -145,7 +146,6 @@ void ASmain ()
 	fset.perPipeline_maxStorageBuffers (8388606);
 	fset.perPipeline_maxStorageImages (8388606);
 	fset.perPipeline_maxUniformBuffers (8388606);
-	fset.perPipeline_maxTotalResources (22369621);
 	fset.perStage_maxInputAttachments (8388606);
 	fset.perStage_maxSampledImages (8388606);
 	fset.perStage_maxSamplers (8388606);
@@ -153,6 +153,7 @@ void ASmain ()
 	fset.perStage_maxStorageImages (8388606);
 	fset.perStage_maxUniformBuffers (8388606);
 	fset.perStage_maxTotalResources (8388606);
+	fset.perDescSet_maxTotalResources (22369621);
 	fset.maxDescriptorSets (32);
 	fset.maxTexelOffset (31);
 	fset.maxTexelGatherOffset (31);

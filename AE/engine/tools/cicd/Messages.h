@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #pragma once
 
@@ -22,10 +22,10 @@ namespace AE::CICD
 
 	enum class EClientType : ubyte
 	{
-		Unknown		= 0,
 		Build,
 		Test,
 		User,
+		_Count
 	};
 
 	enum class ECPUFeatureSet : ubyte
@@ -82,7 +82,6 @@ namespace AE::CICD
 
 	enum class ECompiler : ubyte
 	{
-		Unknown		= 0,
 		MSVC,
 		MSVC_Clang,
 		Linux_GCC,
@@ -90,6 +89,7 @@ namespace AE::CICD
 		Linux_Clang_Ninja,
 		MacOS_Clang,
 		iOS_Clang,
+		_Count
 	};
 
 	struct CMakeParams
@@ -105,13 +105,13 @@ namespace AE::CICD
 
 	enum class ECopyMode : ubyte
 	{
-		Unknown		= 0,
 		FileReplace,
 		FileMerge,
 		FolderReplace,				// delete previous folder and copy new
 		FolderMerge_FileReplace,	// keep previous, replace same files
 		FolderMerge_FileMerge,		// keep previous, rename same files
 		FolderMerge_FileKeep,		// keep previous, keep origin files
+		_Count
 	};
 
 } // AE::CICD
@@ -399,79 +399,3 @@ namespace AE::CICD::Msg
 	};
 
 } // AE::CICD::Msg
-//-----------------------------------------------------------------------------
-
-
-namespace AE::Base
-{
-	using AE::CICD::EClientType;
-	using AE::CICD::EOSType;
-	using AE::CICD::ECompiler;
-	using AE::CICD::ECPUFeatureSet;
-	using AE::CICD::EGraphicsAPI;
-
-
-	Nd__In StringView  ToString (EClientType value)
-	{
-		switch_enum( value )
-		{
-			case EClientType::Build :	return "Build";
-			case EClientType::Test :	return "Test";
-			case EClientType::User :	return "User";
-			case EClientType::Unknown :	break;
-		}
-		switch_end
-		return Default;
-	}
-
-	Nd__In StringView  ToString (ECompiler value)
-	{
-		switch_enum( value )
-		{
-			case ECompiler::MSVC :				return "MSVC";
-			case ECompiler::MSVC_Clang :		return "MSVC_Clang";
-			case ECompiler::Linux_GCC :			return "Linux_GCC";
-			case ECompiler::Linux_Clang :		return "Linux_Clang";
-			case ECompiler::Linux_Clang_Ninja:	return "Linux_Clang_Ninja";
-			case ECompiler::MacOS_Clang :		return "MacOS_Clang";
-			case ECompiler::iOS_Clang :			return "iOS_Clang";
-			case ECompiler::Unknown :			break;
-		}
-		switch_end
-		return Default;
-	}
-
-	Nd__In StringView  ToString (ECPUFeatureSet value)
-	{
-		switch_enum( value )
-		{
-			case ECPUFeatureSet::AVX :			return "AVX";
-			case ECPUFeatureSet::AVX2 :			return "AVX2";
-			case ECPUFeatureSet::AVX512F :		return "AVX512F";
-			case ECPUFeatureSet::AVX512_Zen4 :	return "AVX512_Zen4";
-			case ECPUFeatureSet::AVX2_VNNI :	return "AVX2_VNNI";
-			case ECPUFeatureSet::Neon :			return "Neon";
-			case ECPUFeatureSet::SVE :			return "SVE";
-			case ECPUFeatureSet::SVE2 :			return "SVE2";
-			case ECPUFeatureSet::Unknown :
-			case ECPUFeatureSet::_Count :		break;
-		}
-		switch_end
-		return Default;
-	}
-
-	Nd__In StringView  ToString (EGraphicsAPI value)
-	{
-		switch_enum( value )
-		{
-			case EGraphicsAPI::Vulkan :		return "Vulkan";
-			case EGraphicsAPI::Metal :		return "Metal";
-			case EGraphicsAPI::Unknown :
-			case EGraphicsAPI::_Count :		break;
-		}
-		switch_end
-		return Default;
-	}
-
-
-} // AE::Base

@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #include "UnitTest_Common.h"
 
@@ -135,13 +135,8 @@ namespace
 			const EResourceState	states1 []	= { EResourceState::ShaderStorage_Read, EResourceState::ShaderStorage_Write, EResourceState::ShaderStorage_RW,
 													EResourceState::ShaderUniform, EResourceState::ShaderSample, EResourceState::ShaderRTAS
 												  };
-			const EResourceState	states2 []	= { EResourceState::CoopVecConvert_Read, EResourceState::CoopVecConvert_Write };
-
 			for (auto state : states1){
 				Check( state | st1_stages, all_stages, all_access );
-			}
-			for (auto state : states2){
-				Check( state, all_stages, all_access );
 			}
 		}
 
@@ -151,8 +146,12 @@ namespace
 			const auto				all_stages	= VPipelineScope::GetStages( scope );
 			const auto				all_access	= VPipelineScope::GetAccess( scope );
 			const EResourceState	states []	= { EResourceState::CopySrc, EResourceState::CopyDst, EResourceState::ClearDst, EResourceState::BlitSrc, EResourceState::BlitDst };
+			const EResourceState	states2 []	= { EResourceState::CoopVecConvert_Read, EResourceState::CoopVecConvert_Write };
 
 			for (auto state : states){
+				Check( state, all_stages, all_access );
+			}
+			for (auto state : states2){
 				Check( state, all_stages, all_access );
 			}
 		}
@@ -252,7 +251,7 @@ namespace
 
 		StaticAssert( uint(EPipelineScope::_Count) == 14 );
 		StaticAssert( uint(EResourceState::AllShaderStages) == 0x1F8000 );
-		StaticAssert( uint(_EResState::EState::_AccessCount) == 51 );
+		StaticAssert( uint(_EResState::EState::_Count) == 51 );
 	}
 #else
 	static void  EResourceState_Test2 ()

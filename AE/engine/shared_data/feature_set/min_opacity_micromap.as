@@ -92,6 +92,7 @@ void ASmain ()
 			EIntegerDotProductFeat::Unsigned4x8bit, EIntegerDotProductFeat::Signed4x8bit, EIntegerDotProductFeat::AccSat_Unsigned4x8bit, EIntegerDotProductFeat::AccSat_Signed4x8bit });
 	fset.shaderDrawParameters (True);
 	fset.runtimeDescriptorArray (True);
+	fset.descriptorBindingVariableDescriptorCount (True);
 	fset.shaderSampleRateInterpolationFunctions (True);
 	fset.shaderSampledImageArrayDynamicIndexing (True);
 	fset.shaderStorageBufferArrayDynamicIndexing (True);
@@ -155,7 +156,6 @@ void ASmain ()
 	fset.perPipeline_maxStorageImages (500000);
 	fset.perPipeline_maxUniformBuffers (500000);
 	fset.perPipeline_maxAccelStructures (500000);
-	fset.perPipeline_maxTotalResources (500000);
 	fset.perStage_maxInputAttachments (9);
 	fset.perStage_maxSampledImages (500000);
 	fset.perStage_maxSamplers (500000);
@@ -164,6 +164,7 @@ void ASmain ()
 	fset.perStage_maxUniformBuffers (500000);
 	fset.perStage_maxAccelStructures (500000);
 	fset.perStage_maxTotalResources (500000);
+	fset.perDescSet_maxTotalResources (500000);
 	fset.maxDescriptorSets (7);
 	fset.maxTexelOffset (7);
 	fset.maxTexelGatherOffset (7);

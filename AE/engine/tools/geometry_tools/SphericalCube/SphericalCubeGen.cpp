@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #include "geometry_tools/SphericalCube/SphericalCubeGen.h"
 #include "geometry_tools/Utils/TBN.h"

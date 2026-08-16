@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 #include <asset_packer.as>
 
 void AddAtlasRGBA (RC<MetaData> meta, RC<SharedImage> sharedImage)

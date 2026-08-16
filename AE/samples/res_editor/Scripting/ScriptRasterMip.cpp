@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #include "Scripting/ScriptExe.h"
 #include "Core/EditorUI.h"
@@ -384,8 +384,8 @@ namespace AE::ResEditor
 			ShaderStructTypePtr	st = ScriptComputeMip::_CreatePCType();	// throw
 			ppln_layout->AddPushConst2( "pc", st, EShader::Fragment );
 
-			ppln_layout->Define( "iInvResolution=pc.invResolution" );
-			ppln_layout->Define( "iResolution=pc.resolution" );
+			ppln_layout->Define( "iInvResolution=pc.invDstResolution" );
+			ppln_layout->Define( "iResolution=pc.dstResolution" );
 		}
 
 		if ( AnyBits( EShaderOpt(shaderOpts), EShaderOpt::_ShaderTrace_Mask ))

@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #pragma once
 
@@ -43,13 +43,15 @@ namespace AE::Graphics
 
 	// methods
 	public:
-		VDefaultDescriptorAllocator ()											__NE___	{}
-		~VDefaultDescriptorAllocator ()											__NE_OV;
+		VDefaultDescriptorAllocator ()															__NE___	{}
+		~VDefaultDescriptorAllocator ()															__NE_OV;
 
-		bool  Allocate (DescriptorSetLayoutID layoutId, OUT Storage &ds)		__NE_OV;
-		void  Deallocate (DescriptorSetLayoutID layoutId, INOUT Storage &ds)	__NE_OV;
+		bool  Allocate (DescriptorSetLayoutID layoutId, const DescSetParams*, OUT Storage &ds)	__NE_OV;
+		void  Deallocate (DescriptorSetLayoutID layoutId, INOUT Storage &ds)					__NE_OV;
 
 	private:
+		bool  _Allocate (VkDescriptorSetAllocateInfo &, OUT Storage &ds)						__NE___;
+
 		static bool  _CreateDSPool (const VDevice &dev, uint descCount, uint maxDS, OUT VkDescriptorPool &dsPool) __NE___;
 	};
 

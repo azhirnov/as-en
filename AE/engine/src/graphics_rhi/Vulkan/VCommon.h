@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 /*
 	docs:
 		[Vulkan spec](https://registry.khronos.org/vulkan/specs/1.3-extensions/html/vkspec.html), [[backup](https://github.com/azhirnov/as-en/blob/dev/AE-Data/_docs/vkspec.pdf)]

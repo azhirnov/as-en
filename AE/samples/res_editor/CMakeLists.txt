@@ -1,4 +1,4 @@
-# Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+# Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 if ((TARGET "Scripting") AND (TARGET "PipelineCompiler") AND (TARGET "ResourceLoaders"))
 
@@ -8,10 +8,24 @@ if ((TARGET "Scripting") AND (TARGET "PipelineCompiler") AND (TARGET "ResourceLo
 	set( SOURCES ${LIB_SOURCES} ${DATA_FILES} )
 
 	set( APP_NAME "ResourceEditor" )
-	if (APPLE)
+	if (${AE_ANDROID_UI_MODE})
+		add_library( ${APP_NAME} SHARED ${SOURCES} )
+
+	elseif (APPLE)
 		add_executable( ${APP_NAME} MACOSX_BUNDLE ${SOURCES} )
+
 	else()
-		add_executable( ${APP_NAME} ${SOURCES} )
+		set( ANDROID_SRC_PATH "${MAIN_SOURCE_DIR}/android/res_editor/src/main" )
+		if (NOT EXISTS "${ANDROID_SRC_PATH}")
+			message( FATAL_ERROR "Android source is not exists in ${ANDROID_SRC_PATH}" )
+		endif()
+		file( GLOB_RECURSE ANDROID_SOURCES "${ANDROID_SRC_PATH}/*.*" )
+		list( APPEND ANDROID_SOURCES "${ANDROID_SRC_PATH}/../../build.gradle" )
+
+		add_executable( ${APP_NAME} ${SOURCES} ${ANDROID_SOURCES} )
+
+		source_group( "Android" FILES ${ANDROID_SOURCES} )
+		set_source_files_properties( ${ANDROID_SOURCES} PROPERTIES HEADER_FILE_ONLY TRUE )
 	endif()
 
 	source_group( TREE "${CMAKE_CURRENT_SOURCE_DIR}" FILES ${SOURCES} )

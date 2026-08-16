@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 /*
 	512 bit SIMD
 */
@@ -24,6 +24,7 @@ namespace AE::Base
 		using Native_t		= __m256h;
 		using Array_t		= StaticArray< Scalar_t, count >;
 		using Ptr_t			= AlignedPtr< sizeof(Native_t) >;
+		using CPtr_t		= AlignedPtr< sizeof(Native_t), true >;
 		using SimdInt_t		= SimdShort16;
 		using SimdUInt_t	= SimdUShort16;
 
@@ -68,7 +69,7 @@ namespace AE::Base
 		explicit SimdHalf16 (Scalar_t v)				__NE___	: _value{ _mm256_set1_epi16( Base::BitCast<short>( v ))} {}
 		explicit SimdHalf16 (const Native_t &v)			__NE___	: _value{ v } {}
 		explicit SimdHalf16 (const Scalar_t* ptr)		__NE___	: _value{ _mm256_loadu_si256( reinterpret_cast<Native_t const *>( GetNonNull( ptr )) )} {}
-		explicit SimdHalf16 (const Ptr_t ptr)			__NE___	: _value{ _mm256_load_si256( ptr.Cast<Native_t>() )} {}
+		explicit SimdHalf16 (const CPtr_t ptr)			__NE___	: _value{ _mm256_load_si256( ptr.Cast<Native_t>() )} {}
 
 		explicit SimdHalf16 (const SimdFloat8 &low)	__NE___;
 		SimdHalf16 (const SimdFloat8 &low, const SimdFloat8 &high)	__NE___;
@@ -131,6 +132,7 @@ namespace AE::Base
 		using Native_t		= __m512;
 		using Array_t		= StaticArray< Scalar_t, count >;
 		using Ptr_t			= AlignedPtr< sizeof(Native_t) >;
+		using CPtr_t		= AlignedPtr< sizeof(Native_t), true >;
 		using SimdInt_t		= SimdInt16;
 		using SimdUInt_t	= SimdUInt16;
 		using Mask_t		= Bitfield< __mmask16 >;
@@ -197,7 +199,7 @@ namespace AE::Base
 		explicit SimdFloat16 (Scalar_t v)						__NE___	: _value{ _mm512_set1_ps( v )} {}
 		explicit SimdFloat16 (const Native_t &v)				__NE___	: _value{ v } {}
 		explicit SimdFloat16 (const Scalar_t* ptr)				__NE___	: _value{ _mm512_loadu_ps( GetNonNull( ptr ))} {}
-		explicit SimdFloat16 (const Ptr_t ptr)					__NE___	: _value{ _mm512_load_ps( ptr.Cast<Scalar_t>() )} {}
+		explicit SimdFloat16 (const CPtr_t ptr)					__NE___	: _value{ _mm512_load_ps( ptr.Cast<Scalar_t>() )} {}
 
 		explicit SimdFloat16 (const SimdFloat4 &quarter)		__NE___;
 		explicit SimdFloat16 (const SimdFloat8 &half)			__NE___;
@@ -285,6 +287,7 @@ namespace AE::Base
 		using Native_t		= __m512d;
 		using Array_t		= StaticArray< Scalar_t, count >;
 		using Ptr_t			= AlignedPtr< sizeof(Native_t) >;
+		using CPtr_t		= AlignedPtr< sizeof(Native_t), true >;
 		using SimdInt_t		= SimdLong8;
 		using SimdUInt_t	= SimdULong8;
 		using Mask_t		= Bitfield< __mmask8 >;
@@ -320,7 +323,7 @@ namespace AE::Base
 		explicit SimdDouble8 (Scalar_t v)								__NE___	: _value{ _mm512_set1_pd( v )} {}
 		explicit SimdDouble8 (const Native_t &v)						__NE___	: _value{ v } {}
 		explicit SimdDouble8 (const Scalar_t* ptr)						__NE___	: _value{ _mm512_loadu_pd( GetNonNull( ptr ))} {}
-		explicit SimdDouble8 (const Ptr_t ptr)							__NE___	: _value{ _mm512_load_pd( ptr.Cast<Scalar_t>() )} {}
+		explicit SimdDouble8 (const CPtr_t ptr)							__NE___	: _value{ _mm512_load_pd( ptr.Cast<Scalar_t>() )} {}
 		SimdDouble8 (Scalar_t v0, Scalar_t v1, Scalar_t v2, Scalar_t v3,
 					 Scalar_t v4, Scalar_t v5, Scalar_t v6, Scalar_t v7) __NE___ : _value{ _mm512_set_pd( v7, v6, v5, v4, v3, v2, v1, v0 )} {}
 

@@ -590,8 +590,11 @@ How match Mul and Matrix variants are slower than uniform Branch. [[12](#12-Bran
 
 ## Render target compression
 
-**block** - compare compression between 1x1 noise and block size (4x4 or 8x8) noise.<br/>
+**block** - compare compression between 1x1 noise and block size (4x4 or 8x8) noise, higher is better.<br/>
 **max** - compare compression between 1x1 noise and solid color.<br/>
+**exec time** - measured shader execution time, shader is memory bound, but may have overhead of warp scheduler, texture unit, request queue limits, etc.<br/>
+**mem traffic** - measured memory traffic in bytes from performance counters, it much accurate to calculate compression rate, but high compressed block is better fit caches.<br/>
+Note: DCC is lossless, so 1x1 noise with or without DCC has near to same performance, may be +5-10% for DCC.
 
 | GPU | block size | block RGBA8_UNorm | max RGBA8_UNorm | block RGBA16_UNorm | max RGBA16_UNorm | method | comments |
 |---|---|---|---|---|---|---|---|
@@ -616,7 +619,7 @@ How match Mul and Matrix variants are slower than uniform Branch. [[12](#12-Bran
 * Direct draw calls, like `vkDrawIndexed()`, may have CPU overhead depends on driver implementation.
 * Validation layers have high overhead and must be disabled for this test.
 * Performance compared between multiple calls of `vkDrawIndexed()` and same number of `vkDrawIndexedIndirect()`.
-* Some GPUs has `maxDrawIndirectCount = 1`, so used second test with single `vkDrawIndexedIndirect()` and multiple instances.
+* Some GPUs has `maxDrawIndirectCount = 1`, so used second test with single `vkDrawIndexedIndirect()` call with multiple instances.
 
 | GPU | multi draw direct vs<br/> multi draw indirect | multi draw direct vs<br/> instanced indirect |
 |---|---|---|
@@ -630,8 +633,8 @@ How match Mul and Matrix variants are slower than uniform Branch. [[12](#12-Bran
 | Intel Arc 140T        |
 | NV RTX 20xx           | same                              |
 | NV RTX 50xx           |
-| ARM Mali Midgard gen4 | not supported                     | indirect is faster (120ms vs 130ms) |
-| ARM Mali Valhall gen1 | not supported                     | indirect is faster (12ms vs 15ms)   |
+| ARM Mali Midgard gen4 | not supported                     | instancing is faster (120ms vs 130ms) |
+| ARM Mali Valhall gen1 | not supported                     | instancing is faster (12ms vs 15ms)   |
 | ARM Mali Valhall gen3 | indirect is faster (25ms vs 31ms) |
 | PowerVR B‑Series      | same                              |
 

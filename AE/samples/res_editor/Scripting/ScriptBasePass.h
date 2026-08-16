@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #pragma once
 
@@ -44,7 +44,7 @@ namespace AE::ResEditor
 			UseSLang				= 1 << 4,
 
 			_Last,
-			All						= ((_Last - 1) << 1) - 1,
+			All						= CT_AllBitMask2<EFlags>,
 
 			Enable_AllShaderDbg		= Enable_ShaderTrace | Enable_ShaderFnProf | Enable_ShaderTmProf | Enable_ShaderAsserts,
 		};

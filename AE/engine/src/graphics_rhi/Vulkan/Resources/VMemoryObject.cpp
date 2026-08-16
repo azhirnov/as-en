@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #ifdef AE_ENABLE_VULKAN
 # include "graphics_rhi/Vulkan/Resources/VMemoryObject.h"
@@ -13,7 +13,6 @@ namespace AE::Graphics
 */
 	VMemoryObject::~VMemoryObject () __NE___
 	{
-		DRC_EXLOCK( _drCheck );
 		ASSERT( _memAllocator == null );
 	}
 
@@ -24,7 +23,6 @@ namespace AE::Graphics
 */
 	bool  VMemoryObject::Create (VkBuffer buffer, const BufferDesc &desc, GfxMemAllocatorPtr allocator, StringView dbgName) __NE___
 	{
-		DRC_EXLOCK( _drCheck );
 		CHECK_ERR( _memAllocator == null );
 		CHECK_ERR( allocator != null );
 
@@ -45,7 +43,6 @@ namespace AE::Graphics
 */
 	bool  VMemoryObject::Create (VkImage image, const ImageDesc &desc, GfxMemAllocatorPtr allocator, StringView dbgName) __NE___
 	{
-		DRC_EXLOCK( _drCheck );
 		CHECK_ERR( _memAllocator == null );
 		CHECK_ERR( allocator != null );
 
@@ -66,7 +63,6 @@ namespace AE::Graphics
 */
 	bool  VMemoryObject::Create (Bytes storageSize, VkBufferUsageFlagBits2 usage, GfxMemAllocatorPtr allocator, StringView dbgName)__NE___
 	{
-		DRC_EXLOCK( _drCheck );
 		CHECK_ERR( _memAllocator == null );
 		CHECK_ERR( allocator != null );
 
@@ -87,8 +83,6 @@ namespace AE::Graphics
 */
 	void  VMemoryObject::Destroy (ResourceManager &) __NE___
 	{
-		DRC_EXLOCK( _drCheck );
-
 		if ( _memAllocator )
 			CHECK( _memAllocator->Dealloc( INOUT _storage ));
 
@@ -104,7 +98,6 @@ namespace AE::Graphics
 */
 	bool  VMemoryObject::GetMemoryInfo (OUT VulkanMemoryObjInfo &info) C_NE___
 	{
-		DRC_SHAREDLOCK( _drCheck );
 		CHECK_ERR( _memAllocator != null );
 		return _memAllocator->GetInfo( _storage, OUT info );
 	}

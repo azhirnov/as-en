@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #pragma once
 
@@ -33,9 +33,11 @@ namespace AE::ResEditor
 			FloatParams				= 1 << 10,		//	fparams
 			IntParams				= 1 << 11,		//	iparams
 			SubMeshID				= 1 << 12,		//	subMeshId
+			_Last,
+
 			TB						= Tangent | BiTangent,
 			TBN						= Tangent | BiTangent | Normal,
-			_BITOPS_
+			_BITOPS_				= 0
 		};
 
 		// attributes will be generated in 'ToBuffer()'

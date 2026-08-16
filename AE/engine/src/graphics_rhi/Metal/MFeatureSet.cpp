@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #include "graphics_rhi/Metal/MFeatureSet.h"
 
@@ -276,7 +276,7 @@ namespace
 */
 	void  MFeatureSet::InitFeatureSet (const MGPUFamilies &f, INOUT FeatureSet &outFeatureSet) C_NE___
 	{
-		StaticAssert( FeatureSet::GetFeatureCount() == 278 );
+		StaticAssert( FeatureSet::GetFeatureCount() == 281 );
 
 		using SubgroupOperationBits = FeatureSet::SubgroupOperationBits;
 		using KiBytes				= FeatureSet::KiBytes;
@@ -603,7 +603,7 @@ namespace
 			outFeatureSet.perPipeline.maxStorageImages		= properties.maxNumberOfTexturesInsideArgumentBuffer;
 			outFeatureSet.perPipeline.maxUniformBuffers		= properties.maxNumberOfBufferInsideArgumentBuffer;
 			outFeatureSet.perPipeline.maxAccelStructures	= properties.maxNumberOfBufferInsideArgumentBuffer;
-			outFeatureSet.perPipeline.maxTotalResources		= (properties.maxNumberOfBufferInsideArgumentBuffer + properties.maxNumberOfTexturesInsideArgumentBuffer + properties.maxNumberOfSamplersInsideArgumentBuffer);
+			outFeatureSet.perDescSet_maxTotalResources		= (properties.maxNumberOfBufferInsideArgumentBuffer + properties.maxNumberOfTexturesInsideArgumentBuffer + properties.maxNumberOfSamplersInsideArgumentBuffer);
 			outFeatureSet.perPipeline_maxTotalBuffersDynamic= Max( outFeatureSet.perPipeline_maxUniformBuffersDynamic, outFeatureSet.perPipeline_maxStorageBuffersDynamic );
 			outFeatureSet.perStage.maxInputAttachments		= outFeatureSet.maxDescriptorSets * properties.maxNumberOfTexturesInsideArgumentBuffer;
 			outFeatureSet.perStage.maxSampledImages			= outFeatureSet.maxDescriptorSets * properties.maxNumberOfTexturesInsideArgumentBuffer;
@@ -612,12 +612,12 @@ namespace
 			outFeatureSet.perStage.maxStorageImages			= outFeatureSet.maxDescriptorSets * properties.maxNumberOfTexturesInsideArgumentBuffer;
 			outFeatureSet.perStage.maxUniformBuffers		= outFeatureSet.maxDescriptorSets * properties.maxNumberOfBufferInsideArgumentBuffer;
 			outFeatureSet.perStage.maxAccelStructures		= outFeatureSet.maxDescriptorSets * properties.maxNumberOfBufferInsideArgumentBuffer;
-			outFeatureSet.perStage.maxTotalResources		= outFeatureSet.maxDescriptorSets * (properties.maxNumberOfBufferInsideArgumentBuffer + properties.maxNumberOfTexturesInsideArgumentBuffer + properties.maxNumberOfSamplersInsideArgumentBuffer);
+			outFeatureSet.perStage_maxTotalResources		= outFeatureSet.maxDescriptorSets * (properties.maxNumberOfBufferInsideArgumentBuffer + properties.maxNumberOfTexturesInsideArgumentBuffer + properties.maxNumberOfSamplersInsideArgumentBuffer);
 			outFeatureSet.maxTexelOffset					= 7;	// [-8, 7]
 			outFeatureSet.maxTexelGatherOffset				= 7;	// [-8, 7]
 			outFeatureSet.maxFragmentOutputAttachments		= CheckCast{ properties.maxNumberOfColorRenderTargetsPerRenderPassDescriptor };
 			outFeatureSet.maxFragmentDualSrcAttachments		= features.dualSourceBlending ? 1 : 0;
-			outFeatureSet.maxFragmentCombinedOutputResources= outFeatureSet.perStage.maxTotalResources;
+			outFeatureSet.maxFragmentCombinedOutputResources= outFeatureSet.perStage_maxTotalResources;
 			outFeatureSet.maxPushConstantsSize				= POTBytes_From< 4 << 10 >;
 			outFeatureSet.maxTotalThreadgroupSize			= KiBytes{ properties.maxThreadgroupMemoryLength };
 			outFeatureSet.maxTotalTileMemory				= KiBytes{ properties.maxTotalTileMemoryAllocation };

@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #pragma once
 
@@ -101,6 +101,7 @@ namespace AE::Base
 		NdCx__ Self		section (usize first, usize count)		__NE___;
 
 		__Cx__ void  Assign (ArrayView<T> other)				__NE___;
+		__Cx__ void  Fill (const T &value)						__NE___;
 
 		template <typename R> requires(IsTrivial<T> and IsTrivial<R>)
 		NdCx__ MutableArrayView<R>  Cast ()						__NE___;
@@ -167,6 +168,18 @@ namespace AE::Base
 			for (usize i = 0; i < _count; ++i)
 				_array[i] = other.data()[i];
 		}
+	}
+
+/*
+=================================================
+	Fill
+=================================================
+*/
+	template <typename T, typename I>
+	__Cx__ void  MutableArrayView<T,I>::Fill (const T &value) __NE___
+	{
+		for (usize i = 0; i < _count; ++i)
+			_array[i] = value;
 	}
 //-----------------------------------------------------------------------------
 

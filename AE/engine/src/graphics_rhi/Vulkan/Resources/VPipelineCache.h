@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 /*
 	TODO Optimization:
 		* add external lock
@@ -26,8 +26,7 @@ namespace AE::Graphics
 	private:
 		VkPipelineCache				_cache	= Default;
 
-		GFX_DBG_ONLY(	DebugName_t		_debugName;	)
-		DRC_ONLY(		RWDataRaceCheck	_drCheck;	)
+		GFX_DBG_ONLY( DebugName_t	_debugName;	)
 
 
 	// methods
@@ -41,9 +40,9 @@ namespace AE::Graphics
 
 		ND_ bool  GetData (const VDevice &dev, OUT Array<char> &data)								C_NE___;
 
-		ND_ VkPipelineCache			Handle ()														C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _cache; }
+		ND_ VkPipelineCache			Handle ()														C_NE___	{ return _cache; }
 
-		GFX_DBG_ONLY( ND_ StringView  GetDebugName ()												C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _debugName; })
+		GFX_DBG_ONLY( ND_ StringView  GetDebugName ()												C_NE___	{ return _debugName; })
 
 	private:
 		bool  _Create (const ResourceManager&, StringView dbgName, ArrayView<char> initialData)	__NE___;

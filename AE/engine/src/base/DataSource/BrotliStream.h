@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #pragma once
 
@@ -35,7 +35,7 @@ namespace AE::Base
 		bool		IsOpen ()												C_NE_OV	{ return _instance != null and _stream and _stream->IsOpen(); }
 		PosAndSize	PositionAndSize ()										C_NE_OV	{ return { _position, UMax }; }
 
-		ESourceType	GetSourceType ()										C_NE_OV	{ return ESourceType::SequentialAccess | ESourceType::ReadAccess; }
+		ESourceType	GetSourceType ()										C_NE_OV	{ return ESourceType::SequentialAccess | ESourceType::ReadOnly; }
 
 		bool		SeekFwd (Bytes offset)									__NE_OV;
 		Bytes		ReadSeq (OUT void* buffer, Bytes size)					__NE_OV;
@@ -86,7 +86,7 @@ namespace AE::Base
 	// WStream //
 		bool		IsOpen ()												C_NE_OV	{ return _instance != null and _stream and _stream->IsOpen(); }
 		Bytes		Position ()												C_NE_OV	{ return _position; }
-		ESourceType	GetSourceType ()										C_NE_OV	{ return ESourceType::SequentialAccess | ESourceType::WriteAccess; }
+		ESourceType	GetSourceType ()										C_NE_OV	{ return ESourceType::SequentialAccess | ESourceType::WriteOnly; }
 
 		Bytes		Reserve (Bytes additionalSize)							__NE_OV;
 

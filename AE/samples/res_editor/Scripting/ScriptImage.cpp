@@ -1,7 +1,9 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #include "Scripting/PipelineCompiler.inl.h"
 #include "Scripting/ScriptExe.h"
+
+#include "graphics_rhi/Private/EnumToString.h"
 
 namespace AE::ResEditor
 {
@@ -133,6 +135,7 @@ namespace
 		_imageType			= GetDescriptorImageType( _desc );
 
 		_viewDesc.Validate( _desc );
+		_viewDesc.usage		= Default;
 	}
 
 	ScriptImage::ScriptImage (EPixelFormat format, const ScriptDynamicDimPtr &ds, const ImageLayer &layers, const MipmapLevel &mipmaps) __Th___ :
@@ -155,6 +158,7 @@ namespace
 			_flags = Image::EImageFlags::AllMipmaps;
 
 		_viewDesc.Validate( _desc );
+		_viewDesc.usage		= Default;
 	}
 
 /*
@@ -433,7 +437,28 @@ namespace
 			format = _desc.format;
 
 		if ( format != _desc.format )
-			_desc.options |= EImageOpt::MutableFormat;	// TODO: use format list
+		{
+			_desc.options |= EImageOpt::MutableFormat;
+
+			auto&	img_fmt_info	= EPixelFormat_GetInfo( _desc.format );
+			auto&	view_fmt_info	= EPixelFormat_GetInfo( format );
+
+			if ( img_fmt_info.IsCompressed() != view_fmt_info.IsCompressed() )
+			{
+				CHECK_THROW_MSG( img_fmt_info.IsCompressed() and not view_fmt_info.IsCompressed(),
+					"Can not create view with compressed format ("s << ToString( format ) << ") from non-compressed format (" << ToString( _desc.format ) << ").\n"
+					"You must create compressed image with non-compressed view which pixel size equal to compressed block size." );
+			}
+
+			if ( img_fmt_info.IsCompressed() and not view_fmt_info.IsCompressed() )
+			{
+				CHECK_THROW_MSG( img_fmt_info.BytesPerBlock() == view_fmt_info.BytesPerPixel(),
+					"Block size ("s << ToString(img_fmt_info.BytesPerBlock()) << ") for image format (" << ToString(_desc.format) <<
+					") must equal to pixel size (" << ToString(view_fmt_info.BytesPerPixel()) << ") for view format (" << ToString(format) << ")." );
+
+				_desc.options |= EImageOpt::BlockTexelViewCompatible | EImageOpt::ExtendedUsage;
+			}
+		}
 
 		ScriptImagePtr	result {new ScriptImage{0}};
 
@@ -444,7 +469,13 @@ namespace
 		temp.Validate( _desc );
 
 		if ( _descDefined )
-			result->_viewDesc = temp;
+		{
+			result->_viewDesc		= temp;
+			result->_viewDesc.usage	= Default;
+
+			CHECK_THROW_MSG( temp.format == format,
+				"Requested image view format ("s << ToString(format) << ") is not compatible with image format (" << ToString(_desc.format) << ")." );
+		}
 
 		result->_imageType	= GetDescriptorImageType( _desc, temp );
 
@@ -726,7 +757,16 @@ namespace
 
 		if ( _base )
 		{
-			_viewDesc.extUsage = _desc.usage & ~_base->_desc.usage;
+			if ( _base->_resource )
+			{
+				CHECK_THROW_MSG( AllBits( _base->_desc.usage, _desc.usage ) and NoBits( _desc.usage, ~_base->_desc.usage ),
+					"All usage flags in image view '"s << _dbgName << "' must be defined on base image '" << _base->_dbgName << "'.\n"
+					"view(" << ToString( _desc.usage ) << ") & base(" << ToString( _base->_desc.usage ) << ")." );
+			}
+			else
+				_base->_desc.usage |= _desc.usage;
+
+			_viewDesc.usage = _desc.usage;
 			_resource = _base->ToResource()->CreateView( _viewDesc, _dbgName );
 			return _resource;
 		}
@@ -741,6 +781,8 @@ namespace
 			//	_desc.options |= EImageOpt::SampledLinear;
 		}
 
+		// first image view will create base image, so can not update usage flags after that,
+		// add common usage flags here
 		if ( NoBits( _desc.usage, EImageUsage_AllowImageView ))
 			_desc.usage |= EImageUsage::Sampled;
 
@@ -792,10 +834,31 @@ namespace
 			}
 
 			CHECK_THROW_MSG( res_mngr.IsSupported( _desc ),
-				"Image '"s << _dbgName << "' description is not supported by GPU device" );
+				"Image '"s << _dbgName << "' description is not supported by GPU device:"
+				"\n  dimension:   " << ToString( _desc.dimension ) <<
+				"\n  arrayLayers: " << ToString( _desc.arrayLayers.Get() ) <<
+				"\n  imageDim:    " << ToString( _desc.imageDim ) <<
+				"\n  mipLevels:   " << ToString( _desc.mipLevels.Get() ) <<
+				"\n  format:      " << ToString( _desc.format ) <<
+				"\n  samples:     " << ToString( _desc.samples.Get() ) <<
+				"\n  options:     " << ToString( _desc.options ) <<
+				"\n  usage:       " << ToString( _desc.usage ) <<
+				"\n  memType:     " << ToString( _desc.memType )
+			);
 
 			CHECK_THROW_MSG( res_mngr.IsSupported( _desc, _viewDesc ),
-				"Image '"s << _dbgName << "' description is not supported by GPU device" );
+				"Image view '"s << _dbgName << "' description is not supported by GPU device:"
+				"\n  viewType:    " << ToString( _viewDesc.viewType ) <<
+				"\n  format:      " << ToString( _viewDesc.format ) <<
+				"\n  aspectMask:  " << ToString( _viewDesc.aspectMask ) <<
+				"\n  options:     " << ToString( _viewDesc.options ) <<
+				"\n  usage:       " << ToString( _viewDesc.usage ) <<
+				"\n  baseMipmap:  " << ToString( _viewDesc.baseMipmap.Get() ) <<
+				"\n  mipmapCount: " << ToString( _viewDesc.mipmapCount ) <<
+				"\n  baseLayer:   " << ToString( _viewDesc.baseLayer.Get() ) <<
+				"\n  layerCount:  " << ToString( _viewDesc.layerCount ) <<
+				"\n  swizzle:     " << ToString( _viewDesc.swizzle )
+			);
 
 			id.image = res_mngr.CreateImage( _desc, _dbgName, gfx_alloc );
 			CHECK_THROW_MSG( id.image, "failed to create image '"s << _dbgName << "'" );

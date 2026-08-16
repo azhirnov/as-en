@@ -1,6 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
-
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #include "Executor.h"
 
@@ -36,26 +34,33 @@ namespace
 			ref_output[i] = float(refOutput[i]);
 		}
 
-		String	str		= "\n";
+		String	str		= "\n| expected | shader output | error % |\n";
 		float	max_err	= 0.f;
+		float	avr_err	= 0.f;
 
 		for (usize i = 0; i < rowA; ++i)
 		{
-			float	err	= Abs( (output[i] - ref_output[i]) * 100.f / output[i] );
+			float	err	= Abs(output[i] - ref_output[i]) * 100.f / Max( Abs(output[i]), 1.0e-5f );
 			max_err = Max( max_err, err );
+			avr_err += err;
 
 			str << "| " << ToString( output[i], 5 ) << " | " << ToString( ref_output[i], 5 ) << " | "
 				<< ToString( err, 2 ) << "% |\n";
 		}
+		avr_err /= float(rowA);
+		str << "----------------------------------------\n";
 
-		str << "----------------------------------------\n\n";
+		if ( max_err < 0.01f )
+			str.clear();
+
+		str << "max error: " << ToString( max_err, 2 ) << "%, avr: " << ToString( avr_err, 2 ) << "%";
 		AE_LOGI( str );
 		CHECK( max_err < 1.f );
 	}
 
 
 	void  TestVecOuterProductAccum (ArrayView<half> inputA, ArrayView<half> inputB, ArrayView<half> inputC, ArrayView<half> refOutput,
-									const uint rowA, const uint rowB, const bool columnMajor)
+									const uint rowA, const uint rowB, const bool columnMajor, const uint subgroupSize)
 	{
 		ASSERT( inputC.size() == refOutput.size() );
 		ASSERT( inputC.size() == rowA * rowB );
@@ -73,50 +78,57 @@ namespace
 
 		if ( columnMajor )
 		{
-			for (uint i = 0; i < rowB; ++i)
+			for (uint col = 0; col < rowB; ++col)
 			{
-				for (uint j = 0; j < rowA; ++j)
+				for (uint row = 0; row < rowA; ++row)
 				{
-					uint	idx	= i + j * rowB;
+					uint	idx	= row + col * rowB;
 					float	ref	= float(refOutput[ idx ]);
-					float	a	= float(inputA[i]);
-					float	b	= float(inputB[j]);
+					float	a	= float(inputA[row]);
+					float	b	= float(inputB[col]);
 
-					output[idx] += a * b;
+					output[idx] += a * b * float(subgroupSize);
 					ref_output[idx] = ref;
 				}
 			}
 		}
 		else
 		{
-			for (uint i = 0; i < rowB; ++i)
+			for (uint row = 0; row < rowB; ++row)
 			{
-				for (uint j = 0; j < rowA; ++j)
+				for (uint col = 0; col < rowA; ++col)
 				{
-					uint	idx	= i * rowA + j;
+					uint	idx	= row * rowA + col;
 					float	ref	= float(refOutput[ idx ]);
-					float	a	= float(inputA[i]);
-					float	b	= float(inputB[j]);
+					float	a	= float(inputA[row]);
+					float	b	= float(inputB[col]);
 
-					output[idx] += a * b;
+					output[idx] += a * b * float(subgroupSize);
 					ref_output[idx] = ref;
 				}
 			}
 		}
 
-		String	str		= "\n";
+		String	str		= "\n| expected | shader output | error % |\n";
 		float	max_err	= 0.f;
+		float	avr_err	= 0.f;
 
 		for (usize i = 0; i < refOutput.size(); ++i)
 		{
-			float	err	= Abs( (output[i] - ref_output[i]) * 100.f / output[i] );
+			float	err	= Abs(output[i] - ref_output[i]) * 100.f / Max( Abs(output[i]), 1.0e-5f );
 			max_err = Max( max_err, err );
+			avr_err += err;
 
 			str << "| " << ToString( output[i], 5 ) << " | " << ToString( ref_output[i], 5 ) << " | "
 				<< ToString( err, 2 ) << "% |\n";
 		}
+		avr_err /= float(refOutput.size());
+		str << "----------------------------------------\n";
 
-		str << "----------------------------------------\n\n";
+		if ( max_err < 0.01f )
+			str.clear();
+
+		str << "max error: " << ToString( max_err, 2 ) << "%, avr: " << ToString( avr_err, 2 ) << "%";
 		AE_LOGI( str );
 		CHECK( max_err < 1.f );
 	}
@@ -178,7 +190,7 @@ namespace
 				}
 			}
 		)";
-		CHECK_FATAL( ex.Run( src, BufCast(input_a), BufCast(input_b), BufCast(input_b), BufCast(output) ));
+		CHECK_FATAL( ex.Run( src, BufCast(input_a), BufCast(input_b), BufCast(input_b), BufCast(output), sizeof(half) ));
 
 		for (uint i = 0; i < vec_count; ++i)
 		{
@@ -194,6 +206,8 @@ namespace
 	static void  CoopVecTraining_Test2 (Executor &ex)
 	{
 		CHECK_FATAL( ex.GetDevice().GetVProperties().cooperativeVectorNVProps.cooperativeVectorTrainingFloat16Accumulation == VK_TRUE );
+
+		const uint	subgroup_size = ex.GetDevice().GetDeviceProperties().compute.subgroupSize;
 
 		for (uint t = 0; t < 2; ++t)
 		{
@@ -230,16 +244,17 @@ namespace
 				cmd.srcType		= Graphics::ECoopMatrixComponentType::Float16;
 				cmd.dstType		= Graphics::ECoopMatrixComponentType::Float16;
 				cmd.srcLayout	= col_major ? Graphics::ECoopVecMatrixLayout::ColumnMajor : Graphics::ECoopVecMatrixLayout::RowMajor;
-				cmd.dstLayout	= Graphics::ECoopVecMatrixLayout::InferencingOptimal;
+				cmd.dstLayout	= Graphics::ECoopVecMatrixLayout::TrainingOptimal;
 
-				CHECK_FATAL( ex.GetDevice().GetCooperativeVectorMatrixDstSize( {cmd}, {opt_size} ));
+				CHECK_FATAL( ex.GetDevice().GetCooperativeVectorMatrixDstSize( {cmd}, OUT {opt_size} ));
+				AE_LOGI( "CoopVec opt size: "s << ToString(opt_size) );
 
 				ASSERT( IsMultipleOf( opt_size, sizeof(output_opt[0]) ));
 				output_opt.resize( usize{opt_size} / sizeof(output_opt[0]) * vec_count );
 
 				for (uint i = 0; i < vec_count; ++i)
 				{
-					cmd.srcData	= &output[ i * cols_c * rows_c ];
+					cmd.srcData	= output.data() + cmd.srcSize * i;
 					cmd.dstSize	= opt_size;
 					cmd.dstData	= output_opt.data() + opt_size * i;
 
@@ -275,12 +290,12 @@ namespace
 						gl.CoopVecLoad( OUT a, un_InputA.data, first_a );
 						gl.CoopVecLoad( OUT b, un_InputB.data, first_b );
 
-						if ( gl.subgroup.Index == 0 )
+						//if ( gl.subgroup.Index == 0 )	// otherwise result is incorrect
 						{
 							gl.CoopVecOuterProductAccum( a, b,
 														 INOUT un_Output.data,
 														 first_c,
-														 0,
+														 0, // ignored
 														 gl::CoopVectorMatrixLayout::TrainingOptimal,
 														 type_type
 														);
@@ -288,7 +303,7 @@ namespace
 					}
 				}
 			)";
-			CHECK_FATAL( ex.Run( src, BufCast(input_a), BufCast(input_b), BufCast(input_c), BufCast(output_opt) ));
+			CHECK_FATAL( ex.Run( src, BufCast(input_a), BufCast(input_b), BufCast(input_c), BufCast(output_opt), sizeof(half) ));
 
 			// 'output_opt' -> 'output'
 			{
@@ -300,13 +315,13 @@ namespace
 				cmd.dstStride	= Bytes{ sizeof(output[0]) * rows_c };
 				cmd.srcType		= Graphics::ECoopMatrixComponentType::Float16;
 				cmd.dstType		= Graphics::ECoopMatrixComponentType::Float16;
-				cmd.srcLayout	= Graphics::ECoopVecMatrixLayout::InferencingOptimal;
+				cmd.srcLayout	= Graphics::ECoopVecMatrixLayout::TrainingOptimal;
 				cmd.dstLayout	= col_major ? Graphics::ECoopVecMatrixLayout::ColumnMajor : Graphics::ECoopVecMatrixLayout::RowMajor;
 
 				for (uint i = 0; i < vec_count; ++i)
 				{
 					cmd.srcData		= output_opt.data() + opt_size * i;
-					cmd.dstData		= &output[ i * cols_c * rows_c ];
+					cmd.dstData		= output.data() + cmd.dstSize * i;
 
 					CHECK_FATAL( ex.GetDevice().ConvertCooperativeVectorMatrix( {cmd} ));
 				}
@@ -319,7 +334,7 @@ namespace
 				auto	in_c	= ArrayView{input_c}.section( i * rows_c * cols_c,	rows_c * cols_c );
 				auto	out		= ArrayView{output} .section( i * rows_c * cols_c,	rows_c * cols_c );
 
-				TestVecOuterProductAccum( in_a, in_b, in_c, out, rows_a, rows_c, col_major );
+				TestVecOuterProductAccum( in_a, in_b, in_c, out, rows_a, rows_c, col_major, subgroup_size );
 			}
 		}
 	}

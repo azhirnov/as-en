@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #pragma once
 
@@ -11,6 +11,7 @@ namespace AE::Graphics
 	{
 		// vector size
 		_VecOffset			= 0,
+		//_Vec1				= 0,
 		_Vec2				= 1 << _VecOffset,
 		_Vec3				= 2 << _VecOffset,
 		_Vec4				= 3 << _VecOffset,
@@ -147,7 +148,7 @@ namespace AE::Graphics
 		#undef AE_VERTEXTYPE_VISIT
 
 		Unknown				= 0,
-		_BITOPS_
+		_BITOPS_			= 0
 	};
 
 

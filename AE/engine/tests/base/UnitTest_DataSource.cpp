@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #include "UnitTest_Common.h"
 
@@ -764,7 +764,7 @@ namespace
 		{
 			WStream		wfile {fname};
 			TEST( wfile.IsOpen() );
-			TEST( AllBits( wfile.GetSourceType(), ESourceType::SequentialAccess | ESourceType::WriteAccess ));
+			TEST( AllBits( wfile.GetSourceType(), ESourceType::SequentialAccess | ESourceType::WriteOnly ));
 
 			ulong	buf [buf_size / sizeof(ulong)];
 			ulong	pos = 0;
@@ -784,7 +784,7 @@ namespace
 		{
 			RStream		rfile {fname};
 			TEST( rfile.IsOpen() );
-			TEST( AllBits( rfile.GetSourceType(), ESourceType::SequentialAccess | ESourceType::ReadAccess ));
+			TEST( AllBits( rfile.GetSourceType(), ESourceType::SequentialAccess | ESourceType::ReadOnly ));
 			TEST_Eq( rfile.Size(), file_size );
 
 			ulong	dst_buf [buf_size / sizeof(ulong)];
@@ -866,7 +866,7 @@ namespace
 		{
 			WFile	wfile {fname};
 			TEST( wfile.IsOpen() );
-			TEST( AllBits( wfile.GetSourceType(), ESourceType::RandomAccess | ESourceType::WriteAccess ));
+			TEST( AllBits( wfile.GetSourceType(), ESourceType::RandomAccess | ESourceType::WriteOnly ));
 
 			if ( reserve )
 			{
@@ -892,7 +892,7 @@ namespace
 		{
 			RFile	rfile {fname};
 			TEST( rfile.IsOpen() );
-			TEST( AllBits( rfile.GetSourceType(), ESourceType::RandomAccess | ESourceType::ReadAccess ));
+			TEST( AllBits( rfile.GetSourceType(), ESourceType::RandomAccess | ESourceType::ReadOnly ));
 			TEST_Eq( rfile.Size(), file_size );
 
 			ulong	dst_buf [buf_size / sizeof(ulong)];
@@ -925,9 +925,10 @@ namespace
 		{
 			WFile	wfile { fname, writeAccess };
 			TEST( wfile.IsOpen() );
-			TEST( AllBits( wfile.GetSourceType(), ESourceType::RandomAccess | ESourceType::WriteAccess ));
+			TEST( AllBits( wfile.GetSourceType(), ESourceType::RandomAccess | ESourceType::WriteOnly ));
 
 			const Bytes	align = Max( Bytes{wfile.DirectAccessAlign().ptrAlign}, AlignOf<ulong> );
+			AE_LOGI( "File write align "s << ToString(align) );
 
 			DynUntypedStorage	buf;
 			TEST( buf.Alloc( Bytes{buf_size}, align, null ));
@@ -951,10 +952,11 @@ namespace
 		{
 			RFile	rfile { fname, readAccess };
 			TEST( rfile.IsOpen() );
-			TEST( AllBits( rfile.GetSourceType(), ESourceType::RandomAccess | ESourceType::ReadAccess ));
+			TEST( AllBits( rfile.GetSourceType(), ESourceType::RandomAccess | ESourceType::ReadOnly ));
 			TEST_Eq( rfile.Size(), file_size );
 
 			const Bytes	align = Max( Bytes{rfile.DirectAccessAlign().ptrAlign}, AlignOf<ulong> );
+			AE_LOGI( "File read align "s << ToString(align) );
 
 			DynUntypedStorage	dst_buf;
 			TEST( dst_buf.Alloc( Bytes{buf_size}, align, null ));
@@ -1035,6 +1037,8 @@ extern void UnitTest_DataSource (const Path &curr)
 		File_Test1<   StdFileRDataSource,	WinFileWDataSource	>( false );
 		File_Test1<   WinFileRDataSource,	WinFileWDataSource	>( true );
 
+		File_Test2<   WinFileRDataSource,	WinFileWDataSource	>( WinFileRDataSource::EMode::Direct,	WinFileWDataSource::EMode::Unknown );
+		File_Test2<   WinFileRDataSource,	WinFileWDataSource	>( WinFileRDataSource::EMode::Unknown,	WinFileWDataSource::EMode::Direct );
 		File_Test2<   WinFileRDataSource,	WinFileWDataSource	>( WinFileRDataSource::EMode::Direct,	WinFileWDataSource::EMode::Direct );
 	#else
 
@@ -1050,9 +1054,12 @@ extern void UnitTest_DataSource (const Path &curr)
 		File_Test1<   UnixFileRDataSource,	StdFileWDataSource	>( false );
 		File_Test1<   StdFileRDataSource,	UnixFileWDataSource	>( false );
 
-		File_Test2<   UnixFileRDataSource,	UnixFileWDataSource	>( UnixFileRDataSource::EMode::Direct,  UnixFileWDataSource::EMode::Direct );
+		File_Test2<   UnixFileRDataSource,	UnixFileWDataSource	>( UnixFileRDataSource::EMode::Direct,	UnixFileWDataSource::EMode::Unknown );
+		File_Test2<   UnixFileRDataSource,	UnixFileWDataSource	>( UnixFileRDataSource::EMode::Unknown,	UnixFileWDataSource::EMode::Direct );
+		File_Test2<   UnixFileRDataSource,	UnixFileWDataSource	>( UnixFileRDataSource::EMode::Direct,	UnixFileWDataSource::EMode::Direct );
 
 	# ifndef AE_PLATFORM_ANDROID
+		// reserve is not supported
 		File_Test1<   UnixFileRDataSource,	UnixFileWDataSource	>( true );
 	# endif
 	#endif

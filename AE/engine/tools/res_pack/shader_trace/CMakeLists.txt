@@ -1,6 +1,6 @@
-# Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+# Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
-# TODO: failed to link in Linux
+# TODO: failed to link on Linux
 if ( (TARGET "GLSLang-lib") AND WIN32 )
 	file( GLOB_RECURSE SOURCES1 "*.*" )
 	add_library( "ShaderTrace" STATIC ${SOURCES1} )

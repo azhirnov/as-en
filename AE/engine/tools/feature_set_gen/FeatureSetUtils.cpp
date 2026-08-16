@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #include "base/DataSource/File.h"
 #include "base/Algorithms/StringUtils.h"
@@ -487,21 +487,20 @@ namespace
 
 /*
 =================================================
-	FS_ParseJSON (PerDescriptorSet)
+	FS_ParseJSON (PerPipeline)
 =================================================
 */
-	ND_ static FeatureSet::PerDescriptorSet  FS_ParseJSON (FeatureSet::PerDescriptorSet prev, StringView json, StringView name)
+	ND_ static FeatureSet::PerPipeline  FS_ParseJSON (FeatureSet::PerPipeline prev, StringView json, StringView name)
 	{
 		if ( name == "\"perPipeline\"" )
 		{
-			prev.maxInputAttachments= FS_ParseJSON( 0u,		json, "maxDescriptorSetInputAttachments" );
-			prev.maxSampledImages	= FS_ParseJSON( 0u,		json, "maxDescriptorSetSampledImages" );
-			prev.maxSamplers		= FS_ParseJSON( 0u,		json, "maxDescriptorSetSamplers" );
-			prev.maxStorageBuffers	= FS_ParseJSON( 0u,		json, "maxDescriptorSetStorageBuffers" );
-			prev.maxStorageImages	= FS_ParseJSON( 0u,		json, "maxDescriptorSetStorageImages" );
-			prev.maxUniformBuffers	= FS_ParseJSON( 0u,		json, "maxDescriptorSetUniformBuffers" );
-			prev.maxAccelStructures	= FS_ParseJSON( 0u,		json, "maxDescriptorSetAccelerationStructures" );
-			prev.maxTotalResources	= FS_ParseJSON( 512u,	json, "maxPerSetDescriptors" );
+			prev.maxInputAttachments= FS_ParseJSON( 0u,	json, "maxDescriptorSetInputAttachments" );
+			prev.maxSampledImages	= FS_ParseJSON( 0u,	json, "maxDescriptorSetSampledImages" );
+			prev.maxSamplers		= FS_ParseJSON( 0u,	json, "maxDescriptorSetSamplers" );
+			prev.maxStorageBuffers	= FS_ParseJSON( 0u,	json, "maxDescriptorSetStorageBuffers" );
+			prev.maxStorageImages	= FS_ParseJSON( 0u,	json, "maxDescriptorSetStorageImages" );
+			prev.maxUniformBuffers	= FS_ParseJSON( 0u,	json, "maxDescriptorSetUniformBuffers" );
+			prev.maxAccelStructures	= FS_ParseJSON( 0u,	json, "maxDescriptorSetAccelerationStructures" );
 		}
 		else
 		if ( name == "\"perStage\"" )
@@ -513,7 +512,6 @@ namespace
 			prev.maxStorageImages	= FS_ParseJSON( 0u, json, "maxPerStageDescriptorStorageImages" );
 			prev.maxUniformBuffers	= FS_ParseJSON( 0u, json, "maxPerStageDescriptorUniformBuffers" );
 			prev.maxAccelStructures	= FS_ParseJSON( 0u, json, "maxPerStageDescriptorAccelerationStructures" );
-			prev.maxTotalResources	= FS_ParseJSON( 0u, json, "maxPerStageResources" );
 		}
 		else
 		{
@@ -1235,7 +1233,7 @@ namespace
 */
 	bool  FeatureSetFromJSON (const Path &jsonFile, OUT FeatureSetExt &outFeatureSet, OUT String &outName)
 	{
-		StaticAssert( FeatureSet::GetFeatureCount() == 278 );
+		StaticAssert( FeatureSet::GetFeatureCount() == 281 );
 
 		String	json;
 		{
@@ -1264,7 +1262,9 @@ namespace
 			{ "ycbcr2Plane444",							"ycbcr2plane444Formats"					},
 			{ "vertexDivisor",							"vertexAttributeInstanceRateDivisor"	},
 			{ "perPipeline_maxSubsampledSamplers",		"maxDescriptorSetSubsampledSamplers"	},
-			{ "opacityMicromap",						"micromap"								}
+			{ "opacityMicromap",						"micromap"								},
+			{ "perDescSet_maxTotalResources",			"maxPerSetDescriptors"					},
+			{ "perStage_maxTotalResources",				"maxPerStageResources"					}
 		};
 
 		const auto	ReplaceName = [&replace_names] (StringView key)
@@ -1465,6 +1465,9 @@ namespace
 			}
 		}
 
+		if ( outFeatureSet.perDescSet_maxTotalResources == 0 )
+			outFeatureSet.perDescSet_maxTotalResources = 512;
+
 		// deviceID, vendorID
 		{
 			uint		vendor_id	= FS_ParseJSON( 0u, json, "vendorID" );
@@ -1624,10 +1627,10 @@ namespace
 
 /*
 =================================================
-	FS_ToString (PerDescriptorSet)
+	FS_ToString (PerPipeline)
 =================================================
 */
-	static void  FS_ToString (INOUT String &str, const FeatureSet::PerDescriptorSet &val, StringView name)
+	static void  FS_ToString (INOUT String &str, const FeatureSet::PerPipeline &val, StringView name)
 	{
 		const auto	ValToStr = [&str, name] (StringView valName, uint value)
 		{{
@@ -1643,7 +1646,6 @@ namespace
 		ValToStr( "maxStorageImages",		val.maxStorageImages );
 		ValToStr( "maxUniformBuffers",		val.maxUniformBuffers );
 		ValToStr( "maxAccelStructures",		val.maxAccelStructures );
-		ValToStr( "maxTotalResources",		val.maxTotalResources );
 
 		CHECK( name == "perPipeline" or name == "perStage" );
 	}

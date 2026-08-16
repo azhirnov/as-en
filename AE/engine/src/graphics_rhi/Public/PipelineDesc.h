@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #pragma once
 
@@ -53,8 +53,11 @@ namespace AE::Graphics
 		// for other pipelines without this flag 'rayQueryMicromapARM' can be used for optimization.
 		OpacityMicromap					= 1 << 13,
 
+		// Used new bindless model with raw access to descriptors.
+		DescriptorHeap					= 1 << 14,
+
 		_Last,
-		All								= ((_Last - 1) << 1) - 1,
+		All								= CT_AllBitMask2<EPipelineOpt>,
 		Unknown							= 0,
 	};
 
@@ -72,7 +75,7 @@ namespace AE::Graphics
 		Pipelines		= 1 << 3,	// layouts, pipelines, shaders, render techniques
 		// TODO: override pipeline optimization flags
 		_Last,
-		All				= ((_Last - 1) << 1) - 1,
+		All				= CT_AllBitMask2<EPipelinePackOpt>,
 	};
 
 

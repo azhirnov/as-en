@@ -45,8 +45,7 @@
 
 // for tests
 #define AE_TEST_TCP_PORT_1			3006
-#define AE_TEST_TCP_PORT_2			3007
-#define AE_TEST_UDP_PORT_1			3008
-#define AE_TEST_UDP_PORT_2			3009
+#define AE_TEST_UDP_PORT_1			3108
+#define AE_TEST_UDP_PORT_2			3109
 
 #define AE_TEST_IPv4				"TODO"

@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #include "vfs/Disk/DiskStaticStorage.h"
 #include "vfs/Disk/DiskDynamicStorage.h"
@@ -7,7 +7,6 @@
 #include "Core/EditorCore.h"
 #include "Scripting/ScriptExe.h"
 
-AE_DECL_SCRIPT_OBJ(	AE::ResEditor::ResEditorAppConfig,	"Config" );
 
 #if AE_PORTABLE_APP and AE_GRAPHICS_STRONG_VALIDATION == 0
 # error AE_GRAPHICS_STRONG_VALIDATION must be enabled for public version
@@ -25,14 +24,13 @@ namespace AE::ResEditor
 
 namespace
 {
-	static ResEditorAppConfig		s_REConfig;
 
 /*
 =================================================
 	GetAppConfig
 =================================================
 */
-	static AppV1::AppConfig  GetAppConfig ()
+	static AppV1::AppConfig  GetInitialAppConfig ()
 	{
 		AppV1::AppConfig	cfg;
 
@@ -43,6 +41,16 @@ namespace
 			cfg.threading.mask					= { EThread::PerFrame, EThread::Renderer, EThread::Background, EThread::IO };
 		}
 
+		cfg.enableNetwork = true;
+
+		return cfg;
+	}
+
+	static AppV1::AppConfig  GetAppConfig ()
+	{
+		AppV1::AppConfig	cfg		= GetInitialAppConfig();
+		const auto&			re_cfg	= ResEditorAppConfig::Get();
+
 		// graphics
 		{
 			cfg.graphics.maxFrames				= 2;
@@ -50,15 +58,15 @@ namespace
 			cfg.graphics.device.appName			= "ResourceEditor";
 			cfg.graphics.device.requiredQueues	= EQueueMask::Graphics;
 			cfg.graphics.device.optionalQueues	= Default;
-			cfg.graphics.device.devFlags		= (s_REConfig.setStableGPUClock ? EDeviceFlags::SetStableClock : Default) |
-												  (s_REConfig.enableRenderDoc ? EDeviceFlags::EnableRenderDoc : Default) |
+			cfg.graphics.device.devFlags		= (re_cfg.setStableGPUClock ? EDeviceFlags::SetStableClock : Default) |
+												  (re_cfg.enableRenderDoc ? EDeviceFlags::EnableRenderDoc : Default) |
 												  EDeviceFlags::EnablePerfCounters;
-			cfg.graphics.device.deviceName		= s_REConfig.deviceName;
+			cfg.graphics.device.deviceName		= re_cfg.deviceName;
 
 		  #ifdef AE_CFG_RELEASE
 			cfg.graphics.device.validation		= EDeviceValidation::Disabled;
 		  #else
-			cfg.graphics.device.validation		= s_REConfig.gapiValidation;
+			cfg.graphics.device.validation		= re_cfg.gapiValidation;
 		  #endif
 
 			cfg.graphics.swapchain.colorFormat	= EPixelFormat::RGBA8_UNorm;
@@ -73,691 +81,60 @@ namespace
 
 			cfg.graphics.useRenderGraph			= true;
 
-			for (usize i = 0, cnt = Min( cfg.graphics.driverList.size(), s_REConfig.driverList.size() ); i < cnt; ++i) {
-				cfg.graphics.driverList[i] = s_REConfig.driverList[i];
+			for (usize i = 0, cnt = Min( cfg.graphics.driverList.size(), re_cfg.driverList.size() ); i < cnt; ++i) {
+				cfg.graphics.driverList[i] = re_cfg.driverList[i];
 			}
 
 			// custom size for staging
 		//	cfg.graphics.staging.maxWriteDynamicSize = 256_MiB;
 			cfg.graphics.staging.maxReadDynamicSize	 = 128_MiB;
+
+		  #ifdef AE_ENABLE_REMOTE_GRAPHICS
+			cfg.graphics.staging.maxWriteDynamicSize = 8_MiB;	// limited by network bandwidth
+			cfg.graphics.staging.maxReadDynamicSize	 = 8_MiB;
+			cfg.graphics.staging.dynamicBlockSize	 = 8_MiB;
+
+			cfg.window.mode							= EWindowMode::NonResizable;
+			cfg.graphics.maxFrames					= 2;
+			cfg.graphics.swapchain.minImageCount	= 2;
+			cfg.graphics.graphicsLibPath			= re_cfg.graphicsLibPath;
+			cfg.graphics.enableSyncLog				= false;
+
+			cfg.graphics.deviceAddr	= Networking::IpAddress::FromInt( re_cfg.ipAddress[0], re_cfg.ipAddress[1], re_cfg.ipAddress[2], re_cfg.ipAddress[3], re_cfg.ipPort );
+			CHECK_THROW_MSG( cfg.graphics.deviceAddr.IsValid(),
+				"Invalid RemoveDevice IP address, in 'res_editor_cfg.as' set 'cfg.RemoteDeviceIpAddress(...)' to an existing IP address" );
+		  #endif
+
+			CHECK( cfg.graphics.maxFrames <= cfg.graphics.swapchain.minImageCount );
 		}
 
 		// window
 		{
-			cfg.window.title	= "ResourceEditor";
-			cfg.window.size		= uint2{ s_REConfig.screenWidth, s_REConfig.screenHeight };
-			cfg.window.mode		= s_REConfig.windowMode;
-			cfg.window.monitorId = Monitor::ID( s_REConfig.monitorId );
+			auto&	window	= cfg.window;
+			window.title	= "ResourceEditor";
+			window.size		= uint2{ re_cfg.screenWidth, re_cfg.screenHeight };
+			window.mode		= re_cfg.windowMode;
+			window.monitorId = Monitor::ID( re_cfg.monitorId );
 		}
 
 		// VR
 		{
-			cfg.enableVR		= false;
-			cfg.vr.dimension	= ImageDim2_t{2048};
-			cfg.vr.colorFormat	= EPixelFormat::BGRA8_UNorm;
-			cfg.vr.usage		= EImageUsage::ColorAttachment | EImageUsage::Sampled | EImageUsage::Transfer;	// default
-			cfg.vr.options		= EImageOpt::BlitDst;
+			auto&	vr				= cfg.vr;
+			vr.enableVR				= false;
+			vr.imageDesc.dimension	= ImageDim2_t{2048};
+			vr.imageDesc.colorFormat= EPixelFormat::BGRA8_UNorm;
+			vr.imageDesc.usage		= EImageUsage::ColorAttachment | EImageUsage::Sampled | EImageUsage::Transfer;	// default
+			vr.imageDesc.options	= EImageOpt::BlitDst;
 
-		//	cfg.vrDevices.push_back( IVRSession::EDeviceType::OpenXR );
-		//	cfg.vrDevices.push_back( IVRSession::EDeviceType::OpenVR );
-			cfg.vrDevices.push_back( IVRSession::EDeviceType::Emulator );
+		//	vr.devices.push_back( IVRSession::EDeviceType::OpenXR );
+		//	vr.devices.push_back( IVRSession::EDeviceType::OpenVR );
+			vr.devices.push_back( IVRSession::EDeviceType::Emulator );
 		}
-
-		cfg.enableNetwork = true;
-
-	  #ifdef AE_ENABLE_REMOTE_GRAPHICS
-		cfg.graphics.staging.maxWriteDynamicSize = 8_MiB;	// limited by network bandwidth
-		cfg.graphics.staging.maxReadDynamicSize	 = 8_MiB;
-		cfg.graphics.staging.dynamicBlockSize	 = 8_MiB;
-
-		cfg.window.mode							= EWindowMode::NonResizable;
-		cfg.graphics.maxFrames					= 2;
-		cfg.graphics.swapchain.minImageCount	= 2;
-		cfg.graphics.graphicsLibPath			= s_REConfig.graphicsLibPath;
-		cfg.graphics.enableSyncLog				= false;
-
-		cfg.graphics.deviceAddr	= Networking::IpAddress::FromInt( s_REConfig.ipAddress[0], s_REConfig.ipAddress[1], s_REConfig.ipAddress[2], s_REConfig.ipAddress[3], 0 );
-		CHECK_THROW_MSG( cfg.graphics.deviceAddr.IsValid(),
-			"Invalid RemoveDevice IP address, in 'res_editor_cfg.as' set 'cfg.RemoteDeviceIpAddress(...)' to an existing IP address" );
-	  #endif
-
-		CHECK( cfg.graphics.maxFrames <= cfg.graphics.swapchain.minImageCount );
 
 		return cfg;
 	}
 
-/*
-=================================================
-	ResEditorAppConfig_VFSPath
-=================================================
-*/
-	static void  ResEditorAppConfig_StaticVFSPath (ResEditorAppConfig &self, const String &path, const String &prefix)
-	{
-		if ( not FileSystem::IsDirectory( path ))
-		{
-			AE_LOGW( "VFSPath '"s << ToString(path) << "' is not a directory" );
-			return;
-		}
-
-		self.vfsPaths.emplace_back( FileSystem::ToAbsolute( Path{path} ), prefix );
-	}
-
-	static void  ResEditorAppConfig_DynamicVFSPath (ResEditorAppConfig &self, const String &path, const String &prefix)
-	{
-		FileSystem::CreateDirectories( path );
-		self.vfsPaths.emplace_back( FileSystem::ToAbsolute( Path{path} ), prefix );
-	}
-
-/*
-=================================================
-	ResEditorAppConfig_NetVFS
-=================================================
-*/
-	static void  ResEditorAppConfig_NetVFS (ResEditorAppConfig &self, const String &host, const String &service, const String &prefix)
-	{
-		self.netVFS.emplace_back( host, service, prefix );
-	}
-
-/*
-=================================================
-	ResEditorAppConfig_UIDataDir
-=================================================
-*/
-	static void  ResEditorAppConfig_UIDataDir (ResEditorAppConfig &self, const String &path)
-	{
-		if ( not FileSystem::IsDirectory( path ))
-		{
-			CHECK_THROW_MSG( FileSystem::CreateDirectories( path ),
-				"Failed to create folder '"s << ToString(path) << "'" );
-		}
-
-		CHECK_THROW( self.uiDataFolder.empty() );
-		self.uiDataFolder = FileSystem::ToAbsolute( Path{path} );
-	}
-
-/*
-=================================================
-	ResEditorAppConfig_PipelineSearchDir
-=================================================
-*/
-	static void  ResEditorAppConfig_PipelineSearchDir (ResEditorAppConfig &self, const String &path)
-	{
-		CHECK_THROW_MSG( FileSystem::IsDirectory( path ),
-			"PipelineSearchDir '"s << ToString(path) << "' must be existed folder" );
-
-		self.pipelineSearchDirs.push_back( FileSystem::ToAbsolute( Path{path} ));
-	}
-
-/*
-=================================================
-	ResEditorAppConfig_PipelineIncludeDir
-=================================================
-*/
-	static void  ResEditorAppConfig_PipelineIncludeDir (ResEditorAppConfig &self, const String &path)
-	{
-		CHECK_THROW_MSG( FileSystem::IsDirectory( path ),
-			"PipelineIncludeDir '"s << ToString(path) << "' must be existed folder" );
-
-		self.pipelineIncludeDirs.push_back( FileSystem::ToAbsolute( Path{path} ));
-	}
-
-/*
-=================================================
-	ResEditorAppConfig_ShaderSearchDir
-=================================================
-*/
-	static void  ResEditorAppConfig_ShaderSearchDir (ResEditorAppConfig &self, const String &path)
-	{
-		CHECK_THROW_MSG( FileSystem::IsDirectory( path ),
-			"ShaderSearchDir '"s << ToString(path) << "' must be existed folder" );
-
-		self.shaderSearchDirs.push_back( FileSystem::ToAbsolute( Path{path} ));
-	}
-
-/*
-=================================================
-	ResEditorAppConfig_ShaderIncludeDir
-=================================================
-*/
-	static void  ResEditorAppConfig_ShaderIncludeDir (ResEditorAppConfig &self, const String &path)
-	{
-		CHECK_THROW_MSG( FileSystem::IsDirectory( path ),
-			"ShaderIncludeDir '"s << ToString(path) << "' must be existed folder" );
-
-		self.shaderIncludeDirs.push_back( FileSystem::ToAbsolute( Path{path} ));
-	}
-
-/*
-=================================================
-	ResEditorAppConfig_ShaderTraceDir
-=================================================
-*/
-	static void  ResEditorAppConfig_ShaderTraceDir (ResEditorAppConfig &self, const String &path)
-	{
-		if ( not FileSystem::IsDirectory( path ))
-		{
-			CHECK_THROW_MSG( FileSystem::CreateDirectories( path ),
-				"Failed to create folder '"s << ToString(path) << "'" );
-		}
-
-		CHECK_THROW( self.shaderTraceFolder.empty() );
-		self.shaderTraceFolder = FileSystem::ToAbsolute( Path{path} );
-	}
-
-/*
-=================================================
-	ResEditorAppConfig_ScreenshotDir
-=================================================
-*/
-	static void  ResEditorAppConfig_ScreenshotDir (ResEditorAppConfig &self, const String &path)
-	{
-		if ( not FileSystem::IsDirectory( path ))
-		{
-			CHECK_THROW_MSG( FileSystem::CreateDirectories( path ),
-				"Failed to create folder '"s << ToString(path) << "'" );
-		}
-
-		CHECK_THROW( self.screenshotFolder.empty() );
-		self.screenshotFolder = FileSystem::ToAbsolute( Path{path} );
-	}
-
-/*
-=================================================
-	ResEditorAppConfig_VideoDir
-=================================================
-*/
-	static void  ResEditorAppConfig_VideoDir (ResEditorAppConfig &self, const String &path)
-	{
-		if ( not FileSystem::IsDirectory( path ))
-		{
-			CHECK_THROW_MSG( FileSystem::CreateDirectories( path ),
-				"Failed to create folder '"s << ToString(path) << "'" );
-		}
-
-		CHECK_THROW( self.videoFolder.empty() );
-		self.videoFolder = FileSystem::ToAbsolute( Path{path} );
-	}
-
-/*
-=================================================
-	ResEditorAppConfig_ExportDir
-=================================================
-*/
-	static void  ResEditorAppConfig_ExportDir (ResEditorAppConfig &self, const String &path)
-	{
-		if ( not FileSystem::IsDirectory( path ))
-		{
-			CHECK_THROW_MSG( FileSystem::CreateDirectories( path ),
-				"Failed to create folder '"s << ToString(path) << "'" );
-		}
-
-		CHECK_THROW( self.exportFolder.empty() );
-		self.exportFolder = FileSystem::ToAbsolute( Path{path} );
-	}
-
-/*
-=================================================
-	ResEditorAppConfig_RenderDocDir
-=================================================
-*/
-	static void  ResEditorAppConfig_RenderDocDir (ResEditorAppConfig &self, const String &path)
-	{
-		if ( not FileSystem::IsDirectory( path ))
-		{
-			CHECK_THROW_MSG( FileSystem::CreateDirectories( path ),
-				"Failed to create folder '"s << ToString(path) << "'" );
-		}
-
-		CHECK_THROW( self.renderDocFolder.empty() );
-		self.renderDocFolder = FileSystem::ToAbsolute( Path{path} );
-	}
-
-/*
-=================================================
-	ResEditorAppConfig_ScriptDir
-=================================================
-*/
-	static void  ResEditorAppConfig_ScriptDir (ResEditorAppConfig &self, const String &path)
-	{
-		CHECK_THROW_MSG( FileSystem::IsDirectory( path ),
-			"ScriptDir '"s << ToString(path) << "' must be existed folder" );
-
-		CHECK_THROW( self.scriptFolder.empty() );
-		self.scriptFolder = FileSystem::ToAbsolute( Path{path} );
-	}
-
-/*
-=================================================
-	ResEditorAppConfig_CallableScriptDir
-=================================================
-*/
-	static void  ResEditorAppConfig_CallableScriptDir (ResEditorAppConfig &self, const String &path)
-	{
-		CHECK_THROW_MSG( FileSystem::IsDirectory( path ),
-			"CallableScriptDir '"s << ToString(path) << "' must be existed folder" );
-
-		CHECK_THROW( self.scriptCallableFolder.empty() );
-		self.scriptCallableFolder = FileSystem::ToAbsolute( Path{path} );
-	}
-
-/*
-=================================================
-	ResEditorAppConfig_AddScriptIncludeDir
-=================================================
-*/
-	static void  ResEditorAppConfig_AddScriptIncludeDir (ResEditorAppConfig &self, const String &path)
-	{
-		CHECK_THROW_MSG( FileSystem::IsDirectory( path ),
-			"ScriptIncludeDir '"s << path << "' must be existed folder" );
-
-		self.scriptIncludeDirs.push_back( FileSystem::ToAbsolute( Path{path} ));
-	}
-
-/*
-=================================================
-	ResEditorAppConfig_SetRemoteDeviceIpAddress
-=================================================
-*/
-	static void  ResEditorAppConfig_SetRemoteDeviceIpAddress (ResEditorAppConfig &self, uint p0, uint p1, uint p2, uint p3)
-	{
-		self.ipAddress[0] = ubyte(p0);
-		self.ipAddress[1] = ubyte(p1);
-		self.ipAddress[2] = ubyte(p2);
-		self.ipAddress[3] = ubyte(p3);
-	}
-
-/*
-=================================================
-	ResEditorAppConfig_SetGraphicsLibPath
-=================================================
-*/
-	static void  ResEditorAppConfig_SetGraphicsLibPath (ResEditorAppConfig &self, const String &path)
-	{
-		CHECK_THROW_MSG( FileSystem::IsFile( path ),
-			"GraphicsLibPath '"s << path << "' is not exists" );
-
-		self.graphicsLibPath = path;
-	}
-
-/*
-=================================================
-	ResEditorAppConfig_AddTestFolder
-=================================================
-*/
-	static void  ResEditorAppConfig_AddTestFolder (ResEditorAppConfig &self, const String &inPath)
-	{
-		const auto	path = Path{self.scriptFolder} / inPath;
-
-		CHECK_THROW_MSG( FileSystem::IsDirectory( path ),
-			"TestFolder '"s << ToString(path) << "' must be existed folder" );
-
-		self.testFolders.push_back( FileSystem::ToAbsolute( path ));
-		self.windowMode = EWindowMode::NonResizable;
-	}
-
-/*
-=================================================
-	ResEditorAppConfig_AddTestOutput
-=================================================
-*/
-	static void  ResEditorAppConfig_AddTestOutput (ResEditorAppConfig &self, const String &path)
-	{
-		self.testOutput = FileSystem::ToAbsolute( Path{path} );
-	}
-
-/*
-=================================================
-	ResEditorAppConfig_SetRemoteInputServerPort
-=================================================
-*/
-	static void  ResEditorAppConfig_SetRemoteInputServerPort (ResEditorAppConfig &self, uint port)
-	{
-		self.remoteIAPort = ushort(port);
-	}
-
-/*
-=================================================
-	ResEditorAppConfig_AddGraphicsDriver
-=================================================
-*/
-	static void  ResEditorAppConfig_AddGraphicsDriver (ResEditorAppConfig &self, const String &driverName)
-	{
-		CHECK_THROW_MSG( not driverName.empty() );
-
-		const auto	EDriver_ToString = [](Graphics::EDriver type) -> StringView
-		{{
-			switch_enum( type )
-			{
-				case EDriver::Unknown :		break;
-				case EDriver::_Count :		break;
-				#define CASE( _name_ )		case EDriver::_name_ :	return AE_TOSTRING( _name_ );
-				CASE( LavaPipe )
-			  #ifdef AE_PLATFORM_LINUX
-				case EDriver::_LinuxDrivers : break;
-				CASE( RADV )
-				CASE( AMD_VLK )
-				CASE( AMD_PRO )
-				CASE( ANV )
-				CASE( IntelPro )
-				CASE( Nouveau )
-				CASE( NVK )
-				CASE( NVPro )
-				CASE( VirtGPU )
-				CASE( GFXStream )
-			  #endif
-				#undef CASE
-			}
-			switch_end
-			return {};
-		}};
-
-		String	supported;
-
-		for (uint i = 0, cnt = uint(Graphics::EDriver::_Count); i < cnt; ++i)
-		{
-			StringView	name = EDriver_ToString( Graphics::EDriver(i) );
-			if ( EqualIC( driverName, name ))
-			{
-				self.driverList.push_back( Graphics::EDriver(i) );
-				return;
-			}
-
-			supported << name << ", ";
-		}
-
-		if ( not supported.empty() )
-			supported.erase( supported.end()-2, supported.end() );
-
-		CHECK_THROW_MSG( false,
-			"Unknown graphics driver '"s << driverName << "', known drivers: " << supported );
-	}
-
-/*
-=================================================
-	_LoadResEditorAppConfigFromScript
-=================================================
-*/
-	ND_ static bool  _LoadResEditorAppConfigFromScript (const Path &filename) __Th___
-	{
-		using namespace AE::Scripting;
-
-		ScriptEnginePtr		se = MakeRC<ScriptEngine>();
-		CHECK_THROW( se->Create() );
-
-		CoreBindings::BindString( se );
-		CoreBindings::BindArray( se );
-		GraphicsBindings::Bind_EDeviceValidation( se );
-		{
-			ClassBinder<ResEditorAppConfig>		binder{ se };
-			binder.CreateClassValue();
-			AS_METHOD( binder, ResEditorAppConfig_StaticVFSPath,			"VFSPath",				{"path", "prefixInVFS"} );	// deprecated
-			AS_METHOD( binder, ResEditorAppConfig_DynamicVFSPath,			"MakeVFSPath",			{"path", "prefixInVFS"} );	// deprecated
-			AS_METHOD( binder, ResEditorAppConfig_StaticVFSPath,			"StaticVFSPath",		{"path", "prefixInVFS"} );
-			AS_METHOD( binder, ResEditorAppConfig_DynamicVFSPath,			"DynamicVFSPath",		{"path", "prefixInVFS"} );
-			AS_METHOD( binder, ResEditorAppConfig_NetVFS,					"NetVFS",				{"host", "service", "prefixInVFS"} );
-			AS_METHOD( binder, ResEditorAppConfig_UIDataDir,				"UIDataDir",			{} );
-			AS_METHOD( binder, ResEditorAppConfig_PipelineSearchDir,		"PipelineSearchDir",	{} );
-			AS_METHOD( binder, ResEditorAppConfig_PipelineIncludeDir,		"PipelineIncludeDir",	{} );
-			AS_METHOD( binder, ResEditorAppConfig_ShaderSearchDir,			"ShaderSearchDir",		{} );
-			AS_METHOD( binder, ResEditorAppConfig_ShaderIncludeDir,			"ShaderIncludeDir",		{} );
-			AS_METHOD( binder, ResEditorAppConfig_ScriptDir,				"ScriptDir",			{} );
-			AS_METHOD( binder, ResEditorAppConfig_CallableScriptDir,		"CallableScriptDir",	{} );
-			AS_METHOD( binder, ResEditorAppConfig_AddScriptIncludeDir,		"ScriptIncludeDir",		{} );
-			AS_METHOD( binder, ResEditorAppConfig_ShaderTraceDir,			"ShaderTraceDir",		{} );
-			AS_METHOD( binder, ResEditorAppConfig_ScreenshotDir,			"ScreenshotDir",		{} );
-			AS_METHOD( binder, ResEditorAppConfig_VideoDir,					"VideoDir",				{} );
-			AS_METHOD( binder, ResEditorAppConfig_ExportDir,				"ExportDir",			{} );
-			AS_METHOD( binder, ResEditorAppConfig_RenderDocDir,				"RenderDocDir",			{} );
-			AS_METHOD( binder, ResEditorAppConfig_SetRemoteDeviceIpAddress,	"RemoteDeviceIpAddress",{} );
-			AS_METHOD( binder, ResEditorAppConfig_SetGraphicsLibPath,		"GraphicsLibPath",		{} );
-			AS_METHOD( binder, ResEditorAppConfig_AddTestFolder,			"TestFolder",			{} );
-			AS_METHOD( binder, ResEditorAppConfig_AddTestOutput,			"TestOutput",			{} );
-			AS_METHOD( binder, ResEditorAppConfig_SetRemoteInputServerPort,	"RemoteInputServerPort",{} );
-			AS_METHOD( binder, ResEditorAppConfig_AddGraphicsDriver,		"AddGraphicsDriver",	{} );
-			binder.AddProperty( &ResEditorAppConfig::setStableGPUClock,		"setStableGPUClock"		);
-			binder.AddProperty( &ResEditorAppConfig::enableRenderDoc,		"enableRenderDoc"		);
-			binder.AddProperty( &ResEditorAppConfig::screenWidth,			"screenWidth"			);
-			binder.AddProperty( &ResEditorAppConfig::screenHeight,			"screenHeight"			);
-			binder.AddProperty( &ResEditorAppConfig::monitorId,				"monitorId"				);
-			binder.AddProperty( &ResEditorAppConfig::deviceName,			"deviceName"			);
-			binder.AddProperty( &ResEditorAppConfig::gapiValidation,		"gapiValidation"		);
-		}
-
-		ScriptEngine::ModuleSource	src;
-		{
-			FileRStream		file {filename};
-			CHECK_ERR( file.IsOpen() );
-
-			src.name			= ToString( filename.stem() );
-			src.dbgLocation		= {};
-			src.usePreprocessor	= true;
-			CHECK_ERR( file.Read( file.RemainingSize(), OUT src.script ));
-		}
-
-		ScriptModulePtr		module = se->CreateModule( {src} );
-		CHECK_ERR_MSG( module,
-			"Failed to parse script '"s << ToString(filename) << "', fix errors or delete the file to allow the application to create a default script" );
-
-		auto	fn = se->CreateScript< void (ResEditorAppConfig &) >( "main", module );
-		CHECK_ERR_MSG( fn,
-			"Script '"s << ToString(filename) << "' entry point 'main' is not exist" );
-
-		ResEditorAppConfig	tmp;
-		CHECK_ERR_MSG( fn->Run( OUT tmp ),
-			"Failed to run script '"s << ToString(filename) << "', fix errors or delete the file to allow the application to create a default script" );
-
-		s_REConfig = RVRef(tmp);
-		return true;
-	}
-
-/*
-=================================================
-	_CreateDefaultResEditorAppConfig
-=================================================
-*/
-	ND_ static bool  _CreateDefaultResEditorAppConfig (const Path &filename)
-	{
-		String	str;
-		if ( AE_PORTABLE_APP )
-		{
-			str << R"(
-void main (Config &out cfg)
-{
-	const string	vfs_path 			= "../";
-	const string	local_path			= vfs_path + "src/";
-	const string	shader_data_path	= vfs_path + "shared_data/";
-	const string	ui_path				= vfs_path + "ui";
-	const string	test_ref_path		= vfs_path + "test_ref/";
-)";
-		}
-		else
-		{
-			Path	engine_path;
-			if ( FileSystem::SearchBackward( FileSystem::CurrentPath(), "AE/samples/res_editor", 3, OUT engine_path ))
-			{
-				ASSERT( engine_path.is_absolute() );
-				engine_path = engine_path.parent_path().parent_path().parent_path();
-			}
-
-			String	path = ToString( engine_path );
-			if ( not path.empty() and path.back() != '/' )
-				path << '/';
-
-			str <<
-"void main (Config &out cfg)\n"
-"{\n"
-"	const string	base_path 			= \"" << path  << "\";\n"
-"	const string	vfs_path 			= base_path + \"AE-Data/\";\n"
-"	const string	local_path			= base_path + \"AE/samples/res_editor/_data/\";\n"
-"	const string	shader_data_path	= base_path + \"AE/engine/shared_data/\";\n"
-"	const string	ui_path				= base_path + \"AE-Temp/samples/res_editor\";\n"
-"	const string	test_ref_path		= vfs_path + \"/samples/res_editor/ref\";\n";
-		}
-
-		str << R"(
-	// VFS //
-	//	attach path on disk to VFS
-	//	all file paths listed at startup, new files will be accessible after app restart
-	cfg.StaticVFSPath( vfs_path + "shadertoy_data",  "shadertoy/" );
-	cfg.StaticVFSPath( vfs_path + "res_editor_data", "res/" );
-	//	create directory if not exists
-	//	new files can be added at runtime
-	cfg.DynamicVFSPath( local_path + "../_export",   "export/" );
-	//	connect to network file system
-	//cfg.NetVFS( "localhost", "4000", "net/" );
-
-	// pipeline dirs //
-	//	where to search pipelines
-	cfg.PipelineSearchDir( local_path + "pipelines" );
-	cfg.PipelineIncludeDir( local_path + "pipeline_inc" );
-
-	// shaders //
-	//	where to search shaders for pipelines and passes
-	cfg.ShaderSearchDir( local_path + "shaders" );
-	cfg.ShaderIncludeDir( shader_data_path + "shaders" );
-	cfg.ShaderIncludeDir( local_path + "shaders" );
-	cfg.ShaderIncludeDir( local_path + "script_inc" );
-	cfg.ShaderIncludeDir( local_path + "pipeline_inc" );
-
-	// scripts //
-	//	all files with '.as' extension will be added to script list in editor
-	cfg.ScriptDir( local_path + "scripts" );
-	//	scripts which can be used directly and for 'RunScript()' call
-	cfg.CallableScriptDir( local_path + "scripts/callable" );
-	//	scripts which can be included in other scripts
-	cfg.ScriptIncludeDir( local_path + "script_inc" );
-
-	// output //
-	//	path for imgui and ui pipelines
-	cfg.UIDataDir( ui_path );
-	//	where to put shader traces
-	cfg.ShaderTraceDir( local_path + "../_shader_trace" );
-	//	where to save screenshots
-	cfg.ScreenshotDir( local_path + "../_screenshots" );
-	//	where to save video
-	cfg.VideoDir( local_path + "../_video" );
-	//	where to save export (images, models, scenes, etc)
-	cfg.ExportDir( local_path + "../_export" );
-	//	where to save RenderDoc captures
-	cfg.RenderDocDir( local_path + "../_renderdoc" );
-
-	// graphics settings //
-	cfg.screenWidth  = 1600;
-	cfg.screenHeight = 900;
-	//cfg.monitorId  = 0;  // optional
-	//	AMD/NV only: set stable GPU clock for profiling, otherwise driver can move GPU to low power mode or use temporary boost.
-	cfg.setStableGPUClock = false;
-	//	on start attach RenderDoc to the app, overlay is hidden, press F2 to capture frame
-	cfg.enableRenderDoc = false;
-	//	GPU index or part of name
-	//cfg.deviceName = "";
-	//cfg.gapiValidation = EDeviceValidation::Enabled;
-	//cfg.AddGraphicsDriver( "LavaPipe" );
-
-	// remote input //
-	//	see 'Setup Remote Input' in 'docs/Remote.md'
-	//cfg.RemoteInputServerPort( 0 );
-)";
-
-#ifdef AE_ENABLE_REMOTE_GRAPHICS
-		str << R"(
-	// remote graphics device //
-	cfg.RemoteDeviceIpAddress( 192, 168, 0, 0 );
-	cfg.GraphicsLibPath( "GraphicsRHI-shared.dll" );
-)";
-#endif
-
-		str << R"(
-	// tests //
-	/*
-	// uncomment to run tests on start
-	cfg.screenWidth  = 1600;
-	cfg.screenHeight = 900;
-	cfg.enableRenderDoc = false;
-	cfg.TestOutput( test_ref_path );
-	cfg.TestFolder( "screenshot-test" );
-	cfg.TestFolder( "tests" );
-
-	cfg.TestFolder( "callable" );
-	cfg.TestFolder( "color-space" );
-	cfg.TestFolder( "compute" );
-	cfg.TestFolder( "games" );
-	cfg.TestFolder( "gbuffer-classify" );
-	cfg.TestFolder( "gen-geom" );
-	cfg.TestFolder( "geom-cull" );
-	cfg.TestFolder( "light-cull" );
-	cfg.TestFolder( "light-refl" );
-	cfg.TestFolder( "light-tech" );
-	cfg.TestFolder( "neural-shader" );
-	cfg.TestFolder( "nonuniform" );
-	cfg.TestFolder( "packing" );
-	cfg.TestFolder( "particles" );
-	cfg.TestFolder( "perf" );
-	cfg.TestFolder( "planets" );
-	cfg.TestFolder( "posteffects" );
-	cfg.TestFolder( "projections" );
-	cfg.TestFolder( "ray-trace" );
-	cfg.TestFolder( "samples-2d" );
-	cfg.TestFolder( "samples-3d" );
-	cfg.TestFolder( "shadows" );
-	cfg.TestFolder( "tools" );
-	cfg.TestFolder( "vfx" );
-	cfg.TestFolder( "video" );
-	cfg.TestFolder( "voxels" );
-	//*/
-}
-)";
-
-		FileWStream		file {filename};
-		return	file.IsOpen()				and
-				file.Write( StringView{str} );
-	}
-
-/*
-=================================================
-	InitResEditorAppConfig
-=================================================
-*/
-	static void  InitResEditorAppConfig () __NE___
-	{
-		const Path	path = FileSystem::CurrentPath() / "res_editor_cfg.as";
-
-		if ( not FileSystem::IsFile( path ))
-			CHECK_FATAL( _CreateDefaultResEditorAppConfig( path ));
-
-		try{
-			if ( not _LoadResEditorAppConfigFromScript( path ))
-			{
-				// recreate
-				CHECK_FATAL( _CreateDefaultResEditorAppConfig( path ));
-				CHECK_FATAL( _LoadResEditorAppConfigFromScript( path ));
-			}
-
-			if ( not AE_PORTABLE_APP )
-			{
-				s_REConfig.scriptHeaderOutFolder	= AE_SHARED_DATA "/scripts";
-				s_REConfig.cppTypesFolder			= AE_LOCAL_DATA_FOLDER "/cpp";
-			}
-		}
-		catch(...) {
-			CHECK_FATAL_MSG( false, "failed to run initial script" );
-		}
-	}
-
 } // namespace
-//-----------------------------------------------------------------------------
-
-
-
-/*
-=================================================
-	ResEditorAppConfig::Get
-=================================================
-*/
-	ResEditorAppConfig const&  ResEditorAppConfig::Get ()
-	{
-		return s_REConfig;
-	}
 //-----------------------------------------------------------------------------
 
 
@@ -768,20 +145,8 @@ void main (Config &out cfg)
 =================================================
 */
 	ResEditorApplication::ResEditorApplication () __NE___ :
-		AppCoreV1{ GetAppConfig(), MakeRCTh<ResEditorCore>() }
+		AppCoreV1{ GetInitialAppConfig(), MakeRCTh<ResEditorCore>() }
 	{
-		auto&	re_cfg = ResEditorAppConfig::Get();
-
-		// for imgui
-		{
-			const auto&		ui_path = re_cfg.uiDataFolder;
-
-			CHECK_FATAL( FileSystem::IsDirectory( ui_path ));
-			CHECK_FATAL( FileSystem::SetCurrentPath( ui_path ));	// TODO: use VFS ?
-		}
-		CHECK_FATAL( FileSystem::IsDirectory( re_cfg.scriptFolder ));
-		CHECK_FATAL( _InitVFS() );
-
 		Unused( PlatformUtils::SetSystemSleepState( ESystemSleepState::DisplayAlwaysOn ));
 	}
 
@@ -802,6 +167,10 @@ void main (Config &out cfg)
 */
 	bool  ResEditorApplication::_InitVFS () __NE___
 	{
+		CHECK_ERR( _app );
+
+		ResEditorAppConfig::Init( *_app );
+
 		auto&	re_cfg = ResEditorAppConfig::Get();
 
 		for (auto& [path, in_prefix] : re_cfg.vfsPaths)
@@ -837,6 +206,16 @@ void main (Config &out cfg)
 		}
 
 		GetVFS().MakeImmutable();
+
+		// for imgui
+		{
+			const auto&		ui_path = re_cfg.uiDataFolder;
+
+			CHECK_ERR( FileSystem::IsDirectory( ui_path ));
+			CHECK_ERR( FileSystem::SetCurrentPath( ui_path ));	// TODO: use VFS ?
+		}
+
+		CHECK_ERR( FileSystem::IsDirectory( re_cfg.scriptFolder ));
 		return true;
 	}
 
@@ -848,11 +227,15 @@ void main (Config &out cfg)
 	void  ResEditorApplication::OnStart (IApplication &app) __NE___
 	{
 		_app = &app;
-		AppCoreV1::OnStart( app );
+		CHECK_FATAL( _InitVFS() );
+
+		const auto	cfg = GetAppConfig();
+
+		CHECK_FATAL( _InitGraphics( app, cfg.graphics ));
 
 		CHECK_FATAL( Cast<ResEditorCore>(&GetBaseApp())->OnStart() );
 
-		CHECK_FATAL( _OnStartImpl( app ));
+		CHECK_FATAL( _CreateWindow( app, cfg.window, cfg.vr ));
 	}
 
 /*
@@ -982,7 +365,7 @@ void main (Config &out cfg)
 =================================================
 */
 	ResEditorCore::ResEditorCore () :
-		_ui{ *this, ResEditorAppConfig::Get().scriptFolder }
+		_ui{ *this }
 	{}
 
 /*
@@ -1035,8 +418,11 @@ void main (Config &out cfg)
 			if ( not _test.scripts.empty() )
 			{
 				CHECK_ERR( not re_cfg.testOutput.empty() );
-				s_REConfig.testOutput /= GraphicsScheduler().GetDevice().GetDeviceName();
-				FileSystem::CreateDirectories( re_cfg.testOutput );
+
+				Path&	test_output =ResEditorAppConfig::Edit().testOutput;
+
+				test_output /= GraphicsScheduler().GetDevice().GetDeviceName();
+				FileSystem::CreateDirectories( test_output );
 
 				_test.isActive.store( true );
 			}
@@ -1070,10 +456,11 @@ void main (Config &out cfg)
 */
 	bool  ResEditorCore::OnSurfaceCreated (IWindow &wnd) __NE___
 	{
+		auto&	re_cfg = ResEditorAppConfig::Get();
+
 	  #if ENABLE_RDC
 		// initialize render doc
 		{
-			auto&	re_cfg = ResEditorAppConfig::Get();
 			if ( re_cfg.enableRenderDoc and not re_cfg.renderDocFolder.empty() )
 			{
 				GraphicsScheduler().GetDevice().GetRenderDocApi().CaptureFolder( ToString( re_cfg.renderDocFolder ) << '/' );
@@ -1086,7 +473,7 @@ void main (Config &out cfg)
 	  #endif
 
 		_window = &wnd;
-		return _ui.Init( wnd.GetSurface(), s_REConfig.windowMode, wnd.GetMonitor().uiScale );
+		return _ui.Init( wnd.GetSurface(), re_cfg.windowMode, wnd.GetMonitor().uiScale, re_cfg.scriptFolder );
 	}
 
 /*
@@ -1510,8 +897,6 @@ Unique<IApplication::IAppListener>  AE_OnAppCreated (const int argc, char const*
 	AE_LOGI( String{AE_ENGINE_NAME} << ' ' << ToString(AE_VERSION.Get<0>()) << '.' << ToString(AE_VERSION.Get<1>()) << '.' << ToString(AE_VERSION.Get<2>()) );
 	AE_LOG_DBG( "License: "s << AE_LICENSE );
 
-	InitResEditorAppConfig();
-
 	return MakeUnique<ResEditorApplication>();
 }
 
@@ -1526,3 +911,23 @@ void  AE_OnAppDestroyed ()
 	// false positive in glslang when used dynamic allocation in static variable.
 	StaticLogger::Deinitialize( false );
 }
+
+/*
+=================================================
+	JNI_OnLoad / JNI_OnUnload
+=================================================
+*/
+#ifdef AE_PLATFORM_ANDROID
+#	include "platform/Android/ApplicationAndroid.h"
+
+	extern "C" JNIEXPORT jint  JNI_OnLoad (JavaVM* vm, void*)
+	{
+		return ApplicationAndroid::OnJniLoad( vm );
+	}
+
+	extern "C" void JNI_OnUnload (JavaVM* vm, void *)
+	{
+		return ApplicationAndroid::OnJniUnload( vm );
+	}
+
+#endif // AE_PLATFORM_ANDROID

@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #if defined(AE_ENABLE_VULKAN)
 #	define TRANSFER_CTX( _res_, _name_ )	template <typename C>  _res_  _VTransferContextImpl<C>::_name_

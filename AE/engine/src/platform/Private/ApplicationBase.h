@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #pragma once
 
@@ -25,6 +25,8 @@ namespace AE::App
 
 		using StorageCache_t = StaticArray< AtomicRC<IVirtualFileStorage>, uint(EAppStorage::_Count) >;
 
+		using MountBits_t	= Threading::TValueWithSpinLockBit< uint, 31, false >;	// bitset of EAppStorage
+
 
 	// variables
 	protected:
@@ -41,6 +43,7 @@ namespace AE::App
 	  #endif
 
 		StorageCache_t			_storageCache;
+		MountBits_t				_mountStorages	{0};
 
 		DRC_ONLY(
 			mutable SingleThreadCheck	_stCheck;
@@ -72,6 +75,8 @@ namespace AE::App
 		Monitor::ID  GetMonitorFromNative (Monitor::NativeMonitor_t)							C_NE_OF;
 
 		void		 Terminate ()																__NE_OV;
+
+		bool		 MountStorage (EAppStorage type)											__NE_OV;
 
 		DRC_ONLY( ND_ SingleThreadCheck&	GetSingleThreadCheck ()								C_NE___	{ return _stCheck; })
 

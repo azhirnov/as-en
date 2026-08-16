@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #ifdef CICD_TEST_MACHINE
 # include "cicd/TestMachine.h"
@@ -171,16 +171,19 @@ namespace AE::CICD
 		}
 		CHECK_ERR( FS::IsFile( lib_path ));
 
-		const String	work_dir = ToString( lib_path.parent_path() );
+		const String	work_dir	= ToString( lib_path.parent_path() );
+		char const*		argv[]		= { "exe path", "-p", work_dir.c_str() };
+		const int		argc		= int(CountOf( argv ));
 
 		Library	lib;
 		if ( lib.Load( lib_path ))
 		{
-			int (*fn) (const char*);
+			int (*fn) (const int argc, char const* argv[]);
+
 			if ( lib.GetProcAddr( msg.fnName, OUT fn ))
 			{
 				C_LOGI( "run android test '"s <<msg.libName << "'" );
-				fn( work_dir.c_str() );
+				fn( argc, argv );
 			}
 			else
 				C_LOGE( "android test: failed to get fn '"s << msg.fnName << "' from '" << msg.libName << "'" );

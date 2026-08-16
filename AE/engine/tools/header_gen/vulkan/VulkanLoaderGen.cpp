@@ -1,15 +1,16 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
-#include <map>
-#include "VulkanLoaderGen.h"
+#ifdef VULKAN_HEADER_PATH
+# include <map>
+# include "VulkanLoaderGen.h"
 
-#ifdef AE_PLATFORM_WINDOWS
-# include "base/Platforms/WindowsHeader.cpp.h"
-# include "vulkan/vulkan_win32.h"
-#else
-# define VK_KHR_EXTERNAL_MEMORY_WIN32_EXTENSION_NAME 	"VK_KHR_external_memory_win32"
-# define VK_KHR_WIN32_KEYED_MUTEX_EXTENSION_NAME		"VK_KHR_win32_keyed_mutex"
-#endif
+# ifdef AE_PLATFORM_WINDOWS
+#	include "base/Platforms/WindowsHeader.cpp.h"
+#	include "vulkan/vulkan_win32.h"
+# else
+#	define VK_KHR_EXTERNAL_MEMORY_WIN32_EXTENSION_NAME 	"VK_KHR_external_memory_win32"
+#	define VK_KHR_WIN32_KEYED_MUTEX_EXTENSION_NAME		"VK_KHR_win32_keyed_mutex"
+# endif
 
 namespace AE::Parsers
 {
@@ -101,9 +102,9 @@ namespace AE::Parsers
 		//	exclude_fn.erase( "vkDestroySamplerYcbcrConversion" );
 
 		  // VK_KHR_descriptor_update_template
-		//	exclude_fn.erase( "vkCreateDescriptorUpdateTemplate" );
-		//	exclude_fn.erase( "vkDestroyDescriptorUpdateTemplate" );
-		//	exclude_fn.erase( "vkUpdateDescriptorSetWithTemplate" );
+			exclude_fn.erase( "vkCreateDescriptorUpdateTemplate" );
+			exclude_fn.erase( "vkDestroyDescriptorUpdateTemplate" );
+			exclude_fn.erase( "vkUpdateDescriptorSetWithTemplate" );
 		#endif
 
 		// Vulkan 1.2 core
@@ -125,6 +126,12 @@ namespace AE::Parsers
 
 		  // VK_EXT_host_query_reset
 			exclude_fn.erase( "vkResetQueryPool" );
+
+		  // VK_KHR_dynamic_rendering - unused
+		  	exclude_fn.insert( "vkCmdBeginRenderingKHR" );
+			exclude_fn.insert( "vkCmdEndRenderingKHR" );
+		  	exclude_fn.insert( "vkCmdBeginRendering");
+			exclude_fn.insert( "vkCmdEndRendering" );
 		#endif
 
 		// Vulkan 1.3 core
@@ -149,6 +156,20 @@ namespace AE::Parsers
 			exclude_fn.erase( "vkGetDeviceImageMemoryRequirements" );
 			exclude_fn.erase( "vkGetDeviceImageSparseMemoryRequirements" );
 		#endif
+
+		// capture
+		{
+			exclude_fn.insert( "vkGetAccelerationStructureOpaqueCaptureDescriptorDataEXT" );
+			exclude_fn.insert( "vkGetSamplerOpaqueCaptureDescriptorDataEXT" );
+			exclude_fn.insert( "vkGetImageOpaqueCaptureDataEXT" );
+			exclude_fn.insert( "vkGetBufferOpaqueCaptureAddressKHR" );
+			exclude_fn.insert( "vkGetDeviceMemoryOpaqueCaptureAddressKHR" );
+			exclude_fn.insert( "vkGetTensorOpaqueCaptureDataARM" );
+			exclude_fn.insert( "vkGetBufferOpaqueCaptureDescriptorDataEXT" );
+			exclude_fn.insert( "vkGetImageOpaqueCaptureDescriptorDataEXT" );
+			exclude_fn.insert( "vkGetImageViewOpaqueCaptureDescriptorDataEXT" );
+			exclude_fn.insert( "vkGetRayTracingCaptureReplayShaderGroupHandlesKHR" );
+		}
 
 		for (auto& fn : _funcs)
 		{
@@ -485,6 +506,7 @@ namespace AE::Parsers
 			{ "spirv14",						VK_KHR_SPIRV_1_4_EXTENSION_NAME,							{1,2},	{1,1},	{VK_KHR_SHADER_FLOAT_CONTROLS_EXTENSION_NAME} },
 			{ "imageFormatList",				VK_KHR_IMAGE_FORMAT_LIST_EXTENSION_NAME,					{1,2},	{1,0},	{} },
 			{ "driverProperties",				VK_KHR_DRIVER_PROPERTIES_EXTENSION_NAME,					{1,2},	{1,0},	{VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME} },
+			{ "dynamicRendering",				VK_KHR_DYNAMIC_RENDERING_EXTENSION_NAME,					{1,2},	{1,1},	{VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME} },	// unused in engine, but required for maintenance5
 
 		// optional in 1.2 //
 			{ "storage8bits",					VK_KHR_8BIT_STORAGE_EXTENSION_NAME,							NoVer,	{1,0},	{VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME, VK_KHR_STORAGE_BUFFER_STORAGE_CLASS_EXTENSION_NAME} },
@@ -522,7 +544,7 @@ namespace AE::Parsers
 			{ "shaderIntegerDotProduct",		VK_KHR_SHADER_INTEGER_DOT_PRODUCT_EXTENSION_NAME,			NoVer,	{1,0},	{VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME} },
 
 		// 1.4 //
-		//	{ "pushDescriptor",					VK_KHR_PUSH_DESCRIPTOR_EXTENSION_NAME,						{1,4},	{1,0},	{VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME} },
+			{ "pushDescriptor",					VK_KHR_PUSH_DESCRIPTOR_EXTENSION_NAME,						{1,4},	{1,0},	{VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME} },
 			{ "loadOpNone",						VK_KHR_LOAD_STORE_OP_NONE_EXTENSION_NAME,					{1,4},	{1,0},	{} },
 			{ "shaderFloatControls2",			VK_KHR_SHADER_FLOAT_CONTROLS_2_EXTENSION_NAME,				{1,4},	{1,1},	{VK_KHR_SHADER_FLOAT_CONTROLS_EXTENSION_NAME} },
 			{ "shaderExpectAssume",				VK_KHR_SHADER_EXPECT_ASSUME_EXTENSION_NAME,					{1,4},	{1,0},	{VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME} },
@@ -561,11 +583,14 @@ namespace AE::Parsers
 		//	{ "pipelineBinary",					VK_KHR_PIPELINE_BINARY_EXTENSION_NAME,						NoVer,	{1,3},	{VK_KHR_MAINTENANCE_5_EXTENSION_NAME} },
 			{ "deviceGeneratedCommands",		VK_EXT_DEVICE_GENERATED_COMMANDS_EXTENSION_NAME,			NoVer,	{1,1},	{VK_KHR_BUFFER_DEVICE_ADDRESS_EXTENSION_NAME, VK_KHR_MAINTENANCE_5_EXTENSION_NAME} },
 			{ "conservativeRasterization",		VK_EXT_CONSERVATIVE_RASTERIZATION_EXTENSION_NAME,			NoVer,	{1,1},	{VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME} },
+
+		// descriptors //
+			{ "mutableDescType",				VK_EXT_MUTABLE_DESCRIPTOR_TYPE_EXTENSION_NAME,				NoVer,	{1,0},	{VK_KHR_MAINTENANCE3_EXTENSION_NAME} },
+			{ "descriptorBuffer",				VK_EXT_DESCRIPTOR_BUFFER_EXTENSION_NAME,					NoVer,	{1,0},	{VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME, VK_KHR_BUFFER_DEVICE_ADDRESS_EXTENSION_NAME, VK_EXT_DESCRIPTOR_INDEXING_EXTENSION_NAME, VK_KHR_SYNCHRONIZATION_2_EXTENSION_NAME} },	// deprecated
 			{ "descriptorHeap",					VK_EXT_DESCRIPTOR_HEAP_EXTENSION_NAME,						NoVer,	{1,1},	{VK_KHR_MAINTENANCE_5_EXTENSION_NAME, VK_KHR_BUFFER_DEVICE_ADDRESS_EXTENSION_NAME} },
 
 		// dynamic rendering //
 		#if 0
-			{ "dynamicRendering",				VK_KHR_DYNAMIC_RENDERING_EXTENSION_NAME,					{1,2},	{1,1},	{VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME} },
 			{ "shaderTileImage",				VK_EXT_SHADER_TILE_IMAGE_EXTENSION_NAME,					NoVer,	{1,3},	{} },
 			{ "shaderObject",					VK_EXT_SHADER_OBJECT_EXTENSION_NAME,						NoVer,	{1,1},	{VK_KHR_DYNAMIC_RENDERING_EXTENSION_NAME} },
 			{ "dynRenUnusedAttachments",		VK_EXT_DYNAMIC_RENDERING_UNUSED_ATTACHMENTS_EXTENSION_NAME,	NoVer,	{1,1},	{VK_KHR_DYNAMIC_RENDERING_EXTENSION_NAME} },
@@ -702,6 +727,10 @@ namespace AE::Parsers
 			{ "subpassShadingHW",				VK_HUAWEI_SUBPASS_SHADING_EXTENSION_NAME,					NoVer,	{1,0},	{VK_KHR_CREATE_RENDERPASS_2_EXTENSION_NAME, VK_KHR_SYNCHRONIZATION_2_EXTENSION_NAME} },
 
 		// Qualcomm //
+			{ "tilePropertiesQCOM",				VK_QCOM_TILE_PROPERTIES_EXTENSION_NAME,						NoVer,	{1,0},	{VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME} },
+			{ "tileShadingQCOM",				VK_QCOM_TILE_SHADING_EXTENSION_NAME,						NoVer,	{1,0},	{} },
+			{ "tileMemoryQCOM",					VK_QCOM_TILE_MEMORY_HEAP_EXTENSION_NAME,					NoVer,	{1,0},	{VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME, VK_KHR_GET_MEMORY_REQUIREMENTS_2_EXTENSION_NAME} },
+		//	{},
 		//	{ "renderPassShaderResolve",		VK_QCOM_RENDER_PASS_SHADER_RESOLVE_EXTENSION_NAME,			NoVer,	{1,0},	{} },
 			// VK_QCOM_FRAGMENT_DENSITY_MAP_OFFSET_EXTENSION_NAME
 			// VK_QCOM_RENDER_PASS_TRANSFORM_EXTENSION_NAME
@@ -1385,3 +1414,4 @@ namespace AE::Parsers
 	}
 
 } // AE::Parsers
+#endif // VULKAN_HEADER_PATH

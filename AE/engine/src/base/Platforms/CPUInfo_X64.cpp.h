@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 namespace AE::Base
 {
@@ -356,7 +356,7 @@ namespace
 			switch ( level )
 			{
 				case 1 :
-					cache_type = (type == AMDCacheType::Instruction ? ECacheType::L1_Instuction : ECacheType::L1_Data);
+					cache_type = (type == AMDCacheType::Instruction ? ECacheType::L1I : ECacheType::L1D);
 					break;
 				case 2 :
 				case 3 :
@@ -427,7 +427,7 @@ namespace
 			switch ( level )
 			{
 				case 1 :
-					cache_type = (type == IntelCacheType::Instruction ? ECacheType::L1_Instuction : ECacheType::L1_Data);
+					cache_type = (type == IntelCacheType::Instruction ? ECacheType::L1I : ECacheType::L1D);
 					break;
 				case 2 :
 				case 3 :
@@ -536,7 +536,7 @@ namespace
 			// ECX=1
 			CPUIDExt( 0x7, 0x1, OUT cpui );
 
-			feats.SHA512			= HasBit<  0 >( cpui[0] );
+			feats.SHA2_512			= HasBit<  0 >( cpui[0] );
 			feats.AVX_VNNI			= HasBit<  4 >( cpui[0] );
 			feats.AVX512_BF16		= HasBit<  5 >( cpui[0] );
 			// archperf-­monext		 = HasBit<  8 >( cpui[0] );

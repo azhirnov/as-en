@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #pragma once
 
@@ -163,7 +163,7 @@ namespace AE::Graphics
 		EncodeDst	= 1 << 3,		// destination video bitstream
 
 		_Last,
-		All			= ((_Last - 1) << 1) - 1
+		All			= CT_AllBitMask2<EVideoBufferUsage>,
 	};
 
 
@@ -180,7 +180,7 @@ namespace AE::Graphics
 		EncodeDpb	= 1 << 5,		// encode input picture and reconstructed picture
 
 		_Last,
-		All			= ((_Last - 1) << 1) - 1
+		All			= CT_AllBitMask2<EVideoImageUsage>,
 	};
 
 

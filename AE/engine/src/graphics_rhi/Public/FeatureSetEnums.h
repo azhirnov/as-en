@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #pragma once
 
@@ -15,20 +15,48 @@ namespace AE::Graphics
 		// M, N, K:			A[MxK], B[KxN], C[MxN], R[MxN]
 		// SA				saturatingAccumulation
 
-		Afp16_Bfp16_Cfp16_Rfp16_M16_N16_K16,
-		Afp16_Bfp16_Cfp32_Rfp32_M16_N16_K16,
+		// TODO: remove MNK, use specialization constants to init them in SPIRV
 
-		Afp16_Bfp16_Cfp32_Rfp32_M8_N8_K16,
+		// fp16 -> fp16
+		ABfp16_CRfp16_M16_N16_K16,
+		ABfp16_CRfp16_M64_N64_K16,
+		ABfp16_CRfp16_M64_N32_K16,
+		ABfp16_CRfp16_M64_N16_K16,
 
-		Au8_Bu8_Cu32_Ru32_M16_N16_K32,
-		As8_Bs8_Cs32_Rs32_M16_N16_K32,
+		// fp16 -> fp32
+		ABfp16_CRfp32_M16_N16_K16,
+		ABfp16_CRfp32_M8_N8_K16,
 
-		Au8_Bu8_Cu32_Ru32_M16_N16_K16,
-		As8_Bs8_Cs32_Rs32_M16_N16_K16,
+		// fp32 -> fp32
+		ABfp32_CRfp32_M64_N64_K8,
+		ABfp32_CRfp32_M64_N32_K8,
+		ABfp32_CRfp32_M64_N16_K8,
 
-		Au8_Bu8_Cu32_Ru32_M8_N8_K32,
-		As8_Bs8_Cs32_Rs32_M8_N8_K32,
+		// bf16 -> bf16
+		ABbf16_CRbf16_M16_N16_K16,
 
+		// fp8e5m2 -> fp16/fp32
+		ABe5m2_CRfp16_M16_N16_K32,
+		ABe5m2_CRfp32_M16_N16_K32,
+
+		// fp8e4m3 -> fp16/fp32
+		ABe4m3_CRfp16_M16_N16_K32,
+		ABe4m3_CRfp32_M16_N16_K32,
+		/*
+		// u8 -> u32
+		ABu8_CRu32_M16_N16_K32,
+		ABu8_CRu32_M16_N16_K16,
+		ABu8_CRu32_M8_N8_K32,
+		ABu8_CRu32_M64_N64_K32,
+		ABu8_CRu32_M64_N64_K32_SA,
+
+		// s8 -> s32
+		ABs8_CRs32_M16_N16_K32,
+		ABs8_CRs32_M16_N16_K16,
+		ABs8_CRs32_M8_N8_K32,
+		ABs8_CRs32_M64_N64_K32,
+		ABs8_CRs32_M64_N64_K32_SA,
+		*/
 		_Count,
 		Unknown = _Count
 	};
@@ -53,12 +81,12 @@ namespace AE::Graphics
 		// fp8e4m3	- 8bit float point with 1bit sign, 4bit exponent, 3bit mantissa
 		// fp8e5m2	- 8bit float point with 1bit sign, 5bit exponent, 2bit mantissa
 
-		Tfp16_Ifp16_Mfp16_Bfp16_Rfp16_Tp,
+		Tfp16_IMfp16_BRfp16_Tp,
 
-		Tfp16_Ifp8e4m3_Mfp8e4m3_Bfp16_Rfp16,
-		Tfp16_Ifp8e5m2_Mfp8e5m2_Bfp16_Rfp16,
+		Tfp16_IMe4m3_BRfp16,
+		Tfp16_IMe5m2_BRfp16,
 
-		Ts8_Is8_Ms8_Bs32_Rs32,
+		Ts8_IMs8_BRs32,
 
 		_Count,
 		Unknown = _Count
@@ -147,7 +175,7 @@ namespace AE::Graphics
 		Float16		= 1 << 5,
 
 		_Last,
-		All			= ((_Last - 1) << 1) - 1,
+		All			= CT_AllBitMask2<ESubgroupTypes>,
 	};
 
 

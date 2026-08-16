@@ -1,4 +1,4 @@
-//73b95a27
+//0b0cefdb
 #pragma once
 #include <vector>
 #include <string>
@@ -24,14 +24,24 @@ using array = std::vector<T>;
 
 using namespace std::string_literals;
 
-struct RenderState_RasterizationState;
-struct ubyte2;
-struct RenderState_InputAssemblyState;
-struct ubyte3;
-struct ComputePipelineSpec;
-struct GlobalConfig;
-struct CompatibleRenderPass;
-struct ubyte4;
+struct InstanceIndex;
+struct float3;
+struct float2;
+struct MultiSamples;
+struct RenderTechnique;
+struct RayTracingShaderBinding;
+struct RayTracingPipeline;
+struct RenderState_StencilBufferState;
+struct DescriptorSetLayout;
+struct Align;
+struct sbyte3;
+struct sbyte4;
+struct short3;
+struct GraphicsPass;
+struct short2;
+struct ushort4;
+struct float4;
+struct ComputePipeline;
 struct RayIndex;
 struct FS_DirectoryIterator;
 struct RenderState_MultisampleState;
@@ -47,30 +57,33 @@ struct RGBA32i;
 struct bool4;
 struct bool3;
 struct bool2;
-struct Align;
-struct sbyte3;
-struct sbyte4;
-struct short3;
-struct ushort4;
-struct GraphicsPass;
-struct short2;
-struct float4;
-struct ComputePipeline;
-struct InstanceIndex;
-struct float3;
-struct float2;
-struct MultiSamples;
-struct RayTracingShaderBinding;
-struct RenderTechnique;
-struct RayTracingPipeline;
-struct RenderState_StencilBufferState;
-struct DescriptorSetLayout;
-struct RayTracingPipelineSpec;
-struct RenderState_ColorBuffersState;
-struct RenderState;
-struct DepthStencil;
-struct AttachmentSpec;
-struct MipmapLevel;
+struct RenderState_RasterizationState;
+struct RenderState_InputAssemblyState;
+struct ubyte2;
+struct ubyte3;
+struct ComputePipelineSpec;
+struct GlobalConfig;
+struct CompatibleRenderPass;
+struct ubyte4;
+struct VertexDivisor;
+struct NamedRenderState;
+struct FeatureSet;
+struct ComputePass;
+struct MeshPipeline;
+struct CallableIndex;
+struct GraphicsPipeline;
+struct MeshPipelineSpec;
+struct Sampler;
+struct RGBA32u;
+struct Attachment;
+struct RGBA8u;
+struct VertexBufferInput;
+struct uint4;
+struct RenderState_StencilFaceState;
+struct RenderState_DepthBufferState;
+struct uint2;
+struct uint3;
+struct ShaderIO;
 struct TilePipelineSpec;
 struct TilePipeline;
 struct RenderState_ColorBuffer;
@@ -84,28 +97,15 @@ struct GraphicsPipelineSpec;
 struct FS_RecursiveDirectoryIter;
 struct int4;
 struct int2;
-struct ImageLayer;
 struct int3;
+struct ImageLayer;
 struct ArraySize;
-struct RGBA32u;
-struct Attachment;
-struct VertexBufferInput;
-struct RGBA8u;
-struct uint4;
-struct RenderState_StencilFaceState;
-struct RenderState_DepthBufferState;
-struct uint2;
-struct ShaderIO;
-struct uint3;
-struct VertexDivisor;
-struct NamedRenderState;
-struct ComputePass;
-struct FeatureSet;
-struct MeshPipeline;
-struct CallableIndex;
-struct GraphicsPipeline;
-struct MeshPipelineSpec;
-struct Sampler;
+struct RayTracingPipelineSpec;
+struct RenderState_ColorBuffersState;
+struct RenderState;
+struct DepthStencil;
+struct AttachmentSpec;
+struct MipmapLevel;
 
 enum class EImage : uint8
 {
@@ -315,7 +315,6 @@ uint8  operator | (EPixelFormat lhs, uint8 rhs);
 
 enum class EPixelFormatExternal : uint8
 {
-	Android_Depth16,
 	Android_DepthJPEG,
 	Android_DepthPointCloud,
 	Android_JPEG,
@@ -576,9 +575,9 @@ uint8  operator | (EPrimitive lhs, uint8 rhs);
 
 enum class ECullMode : uint8
 {
-	None,
 	Front,
 	Back,
+	None,
 	FontAndBack,
 };
 uint8  operator | (ECullMode lhs, ECullMode rhs);
@@ -587,7 +586,6 @@ uint8  operator | (ECullMode lhs, uint8 rhs);
 
 enum class EPipelineDynamicState : uint16
 {
-	None,
 	StencilCompareMask,
 	StencilWriteMask,
 	StencilReference,
@@ -683,10 +681,11 @@ enum class EImageAspect : uint8
 	Color,
 	Depth,
 	Stencil,
-	DepthStencil,
+	Metadata,
 	Plane_0,
 	Plane_1,
 	Plane_2,
+	DepthStencil,
 };
 uint8  operator | (EImageAspect lhs, EImageAspect rhs);
 uint8  operator | (uint8 lhs, EImageAspect rhs);
@@ -713,12 +712,12 @@ uint8  operator | (EShaderIO lhs, uint8 rhs);
 
 enum class ESubgroupTypes : uint8
 {
-	Float16,
 	Float32,
+	Int32,
 	Int8,
 	Int16,
-	Int32,
 	Int64,
+	Float16,
 };
 uint8  operator | (ESubgroupTypes lhs, ESubgroupTypes rhs);
 uint8  operator | (uint8 lhs, ESubgroupTypes rhs);
@@ -805,8 +804,8 @@ uint32  operator | (ESubgroupOperation lhs, uint32 rhs);
 enum class EFeature : uint8
 {
 	Ignore,
-	RequireTrue,
 	RequireFalse,
+	RequireTrue,
 };
 uint8  operator | (EFeature lhs, EFeature rhs);
 uint8  operator | (uint8 lhs, EFeature rhs);
@@ -851,14 +850,14 @@ enum class EShaderStages : uint16
 	RayMiss,
 	RayIntersection,
 	RayCallable,
-	All,
-	AllGraphics,
 	GraphicsPipeStages,
 	MeshPipeStages,
 	VertexProcessingStages,
 	PreRasterizationStages,
 	PostRasterizationStages,
+	AllGraphics,
 	AllRayTracing,
+	All,
 };
 uint16  operator | (EShaderStages lhs, EShaderStages rhs);
 uint16  operator | (uint16 lhs, EShaderStages rhs);
@@ -1107,8 +1106,8 @@ uint8  operator | (EReductionMode lhs, uint8 rhs);
 enum class ESamplerOpt : uint8
 {
 	ArgumentBuffer,
-	UnnormalizedCoordinates,
 	NonSeamlessCubeMap,
+	UnnormalizedCoordinates,
 	Subsampled,
 	SubsampledCoarseReconstruction,
 };
@@ -1129,6 +1128,7 @@ enum class EDescSetUsage : uint8
 {
 	AllowPartialyUpdate,
 	UpdateTemplate,
+	DescriptorHeap,
 	ArgumentBuffer,
 	MutableArgBuffer,
 	MaybeUnsupported,
@@ -1151,6 +1151,7 @@ enum class EPipelineOpt : uint16
 	RT_SkipAABBs,
 	RT_AllowClusterAccelStruct,
 	OpacityMicromap,
+	DescriptorHeap,
 
 	// Pipeline creation will fail if it is not exists in cache.
 	DontCompile,
@@ -1179,7 +1180,6 @@ enum class EQueueMask : uint8
 	AsyncTransfer,
 	VideoEncode,
 	VideoDecode,
-	All,
 };
 uint8  operator | (EQueueMask lhs, EQueueMask rhs);
 uint8  operator | (uint8 lhs, EQueueMask rhs);
@@ -1287,8 +1287,8 @@ enum class EImageOpt : uint32
 	FragmentPplnStore,
 	LossyRTCompression,
 	ExtendedUsage,
-	SeparatePlanes,
 	Subsampled,
+	SeparatePlanes,
 	All,
 	SparseResidencyAliased,
 	Blit,
@@ -1312,8 +1312,8 @@ enum class EBufferUsage : uint32
 	ShaderBindingTable,
 	ASBuild_ReadOnly,
 	ASBuild_Scratch,
-	MMBuild_ReadOnly,
 	RTAS_Storage,
+	MMBuild_ReadOnly,
 	ICB_Preprocess,
 	All,
 	Transfer,
@@ -1454,15 +1454,20 @@ uint8  operator | (ECoopVecMatrixLayout lhs, uint8 rhs);
 
 enum class ECoopMatrixCfg : uint8
 {
-	Afp16_Bfp16_Cfp16_Rfp16_M16_N16_K16,
-	Afp16_Bfp16_Cfp32_Rfp32_M16_N16_K16,
-	Afp16_Bfp16_Cfp32_Rfp32_M8_N8_K16,
-	Au8_Bu8_Cu32_Ru32_M16_N16_K32,
-	As8_Bs8_Cs32_Rs32_M16_N16_K32,
-	Au8_Bu8_Cu32_Ru32_M16_N16_K16,
-	As8_Bs8_Cs32_Rs32_M16_N16_K16,
-	Au8_Bu8_Cu32_Ru32_M8_N8_K32,
-	As8_Bs8_Cs32_Rs32_M8_N8_K32,
+	ABfp16_CRfp16_M16_N16_K16,
+	ABfp16_CRfp16_M64_N64_K16,
+	ABfp16_CRfp16_M64_N32_K16,
+	ABfp16_CRfp16_M64_N16_K16,
+	ABfp16_CRfp32_M16_N16_K16,
+	ABfp16_CRfp32_M8_N8_K16,
+	ABfp32_CRfp32_M64_N64_K8,
+	ABfp32_CRfp32_M64_N32_K8,
+	ABfp32_CRfp32_M64_N16_K8,
+	ABbf16_CRbf16_M16_N16_K16,
+	ABe5m2_CRfp16_M16_N16_K32,
+	ABe5m2_CRfp32_M16_N16_K32,
+	ABe4m3_CRfp16_M16_N16_K32,
+	ABe4m3_CRfp32_M16_N16_K32,
 };
 uint8  operator | (ECoopMatrixCfg lhs, ECoopMatrixCfg rhs);
 uint8  operator | (uint8 lhs, ECoopMatrixCfg rhs);
@@ -1470,10 +1475,10 @@ uint8  operator | (ECoopMatrixCfg lhs, uint8 rhs);
 
 enum class ECoopVecCfg : uint8
 {
-	Tfp16_Ifp16_Mfp16_Bfp16_Rfp16_Tp,
-	Tfp16_Ifp8e4m3_Mfp8e4m3_Bfp16_Rfp16,
-	Tfp16_Ifp8e5m2_Mfp8e5m2_Bfp16_Rfp16,
-	Ts8_Is8_Ms8_Bs32_Rs32,
+	Tfp16_IMfp16_BRfp16_Tp,
+	Tfp16_IMe4m3_BRfp16,
+	Tfp16_IMe5m2_BRfp16,
+	Ts8_IMs8_BRs32,
 };
 uint8  operator | (ECoopVecCfg lhs, ECoopVecCfg rhs);
 uint8  operator | (uint8 lhs, ECoopVecCfg rhs);
@@ -1505,6 +1510,14 @@ enum class EOpacityMicromapFormat : uint16
 uint16  operator | (EOpacityMicromapFormat lhs, EOpacityMicromapFormat rhs);
 uint16  operator | (uint16 lhs, EOpacityMicromapFormat rhs);
 uint16  operator | (EOpacityMicromapFormat lhs, uint16 rhs);
+
+enum class EDescriptorFlags : uint8
+{
+	VariableSize,
+};
+uint8  operator | (EDescriptorFlags lhs, EDescriptorFlags rhs);
+uint8  operator | (uint8 lhs, EDescriptorFlags rhs);
+uint8  operator | (EDescriptorFlags lhs, uint8 rhs);
 
 enum class EShaderVersion : uint32
 {
@@ -3628,6 +3641,8 @@ struct FeatureSet
 	bool  hasShaderDrawParameters ();
 	void  runtimeDescriptorArray (EFeature);
 	bool  hasRuntimeDescriptorArray ();
+	void  descriptorBindingVariableDescriptorCount (EFeature);
+	bool  hasDescriptorBindingVariableDescriptorCount ();
 	void  shaderSMBuiltinsNV (EFeature);
 	bool  hasShaderSMBuiltinsNV ();
 	void  shaderCoreBuiltinsARM (EFeature);
@@ -3792,6 +3807,10 @@ struct FeatureSet
 	uint8  getPerPipeline_maxStorageBuffersDynamic ();
 	void  perPipeline_maxTotalBuffersDynamic (uint);
 	uint8  getPerPipeline_maxTotalBuffersDynamic ();
+	void  perStage_maxTotalResources (uint);
+	uint  getPerStage_maxTotalResources ();
+	void  perDescSet_maxTotalResources (uint);
+	uint  getPerDescSet_maxTotalResources ();
 	void  maxDescriptorSets (uint);
 	uint8  getMaxDescriptorSets ();
 	void  maxTexelOffset (uint);
@@ -3952,8 +3971,6 @@ struct FeatureSet
 	uint  getPerPipeline_maxUniformBuffers ();
 	void  perPipeline_maxAccelStructures (uint);
 	uint  getPerPipeline_maxAccelStructures ();
-	void  perPipeline_maxTotalResources (uint);
-	uint  getPerPipeline_maxTotalResources ();
 	void  perStage_maxInputAttachments (uint);
 	uint  getPerStage_maxInputAttachments ();
 	void  perStage_maxSampledImages (uint);
@@ -3968,8 +3985,6 @@ struct FeatureSet
 	uint  getPerStage_maxUniformBuffers ();
 	void  perStage_maxAccelStructures (uint);
 	uint  getPerStage_maxAccelStructures ();
-	void  perStage_maxTotalResources (uint);
-	uint  getPerStage_maxTotalResources ();
 };
 
 RC<FeatureSet>  FindFeatureSet (const string & name);
@@ -4148,6 +4163,10 @@ struct DescriptorSetLayout
 	// Set descriptor set usage (EDescSetUsage).
 	void  SetUsage (EDescSetUsage);
 	void  SetUsage (uint);
+
+	// Set descriptor flags for uniform (EDescriptorFlags).
+	void  SetFlags (const string & uniform, EDescriptorFlags flags);
+	void  SetFlags (const string & uniform, uint flags);
 
 	// Add input attachment from render technique graphics pass.
 	void  SubpassInputFromRenderTech (const string & rtech, const string & gpass);
@@ -5167,15 +5186,39 @@ const string Sampler_NearestClampSubsampled;
 const string Sampler_MaxLinearClamp;
 const string Sampler_MinLinearClamp;
 template <>
-struct RC<ComputePipelineSpec> : ComputePipelineSpec
+struct RC<RenderTechnique> : RenderTechnique
 {
-	RC (const ComputePipelineSpec &);
+	RC (const RenderTechnique &);
 };
 
 template <>
-struct RC<CompatibleRenderPass> : CompatibleRenderPass
+struct RC<RayTracingShaderBinding> : RayTracingShaderBinding
 {
-	RC (const CompatibleRenderPass &);
+	RC (const RayTracingShaderBinding &);
+};
+
+template <>
+struct RC<RayTracingPipeline> : RayTracingPipeline
+{
+	RC (const RayTracingPipeline &);
+};
+
+template <>
+struct RC<DescriptorSetLayout> : DescriptorSetLayout
+{
+	RC (const DescriptorSetLayout &);
+};
+
+template <>
+struct RC<GraphicsPass> : GraphicsPass
+{
+	RC (const GraphicsPass &);
+};
+
+template <>
+struct RC<ComputePipeline> : ComputePipeline
+{
+	RC (const ComputePipeline &);
 };
 
 template <>
@@ -5197,51 +5240,69 @@ struct RC<IndirectExecutionSet> : IndirectExecutionSet
 };
 
 template <>
-struct RC<GraphicsPass> : GraphicsPass
+struct RC<ComputePipelineSpec> : ComputePipelineSpec
 {
-	RC (const GraphicsPass &);
+	RC (const ComputePipelineSpec &);
 };
 
 template <>
-struct RC<ComputePipeline> : ComputePipeline
+struct RC<CompatibleRenderPass> : CompatibleRenderPass
 {
-	RC (const ComputePipeline &);
+	RC (const CompatibleRenderPass &);
 };
 
 template <>
-struct RC<RayTracingShaderBinding> : RayTracingShaderBinding
+struct RC<NamedRenderState> : NamedRenderState
 {
-	RC (const RayTracingShaderBinding &);
+	RC (const NamedRenderState &);
 };
 
 template <>
-struct RC<RenderTechnique> : RenderTechnique
+struct RC<FeatureSet> : FeatureSet
 {
-	RC (const RenderTechnique &);
+	RC (const FeatureSet &);
 };
 
 template <>
-struct RC<RayTracingPipeline> : RayTracingPipeline
+struct RC<ComputePass> : ComputePass
 {
-	RC (const RayTracingPipeline &);
+	RC (const ComputePass &);
 };
 
 template <>
-struct RC<DescriptorSetLayout> : DescriptorSetLayout
+struct RC<MeshPipeline> : MeshPipeline
 {
-	RC (const DescriptorSetLayout &);
+	RC (const MeshPipeline &);
 };
 
 template <>
-struct RC<RayTracingPipelineSpec> : RayTracingPipelineSpec
+struct RC<GraphicsPipeline> : GraphicsPipeline
 {
-	RC (const RayTracingPipelineSpec &);
+	RC (const GraphicsPipeline &);
 };
 
 template <>
-struct RC<AttachmentSpec> : AttachmentSpec
+struct RC<MeshPipelineSpec> : MeshPipelineSpec
 {
-	RC (const AttachmentSpec &);
+	RC (const MeshPipelineSpec &);
+};
+
+template <>
+struct RC<Sampler> : Sampler
+{
+	RC (const Sampler &);
+};
+
+template <>
+struct RC<Attachment> : Attachment
+{
+	RC (const Attachment &);
+};
+
+template <>
+struct RC<VertexBufferInput> : VertexBufferInput
+{
+	RC (const VertexBufferInput &);
 };
 
 template <>
@@ -5275,56 +5336,14 @@ struct RC<GraphicsPipelineSpec> : GraphicsPipelineSpec
 };
 
 template <>
-struct RC<Attachment> : Attachment
+struct RC<RayTracingPipelineSpec> : RayTracingPipelineSpec
 {
-	RC (const Attachment &);
+	RC (const RayTracingPipelineSpec &);
 };
 
 template <>
-struct RC<VertexBufferInput> : VertexBufferInput
+struct RC<AttachmentSpec> : AttachmentSpec
 {
-	RC (const VertexBufferInput &);
-};
-
-template <>
-struct RC<NamedRenderState> : NamedRenderState
-{
-	RC (const NamedRenderState &);
-};
-
-template <>
-struct RC<ComputePass> : ComputePass
-{
-	RC (const ComputePass &);
-};
-
-template <>
-struct RC<FeatureSet> : FeatureSet
-{
-	RC (const FeatureSet &);
-};
-
-template <>
-struct RC<MeshPipeline> : MeshPipeline
-{
-	RC (const MeshPipeline &);
-};
-
-template <>
-struct RC<GraphicsPipeline> : GraphicsPipeline
-{
-	RC (const GraphicsPipeline &);
-};
-
-template <>
-struct RC<MeshPipelineSpec> : MeshPipelineSpec
-{
-	RC (const MeshPipelineSpec &);
-};
-
-template <>
-struct RC<Sampler> : Sampler
-{
-	RC (const Sampler &);
+	RC (const AttachmentSpec &);
 };
 

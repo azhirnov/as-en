@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #ifdef AE_ENABLE_VULKAN
 # include "graphics_rhi/Vulkan/VResourceManager.h"
@@ -101,7 +101,7 @@ namespace AE::Graphics
 */
 	bool  ResourceManager::CreateDescriptorSets (OUT Strong<DescriptorSetID> *dst, usize count,
 												  PipelinePackID packId, DSLayoutName::Ref dslName,
-												  DescriptorAllocatorPtr allocator, StringView dbgName) __NE___
+												  DescriptorAllocatorPtr allocator, StringView dbgName, const DescSetParams* params) __NE___
 	{
 		auto*	pack = GetResource( packId ? packId : _defaultPack.Get() );
 		CHECK_ERR( pack != null );
@@ -109,11 +109,11 @@ namespace AE::Graphics
 		auto	layout_id = pack->GetDSLayout( dslName );
 		CHECK_ERR( layout_id );		// warning: if two layouts are same then only one is stored
 
-		return CreateDescriptorSets( OUT dst, count, layout_id, RVRef(allocator), dbgName );
+		return CreateDescriptorSets( OUT dst, count, layout_id, RVRef(allocator), dbgName, params );
 	}
 
-	bool  ResourceManager::CreateDescriptorSets (OUT Strong<DescriptorSetID> *dst, usize count,
-												  DescriptorSetLayoutID layoutId, DescriptorAllocatorPtr allocator, StringView dbgName) __NE___
+	bool  ResourceManager::CreateDescriptorSets (OUT Strong<DescriptorSetID> *dst, usize count, DescriptorSetLayoutID layoutId,
+												 DescriptorAllocatorPtr allocator, StringView dbgName, const DescSetParams* params) __NE___
 	{
 		CHECK_ERR( dst != null and count > 0 );
 		CHECK_ERR( layoutId );
@@ -125,7 +125,7 @@ namespace AE::Graphics
 
 		for (; created and (i < count); ++i)
 		{
-			dst[i]  = _CreateResource<DescriptorSetID>( ERR_MSG( "failed when creating descriptor set", dbgName ), *this, layoutId, allocator, dbgName );
+			dst[i]  = _CreateResource<DescriptorSetID>( ERR_MSG( "failed when creating descriptor set", dbgName ), *this, layoutId, params, allocator, dbgName );
 			created = (dst[i].IsValid());
 		}
 
@@ -145,9 +145,9 @@ namespace AE::Graphics
 	CreateSampler
 =================================================
 */
-	Strong<SamplerID>  ResourceManager::CreateSampler (const SamplerDesc &info, StringView dbgName, const VkSamplerYcbcrConversionCreateInfo* ycbcrInfo) __NE___
+	Strong<SamplerID>  ResourceManager::CreateSampler (const SamplerDesc &info, StringView dbgName, const VkSamplerYcbcrConversionCreateInfo* ycbcrInfo, IAllocator* allocator) __NE___
 	{
-		return _CreateResource<SamplerID>( ERR_MSG( "failed when creating sampler", dbgName ), *this, info, ycbcrInfo, dbgName );
+		return _CreateResource<SamplerID>( ERR_MSG( "failed when creating sampler", dbgName ), *this, info, ycbcrInfo, allocator, dbgName );
 	}
 
 /*

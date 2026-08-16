@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 /*
 	Thread-safe:	yes
 */
@@ -42,6 +42,7 @@ namespace AE::Video
 			int					videoStreamIdx	= -1;				// use 'GetFileProperties()' to enum all streams
 			int					audioStreamIdx	= -1;
 			uint				threadCount		= 0;
+			Bytes32u			ioBufferSize	= 64_KiB;			// for custom stream, it decrease number of Read() calls
 
 			Config ()									__NE___	{}
 			explicit Config (const CodecConfig &src)	__NE___ :

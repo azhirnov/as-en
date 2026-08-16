@@ -16,6 +16,7 @@ void ASmain ()
 	//	Mesa-Intel-Xe2-1.4.318
 	//	Win-Adreno-X1-45-1.3.295
 	//	Win-Adreno-X1-85-1.3.295
+	//	Win-Adreno-X2-90-1.4.295
 	//	Win-AMD-RDNA2-1.4.315
 	//	Win-AMD-RDNA2-610M-1.4.315
 	//	Win-AMD-RDNA3-1.4.315
@@ -43,6 +44,7 @@ void ASmain ()
 	//	Adreno-830-1.3.284
 	//	Adreno-830-1.4.295-MS
 	//	Adreno-830-1.4.295
+	//	Adreno-840-1.4.295
 	//	AdrenoX1-45-Win-1.3.295
 	//	AdrenoX1-85-Linux-1.4.305
 	//	AdrenoX1-85-Win-1.3.295
@@ -141,7 +143,6 @@ void ASmain ()
 	fset.perPipeline_maxStorageImages (500000);
 	fset.perPipeline_maxUniformBuffers (216);
 	fset.perPipeline_maxAccelStructures (16);
-	fset.perPipeline_maxTotalResources (1024);
 	fset.perStage_maxInputAttachments (7);
 	fset.perStage_maxSampledImages (500000);
 	fset.perStage_maxSamplers (8192);
@@ -150,6 +151,7 @@ void ASmain ()
 	fset.perStage_maxUniformBuffers (36);
 	fset.perStage_maxAccelStructures (16);
 	fset.perStage_maxTotalResources (500000);
+	fset.perDescSet_maxTotalResources (1 << 10);
 	fset.maxDescriptorSets (7);
 	fset.maxTexelOffset (7);
 	fset.maxTexelGatherOffset (7);

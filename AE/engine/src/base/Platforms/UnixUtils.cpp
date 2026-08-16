@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #include "base/Defines/StdInclude.h"
 
@@ -112,6 +112,57 @@ namespace AE::Base
 		::write( fd, "3", 1 );
 		::close( fd );
 	}
+//-----------------------------------------------------------------------------
+
+
+/*
+=================================================
+	GetEnvironmentVariable
+=================================================
+*/
+	bool  UnixUtils::GetEnvironmentVariable (NtStringView name, OUT String &value) __NE___
+	{
+		if ( char* ptr = ::getenv( name.c_str() ))
+		{
+			value = ptr;
+			return true;
+		}
+		return false;
+	}
+
+/*
+=================================================
+	HasEnvironmentVariable
+=================================================
+*/
+	bool  UnixUtils::HasEnvironmentVariable (NtStringView name) __NE___
+	{
+		return ::getenv( name.c_str() ) != null;
+	}
+
+/*
+=================================================
+	SetEnvironmentVariable
+----
+	for current process
+=================================================
+*/
+	bool  UnixUtils::SetEnvironmentVariable (NtStringView name, NtStringView value) __NE___
+	{
+		return ::setenv( name.c_str(), value.c_str(), 1 ) == 0;
+	}
+
+/*
+=================================================
+	DeleteEnvironmentVariable
+=================================================
+*/
+	bool  UnixUtils::DeleteEnvironmentVariable (NtStringView name) __NE___
+	{
+		return ::unsetenv( name.c_str() ) == 0;
+	}
+//-----------------------------------------------------------------------------
+
 
 /*
 =================================================

@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 /*
 	All containers inside PipelinePack are initialized in '_Create()' and destroyed in '_Destroy()', in other methods they are immutable.
 
@@ -107,6 +107,7 @@ namespace AE::Graphics
 		using Device_t				= AE_PRIVATE_UNITE_RAW( SUFFIX, Device				);
 		using TempLinearAllocator_t	= AE_PRIVATE_UNITE_RAW( SUFFIX, TempLinearAllocator	);
 
+		using DescriptorSetLayout_t	= AE_PRIVATE_UNITE_RAW( SUFFIX, DescriptorSetLayout	);
 		using PipelineLayout_t		= AE_PRIVATE_UNITE_RAW( SUFFIX, PipelineLayout		);
 		using ComputePipeline_t		= AE_PRIVATE_UNITE_RAW( SUFFIX, ComputePipeline		);
 		using GraphicsPipeline_t	= AE_PRIVATE_UNITE_RAW( SUFFIX, GraphicsPipeline	);
@@ -405,10 +406,6 @@ namespace AE::Graphics
 											const Optional<SamplerYcbcrConversionDesc> &, StringView dbgName)	__NE___;
 		ND_ ShaderModuleRef	_GetShader (const ResourceManager &, PipelineCompiler::ShaderUID uid, EShader type)	C_NE___;
 		ND_ bool			_CreateShader (const Device_t &dev, INOUT const ShaderModule &shader)				C_NE___;
-
-		ND_ auto  _CreateDescriptorSetLayout (ResourceManager &, const Uniforms_t &, ArrayView<SamplerID>,
-											  const UniformOffsets_t &, EDescSetUsage,
-											  EShaderStages, StackAllocator_t &)								__NE___ -> Strong<DescriptorSetLayoutID>;
 
 		ND_ bool  _LoadNameMapping (ResourceManager &, Bytes offset, Bytes size)								__Th___;
 		ND_ bool  _LoadFeatureSets (ResourceManager &, Bytes offset, Bytes size)								__Th___;

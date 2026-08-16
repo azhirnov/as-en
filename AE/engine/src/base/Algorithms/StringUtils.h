@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #pragma once
 
@@ -230,10 +230,12 @@ namespace AE::Base
 		return (c >= 'A') and (c <= 'Z');
 	}
 
+#ifdef AE_ENABLE_UTF8PROC
 	Nd__IF bool  IsUpperCase (const CharUtf32 c) __NE___
 	{
 		return Utf32ToUpper( c );
 	}
+#endif
 
 /*
 =================================================
@@ -245,10 +247,12 @@ namespace AE::Base
 		return (c >= 'a') and (c <= 'z');
 	}
 
+#ifdef AE_ENABLE_UTF8PROC
 	Nd__IF bool  IsLowerCase (const CharUtf32 c) __NE___
 	{
 		return Utf32IsLower( c );
 	}
+#endif
 
 /*
 =================================================
@@ -260,10 +264,12 @@ namespace AE::Base
 		return IsUpperCase( c ) ? (c - 'A' + 'a') : c;
 	}
 
+#ifdef AE_ENABLE_UTF8PROC
 	Nd__IF CharUtf32  ToLowerCase (const CharUtf32 c) __NE___
 	{
 		return Utf32ToLower( c );
 	}
+#endif
 
 /*
 =================================================
@@ -275,10 +281,12 @@ namespace AE::Base
 		return IsLowerCase( c ) ? (c - 'a' + 'A') : c;
 	}
 
+#ifdef AE_ENABLE_UTF8PROC
 	Nd__IF CharUtf32  ToUpperCase (const CharUtf32 c) __NE___
 	{
 		return Utf32ToUpper( c );
 	}
+#endif
 
 /*
 =================================================
@@ -376,7 +384,10 @@ namespace _hidden_ {
 	}
 }
 	Nd__In bool  EqualIC (StringView    lhs, StringView    rhs) __NE___	{ return Base::_hidden_::EqualICImpl( lhs, rhs ); }
+
+#ifdef AE_ENABLE_UTF8PROC
 	Nd__In bool  EqualIC (U32StringView lhs, U32StringView rhs) __NE___	{ return Base::_hidden_::EqualICImpl( lhs, rhs ); }
+#endif
 
 /*
 =================================================

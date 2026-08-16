@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #include "Core/EditorCore.h"
 
@@ -388,7 +388,7 @@ namespace
 
 		AppCoreV1::OnStart( app );
 
-		CHECK_FATAL( _OnStartImpl( app ));
+		CHECK_FATAL( _CreateWindow( app, GetConfig().window, GetConfig().vr ));
 
 		CHECK_FATAL( core.InitVFS() );
 	}

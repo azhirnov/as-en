@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #include "base/Defines/StdInclude.h"
 
@@ -113,8 +113,8 @@ namespace
 				{
 					if ( StartsWith( line, "processor\t" ))
 					{
-						if ( cores.size()+1 == cores.capacity() )
-							break;
+						if_unlikely( cores.IsFull() )
+							break;  // overflow
 
 						cores.emplace_back().logicId = ReadUint10( line );
 					}else
@@ -133,6 +133,8 @@ namespace
 							cores.back().model = ReadUint10( line );
 						}
 					}
+
+					// TODO: currently all cores have same flags, but somewhen this may be changed
 					if ( flags_str.empty() and StartsWith( line, "flags\t" ))
 						flags_str = SubString( line, line.find(':') );
 				}
@@ -176,10 +178,11 @@ namespace
 				}
 
 				// parse CPU features which may be not detected by cpuid
+				if ( not flags_str.empty() )
 				{
 					feats.VAES				= feats.VAES 			or flags_str.contains( "vaes" );
 					feats.AESKL				= feats.AESKL 			or flags_str.contains( "aeskl" );
-					feats.SHA2_256			= feats.SHA2_256 		or flags_str.contains( "sha_ni" );	// sha ???
+					feats.SHA2_256			= feats.SHA2_256 		or flags_str.contains( "sha_ni" );	// sha new instructions (SHA-1, SHA-256)
 
 					feats.AVX2				= feats.AVX2 			or flags_str.contains( "avx2" );
 					feats.AVX512F			= feats.AVX512F 		or flags_str.contains( "avx512f" );
@@ -229,13 +232,13 @@ namespace
 				c.lineSize		= ::getauxval( AT_L1I_CACHEGEOMETRY ) & 0xFFFF;
 				c.associativity	= ::getauxval( AT_L1I_CACHEGEOMETRY ) >> 16;
 				c.size			= Bytes32u{uint(::getauxval( AT_L1I_CACHESIZE ))};
-				AddCacheInfo( ECacheType::L1_Instuction, c );
+				AddCacheInfo( ECacheType::L1I, c );
 			}{
 				CacheGeom	c;
 				c.lineSize		= ::getauxval( AT_L1D_CACHEGEOMETRY ) & 0xFFFF;
 				c.associativity	= ::getauxval( AT_L1D_CACHEGEOMETRY ) >> 16;
 				c.size			= Bytes32u{uint(::getauxval( AT_L1D_CACHESIZE ))};
-				AddCacheInfo( ECacheType::L1_Data, c );
+				AddCacheInfo( ECacheType::L1D, c );
 			}{
 				CacheGeom	c;
 				c.lineSize		= ::getauxval( AT_L2_CACHEGEOMETRY ) & 0xFFFF;

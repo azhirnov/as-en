@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #pragma once
 
@@ -67,9 +67,6 @@
 #endif
 #ifdef __cpp_lib_semaphore
 #	include <semaphore>
-#endif
-#ifdef __cpp_lib_stacktrace
-#	include <stacktrace>
 #endif
 
 

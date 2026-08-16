@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #ifdef AE_ENABLE_VULKAN
 # include "graphics_rhi/Private/ResourceValidation.h"
@@ -53,7 +53,6 @@ namespace {
 */
 	VImage::~VImage () __NE___
 	{
-		DRC_EXLOCK( _drCheck );
 		ASSERT( _image == Default );
 		ASSERT( _memoryId == Default );
 	}
@@ -65,7 +64,6 @@ namespace {
 */
 	bool  VImage::Create (ResourceManager &resMngr, const ImageDesc &desc, GfxMemAllocatorPtr allocator, StringView dbgName) __NE___
 	{
-		DRC_EXLOCK( _drCheck );
 		CHECK_ERR( _image == Default );
 		CHECK_ERR( _memoryId == Default );
 		CHECK_ERR( All( desc.dimension > ImageDim_t{0} ));
@@ -131,6 +129,9 @@ namespace {
 		VkImageFormatListCreateInfo		fmt_list_info = {};
 		if ( not fmt_list.empty() )
 		{
+			// format list add optimization, but not a replacement for mutable format flag
+			GRES_CHECK( AllBits( _desc.options, EImageOpt::MutableFormat ));
+
 			fmt_list_info.sType				= VK_STRUCTURE_TYPE_IMAGE_FORMAT_LIST_CREATE_INFO;
 			fmt_list_info.viewFormatCount	= uint(fmt_list.size());
 			fmt_list_info.pViewFormats		= fmt_list.data();
@@ -175,7 +176,6 @@ namespace {
 */
 	bool  VImage::Create (ResourceManager &resMngr, const VulkanImageDesc &desc, GfxMemAllocatorPtr allocator, StringView dbgName) __NE___
 	{
-		DRC_EXLOCK( _drCheck );
 		CHECK_ERR( _image == Default );
 		CHECK_ERR( _memoryId == Default );
 		CHECK_ERR( desc.format != Zero );
@@ -228,7 +228,6 @@ namespace {
 */
 	bool  VImage::Create (ResourceManager &resMngr, const VulkanImageDesc2 &desc, GfxMemAllocatorPtr allocator, StringView dbgName) __NE___
 	{
-		DRC_EXLOCK( _drCheck );
 		CHECK_ERR( _image == Default );
 		CHECK_ERR( _memoryId == Default );
 		CHECK_ERR( All( desc.dimension > ImageDim_t{0} ));
@@ -278,8 +277,6 @@ namespace {
 */
 	void  VImage::Destroy (ResourceManager &resMngr) __NE___
 	{
-		DRC_EXLOCK( _drCheck );
-
 		const bool	is_internal = NoBits( _desc.memType, EMemoryType::_External );
 		auto&		dev			= resMngr.GetDevice();
 
@@ -464,6 +461,10 @@ namespace {
 				return false;
 		}
 
+		if ( desc.viewFormats[0] != Default					and
+			 NoBits( desc.options, EImageOpt::MutableFormat ))
+			return false;
+
 		return true;
 	}
 
@@ -479,12 +480,12 @@ namespace {
 
 		const auto&		dev	= resMngr.GetDevice();
 
-		if ( view.extUsage != Default )
+		if ( view.usage != Default )
 		{
 			if_unlikely( not dev.GetVExtensions().maintenance2 )
 				return false;
 
-			if_unlikely( not CheckFormatFeatures( resMngr, VEnumCast( view.format ), view.extUsage, Default, true ))
+			if_unlikely( not CheckFormatFeatures( resMngr, VEnumCast( view.format ), view.usage, Default, true ))
 				return false;
 		}
 

@@ -1,8 +1,8 @@
-# Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+# Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 file( GLOB_RECURSE CPP_SOURCES "*.*" )
 
-if (ANDROID)
+if (${AE_ANDROID_UI_MODE})
 	add_library( "TestLauncher" SHARED ${CPP_SOURCES} )
 
 	# also add libs to [build.gradle](https://github.com/azhirnov/as-en/blob/dev/AE/android/test/build.gradle)
@@ -46,12 +46,18 @@ if (ANDROID)
 	if (TARGET "TestsVideo")
 		add_dependencies( "TestLauncher" "TestsVideo" )
 	endif()
+	if (TARGET "TestsCoopMat")
+		add_dependencies( "TestLauncher" "TestsCoopMat" )
+	endif()
 
 	if (TARGET "TestsAtlasTools")
 		add_dependencies( "TestLauncher" "TestsAtlasTools" )
 	endif()
 	if (TARGET "TestsGeometryTools")
 		add_dependencies( "TestLauncher" "TestsGeometryTools" )
+	endif()
+	if (TARGET "TestsPipelineCompiler")
+		add_dependencies( "TestLauncher" "TestsPipelineCompiler" )
 	endif()
 
 	if (TARGET "PerfBase")

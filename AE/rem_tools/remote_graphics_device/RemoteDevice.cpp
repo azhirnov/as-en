@@ -1,5 +1,6 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
+#include "base/Debug/StackTrace.h"
 #include "remote_graphics_device/RemoteDevice.h"
 
 #ifdef AE_PLATFORM_ANDROID
@@ -780,9 +781,7 @@ namespace AE::RemoteGraphics
 	ILogger::EResult  RmGAppListener::LogToHost::Process (const MessageInfo &info) __Th___
 	{
 		StringView	text = info.message;
-
-	  #if defined(__cpp_lib_stacktrace) and not defined(AE_COMPILER_GCC)
-		String		msg_with_call_stack {info.message};
+		String		msg_with_call_stack;
 
 		if ( info.level >= ELogLevel::Warning )
 		{
@@ -792,40 +791,13 @@ namespace AE::RemoteGraphics
 			constexpr StringView	fname = "base/Log/Log.cpp";
 		  #endif
 
-			auto		stack	= std::stacktrace::current();
-			auto		it		= stack.begin();
-			usize		i		= 0;
-			const usize	count	= stack.size();
-			String&		str		= msg_with_call_stack;
-
-			str << "\ncallstack:\n";
-
-			// skip logger functions
+			String	cs = StackTrace::ToString( fname );
+			if ( not cs.empty() )
 			{
-				for (; i < count; ++i, ++it) {
-					if_unlikely( HasSubString( it->source_file(), fname )) {
-						++i;  ++it;
-						break;
-					}
-				}
-				for (; i < count; ++i, ++it) {
-					if_unlikely( not HasSubString( it->source_file(), fname ))
-						break;
-				}
+				msg_with_call_stack = String{info.message} << "\nremote callstack:\n" << cs;
+				text = msg_with_call_stack;
 			}
-
-			for (; i < count; ++i, ++it)
-			{
-				String	file = it->source_file();
-				if ( file.empty() or it->source_line() == 0 )
-					break;
-
-				str << "  " << FileSystem::ToShortPath( file ) << '(' << ToString( it->source_line() ) << "): " << it->description() << '\n';
-			}
-			str.pop_back();
-			text = msg_with_call_stack;
 		}
-	  #endif
 
 		Msg::Log	msg;
 		msg.message	= text;
@@ -881,6 +853,8 @@ using namespace AE::Base;
 using namespace AE::App;
 using namespace AE::RemoteGraphics;
 
+#include "base/../../GlobalConfig.h"
+
 /*
 =================================================
 	AE_OnAppCreated / AE_OnAppDestroyed
@@ -889,9 +863,11 @@ using namespace AE::RemoteGraphics;
 Unique<IApplication::IAppListener>  AE_OnAppCreated (const int argc, char const* argv[])
 {
 	ushort		port		= AE_RMG_PORT;
-	StringView	port_str	= Parser::GetCommandLineArg( ArrayView<const char*>{ argv, usize(argc) }, "-port" );
+	String		port_str	= Parser::GetCommandLineArg( ArrayView<const char*>{ argv, usize(argc) }, "-port" );
 	if ( not port_str.empty() )
 		port = ushort(Base::StringToInt( port_str ));
+
+	CHECK_FATAL( port != 0 );
 
 	StaticLogger::InitDefault();
 	return MakeUnique<RmGAppListener>( port );

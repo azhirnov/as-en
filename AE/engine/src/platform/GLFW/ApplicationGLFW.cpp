@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #ifdef AE_ENABLE_GLFW
 # include "base/Platforms/WindowsHeader.cpp.h"
@@ -337,22 +337,17 @@ namespace {
 	GetStoragePath
 =================================================
 */
-	Path  ApplicationGLFW::GetStoragePath (EAppStorage type) __NE___
+	Path  ApplicationGLFW::GetStoragePath (EAppStorage type) C_NE___
 	{
-		Path	path = UtilsWinAPI::GetStoragePath( type );
-		if ( not path.empty() )
-		{
-			CHECK_ERR( _listener );
+		CHECK_ERR( _listener );
 
-			switch ( type )
-			{
-				case EAppStorage::UserData :
-				case EAppStorage::SharedData :
-					path /= _listener->GetAppName();
-					break;
-			}
-		}
-		return path;
+	  #ifdef AE_PLATFORM_WINDOWS
+		return UtilsWinAPI::GetStoragePath( type, _listener->GetAppName() );
+
+	  #else
+		// TODO
+		return {};
+	  #endif
 	}
 
 /*
@@ -426,7 +421,13 @@ using namespace AE::Base;
 */
 extern int  AE_AppEntry ()
 {
+	CHECK( CpuArchInfo::Get().CheckCompilationOptions() );
+
+  #ifdef AE_PLATFORM_WINDOWS
 	return App::ApplicationGLFW::Run( AE_OnAppCreated( __argc, const_cast<char const**>(__argv) ));
+  #else
+	return App::ApplicationGLFW::Run( AE_OnAppCreated( 0, null ));
+  #endif
 }
 
 /*
@@ -436,6 +437,8 @@ extern int  AE_AppEntry ()
 */
 extern int  main (const int argc, char const* argv[])
 {
+	CHECK( CpuArchInfo::Get().CheckCompilationOptions() );
+
   #ifdef AE_PLATFORM_APPLE
 	FileSystem::SetCurrentPath( Path{argv[0]}.parent_path().parent_path().parent_path().parent_path() );
   #else
@@ -443,8 +446,8 @@ extern int  main (const int argc, char const* argv[])
   #endif
 
   #ifdef AE_PLATFORM_LINUX
-	bool	use_x11	= Parser::HasCommandLineArg( ArrayView{ argv, usize(Max( arggc, 0 ))}, "-x11" );
-	bool	use_wl	= Parser::HasCommandLineArg( ArrayView{ argv, usize(Max( arggc, 0 ))}, "-wayland" );
+	bool	use_x11	= Parser::HasCommandLineArg( ArrayView{ argv, usize(Max( argc, 0 ))}, "-x11" );
+	bool	use_wl	= Parser::HasCommandLineArg( ArrayView{ argv, usize(Max( argc, 0 ))}, "-wayland" );
 			use_x11	= use_x11 and not use_wl;
   #else
 	bool	use_x11	= false;
@@ -466,6 +469,7 @@ extern int  WinMain (HINSTANCE	hInstance,
 					 int		nShowCmd)
 {
 	Unused( hInstance, hPrevInstance, lpCmdLine, nShowCmd );
+	CHECK( CpuArchInfo::Get().CheckCompilationOptions() );
 
 	if ( __argc > 0 )
 		FileSystem::SetCurrentPath( Path{__argv[0]}.parent_path() );

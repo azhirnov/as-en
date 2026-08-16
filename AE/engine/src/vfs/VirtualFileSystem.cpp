@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #include "vfs/VirtualFileSystem.h"
 
@@ -64,6 +64,11 @@ namespace AE::VFS
 
 		CHECK_ERR( not _isImmutable.load() );
 		CHECK_ERR( storage );
+
+		for (auto [n, s] : _storageMap)
+		{
+			CHECK_ERR_MSG( s != storage, "storage already added" );
+		}
 
 		auto [it, inserted] = _storageMap.emplace( name, RVRef(storage) );
 		CHECK_ERR( inserted );
@@ -268,7 +273,13 @@ namespace AE::VFS
 		CHECK_ERR( _isImmutable.load() );
 
 		auto	it = _storageMap.find( stName );
+
+	  #if AE_OPTIMIZE_IDS
 		CHECK_ERR( it != _storageMap.end() );
+	  #else
+		CHECK_ERR_MSG( it != _storageMap.end(),
+			"VFS Storage '"s << stName.GetName() << "' is not exists" );
+	  #endif
 
 		return it->second->CreateFile( OUT name, path );
 	}
@@ -283,12 +294,37 @@ namespace AE::VFS
 		CHECK_ERR( _isImmutable.load() );
 
 		auto	it = _storageMap.find( stName );
+
+	  #if AE_OPTIMIZE_IDS
 		CHECK_ERR( it != _storageMap.end() );
+	  #else
+		CHECK_ERR_MSG( it != _storageMap.end(),
+			"VFS Storage '"s << stName.GetName() << "' is not exists" );
+	  #endif
 
 		if ( absolutePath != null )
 			absolutePath->clear();
 
 		return it->second->CreateUniqueFile( OUT name, INOUT path, OUT absolutePath );
+	}
+
+/*
+=================================================
+	GetPath
+=================================================
+*/
+	bool  VirtualFileSystem::GetPath (FileName::Ref name, OUT Path &outPath) C_NE___
+	{
+		outPath.clear();
+		CHECK_ERR( _isImmutable.load() );
+
+		for (auto& st : _storageMap.GetValueArray())
+		{
+			if_unlikely( st->_GetPath( name, OUT outPath ))
+				return true;
+		}
+
+		return false;
 	}
 
 

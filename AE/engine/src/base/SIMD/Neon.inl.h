@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #pragma once
 
@@ -249,6 +249,33 @@ namespace AE::Base
 		uint  a[] = { (v0 ? ~0u : 0), (v1 ? ~0u : 0) };
 		StaticAssert( CountOf(a) == 2 );
 		_value = vld1_u32( a );
+	}
+
+	template <typename IT>
+	template <uint Step>
+	SimdTInt64<IT>::SimdTInt64 (MSBMask<count, Step> mask) __NE___
+	{
+		if constexpr( sizeof(IT) == 1 )
+		{
+			#define M(x)	sbyte(mask.template get<x>() ? -1 : 0)
+			sbyte a[] = {M(0), M(1), M(2), M(3), M(4), M(5), M(6), M(7)};
+			_value = vld1_s8( a );
+			#undef M
+		}else
+		if constexpr( sizeof(IT) == 2 )
+		{
+			#define M(x)	short(mask.template get<x>() ? -1 : 0)
+			short a[] = {M(0), M(1), M(2), M(3)};
+			_value = vld1_s16( a );
+			#undef M
+		}else
+		if constexpr( sizeof(IT) == 4 )
+		{
+			#define M(x)	int(mask.template get<x>() ? -1 : 0)
+			int a[] = {M(0), M(1)};
+			_value = vld1_s32( a );
+			#undef M
+		}
 	}
 
 /*
@@ -555,13 +582,13 @@ namespace AE::Base
 #if AE_SIMD_NEON64
 /*
 =================================================
-	PrefixSum
+	ReduceAddScalar
 =================================================
 */
 	template <typename IT>
-	IT  SimdTInt64<IT>::PrefixSum () C_NE___
+	IT  SimdTInt64<IT>::ReduceAddScalar () C_NE___
 	{
-		StaticAssert( Has_PrefixSum() );
+		StaticAssert( Has_ReduceAdd() );
 		if constexpr( isU8 )	return vaddv_u8(  _value );
 		if constexpr( isI8 )	return vaddv_s8(  _value );
 		if constexpr( isU16 )	return vaddv_u16( _value );
@@ -572,13 +599,13 @@ namespace AE::Base
 
 /*
 =================================================
-	PrefixSumExt
+	ReduceAddExtScalar
 =================================================
 */
 	template <typename IT>
-	auto  SimdTInt64<IT>::PrefixSumExt () C_NE___
+	auto  SimdTInt64<IT>::ReduceAddExtScalar () C_NE___
 	{
-		StaticAssert( Has_PrefixSumExt() );
+		StaticAssert( Has_ReduceAddExt() );
 		if constexpr( isU8 )	return ushort{vaddlv_u8(  _value )};
 		if constexpr( isI8 )	return sshort{vaddlv_s8(  _value )};
 		if constexpr( isU16 )	return uint{  vaddlv_u16( _value )};
@@ -588,20 +615,20 @@ namespace AE::Base
 	}
 
 	template <typename IT>
-	__Ce__ bool  SimdTInt64<IT>::Has_PrefixSumExt ()
+	__Ce__ bool  SimdTInt64<IT>::Has_ReduceAddExt ()
 	{
 		return sizeof(Scalar_t) <= sizeof(uint);
 	}
 
 /*
 =================================================
-	PrefixMax
+	ReduceMaxScalar
 =================================================
 */
 	template <typename IT>
-	IT  SimdTInt64<IT>::PrefixMax () C_NE___
+	IT  SimdTInt64<IT>::ReduceMaxScalar () C_NE___
 	{
-		StaticAssert( Has_PrefixMinMax() );
+		StaticAssert( Has_ReduceMinMax() );
 		if constexpr( isU8 )	return vmaxv_u8(  _value );
 		if constexpr( isI8 )	return vmaxv_s8(  _value );
 		if constexpr( isU16 )	return vmaxv_u16( _value );
@@ -611,20 +638,20 @@ namespace AE::Base
 	}
 
 	template <typename IT>
-	__Ce__ bool  SimdTInt64<IT>::Has_PrefixMinMax ()
+	__Ce__ bool  SimdTInt64<IT>::Has_ReduceMinMax ()
 	{
 		return sizeof(Scalar_t) <= sizeof(uint);
 	}
 
 /*
 =================================================
-	PrefixMin
+	ReduceMinScalar
 =================================================
 */
 	template <typename IT>
-	IT  SimdTInt64<IT>::PrefixMin () C_NE___
+	IT  SimdTInt64<IT>::ReduceMinScalar () C_NE___
 	{
-		StaticAssert( Has_PrefixMinMax() );
+		StaticAssert( Has_ReduceMinMax() );
 		if constexpr( isU8 )	return vminv_u8(  _value );
 		if constexpr( isI8 )	return vminv_s8(  _value );
 		if constexpr( isU16 )	return vminv_u16( _value );
@@ -1697,6 +1724,41 @@ namespace AE::Base
 		if constexpr( isI32 )	_value = vcombine_s32( low.Ref(), high.Ref() );
 	}
 
+	template <typename IT>
+	template <uint Step>
+	SimdTInt128<IT>::SimdTInt128 (MSBMask<count, Step> mask) __NE___
+	{
+		if constexpr( sizeof(IT) == 1 )
+		{
+			#define M(x)	sbyte(mask.template get<x>() ? -1 : 0)
+			sbyte a[] = {M(0), M(1), M( 2), M( 3), M( 4), M( 5), M( 6), M( 7),
+						M(8), M(9), M(10), M(11), M(12), M(13), M(14), M(15)};
+			_value = vld1q_s8( a );
+			#undef M
+		}else
+		if constexpr( sizeof(IT) == 2 )
+		{
+			#define M(x)	short(mask.template get<x>() ? -1 : 0)
+			short a[] = {M(0), M(1), M(2), M(3), M(4), M(5), M(6), M(7)};
+			_value = vld1q_s16( a );
+			#undef M
+		}else
+		if constexpr( sizeof(IT) == 4 )
+		{
+			#define M(x)	int(mask.template get<x>() ? -1 : 0)
+			int a[] = {M(0), M(1), M(2), M(3)};
+			_value = vld1q_s32( a );
+			#undef M
+		}else
+		if constexpr( sizeof(IT) == 8 )
+		{
+			#define M(x)	slong(mask.template get<x>() ? -1ll : 0)
+			slong a[] = {M(0), M(1)};
+			_value = vld1q_s64( a );
+			#undef M
+		}
+	}
+
 /*
 =================================================
 	get
@@ -1993,13 +2055,13 @@ namespace AE::Base
 #if AE_SIMD_NEON64
 /*
 =================================================
-	PrefixSum
+	ReduceAddScalar
 =================================================
 */
 	template <typename IT>
-	IT  SimdTInt128<IT>::PrefixSum () C_NE___
+	IT  SimdTInt128<IT>::ReduceAddScalar () C_NE___
 	{
-		StaticAssert( Has_PrefixSum() );
+		StaticAssert( Has_ReduceAdd() );
 		if constexpr( isU8 )	return vaddvq_u8(  _value );
 		if constexpr( isI8 )	return vaddvq_s8(  _value );
 		if constexpr( isU16 )	return vaddvq_u16( _value );
@@ -2012,13 +2074,13 @@ namespace AE::Base
 
 /*
 =================================================
-	PrefixSumExt
+	ReduceAddExtScalar
 =================================================
 */
 	template <typename IT>
-	auto  SimdTInt128<IT>::PrefixSumExt () C_NE___
+	auto  SimdTInt128<IT>::ReduceAddExtScalar () C_NE___
 	{
-		StaticAssert( Has_PrefixSumExt() );
+		StaticAssert( Has_ReduceAddExt() );
 		if constexpr( isU8 )	return ushort{vaddlvq_u8(  _value )};
 		if constexpr( isI8 )	return sshort{vaddlvq_s8(  _value )};
 		if constexpr( isU16 )	return uint{  vaddlvq_u16( _value )};
@@ -2028,20 +2090,20 @@ namespace AE::Base
 	}
 
 	template <typename IT>
-	__Ce__ bool  SimdTInt128<IT>::Has_PrefixSumExt ()
+	__Ce__ bool  SimdTInt128<IT>::Has_ReduceAddExt ()
 	{
 		return sizeof(Scalar_t) <= sizeof(uint);
 	}
 
 /*
 =================================================
-	PrefixMax
+	ReduceMaxScalar
 =================================================
 */
 	template <typename IT>
-	IT  SimdTInt128<IT>::PrefixMax () C_NE___
+	IT  SimdTInt128<IT>::ReduceMaxScalar () C_NE___
 	{
-		StaticAssert( Has_PrefixMinMax() );
+		StaticAssert( Has_ReduceMinMax() );
 		if constexpr( isU8 )	return vmaxvq_u8(  _value );
 		if constexpr( isI8 )	return vmaxvq_s8(  _value );
 		if constexpr( isU16 )	return vmaxvq_u16( _value );
@@ -2051,20 +2113,20 @@ namespace AE::Base
 	}
 
 	template <typename IT>
-	__Ce__ bool  SimdTInt128<IT>::Has_PrefixMinMax ()
+	__Ce__ bool  SimdTInt128<IT>::Has_ReduceMinMax ()
 	{
 		return sizeof(Scalar_t) <= sizeof(uint);
 	}
 
 /*
 =================================================
-	PrefixMin
+	ReduceMinScalar
 =================================================
 */
 	template <typename IT>
-	IT  SimdTInt128<IT>::PrefixMin () C_NE___
+	IT  SimdTInt128<IT>::ReduceMinScalar () C_NE___
 	{
-		StaticAssert( Has_PrefixMinMax() );
+		StaticAssert( Has_ReduceMinMax() );
 		if constexpr( isU8 )	return vminvq_u8(  _value );
 		if constexpr( isI8 )	return vminvq_s8(  _value );
 		if constexpr( isU16 )	return vminvq_u16( _value );
@@ -3437,15 +3499,53 @@ namespace AE::Base
 	Shuffle
 =================================================
 */
-	template <uint AX, uint AY, uint BZ, uint BW>
-	SimdFloat4  SimdFloat4::Shuffle (const Self &b)  C_NE___
+	template <uint X, uint Y, uint Z, uint W>
+	SimdFloat4  SimdFloat4::Shuffle (const Self &v4567)  C_NE___
 	{
 		StaticAssert( Has_Shuffle() );
-		StaticAssert( AX < count );
-		StaticAssert( AY < count );
-		StaticAssert( BZ < count );
-		StaticAssert( BW < count );
-		return Self{ __builtin_shufflevector( _value, b._value, AX, AY, BZ+4, BW+4 )};
+		StaticAssert( X < count*2 );
+		StaticAssert( Y < count*2 );
+		StaticAssert( Z < count*2 );
+		StaticAssert( W < count*2 );
+
+	  #if AE_SIMD_NEON64
+		alignas(16) static const ubyte  indices [16] =
+		{
+			ubyte(X*4+0), ubyte(X*4+1), ubyte(X*4+2), ubyte(X*4+3),
+			ubyte(Y*4+0), ubyte(Y*4+1), ubyte(Y*4+2), ubyte(Y*4+3),
+			ubyte(Z*4+0), ubyte(Z*4+1), ubyte(Z*4+2), ubyte(Z*4+3),
+			ubyte(W*4+0), ubyte(W*4+1), ubyte(W*4+2), ubyte(W*4+3)
+		};
+
+		uint8x16x2_t	table;
+		table.val[0] = vreinterpretq_u8_f32( _value );
+		table.val[1] = vreinterpretq_u8_f32( v4567._value );
+
+		return Self{ vreinterpretq_f32_u8( vqtbl2q_u8( table, vld1q_u8( indices )))};
+
+	  #else
+		alignas(8) static const ubyte  indices01 [8] =
+		{
+			ubyte(X*4+0), ubyte(X*4+1), ubyte(X*4+2), ubyte(X*4+3),
+			ubyte(Y*4+0), ubyte(Y*4+1), ubyte(Y*4+2), ubyte(Y*4+3)
+		};
+		alignas(8) static const ubyte  indices23 [8] =
+		{
+			ubyte(Z*4+0), ubyte(Z*4+1), ubyte(Z*4+2), ubyte(Z*4+3),
+			ubyte(W*4+0), ubyte(W*4+1), ubyte(W*4+2), ubyte(W*4+3)
+		};
+
+		uint8x8x4_t		table;
+		table.val[0] = vreinterpret_u8_f32( vget_low_f32( _value ));
+		table.val[1] = vreinterpret_u8_f32( vget_high_f32( _value ));
+		table.val[2] = vreinterpret_u8_f32( vget_low_f32( v4567._value ));
+		table.val[3] = vreinterpret_u8_f32( vget_high_f32( v4567._value ));
+
+		float32x2_t		lo = vreinterpret_f32_u8( vtbl4_u8( table, vld1_u8( indices01 )));
+		float32x2_t		hi = vreinterpret_f32_u8( vtbl4_u8( table, vld1_u8( indices23 )));
+
+		return Self{ vcombine_f32( lo, hi )};
+	  #endif
 	}
 
 /*
@@ -3583,6 +3683,47 @@ namespace AE::Base
 			return false;
 	}
 
+/*
+=================================================
+	InclusiveAdd
+=================================================
+*/
+	inline SimdFloat4  SimdFloat4::InclusiveAdd ()  C_NE___
+	{
+		StaticAssert( Has_InclusiveAdd() );
+
+		float32x4_t v = _value;											// [x0, x1, x2, x3]
+
+		float32x4_t t = vsetq_lane_f32( 0.0f, vextq_f32( v, v, 3 ), 0 );
+		v = vaddq_f32( v, t );											 // [x0, x0+x1, x1+x2, x2+x3]
+
+		t = vcombine_f32( vdup_n_f32(0.0f), vget_low_f32(v) );
+		v = vaddq_f32( v, t );											// [x0, x0+x1, x0+x1+x2, x0+x1+x2+x3]
+
+		return Self{v};
+	}
+
+/*
+=================================================
+	ExclusiveAdd
+=================================================
+*/
+	inline SimdFloat4  SimdFloat4::ExclusiveAdd ()  C_NE___
+	{
+		StaticAssert( Has_InclusiveAdd() );
+
+		float32x4_t			v		= _value;				// [x0, x1, x2, x3]
+		const float32x4_t	zero	= vdupq_n_f32( 0.0f );
+
+		float32x4_t t = vextq_f32( zero, v, 3 );			// [0, x0, x1, x2]
+		v = vaddq_f32( v, t );								// [x0, x0+x1, x1+x2, x2+x3]
+
+		t = vextq_f32( zero, v, 2 );						// [0, 0, x0, x0+x1]
+		v = vaddq_f32( v, t );								// [x0, x0+x1, x0+x1+x2, x0+x1+x2+x3]
+
+		return Self{ vextq_f32( zero, v, 3 )};				// [0, x0, x0+x1, x0+x1+x2]
+	}
+
 #endif // AE_SIMD_SimdFloat4
 //-----------------------------------------------------------------------------
 
@@ -3622,13 +3763,26 @@ namespace AE::Base
 	Shuffle
 =================================================
 */
-	template <uint AX, uint BY>
-	SimdDouble2  SimdDouble2::Shuffle (const Self &b)  C_NE___
+	template <uint X, uint Y>
+	SimdDouble2  SimdDouble2::Shuffle (const Self &v23)  C_NE___
 	{
 		StaticAssert( Has_Shuffle() );
-		StaticAssert( AX < count );
-		StaticAssert( BY < count );
-		return Self{ __builtin_shufflevector( _value, b._value, AX, BY+2 )};
+		StaticAssert( X < count*2 );
+		StaticAssert( Y < count*2 );
+
+		const float64x2_t	a = (X < count ? _value : v23._value);	// source of result lane 0
+		const float64x2_t	b = (Y < count ? _value : v23._value);	// source of result lane 1
+
+		if constexpr( (X % count) == 0 and (Y % count) == 0 )
+			return Self{ vtrn1q_f64( a, b ) };										// { a0, b0 }
+		else
+		if constexpr( (X % count) == 1 and (Y % count) == 1 )
+			return Self{ vtrn2q_f64( a, b ) };										// { a1, b1 }
+		else
+		if constexpr( (X % count) == 0 )
+			return Self{ vcombine_f64( vget_low_f64( a ), vget_high_f64( b ) ) };	// { a0, b1 }
+		else
+			return Self{ vcombine_f64( vget_high_f64( a ), vget_low_f64( b ) ) };	// { a1, b0 }
 	}
 
 /*
@@ -3765,6 +3919,33 @@ namespace AE::Base
 			return true;
 		else
 			return false;
+	}
+
+/*
+=================================================
+	InclusiveAdd
+=================================================
+*/
+	inline SimdDouble2  SimdDouble2::InclusiveAdd ()  C_NE___
+	{
+		StaticAssert( Has_InclusiveAdd() );
+
+		float64x2_t	v = _value;										// [x0, x1]
+		float64x2_t	t = vextq_f64( vdupq_n_f64( 0.0 ), v, 1 );		// [0, x0]
+		return Self{ vaddq_f64( v, t )};							// [x0, x0+x1]
+	}
+
+/*
+=================================================
+	ExclusiveAdd
+=================================================
+*/
+	inline SimdDouble2  SimdDouble2::ExclusiveAdd ()  C_NE___
+	{
+		StaticAssert( Has_InclusiveAdd() );
+
+		float64x2_t	v = _value;										// [x0, x1]
+		return Self{ vextq_f64( vdupq_n_f64( 0.0 ), v, 1 )};		// [0, x0]
 	}
 
 #endif // AE_SIMD_SimdDouble2

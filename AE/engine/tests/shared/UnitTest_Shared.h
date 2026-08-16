@@ -4,6 +4,8 @@
 
 #include "base/Algorithms/StringUtils.h"
 #include "base/Algorithms/Parser.h"
+#include "base/Platforms/Platform.h"
+#include "base/../../GlobalConfig.h"
 
 using namespace AE;
 using namespace AE::Base;
@@ -47,14 +49,14 @@ using namespace AE::Base;
 	}
 
 
-#define __PRIVATE_CHECK_THROW( _var_, _check_, ... )	\
-	bool	_var_ = false;								\
-	try {												\
-		__VA_ARGS__										\
-	} catch(...) {										\
-		_var_ = true;									\
-	}													\
-	TEST( _check_ _var_ );								\
+#define __PRIVATE_CHECK_THROW( _var_, _check_, ... )\
+	bool	_var_ = false;							\
+	try {											\
+		__VA_ARGS__									\
+	} catch(...) {									\
+		_var_ = true;								\
+	}												\
+	TEST( _check_ _var_ );							\
 
 
 #define TEST_THROW( ... )	{ __PRIVATE_CHECK_THROW( AE_PRIVATE_UNITE_RAW( test_is_throw_, __LINE__ ), true  ==, __VA_ARGS__ ); }
@@ -63,37 +65,53 @@ using namespace AE::Base;
 #define TEST_PASSED()		AE_LOGI( AE::Base::String{AE_FUNCTION_NAME} + " - passed" );
 
 #ifdef AE_PLATFORM_APPLE
-#	define _BEGIN_TEST2()																																								\
-		const auto	SetOrGetCurrDir = [argc, argv]()																																	\
-		{{																																												\
-			Path	curr = AE::Base::Parser::GetCommandLinePath( ArrayView{ argv, usize(Max(argc,0)) }, "-p", Path{argv[0]}.parent_path().parent_path().parent_path().parent_path() );	\
-			std::error_code ec;																																							\
-			std::filesystem::current_path( curr, OUT ec );																																\
-			if ( ec ) curr = std::filesystem::current_path( OUT ec );																													\
-			AE_LOG_DBG( "Current path: "s << curr.string() );																															\
-			return curr;																																								\
+#	define _BEGIN_TEST2()																						\
+		const auto	SetOrGetCurrDir = [argc, argv]()															\
+		{{																										\
+			Path	curr = Path{argv[0]}.parent_path().parent_path().parent_path().parent_path();				\
+			curr = AE::Base::Parser::GetCommandLinePath( ArrayView{ argv, usize(Max(argc,0)) }, "-p", curr );	\
+			std::error_code ec;																					\
+			std::filesystem::current_path( curr, OUT ec );														\
+			if ( ec ) curr = std::filesystem::current_path( OUT ec );											\
+			return curr;																						\
+		}}
+#elif defined(AE_ANDROID_CONSOLE_MODE)
+	// by default use current path
+#	define _BEGIN_TEST2()																						\
+		const auto	SetOrGetCurrDir = [argc, argv]()															\
+		{{																										\
+			std::error_code ec;																					\
+			Path	curr = std::filesystem::current_path( OUT ec );												\
+			curr = AE::Base::Parser::GetCommandLinePath( ArrayView{ argv, usize(Max(argc,0)) }, "-p", curr );	\
+			std::filesystem::current_path( curr, OUT ec );														\
+			return curr;																						\
 		}}
 #else
-#	define _BEGIN_TEST2()																																								\
-		const auto	SetOrGetCurrDir = [argc, argv]()																																	\
-		{{																																												\
-			Path	curr = AE::Base::Parser::GetCommandLinePath( ArrayView{ argv, usize(Max(argc,0)) }, "-p", Path{argv[0]}.parent_path() );											\
-			std::error_code ec;																																							\
-			std::filesystem::current_path( curr, OUT ec );																																\
-			if ( ec ) curr = std::filesystem::current_path( OUT ec );																													\
-			AE_LOG_DBG( "Current path: "s << curr.string() );																															\
-			return curr;																																								\
+#	define _BEGIN_TEST2()																						\
+		const auto	SetOrGetCurrDir = [argc, argv]()															\
+		{{																										\
+			Path	curr = Path{argv[0]}.parent_path();															\
+			curr = AE::Base::Parser::GetCommandLinePath( ArrayView{ argv, usize(Max(argc,0)) }, "-p", curr );	\
+			std::error_code ec;																					\
+			std::filesystem::current_path( curr, OUT ec );														\
+			if ( ec ) curr = std::filesystem::current_path( OUT ec );											\
+			return curr;																						\
 		}}
 #endif
 
 
 #define BEGIN_TEST()																								\
+	TEST( AE::Base::CpuArchInfo::Get().CheckCompilationOptions() );													\
 	StaticLogger::LoggerScope log{};																				\
 	_BEGIN_TEST2();																									\
 	const Path	curr		= SetOrGetCurrDir();																	\
-	String		test_name	= AE::Base::Parser::GetCommandLineArg( ArrayView{ argv, usize(Max(argc,0)) }, "-t" );
+	String		test_name	= AE::Base::Parser::GetCommandLineArg( ArrayView{ argv, usize(Max(argc,0)) }, "-t" );	\
+	AE_LOG_DBG( "Current path: "s << curr.string() );																\
+	if ( test_name.empty() ){																						\
+		Unused( AE::Base::PlatformUtils::GetEnvironmentVariable( "AE_TEST_NAME", OUT test_name ));					\
+	}
 
-#ifdef AE_PLATFORM_ANDROID
+#if defined(AE_PLATFORM_ANDROID) and not defined(AE_ANDROID_CONSOLE_MODE)
 #	define TEST_ENTRY()		extern "C" AE_DLL_EXPORT int  AEMain (const int argc, char const* argv[])
 #else
 #	define TEST_ENTRY()		int main (const int argc, char const* argv[])

@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 /*
 	Map emulation on static array with binary/linear search.
 
@@ -223,6 +223,9 @@ namespace AE::Base
 */
 	template <typename K, typename V, usize S, typename KS, typename VS>
 	__Cx__ FixedMap<K,V,S,KS,VS>::FixedMap () __NE___
+		#ifdef AE_COMPILER_GCC
+		: _keyBuffer{}, _valBuffer{}
+		#endif
 	{
 		DEBUG_ONLY( DbgInitMem( _indices  ));
 		DEBUG_ONLY( DbgInitMem( _keyArray ));

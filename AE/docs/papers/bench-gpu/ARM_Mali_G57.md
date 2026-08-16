@@ -459,19 +459,3 @@ will lost data if exceed the limit
 vertices: 1 714 368 x5<br/>
 buffer size: 13 MB x5 = 65 MB<br/>
 tile write: 72 MB - float3/float4 packed to ~9 bytes per vertex
-
-
-## Nonuniform
-
-* __depth pre-pass__ [[14.2](../GPU_Benchmarks.md#14-Nonuniform)]<br/>
-	dpp = 8.1ms,
-	Scale=1, Dim=4K, ObjCount=4K
-
-	| nonuniform              | per object (ms) | per warp (ms) | per quad (ms) | per pixel (ms) |
-	|-------------------------|-----------------|---------------|---------------|----------------|
-	| texture layer           | 8.8             | 16            | 17.6          | 30.8           |
-	| texture index           | 9.1             | 15            | 23.8          | 82.4           |
-	| texture & sampler index | 9.1             | 14.7          | 24.4          | 80             |
-
-* __visibility buffer__ [[14.3](../GPU_Benchmarks.md#14-Nonuniform)]<br/>
-	Visibility buffer resolve takes 90% of time.

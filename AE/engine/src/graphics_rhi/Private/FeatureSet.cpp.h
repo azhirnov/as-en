@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #include "graphics_rhi/Private/EnumUtils.h"
 #include "graphics_rhi/Private/EnumToString.h"
@@ -6,8 +6,8 @@
 
 
 template <>
-struct std::hash< AE::Graphics::FeatureSet::PerDescriptorSet > :
-	AE::Graphics::DefaultHasher_CalcHash< AE::Graphics::FeatureSet::PerDescriptorSet >
+struct std::hash< AE::Graphics::FeatureSet::PerPipeline > :
+	AE::Graphics::DefaultHasher_CalcHash< AE::Graphics::FeatureSet::PerPipeline >
 {};
 
 template <typename E>
@@ -45,44 +45,6 @@ namespace AE::Base
 	using namespace AE::Graphics;
 
 	using EFeature	= FeatureSet::EFeature;
-
-
-	ND_ StringView  ToString (EFeature f)
-	{
-		switch ( f ) {
-			case EFeature::Ignore :			return "Ignore";
-			case EFeature::RequireFalse :	return "RequireFalse";
-			case EFeature::RequireTrue :	return "RequireTrue";
-		}
-		return "";
-	}
-
-	ND_ String  ToString (ESubgroupTypes types)
-	{
-		String	str;
-		for (auto t : BitfieldIterate( types ))
-		{
-			if ( not str.empty() )
-				str << " | ";
-
-			switch_enum( t )
-			{
-				case ESubgroupTypes::Float32 :	str << "Float32";	break;
-				case ESubgroupTypes::Int32 :	str << "Int32";		break;
-
-				case ESubgroupTypes::Int8 :		str << "Int8";		break;
-				case ESubgroupTypes::Int16 :	str << "Int16";		break;
-				case ESubgroupTypes::Int64 :	str << "Int64";		break;
-				case ESubgroupTypes::Float16 :	str << "Float16";	break;
-
-				case ESubgroupTypes::Unknown :
-				case ESubgroupTypes::_Last :
-				case ESubgroupTypes::All :		break;
-			}
-			switch_end
-		}
-		return str;
-	}
 
 	ND_ String  ToString (FeatureSet::SampleCountBits bits)
 	{
@@ -126,7 +88,7 @@ namespace AE::Base
 		return "";
 	}
 
-	ND_ String  ToString (const FeatureSet::PerDescriptorSet &ds)
+	ND_ String  ToString (const FeatureSet::PerPipeline &ds)
 	{
 		return	"\n    maxInputAttachments: "s << Base::ToString( ds.maxInputAttachments ) <<
 				"\n    maxSampledImages:    " << Base::ToString( ds.maxSampledImages ) <<
@@ -134,8 +96,7 @@ namespace AE::Base
 				"\n    maxStorageBuffers:   " << Base::ToString( ds.maxStorageBuffers ) <<
 				"\n    maxStorageImages:    " << Base::ToString( ds.maxStorageImages ) <<
 				"\n    maxUniformBuffers:   " << Base::ToString( ds.maxUniformBuffers ) <<
-				"\n    maxAccelStructures:  " << Base::ToString( ds.maxAccelStructures ) <<
-				"\n    maxTotalResources:   " << Base::ToString( ds.maxTotalResources );
+				"\n    maxAccelStructures:  " << Base::ToString( ds.maxAccelStructures );
 	}
 
 	ND_ StringView  ToString (FeatureSet::Queues)
@@ -153,86 +114,7 @@ namespace AE::Base
 		return "";
 	}
 
-	ND_ StringView  ToString (ECoopMatrixCfg type)
-	{
-		switch_enum( type )
-		{
-			case ECoopMatrixCfg::Afp16_Bfp16_Cfp16_Rfp16_M16_N16_K16 :		return "A: fp16, B: fp16, C: fp16, Res: fp16, MxNxK: 16x16x16";
-			case ECoopMatrixCfg::Afp16_Bfp16_Cfp32_Rfp32_M16_N16_K16 :		return "A: fp16, B: fp16, C: fp32, Res: fp32, MxNxK: 16x16x16";
-			case ECoopMatrixCfg::Afp16_Bfp16_Cfp32_Rfp32_M8_N8_K16 :		return "A: fp16, B: fp16, C: fp32, Res: fp32, MxNxK: 8x8x32";
-			case ECoopMatrixCfg::Au8_Bu8_Cu32_Ru32_M16_N16_K32 :			return "A: u8, B: u8, C: u32, Res: u32, MxNxK: 16x16x32";
-			case ECoopMatrixCfg::As8_Bs8_Cs32_Rs32_M16_N16_K32 :			return "A: s8, B: s8, C: s32, Res: s32, MxNxK: 16x16x32";
-			case ECoopMatrixCfg::Au8_Bu8_Cu32_Ru32_M16_N16_K16 :			return "A: u8, B: u8, C: u32, Res: u32, MxNxK: 16x16x16";
-			case ECoopMatrixCfg::As8_Bs8_Cs32_Rs32_M16_N16_K16 :			return "A: s8, B: s8, C: s32, Res: s32, MxNxK: 16x16x16";
-			case ECoopMatrixCfg::Au8_Bu8_Cu32_Ru32_M8_N8_K32 :				return "A: u8, B: u8, C: u32, Res: u32, MxNxK: 8x8x32";
-			case ECoopMatrixCfg::As8_Bs8_Cs32_Rs32_M8_N8_K32 :				return "A: s8, B: s8, C: s32, Res: s32, MxNxK: 8x8x32";
-			case ECoopMatrixCfg::_Count :									break;
-		}
-		switch_end
-		return "";
-	}
-
-	ND_ StringView  ToString (ECoopVecCfg type)
-	{
-		switch_enum( type )
-		{
-			case ECoopVecCfg::Tfp16_Ifp16_Mfp16_Bfp16_Rfp16_Tp :		return "Vec: fp16, In: fp16, Mat: fp16, Bias: fp16, Res: fp16, transpose";
-			case ECoopVecCfg::Ts8_Is8_Ms8_Bs32_Rs32 :					return "Vec: s8, In: s8, Mat: s8, Bias: s32, Res: s32";
-			case ECoopVecCfg::Tfp16_Ifp8e4m3_Mfp8e4m3_Bfp16_Rfp16 :		return "Vec: fp16, In: fp8_e7m3, Mat: fp8_e7m3, Bias: fp16, Res: fp16";
-			case ECoopVecCfg::Tfp16_Ifp8e5m2_Mfp8e5m2_Bfp16_Rfp16 :		return "Vec: fp16, In: fp8_e5m2, Mat: fp8_e5m2, Bias: fp16, res: fp16";
-			case ECoopVecCfg::_Count :									break;
-		}
-		switch_end
-		return "";
-	}
-
-	ND_ StringView  EIntegerDotProductFeat_ToString (EIntegerDotProductFeat type)
-	{
-		switch_enum( type )
-		{
-			#define CASE( _name_ )	case EIntegerDotProductFeat::_name_: return AE_TOSTRING( _name_ );
-			CASE( Unsigned8bit )
-			CASE( Signed8bit )
-			CASE( MixedSignedness8bit )
-			CASE( Unsigned4x8bit )
-			CASE( Signed4x8bit )
-			CASE( MixedSignedness4x8bit )
-			CASE( Unsigned16bit )
-			CASE( Signed16bit )
-			CASE( MixedSignedness16bit )
-			CASE( Unsigned32bit )
-			CASE( Signed32bit )
-			CASE( MixedSignedness32bit )
-			CASE( Unsigned64bit )
-			CASE( Signed64bit )
-			CASE( MixedSignedness64bit )
-			CASE( AccSat_Unsigned8bit )
-			CASE( AccSat_Signed8bit )
-			CASE( AccSat_MixedSignedness8bit )
-			CASE( AccSat_Unsigned4x8bit )
-			CASE( AccSat_Signed4x8bit )
-			CASE( AccSat_MixedSignedness4x8bit )
-			CASE( AccSat_Unsigned16bit )
-			CASE( AccSat_Signed16bit )
-			CASE( AccSat_MixedSignedness16bit )
-			CASE( AccSat_Unsigned32bit )
-			CASE( AccSat_Signed32bit )
-			CASE( AccSat_MixedSignedness32bit )
-			CASE( AccSat_Unsigned64bit )
-			CASE( AccSat_Signed64bit )
-			CASE( AccSat_MixedSignedness64bit )
-			case EIntegerDotProductFeat::_Count : break;
-			#undef CASE
-		}
-		switch_end
-		return "";
-	}
-
-	ND_ String  ToString (EIntegerDotProductFeats bits)
-	{
-		return Base::ToString( bits, &EIntegerDotProductFeat_ToString );
-	}
-
+	// now compiler can see new overloads
 	template <typename E>
 	ND_ String  ToString (const EnumSet<E> &bits)
 	{
@@ -384,7 +266,7 @@ namespace
 		return (lhs & rhs) == rhs;
 	}
 
-	ND_ static bool  FS_GreaterEqual (const FeatureSet::PerDescriptorSet &lhs, const FeatureSet::PerDescriptorSet &rhs, const char*) __NE___ {
+	ND_ static bool  FS_GreaterEqual (const FeatureSet::PerPipeline &lhs, const FeatureSet::PerPipeline &rhs, const char*) __NE___ {
 		return lhs >= rhs;
 	}
 
@@ -632,9 +514,9 @@ namespace
 		return FeatureSet::SampleCountBits{ uint(lhs) & uint(rhs) };
 	}
 
-	ND_ static FeatureSet::PerDescriptorSet  FS_MergeMin (const FeatureSet::PerDescriptorSet &lhs, const FeatureSet::PerDescriptorSet &rhs, const char*) __NE___
+	ND_ static FeatureSet::PerPipeline  FS_MergeMin (const FeatureSet::PerPipeline &lhs, const FeatureSet::PerPipeline &rhs, const char*) __NE___
 	{
-		FeatureSet::PerDescriptorSet	res;
+		FeatureSet::PerPipeline	res;
 		res.maxInputAttachments	= FS_MergeMin( lhs.maxInputAttachments,	rhs.maxInputAttachments,"maxInputAttachments"	);
 		res.maxSampledImages	= FS_MergeMin( lhs.maxSampledImages,	rhs.maxSampledImages,	"maxSampledImages"		);
 		res.maxSamplers			= FS_MergeMin( lhs.maxSamplers,			rhs.maxSamplers,		"maxSamplers"			);
@@ -642,8 +524,7 @@ namespace
 		res.maxStorageImages	= FS_MergeMin( lhs.maxStorageImages,	rhs.maxStorageImages,	"maxStorageImages"		);
 		res.maxUniformBuffers	= FS_MergeMin( lhs.maxUniformBuffers,	rhs.maxUniformBuffers,	"maxUniformBuffers"		);
 		res.maxAccelStructures	= FS_MergeMin( lhs.maxAccelStructures,	rhs.maxAccelStructures,	"maxAccelStructures"	);
-		res.maxTotalResources	= FS_MergeMin( lhs.maxTotalResources,	rhs.maxTotalResources,	"maxTotalResources"		);
-		StaticAssert( sizeof(FeatureSet::PerDescriptorSet) == sizeof(uint)*8 );
+		StaticAssert( sizeof(FeatureSet::PerPipeline) == sizeof(uint)*7 );
 		return res;
 	}
 
@@ -782,9 +663,9 @@ namespace
 		return FeatureSet::SampleCountBits{ uint(lhs) | uint(rhs) };
 	}
 
-	ND_ static FeatureSet::PerDescriptorSet  FS_MergeMax (const FeatureSet::PerDescriptorSet &lhs, const FeatureSet::PerDescriptorSet &rhs, const char*) __NE___
+	ND_ static FeatureSet::PerPipeline  FS_MergeMax (const FeatureSet::PerPipeline &lhs, const FeatureSet::PerPipeline &rhs, const char*) __NE___
 	{
-		FeatureSet::PerDescriptorSet	res;
+		FeatureSet::PerPipeline	res;
 		res.maxInputAttachments	= FS_MergeMax( lhs.maxInputAttachments,	rhs.maxInputAttachments,	"maxInputAttachments"	);
 		res.maxSampledImages	= FS_MergeMax( lhs.maxSampledImages,	rhs.maxSampledImages,		"maxSampledImages"		);
 		res.maxSamplers			= FS_MergeMax( lhs.maxSamplers,			rhs.maxSamplers,			"maxSamplers"			);
@@ -792,8 +673,7 @@ namespace
 		res.maxStorageImages	= FS_MergeMax( lhs.maxStorageImages,	rhs.maxStorageImages,		"maxStorageImages"		);
 		res.maxUniformBuffers	= FS_MergeMax( lhs.maxUniformBuffers,	rhs.maxUniformBuffers,		"maxUniformBuffers"		);
 		res.maxAccelStructures	= FS_MergeMax( lhs.maxAccelStructures,	rhs.maxAccelStructures,		"maxAccelStructures"	);
-		res.maxTotalResources	= FS_MergeMax( lhs.maxTotalResources,	rhs.maxTotalResources,		"maxTotalResources"		);
-		StaticAssert( sizeof(FeatureSet::PerDescriptorSet) == sizeof(uint)*8 );
+		StaticAssert( sizeof(FeatureSet::PerPipeline) == sizeof(uint)*7 );
 		return res;
 	}
 
@@ -838,17 +718,16 @@ namespace
 	operator ==
 =================================================
 */
-	bool  FeatureSet::PerDescriptorSet::operator == (const PerDescriptorSet &rhs) C_NE___
+	bool  FeatureSet::PerPipeline::operator == (const PerPipeline &rhs) C_NE___
 	{
-		StaticAssert( sizeof(FeatureSet::PerDescriptorSet) == sizeof(uint)*8 );
+		StaticAssert( sizeof(FeatureSet::PerPipeline) == sizeof(uint)*7 );
 		return	maxInputAttachments	== rhs.maxInputAttachments	and
 				maxSampledImages	== rhs.maxSampledImages		and
 				maxSamplers			== rhs.maxSamplers			and
 				maxStorageBuffers	== rhs.maxStorageBuffers	and
 				maxStorageImages	== rhs.maxStorageImages		and
 				maxUniformBuffers	== rhs.maxUniformBuffers	and
-				maxAccelStructures	== rhs.maxAccelStructures	and
-				maxTotalResources	== rhs.maxTotalResources;
+				maxAccelStructures	== rhs.maxAccelStructures;
 	}
 
 /*
@@ -856,17 +735,16 @@ namespace
 	operator >=
 =================================================
 */
-	bool  FeatureSet::PerDescriptorSet::operator >= (const PerDescriptorSet &rhs) C_NE___
+	bool  FeatureSet::PerPipeline::operator >= (const PerPipeline &rhs) C_NE___
 	{
-		StaticAssert( sizeof(FeatureSet::PerDescriptorSet) == sizeof(uint)*8 );
+		StaticAssert( sizeof(FeatureSet::PerPipeline) == sizeof(uint)*7 );
 		return	maxInputAttachments	>= rhs.maxInputAttachments	and
 				maxSampledImages	>= rhs.maxSampledImages		and
 				maxSamplers			>= rhs.maxSamplers			and
 				maxStorageBuffers	>= rhs.maxStorageBuffers	and
 				maxStorageImages	>= rhs.maxStorageImages		and
 				maxUniformBuffers	>= rhs.maxUniformBuffers	and
-				maxAccelStructures	>= rhs.maxAccelStructures	and
-				maxTotalResources	>= rhs.maxTotalResources;
+				maxAccelStructures	>= rhs.maxAccelStructures;
 	}
 
 /*
@@ -874,12 +752,11 @@ namespace
 	CalcHash
 =================================================
 */
-	HashVal  FeatureSet::PerDescriptorSet::CalcHash () C_NE___
+	HashVal  FeatureSet::PerPipeline::CalcHash () C_NE___
 	{
-		StaticAssert( sizeof(FeatureSet::PerDescriptorSet) == sizeof(uint)*8 );
+		StaticAssert( sizeof(FeatureSet::PerPipeline) == sizeof(uint)*7 );
 		return	HashOf( maxInputAttachments ) + HashOf( maxSampledImages ) + HashOf( maxSamplers ) +
-				HashOf( maxStorageBuffers ) + HashOf( maxStorageImages ) + HashOf( maxUniformBuffers ) +
-				HashOf( maxTotalResources );
+				HashOf( maxStorageBuffers ) + HashOf( maxStorageImages ) + HashOf( maxUniformBuffers );
 	}
 //-----------------------------------------------------------------------------
 
@@ -1124,10 +1001,10 @@ namespace
 
 		chGreaterEq( perPipeline.maxUniformBuffers, 1 );
 		chGreaterEq( perPipeline.maxSampledImages,  1 );
-		chGreaterEq( perPipeline.maxTotalResources, 1 );
+		chGreaterEq( perDescSet_maxTotalResources, 1 );
 		chGreaterEq( perStage.maxUniformBuffers, 1 );
 		chGreaterEq( perStage.maxSampledImages,  1 );
-		chGreaterEq( perStage.maxTotalResources, 1 );
+		chGreaterEq( perStage_maxTotalResources, 1 );
 
 		chGreaterEq( maxDescriptorSets, 1 );
 		// maxTexelOffset, maxTexelGatherOffset can be 0
@@ -1538,6 +1415,20 @@ namespace
 		if ( AllBits( desc.options, EBufferOpt::StorageTexelAtomic ))
 			result &= storageTexBufferAtomicFormats.contains( view.format );
 
+		const auto&		fmt_info	= EPixelFormat_GetInfo( view.format );
+		Bytes			offset		= Min( desc.size, view.offset );
+		Bytes			size		= Min( desc.size - offset, view.size );
+		usize			elem_count	= usize{size / fmt_info.BytesPerPixel()};
+
+		if ( fmt_info.IsCompressed()	or
+			 fmt_info.IsMultiPlanar()	or
+			 not fmt_info.IsColor()		)
+		{
+			result = false;
+		}
+
+		result &= (elem_count <= maxTexelBufferElements);
+
 		return result;
 	}
 
@@ -1588,6 +1479,7 @@ namespace
 			bool	compat = fmtSet.contains( desc.format );
 			if ( not compat and AllBits( desc.options, EImageOpt::ExtendedUsage ))
 			{
+				// at least one format from 'viewFormats' must support usage
 				uint	count = 0;
 				for (auto fmt : desc.viewFormats)
 				{
@@ -1632,13 +1524,11 @@ namespace
 			switch_enum( opt )
 			{
 				case EImageOpt::CubeCompatible :			break;
-				case EImageOpt::MutableFormat :				break;	// TODO
-				case EImageOpt::Array2DCompatible :			break;	// TODO
-				case EImageOpt::BlockTexelViewCompatible :	break;	// TODO
-				case EImageOpt::SparseResidency :			break;
-				case EImageOpt::SparseAliased :				break;
-				case EImageOpt::Alias :						break;
-				case EImageOpt::SampleLocationsCompatible :	break;	// TODO
+				case EImageOpt::MutableFormat :				break;
+				case EImageOpt::Array2DCompatible :			break;	// TODO: maintenance1
+				case EImageOpt::SparseResidency :			break;	// TODO: sparse feature
+				case EImageOpt::SparseAliased :				break;	// TODO: sparse feature
+				case EImageOpt::Alias :						break;	// TODO: bind_memory2
 				case EImageOpt::StorageAtomic :				result &= CheckFormatUsage( storageImageAtomicFormats );	break;
 				case EImageOpt::ColorAttachmentBlend :		result &= CheckFormatUsage( attachmentBlendFormats );		break;
 				case EImageOpt::SampledLinear :				result &= CheckFormatUsage( linearSampledFormats );			break;
@@ -1649,8 +1539,10 @@ namespace
 				case EImageOpt::VertexPplnStore :			result &= (fragmentStoresAndAtomics			== EFeature::RequireTrue);	break;
 				case EImageOpt::FragmentPplnStore :			result &= (vertexPipelineStoresAndAtomics	== EFeature::RequireTrue);	break;
 				case EImageOpt::Subsampled :				result &= (fragmentDensityMap				== EFeature::RequireTrue);	break;
-				case EImageOpt::ExtendedUsage :				break;
-				case EImageOpt::SeparatePlanes :			break;
+				case EImageOpt::BlockTexelViewCompatible :
+				case EImageOpt::ExtendedUsage :				result &= (imageViewExtendedUsage			== EFeature::RequireTrue);	break;
+				case EImageOpt::SeparatePlanes :			result &= (samplerYcbcrConversion			== EFeature::RequireTrue);	break;
+				case EImageOpt::SampleLocationsCompatible :	result &= (sampleLocations					== EFeature::RequireTrue);	break;
 
 				case EImageOpt::_Last :
 				case EImageOpt::SparseResidencyAliased :
@@ -1680,11 +1572,15 @@ namespace
 		if ( view.viewType == EImage_CubeArray )
 			result &= (imageCubeArray == EFeature::RequireTrue);
 
-		if ( desc.format != view.format and view.extUsage != Default )
+		// view usage can be only subset of image usage
+		const EImageUsage	view_usage = (view.usage != Default ? (view.usage & desc.usage) : desc.usage);
+
+		if ( desc.format != view.format )
 		{
+			// same Vulkan extension, 'ExtendedUsage' option is not required
 			result &= (imageViewExtendedUsage == EFeature::RequireTrue);
 
-			for (auto usage : BitfieldIterate( view.extUsage ))
+			for (auto usage : BitfieldIterate( view_usage ))
 			{
 				switch_enum( usage )
 				{
@@ -1709,12 +1605,10 @@ namespace
 			}
 		}
 
-		const EImageUsage	all_usage = desc.usage | view.extUsage;		// may contain incompatible flags
-
 		if ( AllBits( view.options, EImageViewOpt::FragmentDensityMap_Dynamic ))
 			result &= (fragmentDensityMapDynamic == EFeature::RequireTrue);
 
-		if ( AllBits( desc.options, EImageOpt::Subsampled ) and AllBits( all_usage, EImageUsage::Sampled ))
+		if ( AllBits( desc.options, EImageOpt::Subsampled ) and AllBits( view_usage, EImageUsage::Sampled ))
 			result &= (view.layerCount <= maxSubsampledArrayLayers);
 
 		return result;
@@ -1950,7 +1844,7 @@ namespace {
 		AE_VERTEXTYPE_LIST( AE_VERTEXTYPE_VISIT )
 		#undef AE_VERTEXTYPE_VISIT
 
-		result += HashVal64{ sizeof(PerDescriptorSet) };
+		result += HashVal64{ sizeof(PerPipeline) };
 		result += HashVal64{ uint(ESubgroupOperation::_Count) };
 		result += HashVal64{ uint(ESurfaceFormat::_Count) };
 		result += HashVal64{ uint(EGPUVendor::_Count) };
@@ -2012,7 +1906,7 @@ namespace {
 */
 	HashVal64  FeatureSet::GetHashOfFS_Precalculated () __NE___
 	{
-		return HashVal64{0xef015e30145bf56aull};
+		return HashVal64{0xd5be7584d0ef5676ull};
 	}
 
 

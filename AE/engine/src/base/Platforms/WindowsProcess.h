@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #pragma once
 
@@ -26,7 +26,7 @@ namespace AE::Base
 			UsePowerShell		= 1 << 3,
 		//	UseWSL				= 1 << 4,	// windows subsystem for linux	// TODO
 			Unknown				= None,
-			_BITOPS_
+			_BITOPS_			= 0
 		};
 
 

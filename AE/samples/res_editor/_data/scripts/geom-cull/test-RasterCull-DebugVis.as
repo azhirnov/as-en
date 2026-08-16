@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 /*
 	Visualization for Raster Occlusion culling.
 	See [OpenGL Scene-Rendering Techniques (Siggraph 2014)](https://web.archive.org/web/20160314160241/http://on-demand.gputechconf.com/siggraph/2014/presentation/SG4117-OpenGL-Scene-Rendering-Techniques.pdf)
@@ -236,40 +236,20 @@
 #ifdef CHECK_VIS_FLAGS
 	#include "IndirectCmd.glsl"
 	#include "InvocationID.glsl"
+	#include "Atomic.glsl"
 
 	void  Main ()
 	{
 		const int	idx			= GetGlobalIndex();
 		const bool	is_visible	= (un_VisFlags.elements[ idx ].visible != 0);
 
-	#ifdef AE_shader_subgroup_ballot
-
-		uint	dst_idx			= 0;
-		uint4	visible_mask	= gl.subgroup.Ballot( is_visible );
-		uint	visible_count	= gl.subgroup.BallotBitCount( visible_mask );
-
-		if ( gl.subgroup.Index == 0 )
-		{
-			dst_idx = gl.AtomicAdd( INOUT un_IndirectCmd.cmd.instanceCount, visible_count );
-		}
-		gl.subgroup.Barrier();	// reconvergence
-
-		dst_idx = gl.subgroup.Broadcast( dst_idx, 0 );
-		dst_idx += gl.subgroup.BallotExclusiveBitCount( visible_mask );
-
-		if ( is_visible )
-			un_RemapIdx.elements[dst_idx].newIndex = idx;
-
-	#else
-
 		if ( is_visible )
 		{
-			uint	dst_idx = gl.AtomicAdd( INOUT un_IndirectCmd.cmd.instanceCount, 1 );
+			uint	dst_idx;
+			SubgroupAtomicInc( dst_idx, un_IndirectCmd.cmd.instanceCount );
 
 			un_RemapIdx.elements[dst_idx].newIndex = idx;
 		}
-
-	#endif
 	}
 
 #endif

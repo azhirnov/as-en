@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #include "base/DataSource/StdFileStream.h"
 #include "base/Algorithms/ToString.h"
@@ -199,7 +199,7 @@ DEBUG_ONLY(
 	IDataSource::ESourceType  StdFileRStream::GetSourceType () C_NE___
 	{
 		return	ESourceType::SequentialAccess	| ESourceType::RandomAccess |	// allow SeekFwd() & SeekSet()
-				ESourceType::FixedSize			| ESourceType::ReadAccess;
+				ESourceType::FixedSize			| ESourceType::ReadOnly;
 	}
 
 /*
@@ -309,7 +309,7 @@ DEBUG_ONLY(
 */
 	IDataSource::ESourceType  StdFileWStream::GetSourceType () C_NE___
 	{
-		return	ESourceType::SequentialAccess | ESourceType::WriteAccess;	// TODO: RandomAccess
+		return	ESourceType::SequentialAccess | ESourceType::WriteOnly | ESourceType::RandomAccess;
 	}
 
 /*
@@ -371,21 +371,6 @@ DEBUG_ONLY(
 
 		CHECK( fflush( _file ) == 0 );
 	}
-
-/*
-=================================================
-	AsWDataSource
-=================================================
-*
-	RC<WDataSource>  StdFileWStream::AsWDataSource ()
-	{
-		CHECK_ERR( _file != null );
-
-		FILE*	tmp = _file;
-		_file = null;
-
-		return RC<WDataSource>{ new StdFileWDataSource{ tmp DEBUG_ONLY(, _filename )}};
-	}
 //-----------------------------------------------------------------------------
 
 
@@ -439,7 +424,7 @@ DEBUG_ONLY(
 	IDataSource::ESourceType  StdFileRDataSource::GetSourceType () C_NE___
 	{
 		return	ESourceType::SequentialAccess	| ESourceType::RandomAccess	|
-				ESourceType::FixedSize			| ESourceType::ReadAccess;
+				ESourceType::FixedSize			| ESourceType::ReadOnly;
 	}
 
 /*
@@ -526,7 +511,7 @@ DEBUG_ONLY(
 	IDataSource::ESourceType  StdFileWDataSource::GetSourceType () C_NE___
 	{
 		return	ESourceType::SequentialAccess | ESourceType::RandomAccess |
-				ESourceType::WriteAccess;
+				ESourceType::WriteOnly;
 	}
 
 /*

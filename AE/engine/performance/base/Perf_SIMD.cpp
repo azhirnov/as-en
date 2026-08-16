@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 /*
 	[results](https://github.com/azhirnov/as-en/blob/dev/AE/docs/papers/bench-cpu/SIMD_FLOPS.md)
 
@@ -26,7 +26,7 @@ namespace
 		using S		= UnwrapType<T>;
 
 		T		r0, r1, r2, r3, r4, r5, r6, r7;
-		T		p0, p1;
+		T		p0, p1, p2, p3;
 
 		SimdVal_Base ()
 		{
@@ -42,6 +42,8 @@ namespace
 
 			p0 = T{_rnd.Uniform(S(0), S(1))};
 			p1 = T{_rnd.Uniform(S(0), S(1))};
+			p2 = T{_rnd.Uniform(S(0), S(1))};
+			p3 = T{_rnd.Uniform(S(0), S(1))};
 		}
 
 		~SimdVal_Base ()
@@ -66,7 +68,10 @@ namespace
 		using SimdVal_Base<T>::r6; \
 		using SimdVal_Base<T>::r7; \
 		using SimdVal_Base<T>::p0; \
-		using SimdVal_Base<T>::p1;
+		using SimdVal_Base<T>::p1; \
+		using SimdVal_Base<T>::p2; \
+		using SimdVal_Base<T>::p3;
+
 
 
 	template <typename T>
@@ -74,28 +79,10 @@ namespace
 	{
 		REUSE_MEMBERS;
 
-		static constexpr uint opCount = 32;	// flops
+		static constexpr uint opCount = 16;	// flops
 
 		forceinline void  operator () () __NE___
 		{
-			r0 = p0 + r0;
-			r1 = p0 + r1;
-			r2 = p0 + r2;
-			r3 = p0 + r3;
-			r4 = p0 + r4;
-			r5 = p0 + r5;
-			r6 = p0 + r6;
-			r7 = p0 + r7;
-
-			r0 = p1 - r0;
-			r1 = p1 - r1;
-			r2 = p1 - r2;
-			r3 = p1 - r3;
-			r4 = p1 - r4;
-			r5 = p1 - r5;
-			r6 = p1 - r6;
-			r7 = p1 - r7;
-
 			r0 = p0 + r0;
 			r1 = p0 + r1;
 			r2 = p0 + r2;
@@ -121,7 +108,7 @@ namespace
 	{
 		REUSE_MEMBERS;
 
-		static constexpr uint opCount = 32;	// flops
+		static constexpr uint opCount = 16;	// flops
 
 		forceinline void  operator () () __NE___
 		{
@@ -135,35 +122,15 @@ namespace
 			r2 = p1 - r2;
 			r3 = p1 - r3;
 
-			r0 = p0 + r0;
-			r1 = p0 + r1;
-			r2 = p0 + r2;
-			r3 = p0 + r3;
+			r0 = p2 + r0;
+			r1 = p2 + r1;
+			r2 = p2 + r2;
+			r3 = p2 + r3;
 
-			r0 = p1 - r0;
-			r1 = p1 - r1;
-			r2 = p1 - r2;
-			r3 = p1 - r3;
-
-			r0 = p0 + r0;
-			r1 = p0 + r1;
-			r2 = p0 + r2;
-			r3 = p0 + r3;
-
-			r0 = p1 - r0;
-			r1 = p1 - r1;
-			r2 = p1 - r2;
-			r3 = p1 - r3;
-
-			r0 = p0 + r0;
-			r1 = p0 + r1;
-			r2 = p0 + r2;
-			r3 = p0 + r3;
-
-			r0 = p1 - r0;
-			r1 = p1 - r1;
-			r2 = p1 - r2;
-			r3 = p1 - r3;
+			r0 = p3 - r0;
+			r1 = p3 - r1;
+			r2 = p3 - r2;
+			r3 = p3 - r3;
 		}
 	};
 
@@ -172,7 +139,7 @@ namespace
 	{
 		REUSE_MEMBERS;
 
-		static constexpr uint opCount = 40;	// flops
+		static constexpr uint opCount = 20;	// flops
 
 		forceinline void  operator () () __NE___
 		{
@@ -188,41 +155,17 @@ namespace
 			r3 = p1 - r3;
 			r4 = p1 - r4;
 
-			r0 = p0 + r0;
-			r1 = p0 + r1;
-			r2 = p0 + r2;
-			r3 = p0 + r3;
-			r4 = p0 + r4;
+			r0 = p2 + r0;
+			r1 = p2 + r1;
+			r2 = p2 + r2;
+			r3 = p2 + r3;
+			r4 = p2 + r4;
 
-			r0 = p1 - r0;
-			r1 = p1 - r1;
-			r2 = p1 - r2;
-			r3 = p1 - r3;
-			r4 = p1 - r4;
-
-			r0 = p0 + r0;
-			r1 = p0 + r1;
-			r2 = p0 + r2;
-			r3 = p0 + r3;
-			r4 = p0 + r4;
-
-			r0 = p1 - r0;
-			r1 = p1 - r1;
-			r2 = p1 - r2;
-			r3 = p1 - r3;
-			r4 = p1 - r4;
-
-			r0 = p0 + r0;
-			r1 = p0 + r1;
-			r2 = p0 + r2;
-			r3 = p0 + r3;
-			r4 = p0 + r4;
-
-			r0 = p1 - r0;
-			r1 = p1 - r1;
-			r2 = p1 - r2;
-			r3 = p1 - r3;
-			r4 = p1 - r4;
+			r0 = p3 - r0;
+			r1 = p3 - r1;
+			r2 = p3 - r2;
+			r3 = p3 - r3;
+			r4 = p3 - r4;
 		}
 	};
 
@@ -231,7 +174,7 @@ namespace
 	{
 		REUSE_MEMBERS;
 
-		static constexpr uint opCount = 36;	// flops
+		static constexpr uint opCount = 24;	// flops
 
 		forceinline void  operator () () __NE___
 		{
@@ -249,33 +192,19 @@ namespace
 			r4 = p1 - r4;
 			r5 = p1 - r5;
 
-			r0 = p0 + r0;
-			r1 = p0 + r1;
-			r2 = p0 + r2;
-			r3 = p0 + r3;
-			r4 = p0 + r4;
-			r5 = p0 + r5;
+			r0 = p2 + r0;
+			r1 = p2 + r1;
+			r2 = p2 + r2;
+			r3 = p2 + r3;
+			r4 = p2 + r4;
+			r5 = p2 + r5;
 
-			r0 = p1 - r0;
-			r1 = p1 - r1;
-			r2 = p1 - r2;
-			r3 = p1 - r3;
-			r4 = p1 - r4;
-			r5 = p1 - r5;
-
-			r0 = p0 + r0;
-			r1 = p0 + r1;
-			r2 = p0 + r2;
-			r3 = p0 + r3;
-			r4 = p0 + r4;
-			r5 = p0 + r5;
-
-			r0 = p1 - r0;
-			r1 = p1 - r1;
-			r2 = p1 - r2;
-			r3 = p1 - r3;
-			r4 = p1 - r4;
-			r5 = p1 - r5;
+			r0 = p3 - r0;
+			r1 = p3 - r1;
+			r2 = p3 - r2;
+			r3 = p3 - r3;
+			r4 = p3 - r4;
+			r5 = p3 - r5;
 		}
 	};
 
@@ -304,21 +233,21 @@ namespace
 			r5 = p1 - r5;
 			r6 = p1 - r6;
 
-			r0 = p0 + r0;
-			r1 = p0 + r1;
-			r2 = p0 + r2;
-			r3 = p0 + r3;
-			r4 = p0 + r4;
-			r5 = p0 + r5;
-			r6 = p0 + r6;
+			r0 = p2 + r0;
+			r1 = p2 + r1;
+			r2 = p2 + r2;
+			r3 = p2 + r3;
+			r4 = p2 + r4;
+			r5 = p2 + r5;
+			r6 = p2 + r6;
 
-			r0 = p1 - r0;
-			r1 = p1 - r1;
-			r2 = p1 - r2;
-			r3 = p1 - r3;
-			r4 = p1 - r4;
-			r5 = p1 - r5;
-			r6 = p1 - r6;
+			r0 = p3 - r0;
+			r1 = p3 - r1;
+			r2 = p3 - r2;
+			r3 = p3 - r3;
+			r4 = p3 - r4;
+			r5 = p3 - r5;
+			r6 = p3 - r6;
 		}
 	};
 
@@ -349,23 +278,23 @@ namespace
 			r6 = p1 * r6;
 			r7 = p1 * r7;
 
-			r0 = p0 * r0;
-			r1 = p0 * r1;
-			r2 = p0 * r2;
-			r3 = p0 * r3;
-			r4 = p0 * r4;
-			r5 = p0 * r5;
-			r6 = p0 * r6;
-			r7 = p0 * r7;
+			r0 = p2 * r0;
+			r1 = p2 * r1;
+			r2 = p2 * r2;
+			r3 = p2 * r3;
+			r4 = p2 * r4;
+			r5 = p2 * r5;
+			r6 = p2 * r6;
+			r7 = p2 * r7;
 
-			r0 = p1 * r0;
-			r1 = p1 * r1;
-			r2 = p1 * r2;
-			r3 = p1 * r3;
-			r4 = p1 * r4;
-			r5 = p1 * r5;
-			r6 = p1 * r6;
-			r7 = p1 * r7;
+			r0 = p3 * r0;
+			r1 = p3 * r1;
+			r2 = p3 * r2;
+			r3 = p3 * r3;
+			r4 = p3 * r4;
+			r5 = p3 * r5;
+			r6 = p3 * r6;
+			r7 = p3 * r7;
 		}
 	};
 
@@ -396,23 +325,23 @@ namespace
 			r6 = p1 + r6;
 			r7 = p1 + r7;
 
-			r0 = p0 * r0;
-			r1 = p0 * r1;
-			r2 = p0 * r2;
-			r3 = p0 * r3;
-			r4 = p0 * r4;
-			r5 = p0 * r5;
-			r6 = p0 * r6;
-			r7 = p0 * r7;
+			r0 = p2 * r0;
+			r1 = p2 * r1;
+			r2 = p2 * r2;
+			r3 = p2 * r3;
+			r4 = p2 * r4;
+			r5 = p2 * r5;
+			r6 = p2 * r6;
+			r7 = p2 * r7;
 
-			r0 = p1 - r0;
-			r1 = p1 - r1;
-			r2 = p1 - r2;
-			r3 = p1 - r3;
-			r4 = p1 - r4;
-			r5 = p1 - r5;
-			r6 = p1 - r6;
-			r7 = p1 - r7;
+			r0 = p3 - r0;
+			r1 = p3 - r1;
+			r2 = p3 - r2;
+			r3 = p3 - r3;
+			r4 = p3 - r4;
+			r5 = p3 - r5;
+			r6 = p3 - r6;
+			r7 = p3 - r7;
 		}
 	};
 
@@ -635,7 +564,7 @@ namespace
 	{
 		REUSE_MEMBERS;
 
-		static constexpr uint opCount = 32;	// flops, actualy +16 flops, but keep only FMA flops to compare with other tests
+		static constexpr uint opCount = 32;	// flops, actually +16 flops, but keep only FMA flops to compare with other tests
 
 		forceinline void  operator () () __NE___
 		{
@@ -664,28 +593,10 @@ namespace
 	{
 		REUSE_MEMBERS;
 
-		static constexpr uint opCount = 32;	// flops
+		static constexpr uint opCount = 16;	// flops
 
 		forceinline void  operator () () __NE___
 		{
-			r0 = p0 / r0;
-			r1 = p0 / r1;
-			r2 = p0 / r2;
-			r3 = p0 / r3;
-			r4 = p0 / r4;
-			r5 = p0 / r5;
-			r6 = p0 / r6;
-			r7 = p0 / r7;
-
-			r0 = p1 / r0;
-			r1 = p1 / r1;
-			r2 = p1 / r2;
-			r3 = p1 / r3;
-			r4 = p1 / r4;
-			r5 = p1 / r5;
-			r6 = p1 / r6;
-			r7 = p1 / r7;
-
 			r0 = p0 / r0;
 			r1 = p0 / r1;
 			r2 = p0 / r2;
@@ -711,7 +622,7 @@ namespace
 	{
 		REUSE_MEMBERS;
 
-		static constexpr uint opCount = 32;	// flops
+		static constexpr uint opCount = 16;	// flops
 
 		forceinline void  operator () () __NE___
 		{
@@ -725,35 +636,15 @@ namespace
 			r2 = p1 / r2;
 			r3 = p1 / r3;
 
-			r0 = p0 / r0;
-			r1 = p0 / r1;
-			r2 = p0 / r2;
-			r3 = p0 / r3;
+			r0 = p2 / r0;
+			r1 = p2 / r1;
+			r2 = p2 / r2;
+			r3 = p2 / r3;
 
-			r0 = p1 / r0;
-			r1 = p1 / r1;
-			r2 = p1 / r2;
-			r3 = p1 / r3;
-
-			r0 = p0 / r0;
-			r1 = p0 / r1;
-			r2 = p0 / r2;
-			r3 = p0 / r3;
-
-			r0 = p1 / r0;
-			r1 = p1 / r1;
-			r2 = p1 / r2;
-			r3 = p1 / r3;
-
-			r0 = p0 / r0;
-			r1 = p0 / r1;
-			r2 = p0 / r2;
-			r3 = p0 / r3;
-
-			r0 = p1 / r0;
-			r1 = p1 / r1;
-			r2 = p1 / r2;
-			r3 = p1 / r3;
+			r0 = p3 / r0;
+			r1 = p3 / r1;
+			r2 = p3 / r2;
+			r3 = p3 / r3;
 		}
 	};
 
@@ -762,28 +653,10 @@ namespace
 	{
 		REUSE_MEMBERS;
 
-		static constexpr uint opCount = 32;	// flops
+		static constexpr uint opCount = 16;	// flops
 
 		forceinline void  operator () () __NE___
 		{
-			r0 = p0.FastDiv( r0 );
-			r1 = p0.FastDiv( r1 );
-			r2 = p0.FastDiv( r2 );
-			r3 = p0.FastDiv( r3 );
-			r4 = p0.FastDiv( r4 );
-			r5 = p0.FastDiv( r5 );
-			r6 = p0.FastDiv( r6 );
-			r7 = p0.FastDiv( r7 );
-
-			r0 = p1.FastDiv( r0 );
-			r1 = p1.FastDiv( r1 );
-			r2 = p1.FastDiv( r2 );
-			r3 = p1.FastDiv( r3 );
-			r4 = p1.FastDiv( r4 );
-			r5 = p1.FastDiv( r5 );
-			r6 = p1.FastDiv( r6 );
-			r7 = p1.FastDiv( r7 );
-
 			r0 = p0.FastDiv( r0 );
 			r1 = p0.FastDiv( r1 );
 			r2 = p0.FastDiv( r2 );
@@ -1060,7 +933,7 @@ namespace
 					VFloat_Op< VFloat_FMA_8<T> >( profiler, count, String{typeName} << " - FMA ilp8" );
 					VFloat_Op< VFloat_FMA_16<T> >( profiler, count, String{typeName} << " - FMA ilp16" );
 
-					VFloat_Op< VFloat_FMA_Add<T> >( profiler, count, String{typeName} << " - FMA ilp8 + Add" );
+				//	VFloat_Op< VFloat_FMA_Add<T> >( profiler, count, String{typeName} << " - FMA ilp8 + Add" );
 				}
 			}else{
 				VFloat_Op< VFloat_Add_8<T> >( profiler, count, String{typeName} << " - Add" );
@@ -1074,8 +947,8 @@ namespace
 					VFloat_Op< VFloat_Div_8<T> >( profiler, count, String{typeName} << " - Div ilp8" );
 				}
 				if constexpr( T::Has_PreciseDiv() and T::Has_FusedMulAdd() ){
-					VFloat_Op< VFloat_FMA_Div<T> >( profiler, count, String{typeName} << " - FMA ilp8 + Div2" );
-					VFloat_Op< VFloat_FMA_Div2<T> >( profiler, count, String{typeName} << " - FMA ilp4 + Div4" );
+				//	VFloat_Op< VFloat_FMA_Div<T> >( profiler, count, String{typeName} << " - FMA ilp8 + Div2" );
+				//	VFloat_Op< VFloat_FMA_Div2<T> >( profiler, count, String{typeName} << " - FMA ilp4 + Div4" );
 				}
 				if constexpr( T::Has_PreciseSqrt() ){
 					VFloat_Op< VFloat_Sqrt<T> >( profiler, count, String{typeName} << " - Precise Sqrt" );
@@ -1102,7 +975,7 @@ namespace
 					setAffinity();
 
 					IntervalProfiler	profiler{ "SIMD test, single thread, "s << ToString( core.type ) << " core",
-												  IntervalProfiler::EFlags::SortByTime };
+												  IntervalProfiler::EFlags::SortByUserData };
 
 					// Clang converts scalar to SIMD, so test is not correct
 					#if ENABLE_SCALAR_OPS and not (defined(AE_COMPILER_CLANG) or defined(AE_COMPILER_CLANG_CL))
@@ -1227,7 +1100,7 @@ namespace
 					TestVFloatOpMT< VFloat_FMA_8<T> >( profiler, String{typeName} << " - FMA ilp8", coreBits );
 					TestVFloatOpMT< VFloat_FMA_16<T> >( profiler, String{typeName} << " - FMA ilp16", coreBits );
 
-					TestVFloatOpMT< VFloat_FMA_Add<T> >( profiler, String{typeName} << " - FMA ilp8 + Add", coreBits );
+				//	TestVFloatOpMT< VFloat_FMA_Add<T> >( profiler, String{typeName} << " - FMA ilp8 + Add", coreBits );
 				}
 			}else{
 				TestVFloatOpMT< VFloat_Add_8<T> >( profiler, String{typeName} << " - Add", coreBits );
@@ -1246,7 +1119,7 @@ namespace
 
 			IntervalProfiler	profiler{ "SIMD test, "s << ToString(thread_count) << "T, " << ToString(thread_count) <<
 										  "C, on " << ToString( core.type ) << " core",
-										  IntervalProfiler::EFlags::SortByTime };
+										  IntervalProfiler::EFlags::SortByUserData };
 
 			// Clang converts scalar to SIMD, so test is not correct
 			#if ENABLE_SCALAR_OPS and not (defined(AE_COMPILER_CLANG) or defined(AE_COMPILER_CLANG_CL))
@@ -1276,7 +1149,7 @@ namespace
 
 			IntervalProfiler	profiler{ "SIMD test, "s << ToString(thread_count) << "T, " << ToString(thread_count/2) <<
 										  "C, on " << ToString( core.type ) << " core",
-										  IntervalProfiler::EFlags::SortByTime };
+										  IntervalProfiler::EFlags::SortByUserData };
 
 			// Clang converts scalar to SIMD, so test is not correct
 			#if ENABLE_SCALAR_OPS and not (defined(AE_COMPILER_CLANG) or defined(AE_COMPILER_CLANG_CL))

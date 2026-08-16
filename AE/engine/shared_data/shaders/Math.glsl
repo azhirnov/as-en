@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 /*
 	Default math types and functions
 */
@@ -353,7 +353,7 @@ Gen_SATURATE( float, float_vec_t, 0.f, 1.f )
 	1.0 - true
 	0.0 - false
 ----
-	LessF, GreaterF - may return NaN if one of operands contains NaN, use Saturate() to convert NaN to 0.0
+	LessF, GreaterF, NotF - may return NaN if one of operands contains NaN, use Saturate() to convert NaN to 0.0
 =================================================
 */
 #define Gen_FPBOOL1( _stype_, _vtype_, _one_ )\

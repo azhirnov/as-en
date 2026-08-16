@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 /*
 	Wrapper for ray tracing pipeline (VK_KHR_ray_tracing_pipeline).
 */
@@ -44,14 +44,14 @@ namespace AE::Graphics
 
 		EPipelineDynamicState		_dynamicState		= Default;
 		EPipelineOpt				_options			= Default;
+		EShaderStages				_activeStages		= Default;
 
 		Strong<PipelineLayoutID>	_layoutId;
 		InPlace<NameToHandle_t>		_nameToHandle;		// allocated by pipeline pack linear allocator
 		ArrayView<ulong>			_groupHandles;		// allocated by pipeline pack linear allocator
 		ArrayView<ShaderTracePtr>	_dbgTrace;			// allocated by pipeline pack linear allocator
 
-		GFX_DBG_ONLY(	DebugName_t		_debugName;	)
-		DRC_ONLY(		RWDataRaceCheck	_drCheck;	)
+		GFX_DBG_ONLY( DebugName_t	_debugName;	)
 
 
 	// methods
@@ -87,19 +87,20 @@ namespace AE::Graphics
 							  Bytes						dstSize)			C_NE___;
 
 
-		ND_ VkPipeline				Handle ()								C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _handle; }
-		ND_ VkPipelineLayout		Layout ()								C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _layout; }
+		ND_ VkPipeline				Handle ()								C_NE___	{ return _handle; }
+		ND_ VkPipelineLayout		Layout ()								C_NE___	{ return _layout; }
 		ND_ VkPipelineBindPoint		BindPoint ()							C_NE___	{ return VK_PIPELINE_BIND_POINT_RAY_TRACING_KHR; }
-		ND_ PipelineLayoutID		LayoutId ()								C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _layoutId; }
-		ND_ EPipelineDynamicState	DynamicState ()							C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _dynamicState; }
-		ND_ EPipelineOpt			Options ()								C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _options; }
+		ND_ PipelineLayoutID		LayoutId ()								C_NE___	{ return _layoutId; }
+		ND_ EPipelineDynamicState	DynamicState ()							C_NE___	{ return _dynamicState; }
+		ND_ EPipelineOpt			Options ()								C_NE___	{ return _options; }
+		ND_ EShaderStages			GetActiveStages ()						C_NE___	{ return _activeStages; }
 
-		ND_ NameToHandle_t const&	_NameToHandleMap ()						C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return *_nameToHandle; }
-		ND_ ArrayView<ulong>		_GroupHandlesData ()					C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _groupHandles; }
+		ND_ NameToHandle_t const&	_NameToHandleMap ()						C_NE___	{ return *_nameToHandle; }
+		ND_ ArrayView<ulong>		_GroupHandlesData ()					C_NE___	{ return _groupHandles; }
 
-		ND_ ArrayView<ShaderTracePtr> GetShaderTrace ()						C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _dbgTrace; }
+		ND_ ArrayView<ShaderTracePtr> GetShaderTrace ()						C_NE___	{ return _dbgTrace; }
 
-		GFX_DBG_ONLY( ND_ StringView  GetDebugName ()						C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _debugName; })
+		GFX_DBG_ONLY( ND_ StringView  GetDebugName ()						C_NE___	{ return _debugName; })
 	};
 
 } // AE::Graphics

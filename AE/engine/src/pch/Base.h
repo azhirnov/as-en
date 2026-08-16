@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #pragma once
 
@@ -11,6 +11,7 @@
 #include "base/CompileTime/Counter.h"
 #include "base/CompileTime/Concepts.h"
 #include "base/CompileTime/ConceptsTL.h"
+#include "base/CompileTime/EnumToString.h"
 
 // Algorithms
 #include "base/Algorithms/ArrayUtils.h"
@@ -124,6 +125,7 @@
 #include "base/SIMD/MemUtils.h"
 #include "base/SIMD/Math.h"
 #include "base/SIMD/Vector.h"
+#include "base/SIMD/Matrix.h"
 
 // Platforms
 #include "base/Platforms/CPUInfo.h"
@@ -135,6 +137,7 @@
 #include "base/Time/Clock.h"
 #include "base/Time/TimeProfiler.h"
 #include "base/Time/Timer.h"
+#include "base/Time/FrameLimiter.h"
 
 // FileSystem
 #include "base/FileSystem/FileSystem.h"

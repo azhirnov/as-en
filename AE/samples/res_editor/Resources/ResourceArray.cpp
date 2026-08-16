@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #include "Resources/Buffer.h"
 #include "Resources/BufferView.h"
@@ -38,6 +38,8 @@ namespace AE::ResEditor
 	template <typename CtxType>
 	void  ResourceArray::_SetStates (CtxType &ctx, EResourceState shaderStages) const
 	{
+		// TODO: detect same image with different states, RG can not handle this
+
 		const FrameUID	fid = ctx.GetFrameId();
 		for (auto& [un, res, in_state] : _resources)
 		{

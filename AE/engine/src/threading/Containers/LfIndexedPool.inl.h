@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 namespace AE::Threading
 {
@@ -27,7 +27,6 @@ namespace AE::Threading
 	Release
 ----
 	Must be externally synchronized.
-	Can not use after release!
 =================================================
 */
 	template <typename V, typename I, usize CS, usize MC, typename A>
@@ -50,13 +49,12 @@ namespace AE::Threading
 			if_unlikely( checkForAssigned )
 			{
 				HighLvlBits_t	hi_bits = hi_chunk.available.exchange( InitialHighLevel );
-
 				CHECK( hi_bits == InitialHighLevel );
 
 				for (auto& low_chunk : *low_chunks)
 				{
-					LowLvlBits_t	low_bits = low_chunk.assigned.exchange( 0 );
-					CHECK( low_bits == 0 );
+					auto	low_bits = BitSetFrom( low_chunk.assigned.exchange( 0 ));
+					CHECK_Eq( low_bits.count(), 0 );
 				}
 			}
 

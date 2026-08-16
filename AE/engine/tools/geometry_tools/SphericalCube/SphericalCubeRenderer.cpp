@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #ifdef AE_GEOMTOOLS_HAS_GRAPHICS
 # include "geometry_tools/SphericalCube/SphericalCubeRenderer.h"

@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #include "networking/HighLevel/TcpStream2.h"
 
@@ -24,7 +24,7 @@ namespace AE::Networking
 
 				case SocketSendError::NotSent :
 				case SocketSendError::ResourceTemporarilyUnavailable :
-					Coro_Continue();  // pause
+					Coro_Delay( milliseconds{20} );  // pause
 					break;
 
 				case SocketSendError::_Error :
@@ -144,19 +144,19 @@ namespace AE::Networking
 	WaitForClient
 =================================================
 */
-	auto  TcpStream2::WaitForClient (const TimePoint_t endTime) __NE___ -> InlCoro
+	auto  TcpStream2::WaitForClient (const TimePoint_t endTime, const SourceLoc loc) __NE___ -> InlCoro
 	{
 		CHECK_CE( _server.IsOpen() );
 		CHECK_CE( not _client.IsOpen() );
 
-		AE_LOGI( "Waiting for client..." );
+		AE_PRIVATE_LOG_I( "Waiting for client...", loc );
 
 		for (;;)
 		{
 			IpAddress	addr;
 			if ( _client.Accept( _server, OUT addr ))
 			{
-				AE_LOGI( "client connected "s << addr.ToString() );
+				AE_PRIVATE_LOG_I( "client connected "s << addr.ToString(), loc );
 				co_return;
 			}
 
@@ -261,7 +261,8 @@ namespace AE::Networking
 	_InitClient
 =================================================
 */
-	auto  TcpStream2::_InitClient (IpAddress addr, Bytes bufferSize, Ptr<Serializing::ObjectFactory> factory, const TimePoint_t endTime) __NE___ -> InlCoro
+	auto  TcpStream2::_InitClient (IpAddress addr, Bytes bufferSize, Ptr<Serializing::ObjectFactory> factory,
+								   const TimePoint_t endTime, const SourceLoc loc) __NE___ -> InlCoro
 	{
 		CHECK_CE( not _client.IsOpen() );
 
@@ -270,17 +271,23 @@ namespace AE::Networking
 		cfg.nonBlocking			= true;
 		cfg.receiveBufferSize	= bufferSize;
 
-		AE_LOGI( "Waiting for server..." );
+		AE_PRIVATE_LOG_I( "Waiting for server...", loc );
 
 		for (;;)
 		{
 			if ( _client.Connect( addr ))
 			{
-				AE_LOGI( "connected to server "s << addr.ToString() );
+				AE_PRIVATE_LOG_I( "connected to server "s << addr.ToString(), loc );
 				break;
 			}
 
-			co_await Tuple{SocketDependency{ _client, endTime }};
+			if ( HighResClock::now() > endTime )
+			{
+				AE_PRIVATE_LOG_W( "Failed to connect to server "s << addr.ToString() << ", time is out", loc );
+				Coro_Error();
+			}
+
+			Coro_Delay( milliseconds{100} );
 		}
 
 		CHECK_CE( _Init( bufferSize, factory ));

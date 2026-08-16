@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #pragma once
 
@@ -22,9 +22,10 @@ namespace AE::Graphics
 		{
 			VkPipeline					pipeline		= Default;
 			VkPipelineLayout			layout			= Default;
+			PipelineLayoutID			layoutId;
 			VkPipelineBindPoint			bindPoint		= VK_PIPELINE_BIND_POINT_MAX_ENUM;
 			EPipelineDynamicState		dynamicState	= Default;
-			PipelineName::Optimized_t	pplnName;
+			EShaderStages				activeStages	= Default;
 		};
 
 		struct CreateInfo

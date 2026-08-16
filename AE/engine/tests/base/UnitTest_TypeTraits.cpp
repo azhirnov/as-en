@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #include "UnitTest_Common.h"
 
@@ -35,7 +35,7 @@ namespace
 	StaticAssert( sizeof(float)  == 4 );		StaticAssert( IsFloatPoint< float  >);
 	StaticAssert( sizeof(double) == 8 );		StaticAssert( IsFloatPoint< double >);
 
-	StaticAssert( sizeof(UFloat8)  == 1 );		StaticAssert( IsAnyFloatPoint< UFloat8 >);
+	StaticAssert( sizeof(UFloatM4E4)  == 1 );	StaticAssert( IsAnyFloatPoint< UFloatM4E4 >);
 	StaticAssert( sizeof(SFloat16) == 2 );		StaticAssert( IsAnyFloatPoint< SFloat16 >);
 	StaticAssert( sizeof(UFloat16) == 2 );		StaticAssert( IsAnyFloatPoint< UFloat16 >);
 
@@ -304,10 +304,10 @@ namespace
 		CheckNothrow( IsNothrowInvocable< void () __NE___ >);
 		CheckNothrow( IsNothrowInvocable< void (*) () __NE___ >);
 
-		const auto	fn1 = [] () {};
+		const auto	fn1 = [] () { throw 1; };
 		CheckNothrow( not IsNothrowInvocable< decltype(fn1) >);
 		Test_IsNothrowInvocable_FnTh( fn1 );
-		Test_IsNothrowInvocable_FnTh( [] () { return true; } );
+		Test_IsNothrowInvocable_FnTh( [] () { throw 1; return true; } );
 
 		const auto	fn2 = [] () __NE___ {};
 		CheckNothrow( IsNothrowInvocable< decltype(fn2) >);

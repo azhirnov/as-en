@@ -1,14 +1,15 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #pragma once
 
-#define VK_NO_PROTOTYPES
-#define VK_ENABLE_BETA_EXTENSIONS
-#include "base/Defines/StdInclude.h"
-#include "vulkan/vulkan.h"
-#include "vulkan/vulkan_android.h"
+#ifdef VULKAN_HEADER_PATH
+# define VK_NO_PROTOTYPES
+# define VK_ENABLE_BETA_EXTENSIONS
+# include "base/Defines/StdInclude.h"
+# include "vulkan/vulkan.h"
+# include "vulkan/vulkan_android.h"
 
-#include "shared/HeaderParser.h"
+# include "shared/HeaderParser.h"
 
 namespace AE::Parsers
 {
@@ -37,3 +38,5 @@ namespace AE::Parsers
 
 
 } // AE::Parsers
+
+#endif // VULKAN_HEADER_PATH

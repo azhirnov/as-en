@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #pragma once
 
@@ -25,8 +25,7 @@ namespace AE::Graphics
 
 		Strong<MemoryID>			_memoryId;
 
-		GFX_DBG_ONLY(	DebugName_t		_debugName;	)
-		DRC_ONLY(		RWDataRaceCheck	_drCheck;	)
+		GFX_DBG_ONLY( DebugName_t	_debugName;	)
 
 
 	// methods
@@ -40,16 +39,16 @@ namespace AE::Graphics
 
 		ND_ VulkanBufferDesc	GetNativeDescription () C_NE___;
 
-		ND_ VkBuffer			Handle ()				C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _buffer; }
-		ND_ DeviceAddress		GetDeviceAddress ()		C_NE___	{ DRC_SHAREDLOCK( _drCheck );  ASSERT( _address != Default );  return _address; }
-		ND_ MemoryID			MemoryId ()				C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _memoryId; }
+		ND_ VkBuffer			Handle ()				C_NE___	{ return _buffer; }
+		ND_ DeviceAddress		GetDeviceAddress ()		C_NE___	{ ASSERT( _address != Default );  return _address; }
+		ND_ MemoryID			MemoryId ()				C_NE___	{ return _memoryId; }
 
-		ND_ BufferDesc const&	Description ()			C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _desc; }
-		ND_ Bytes				Size ()					C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _desc.size; }
-		ND_ bool				IsExclusiveSharing ()	C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _desc.queues == Default; }
-		ND_ bool				HasDeviceAddress ()		C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _address != Default; }
+		ND_ BufferDesc const&	Description ()			C_NE___	{ return _desc; }
+		ND_ Bytes				Size ()					C_NE___	{ return _desc.size; }
+		ND_ bool				IsExclusiveSharing ()	C_NE___	{ return _desc.queues == Default; }
+		ND_ bool				HasDeviceAddress ()		C_NE___	{ return _address != Default; }
 
-		GFX_DBG_ONLY( ND_ StringView  GetDebugName ()	C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _debugName; })
+		GFX_DBG_ONLY( ND_ StringView  GetDebugName ()	C_NE___	{ return _debugName; })
 
 
 		ND_ static bool	 IsSupported (const ResourceManager &, const BufferDesc &desc)		__NE___;

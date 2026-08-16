@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #include "networking/LowLevel/SocketDependency.h"
 #include "networking/LowLevel/PlatformSpecific.cpp.h"
@@ -64,7 +64,7 @@ namespace AE::Networking
 */
 	bool  SocketDependencyManager::Register () __NE___
 	{
-		auto	mngr = MakeRC<SocketDependencyManager>();
+		auto	mngr = RC<SocketDependencyManager>( new SocketDependencyManager{} );
 		auto	serv = MakeRC<NetworkIOService>( *mngr );
 
 		CHECK_ERR( Scheduler().RegisterDependency< SocketDependency >( mngr ));
@@ -88,16 +88,20 @@ namespace AE::Networking
 		if ( not lock.try_lock() )
 			return 0;
 
+		// copy pending sockets
 		{
-			auto	pending = _mngr._pendingSockets.WriteLock();
-			if ( not pending->empty() )
+			auto	pending = _mngr._pendingSockets.WriteNoLock();
+			if ( pending.try_lock() )
 			{
-				_sockets.reserve( _sockets.size() + pending->size() );
+				if ( not pending->empty() )
+				{
+					_sockets.reserve( _sockets.size() + pending->size() );
 
-				for (auto& dep : *pending) {
-					_sockets.push_back( RVRef(dep) );
+					for (auto& dep : *pending) {
+						_sockets.push_back( RVRef(dep) );
+					}
+					pending->clear();
 				}
-				pending->clear();
 			}
 		}
 
@@ -114,7 +118,7 @@ namespace AE::Networking
 		{
 			if ( tp > it->endTime )
 			{
-				AE_LOG_DBG( String{it->isStrong ? "Cancel " : "Resume "} << " task '"s << it->task->DbgName() <<
+				AE_LOG_DBG( String{it->isStrong ? "Cancel" : "Resume"} << " task '"s << it->task->DbgName() <<
 							"' which waiting for socket event in " << it->loc.FunctionName() << '(' << ToString( it->loc.Line() ) << ')' );
 
 				TaskApi::SetDependencyCompletionStatus( *it->task, Bool{it->isStrong} );
@@ -122,17 +126,16 @@ namespace AE::Networking
 			}
 			else
 			{
-				FD_SET( NativeSocket_t(it->socket), &read_fds );
-				++it;
-			}
-
-			#ifndef AE_PLATFORM_WINDOWS
-            {
                 auto  s = NativeSocket_t(it->socket);
+				FD_SET( s, &read_fds );
+
+			  #ifndef AE_PLATFORM_WINDOWS
 				if ( s > maxfd )
 					maxfd = s;
-            }
-			#endif
+			  #endif
+
+				++it;
+			}
 		}
 
 		if ( _sockets.empty() )

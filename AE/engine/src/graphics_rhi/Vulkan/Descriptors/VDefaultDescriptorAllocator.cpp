@@ -1,9 +1,10 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #ifdef AE_ENABLE_VULKAN
 # include "graphics_rhi/Vulkan/Descriptors/VDefaultDescriptorAllocator.h"
 # include "graphics_rhi/Vulkan/VRenderTaskScheduler.h"
 # include "graphics_rhi/Vulkan/VResourceManager.h"
+# include "graphics_rhi/Vulkan/Utils/NextChain.h"
 
 namespace AE::Graphics
 {
@@ -54,19 +55,44 @@ namespace
 	Allocate
 =================================================
 */
-	bool  VDefaultDescriptorAllocator::Allocate (DescriptorSetLayoutID layoutId, OUT Storage &ds) __NE___
+	bool  VDefaultDescriptorAllocator::Allocate (DescriptorSetLayoutID layoutId, const DescSetParams* params, OUT Storage &ds) __NE___
 	{
 		const auto&		res_mngr	= GraphicsScheduler().GetResourceManager();
-		VDevice const&	dev			= res_mngr.GetDevice();
 		const auto*		ds_layout	= res_mngr.GetResource( layoutId );
 		CHECK_ERR( ds_layout != null );
 
-		const VkDescriptorSetLayout	layout = ds_layout->Handle();
+		const VkDescriptorSetLayout		layout	= ds_layout->Handle();
+		VkDescriptorSetAllocateInfo		info	= {};
+		VNextChain						next	{info};
 
-		VkDescriptorSetAllocateInfo		info = {};
 		info.sType				= VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
 		info.descriptorSetCount	= 1;
 		info.pSetLayouts		= &layout;
+
+		VkDescriptorSetVariableDescriptorCountAllocateInfo	var_count_ci = {};
+		if ( params != null and params->variableArraySize != 0 )
+		{
+			CHECK_ERR_MSG( res_mngr.GetFeatureSet().descriptorBindingVariableDescriptorCount == FeatureSet::EFeature::RequireTrue,
+				"Non-zero 'DescSetParams::variableArraySize' requires 'descriptorBindingVariableDescriptorCount' feature." );
+
+			var_count_ci.sType				= VK_STRUCTURE_TYPE_DESCRIPTOR_SET_VARIABLE_DESCRIPTOR_COUNT_ALLOCATE_INFO;
+			var_count_ci.descriptorSetCount	= 1;
+			var_count_ci.pDescriptorCounts	= &params->variableArraySize;
+
+			next.Add( var_count_ci );
+		}
+
+		return _Allocate( info, OUT ds );
+	}
+
+/*
+=================================================
+	_Allocate
+=================================================
+*/
+	bool  VDefaultDescriptorAllocator::_Allocate (VkDescriptorSetAllocateInfo &info, OUT Storage &ds) __NE___
+	{
+		VDevice const&	dev = GraphicsScheduler().GetDevice();
 
 		// search in chunks
 		Chunk*	chunk			= &_firstChunk;
@@ -275,7 +301,7 @@ namespace
 
 				case EDescriptorType::CombinedImage_ImmutableSampler :
 				case EDescriptorType::ImmutableSampler :
-				case EDescriptorType::Unknown :		break;
+				case EDescriptorType::_Count :		break;
 			}
 			switch_end
 		}

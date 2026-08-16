@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 /*
 	This class uses lock-free algorithm to put and extract values without any order (but not really in random order).
 	You can use 'Put', 'Extract' methods without any syncs.

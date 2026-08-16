@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #ifdef AE_WINAPI_WINDOW
 # include "base/Platforms/WindowsHeader.cpp.h"
@@ -124,7 +124,7 @@ namespace AE::App
 	TODO: CapabilitiesRequestAndCapabilitiesReply
 =================================================
 */
-	MonitorsView_t  ApplicationWinAPI::GetMonitors (bool update) __NE___
+	IApplication::MonitorsView_t  ApplicationWinAPI::GetMonitors (bool update) __NE___
 	{
 		DRC_EXLOCK( _stCheck );
 
@@ -150,7 +150,7 @@ namespace AE::App
 			Monitors_t &				monitors;
 		} params{ *this, outMonitors };
 
-		MONITORENUMPROC	EnumMonitor = [] (HMONITOR hMonitor, HDC, LPRECT, LPARAM dwData) -> BOOL
+		const MONITORENUMPROC	EnumMonitor = [] (HMONITOR hMonitor, HDC, LPRECT, LPARAM dwData) __NE___ -> BOOL
 		{{
 			//ApplicationWinAPI*	app		= BitCast<Params *>( dwData )->app;
 			Monitors_t&			monitors	= BitCast<Params *>( dwData )->monitors;
@@ -165,7 +165,7 @@ namespace AE::App
 			Monitor		disp;
 
 			disp.native = BitCast<Monitor::NativeMonitor_t>( hMonitor );
-			disp.ppi	= float2{96.f};
+			disp.ppi	= 96.f;
 			disp.id		= Monitor::ID(monitors.size());
 
 			// get monitor info
@@ -208,7 +208,7 @@ namespace AE::App
 				uint2	dpi;
 				if ( fn( hMonitor, MDT_RAW_DPI, OUT &dpi.x, OUT &dpi.y ) == S_OK )	// win8.1
 				{
-					disp.ppi = float2{dpi};
+					disp.ppi = Average( float(dpi.x), float(dpi.y) );
 					has_dpi  = true;
 				}
 			}
@@ -327,22 +327,10 @@ namespace AE::App
 	GetStoragePath
 =================================================
 */
-	Path  ApplicationWinAPI::GetStoragePath (EAppStorage type) __NE___
+	Path  ApplicationWinAPI::GetStoragePath (EAppStorage type) C_NE___
 	{
-		Path	path = UtilsWinAPI::GetStoragePath( type );
-		if ( not path.empty() )
-		{
-			CHECK_ERR( _listener );
-
-			switch ( type )
-			{
-				case EAppStorage::UserData :
-				case EAppStorage::SharedData :
-					path /= _listener->GetAppName();
-					break;
-			}
-		}
-		return path;
+		CHECK_ERR( _listener );
+		return UtilsWinAPI::GetStoragePath( type, _listener->GetAppName() );
 	}
 
 /*
@@ -412,11 +400,14 @@ using namespace AE::Base;
 */
 extern int  AE_AppEntry ()
 {
+	CHECK( CpuArchInfo::Get().CheckCompilationOptions() );
+
 	return App::ApplicationWinAPI::Run( AE_OnAppCreated( __argc, const_cast<char const**>(__argv) ));
 }
 
 extern int  main (const int argc, char const* argv[])
 {
+	CHECK( CpuArchInfo::Get().CheckCompilationOptions() );
 	FileSystem::SetCurrentPath( Path{argv[0]}.parent_path() );
 
 	return App::ApplicationWinAPI::Run( AE_OnAppCreated( argc, argv ));
@@ -429,6 +420,7 @@ extern int  WinMain (HINSTANCE	hInstance,
 					 int		nShowCmd)
 {
 	Unused( hInstance, hPrevInstance, lpCmdLine, nShowCmd );
+	CHECK( CpuArchInfo::Get().CheckCompilationOptions() );
 
 	if ( __argc > 0 )
 		FileSystem::SetCurrentPath( Path{__argv[0]}.parent_path() );

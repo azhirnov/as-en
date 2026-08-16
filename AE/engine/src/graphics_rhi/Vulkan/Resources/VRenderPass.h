@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #pragma once
 
@@ -63,7 +63,6 @@ namespace AE::Graphics
 			SubpassName::Optimized_t _firstSPName;
 			DebugName_t				 _debugName;
 		)
-		DRC_ONLY(	RWDataRaceCheck	_drCheck;)
 
 
 	// methods
@@ -79,20 +78,20 @@ namespace AE::Graphics
 		ND_ bool  GetMaxTileWorkgroupSize (const VDevice &dev, OUT uint2 &tileSize)			C_NE___;
 		ND_ uint2 GetTileSizeGranularity (const VDevice &dev)								C_NE___;
 
-		ND_ VkRenderPass				Handle ()											C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _renderPass; }
-		ND_ RenderPassID				CompatibleRP ()										C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _compatibleRP; }
+		ND_ VkRenderPass				Handle ()											C_NE___	{ return _renderPass; }
+		ND_ RenderPassID				CompatibleRP ()										C_NE___	{ return _compatibleRP; }
 
-		ND_ AttachmentMap_t const&		AttachmentMap ()									C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _attachmentMap; }
-		ND_ AttachmentStates_t const&	AttachmentStates ()									C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _attStates; }
-		ND_ SPNameToIdx_t const&		SubpassMap ()										C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _subpassMap; }
-		ND_ ArrayView<SubpassInfo>		Subpasses ()										C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _subpasses; }
+		ND_ AttachmentMap_t const&		AttachmentMap ()									C_NE___	{ return _attachmentMap; }
+		ND_ AttachmentStates_t const&	AttachmentStates ()									C_NE___	{ return _attStates; }
+		ND_ SPNameToIdx_t const&		SubpassMap ()										C_NE___	{ return _subpassMap; }
+		ND_ ArrayView<SubpassInfo>		Subpasses ()										C_NE___	{ return _subpasses; }
 
 		ND_ EPixelFormat				GetPixelFormat (AttachmentName::Ref)				C_NE___;
-		ND_ EPixelFormat				GetPixelFormat (uint attachmentIdx)					C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _pixFormats[attachmentIdx]; }
+		ND_ EPixelFormat				GetPixelFormat (uint attachmentIdx)					C_NE___	{ return _pixFormats[attachmentIdx]; }
 
 		GFX_DBG_ONLY(
-			ND_ StringView					GetDebugName ()									C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _debugName; }
-			ND_ SubpassName::Optimized_t	GetFirstSubpassName ()							C_NE___ { DRC_SHAREDLOCK( _drCheck );  return _firstSPName; }
+			ND_ StringView					GetDebugName ()									C_NE___	{ return _debugName; }
+			ND_ SubpassName::Optimized_t	GetFirstSubpassName ()							C_NE___ { return _firstSPName; }
 		)
 	};
 

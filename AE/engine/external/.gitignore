@@ -62,6 +62,7 @@
 /shared/ffmpeg/build
 /shared/ffmpeg/temp
 
+/shared/glslang/.gradle
 /shared/glslang/build
 /shared/glslang/temp
 

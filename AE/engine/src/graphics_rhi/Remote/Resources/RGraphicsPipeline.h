@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #pragma once
 
@@ -37,6 +37,7 @@ namespace AE::Graphics
 		EPrimitive					_topology			= Default;
 		ubyte						_subpassIndex		= UMax;
 		bool						_releaseRef			= false;
+		EShaderStages				_activeStages		= Default;
 
 		VBtoIndex_t					_vertexBuffers;
 		Strong<PipelineLayoutID>	_layoutId;
@@ -73,6 +74,7 @@ namespace AE::Graphics
 		ND_ uint					RenderPassSubpassIndex ()			C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _subpassIndex; }
 		ND_ VBArray_t				GetVertexBuffers ()					C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _vertexBuffers.GetKeyArray(); }
 		ND_ EPipelineOpt			Options ()							C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _options; }
+		ND_ EShaderStages			GetActiveStages ()					C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _activeStages; }
 
 		GFX_DBG_ONLY( ND_ StringView  GetDebugName ()					C_NE___	{ return Default; })
 	};

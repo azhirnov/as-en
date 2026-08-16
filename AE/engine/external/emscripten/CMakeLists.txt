@@ -1,4 +1,4 @@
-# Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+# Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 set( AE_ENABLE_ABSEIL 			OFF CACHE INTERNAL "" FORCE )
 set( AE_ENABLE_ANGELSCRIPT 		OFF CACHE INTERNAL "" FORCE )

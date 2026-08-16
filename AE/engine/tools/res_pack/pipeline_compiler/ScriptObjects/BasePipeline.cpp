@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #include "res_pack/pipeline_compiler/ScriptObjects/BasePipeline.h"
 #include "res_pack/pipeline_compiler/ScriptObjects/Common.inl.h"
@@ -159,10 +159,13 @@ namespace
 
 		if ( AllBits( version, EShaderVersion::_GLSL_SPIRV, EShaderVersion::_Mask ))
 		{
+			using EShaderFeats = ObjectStorage::EnableShaderFeatures;
+
 			PipelineLayout::UniqueTypes_t	unique_types;
 
-			String	resources	= inShader->SpecToGLSL();
-			uint	dbg_ds_idx	= UMax;
+			String			resources	= inShader->SpecToGLSL();
+			uint			dbg_ds_idx	= UMax;
+			EShaderFeats	sh_feats	= Default;
 
 			if ( vbInput )
 				resources << vbInput->ToGLSL();
@@ -177,6 +180,9 @@ namespace
 			if ( _layoutPtr )
 			{
 				resources << _layoutPtr->ToGLSL( stage, INOUT unique_types );
+
+				if ( _layoutPtr->HasDescriptorHeap() )
+					sh_feats |= EShaderFeats::DescriptorHeap;
 
 				const auto&	dbg_ds		= _layoutPtr->GetDebugDS();
 				const bool	same_stage	= AllBits( dbg_ds.stages, stage );
@@ -197,7 +203,7 @@ namespace
 			if ( fragOut.has_value() )
 				resources << _FragOutputToGLSL( *fragOut );
 
-			ObjectStorage::Instance()->CompileShaderGLSL( INOUT outShader, inShader, version, _defines, RVRef(resources), _includes, _features, dbg_ds_idx, use_arg_buf );
+			ObjectStorage::Instance()->CompileShaderGLSL( INOUT outShader, inShader, version, _defines, RVRef(resources), _includes, _features, dbg_ds_idx, use_arg_buf, sh_feats );
 		}
 		else
 		if ( AllBits( version, EShaderVersion::_Slang_SPIRV, EShaderVersion::_Mask ))
@@ -350,6 +356,11 @@ namespace
 
 		_features.insert( _features.end(), ptr->GetFeatures().begin(), ptr->GetFeatures().end() );
 		ScriptFeatureSet::Minimize( INOUT _features );
+
+		if ( ptr->HasDescriptorHeap() )
+		{
+			_options |= EPipelineOpt::DescriptorHeap;
+		}
 
 		_layoutPtr = ptr;
 		_layoutUID = *_layoutPtr->GetLayoutID();
@@ -663,7 +674,6 @@ namespace
 				case EShaderIO::Depth :
 				case EShaderIO::Stencil :
 				case EShaderIO::DepthStencil:
-				case EShaderIO::Unknown :
 				case EShaderIO::_Count :
 				default :						CHECK_THROW_MSG( false, "unknown ShaderIO type" );
 			}
@@ -709,7 +719,6 @@ namespace
 				case EShaderIO::Depth :
 				case EShaderIO::Stencil :
 				case EShaderIO::DepthStencil:
-				case EShaderIO::Unknown :
 				case EShaderIO::_Count :
 				default :						CHECK_THROW_MSG( false, "unknown ShaderIO type" );
 			}
@@ -856,7 +865,7 @@ namespace
 	BasePipelineSpec::BasePipelineSpec (BasePipelineTmpl* tmpl, const String &name) __Th___ :
 		_name{ PipelineName{name} }, _nameStr{ name },
 		_tmpl{ tmpl },
-		_options{ ObjectStorage::Instance()->defaultPipelineOpt }
+		_options{ ObjectStorage::Instance()->defaultPipelineOpt | tmpl->GetOptions() }
 	{
 		ObjectStorage::Instance()->AddName<PipelineName>( name );
 	}
@@ -951,6 +960,11 @@ namespace
 				case EPipelineOpt::OpacityMicromap :
 					TEST_FEATURE_MSG( GetAllFeatures(), opacityMicromap,
 						", which is required for 'OpacityMicromap' option" );
+					break;
+
+				case EPipelineOpt::DescriptorHeap :
+					TEST_FEATURE_MSG( GetAllFeatures(), descriptorHeap,
+						", which is required for 'DescriptorHeap' option" );
 					break;
 
 				case EPipelineOpt::DontCompile :

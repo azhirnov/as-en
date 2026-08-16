@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #pragma once
 
@@ -216,7 +216,7 @@ namespace AE::Base
 =================================================
 */
 	template <uint X, uint Y, uint Z, uint W>
-	SimdFloat4  SimdFloat4::Shuffle (const Self &b)  C_NE___
+	SimdFloat4  SimdFloat4::Shuffle (const Self &v4567)  C_NE___
 	{
 		StaticAssert( Has_Shuffle() );
 		StaticAssert( X < count*2 );
@@ -224,62 +224,107 @@ namespace AE::Base
 		StaticAssert( Z < count*2 );
 		StaticAssert( W < count*2 );
 
-		if constexpr( X<count and Y<count and Z>=count and W>=count )
-			return Self{ _mm_shuffle_ps( _value, b._value, _MM_SHUFFLE( W-count, Z-count, Y, X ) )};
+	  #if AE_SIMD_AVX >= 31 // AVX512VL
+		return Self{ _mm_permutex2var_ps( _value, _mm_setr_epi32( int(X), int(Y), int(Z), int(W) ), v4567._value )};
 
-		if constexpr( Z<count and W<count and X>=count and Y>=count )
-			return Self{ _mm_shuffle_ps( b._value, _value, _MM_SHUFFLE( Y-count, X-count, W, Z ) )};
+	  #else
+		constexpr bool	bX		= X >= count;
+		constexpr bool	bY		= Y >= count;
+		constexpr bool	bZ		= Z >= count;
+		constexpr bool	bW		= W >= count;
+
+		constexpr int	eX		= X & (count-1);
+		constexpr int	eY		= Y & (count-1);
+		constexpr int	eZ		= Z & (count-1);
+		constexpr int	eW		= W & (count-1);
+		constexpr int	imm		= _MM_SHUFFLE( eW, eZ, eY, eX );
+
+		if constexpr( bX == bY and bZ == bW )
+		{
+			__m128	lo = bX ? v4567._value : _value;
+			__m128	hi = bZ ? v4567._value : _value;
+			return Self{ _mm_shuffle_ps( lo, hi, imm )};
+		}
+		else
+		{
+			__m128	pa = _mm_shuffle_ps( _value,       _value,       imm );
+			__m128	pb = _mm_shuffle_ps( v4567._value, v4567._value, imm );
+
+		  #if AE_SIMD_SSE >= 41
+			constexpr int	sel	= int(bX) | (int(bY) << 1) | (int(bZ) << 2) | (int(bW) << 3);
+			return Self{ _mm_blend_ps( pa, pb, sel )};
+		  #else
+			__m128	m = _mm_castsi128_ps( _mm_setr_epi32( bX ? -1 : 0, bY ? -1 : 0, bZ ? -1 : 0, bW ? -1 : 0 ));
+			return Self{ _mm_or_ps( _mm_andnot_ps( m, pa ), _mm_and_ps( m, pb ))};
+		  #endif
+		}
+	  #endif
 	}
 
 /*
 =================================================
-	PrefixSum
+	ReduceAdd
 =================================================
 */
-	inline SimdFloat4  SimdFloat4::Sum ()  C_NE___
+	inline SimdFloat4  SimdFloat4::ReduceAdd ()  C_NE___
 	{
-		StaticAssert( Has_PrefixSum() );
+		StaticAssert( Has_ReduceAdd() );
 		auto	a = this->Add( this->Swizzle<1,0,3,2>() );
 		return a.Add( a.Swizzle<2,3,0,1>() );
 	}
 
-	inline float  SimdFloat4::PrefixSum ()  C_NE___
-	{
-		return Sum().get<0>();
-	}
-
 /*
 =================================================
-	PrefixMax
+	ReduceMax
 =================================================
 */
-	inline SimdFloat4  SimdFloat4::Max ()  C_NE___
+	inline SimdFloat4  SimdFloat4::ReduceMax ()  C_NE___
 	{
-		StaticAssert( Has_PrefixMinMax() );
+		StaticAssert( Has_ReduceMinMax() );
 		auto	a = this->Max( this->Swizzle<1,0,3,2>() );
 		return a.Max( a.Swizzle<2,3,0,1>() );
 	}
 
-	inline float  SimdFloat4::PrefixMax ()  C_NE___
-	{
-		return Max().get<0>();
-	}
-
 /*
 =================================================
-	PrefixMin
+	ReduceMin
 =================================================
 */
-	inline SimdFloat4  SimdFloat4::Min ()  C_NE___
+	inline SimdFloat4  SimdFloat4::ReduceMin ()  C_NE___
 	{
-		StaticAssert( Has_PrefixMinMax() );
+		StaticAssert( Has_ReduceMinMax() );
 		auto	a = this->Min( this->Swizzle<1,0,3,2>() );	// min(1,0), min(0,1), min(3,2), min(2,3)
 		return a.Min( a.Swizzle<2,3,0,1>() );				// min(1,0,3,2)
 	}
 
-	inline float  SimdFloat4::PrefixMin ()  C_NE___
+/*
+=================================================
+	InclusiveAdd
+=================================================
+*/
+	inline SimdFloat4  SimdFloat4::InclusiveAdd () C_NE___
 	{
-		return Min().get<0>();
+		StaticAssert( Has_InclusiveAdd() );
+
+		// Hillis-Steele inclusive scan.
+		__m128	v = _value;															// [x0, x1, x2, x3]
+		__m128	t = _mm_castsi128_ps( _mm_slli_si128( _mm_castps_si128( v ), 4 ));	// [0, x0, x1, x2]
+		v = _mm_add_ps( v, t );														// [y0, y1, y2, y3]
+		t = _mm_castsi128_ps( _mm_slli_si128( _mm_castps_si128( v ), 8 ));			// [0, 0, y0, y1]
+		v = _mm_add_ps( v, t );														// [y0, y1, y0+y2, y1+y3]
+		return Self{v};
+	}
+
+/*
+=================================================
+	ExclusiveAdd
+=================================================
+*/
+	inline SimdFloat4  SimdFloat4::ExclusiveAdd () C_NE___
+	{
+		// shift right by one element: [x0, x1, x2, x3] -> [0, x0, x1, x2]
+		__m128	v = _mm_castsi128_ps( _mm_slli_si128( _mm_castps_si128( _value ), 4 ));
+		return Self{v}.InclusiveAdd();
 	}
 
 /*
@@ -499,17 +544,16 @@ namespace AE::Base
 =================================================
 */
 	template <uint X, uint Y>
-	SimdDouble2  SimdDouble2::Shuffle (const Self &b)  C_NE___
+	SimdDouble2  SimdDouble2::Shuffle (const Self &v23)  C_NE___
 	{
 		StaticAssert( Has_Shuffle() );
 		StaticAssert( X < count*2 );
 		StaticAssert( Y < count*2 );
 
-		if constexpr( X<count and Y>=count )
-			return Self{ _mm_shuffle_pd( _value, b._value, _MM_SHUFFLE2( Y-count, X ))};
+		const auto  a = (X < count ? _value : v23._value);
+		const auto  b = (Y < count ? _value : v23._value);
 
-		if constexpr( Y<count and X>=count )
-			return Self{ _mm_shuffle_pd( b._value, _value, _MM_SHUFFLE2( X-count, Y ))};
+		return Self{ _mm_shuffle_pd( a, b, _MM_SHUFFLE2( Y % count, X % count )) };
 	}
 
 /*
@@ -526,50 +570,61 @@ namespace AE::Base
 
 /*
 =================================================
-	PrefixSum
+	ReduceAdd
 =================================================
 */
-	inline SimdDouble2  SimdDouble2::Sum ()  C_NE___
+	inline SimdDouble2  SimdDouble2::ReduceAdd ()  C_NE___
 	{
-		StaticAssert( Has_PrefixSum() );
+		StaticAssert( Has_ReduceAdd() );
 		return Add( Swizzle<1,0>() );
 	}
 
-	inline double  SimdDouble2::PrefixSum ()  C_NE___
-	{
-		return Sum().get<0>();
-	}
-
 /*
 =================================================
-	PrefixMax
+	ReduceMax
 =================================================
 */
-	inline SimdDouble2  SimdDouble2::Max ()  C_NE___
+	inline SimdDouble2  SimdDouble2::ReduceMax ()  C_NE___
 	{
-		StaticAssert( Has_PrefixMinMax() );
+		StaticAssert( Has_ReduceMinMax() );
 		return Max( Swizzle<1,0>() );
 	}
 
-	inline double  SimdDouble2::PrefixMax ()  C_NE___
+/*
+=================================================
+	ReduceMin
+=================================================
+*/
+	inline SimdDouble2  SimdDouble2::ReduceMin ()  C_NE___
 	{
-		return Max().get<0>();
+		StaticAssert( Has_ReduceMinMax() );
+		return Min( Swizzle<1,0>() );
 	}
 
 /*
 =================================================
-	PrefixMin
+	InclusiveAdd
 =================================================
 */
-	inline SimdDouble2  SimdDouble2::Min ()  C_NE___
+	inline SimdDouble2  SimdDouble2::InclusiveAdd ()  C_NE___
 	{
-		StaticAssert( Has_PrefixMinMax() );
-		return Min( Swizzle<1,0>() );
+		StaticAssert( Has_InclusiveAdd() );
+
+		__m128d	v = _value;															// [x0, x1]
+		__m128d	t = _mm_castsi128_pd( _mm_slli_si128( _mm_castpd_si128( v ), 8 ));	// [0, x0]
+		return Self{ _mm_add_pd( v, t )};											// [x0, x0+x1]
 	}
 
-	inline double  SimdDouble2::PrefixMin ()  C_NE___
+/*
+=================================================
+	ExclusiveAdd
+=================================================
+*/
+	inline SimdDouble2  SimdDouble2::ExclusiveAdd ()  C_NE___
 	{
-		return Min().get<0>();
+		StaticAssert( Has_InclusiveAdd() );
+
+		return Self{ _mm_castsi128_pd( _mm_slli_si128( _mm_castpd_si128( _value ), 8 )) };	// [0, x0]
 	}
 
 /*
@@ -636,6 +691,45 @@ namespace AE::Base
 	SimdTInt128<IT>::SimdTInt128 (B v0, B v1) __NE___ :
 		SimdTInt128{ (v0 ? ~0ull : 0), (v1 ? ~0ull : 0) }
 	{}
+
+/*
+=================================================
+	constructor
+=================================================
+*/
+	template <typename IT>
+	template <uint Step>
+	SimdTInt128<IT>::SimdTInt128 (MSBMask<count, Step> mask) __NE___
+	{
+		if constexpr( is8 )
+		{
+			#define M(x)	char(mask.template get< 0>() ? -1 : 0)
+			_value = _mm_setr_epi8(	M( 0), M( 1), M( 2), M( 3),
+									M( 4), M( 5), M( 6), M( 7),
+									M( 8), M( 9), M(10), M(11),
+									M(12), M(13), M(14), M(15) );
+			#undef M
+		}else
+		if constexpr( is16 )
+		{
+			#define M(x)	short(mask.template get< 0>() ? -1 : 0)
+			_value = _mm_setr_epi16( M(0), M(1), M( 2), M( 3), M( 4), M( 5), M( 6), M( 7) );
+			#undef M
+		}else
+		if constexpr( is32 )
+		{
+			#define M(x)	int(mask.template get< 0>() ? -1 : 0)
+			_value = _mm_setr_epi32( M(0), M(1), M(2), M(3) );
+			#undef M
+		}else
+		if constexpr( is64 )
+		{
+			#define M(x)	(mask.template get< 0>() ? -1ll : 0)
+			_value = _mm_set_epi64x( M(1), M(0) );
+			#undef M
+		}else
+			_value = mask; // compilation error
+	}
 
 /*
 =================================================
@@ -939,13 +1033,13 @@ namespace AE::Base
 
 /*
 =================================================
-	PrefixSum
+	ReduceAdd
 =================================================
 */
 	template <typename IT>
-	SimdTInt128<IT>  SimdTInt128<IT>::Sum () C_NE___
+	SimdTInt128<IT>  SimdTInt128<IT>::ReduceAdd () C_NE___
 	{
-		StaticAssert( Has_PrefixSum() );
+		StaticAssert( Has_ReduceAdd() );
 
 		if constexpr( is32 )
 		{
@@ -959,36 +1053,30 @@ namespace AE::Base
 	}
 
 	template <typename IT>
-	IT  SimdTInt128<IT>::PrefixSum () C_NE___
-	{
-		return Sum().template get<0>();
-	}
-
-	template <typename IT>
-	__Ce__ bool  SimdTInt128<IT>::Has_PrefixSum ()
+	__Ce__ bool  SimdTInt128<IT>::Has_ReduceAdd ()
 	{
 		if constexpr( is32 or is64 )
-			return true;
+			return Has_Swizzle();
 		else
 			return false;
 	}
 
 /*
 =================================================
-	PrefixSumExt
+	ReduceAddExt
 =================================================
 */
 	template <typename IT>
-	auto  SimdTInt128<IT>::SumExt () C_NE___
+	auto  SimdTInt128<IT>::ReduceAddExt () C_NE___
 	{
-		StaticAssert( Has_PrefixSumExt() );
+		StaticAssert( Has_ReduceAddExt() );
 
 		/*if constexpr( is8 )
 		{
 			auto	a0 = this->ToShort<0>();
 			auto	a1 = this->ToShort<1>();
 			auto	b  = a0.Add( a1 );
-			return b.Sum();
+			return b.ReduceAdd();
 		}*/
 	  #if AE_SIMD_SSE >= 41
 		if constexpr( is16 )
@@ -996,7 +1084,7 @@ namespace AE::Base
 			auto	a0 = this->ToInt<0>();
 			auto	a1 = this->ToInt<1>();
 			auto	b  = a0.Add( a1 );
-			return b.Sum();
+			return b.ReduceAdd();
 		}
 
 		if constexpr( is32 )
@@ -1004,23 +1092,32 @@ namespace AE::Base
 			auto	a0 = this->ToLong<0>();
 			auto	a1 = this->ToLong<1>();
 			auto	b  = a0.Add( a1 );
-			return b.Sum();
+			return b.ReduceAdd();
 		}
 	  #endif
 	}
 
 	template <typename IT>
-	auto  SimdTInt128<IT>::PrefixSumExt () C_NE___
+	auto  SimdTInt128<IT>::ReduceAddExtScalar () C_NE___
 	{
-		return SumExt().template get<0>();
+		return ReduceAddExt().template get<0>();
 	}
 
 	template <typename IT>
-	__Ce__ bool  SimdTInt128<IT>::Has_PrefixSumExt ()
+	__Ce__ bool  SimdTInt128<IT>::Has_ReduceAddExt ()
 	{
 	  #if AE_SIMD_SSE >= 41
-		if constexpr( is16 or is32 )
-			return true;
+		if constexpr( isI16 )
+			return Has_Convert<SimdInt4>() and SimdInt4::Has_ReduceAdd();
+		else
+		if constexpr( isU16 )
+			return Has_Convert<SimdUInt4>() and SimdUInt4::Has_ReduceAdd();
+		else
+		if constexpr( isI32 )
+			return Has_Convert<SimdLong2>() and SimdLong2::Has_ReduceAdd();
+		else
+		if constexpr( isU32 )
+			return Has_Convert<SimdULong2>() and SimdULong2::Has_ReduceAdd();
 		else
 	  #endif
 			return false;
@@ -1028,13 +1125,13 @@ namespace AE::Base
 
 /*
 =================================================
-	PrefixMax
+	ReduceMax
 =================================================
 */
 	template <typename IT>
-	SimdTInt128<IT>  SimdTInt128<IT>::Max () C_NE___
+	SimdTInt128<IT>  SimdTInt128<IT>::ReduceMax () C_NE___
 	{
-		StaticAssert( Has_PrefixMinMax() );
+		StaticAssert( Has_ReduceMinMax() );
 
 		if constexpr( is32 )
 		{
@@ -1047,21 +1144,15 @@ namespace AE::Base
 		}
 	}
 
-	template <typename IT>
-	IT  SimdTInt128<IT>::PrefixMax () C_NE___
-	{
-		return Max().template get<0>();
-	}
-
 /*
 =================================================
-	PrefixMin
+	ReduceMin
 =================================================
 */
 	template <typename IT>
-	SimdTInt128<IT>  SimdTInt128<IT>::Min () C_NE___
+	SimdTInt128<IT>  SimdTInt128<IT>::ReduceMin () C_NE___
 	{
-		StaticAssert( Has_PrefixMinMax() );
+		StaticAssert( Has_ReduceMinMax() );
 
 		if constexpr( is32 )
 		{
@@ -1074,24 +1165,85 @@ namespace AE::Base
 		}
 	}
 
+/*
+=================================================
+	Has_ReduceMinMax
+=================================================
+*/
 	template <typename IT>
-	IT  SimdTInt128<IT>::PrefixMin () C_NE___
+	__Ce__ bool  SimdTInt128<IT>::Has_ReduceMinMax ()
 	{
-		return Min().template get<0>();
+		if constexpr( is32 or is64 )
+			return Has_MinMax() and Has_Swizzle();
+		else
+			return false;
 	}
 
 /*
 =================================================
-	Has_PrefixMinMax
+	InclusiveAdd
 =================================================
 */
 	template <typename IT>
-	__Ce__ bool  SimdTInt128<IT>::Has_PrefixMinMax ()
+	SimdTInt128<IT>  SimdTInt128<IT>::InclusiveAdd ()  C_NE___
 	{
-		if constexpr( is32 or is64 )
-			return Has_MinMax();
+		StaticAssert( Has_InclusiveAdd() );
+
+		if constexpr( is16 )
+		{
+			__m128i	v = _value;						// [x0, x1, ..., x7]
+			__m128i	t = _mm_slli_si128( v, 2 );		// [0, x0, ..., x6]
+			v = _mm_add_epi16( v, t );				// y
+			t = _mm_slli_si128( v, 4 );				// [0, 0, y0, ..., y5]
+			v = _mm_add_epi16( v, t );				// z
+			t = _mm_slli_si128( v, 8 );				// [0, 0, 0, 0, z0, ..., z3]
+			return Self{ _mm_add_epi16( v, t )};
+		}
 		else
-			return false;
+		if constexpr( is32 )
+		{
+			__m128i	v = _value;						// [x0, x1, x2, x3]
+			__m128i	t = _mm_slli_si128( v, 4 );		// [0, x0, x1, x2]
+			v = _mm_add_epi32( v, t );				// [y0, y1, y2, y3]
+			t = _mm_slli_si128( v, 8 );				// [0, 0, y0, y1]
+			return Self{ _mm_add_epi32( v, t )};
+		}
+		else
+		if constexpr( is64 )
+		{
+			__m128i	v = _value;						// [x0, x1]
+			__m128i	t = _mm_slli_si128( v, 8 );		// [0, x0]
+			return Self{ _mm_add_epi64( v, t )};	// [x0, x0+x1]
+		}
+	}
+
+/*
+=================================================
+	ExclusiveAdd
+=================================================
+*/
+	template <typename IT>
+	SimdTInt128<IT>  SimdTInt128<IT>::ExclusiveAdd ()  C_NE___
+	{
+		if constexpr( is16 )
+			return Self{ _mm_slli_si128( _value, 2 ) }.InclusiveAdd();
+		else
+		if constexpr( is32 )
+			return Self{ _mm_slli_si128( _value, 4 )}.InclusiveAdd();
+		else
+		if constexpr( is64 )
+			return Self{ _mm_slli_si128( _value, 8 )}.InclusiveAdd();
+	}
+
+/*
+=================================================
+	Has_InclusiveAdd
+=================================================
+*/
+	template <typename IT>
+	__Ce__ bool  SimdTInt128<IT>::Has_InclusiveAdd ()
+	{
+		return is16 or is32 or is64;
 	}
 
 /*
@@ -1562,90 +1714,49 @@ namespace AE::Base
 		StaticAssert( V6 < count );
 		StaticAssert( V7 < count );
 
-		using Req	= UIntSequence< V0, V1, V2, V3, V4, V5, V6, V7 >;
-		using ReqHi	= UIntSequence< V4, V5, V6, V7 >;
-		using ReqLo	= UIntSequence< V0, V1, V2, V3 >;
-		using DefHi	= UIntSequence< 4, 5, 6, 7 >;
-		using DefLo	= UIntSequence< 0, 1, 2, 3 >;
+	  #if AE_SIMD_AVX >= 31  // AVX512BW, AVX512VL
+		// vpermw: 1 uop (p5), lat ~3 (Ice Lake+) / ~5 (Skylake-X), + index const load
+		__m128i idx = _mm_setr_epi16( short(V0), short(V1), short(V2), short(V3), short(V4), short(V5), short(V6), short(V7) );
+		return Self{ _mm_permutexvar_epi16( idx, _value )};
 
-		constexpr bool	is_def_hi = IsSame< ReqHi, DefHi >;
-		constexpr bool	is_def_lo = IsSame< ReqLo, DefLo >;
+	  #elif AE_SIMD_SSE >= 31  // SSSE3
+		// pshufb: arbitrary word shuffle, 1 uop (p5), lat 1, + mask const load
+		__m128i m = _mm_setr_epi8(
+			char(2*V0), char(2*V0+1), char(2*V1), char(2*V1+1),
+			char(2*V2), char(2*V2+1), char(2*V3), char(2*V3+1),
+			char(2*V4), char(2*V4+1), char(2*V5), char(2*V5+1),
+			char(2*V6), char(2*V6+1), char(2*V7), char(2*V7+1) );
+		return Self{ _mm_shuffle_epi8( _value, m )};
 
-		if constexpr( is_def_lo and is_def_hi )
-		{
-			return *this;
-		}else
-		if constexpr( is_def_lo and (V4 >= 4 and V5 >= 4 and V6 >= 4 and V7 >= 4) )
-		{
-			return Self{_mm_shufflehi_epi16( _value, _MM_SHUFFLE( V7-4, V6-4, V5-4, V4-4 ))};
-		}else
-		if constexpr( is_def_hi and (V0 < 4 and V1 < 4 and V2 < 4 and V3 < 4) )
-		{
-			return Self{_mm_shufflelo_epi16( _value, _MM_SHUFFLE( V3, V2, V1, V0 ))};
-		}else
-		if constexpr( IsSame< ReqHi, DefLo > and IsSame< ReqLo, DefHi >)
-		{
-			return Self{_mm_shuffle_epi32( _value, _MM_SHUFFLE( 1, 0, 3, 2 ))};
-		}else
-		if constexpr( IsSame< Req, UIntSequence< V0,V0,V0,V0, V0,V0,V0,V0 >>)
-		{
-		  #if AE_SIMD_AVX >= 2
-			if constexpr( V0 == 0 )
-				return Self{_mm_broadcastw_epi16( _value )};
-			else
-			if constexpr( V0 < 4 )
-			{
-				auto	p = _mm_shufflelo_epi16( _value, _MM_SHUFFLE(V0,V0,V0,V0) );
-				return Self{_mm_broadcastw_epi16( p )};
-			}else
-			{
-				constexpr uint	i = V0 / 2;
-				constexpr uint	j = V0 & 1;
+	  #else
+		// SSE2-only
+		constexpr bool lo_in_half = (V0 <  4) and (V1 <  4) and (V2 <  4) and (V3 <  4);
+		constexpr bool hi_in_half = (V4 >= 4) and (V5 >= 4) and (V6 >= 4) and (V7 >= 4);
 
-				auto	a = _mm_shuffle_epi32( _value, _MM_SHUFFLE(i,i,i,i) );
-				auto	b = _mm_shufflelo_epi16( a, _MM_SHUFFLE(j,j,j,j) );
-				return Self{_mm_broadcastw_epi16( b )};
-			}
-		  #else
-			return Self{_mm_set1_epi16( short(_mm_extract_epi16( _value, V0 )))};
-		  #endif
-		}else
-		if constexpr( IsSame< Req, UIntSequence< 0,4, 1,5, 2,6, 3,7 >>)
+		if constexpr( lo_in_half and hi_in_half )
 		{
-			auto	high = _mm_shuffle_epi32( _value, _MM_SHUFFLE( 3, 2, 3, 2 ));
-			return Self{_mm_unpacklo_epi16( _value, high )};
+			// both halves permute within themselves: 2 uops, lat 2, no constants
+			__m128i t = _mm_shufflelo_epi16( _value, _MM_SHUFFLE( V3, V2, V1, V0 ));
+			return Self{ _mm_shufflehi_epi16( t, _MM_SHUFFLE( V7-4, V6-4, V5-4, V4-4 ))};
 		}else
-		if constexpr( IsSame< Req, UIntSequence< 0,0, 1,1, 2,2, 3,3 >>)
 		{
-			auto	low = _mm_shuffle_epi32( _value, _MM_SHUFFLE( 1, 0, 1, 0 ));
-			return Self{_mm_unpacklo_epi16( _value, low )};
-		}else
-		if constexpr( IsSame< Req, UIntSequence< 4,4, 5,5, 6,6, 7,7 >>)
-		{
-			auto	high = _mm_shuffle_epi32( _value, _MM_SHUFFLE( 3, 2, 3, 2 ));
-			return Self{_mm_unpackhi_epi16( _value, high )};
-		}else
-		if constexpr( V1 == V0+1 and V3 == V2+1 and V5 == V4+1 and V7 == V6+1 and
-					  V1&1 and V3&1 and V5&1 and V7&1 )
-		{
-			// example: 0,1, 4,5, 2,3, 6,7
-			return Self{_mm_shuffle_epi32( _value, _MM_SHUFFLE( V6/2, V4/2, V2/2, V0/2 ))};
-		}else
-		if constexpr( V0 <= 3 and V1 <= 3 and V2 <= 3 and V3 <= 3 and
-					  V4 >= 4 and V5 >= 4 and V6 >= 4 and V7 >= 4 )
-		{
-			auto	a = _mm_shufflelo_epi16( _value, _MM_SHUFFLE( V3, V2, V1, V0 ));
-			auto	b = _mm_shufflehi_epi16( a,		 _MM_SHUFFLE( V7-4, V6-4, V5-4, V4-4 ));
-			return Self{b};
-		}else
-		if constexpr( V4 <= 3 and V5 <= 3 and V6 <= 3 and V7 <= 3 and
-					  V0 >= 4 and V1 >= 4 and V2 >= 4 and V3 >= 4 )
-		{
-			auto	a = _mm_shuffle_epi32( _value, _MM_SHUFFLE( 1, 0, 3, 2 ));
-			auto	b = _mm_shufflelo_epi16( a, _MM_SHUFFLE( V3-4, V2-4, V1-4, V0-4 ));
-			auto	c = _mm_shufflehi_epi16( b, _MM_SHUFFLE( V7, V6, V5, V4 ));
-			return Self{c};
+			// universal form: gather even-indexed outputs into A, odd into B, interleave
+			// 9 uops (all p5, lat 1), dep-chain lat ~5, no constants
+			__m128i a = _mm_shuffle_epi32( _value, _MM_SHUFFLE( V6/2, V4/2, V2/2, V0/2 ));
+			a = _mm_shufflelo_epi16( a, _MM_SHUFFLE( 3, 2, 2 + (V2 & 1), (V0 & 1) ));
+			a = _mm_shufflehi_epi16( a, _MM_SHUFFLE( 3, 2, 2 + (V6 & 1), (V4 & 1) ));
+			// a = (V0, V2, x, x, V4, V6, x, x)
+
+			__m128i b = _mm_shuffle_epi32( _value, _MM_SHUFFLE( V7/2, V5/2, V3/2, V1/2 ));
+			b = _mm_shufflelo_epi16( b, _MM_SHUFFLE( 3, 2, 2 + (V3 & 1), (V1 & 1) ));
+			b = _mm_shufflehi_epi16( b, _MM_SHUFFLE( 3, 2, 2 + (V7 & 1), (V5 & 1) ));
+			// b = (V1, V3, x, x, V5, V7, x, x)
+
+			__m128i lo = _mm_unpacklo_epi16( a, b );	// (V0,V1,V2,V3, x,x,x,x)
+			__m128i hi = _mm_unpackhi_epi16( a, b );	// (V4,V5,V6,V7, x,x,x,x)
+			return Self{ _mm_unpacklo_epi64( lo, hi )};
 		}
+	  #endif
 	}
 
 /*
@@ -1689,8 +1800,9 @@ namespace AE::Base
 */
 	template <typename IT>
 	template <uint V0, uint V1, uint V2, uint V3, uint V4, uint V5, uint V6, uint V7, typename T> requires( sizeof(T)==2 )
-	SimdTInt128<IT>  SimdTInt128<IT>::Shuffle (const Self &v8) C_NE___
+	SimdTInt128<IT>  SimdTInt128<IT>::Shuffle (const Self &v8_15) C_NE___
 	{
+	#if AE_SIMD_SSE >= 31	// SSSE3
 		StaticAssert( Has_Shuffle() );
 		StaticAssert( V0 < count*2 );
 		StaticAssert( V1 < count*2 );
@@ -1701,13 +1813,93 @@ namespace AE::Base
 		StaticAssert( V6 < count*2 );
 		StaticAssert( V7 < count*2 );
 
+	  #if 0	// fast path
 		using Req = UIntSequence< V0, V1, V2, V3, V4, V5, V6, V7 >;
 
-		if constexpr( IsSame< Req, UIntSequence< 0,1,2,3, 8,9,10,11 >>)
-			return Self{ _mm_unpacklo_epi64( _value, v8._value )};
+		// identity
+		if constexpr( IsSame< Req, UIntSequence< 0,1,2,3, 4,5,6,7 >> )
+			return *this;
 
-		if constexpr( IsSame< Req, UIntSequence< 4,5,6,7, 12,13,14,15 >>)
-			return Self{ _mm_unpackhi_epi64( _value, v8._value )};
+		if constexpr( IsSame< Req, UIntSequence< 8,9,10,11, 12,13,14,15 >> )
+			return v8_15;
+
+		// interleaves
+		if constexpr( IsSame< Req, UIntSequence< 0,8, 1,9, 2,10, 3,11 >> )
+			return Self{ _mm_unpacklo_epi16( _value, v8_15._value )};
+
+		if constexpr( IsSame< Req, UIntSequence< 4,12, 5,13, 6,14, 7,15 >> )
+			return Self{ _mm_unpackhi_epi16( _value, v8_15._value )};
+
+		if constexpr( IsSame< Req, UIntSequence< 0,1, 8,9, 2,3, 10,11 >> )
+			return Self{ _mm_unpacklo_epi32( _value, v8_15._value )};
+
+		if constexpr( IsSame< Req, UIntSequence< 4,5, 12,13, 6,7, 14,15 >> )
+			return Self{ _mm_unpackhi_epi32( _value, v8_15._value )};
+
+		if constexpr( IsSame< Req, UIntSequence< 0,1,2,3, 8,9,10,11 >> )
+			return Self{ _mm_unpacklo_epi64( _value, v8_15._value )};
+
+		if constexpr( IsSame< Req, UIntSequence< 4,5,6,7, 12,13,14,15 >> )
+			return Self{ _mm_unpackhi_epi64( _value, v8_15._value )};
+
+		// qword cross-moves
+		if constexpr( IsSame< Req, UIntSequence< 0,1,2,3, 12,13,14,15 >> )
+			return Self{ _mm_castpd_si128( _mm_shuffle_pd( _mm_castsi128_pd( _value ), _mm_castsi128_pd( v8_15._value ), 0b10 ))};
+
+		if constexpr( IsSame< Req, UIntSequence< 4,5,6,7, 8,9,10,11 >> )
+			return Self{ _mm_castpd_si128( _mm_shuffle_pd( _mm_castsi128_pd( _value ), _mm_castsi128_pd( v8_15._value ), 0b01 ))};
+
+		// contiguous window: Vi == V0 + i   (covers all sliding-window cases with 1 branch)
+		if constexpr( (V1 == V0+1) and (V2 == V0+2) and (V3 == V0+3) and (V4 == V0+4) and
+					  (V5 == V0+5) and (V6 == V0+6) and (V7 == V0+7) )
+		{
+			return Self{ _mm_alignr_epi8( v8_15._value, _value, V0 * 2 )};
+		}
+
+		// per-lane select: Vi == i or i+8   (covers all 256 blend cases with 1 branch)
+	  #if AE_SIMD_SSE >= 41
+		if constexpr( ((V0 & 7) == 0) and ((V1 & 7) == 1) and ((V2 & 7) == 2) and ((V3 & 7) == 3) and
+					  ((V4 & 7) == 4) and ((V5 & 7) == 5) and ((V6 & 7) == 6) and ((V7 & 7) == 7) )
+		{
+			return Self{ _mm_blend_epi16( _value, v8_15._value,
+							(V0 >> 3) | ((V1 >> 3) << 1) | ((V2 >> 3) << 2) | ((V3 >> 3) << 3) |
+							((V4 >> 3) << 4) | ((V5 >> 3) << 5) | ((V6 >> 3) << 6) | ((V7 >> 3) << 7) )};
+		}
+	  #endif
+	  #endif	// end fast path
+
+		constexpr auto	WordPshufbMask = []<uint Base, uint I0, uint I1, uint I2, uint I3, uint I4, uint I5, uint I6, uint I7>() -> __m128i
+		{{
+			constexpr auto lane = [] (uint v) -> uint64_t {
+				return ((v - Base) < 8)  ?
+						uint64_t( ((v - Base) * 2u) | (((v - Base) * 2u + 1u) << 8) ) :
+						uint64_t( 0x8080 );
+			};
+			constexpr uint64_t  lo = lane(I0) | (lane(I1) << 16) | (lane(I2) << 32) | (lane(I3) << 48);
+			constexpr uint64_t  hi = lane(I4) | (lane(I5) << 16) | (lane(I6) << 32) | (lane(I7) << 48);
+			return _mm_set_epi64x( int64_t(hi), int64_t(lo) );
+		}};
+
+		constexpr bool	all_from_this	= ((V0 | V1 | V2 | V3 | V4 | V5 | V6 | V7) < 8);			// no index has bit 3
+		constexpr bool	all_from_v8_15	= (((V0 & V1 & V2 & V3 & V4 & V5 & V6 & V7) & 8) != 0);		// every index has bit 3
+
+		if constexpr( all_from_this )
+			return Self{ _mm_shuffle_epi8( _value, WordPshufbMask.template operator()< 0, V0,V1,V2,V3,V4,V5,V6,V7 >() )};
+		else
+		if constexpr( all_from_v8_15 )
+			return Self{ _mm_shuffle_epi8( v8_15._value, WordPshufbMask.template operator()< 8, V0,V1,V2,V3,V4,V5,V6,V7 >() )};
+		else
+	  #if AE_SIMD_AVX >= 31  // AVX512VL
+		return Self{ _mm_permutex2var_epi16( _value,
+						_mm_setr_epi16( short(V0), short(V1), short(V2), short(V3), short(V4), short(V5), short(V6), short(V7) ),
+						v8_15._value )};	// any 2-source word shuffle in 1 instruction
+	  #else
+		return Self{ _mm_or_si128( _mm_shuffle_epi8( _value,       WordPshufbMask.template operator()< 0, V0,V1,V2,V3,V4,V5,V6,V7 >() ),
+								   _mm_shuffle_epi8( v8_15._value, WordPshufbMask.template operator()< 8, V0,V1,V2,V3,V4,V5,V6,V7 >() ))};
+	  #endif
+	#else
+		Unused( v8_15 );
+	#endif // SSSE3
 	}
 
 /*
@@ -1725,11 +1917,48 @@ namespace AE::Base
 		StaticAssert( Z < count*2 );
 		StaticAssert( W < count*2 );
 
-		if constexpr( X==0 and Y==1 and Z==4 and W==5 )
-			return Self{ _mm_unpacklo_epi64( _value, v4567._value )};
+		// bit i = 1  ->  result lane i comes from 'v4567' (elements 4..7)
+		constexpr uint	src	= (X >= 4 ? 1 : 0) | (Y >= 4 ? 2 : 0) | (Z >= 4 ? 4 : 0) | (W >= 4 ? 8 : 0);
 
-		if constexpr( X==2 and Y==3 and Z==6 and W==7 )
-			return Self{ _mm_unpackhi_epi64( _value, v4567._value )};
+		// lane index inside its source register
+		constexpr uint	x = X & 3,  y = Y & 3,  z = Z & 3,  w = W & 3;
+
+		if constexpr( src == 0 or src == 0xF )
+		{
+			// all lanes from a single register -> pshufd
+			return Self{ _mm_shuffle_epi32( src == 0 ? _value : v4567._value, _MM_SHUFFLE( w, z, y, x ) )};
+		}else
+		if constexpr( src == 0x3 or src == 0xC )
+		{
+			// half from each register -> shufps
+			// subsumes unpacklo (0,1,4,5) and unpackhi (2,3,6,7)
+			return Self{ _mm_castps_si128( _mm_shuffle_ps(
+							_mm_castsi128_ps( src == 0xC ? _value : v4567._value ),	// result lanes 0,1
+							_mm_castsi128_ps( src == 0xC ? v4567._value : _value ),	// result lanes 2,3
+							_MM_SHUFFLE( w, z, y, x ) ))};
+		}else
+		{
+		#if AE_SIMD_AVX >= 31  // AVX512VL
+			// any of the remaining 12 patterns in one instruction
+			return Self{ _mm_permutex2var_epi32( _value, _mm_setr_epi32( int(X), int(Y), int(Z), int(W) ), v4567._value )};
+		#else
+			// shuffle both registers so every lane is already in its final slot, then merge
+			constexpr uint	sa	= (src & 1 ? 0 : x)      | (src & 2 ? 0 : y << 2) |
+								  (src & 4 ? 0 : z << 4) | (src & 8 ? 0 : w << 6);
+			constexpr uint	sb	= (src & 1 ? x : 0)      | (src & 2 ? y << 2 : 0) |
+								  (src & 4 ? z << 4 : 0) | (src & 8 ? w << 6 : 0);
+
+			const __m128i	a	= _mm_shuffle_epi32( _value,		sa );
+			const __m128i	b	= _mm_shuffle_epi32( v4567._value,	sb );
+
+		# if AE_SIMD_SSE >= 41
+			return Self{ _mm_castps_si128( _mm_blend_ps( _mm_castsi128_ps( a ), _mm_castsi128_ps( b ), int(src) ) )};
+		# else
+			const __m128i	m = _mm_setr_epi32( src & 1 ? -1 : 0, src & 2 ? -1 : 0, src & 4 ? -1 : 0, src & 8 ? -1 : 0 );
+			return Self{ _mm_or_si128( _mm_andnot_si128( m, a ), _mm_and_si128( m, b ) )};
+		# endif
+		#endif
+		}
 	}
 
 /*
@@ -1745,11 +1974,34 @@ namespace AE::Base
 		StaticAssert( X < count*2 );
 		StaticAssert( Y < count*2 );
 
-		if constexpr( X==0 and Y==2 )
-			return Self{ _mm_unpacklo_epi64( _value, v23._value )};
+	  #if AE_SIMD_AVX >= 31  // AVX512VL
+		return Self{ _mm_permutex2var_epi64( _value, _mm_set_epi64x( slong(Y), slong(X) ), v23._value )};
+	  #else
+		if constexpr( (X & 2) == (Y & 2) )
+		{
+			auto const&  src = (X < 2 ? _value : v23._value);
+			return Self{ _mm_shuffle_epi32( src, _MM_SHUFFLE( 2*(Y&1)+1, 2*(Y&1), 2*(X&1)+1, 2*(X&1) ))};
+		}
+		else
+		{
+			auto const&  lo = (X < 2 ? _value      : v23._value);
+			auto const&  hi = (X < 2 ? v23._value  : _value);
+			return Self{ _mm_castpd_si128( _mm_shuffle_pd( _mm_castsi128_pd( lo ), _mm_castsi128_pd( hi ), (X&1) | ((Y&1) << 1) ))};
+		}
+	  #endif
+	}
 
-		if constexpr( X==1 and Y==3 )
-			return Self{ _mm_unpackhi_epi64( _value, v23._value )};
+/*
+=================================================
+	Has_Shuffle
+=================================================
+*/
+	template <typename IT>
+	__Ce__ bool  SimdTInt128<IT>::Has_Shuffle ()
+	{
+		if ( is8 )		return false;
+		if ( is16 )		return AE_SIMD_SSE >= 31;
+		else			return true;
 	}
 
 /*
@@ -2417,6 +2669,27 @@ namespace AE::Base
 
 
 #ifdef AE_SIMD_Int128b
+/*
+=================================================
+	LByteShift / RByteShift
+=================================================
+*/
+	template <uint ShiftBytes>
+	Int128b  Int128b::LByteShift () C_NE___
+	{
+		StaticAssert( ShiftBytes > 0 );		// 0 - valid but has no effect
+		StaticAssert( ShiftBytes < 16 );	// 16 - valid but always zero
+		return Self{ _mm_slli_si128( _value, ShiftBytes )};
+	}
+
+	template <uint ShiftBytes>
+	Int128b  Int128b::RByteShift () C_NE___
+	{
+		StaticAssert( ShiftBytes > 0 );		// 0 - valid but has no effect
+		StaticAssert( ShiftBytes < 16 );	// 16 - valid but always zero
+		return Self{ _mm_srli_si128( _value, ShiftBytes )};
+	}
+
 /*
 =================================================
 	ToArray

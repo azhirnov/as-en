@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #include "res_pack/pipeline_compiler/ScriptObjects/ScriptShader.h"
 #include "res_pack/pipeline_compiler/ScriptObjects/Common.inl.h"
@@ -67,6 +67,7 @@ namespace
 */
 	void  ScriptShader::AddSpec (EValueType valType, const String &name) __Th___
 	{
+		// validate
 		switch_enum( valType )
 		{
 			case EValueType::Bool8 :
@@ -964,34 +965,11 @@ namespace
 		{
 			EnumBinder<ETessPatch>	binder{ se };
 			binder.Create();
-			switch_enum( ETessPatch::Unknown )
-			{
-				case ETessPatch::Unknown :
-				case ETessPatch::_Count :
-				#define CASE( _name_ )	case ETessPatch::_name_ : binder.AddValue( #_name_, ETessPatch::_name_ );
-				CASE( Points )
-				CASE( Isolines )
-				CASE( Triangles )
-				CASE( Quads )
-				#undef CASE
-				default : break;
-			}
-			switch_end
+			binder.BindAll();
 		}{
 			EnumBinder<ETessSpacing>	binder{ se };
 			binder.Create();
-			switch_enum( ETessSpacing::Unknown )
-			{
-				case ETessSpacing::Unknown :
-				case ETessSpacing::_Count :
-				#define CASE( _name_ )	case ETessSpacing::_name_ : binder.AddValue( #_name_, ETessSpacing::_name_ );
-				CASE( Equal )
-				CASE( FractionalEven )
-				CASE( FractionalOdd )
-				#undef CASE
-				default : break;
-			}
-			switch_end
+			binder.BindAll();
 		}
 
 		ClassBinder<ScriptShader>	binder{ se };

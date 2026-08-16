@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #ifdef AE_PLATFORM_WINDOWS
 # include "base/Platforms/WindowsHeader.cpp.h"
@@ -75,7 +75,7 @@ namespace AE::Base
 	IDataSource::ESourceType  WinFileRStream::GetSourceType () C_NE___
 	{
 		return	ESourceType::SequentialAccess	| ESourceType::RandomAccess |	// allow SeekFwd() & SeekSet()
-				ESourceType::FixedSize			| ESourceType::ReadAccess	|
+				ESourceType::FixedSize			| ESourceType::ReadOnly	|
 				ESourceType::ThreadSafe;
 	}
 
@@ -205,8 +205,8 @@ namespace AE::Base
 */
 	IDataSource::ESourceType  WinFileWStream::GetSourceType () C_NE___
 	{
-		return	ESourceType::SequentialAccess | ESourceType::WriteAccess |
-				ESourceType::ThreadSafe;
+		return	ESourceType::SequentialAccess | ESourceType::WriteOnly |
+				ESourceType::ThreadSafe | ESourceType::RandomAccess;
 	}
 
 /*
@@ -362,7 +362,7 @@ namespace AE::Base
 	IDataSource::ESourceType  WinFileRDataSource::GetSourceType () C_NE___
 	{
 		return	ESourceType::SequentialAccess	| ESourceType::RandomAccess |
-				ESourceType::FixedSize			| ESourceType::ReadAccess	|
+				ESourceType::FixedSize			| ESourceType::ReadOnly	|
 				ESourceType::ThreadSafe;
 	}
 
@@ -480,7 +480,7 @@ namespace AE::Base
 */
 	IDataSource::ESourceType  WinFileWDataSource::GetSourceType () C_NE___
 	{
-		return	ESourceType::RandomAccess | ESourceType::WriteAccess |
+		return	ESourceType::RandomAccess | ESourceType::WriteOnly |
 				ESourceType::ThreadSafe;
 	}
 

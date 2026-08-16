@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #pragma once
 
@@ -60,6 +60,7 @@ namespace AE::Graphics
 
 		DeviceProperties		_devProps;				// platform independent
 		ResourceFlags			_resFlags;
+		EDeviceFlags			_devInitFlags			= Default;
 
 		MemTypeToTypeBits_t		_memTypeToBits;
 		MemHeapToMemType_t		_memHeapToType;
@@ -127,6 +128,7 @@ namespace AE::Graphics
 		ND_ EQueueMask				GetAvailableQueues ()							C_NE_OF	{ DRC_SHAREDLOCK( _drCheck );  return _queueMask; }
 		ND_ StringView				GetDeviceName ()								C_NE_OF	{ DRC_SHAREDLOCK( _drCheck );  return _properties.properties.deviceName; }
 		ND_ String					GetDriverName ()								C_NE_OF;
+		ND_ EDeviceFlags			GetDeviceInitFlags ()							C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _devInitFlags; }
 
 		ND_ bool					IsInitialized ()								C_NE_OF	{ return GetVkDevice() != Default; }
 
@@ -193,9 +195,9 @@ namespace AE::Graphics
 		ND_ bool  GetMemoryRequirements (const VkImageCreateInfo &, OUT VkMemoryRequirements2*)		C_NE___;
 
 		// requires 'FeatureSet::cooperativeVector'
-		ND_ bool  ConvertCooperativeVectorMatrix (ArrayView<ConvertCoopMatrixOnHost>)			C_NE___;
+		ND_ bool  ConvertCooperativeVectorMatrix (ArrayView<ConvertCoopMatrixOnHost>)				C_NE___;
 		ND_ bool  GetCooperativeVectorMatrixDstSize (ArrayView<ConvertCoopMatrixOnHost>,
-													 MutableArrayView<BytesUSize> dstSizeArray)	C_NE___;
+													 OUT MutableArrayView<BytesUSize> dstSizeArray)	C_NE___;
 	};
 
 
@@ -338,6 +340,7 @@ namespace AE::Graphics
 			bool  CreateDebugCallback (VkDebugUtilsMessageSeverityFlagsEXT	severity,
 									   VkDebugUtilsMessageTypeFlagsEXT		types,
 									   DebugReport_t						callback = Default)		__NE___;
+			bool  SetDebugCallback (DebugReport_t callback)											__NE___;
 			void  DestroyDebugCallback ()															__NE___;
 		ND_ bool  IsEnabledDebugCallback ()															C_NE___;
 
@@ -360,7 +363,8 @@ namespace AE::Graphics
 
 	  // HighLevel //
 		ND_ bool  Init (const VDeviceInitializer &otherDev)											__NE___;
-		ND_ bool  Init (const GraphicsCreateInfo &ci, ArrayView<const char*> instanceExtensions)	__NE___;
+		ND_ bool  Init (const GraphicsCreateInfo &ci,
+						ArrayView<const char*> instanceExtensions = Default)						__NE___;
 
 
 		ND_ VulkanDeviceFnTable &			EditDeviceFnTable ()									__NE___	{ DRC_EXLOCK( _drCheck ); return _deviceFnTable; }

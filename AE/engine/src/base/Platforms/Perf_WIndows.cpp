@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #if defined(AE_COMPILER_MSVC) and defined(AE_PLATFORM_WINDOWS)
 # include "base/Platforms/WindowsHeader.cpp.h"

@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #pragma once
 
@@ -140,7 +140,7 @@ namespace AE::Threading
 	// methods
 	public:
 		__Cx__ TValueWithSpinLockBit ()							__NE___ {}
-		__Cx__ explicit TValueWithSpinLockBit (Value_t v)		__NE___ : _value{v} {} // ASSERT( is_unlocked() ); }
+		__Cx__ explicit TValueWithSpinLockBit (Value_t v)		__NE___ : _value{v} {}	// ASSERT_Cx( is_unlocked() ); }
 		~TValueWithSpinLockBit ()								__NE___;
 
 		ND_ bool		try_lock ()								__NE___;
@@ -149,6 +149,8 @@ namespace AE::Threading
 		// for std::lock_guard / std::unique_lock / std::scoped_lock
 			void		lock ()									__NE___;
 			void		unlock ()								__NE___;
+
+			void		UnlockAndSet (Value_t val)				__NE___;
 
 		ND_ bool		is_locked ()							C_NE___	{ return _HasLockBit( _value.load() ); }
 		ND_ bool		is_unlocked ()							C_NE___	{ return not is_locked(); }
@@ -562,10 +564,24 @@ namespace AE::Threading
 	template <typename V, uint L, bool B>
 	void  TValueWithSpinLockBit<V,L,B>::unlock () __NE___
 	{
-		Value_t	exp = _RemoveLockBit( _value.load() );
-		Value_t	prev = _value.exchange( exp, _ReleaseOrder );
+		Value_t	unlocked = _RemoveLockBit( _value.load() );
+		Value_t	prev	 = _value.exchange( unlocked, _ReleaseOrder );
 		Unused( prev );
-		ASSERT( prev == _SetLockBit( exp ));
+		ASSERT( prev == _SetLockBit( unlocked ));
+	}
+
+/*
+=================================================
+	UnlockAndSet
+=================================================
+*/
+	template <typename V, uint L, bool B>
+	void  TValueWithSpinLockBit<V,L,B>::UnlockAndSet (Value_t val) __NE___
+	{
+		Value_t	unlocked = _RemoveLockBit( val );
+		Value_t	prev	 = _value.exchange( unlocked, _ReleaseOrder );
+		Unused( prev );
+		ASSERT( _HasLockBit( prev ));
 	}
 
 /*

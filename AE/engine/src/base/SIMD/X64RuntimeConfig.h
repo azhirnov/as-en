@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 /*
 	Affects only current thread.
 */
@@ -35,7 +35,7 @@ namespace AE::Base
 			Overflow	= 1 << 3,
 			Underflow	= 1 << 4,
 			Inexact		= 1 << 5,
-			_BITOPS_
+			_BITOPS_	= 0
 		};
 
 		struct State
@@ -142,8 +142,7 @@ namespace AE::Base
 				case ExceptionFlags::Overflow :		m |= _MM_EXCEPT_OVERFLOW;	break;
 				case ExceptionFlags::Underflow :	m |= _MM_EXCEPT_UNDERFLOW;	break;
 				case ExceptionFlags::Inexact :		m |= _MM_EXCEPT_INEXACT;	break;
-				case ExceptionFlags::Unknown :
-				case ExceptionFlags::_BITOPS_ :		break;
+				case ExceptionFlags::Unknown :		break;
 			}
 			switch_end
 		}

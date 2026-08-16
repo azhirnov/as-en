@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 /*
 	Visualization for HiZ culling.
 
@@ -230,6 +230,7 @@
 	#include "Frustum.glsl"
 	#include "Matrix.glsl"
 	#include "Sphere.glsl"
+	#include "Atomic.glsl"
 
 
 	bool  IsVisible (uint idx)
@@ -275,30 +276,20 @@
 
 	void  Main ()
 	{
-		const uint	idx		= GetGlobalIndex();
-		const uint	count	= GetGlobalIndexSize();
+		const uint	idx			= GetGlobalIndex();
+		const uint	count		= GetGlobalIndexSize();
+		bool		is_visible	= IsVisible( idx );
 
 		if ( idx == 0 )
-		{
 			un_IndirectCmd.indexCount = iIndexCount;
-		}
-
-		bool	is_visible		= IsVisible( idx );
-		uint4	visible_mask	= gl.subgroup.Ballot( is_visible );
-		uint	visible_count	= gl.subgroup.BallotBitCount( visible_mask );
-		uint	dst_idx			= 0;
-
-		if ( gl.subgroup.Index == 0 )
-		{
-			dst_idx = gl.AtomicAdd( INOUT un_IndirectCmd.instanceCount, visible_count );
-		}
-		gl.subgroup.Barrier();
-
-		dst_idx = gl.subgroup.Broadcast( dst_idx, 0 );
-		dst_idx += gl.subgroup.BallotExclusiveBitCount( visible_mask );
 
 		if ( is_visible )
+		{
+			uint	dst_idx;
+			SubgroupAtomicInc( dst_idx, un_IndirectCmd.instanceCount );
+
 			un_RemapIdx.elements[dst_idx].newIndex = idx;
+		}
 	}
 
 #endif

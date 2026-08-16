@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 /*
 	Use trilinear filter with bias as alternative to anisotropy filtering.
 	Much usefull for tiling when anisotropy has access out of 2x2x2 cube which cause artifacts.

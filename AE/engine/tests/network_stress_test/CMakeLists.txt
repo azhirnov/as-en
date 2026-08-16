@@ -1,9 +1,8 @@
-# Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+# Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 if (TARGET "Networking")
 	file( GLOB SOURCES "*.*" )
-
-	if (ANDROID)
+	if (${AE_ANDROID_UI_MODE})
 		set( TEST_NAME "NetworkStressTest" )
 		add_library( ${TEST_NAME} SHARED ${SOURCES} )
 	elseif (APPLE)

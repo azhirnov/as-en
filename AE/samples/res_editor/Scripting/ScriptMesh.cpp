@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #include "geometry_tools/Cube/CubeGen.h"
 #include "geometry_tools/Grid/GridGen.h"
@@ -951,7 +951,7 @@ namespace AE::ResEditor
 			case EAttribute::TBN :
 			case EAttribute::TriangleIndices :
 			case EAttribute::TriangleIndicesPack32 :
-			case EAttribute::_BITOPS_ :
+			case EAttribute::_Last :
 			default :						CHECK_THROW_MSG( false, "unsupported attribute" );
 		}
 		switch_end
@@ -1016,9 +1016,9 @@ namespace AE::ResEditor
 				case EAttribute::TriangleIndicesPack32 :
 					// TODO
 
-				case EAttribute::Unknown :
 				case EAttribute::TB :
 				case EAttribute::TBN :
+				case EAttribute::_Last :
 				case EAttribute::_BITOPS_ :		break;
 			}
 			switch_end
@@ -1041,30 +1041,9 @@ namespace AE::ResEditor
 		{
 			Scripting::EnumBinder<ScriptMesh::EAttribute>	binder{ se };
 			binder.Create();
-
-			switch_enum( EAttribute::Unknown )
-			{
-				case EAttribute::Unknown :
-				case EAttribute::TB :
-				case EAttribute::_BITOPS_ :
-				#define BIND( _name_ )		case EAttribute::_name_ :  binder.AddValue( AE_TOSTRING(_name_), EAttribute::_name_ );
-				BIND( Position )
-				BIND( Texcoord2D )
-				BIND( Texcoord3D )
-				BIND( Normal )
-				BIND( Tangent )
-				BIND( BiTangent )
-				BIND( TBN_Quat )
-				BIND( TBN )
-				BIND( TriangleIndices )
-				BIND( TriangleIndicesPack32 )
-				BIND( Color )
-				BIND( FloatParams )
-				BIND( IntParams )
-				BIND( SubMeshID )
-				#undef BIND
-			}
-			switch_end
+			binder.BindAll();
+			binder.AddValue< EAttribute::TB >();
+			binder.AddValue< EAttribute::TBN >();
 		}
 
 		Scripting::ClassBinder<ScriptMesh>	binder{ se };

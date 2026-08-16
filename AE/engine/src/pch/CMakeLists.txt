@@ -59,7 +59,7 @@ function( EngineDeps_Base projName )
 
 	if (WIN32)
 		# for sockets
-		target_link_libraries( ${projName} PUBLIC "ws2_32" )
+		target_link_libraries( ${projName} PUBLIC "ws2_32" ) # "Iphlpapi"
 	endif()
 
 	target_compile_definitions( ${projName} PUBLIC FP_FAST_FMA FP_FAST_FMAF FP_FAST_FMAL )	# TODO: remove
@@ -387,5 +387,15 @@ function( UseEnginePCH2 projName )
 		SetEnginePCHSourceDir()
 	endif()
 
+endfunction()
+#----------------------------------------------------------
+
+# add working directory for Android console mode
+function( AddTest projName )
+	if (ANDROID AND ${AE_ANDROID_CONSOLE_MODE})
+		add_test( NAME ${projName} COMMAND ${projName} WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}" )
+	else()
+		add_test( NAME ${projName} COMMAND ${projName} )
+	endif()
 endfunction()
 #----------------------------------------------------------

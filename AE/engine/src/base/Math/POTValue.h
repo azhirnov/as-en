@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #pragma once
 
@@ -182,13 +182,15 @@ namespace AE::Base
 	};
 
 
+	using POTValue32	= TPowerOf2Value< uint >;
+	using POTValue64	= TPowerOf2Value< ulong >;
 
-	using POTValue	= TPowerOf2Value< ulong >;
-	using POTBytes	= TPowerOf2Value< Bytes >;
+	using POTValue		= POTValue64;
+	using POTBytes		= TPowerOf2Value< Bytes >;
 
-	using POTVec2	= TPowerOf2ValueVec< ulong, 2 >;
-	using POTVec3	= TPowerOf2ValueVec< ulong, 3 >;
-	using POTVec4	= TPowerOf2ValueVec< ulong, 4 >;
+	using POTVec2		= TPowerOf2ValueVec< ulong, 2 >;
+	using POTVec3		= TPowerOf2ValueVec< ulong, 3 >;
+	using POTVec4		= TPowerOf2ValueVec< ulong, 4 >;
 
 
 	StaticAssert( sizeof(POTValue) == 1 );

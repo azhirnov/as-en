@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #pragma once
 
@@ -18,16 +18,25 @@ namespace AE::AppV1
 	struct AppConfig
 	{
 	// types
-	private:
+	public:
 		using GraphicsCreateInfo	= Graphics::GraphicsCreateInfo;
 		using VRImageDesc			= IVRSession::VRImageDesc;
 		using EThread				= Threading::EThread;
 		using VRDeviceTypes			= FixedArray< IVRSession::EDeviceType, 4 >;
+		using WindowDesc			= App::WindowDesc;
 
 		struct ThreadConfig : Threading::TaskScheduler::Config
 		{
-			EnumSet<EThread>		mask		{EThread::PerFrame, EThread::Renderer, EThread::Background, EThread::IO};
-			uint					maxThreads	= 2;
+			EnumSet<EThread>	mask			{EThread::PerFrame, EThread::Renderer, EThread::Background, EThread::IO};
+			uint				maxThreads		= 2;
+		};
+
+		struct VRConfig
+		{
+			bool				enableVR		= false;
+			bool				onlyVR			= true;		// don't create desktop window if created VR device
+			VRDeviceTypes		devices;
+			VRImageDesc			imageDesc;
 		};
 
 
@@ -36,13 +45,10 @@ namespace AE::AppV1
 		GraphicsCreateInfo	graphics;
 		ThreadConfig		threading;
 		WindowDesc			window;
+		VRConfig			vr;
 		bool				enableNetwork	= false;
 		bool				enableAudio		= false;
 
-		bool				enableVR		= false;
-		bool				onlyVR			= true;		// don't create desktop window if created VR device
-		VRDeviceTypes		vrDevices;
-		VRImageDesc			vr;
 	};
 
 

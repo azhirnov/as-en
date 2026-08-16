@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #pragma once
 
@@ -395,8 +395,11 @@
 
 
 // cache line size
-#ifdef __cpp_lib_hardware_interference_size
-	// TODO: on Android it returns 256 to support multiple CPUs and prefetchers which touch near cache lines too
+#if defined(AE_PLATFORM_ANDROID) and defined(AE_CPU_ARCH_ARM_BASED)
+	// on Android 'hardware_destructive_interference_size' returns 256 to support multiple CPUs and prefetchers which touch near cache lines too
+#	define AE_CACHE_LINE	std::size_t(64)
+
+#elif defined(__cpp_lib_hardware_interference_size)
 #	define AE_CACHE_LINE	std::hardware_destructive_interference_size
 
 #elif defined(AE_PLATFORM_APPLE) and defined(AE_CPU_ARCH_ARM_BASED)
@@ -458,12 +461,17 @@
 #endif
 
 #ifdef AE_CPU_ARCH_ARM_BASED
+# undef AE_SIMD_NEON
+# undef AE_SIMD_NEON_HALF
+# undef AE_SIMD_NEON_BF16
+# undef AE_SIMD_FMA
+
 # ifdef AE_PLATFORM_WINDOWS
 	// not supported
 
 # elif defined(__ARM_NEON_FP)
 #	if !(__ARM_NEON_FP & 0x4)
-#	  error ARM hardware float32 is not supported
+#	  error ARM NEON float32 is not supported
 #	endif
 #	define AE_SIMD_NEON			1	// int, float
 #	include <arm_neon.h>
@@ -476,14 +484,7 @@
 
 #	ifdef __ARM_FEATURE_FP16_VECTOR_ARITHMETIC
 #	  include <arm_fp16.h>
-#	  undef  AE_SIMD_NEON_HALF
 #	  define AE_SIMD_NEON_HALF	1	// half (ARMv8.2-A)
-#	elif defined(AE_SIMD_NEON_HALF)
-#	 if AE_SIMD_NEON_HALF
-#	  undef  AE_SIMD_NEON_HALF
-#	  define AE_SIMD_NEON_HALF	0
-#	  pragma message( "AE_SIMD_NEON_HALF requires ARMv8.2-A" )
-#	 endif
 #	endif
 
 #	ifdef __ARM_FEATURE_BF16_VECTOR_ARITHMETIC
@@ -491,17 +492,23 @@
 #	  define AE_SIMD_NEON_BF16	1	// bfloat16
 #	endif
 
-#	ifdef __ARM_FEATURE_SVE
+#	ifdef __ARM_FEATURE_SVE2
+#	  include <arm_sve.h>
+#	  define AE_SIMD_SVE		2
+
+#	elif defined(__ARM_FEATURE_SVE)
 #	  include <arm_sve.h>
 #	  define AE_SIMD_SVE		1
 #	endif
-#	ifdef __ARM_FEATURE_SVE2
-		// TODO
+
+#	ifdef __ARM_FEATURE_SME
+#	  include <arm_sme.h>
+#	  define AE_SIMD_SME		1
 #	endif
 # endif
 
 # ifdef __ARM_ACLE
-#  include <arm_acle.h>
+#  include <arm_acle.h>	// crc32
 # endif
 #endif
 

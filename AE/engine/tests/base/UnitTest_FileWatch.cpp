@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #include "UnitTest_Common.h"
 
@@ -306,10 +306,11 @@ namespace
 		TEST( FileSystem::DeleteDirectory( watchDir / "CCC" ));
 
 		TEST( file_watch.GetEvents( OUT events ));
-		Compare( INOUT events, {{"CCC/d0.tmp",		EFileSystemAction::Removed},
-								{"CCC/DD/d1.tmp",	EFileSystemAction::Removed},
+		Compare( INOUT events, {{"CCC",				EFileSystemAction::Removed},
 								{"CCC/DD",			EFileSystemAction::Removed},
-								{"CCC",				EFileSystemAction::Removed}} );
+								{"CCC/DD/d1.tmp",	EFileSystemAction::Removed},
+								{"CCC/d0.tmp",		EFileSystemAction::Removed}},
+				True{"sort"} );
 
 		TEST( not file_watch.GetEvents( OUT events ));
 		LogEvents( events );

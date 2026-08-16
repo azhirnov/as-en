@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #include "pch/Networking.h"
 
@@ -12,6 +12,8 @@
 #include "profiler/Remote/RemoteGeneralProfiler.h"
 
 #include "platform/Remote/Messages.h"
+
+#include "base/../../GlobalConfig.h"	// TODO: remove
 
 using namespace AE;
 using namespace AE::Base;

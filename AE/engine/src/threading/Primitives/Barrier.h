@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 /*
 	AE_BARRIER_MODE:
 		0 - WinAPI native barrier implementation, requires Windows 8 desktop.

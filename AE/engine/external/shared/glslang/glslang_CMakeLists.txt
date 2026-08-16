@@ -19,7 +19,6 @@ set( GLSLANG_TARGETS
 	"GenericCodeGen"
 	"glslang"
 	"MachineIndependent"
-	"OGLCompiler"
 	"OSDependent"
 	"SPIRV"
 )
@@ -55,6 +54,13 @@ set( SPIRV_TARGETS
 	"spirv-tools-header-NonSemanticShaderDebugInfo100"
 )
 
+set( GLSLANG_AND_SPIRV_TARGETS
+	${GLSLANG_TARGETS}
+	${SPIRV_TARGETS}
+)
+
+add_custom_target( glslang_spirv_deps )
+
 set( AE_EXTERNAL_PATH "${CMAKE_CURRENT_SOURCE_DIR}/../../.." )
 include( "${AE_EXTERNAL_PATH}/config.cmake" )
 
@@ -64,19 +70,12 @@ if (${ENABLE_OPT})
 	find_package( PythonInterp 3.7 REQUIRED )
 endif ()
 
-foreach(LIB ${GLSLANG_TARGETS})
+foreach(LIB ${GLSLANG_AND_SPIRV_TARGETS})
 	if (TARGET ${LIB})
 		set_target_properties( ${LIB} PROPERTIES DEBUG_POSTFIX "d" )
+		add_dependencies( glslang_spirv_deps ${LIB} )
 	else()
-		message( STATUS "target is not found: '${LIB}'" )
-	endif()
-endforeach()
-
-foreach(LIB ${SPIRV_TARGETS})
-	if (TARGET ${LIB})
-		set_target_properties( ${LIB} PROPERTIES DEBUG_POSTFIX "d" )
-	else()
-		message( STATUS "target is not found: '${LIB}'" )
+		message( FATAL_ERROR "target is not found: '${LIB}'" )
 	endif()
 endforeach()
 

@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 /*
 	based on
 	https://github.com/nvpro-samples/nvpro_core/blob/master/nvh/nvml_monitor.hpp

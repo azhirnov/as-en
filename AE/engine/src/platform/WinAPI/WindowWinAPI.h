@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #pragma once
 
@@ -16,7 +16,7 @@ namespace AE::App
 	// WinAPI Window
 	//
 
-	class WindowWinAPI final : public WindowBaseWithSurface
+	class WindowWinAPI final : public WindowBaseWithSurface, public IDesktopWindow
 	{
 		friend class ApplicationWinAPI;
 
@@ -64,6 +64,7 @@ namespace AE::App
 
 	// IDesktopWindow //
 		void  SetSize (const uint2 &size)									__NE_OV;
+		void  SetSize (const uint2 &size, float targetPPI)					__NE_OV;
 		void  SetPosition (const int2 &pos)									__NE_OV;
 		void  SetPosition (Monitor::ID monitor, const int2 &pos)			__NE_OV;
 		void  SetTitle (NtStringView title)									__NE_OV;
@@ -90,6 +91,9 @@ namespace AE::App
 
 		ND_	bool  _WindowModeToStyle (EWindowMode, Monitor::ID monitorId,
 									  OUT uint &, OUT uint &, INOUT int2 &, OUT int2 &) C_NE___;
+
+	// WindowBase //
+		ND_ bool  ProcessMessages ()										__NE_OV;
 	};
 
 

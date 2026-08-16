@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #pragma once
 
@@ -619,7 +619,7 @@ namespace {
 	{
 		return _CreateResource<DescriptorSetLayoutID>(
 					ERR_MSG( "failed when creating descriptor set layout", ci.dbgName ),
-					GetDevice(), ci );
+					*this, ci );
 	}
 //-----------------------------------------------------------------------------
 
@@ -902,7 +902,7 @@ namespace {
 	template <typename PplnID>
 	bool  ResourceManager::_CreateDescriptorSets (OUT DescSetBinding &binding, OUT Strong<DescriptorSetID> *dst, const usize count,
 												  PplnID pplnId, DescriptorSetName::Ref dsName,
-												  DescriptorAllocatorPtr allocator, StringView dbgName) __NE___
+												  DescriptorAllocatorPtr allocator, StringView dbgName, const DescSetParams* params) __NE___
 	{
 		CHECK_ERR( dst != null and count > 0 );
 
@@ -949,7 +949,7 @@ namespace {
 		for (; created and (i < count); ++i)
 		{
 			dst[i]  = _CreateResource<DescriptorSetID>( ERR_MSG( "failed when creating descriptor set", dbgName ),
-														*this, layout_id, allocator, dbgName );
+														*this, layout_id, params, allocator, dbgName );
 			created = (dst[i].IsValid());
 		}
 
@@ -1025,33 +1025,33 @@ namespace {
 =================================================
 */
 	bool  ResourceManager::CreateDescriptorSets (OUT DescSetBinding &binding, OUT Strong<DescriptorSetID> *dst, usize count, GraphicsPipelineID ppln,
-												 DescriptorSetName::Ref dsName, DescriptorAllocatorPtr allocator, StringView dbgName) __NE___
+												 DescriptorSetName::Ref dsName, DescriptorAllocatorPtr allocator, StringView dbgName, const DescSetParams* params) __NE___
 	{
-		return _CreateDescriptorSets( OUT binding, OUT dst, count, ppln, dsName, RVRef(allocator), dbgName );
+		return _CreateDescriptorSets( OUT binding, OUT dst, count, ppln, dsName, RVRef(allocator), dbgName, params );
 	}
 
 	bool  ResourceManager::CreateDescriptorSets (OUT DescSetBinding &binding, OUT Strong<DescriptorSetID> *dst, usize count, MeshPipelineID ppln,
-												 DescriptorSetName::Ref dsName, DescriptorAllocatorPtr allocator, StringView dbgName) __NE___
+												 DescriptorSetName::Ref dsName, DescriptorAllocatorPtr allocator, StringView dbgName, const DescSetParams* params) __NE___
 	{
-		return _CreateDescriptorSets( OUT binding, OUT dst, count, ppln, dsName, RVRef(allocator), dbgName );
+		return _CreateDescriptorSets( OUT binding, OUT dst, count, ppln, dsName, RVRef(allocator), dbgName, params );
 	}
 
 	bool  ResourceManager::CreateDescriptorSets (OUT DescSetBinding &binding, OUT Strong<DescriptorSetID> *dst, usize count, ComputePipelineID ppln,
-												 DescriptorSetName::Ref dsName, DescriptorAllocatorPtr allocator, StringView dbgName) __NE___
+												 DescriptorSetName::Ref dsName, DescriptorAllocatorPtr allocator, StringView dbgName, const DescSetParams* params) __NE___
 	{
-		return _CreateDescriptorSets( OUT binding, OUT dst, count, ppln, dsName, RVRef(allocator), dbgName );
+		return _CreateDescriptorSets( OUT binding, OUT dst, count, ppln, dsName, RVRef(allocator), dbgName, params );
 	}
 
 	bool  ResourceManager::CreateDescriptorSets (OUT DescSetBinding &binding, OUT Strong<DescriptorSetID> *dst, usize count, RayTracingPipelineID ppln,
-												 DescriptorSetName::Ref dsName, DescriptorAllocatorPtr allocator, StringView dbgName) __NE___
+												 DescriptorSetName::Ref dsName, DescriptorAllocatorPtr allocator, StringView dbgName, const DescSetParams* params) __NE___
 	{
-		return _CreateDescriptorSets( OUT binding, OUT dst, count, ppln, dsName, RVRef(allocator), dbgName );
+		return _CreateDescriptorSets( OUT binding, OUT dst, count, ppln, dsName, RVRef(allocator), dbgName, params );
 	}
 
 	bool  ResourceManager::CreateDescriptorSets (OUT DescSetBinding &binding, OUT Strong<DescriptorSetID> *dst, usize count, TilePipelineID ppln,
-												 DescriptorSetName::Ref dsName, DescriptorAllocatorPtr allocator, StringView dbgName) __NE___
+												 DescriptorSetName::Ref dsName, DescriptorAllocatorPtr allocator, StringView dbgName, const DescSetParams* params) __NE___
 	{
-		return _CreateDescriptorSets( OUT binding, OUT dst, count, ppln, dsName, RVRef(allocator), dbgName );
+		return _CreateDescriptorSets( OUT binding, OUT dst, count, ppln, dsName, RVRef(allocator), dbgName, params );
 	}
 
 /*
@@ -1262,7 +1262,7 @@ namespace {
 		CHECK_ERR( _defaultSampler == Default );
 
 		SamplerDesc		info;
-		_defaultSampler = CreateSampler( info, "Default" );
+		_defaultSampler = CreateSampler( info, "Default", null, &MemoryManager().GetGlobalLinearAllocator() );
 		CHECK_ERR( _defaultSampler );
 
 		return true;

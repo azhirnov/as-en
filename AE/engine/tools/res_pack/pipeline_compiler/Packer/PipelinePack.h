@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #pragma once
 
@@ -64,7 +64,7 @@ namespace AE::PipelineCompiler
 		Metal_iOS	= 2u << 28,
 		Metal_Mac	= 3u << 28,
 		_Mask		= 7u << 28,
-		_BITOPS_,
+		_BITOPS_	= 0,
 		Unknown		= ~0u
 	};
 
@@ -77,7 +77,7 @@ namespace AE::PipelineCompiler
 		RayTracing		= 4u << 28,
 		Tile			= 5u << 28,
 		_Mask			= 0xFu << 28,
-		_BITOPS_,
+		_BITOPS_		= 0,
 		Unknown			= ~0u
 	};
 
@@ -90,7 +90,7 @@ namespace AE::PipelineCompiler
 		RayTracing		= uint(PipelineTemplUID::RayTracing),
 		Tile			= uint(PipelineTemplUID::Tile),
 		_Mask			= uint(PipelineTemplUID::_Mask),
-		_BITOPS_,
+		_BITOPS_		= 0,
 		Unknown			= uint(PipelineTemplUID::Unknown)
 	};
 
@@ -131,7 +131,7 @@ namespace AE::PipelineCompiler
 		_LastQual,
 
 		Unknown				= 0,
-		_BITOPS_
+		_BITOPS_			= 0
 	};
 
 	StaticAssert( EImageType::_DimCount < EImageType::_DimMask );
@@ -230,6 +230,7 @@ namespace AE::PipelineCompiler
 			Binding				binding;
 			ArraySize_t			arraySize				= UMax;		// 0 for runtime sized array
 			EDescriptorType		type					= Default;
+			EDescriptorFlags	flags					= Default;
 			EShaderStages		stages					= Default;
 			union {
 				Buffer				buffer;
@@ -243,6 +244,8 @@ namespace AE::PipelineCompiler
 			Uniform ()							__NE___ {}
 
 			ND_ bool  IsRuntimeSizedArray ()	C_NE___	{ return arraySize == 0; }
+			ND_ bool  IsScalar ()				C_NE___	{ return arraySize == 1; }
+			ND_ bool  IsArray ()				C_NE___	{ return IsRuntimeSizedArray() or not IsScalar(); }
 		};
 
 		using Uniforms_t	= Array<Pair< UniformName, Uniform >>;
@@ -311,7 +314,7 @@ namespace AE::PipelineCompiler
 			ND_ bool	operator == (const PushConst &rhs) const;
 			ND_ HashVal	CalcHash () const;
 		};
-		using PushConstMap_t = FixedMap< PushConstantName, PushConst, GraphicsConfig::MaxPushConstants >;
+		using PushConstMap_t = FixedMap< PushConstantName::Optimized_t, PushConst, GraphicsConfig::MaxPushConstants >;
 
 
 	// variables

@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #include "res_pack/pipeline_compiler/ScriptObjects/IndirectExecutionSet.h"
 #include "res_pack/pipeline_compiler/ScriptObjects/Common.inl.h"
@@ -168,11 +168,15 @@ namespace
 	void  IndirectExecutionSet::_ValidatePipe2 (ComputePipelineSpecScriptBinding const& initial, ComputePipelineSpecScriptBinding const& pending) __Th___
 	{
 		CHECK_THROW( AllBits( _pipeBinding, EShaderStages::Compute ));
+
+		Unused( initial, pending );
 	}
 
 	void  IndirectExecutionSet::_ValidatePipe2 (RayTracingPipelineSpecScriptBinding const& initial, RayTracingPipelineSpecScriptBinding const& pending) __Th___
 	{
 		CHECK_THROW( AnyBits( _pipeBinding, EShaderStages::AllRayTracing ));
+
+		Unused( initial, pending );
 	}
 
 /*
@@ -234,8 +238,10 @@ namespace
 */
 	void  IndirectExecutionSet::_Validate () __Th___
 	{
-		CHECK_THROW( _usedStages != Default );
-		CHECK_THROW( AllBits( _pipeBinding, _usedStages ));
+		CHECK_THROW_MSG( _usedStages != Default );
+		CHECK_THROW_MSG( AllBits( _pipeBinding, _usedStages ),
+			"Supported pipeline stages ("s << ToString( _pipeBinding ) << ") from RTech FeatureSets must be compatible with used pipeline stages (" <<
+			ToString( _usedStages ) << ")" );
 
 		auto*	initial = _pipelines.front().Get();
 		for (auto& pipe : _pipelines)

@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 #include <pipeline_compiler.as>
 
 void ASmain ()
@@ -6,6 +6,7 @@ void ASmain ()
 	{
 		RC<DescriptorSetLayout>		ds = DescriptorSetLayout( "compute1.ds1" );
 		ds.StorageImage( EShaderStages::Compute, "un_OutImage", EImageType::2D, EPixelFormat::RGBA8_UNorm, EAccessType::Coherent, EResourceState::ShaderStorage_Write );
+		ds.SetUsage( EDescSetUsage::UpdateTemplate );	// fast update
 	}
 	{
 		RC<PipelineLayout>		pl = PipelineLayout( "compute1.pl" );

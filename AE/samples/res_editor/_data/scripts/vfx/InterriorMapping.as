@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 /*
 	Used orthographic projection to build cubemap (front face is not used).
 		Based on [RenderToCubemap sample](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/scripts/projections/RenderToCubemap.as)

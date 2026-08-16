@@ -7,3 +7,11 @@ cp "temp/json.hpp" "../../../../../AE-Bin/external/source/tinygltf/json.hpp"
 cp "temp/LICENSE" "../../../../../AE-Bin/external/source/tinygltf/LICENSE"
 rm -rf "temp"
 read -p "press any key..."
+
+exit 0
+
+pauseOnError() {
+	echo -e "\033[31m*** failed ***\033[0m"
+	read -p "press any key..."
+	exit 1
+}

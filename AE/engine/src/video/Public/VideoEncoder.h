@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 /*
 	Thread-safe:	yes
 */
@@ -37,6 +37,7 @@ namespace AE::Video
 			ECPUVendor			targetCPU		= Default;					// hint for hardware acceleration on CPU (intrinsics)
 			ushort				threadCount		= 0;
 			EEncoderFlags		flags			= Default;
+			Bytes32u			ioBufferSize	= 64_KiB;					// for custom stream, it decrease number of Write() calls, but add latency for streaming
 		};
 
 
@@ -59,6 +60,8 @@ namespace AE::Video
 		// stateless
 		ND_ virtual StringView	GetFileExtension (EVideoCodec codec)						C_NE___ = 0;
 		ND_ virtual String		PrintCodecs (EVideoCodec codec)								C_Th___ = 0;
+
+		ND_ static Bitrate		CalcBitrate (const IVideoEncoder::Config &cfg)				__NE___;
 	};
 
 

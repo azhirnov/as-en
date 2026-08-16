@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #ifdef AE_ENABLE_NETWORKING
 # include "vfs/Network/NetworkStorageServer.h"
@@ -75,7 +75,7 @@ namespace AE::VFS
 			}
 
 			if ( res.dataSize > sent )
-				Coro_Continue();  // try again after delay
+				Coro_Delay( milliseconds{20} );  // try again after delay
 		}
 
 		ASSERT( res.dataSize == sent );
@@ -96,7 +96,7 @@ namespace AE::VFS
 				}
 			}
 
-			Coro_Continue();  // try again
+			Coro_Delay( milliseconds{20} );  // try again
 		}
 	}
 //-----------------------------------------------------------------------------

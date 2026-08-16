@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #ifndef AE_ENABLE_LOGS
 #	error AE_ENABLE_LOGS must be enabled
@@ -5705,7 +5705,8 @@ namespace
 							auto&	img		= image_it->second;
 							auto&	subres	= view_it->second.info.subresourceRange;
 
-							tmp_log << "      image: " << PrintName( img.name, view_it->second.info.image ) << ", layout: " << VkImageLayoutToString( bind.images[a].imageLayout )
+							tmp_log << "      image[" << ToString(j) << "," << ToString(a) << "]: " << PrintName( img.name, view_it->second.info.image )
+								<< ", layout: " << VkImageLayoutToString( bind.images[a].imageLayout )
 								<< MipmapsToString( ", ", subres.baseMipLevel, subres.levelCount, img.info.mipLevels, true )
 								<< ArrayLayersToString( ", ", subres.baseArrayLayer, subres.layerCount, img.info.arrayLayers, true ) << '\n';
 
@@ -5741,7 +5742,8 @@ namespace
 								continue;
 
 							auto&	buf = buffer_it->second;
-							tmp_log << "      buffer: " << PrintName( buf.name, view_it->second.info.buffer ) << '\n';
+							tmp_log << "      buffer[" << ToString(j) << "," << ToString(a) << "]: "
+								<< PrintName( buf.name, view_it->second.info.buffer ) << '\n';
 
 							#if PRINT_EXPECTED_STATE
 								tmp_log.pop_back();
@@ -5772,7 +5774,7 @@ namespace
 								continue;
 
 							auto&	buf = buf_it->second;
-							tmp_log << "      buffer: " << PrintName( buf.name, bind.buffers[a].buffer ) << '\n';
+							tmp_log << "      buffer[" << ToString(j) << "," << ToString(a) << "]: " << PrintName( buf.name, bind.buffers[a].buffer ) << '\n';
 
 							#if PRINT_EXPECTED_STATE
 								tmp_log.pop_back();
@@ -5802,7 +5804,7 @@ namespace
 								continue;
 
 							auto&	as = as_it->second;
-							tmp_log << "      accel struct: " << PrintName( as.name, bind.accelStructs[a] ) << '\n';
+							tmp_log << "      accel struct[" << ToString(j) << "," << ToString(a) << "]: " << PrintName( as.name, bind.accelStructs[a] ) << '\n';
 
 							#if PRINT_EXPECTED_STATE
 								tmp_log.pop_back();

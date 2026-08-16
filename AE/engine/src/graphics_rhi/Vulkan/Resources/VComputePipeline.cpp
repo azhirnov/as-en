@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #ifdef AE_ENABLE_VULKAN
 # include "graphics_rhi/Vulkan/Resources/VComputePipeline.h"
@@ -16,7 +16,6 @@ namespace AE::Graphics
 */
 	VComputePipeline::~VComputePipeline () __NE___
 	{
-		DRC_EXLOCK( _drCheck );
 		CHECK( not _handle );
 	}
 
@@ -27,8 +26,6 @@ namespace AE::Graphics
 */
 	bool  VComputePipeline::Create (ResourceManager &resMngr, const CreateInfo &ci) __NE___
 	{
-		DRC_EXLOCK( _drCheck );
-
 		CHECK_ERR( ci.shader.IsValid() );
 		CHECK_ERR( (ci.specCI.dynamicState & ~EPipelineDynamicState::ComputePipelineMask) == Zero );
 		CHECK_ERR( not _handle and not _layout );
@@ -36,7 +33,6 @@ namespace AE::Graphics
 		auto*	ppln_layout = resMngr.GetResource( ci.layoutId, True{"incRef"} );
 		CHECK_ERR( ppln_layout != null );
 
-		_layout = ppln_layout->Handle();
 		_layoutId.Attach( ci.layoutId );
 
 		auto&					dev			= resMngr.GetDevice();
@@ -63,7 +59,6 @@ namespace AE::Graphics
 		flags2_ci.flags				= VEnumCast( ci.specCI.options );
 
 		pipeline_info.sType			= VK_STRUCTURE_TYPE_COMPUTE_PIPELINE_CREATE_INFO;
-		pipeline_info.layout		= _layout;
 		pipeline_info.flags			= VkPipelineCreateFlags( flags2_ci.flags );
 
 		pipeline_info.stage.sType	= VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
@@ -74,6 +69,8 @@ namespace AE::Graphics
 
 		pipeline_info.basePipelineHandle= Default;
 		pipeline_info.basePipelineIndex	= -1;
+
+		CHECK_ERR( SetPipelineLayout( ext, INOUT pipeline_info, INOUT flags2_ci.flags, OUT _layout, *ppln_layout ));
 
 		if ( ci.specCI.subgroupSize != 0 )
 		{
@@ -182,8 +179,6 @@ namespace AE::Graphics
 */
 	void  VComputePipeline::Destroy (ResourceManager &resMngr) __NE___
 	{
-		DRC_EXLOCK( _drCheck );
-
 		auto&	dev = resMngr.GetDevice();
 
 		if ( _handle != Default )
@@ -208,7 +203,6 @@ namespace AE::Graphics
 */
 	bool  VComputePipeline::ParseShaderTrace (const void* ptr, Bytes maxSize, ShaderDebugger::ELogFormat format, OUT Array<String> &result) C_NE___
 	{
-		DRC_SHAREDLOCK( _drCheck );
 		return _dbgTrace and _dbgTrace->ParseShaderTrace( ptr, maxSize, ConvertLogFormat(format), OUT result );
 	}
 
@@ -219,7 +213,6 @@ namespace AE::Graphics
 */
 	bool  VComputePipeline::ParseShaderAsserts (const void* ptr, Bytes maxSize, ShaderDebugger::ELogFormat format, OUT Array<String> &result) C_NE___
 	{
-		DRC_SHAREDLOCK( _drCheck );
 		return _dbgTrace and _dbgTrace->ParseAsserts( ptr, maxSize, ConvertLogFormat(format), OUT result );
 	}
 

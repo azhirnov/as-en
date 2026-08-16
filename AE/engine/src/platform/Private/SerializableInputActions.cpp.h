@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #ifdef AE_ENABLE_SCRIPTING
 namespace AE::App
@@ -24,65 +24,21 @@ namespace AE::App
 		{
 			EnumBinder<EGestureState>	binder{ se };
 			binder.Create();
-			switch_enum( EGestureState::Unknown )
-			{
-				case EGestureState::Unknown :
-				#define BIND( _name_ )		case EGestureState::_name_ : binder.AddValue( #_name_, EGestureState::_name_ );
-				BIND( Begin )
-				BIND( Update )
-				BIND( End )
-				BIND( Cancel )
-				BIND( Outside )
-				#undef BIND
-				default : break;
-			}
-			switch_end
+			binder.BindAll();
 		}
 
 		// EGestureType
 		{
 			EnumBinder<EGestureType>	binder{ se };
 			binder.Create();
-			switch_enum( EGestureType::Unknown )
-			{
-				case EGestureType::Unknown :
-				case EGestureType::_Count :
-				#define BIND( _name_ )	case EGestureType::_name_ : binder.AddValue( #_name_, EGestureType::_name_ );
-				BIND( Hold )
-				BIND( Move )
-				BIND( LongPress_Move )
-				BIND( ScaleRotate2D )
-				BIND( Down )
-				BIND( Click );
-				BIND( LongPress )
-				BIND( DoubleClick )
-				#undef BIND
-				default : break;
-			}
-			switch_end
+			binder.BindAll();
 		}
 
 		// EValueType
 		{
 			EnumBinder<EValueType>		binder{ se };
 			binder.Create();
-			switch_enum( EValueType::_Count )
-			{
-				case EValueType::_Count :
-				#define BIND( _name_ )	case EValueType::_name_ : binder.AddValue( #_name_, EValueType::_name_ );
-				BIND( Unknown )
-				BIND( Float )
-				BIND( Float2 )
-				BIND( Float3 )
-				BIND( Float4 )
-				BIND( Quat )
-				BIND( Float4x4 )
-				BIND( Chars )
-				BIND( GNS )
-				#undef BIND
-				default : break;
-			}
-			switch_end
+			binder.BindAll();
 		}
 
 		// ScriptActionInfo
@@ -100,8 +56,8 @@ namespace AE::App
 						case EValueType::Float4x4 :
 						case EValueType::Chars :
 						case EValueType::GNS :		break;	// default
-						case EValueType::_Count :
 						case EValueType::Unknown :
+						case EValueType::_Count :
 						default :					DBG_WARNING( "unknown value type" ); break;
 					}
 					switch_end
@@ -351,7 +307,6 @@ namespace AE::App
 				break;
 			}
 
-			case EGestureType::_Count :
 			default :
 				CHECK_THROW_MSG( false,
 					GetMsgTemplate() << "has unsupported gesture type" );

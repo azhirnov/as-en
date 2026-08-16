@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #include "platform/Public/Monitor.h"
 
@@ -20,9 +20,10 @@ namespace AE::App
 				<< "\n  workArea:     " << ToString( workArea.pixels ) << " pix"
 				<< "\n  region:       " << ToString( region.pixels ) << " pix"
 				<< "\n  physicalSize: " << ToString( physicalSize.meters ) << " meters"
+				<< "\n  diagonal:     " << ToString( DiagonalInch(), 1 ) << '"'
 				<< "\n  density:      " << ToString( ppi ) << " pix/inch, " << ToString( PixelsPerMillimeter() ) << " pix/mm"
 				<< "\n  pixel size:   " << ToString( MillimetersPerPixel() * 1000.0f ) << " um"
-				<< "\n  PPD on 1m:    " << ToString( MaxPixelsPerDegree( 1.f )) << " pix/deg"
+				<< "\n  PPD on 1m:    " << ToString( MaxPixelsPerDegree( 1.f ), 1 ) << " pix/deg"
 				<< "\n  FOV on 1m:    " << ToString( FieldOfViewDeg( 1.f )) << " deg"
 				<< "\n  frequency:    " << ToString( freq ) << " Hz"
 				<< "\n  external:     " << ToString( isExternal )

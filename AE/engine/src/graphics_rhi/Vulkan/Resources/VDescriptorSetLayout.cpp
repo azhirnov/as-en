@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #ifdef AE_ENABLE_VULKAN
 # include "graphics_rhi/Vulkan/Resources/VDescriptorSetLayout.h"
@@ -7,6 +7,28 @@
 
 namespace AE::Graphics
 {
+/*
+=================================================
+	VEnumCast
+=================================================
+*/
+	ND_ inline VkDescriptorBindingFlags  VEnumCast (EDescriptorFlags flags) __NE___
+	{
+		VkDescriptorBindingFlags	res = 0;
+
+		for (auto t : BitfieldIterate( flags ))
+		{
+			switch_enum( t )
+			{
+				case EDescriptorFlags::VariableSize :	res |= VK_DESCRIPTOR_BINDING_VARIABLE_DESCRIPTOR_COUNT_BIT;	break;
+				case EDescriptorFlags::_BITOPS_ :
+				case EDescriptorFlags::_Last :
+				default_unlikely :						RETURN_ERR( "unknown descriptor flags!", Zero );
+			}
+			switch_end
+		}
+		return res;
+	}
 
 /*
 =================================================
@@ -15,7 +37,6 @@ namespace AE::Graphics
 */
 	VDescriptorSetLayout::~VDescriptorSetLayout () __NE___
 	{
-		DRC_EXLOCK( _drCheck );
 		CHECK( not _layout );
 	}
 
@@ -28,8 +49,11 @@ namespace AE::Graphics
 */
 	bool  VDescriptorSetLayout::Create (const VDevice &dev, StringView dbgName) __NE___
 	{
-		DRC_EXLOCK( _drCheck );
 		CHECK_ERR( not _layout );
+
+		// Don't use old descriptor model when enabled descriptor heap
+		if ( dev.GetVExtensions().descriptorHeap )
+			return true;
 
 		VkDescriptorSetLayoutCreateInfo	descriptor_info = {};
 		descriptor_info.sType			= VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
@@ -48,15 +72,44 @@ namespace AE::Graphics
 	Create
 =================================================
 */
-	bool  VDescriptorSetLayout::Create (const VDevice &dev, const CreateInfo &ci) __NE___
+	bool  VDescriptorSetLayout::Create (const ResourceManager &resMngr, const CreateInfo &ci) __NE___
 	{
-		DRC_EXLOCK( _drCheck );
 		CHECK_ERR( not _layout );
 
 		_usage		= ci.usage;
 		_bindCount	= 0;
 		_uniforms	= ci.uniforms;
 		_unOffsets	= ci.unOffsets;
+
+		GFX_DBG_ONLY( _debugName = ci.dbgName; )
+
+		// Don't use old descriptor model when enabled descriptor heap
+		if ( resMngr.GetDevice().GetVExtensions().descriptorHeap )
+		{
+			_samplerStorage	= ci.samplerStorage;
+			return true;
+		}
+
+		return _CreateDSL( resMngr, ci );
+	}
+
+/*
+=================================================
+	_CreateDSL
+=================================================
+*/
+	bool  VDescriptorSetLayout::_CreateDSL (const ResourceManager &resMngr, const CreateInfo &ci) __NE___
+	{
+		Array<VkSampler>	vk_samplers;
+		NOTHROW_ERR( vk_samplers.resize( ci.samplerStorage.size() ));
+
+		for (usize i = 0; i < ci.samplerStorage.size(); ++i)
+		{
+			const VSampler*		samp = resMngr.GetResource( ci.samplerStorage[i] );
+			CHECK_ERR( samp != null );
+
+			vk_samplers[i] = samp->Handle();
+		}
 
 		DescriptorBinding	binding;
 		binding.allowUpdateTmpl	= AllBits( _usage, EDescSetUsage::UpdateTemplate );
@@ -70,7 +123,7 @@ namespace AE::Graphics
 			auto*	off		= binding.allowUpdateTmpl ? _uniforms.Get<3>() + i : null;
 
 			CHECK_ERR( name.IsDefined() );
-			CHECK_ERR( _AddUniform( un, ci.samplerStorage, OUT off, INOUT binding ));
+			CHECK_ERR( _AddUniform( un, vk_samplers, OUT off, INOUT binding ));
 
 			_bindCount = Max( _bindCount, un.binding.vkIndex + 1u );
 		}
@@ -83,15 +136,26 @@ namespace AE::Graphics
 		descriptor_info.pBindings		= binding.desc.data();
 		descriptor_info.bindingCount	= uint(binding.desc.size());
 
+		auto&	dev = resMngr.GetDevice();
 		if ( dev.GetVExtensions().descriptorIndexing and not binding.flags.empty() )
 		{
-			CHECK_ERR( binding.desc.size() == binding.flags.size() );
+			binding.flags.resize( binding.desc.size(), 0u );
 
 			descriptor_info.pNext	= &ext_flags;
 
 			ext_flags.bindingCount	= uint(binding.flags.size());
 			ext_flags.pBindingFlags	= binding.flags.data();
 		}
+
+		#if AE_DBG_GRAPHICS
+		if ( dev.GetVExtensions().maintenance3 or dev.GetVkVersion() >= Version2{1,1} )
+		{
+			VkDescriptorSetLayoutSupport	dsl_support = {};
+			dsl_support.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_SUPPORT;
+			dev.vkGetDescriptorSetLayoutSupportKHR( dev.GetVkDevice(), &descriptor_info, OUT &dsl_support );
+			GRES_CHECK( dsl_support.supported == VK_TRUE );
+		}
+		#endif
 
 		VK_CHECK_ERR( dev.vkCreateDescriptorSetLayout( dev.GetVkDevice(), &descriptor_info, null, OUT &_layout ));
 
@@ -112,8 +176,6 @@ namespace AE::Graphics
 		}
 
 		dev.SetObjectName( _layout, ci.dbgName, VK_OBJECT_TYPE_DESCRIPTOR_SET_LAYOUT );
-
-		GFX_DBG_ONLY( _debugName = ci.dbgName; )
 		return true;
 	}
 
@@ -124,8 +186,6 @@ namespace AE::Graphics
 */
 	void  VDescriptorSetLayout::Destroy (ResourceManager &resMngr) __NE___
 	{
-		DRC_EXLOCK( _drCheck );
-
 		auto&	dev = resMngr.GetDevice();
 
 		if ( _layout != Default )
@@ -141,6 +201,7 @@ namespace AE::Graphics
 		_layout			= Default;
 		_usage			= Default;
 		_bindCount		= 0;
+		_samplerStorage	= Default;
 
 		GFX_DBG_ONLY( _debugName.clear() );
 	}
@@ -235,13 +296,19 @@ namespace AE::Graphics
 				bind.descriptorType = VK_DESCRIPTOR_TYPE_PARTITIONED_ACCELERATION_STRUCTURE_NV;
 				break;
 
-			case EDescriptorType::Unknown :
+			case EDescriptorType::_Count :
 			default_unlikely :
 				RETURN_ERR( "unsupported descriptor type" );
 		}
 		switch_end
 
 		binding.desc.push_back( bind );
+
+		if ( un.flags != Default )
+		{
+			binding.flags.resize( binding.desc.size(), 0u );
+			binding.flags.back() = VEnumCast( un.flags );
+		}
 
 		// some descriptors may be not supported
 		if ( binding.allowUpdateTmpl and entry_stride > 0 )

@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #ifdef AE_PLATFORM_ANDROID
 # include "platform/Android/FileSystemAndroid.h"
@@ -91,7 +91,7 @@ namespace
 	IDataSource::ESourceType  AndroidRStream::GetSourceType () C_NE___
 	{
 		return	ESourceType::SequentialAccess	| ESourceType::RandomAccess |
-				ESourceType::FixedSize			| ESourceType::ReadAccess;
+				ESourceType::FixedSize			| ESourceType::ReadOnly;
 	}
 
 /*
@@ -155,7 +155,7 @@ namespace
 	IDataSource::ESourceType  AndroidRDataSource::GetSourceType () C_NE___
 	{
 		return	ESourceType::SequentialAccess	| ESourceType::RandomAccess |
-				ESourceType::FixedSize			| ESourceType::ReadAccess;
+				ESourceType::FixedSize			| ESourceType::ReadOnly;
 	}
 
 /*

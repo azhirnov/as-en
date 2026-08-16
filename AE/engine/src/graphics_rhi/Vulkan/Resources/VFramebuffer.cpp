@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #ifdef AE_ENABLE_VULKAN
 # include "graphics_rhi/Private/EnumToString.h"
@@ -39,8 +39,6 @@ namespace AE::Graphics
 */
 	bool  VFramebuffer::IsAllResourcesAlive (const ResourceManager &resMngr) C_NE___
 	{
-		DRC_SHAREDLOCK( _drCheck );
-
 		for (auto& att : _attachments)
 		{
 			if ( not resMngr.IsAlive( att ))
@@ -56,7 +54,6 @@ namespace AE::Graphics
 */
 	bool  VFramebuffer::Create (ResourceManager &resMngr, const RenderPassDesc &rpDesc, RenderPassID rpId, StringView dbgName) __NE___
 	{
-		DRC_EXLOCK( _drCheck );
 		CHECK_ERR( not _framebuffer );
 
 		_renderPassId = resMngr.AcquireResource( rpId );
@@ -162,7 +159,6 @@ namespace AE::Graphics
 */
 	bool  VFramebuffer::SetCachePtr (CachePtr_t ptr) __NE___
 	{
-		DRC_EXLOCK( _drCheck );
 		CHECK_ERR( _framebuffer != Default );
 		CHECK_ERR( _cachePtr == Default );
 
@@ -177,8 +173,6 @@ namespace AE::Graphics
 */
 	void  VFramebuffer::Destroy (ResourceManager &resMngr) __NE___
 	{
-		DRC_EXLOCK( _drCheck );
-
 		if ( _cachePtr != Default )
 			resMngr.RemoveFramebufferCache( _cachePtr );
 

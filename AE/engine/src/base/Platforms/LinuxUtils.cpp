@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #ifdef AE_PLATFORM_LINUX
 # include "base/Defines/StdInclude.h"
@@ -34,8 +34,8 @@ namespace AE::Base
 */
 	void  SecureZeroMem (OUT void* ptr, Bytes size) __NE___
 	{
-		NonNull( ptr );
-		::explicit_bzero( ptr, usize(size) );
+		if_likely( ptr != null )
+			::explicit_bzero( ptr, usize(size) );
 	}
 
 #ifndef AE_CFG_RELEASE
@@ -241,53 +241,6 @@ namespace AE::Base
 
 /*
 =================================================
-	GetEnvironmentVariable
-=================================================
-*/
-	bool  LinuxUtils::GetEnvironmentVariable (NtStringView name, OUT String &value) __NE___
-	{
-		if ( char* ptr = ::getenv( name.c_str() ))
-		{
-			value = ptr;
-			return true;
-		}
-		return false;
-	}
-
-/*
-=================================================
-	HasEnvironmentVariable
-=================================================
-*/
-	bool  LinuxUtils::HasEnvironmentVariable (NtStringView name) __NE___
-	{
-		return ::getenv( name.c_str() ) != null;
-	}
-
-/*
-=================================================
-	SetEnvironmentVariable
-----
-	for current process
-=================================================
-*/
-	bool  LinuxUtils::SetEnvironmentVariable (NtStringView name, NtStringView value) __NE___
-	{
-		return ::setenv( name.c_str(), value.c_str(), 1 ) == 0;
-	}
-
-/*
-=================================================
-	DeleteEnvironmentVariable
-=================================================
-*/
-	bool  LinuxUtils::DeleteEnvironmentVariable (NtStringView name) __NE___
-	{
-		return ::unsetenv( name.c_str() ) == 0;
-	}
-
-/*
-=================================================
 	GetExeLocation
 =================================================
 */
@@ -325,6 +278,29 @@ namespace AE::Base
 
 		CHECK_ERR( result == 0 );
 		return String{username};
+	}
+
+/*
+=================================================
+	OpenURL
+=================================================
+*/
+	bool  LinuxUtils::OpenURL (U8StringView url) __NE___
+	{
+		TODO( "" );
+		return false;
+	}
+
+	bool  LinuxUtils::OpenURL (StringView url) __NE___
+	{
+		TODO( "" );
+		return false;
+	}
+
+	bool  LinuxUtils::OpenURL (const Path &url) __NE___
+	{
+		TODO( "" );
+		return false;
 	}
 
 } // AE::Base

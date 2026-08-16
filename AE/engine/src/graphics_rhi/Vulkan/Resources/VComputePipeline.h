@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #pragma once
 
@@ -38,8 +38,7 @@ namespace AE::Graphics
 
 		ShaderTracePtr				_dbgTrace;			// allocated by pipeline pack linear allocator
 
-		GFX_DBG_ONLY(	DebugName_t		_debugName;	)
-		DRC_ONLY(		RWDataRaceCheck	_drCheck;	)
+		GFX_DBG_ONLY( DebugName_t	_debugName;	)
 
 
 	// methods
@@ -60,18 +59,19 @@ namespace AE::Graphics
 									  ShaderDebugger::ELogFormat	logFmt,
 									  OUT Array<String>				&result) C_NE___;
 
-		ND_ VkPipeline				Handle ()								C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _handle; }
-		ND_ VkPipelineLayout		Layout ()								C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _layout; }
+		ND_ VkPipeline				Handle ()								C_NE___	{ return _handle; }
+		ND_ VkPipelineLayout		Layout ()								C_NE___	{ return _layout; }
 		ND_ VkPipelineBindPoint		BindPoint ()							C_NE___	{ return VK_PIPELINE_BIND_POINT_COMPUTE; }
-		ND_ PipelineLayoutID		LayoutId ()								C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _layoutId; }
-		ND_ uint3					LocalSize ()							C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return uint3{_localSize}; }
+		ND_ PipelineLayoutID		LayoutId ()								C_NE___	{ return _layoutId; }
+		ND_ uint3					LocalSize ()							C_NE___	{ return uint3{_localSize}; }
 		ND_ EPipelineDynamicState	DynamicState ()							C_NE___	{ return Default; }
-		ND_ EPipelineOpt			Options ()								C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _options; }
-		ND_ bool					AllowDispatchBase ()					C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return AllBits( _options, EPipelineOpt::CS_DispatchBase ); }
+		ND_ EPipelineOpt			Options ()								C_NE___	{ return _options; }
+		ND_ bool					AllowDispatchBase ()					C_NE___	{ return AllBits( _options, EPipelineOpt::CS_DispatchBase ); }
+		ND_ EShaderStages			GetActiveStages ()						C_NE___	{ return EShaderStages::Compute; }
 
-		ND_ ShaderTracePtr			GetShaderTrace ()						C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _dbgTrace; }
+		ND_ ShaderTracePtr			GetShaderTrace ()						C_NE___	{ return _dbgTrace; }
 
-		GFX_DBG_ONLY( ND_ StringView  GetDebugName ()						C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _debugName; })
+		GFX_DBG_ONLY( ND_ StringView  GetDebugName ()						C_NE___	{ return _debugName; })
 	};
 
 } // AE::Graphics

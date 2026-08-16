@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 // TODO: for DeviceAddress always add memory barrier?
 
@@ -188,6 +188,9 @@ namespace AE::RG::_hidden_
 		bool  MapHostBuffer (BufferID buffer, Bytes offset, INOUT Bytes &size, OUT void* &mapped)				__Th_OV;
 
 		void  WriteTimestamp (const IQueryManager::IQuery &q, uint index, EPipelineScope srcScope)				__Th_OV	{ return _ctx.WriteTimestamp( q, index, srcScope ); }
+
+		void  ConvertCooperativeVectorMatrix (ArrayView<ConvertCoopMatrixCmd> cmds)								__Th_OV	{ _ctx.ConvertCooperativeVectorMatrix( cmds ); }
+		void  ConvertCooperativeVectorMatrix (ArrayView<ConvertCoopMatrixCmd2> cmds)							__Th_OV;
 	  #endif
 
 		RG_INHERIT_BARRIERS
@@ -244,9 +247,6 @@ namespace AE::RG::_hidden_
 
 	  #if defined(AE_ENABLE_VULKAN) or defined(AE_ENABLE_REMOTE_GRAPHICS)
 		void  WriteTimestamp (const IQueryManager::IQuery &q, uint index, EPipelineScope srcScope)							__Th_OV	{ return _ctx.WriteTimestamp( q, index, srcScope ); }
-
-		void  ConvertCooperativeVectorMatrix (ArrayView<ConvertCoopMatrixCmd> cmds)											__Th_OV	{ _ctx.ConvertCooperativeVectorMatrix( cmds ); }
-		void  ConvertCooperativeVectorMatrix (ArrayView<ConvertCoopMatrixCmd2> cmds)										__Th_OV;
 
 		void  PreprocessGeneratedCommands (const PreprocessGeneratedCommandsCmd &)											__Th_OV;
 		void  PreprocessGeneratedCommands (const PreprocessGeneratedCommands2Cmd &)											__Th_OV;
@@ -1069,6 +1069,17 @@ namespace AE::RG::_hidden_
 	{
 		return _ctx.MapHostBuffer( buffer, offset, INOUT size, OUT mapped );
 	}
+
+	template <typename C>
+	void  TransferContext<C>::ConvertCooperativeVectorMatrix (ArrayView<ConvertCoopMatrixCmd2> cmds) __Th___
+	{
+		for (auto& cmd : cmds) {
+			ResourceState( cmd.srcBuffer, EResourceState::CoopVecConvert_Read );
+			ResourceState( cmd.dstBuffer, EResourceState::CoopVecConvert_Write );
+		}
+		_ctx.CommitBarriers();
+		_ctx.ConvertCooperativeVectorMatrix( cmds );
+	}
 #endif
 //-----------------------------------------------------------------------------
 
@@ -1083,17 +1094,6 @@ namespace AE::RG::_hidden_
 	}
 
 #if defined(AE_ENABLE_VULKAN) or defined(AE_ENABLE_REMOTE_GRAPHICS)
-
-	template <typename C>
-	void  ComputeContext<C>::ConvertCooperativeVectorMatrix (ArrayView<ConvertCoopMatrixCmd2> cmds) __Th___
-	{
-		for (auto& cmd : cmds) {
-			ResourceState( cmd.srcBuffer, EResourceState::CoopVecConvert_Read );
-			ResourceState( cmd.dstBuffer, EResourceState::CoopVecConvert_Write );
-		}
-		_ctx.CommitBarriers();
-		_ctx.ConvertCooperativeVectorMatrix( cmds );
-	}
 
 	template <typename C>
 	void  ComputeContext<C>::PreprocessGeneratedCommands (const PreprocessGeneratedCommandsCmd &cmd) __Th___

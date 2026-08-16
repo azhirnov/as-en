@@ -1,8 +1,9 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #pragma once
 
-#include "VulkanParser.h"
+#ifdef VULKAN_HEADER_PATH
+# include "VulkanParser.h"
 
 namespace AE::Parsers
 {
@@ -45,3 +46,4 @@ namespace AE::Parsers
 
 
 } // AE::Parsers
+#endif // VULKAN_HEADER_PATH

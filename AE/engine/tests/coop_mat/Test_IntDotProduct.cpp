@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #include "Executor.h"
 
@@ -40,19 +40,26 @@ namespace
 			output[i] = sum;
 		}
 
-		String	str		= "\n";
+		String	str		= "\n| expected | shader output | error % |\n";
 		float	max_err	= 0.f;
+		float	avr_err	= 0.f;
 
 		for (usize i = 0; i < refOutput.size(); ++i)
 		{
-			float	err	= Abs( (float(output[i]) - float(refOutput[i])) * 100.f / float(output[i]) );
+			float	err	= Abs(float(output[i]) - float(refOutput[i])) * 100.f / Max( Abs(float(output[i])), 1.0e-5f );
 			max_err = Max( max_err, err );
+			avr_err += err;
 
 			str << "| " << ToString( output[i] ) << " | " << ToString( refOutput[i] )
 				<< " | " << ToString( err, 2 ) << "% |\n";
 		}
+		avr_err /= float(refOutput.size());
+		str << "----------------------------------------\n";
 
-		str << "----------------------------------------\n\n";
+		if ( max_err < 0.01f )
+			str.clear();
+
+		str << "max error: " << ToString( max_err, 2 ) << "%, avr: " << ToString( avr_err, 2 ) << "%";
 		AE_LOGI( str );
 		CHECK( max_err < 1.f );
 	}
@@ -86,19 +93,26 @@ namespace
 			output[i] = sum;
 		}
 
-		String	str		= "\n";
+		String	str		= "\n| expected | shader output | error % |\n";
 		float	max_err	= 0.f;
+		float	avr_err	= 0.f;
 
 		for (usize i = 0; i < refOutput.size(); ++i)
 		{
-			float	err	= Abs( (float(output[i]) - float(refOutput[i])) * 100.f / float(output[i]) );
+			float	err	= Abs(float(output[i]) - float(refOutput[i])) * 100.f / Max( Abs(float(output[i])), 1.0e-5f );
 			max_err = Max( max_err, err );
+			avr_err += err;
 
 			str << "| " << ToString( output[i] ) << " | " << ToString( refOutput[i] )
 				<< " | " << ToString( err, 2 ) << "% |\n";
 		}
+		avr_err /= float(refOutput.size());
+		str << "----------------------------------------\n";
 
-		str << "----------------------------------------\n\n";
+		if ( max_err < 0.01f )
+			str.clear();
+
+		str << "max error: " << ToString( max_err, 2 ) << "%, avr: " << ToString( avr_err, 2 ) << "%";
 		AE_LOGI( str );
 		CHECK( max_err < 1.f );
 	}

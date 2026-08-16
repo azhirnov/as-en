@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #pragma once
 
@@ -87,6 +87,12 @@ namespace AE::Graphics
 		virtual	void  ClearColorImage (ImageID image, const RGBA32i &color, ArrayView<ImageSubresourceRange> ranges)	__Th___ = 0;
 		virtual	void  ClearColorImage (ImageID image, const RGBA32u &color, ArrayView<ImageSubresourceRange> ranges)	__Th___ = 0;
 
+		//  requires 'cooperativeVector' feature
+		//		srcAddress: EResourceState::CoopVecConvert_Read
+		//		dstAddress: EResourceState::CoopVecConvert_Write
+		virtual void  ConvertCooperativeVectorMatrix (ArrayView<ConvertCoopMatrixCmd>)									__Th___ = 0;
+		virtual void  ConvertCooperativeVectorMatrix (ArrayView<ConvertCoopMatrixCmd2>)									__Th___ = 0;
+
 
 	// only in graphics queue //
 
@@ -113,13 +119,6 @@ namespace AE::Graphics
 	{
 	// interface
 	public:
-
-		//  requires 'cooperativeVector' feature
-		//		srcAddress: EResourceState::CoopVecConvert_Read
-		//		dstAddress: EResourceState::CoopVecConvert_Write
-		virtual void  ConvertCooperativeVectorMatrix (ArrayView<ConvertCoopMatrixCmd>)									__Th___ = 0;
-		virtual void  ConvertCooperativeVectorMatrix (ArrayView<ConvertCoopMatrixCmd2>)									__Th___ = 0;
-
 
 	// indirect commands //
 		virtual void  PreprocessGeneratedCommands (const PreprocessGeneratedCommandsCmd &)								__Th___ = 0;

@@ -43,8 +43,8 @@ CHECK( not _device.HasValidationError() );
 Check content of `log`:
 * Use resource name (if exists) from validation report to find where resource used in barriers or commands.
 * In `VulkanSyncLog.cpp`:
-	- Try `PRINT_RESOURCE_ID 1` to capture resource IDs when name is not defined.
-	- Try `ENABLE_DBG_LABEL 3` to print debug message and debug groups.
+    - Try `PRINT_RESOURCE_ID 1` to capture resource IDs when name is not defined.
+    - Try `ENABLE_DBG_LABEL 3` to print debug message and debug groups.
 
 
 ## Synchronization problem
@@ -54,6 +54,44 @@ Looks like blinking blocks on texture, missing triangles in geometry, incorrect 
 To fix it enable Vulkan Synchronization Validation by creating graphics device with `EDeviceValidation::SynchronizationPreset`.
 Instead of default validation which check only image layout transition, the Synchronization Validation will check for missing barriers for all types of resources.
 
-To improve accuracy of validation reports enable [VulkanSyncLog](https://github.com/azhirnov/as-en/blob/dev/AE/engine/tools/vulkan_sync_log/Readme.md) as described above and in `VulkanSyncLog.cpp` set `ENABLE_SEQNO 1`.
+To improve accuracy of validation reports enable [VulkanSyncLog](https://github.com/azhirnov/as-en/blob/dev/AE/engine/tools/vulkan_sync_log/Readme.md) as described [above](#Vulkan-validation-reports-incorrect-synchronization) and in `VulkanSyncLog.cpp` set `ENABLE_SEQNO 1`.
 Synchronization Validation will print possible data races and seqno of read/write commands, then in sync log you find this command with same seqno.
 
+
+## Error when running *.ResPack project
+
+Sometimes when resource packing app failed with error not a full error log is output to IDE console.
+Check log file if it exists.
+
+Run as app instead of build step.
+* Set `OfflinePacker` as startup.
+* Check console output for line like:
+  `res_pack\offline\main.cpp(753): OfflinePacker args:`.
+  Copy next line(s).
+* VS: in app properties -> Debugging -> Command Arguments, post arguments for your resources.
+* VSCode: TODO
+* Run `OfflinePacker`, now you can use debugger what trigger an error.
+
+
+## Android
+
+### Stack trace dosn't contains source location
+
+You should build with debug symbols.
+
+If LogCat don't show source location when app crashed. In `build.gradle`:
+```
+android {
+    packaging {
+        jniLibs {
+			keepDebugSymbols += '**/your_lib.so'
+        }
+    }
+}
+```
+
+In Termux:
+* Make sure compilation commands do not include `-s` flag
+* `pkg install binutils`
+* Check if stripped: `file <elf>`, look for `with debug_info, not stripped` in the output.
+* Or view the symbol table: `nm <elf>`

@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #include "Passes/ComputeMip.h"
 #include "Resources/Buffer.h"
@@ -93,8 +93,9 @@ namespace AE::ResEditor
 				ctx.BindDescriptorSet( _ds1Index, _mipChainDS[mip] );
 
 				ShaderTypes::ComputeMipPC	pc;
-				pc.resolution		= Max( _variables.front().image->GetImageDesc().Dimension2() >> (mip + 1), 1u );
-				pc.invResolution	= 1.f / float2{pc.resolution};
+				pc.srcResolution	= Max( _variables.front().image->GetImageDesc().Dimension2() >> mip, 1u );
+				pc.dstResolution	= Max( pc.srcResolution >> 1, 1u );
+				pc.invDstResolution	= 1.f / float2{pc.dstResolution};
 
 				ctx.PushConstant( _pcIndex, pc );
 

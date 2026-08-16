@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #if defined(AE_ENABLE_VULKAN)
 #	define SUFFIX			V
@@ -206,6 +206,7 @@ namespace AE::Graphics
 			void		AddFrameDeps (FrameUID frameId, ArrayView<AsyncTask> deps)		__NE___;
 
 			// frame+1
+			// New frame starts at 'BeginFrame()', so this method can be used after 'EndFrame()'.
 			void		AddNextFrameDeps (ArrayView<AsyncTask> deps)					__NE___	{ AddFrameDeps( GetFrameId().Inc(), deps ); }
 			void		AddNextFrameDeps (AsyncTask dep)								__NE___	{ AddNextFrameDeps( {&dep,1} ); }
 
@@ -217,6 +218,7 @@ namespace AE::Graphics
 
 
 			// valid bits: [0..GraphicsConfig::MaxPendingCmdBatches)
+			// Bits that already used by batches are ignored.
 			void		SkipCmdBatches (EQueueType queue, uint bits)					__NE___;
 
 		ND_ RC<CommandBatch>	BeginCmdBatch (const CmdBatchDesc &desc)				__NE___;

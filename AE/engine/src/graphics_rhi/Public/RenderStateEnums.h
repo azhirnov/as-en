@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #pragma once
 
@@ -156,7 +156,7 @@ namespace AE::Graphics
 
 		FontAndBack	= Front | Back,
 		Unknown		= None,
-		_BITOPS_
+		_BITOPS_	= 0
 	};
 
 
@@ -170,16 +170,17 @@ namespace AE::Graphics
 		StencilReference		= 1 << 2,
 		DepthBias				= 1 << 3,
 		BlendConstants			= 1 << 4,
-		//DepthBounds			= 1 << 5,	// Vulkan only
 
 		// ray tracing
-		RTStackSize				= 1 << 6,
+		RTStackSize				= 1 << 5,
 
 		// shading rate
-		FragmentShadingRate		= 1 << 7,
+		FragmentShadingRate		= 1 << 6,
 
 		_Last,
 		All						= ((_Last-1) << 1) - 1,
+
+		//DepthBounds			= 1 << 5,	// Vulkan only
 
 		GraphicsPipelineMask	= StencilCompareMask | StencilWriteMask | StencilReference | DepthBias |
 								  BlendConstants | FragmentShadingRate,

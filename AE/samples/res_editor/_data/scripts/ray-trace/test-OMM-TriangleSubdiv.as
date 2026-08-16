@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 /*
 	Generate triangle subdivision with same order as on NVIDIA.
 	Can be used to generate micromaps from opacity textures.

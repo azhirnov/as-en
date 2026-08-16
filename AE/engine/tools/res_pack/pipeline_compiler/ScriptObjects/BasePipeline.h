@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #pragma once
 
@@ -31,7 +31,7 @@ namespace AE::PipelineCompiler
 			Include		= 1 << 2,
 			HasSpec		= 1 << 3,
 			HasFeatures	= 1 << 4,
-			_BITOPS_
+			_BITOPS_	= 0
 		};
 
 		using FragOutput_t = Array< RPAttachment::ShaderIO >;
@@ -57,6 +57,7 @@ namespace AE::PipelineCompiler
 		DSLayouts_t					_dsLayoutsFromReflection;
 		DSLayoutNames_t				_dsLayoutNames;
 		PushConstants				_pushConstants;
+		EPipelineOpt				_options	= Default;		// base flags, many options added in 'BasePipelineSpec'
 		bool						_enabled	= true;
 
 
@@ -70,6 +71,7 @@ namespace AE::PipelineCompiler
 
 		ND_ StringView						GetName ()		const	{ return _nameStr; }
 		ND_ bool							IsEnabled ()	const	{ return _enabled; }
+		ND_ EPipelineOpt					GetOptions ()	const	{ return _options; }
 
 		void  Disable ();
 		void  Enable ();

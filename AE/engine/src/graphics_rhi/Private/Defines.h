@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #if defined(AE_CFG_RELEASE) and not defined(AE_CI_BUILD_TEST)
 #	define AE_DBG_GRAPHICS				0

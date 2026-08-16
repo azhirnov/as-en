@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #pragma once
 
@@ -121,6 +121,8 @@ namespace AE::Base
 
 		ND_ static String		GetComputerName ()											__NE___;
 		ND_ static String		GetUserName ()												__NE___;
+
+		ND_ static String		GetTimeZone ()												__NE___;
 
 		// env variable
 		ND_ static bool		GetEnvironmentVariable (NtStringView name, OUT String &value)	__NE___;

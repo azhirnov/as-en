@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #pragma once
 
@@ -19,6 +19,12 @@ namespace AE::Scripting
 	public:
 		using Self		= EnumBinder<T>;
 		using Enum_t	= T;
+
+	private:
+		struct Converter : _EnumToStringConverter<T>
+		{
+			using _EnumToStringConverter<T>::Convert;
+		};
 
 
 	// variables
@@ -41,7 +47,12 @@ namespace AE::Scripting
 			void  Create ()										__Th___;
 		ND_ bool  IsRegistered ()								C_NE___	{ return _engine->IsRegistered( _name ); }
 
+			template <T Value>
+			void  AddValue ()									__Th___;
 			void  AddValue (StringView name, T value)			__Th___;
+
+			void  BindAll ()									__Th___;
+			void  BindAllWithOverride ()						__Th___;
 
 		// can be used to write docs in code
 			void  Comment (StringView text)						__Th___;
@@ -114,6 +125,16 @@ namespace AE::Scripting
 =================================================
 */
 	template <typename T>
+	template <T Value>
+	void  EnumBinder<T>::AddValue () __Th___
+	{
+		constexpr StringView	val_name = Converter::template Convert<Value>();
+		StaticAssert( not val_name.empty() );
+
+		AddValue( val_name, Value );
+	}
+
+	template <typename T>
 	void  EnumBinder<T>::AddValue (StringView valueName, T value) __Th___
 	{
 		ASSERT( slong(value) >= MinValue<int>() and slong(value) <= MaxValue<int>() );
@@ -159,6 +180,78 @@ namespace AE::Scripting
 		}
 	  #endif
 		Unused( text );
+	}
+
+/*
+=================================================
+	BindAllWithOverride
+=================================================
+*/
+	template <typename T>
+	void  EnumBinder<T>::BindAllWithOverride () __Th___
+	{
+		if constexpr( requires{ T::_Count; })
+		{
+			for (ulong i = 0; i < ulong(T::_Count); ++i)
+			{
+				auto	str = ToString( T(i) );
+				if ( not str.empty() )
+					AddValue( str, T(i) );
+			}
+		}
+		else
+		if constexpr( requires{ T::_Last; })
+		{
+			constexpr T	all = CT_AllBitMask<T>;
+
+			for (T bit : BitfieldIterate( all ))
+			{
+				auto	str = ToString( bit );
+				if ( not str.empty() )
+					AddValue( str, bit );
+			}
+		}
+		else
+		{
+			// compilation error
+			return T{};
+		}
+	}
+
+/*
+=================================================
+	BindAll
+=================================================
+*/
+	template <typename T>
+	void  EnumBinder<T>::BindAll () __Th___
+	{
+		if constexpr( requires{ T::_Count; })
+		{
+			for (ulong i = 0; i < ulong(T::_Count); ++i)
+			{
+				auto	str = EnumToString<T>::ToString( T(i) );
+				if ( not str.empty() )
+					AddValue( str, T(i) );
+			}
+		}
+		else
+		if constexpr( requires{ T::_Last; })
+		{
+			constexpr T	all = CT_AllBitMask<T>;
+
+			for (T bit : BitfieldIterate( all ))
+			{
+				auto	str = BitEnumToString<T>::BitToString( bit );
+				if ( not str.empty() )
+					AddValue( str, bit );
+			}
+		}
+		else
+		{
+			// compilation error
+			return T{};
+		}
 	}
 
 

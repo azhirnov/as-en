@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #include "remote_graphics_device/RemoteDevice.h"
 
@@ -32,7 +32,9 @@ namespace AE::RemoteGraphics
 			StaticLogger::AddLogger( ILogger::CreateIDEOutput() );
 			StaticLogger::AddLogger( Unique<ILogger>{ new LogToHost{ *this }});
 		//	StaticLogger::AddLogger( ILogger::CreateBreakOnError() );
-		//	StaticLogger::AddLogger( ILogger::CreateDialogOutput() );
+
+			if ( PlatformUtils::IsUnderDebugger() )
+				StaticLogger::AddLogger( ILogger::CreateDialogOutput() );
 
 		  #if defined(AE_ENABLE_VULKAN)
 		  # if not AE_VK_TIMELINE_SEMAPHORE
@@ -182,7 +184,7 @@ namespace AE::RemoteGraphics
 
 	void  RmGAppListener::_Cb_Device_GetSyncLog (const Msg::Device_GetSyncLog &)
 	{
-		const usize	max_size = 0xFFFF;
+		const usize	max_size = 0xFFFFF;
 
 		Msg::Device_GetSyncLog_Response		res;
 
@@ -191,7 +193,10 @@ namespace AE::RemoteGraphics
 	  #endif
 
 		if ( res.log.size() >= max_size )
+		{
+			AE_LOGI( "VulkanSyncLog was clipped" );
 			res.log.resize( max_size );
+		}
 
 		_Send( res );
 	}
@@ -855,28 +860,13 @@ namespace AE::RemoteGraphics
 		StaticAssert( Types::Count == 18 );
 	}
 
-	void  RmGAppListener::_Cb_ResMngr_CreateDescriptorSets2 (const Msg::ResMngr_CreateDescriptorSets2 &msg)
-	{
-		Msg::ResMngr_CreateDescriptorSets_Response	res;
-		Array< Strong<DescriptorSetID> >			ds_arr;
-		ds_arr.resize( msg.count );
-
-		if ( _resMngr->CreateDescriptorSets( OUT ds_arr.data(), ds_arr.size(), RmCast(msg.packId), DSLayoutName{msg.dslName}, _Get(msg.dsAlloc), msg.dbgName ))
-		{
-			res.ds.resize( ds_arr.size() );
-			for (usize i = 0; i < ds_arr.size(); ++i)
-				res.ds[i] = RmCast( ds_arr[i].Release() );
-		}
-		_Send( res );
-	}
-
 	void  RmGAppListener::_Cb_ResMngr_CreateDescriptorSets3 (const Msg::ResMngr_CreateDescriptorSets3 &msg)
 	{
 		Msg::ResMngr_CreateDescriptorSets_Response	res;
 		Array< Strong<DescriptorSetID> >			ds_arr;
 		ds_arr.resize( msg.count );
 
-		if ( _resMngr->CreateDescriptorSets( OUT ds_arr.data(), ds_arr.size(), RmCast(msg.layoutId), _Get(msg.dsAlloc), msg.dbgName ))
+		if ( _resMngr->CreateDescriptorSets( OUT ds_arr.data(), ds_arr.size(), RmCast(msg.layoutId), _Get(msg.dsAlloc), msg.dbgName, &msg.params ))
 		{
 			res.ds.resize( ds_arr.size() );
 			for (usize i = 0; i < ds_arr.size(); ++i)
@@ -908,12 +898,14 @@ namespace AE::RemoteGraphics
 			res.topology		= ppln.Topology();
 			res.subpassIndex	= ubyte(ppln.RenderPassSubpassIndex());
 			res.vertexBuffers	= ppln.GetVertexBufferMap();
+			res.activeStages	= ppln.GetActiveStages();
 		}
 		if constexpr( IsSame< PplnID, MeshPipelineID >)
 		{
 			res.meshLocalSize	= WGLocalSize_t{ppln.MeshLocalSize()};
 			res.taskLocalSize	= WGLocalSize_t{ppln.TaskLocalSize()};
 			res.subpassIndex	= ubyte(ppln.RenderPassSubpassIndex());
+			res.activeStages	= ppln.GetActiveStages();
 		}
 		if constexpr( IsSame< PplnID, ComputePipelineID >)
 		{
@@ -926,7 +918,8 @@ namespace AE::RemoteGraphics
 		}
 		if constexpr( IsSame< PplnID, RayTracingPipelineID >)
 		{
-			res.shaderGroupHandleSize = Bytes{_resMngr->GetDevice().GetVProperties().rayTracingPipelineProps.shaderGroupHandleSize};
+			res.activeStages			= ppln.GetActiveStages();
+			res.shaderGroupHandleSize	= Bytes{_resMngr->GetDevice().GetVProperties().rayTracingPipelineProps.shaderGroupHandleSize};
 			res.groupHandles.assign( ppln._GroupHandlesData().begin(), ppln._GroupHandlesData().end() );
 
 			res.nameToHandle.reserve( ppln._NameToHandleMap().size() );

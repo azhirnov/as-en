@@ -12,3 +12,11 @@ cp "temp/stb_truetype.h" "../../../../../AE-Bin/external/source/stb/stb_truetype
 cp "temp/LICENSE" "../../../../../AE-Bin/external/source/stb/LICENSE"
 rm -rf "temp"
 read -p "press any key..."
+
+exit 0
+
+pauseOnError() {
+	echo -e "\033[31m*** failed ***\033[0m"
+	read -p "press any key..."
+	exit 1
+}

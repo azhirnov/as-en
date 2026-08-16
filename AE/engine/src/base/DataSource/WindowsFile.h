@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #pragma once
 
@@ -27,7 +27,7 @@ namespace AE::Base
 			Direct			= Win_NoBuffering,
 
 			Unknown			= 0,
-			_BITOPS_
+			_BITOPS_		= 0
 		};
 
 	private:
@@ -105,7 +105,7 @@ namespace AE::Base
 			SharedRead		= 1 << 5,	// other process can read file.
 
 			Unknown			= 0,
-			_BITOPS_
+			_BITOPS_		= 0
 		};
 
 	private:

@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #include "UnitTest_Common.h"
 
@@ -11,8 +11,8 @@ namespace
 			desc.format = EPixelFormat::RGBA8_UNorm;
 			desc.SetDimension( 2 );
 
-			TEST( desc.imageDim == EImageDim_1D );
-			TEST( All( desc.dimension == ImageDim_t{2, 1, 1} ));
+			TEST_Eq( desc.imageDim, EImageDim_1D );
+			TEST_Eq( desc.dimension, ImageDim_t(2, 1, 1) );
 
 			desc.Validate();
 
@@ -56,14 +56,14 @@ namespace
 			desc.SetDimension( 8 );
 			desc.SetArrayLayers( 4 );
 
-			TEST( desc.imageDim == EImageDim_1D );
-			TEST( desc.mipLevels == 1_mipmap );
+			TEST_Eq( desc.imageDim, EImageDim_1D );
+			TEST_Eq( desc.mipLevels.Get(), 1 );
 			TEST( not desc.samples.IsEnabled() );
 
 			desc.Validate();
 
-			TEST( desc.imageDim == EImageDim_1D );
-			TEST( desc.mipLevels == 1_mipmap );
+			TEST_Eq( desc.imageDim, EImageDim_1D );
+			TEST_Eq( desc.mipLevels.Get(), 1 );
 			TEST( not desc.samples.IsEnabled() );
 		}
 		{
@@ -72,16 +72,16 @@ namespace
 			desc.SetDimension( 8, 8 );
 			desc.SetArrayLayers( 4 );
 
-			TEST( desc.imageDim == EImageDim_2D );
-			TEST( desc.arrayLayers == 4_layer );
-			TEST( desc.mipLevels == 1_mipmap );
+			TEST_Eq( desc.imageDim, EImageDim_2D );
+			TEST_Eq( desc.arrayLayers.Get(), 4 );
+			TEST_Eq( desc.mipLevels.Get(), 1 );
 			TEST( not desc.samples.IsEnabled() );
 
 			desc.Validate();
 
-			TEST( desc.imageDim == EImageDim_2D );
-			TEST( desc.arrayLayers == 4_layer );
-			TEST( desc.mipLevels == 1_mipmap );
+			TEST_Eq( desc.imageDim, EImageDim_2D );
+			TEST_Eq( desc.arrayLayers.Get(), 4 );
+			TEST_Eq( desc.mipLevels.Get(), 1 );
 			TEST( not desc.samples.IsEnabled() );
 		}
 		{
@@ -91,16 +91,16 @@ namespace
 			desc.SetArrayLayers( 4 );
 			desc.SetMaxMipmaps( 16 );
 
-			TEST( desc.imageDim == EImageDim_2D );
-			TEST( desc.arrayLayers == 4_layer );
-			TEST( desc.mipLevels == 16_mipmap );
+			TEST_Eq( desc.imageDim, EImageDim_2D );
+			TEST_Eq( desc.arrayLayers.Get(), 4 );
+			TEST_Eq( desc.mipLevels.Get(), 16 );
 			TEST( not desc.samples.IsEnabled() );
 
 			desc.Validate();
 
-			TEST( desc.imageDim == EImageDim_2D );
-			TEST( desc.arrayLayers == 4_layer );
-			TEST( desc.mipLevels == 4_mipmap );
+			TEST_Eq( desc.imageDim, EImageDim_2D );
+			TEST_Eq( desc.arrayLayers.Get(), 4 );
+			TEST_Eq( desc.mipLevels.Get(), 4 );
 			TEST( not desc.samples.IsEnabled() );
 		}
 		{
@@ -110,17 +110,17 @@ namespace
 			desc.SetArrayLayers( 4 );
 			desc.SetSamples( 8 );
 
-			TEST( desc.imageDim == EImageDim_2D );
-			TEST( desc.arrayLayers == 4_layer );
-			TEST( desc.mipLevels == 1_mipmap );
-			TEST( desc.samples == 8_samples );
+			TEST_Eq( desc.imageDim, EImageDim_2D );
+			TEST_Eq( desc.arrayLayers.Get(), 4 );
+			TEST_Eq( desc.mipLevels.Get(), 1 );
+			TEST_Eq( desc.samples.Get(), 8 );
 
 			desc.Validate();
 
-			TEST( desc.imageDim == EImageDim_2D );
-			TEST( desc.arrayLayers == 4_layer );
-			TEST( desc.mipLevels == 1_mipmap );
-			TEST( desc.samples == 8_samples );
+			TEST_Eq( desc.imageDim, EImageDim_2D );
+			TEST_Eq( desc.arrayLayers.Get(), 4 );
+			TEST_Eq( desc.mipLevels.Get(), 1 );
+			TEST_Eq( desc.samples.Get(), 8 );
 		}
 
 		// crashed on CI because of assertion
@@ -158,9 +158,9 @@ namespace
 			desc.SetAllMipmaps();
 			desc.Validate();
 
-			TEST( desc.imageDim == EImageDim_2D );
-			TEST( desc.mipLevels == 5_mipmap );
-			TEST( All( desc.dimension == ImageDim_t{16,16,1} ));
+			TEST_Eq( desc.imageDim, EImageDim_2D );
+			TEST_Eq( desc.mipLevels.Get(), 5 );
+			TEST_Eq( desc.dimension, ImageDim_t(16,16,1) );
 
 		}{
 			ImageDesc	desc;
@@ -169,9 +169,9 @@ namespace
 			desc.SetAllMipmaps();
 			desc.Validate();
 
-			TEST( desc.imageDim == EImageDim_2D );
-			TEST( desc.mipLevels == 4_mipmap );
-			TEST( All( desc.dimension == ImageDim_t{15,15,1} ));
+			TEST_Eq( desc.imageDim, EImageDim_2D );
+			TEST_Eq( desc.mipLevels.Get(), 4 );
+			TEST_Eq( desc.dimension, ImageDim_t(15,15,1) );
 		}{
 			ImageDesc	desc;
 			desc.format = EPixelFormat::RGBA8_UNorm;
@@ -179,9 +179,9 @@ namespace
 			desc.SetAllMipmaps();
 			desc.Validate();
 
-			TEST( desc.imageDim == EImageDim_2D );
-			TEST( desc.mipLevels == 5_mipmap );
-			TEST( All( desc.dimension == ImageDim_t{17,15,1} ));
+			TEST_Eq( desc.imageDim, EImageDim_2D );
+			TEST_Eq( desc.mipLevels.Get(), 5 );
+			TEST_Eq( desc.dimension, ImageDim_t(17,15,1) );
 		}
 	}
 
@@ -201,10 +201,10 @@ namespace
 
 			view.Validate( desc );
 
-			TEST( view.viewType == EImage_2DArray );
-			TEST( view.format == EPixelFormat::RGBA8_UNorm );
-			TEST( view.baseLayer == 0_layer );
-			TEST( view.layerCount == 6 );
+			TEST_Eq( view.viewType, EImage_2DArray );
+			TEST_Eq( view.format, EPixelFormat::RGBA8_UNorm );
+			TEST_Eq( view.baseLayer.Get(), 0 );
+			TEST_Eq( view.layerCount, 6 );
 		}
 		{
 			ImageDesc	desc;
@@ -220,10 +220,10 @@ namespace
 
 			view.Validate( desc );
 
-			TEST( view.viewType == EImage_Cube );
-			TEST( view.format == EPixelFormat::RGBA8_UNorm );
-			TEST( view.baseLayer == 0_layer );
-			TEST( view.layerCount == 6 );
+			TEST_Eq( view.viewType, EImage_Cube );
+			TEST_Eq( view.format, EPixelFormat::RGBA8_UNorm );
+			TEST_Eq( view.baseLayer.Get(), 0 );
+			TEST_Eq( view.layerCount, 6 );
 		}
 		{
 			ImageDesc	desc;
@@ -240,10 +240,10 @@ namespace
 
 			view.Validate( desc );
 
-			TEST( view.viewType == EImage_2DArray );
-			TEST( view.format == EPixelFormat::RGBA8_UNorm );
-			TEST( view.baseLayer == 2_layer );
-			TEST( view.layerCount == 2 );
+			TEST_Eq( view.viewType, EImage_2DArray );
+			TEST_Eq( view.format, EPixelFormat::RGBA8_UNorm );
+			TEST_Eq( view.baseLayer.Get(), 2 );
+			TEST_Eq( view.layerCount, 2 );
 		}
 		{
 			ImageDesc	desc;
@@ -257,10 +257,10 @@ namespace
 
 			view.Validate( desc );
 
-			TEST( view.viewType == EImage_2D );
-			TEST( view.format == EPixelFormat::RGBA8_UNorm );
-			TEST( view.baseLayer == 0_layer );
-			TEST( view.layerCount == 1 );
+			TEST_Eq( view.viewType, EImage_2D );
+			TEST_Eq( view.format, EPixelFormat::RGBA8_UNorm );
+			TEST_Eq( view.baseLayer.Get(), 0 );
+			TEST_Eq( view.layerCount, 1 );
 		}
 		{
 			ImageDesc	desc;
@@ -274,10 +274,10 @@ namespace
 
 			view.Validate( desc );
 
-			TEST( view.viewType == EImage_2DArray );
-			TEST( view.format == EPixelFormat::RGBA8_UNorm );
-			TEST( view.baseLayer == 0_layer );
-			TEST( view.layerCount == 32 );
+			TEST_Eq( view.viewType, EImage_2DArray );
+			TEST_Eq( view.format, EPixelFormat::RGBA8_UNorm );
+			TEST_Eq( view.baseLayer.Get(), 0 );
+			TEST_Eq( view.layerCount, 32 );
 		}
 		{
 			ImageDesc	desc;
@@ -292,10 +292,10 @@ namespace
 
 			view.Validate( desc );
 
-			TEST( view.viewType == EImage_2DArray );
-			TEST( view.format == EPixelFormat::RGBA8_UNorm );
-			TEST( view.baseLayer == 3_layer );
-			TEST( view.layerCount == 6 );
+			TEST_Eq( view.viewType, EImage_2DArray );
+			TEST_Eq( view.format, EPixelFormat::RGBA8_UNorm );
+			TEST_Eq( view.baseLayer.Get(), 3 );
+			TEST_Eq( view.layerCount, 6 );
 		}
 	}
 
@@ -311,7 +311,7 @@ namespace
 			ImageViewDesc	view;
 			view.Validate( desc );
 
-			TEST( view.aspectMask == EImageAspect::Color );
+			TEST_Eq( view.aspectMask, EImageAspect::Color );
 		}
 		{
 			ImageDesc	desc;
@@ -322,7 +322,7 @@ namespace
 			ImageViewDesc	view;
 			view.Validate( desc );
 
-			TEST( view.aspectMask == EImageAspect::Depth );
+			TEST_Eq( view.aspectMask, EImageAspect::Depth );
 		}
 		{
 			ImageDesc	desc;
@@ -333,7 +333,26 @@ namespace
 			ImageViewDesc	view;
 			view.Validate( desc );
 
-			TEST( view.aspectMask == EImageAspect::DepthStencil );
+			TEST_Eq( view.aspectMask, EImageAspect::DepthStencil );
+		}
+	}
+
+
+	static void ImageView_Test3 ()
+	{
+		{
+			ImageDesc	desc;
+			desc.format		= EPixelFormat::BC1_RGB8_UNorm;
+			desc.imageDim	= EImageDim_2D;
+			desc.options	= EImageOpt::MutableFormat | EImageOpt::BlockTexelViewCompatible | EImageOpt::ExtendedUsage;
+			desc.usage		= EImageUsage::Transfer | EImageUsage::Sampled | EImageUsage::Storage | EImageUsage::ColorAttachment;
+			desc.Validate();
+
+			ImageViewDesc	view;
+			view.Validate( desc );
+
+			TEST_Eq( view.aspectMask, EImageAspect::Color );
+			TEST_Eq( view.usage, (EImageUsage::Transfer | EImageUsage::Sampled) );
 		}
 	}
 }
@@ -347,6 +366,7 @@ extern void UnitTest_ImageDesc ()
 
 	ImageView_Test1();
 	ImageView_Test2();
+	ImageView_Test3();
 
 	TEST_PASSED();
 }

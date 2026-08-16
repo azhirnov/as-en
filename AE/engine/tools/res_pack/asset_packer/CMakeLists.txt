@@ -1,4 +1,4 @@
-# Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+# Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 set( GRAPHICS_DIR "${MAIN_SOURCE_DIR}/engine/src/graphics_rhi" )
 set( GRAPHICS_SRC

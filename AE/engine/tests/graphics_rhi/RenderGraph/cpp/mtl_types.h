@@ -1,3 +1,16 @@
+#ifndef PC_bindless1_DEFINED
+#	define PC_bindless1_DEFINED
+	// size: 4, align: 4 (16)
+	struct PC_bindless1
+	{
+		static constexpr auto   TypeName = ShaderStructName{HashVal32{0xe6873775u}};
+
+		uint  texCount;
+	};
+#endif
+	StaticAssert( offsetof(PC_bindless1, texCount) == 0 );
+	StaticAssert( sizeof(PC_bindless1) == 4 );
+
 #ifndef Vertex_multiview_DEFINED
 #	define Vertex_multiview_DEFINED
 	// size: 12, align: 4

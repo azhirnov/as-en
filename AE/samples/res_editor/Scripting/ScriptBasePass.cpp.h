@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #pragma once
 
@@ -79,7 +79,7 @@ namespace
 
 		AS_METHOD_T( classBinder, ScriptBasePass::AddFlag,			"AddFlag",			{} );
 
-		classBinder.Comment( "Measure GPU time for this pass. If pass executed multiple times during 'Repeat()' then average time will be returned." );
+		classBinder.Comment( "Measure GPU time (in seconds) for this pass. If pass executed multiple times during 'Repeat()' then average time will be returned." );
 		AS_METHOD_T( classBinder, ScriptBasePass::MeasureTime,		"MeasureTime",		{"timeInSeconds"} );
 
 		classBinder.Comment( "Add slider to UI. Data passed to all shaders in the current pass." );

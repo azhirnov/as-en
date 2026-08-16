@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #include "base/Memory/MemUtils.h"
 
@@ -18,8 +18,8 @@ namespace _hidden_
 
 	void  SecureZeroMemFallback (OUT void* ptr, Bytes size) __NE___
 	{
-		NonNull( ptr );
-		memset_fn( OUT ptr, 0, usize(size) );
+		if_likely( ptr != null )
+			memset_fn( OUT ptr, 0, usize(size) );
 	}
 
 } // _hidden_

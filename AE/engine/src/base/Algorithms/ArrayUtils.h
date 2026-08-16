@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #pragma once
 
@@ -128,7 +128,10 @@ namespace AE::Base
 	template <typename T>
 	NdCx__ ssize  PtrDistance (T* lhs, T* rhs) __NE___
 	{
-		return std::distance< T *>( lhs, rhs );
+		if constexpr( IsVoid<T> )
+			return std::distance< const ubyte *>( static_cast<const ubyte*>(lhs), static_cast<const ubyte*>(rhs) );
+		else
+			return std::distance< T *>( lhs, rhs );
 	}
 
 	template <typename T>
@@ -274,7 +277,7 @@ namespace AE::Base
 	template <typename Iter>
 	ND_ bool  IsSorted (Iter begin, Iter end) __NE___
 	{
-		return IsSorted( begin, end, std::less{} );
+		return IsSorted( begin, end, std::less_equal{} );
 	}
 
 /*

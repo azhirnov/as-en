@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #pragma once
 
@@ -33,6 +33,8 @@ namespace AE::Graphics
 		EPipelineOpt				_options			= Default;
 		Bytes16u					_shaderGroupHandleSize;
 		bool						_releaseRef			= false;
+		EShaderStages				_activeStages		= Default;
+
 		NameToHandle_t				_nameToHandle;
 		Array< ulong >				_groupHandles;
 		Strong<PipelineLayoutID>	_layoutId;
@@ -76,6 +78,7 @@ namespace AE::Graphics
 		ND_ RmRayTracingPipelineID	Handle ()								C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _pplnId; }
 		ND_ PipelineLayoutID		LayoutId ()								C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _layoutId; }
 		ND_ EPipelineDynamicState	DynamicState ()							C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _dynamicState; }
+		ND_ EShaderStages			GetActiveStages ()						C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _activeStages; }
 
 		GFX_DBG_ONLY( ND_ StringView  GetDebugName ()						C_NE___	{ return Default; })
 	};

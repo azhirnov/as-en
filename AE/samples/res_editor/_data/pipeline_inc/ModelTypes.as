@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 #include <pipeline_compiler.as>
 
 const ArraySize	albedoMapsCount	= ArraySize(64);	// same as 'ScriptModelGeometrySrc::_maxTextures'

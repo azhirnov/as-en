@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #include "Scripting/ScriptExe.h"
 #include "Core/EditorUI.h"
@@ -240,8 +240,9 @@ namespace AE::ResEditor
 
 		ShaderStructTypePtr	st = ShaderStructType::Create( "ComputeMipPC" );
 		st->Set( EStructLayout::Compatible_Std140, R"#(
-				float2	invResolution;
-				uint2	resolution;
+				float2	invDstResolution;
+				uint2	dstResolution;
+				uint2	srcResolution;
 			)#");
 
 		return st;
@@ -378,8 +379,8 @@ namespace AE::ResEditor
 			ShaderStructTypePtr	st = _CreatePCType();	// throw
 			ppln_layout->AddPushConst2( "pc", st, EShader::Compute );
 
-			ppln_layout->Define( "iInvResolution=pc.invResolution" );
-			ppln_layout->Define( "iResolution=pc.resolution" );
+			ppln_layout->Define( "iInvResolution=pc.invDstResolution" );
+			ppln_layout->Define( "iResolution=pc.dstResolution" );
 		}
 
 		if ( AnyBits( EShaderOpt(shaderOpts), EShaderOpt::_ShaderTrace_Mask ))

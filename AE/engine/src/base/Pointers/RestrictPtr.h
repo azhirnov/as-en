@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 /*
 	MSVC docs: https://learn.microsoft.com/en-us/cpp/cpp/extension-restrict?view=msvc-170
 */
@@ -63,6 +63,9 @@ namespace AE::Base
 
 		NdCx__ Self		operator +  (Bytes offset)			C_NE___	{ return Self{ _ptr + offset }; }
 		__Cx__ Self&	operator += (Bytes offset)			__NE___	{ _ptr += offset;  return *this; }
+
+		template <typename B = T> requires( not IsVoid<B> )
+		NdCx__ Self		operator +  (usize offset)			C_NE___	{ return Self{ _ptr + offset }; }	// offset in elements
 
 		//template <typename B=T> requires( not IsVoid<B> and not IsConst<B> )
 		//NdCx__ T&		operator [] (usize idx)				__NE___	{ return _ptr[idx]; }

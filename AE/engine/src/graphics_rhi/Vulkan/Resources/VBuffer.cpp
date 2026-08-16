@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #ifdef AE_ENABLE_VULKAN
 # include "graphics_rhi/Private/ResourceValidation.h"
@@ -17,7 +17,6 @@ namespace AE::Graphics
 */
 	VBuffer::~VBuffer () __NE___
 	{
-		DRC_EXLOCK( _drCheck );
 		ASSERT( _buffer == Default );
 		ASSERT( _memoryId == Default );
 	}
@@ -29,7 +28,6 @@ namespace AE::Graphics
 */
 	bool  VBuffer::Create (ResourceManager &resMngr, const BufferDesc &desc, GfxMemAllocatorPtr allocator, StringView dbgName) __NE___
 	{
-		DRC_EXLOCK( _drCheck );
 		CHECK_ERR( _buffer == Default );
 		CHECK_ERR( _memoryId == Default );
 		CHECK_ERR( desc.size > 0 );
@@ -103,7 +101,6 @@ namespace AE::Graphics
 */
 	bool  VBuffer::Create (ResourceManager &resMngr, const VulkanBufferDesc &desc, GfxMemAllocatorPtr allocator, StringView dbgName) __NE___
 	{
-		DRC_EXLOCK( _drCheck );
 		CHECK_ERR( _buffer == Default );
 		CHECK_ERR( _memoryId == Default );
 		CHECK_ERR( desc.buffer != Default );
@@ -176,8 +173,6 @@ namespace AE::Graphics
 */
 	void  VBuffer::Destroy (ResourceManager &resMngr) __NE___
 	{
-		DRC_EXLOCK( _drCheck );
-
 		const bool	is_internal = NoBits( _desc.memType, EMemoryType::_External );
 		auto&		dev			= resMngr.GetDevice();
 

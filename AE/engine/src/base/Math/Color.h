@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #pragma once
 
@@ -378,6 +378,13 @@ namespace AE::Base
 		r{ubyte(other.r * 255.0f + 0.5f)},  g{ubyte(other.g * 255.0f + 0.5f)},
 		b{ubyte(other.b * 255.0f + 0.5f)},  a{ubyte(other.a * 255.0f + 0.5f)}
 	{}
+
+	template <>
+	inline RGBAColor<ubyte>::RGBAColor (const HSVColor &c, ubyte alpha) __NE___ :
+		RGBAColor{ RGBA32f{ c }}
+	{
+		a = alpha;
+	}
 
 /*
 =================================================

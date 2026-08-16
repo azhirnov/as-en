@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 /*
 	Check which sockets has new data and mark dependency as complete, so task may run and read from socket.
 
@@ -110,13 +110,13 @@ namespace AE::Networking
 
 	// methods
 	public:
-		SocketDependencyManager ()										__NE___;
-
 		ND_ static bool  Register ()									__NE___;
 
 		// ITaskDependencyManager //
 		bool  Resolve (AnyTypeCRef dep, Task &, Bool defaultIsStrongDep)__NE_OV;
 
+	private:
+		SocketDependencyManager ()										__NE___;
 	};
 
 

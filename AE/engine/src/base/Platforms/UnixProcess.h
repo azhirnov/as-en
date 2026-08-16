@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #pragma once
 
@@ -24,7 +24,7 @@ namespace AE::Base
 			NoWindow		= 1 << 0,
 			ReadOutput		= 1 << 1,
 			Unknown			= None,
-			_BITOPS_
+			_BITOPS_		= 0
 		};
 
 

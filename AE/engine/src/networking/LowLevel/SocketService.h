@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #pragma once
 
@@ -14,9 +14,26 @@ namespace AE::Networking
 
 	class SocketService final : public Noncopyable
 	{
+	// types
+	public:
+	  #ifdef AE_PLATFORM_ANDROID
+		// Thread safe:  yes
+		struct Callbacks
+		{
+			void*	userData														= null;
+
+			bool	(*getRouterIPAddress) (void* userData, OUT IpAddress &) __NE___	= null;
+		};
+	  #endif
+
+
 	// variables
 	private:
 		bool		_initialized	= false;
+
+	  #ifdef AE_PLATFORM_ANDROID
+		Callbacks	_cb;
+	  #endif
 
 
 	// methods
@@ -34,6 +51,10 @@ namespace AE::Networking
 										  nanoseconds timeout)									C_NE___;
 
 		ND_ bool  GetRouterIPAddress (OUT IpAddress &outAddr)									C_NE___;
+
+	  #ifdef AE_PLATFORM_ANDROID
+			void  SetCallbacks (const Callbacks &)												__NE___;
+	  #endif
 
 	private:
 		SocketService ()																		__NE___;

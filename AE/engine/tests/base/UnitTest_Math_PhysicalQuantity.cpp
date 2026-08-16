@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #include "UnitTest_Common.h"
 
@@ -73,8 +73,8 @@ namespace
 		SquareMeters		a5 = Meters{22.0f} * Meters{33.0f};						TEST( BitEqual( a5.GetNonScaled(), 726.0f ));
 		SquareMeters		a6 = Meters{22.0f}.Pow<2>();							TEST( BitEqual( a6.GetNonScaled(), 484.0f ));
 
-		TEST_Eq( ToString( a2, 2, False{} ), "5.00[m / s^-1]" );
-		TEST_Eq( ToString( a3, 2, False{} ), "2000.00[m / s^-1]" );
+		TEST_Eq( ToString( a2, 2, False{} ), "5.00[m / s]" );
+		TEST_Eq( ToString( a3, 2, False{} ), "2000.00[m / s]" );
 
 		StaticAssert( IsTriviallySerializable< Meters >);
 		StaticAssert( IsTriviallyDestructible< Meters >);
@@ -96,9 +96,9 @@ namespace
 		auto		a2 = GConstant{1.0} * SolarMass{3.0e+6};	TEST( BitEqual( a2.GetScaled(),		6.6740831e-11 * 1.98847e+30 * 3.0e+6 ));
 		Accel		a3 = a2 / LightYears{26000.0}.Pow<2>();		TEST( Equal( a3.GetScaled(),		6.58e-15,  10_pct ));
 
-		TEST_Eq( ToString( GConstant{1.0},	2, True{"exponent"} ), "6.67e-11[m^3 / (s^-2 * kg^-1)]" );
-		TEST_Eq( ToString( a2,				2, True{"exponent"} ), "3.98e+26[m^3 / s^-2]" );
-		TEST_Eq( ToString( a3,				2, True{"exponent"} ), "6.58e-15[m / s^-2]" );
+		TEST_Eq( ToString( GConstant{1.0},	2, True{"exponent"} ), "6.67e-11[m^3 / (s^2 * kg)]" );
+		TEST_Eq( ToString( a2,				2, True{"exponent"} ), "3.98e+26[m^3 / s^2]" );
+		TEST_Eq( ToString( a3,				2, True{"exponent"} ), "6.58e-15[m / s^2]" );
 	}
 
 

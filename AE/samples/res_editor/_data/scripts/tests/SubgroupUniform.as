@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 /*
 */
 #ifdef __INTELLISENSE__
@@ -47,21 +47,8 @@
 #ifdef UNIFORM_CONTROL_FLOW
 	#include "InvocationID.glsl"
 
-	#ifdef AE_subgroup_uniform_qualifier
-
-		void  Main ()
-		{
-			if ( gl::SubgroupUniform( gl.GlobalInvocationID.z == 0 ))
-			{
-				float2	uv = GetGlobalCoordUNormCorrected();
-
-				float3	col = 0.5 + 0.5 * Cos( un_PerPass.time + uv.xyx + float3(0,2,4) );
-
-				gl.image.Store( un_OutImage, GetGlobalCoord().xy, float4(col, 1.0) );
-			}
-		}
-
-	#elif defined(AE_subgroup_uniform_control_flow)
+	// also see https://docs.vulkan.org/guide/latest/extensions/VK_KHR_shader_subgroup_uniform_control_flow.html
+	#if defined(AE_subgroup_uniform_control_flow)
 
 		void  Main () [[subgroup_uniform_control_flow]]
 		{
@@ -76,7 +63,7 @@
 		}
 
 	#else
-	#	error 'subgroup_uniform_qualifier' and 'subgroup_uniform_control_flow' are not supported
+	#	error 'subgroup_uniform_control_flow' is not supported
 	#endif
 
 #endif

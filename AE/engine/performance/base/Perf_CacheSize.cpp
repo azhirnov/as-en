@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 /*
 	[results](https://github.com/azhirnov/as-en/blob/dev/AE/docs/papers/bench-cpu/MemAccess.md)
 */
@@ -37,6 +37,36 @@ namespace
 		_mm512_store_si512( OUT dst, h );
 	}
 
+
+	static void  XorHash2 (OUT void* inDst, const Bytes size)
+	{
+		auto*		src	= static_cast<__m512i const *>( inDst );
+		__m512i		h0	= _mm512_setzero_si512();
+		__m512i		h1	= _mm512_setzero_si512();
+		__m512i		h2	= _mm512_setzero_si512();
+		__m512i		h3	= _mm512_setzero_si512();
+
+		for (auto* end = src + size; src < end;)
+		{
+			__m512i		r0 = _mm512_load_si512( src+0 );
+			__m512i		r1 = _mm512_load_si512( src+1 );
+			__m512i		r2 = _mm512_load_si512( src+2 );
+			__m512i		r3 = _mm512_load_si512( src+3 );
+
+			h0 = _mm512_xor_si512( h0, r0 );
+			h1 = _mm512_xor_si512( h1, r1 );
+			h2 = _mm512_xor_si512( h2, r2 );
+			h3 = _mm512_xor_si512( h3, r3 );
+
+			src += 256_b;
+		}
+
+		__m512i		h	= _mm512_xor_si512( _mm512_xor_si512( h0, h1 ), _mm512_xor_si512( h2, h3 ));
+		auto*		dst = static_cast<__m512i *>( inDst );
+		_mm512_store_si512( OUT dst, h );
+	}
+
+
 	static void  Fp32Sum_Cached (OUT void* inDst, const void* inSrc, const Bytes size)
 	{
 		float const*	src	= Cast<float>(inSrc);
@@ -59,6 +89,7 @@ namespace
 			src += N*4;	dst += N*2;
 		}
 	}
+
 
 #elif AE_SIMD_AVX >= 1
 	static void  XorHash (OUT void* inDst, const Bytes size)
@@ -84,6 +115,36 @@ namespace
 		_mm256_store_si256( OUT dst, h );
 	}
 
+
+	static void  XorHash2 (OUT void* inDst, const Bytes size)
+	{
+		auto*		src	= static_cast<__m256i const *>( inDst );
+		__m256i		h0	= _mm256_setzero_si256();
+		__m256i		h1	= _mm256_setzero_si256();
+		__m256i		h2	= _mm256_setzero_si256();
+		__m256i		h3	= _mm256_setzero_si256();
+
+		for (auto* end = src + size; src < end;)
+		{
+			__m256i		r0 = _mm256_load_si256( src+0 );
+			__m256i		r1 = _mm256_load_si256( src+1 );
+			__m256i		r2 = _mm256_load_si256( src+2 );
+			__m256i		r3 = _mm256_load_si256( src+3 );
+
+			h0 = _mm256_xor_si256( h0, r0 );
+			h1 = _mm256_xor_si256( h1, r1 );
+			h2 = _mm256_xor_si256( h2, r2 );
+			h3 = _mm256_xor_si256( h3, r3 );
+
+			src += 128_b;
+		}
+
+		__m256i		h	= _mm256_xor_si256( _mm256_xor_si256( h0, h1 ), _mm256_xor_si256( h2, h3 ));
+		auto*		dst = static_cast<__m256i *>( inDst );
+		_mm256_store_si256( OUT dst, h );
+	}
+
+
 	static void  Fp32Sum_Cached (OUT void* inDst, const void* inSrc, const Bytes size)
 	{
 		float const*	src	= Cast<float>(inSrc);
@@ -106,6 +167,7 @@ namespace
 			src += N*4;	dst += N*2;
 		}
 	}
+
 
 #elif AE_SIMD_SSE >= 20
 	static void  XorHash (OUT void* inDst, const Bytes size)
@@ -131,6 +193,36 @@ namespace
 		_mm_store_si128( OUT dst, h );
 	}
 
+
+	static void  XorHash (OUT void* inDst, const Bytes size)
+	{
+		auto*		src	= static_cast<__m128i const *>( inDst );
+		__m128i		h0	= _mm_setzero_si128();
+		__m128i		h1	= _mm_setzero_si128();
+		__m128i		h2	= _mm_setzero_si128();
+		__m128i		h3	= _mm_setzero_si128();
+
+		for (auto* end = src + size; src < end;)
+		{
+			__m128i		r0 = _mm_load_si128( src+0 );
+			__m128i		r1 = _mm_load_si128( src+1 );
+			__m128i		r2 = _mm_load_si128( src+2 );
+			__m128i		r3 = _mm_load_si128( src+3 );
+
+			h0 = _mm_xor_si128( h0, r0 );
+			h1 = _mm_xor_si128( h1, r1 );
+			h2 = _mm_xor_si128( h2, r2 );
+			h3 = _mm_xor_si128( h3, r3 );
+
+			src += 64_b;
+		}
+
+		__m256i		h	= _mm_xor_si128( _mm_xor_si128( h0, h1 ), _mm_xor_si128( h2, h3 ));
+		auto*		dst = static_cast<__m128i *>( inDst );
+		_mm_store_si128( OUT dst, h );
+	}
+
+
 	static void  Fp32Sum_Cached (OUT void* inDst, const void* inSrc, const Bytes size)
 	{
 		float const*	src	= Cast<float>(inSrc);
@@ -154,8 +246,10 @@ namespace
 		}
 	}
 
+
 #elif AE_SIMD_NEON
-	static void  XorHash (OUT void* inDst, const Bytes size)
+	// very slow, XorHash and XorHash2 are much faster
+	static void  XorHash_old (OUT void* inDst, const Bytes size)
 	{
 		auto*		src	= static_cast< uint8_t const *>(inDst);
 		auto*		end	= src + size;
@@ -176,6 +270,72 @@ namespace
 
 		vst1q_u8( static_cast<uint8_t*>(inDst), h );
 	}
+
+
+	// equal to AVX256
+	static void  XorHash (OUT void* inDst, const Bytes size)
+	{
+		auto*		src	= static_cast< uint8_t const *>(inDst);
+		auto*		end	= src + size;
+		uint8x16_t	hi	= vdupq_n_u8( 0 );
+		uint8x16_t	lo	= vdupq_n_u8( 0 );
+
+		for (; src < end; src += 128)
+		{
+			uint8x16_t	r0_lo = vld1q_u8( src +  0 );
+			uint8x16_t	r0_hi = vld1q_u8( src + 16 );
+
+			uint8x16_t	r1_lo = vld1q_u8( src + 16*2 );
+			uint8x16_t	r1_hi = vld1q_u8( src + 16*3 );
+
+			uint8x16_t	r2_lo = vld1q_u8( src + 16*4 );
+			uint8x16_t	r2_hi = vld1q_u8( src + 16*5 );
+
+			uint8x16_t	r3_lo = vld1q_u8( src + 16*6 );
+			uint8x16_t	r3_hi = vld1q_u8( src + 16*7 );
+
+			uint8x16_t	h0_lo = veorq_u8( r0_lo, r1_lo );
+			uint8x16_t	h0_hi = veorq_u8( r0_hi, r1_hi );
+
+			uint8x16_t	h1_lo = veorq_u8( r2_lo, r3_lo );
+			uint8x16_t	h1_hi = veorq_u8( r2_hi, r3_hi );
+
+			lo = veorq_u8( lo, veorq_u8( h0_lo, h1_lo ));
+			hi = veorq_u8( hi, veorq_u8( h0_hi, h1_hi ));
+		}
+
+		vst1q_u8( static_cast<uint8_t*>(inDst) +  0, lo );
+		vst1q_u8( static_cast<uint8_t*>(inDst) + 16, hi );
+	}
+
+
+	static void  XorHash2 (OUT void* inDst, const Bytes size)
+	{
+		auto*		src	= static_cast< uint8_t const *>(inDst);
+		auto*		end	= src + size;
+		uint8x16_t	h0	= vdupq_n_u8( 0 );
+		uint8x16_t	h1	= vdupq_n_u8( 0 );
+		uint8x16_t	h2	= vdupq_n_u8( 0 );
+		uint8x16_t	h3	= vdupq_n_u8( 0 );
+
+		for (; src < end; src += 64)
+		{
+			uint8x16_t	r0 = vld1q_u8( src +  0 );
+			uint8x16_t	r1 = vld1q_u8( src + 16 );
+			uint8x16_t	r2 = vld1q_u8( src + 32 );
+			uint8x16_t	r3 = vld1q_u8( src + 48 );
+
+			h0 = veorq_u8( h0, r0 );
+			h1 = veorq_u8( h1, r1 );
+			h2 = veorq_u8( h2, r2 );
+			h3 = veorq_u8( h3, r3 );
+		}
+
+		uint8x16_t	h = veorq_u8( veorq_u8( h0, h1 ), veorq_u8( h2, h3 ));
+
+		vst1q_u8( static_cast<uint8_t*>(inDst), h );
+	}
+
 
 	static void  Fp32Sum_Cached (OUT void* inDst, const void* inSrc, const Bytes size)
 	{
@@ -225,6 +385,7 @@ namespace
 				if constexpr( V == 1 )	ZeroMem256_Cached( OUT data, size );
 				if constexpr( V == 2 )	ZeroMem256_NonCached( OUT data, size );
 				if constexpr( V == 3 )	XorHash( OUT data, size );
+				if constexpr( V == 4 )	XorHash2( OUT data, size );
 			}
 
 			profiler.EndIteration();
@@ -331,8 +492,9 @@ namespace
 					//Check_MemCopy<3>( "SIMD cached load, non-cached store", st0.Data(), st1.Data(), base_size, base_count, core_type );
 				#endif
 				#if 1
-					Check_MemCopy<4>( "SIMD fp32 sum cached", st0.Data(), st1.Data(), base_size, base_count, core_type );  // 4x read, 2x write
-					Check_MemSet<3>( "SIMD xor cached", st0.Data(), base_size, base_count, core_type );  // read only
+					Check_MemCopy<4>( "SIMD fp32 sum cached", st0.Data(), st1.Data(), base_size, base_count, core_type );	// 4x read, 2x write
+					Check_MemSet<3>( "SIMD xor cached", st0.Data(), base_size, base_count, core_type );						// 4x read with loop dependency
+					Check_MemSet<4>( "SIMD xor cached v2", st0.Data(), base_size, base_count, core_type );					// read without loop dependency
 				#endif
 			});
 	}
@@ -423,6 +585,7 @@ namespace
 								if constexpr( V == 11 )	ZeroMem256_Cached( OUT data0, size );
 								if constexpr( V == 12 )	ZeroMem256_NonCached( OUT data0, size );
 								if constexpr( V == 13 )	XorHash( OUT data0, size );
+								if constexpr( V == 14 )	XorHash2( OUT data0, size );
 
 								Swap( data1, data0 );
 							}
@@ -474,8 +637,9 @@ extern void PerfTest_CacheSize ()
 				CheckCacheSizeMT<11>( "SIMD cached fill", core_bits, core.type, core_count );
 				CheckCacheSizeMT<12>( "SIMD non-cached fill", core_bits, core.type, core_count );
 
-				CheckCacheSizeMT<4>(  "SIMD fp32 sum cached", core_bits, core.type, core_count );  // 4x read, 2x write
-				CheckCacheSizeMT<13>( "SIMD xor cached", core_bits, core.type, core_count );  // read only
+				CheckCacheSizeMT<4>(  "SIMD fp32 sum cached", core_bits, core.type, core_count );	// 4x read, 2x write
+				CheckCacheSizeMT<13>( "SIMD xor cached", core_bits, core.type, core_count );		// 4x read with loop dependency
+				CheckCacheSizeMT<14>( "SIMD xor cached v2", core_bits, core.type, core_count );		// read without loop dependency
 			}
 
 			if ( not core.HasLogicalCores() )
@@ -498,8 +662,9 @@ extern void PerfTest_CacheSize ()
 				CheckCacheSizeMT<11>( "SIMD cached fill", core_bits, core.type, core_count );
 				CheckCacheSizeMT<12>( "SIMD non-cached fill", core_bits, core.type, core_count );
 
-				CheckCacheSizeMT<4>(  "SIMD fp32 sum cached", core_bits, core.type, core_count );  // 4x read, 2x write
-				CheckCacheSizeMT<13>( "SIMD xor cached", core_bits, core.type, core_count );  // read only
+				CheckCacheSizeMT<4>(  "SIMD fp32 sum cached", core_bits, core.type, core_count );	// 4x read, 2x write
+				CheckCacheSizeMT<13>( "SIMD xor cached", core_bits, core.type, core_count );		// 4x read with loop dependency
+				CheckCacheSizeMT<14>( "SIMD xor cached v2", core_bits, core.type, core_count );		// read without loop dependency
 			}
 		});
 #endif

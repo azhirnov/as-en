@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #include "UnitTest_Common.h"
 
@@ -85,6 +85,23 @@ namespace
 			TEST( b->DayOfWeek() == Date::EWeekDay(dw) );
 		}
 	}
+
+
+	static void  Date_Test4 ()
+	{
+	#ifdef AE_COMPILER_MSVC
+		Date	ref	= Date::Now();
+		Date	d;	d.SetTime( FileSystem::Time_t::clock::now() );
+
+		TEST( d.Year() == ref.Year() );
+		TEST( d.Month() == ref.Month() );
+		TEST( d.DayOfMonth() == ref.DayOfMonth() );
+		TEST( d.DayOfYear() == ref.DayOfYear() );
+		TEST( d.DayOfWeek() == ref.DayOfWeek() );
+		TEST( d.Hour() == ref.Hour() );
+		TEST( d.IsLeapYear() == ref.IsLeapYear() );
+	#endif
+	}
 }
 
 
@@ -93,6 +110,7 @@ extern void UnitTest_Date ()
 	Date_Test1();
 	Date_Test2();
 	Date_Test3();
+	Date_Test4();
 
 	TEST_PASSED();
 }

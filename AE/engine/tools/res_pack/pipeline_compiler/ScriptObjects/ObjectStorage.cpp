@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #include "res_pack/pipeline_compiler/ScriptObjects/Common.inl.h"
 
@@ -58,13 +58,14 @@ namespace AE::PipelineCompiler
 */
 	bool  ObjectStorage::ShaderSrcKey::operator == (const ShaderSrcKey &rhs) const
 	{
-		return	type		== rhs.type			and
-				options		== rhs.options		and
-				resources	== rhs.resources	and
-				version		== rhs.version		and
-				source		== rhs.source		and
-				include		== rhs.include		and
-				defines		== rhs.defines;
+		return	type			== rhs.type			and
+				options			== rhs.options		and
+				resources		== rhs.resources	and
+				version			== rhs.version		and
+				source			== rhs.source		and
+				include			== rhs.include		and
+				enabledFeats	== rhs.enabledFeats	and
+				defines			== rhs.defines;
 	}
 
 /*
@@ -75,7 +76,7 @@ namespace AE::PipelineCompiler
 	HashVal  ObjectStorage::ShaderSrcKey::CalcHash () const
 	{
 		return	HashOf(source) + HashOf(resources) + HashOf(include) + HashOf(type) +
-				HashOf(version) + HashOf(options) + HashOf(defines);
+				HashOf(version) + HashOf(options) + HashOf(defines) + HashOf(enabledFeats);
 	}
 //-----------------------------------------------------------------------------
 
@@ -1272,10 +1273,7 @@ namespace {
 	{
 		EnumBinder<ECompilationTarget>	binder{ se };
 		binder.Create();
-		binder.AddValue( "Vulkan",		ECompilationTarget::Vulkan );
-		binder.AddValue( "Metal_iOS",	ECompilationTarget::Metal_iOS );
-		binder.AddValue( "Metal_Mac",	ECompilationTarget::Metal_Mac );
-		StaticAssert( uint(ECompilationTarget::_Count) == 4 );
+		binder.BindAll();
 	}
 
 	void  ObjectStorage::Bind_EStructLayout (const ScriptEnginePtr &se)
@@ -1305,33 +1303,7 @@ namespace {
 	{
 		EnumBinder<EValueType>	binder{ se };
 		binder.Create();
-		switch_enum( EValueType::Unknown )
-		{
-			case EValueType::Unknown :
-			case EValueType::_Count :
-			#define BIND( _name_ )		case EValueType::_name_ : binder.AddValue( #_name_, EValueType::_name_ );
-			BIND( Bool8 )
-			BIND( Bool32 )
-			BIND( Int8 )
-			BIND( Int16 )
-			BIND( Int32 )
-			BIND( Int64 )
-			BIND( UInt8 )
-			BIND( UInt16 )
-			BIND( UInt32 )
-			BIND( UInt64 )
-			BIND( Float16 )
-			BIND( Float32 )
-			BIND( Float64 )
-			BIND( Int8_Norm )
-			BIND( Int16_Norm )
-			BIND( UInt8_Norm )
-			BIND( UInt16_Norm )
-			BIND( DeviceAddress )
-			#undef BIND
-			default : break;
-		}
-		switch_end
+		binder.BindAll();
 	}
 
 	void  ObjectStorage::Bind_EShaderPreprocessor (const ScriptEnginePtr &se)

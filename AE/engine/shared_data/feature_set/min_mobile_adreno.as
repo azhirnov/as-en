@@ -15,6 +15,7 @@ void ASmain ()
 	//	Adreno-830-1.3.284
 	//	Adreno-830-1.4.295-MS
 	//	Adreno-830-1.4.295
+	//	Adreno-840-1.4.295
 	//	AdrenoX1-45-Win-1.3.295
 	//	AdrenoX1-85-Linux-1.4.305
 	//	AdrenoX1-85-Win-1.3.295
@@ -77,7 +78,6 @@ void ASmain ()
 	fset.perPipeline_maxStorageBuffers (24);
 	fset.perPipeline_maxStorageImages (24);
 	fset.perPipeline_maxUniformBuffers (84);
-	fset.perPipeline_maxTotalResources (8388608);
 	fset.perStage_maxInputAttachments (8);
 	fset.perStage_maxSampledImages (128);
 	fset.perStage_maxSamplers (16);
@@ -85,6 +85,7 @@ void ASmain ()
 	fset.perStage_maxStorageImages (4);
 	fset.perStage_maxUniformBuffers (14);
 	fset.perStage_maxTotalResources (158);
+	fset.perDescSet_maxTotalResources (8 << 20);
 	fset.maxDescriptorSets (4);
 	fset.maxTexelOffset (7);
 	fset.maxTexelGatherOffset (31);

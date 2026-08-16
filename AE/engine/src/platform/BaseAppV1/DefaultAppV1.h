@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #pragma once
 
@@ -52,7 +52,7 @@ namespace AE::AppV1
 		Array<WindowPtr>			_windows;
 		RC<IBaseApp>				_impl;
 
-		const AppConfig				_config;
+		AppConfig					_config;
 		Threading::EThreadArray		_allowProcessInMain;
 
 
@@ -77,11 +77,15 @@ namespace AE::AppV1
 
 
 	protected:
-		ND_ bool  _OnStartImpl (IApplication &)							__NE___;
+		ND_ bool  _CreateWindow (IApplication &,
+								 const AppConfig::WindowDesc &,
+								 const AppConfig::VRConfig &)			__NE___;
 
+		// used in '_CreateWindow()'
 			void  _CreateVRDevice (IApplication &,
 								   ArrayView<IVRSession::EDeviceType>)	__NE___;
 
+		// used in 'OnStart()'
 		ND_ bool  _InitGraphics (IApplication &,
 								 const Graphics::GraphicsCreateInfo &)	__NE___;
 

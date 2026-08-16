@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 /*
 	Note:
 	- For maximum performance use 'NoBuffering' flag, but it requires to align size to FS block size (512b .. 4Kb).

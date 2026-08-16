@@ -1,4 +1,4 @@
-# Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+# Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 add_subdirectory( "base" )
 add_subdirectory( "scripting" )
@@ -15,13 +15,14 @@ add_subdirectory( "network_stress_test" )
 add_subdirectory( "atlas_tools" )
 add_subdirectory( "geometry_tools" )
 add_subdirectory( "res_loaders" )
+add_subdirectory( "pipeline_compiler" )
+add_subdirectory( "coop_mat" )
+add_subdirectory( "asset_packer" )
+add_subdirectory( "block_compression" )
 
 if (${AE_DESKTOP})
-	add_subdirectory( "asset_packer" )
 	add_subdirectory( "shader_trace" )
-	add_subdirectory( "pipeline_compiler" )
 	add_subdirectory( "lang_model" )
-	add_subdirectory( "coop_mat" )
 endif ()
 
 add_subdirectory( "test_launcher" )

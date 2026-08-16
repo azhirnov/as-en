@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #pragma once
 
@@ -23,15 +23,15 @@ namespace AE::Graphics
 
 	// methods
 	public:
-		RDescriptorAllocator ()										__NE___ {}
-		explicit RDescriptorAllocator (RmDescriptorAllocatorID id)	__NE___ : _dsAllocId{id} {}
-		~RDescriptorAllocator ()									__NE_OV;
+		RDescriptorAllocator ()														__NE___ {}
+		explicit RDescriptorAllocator (RmDescriptorAllocatorID id)					__NE___ : _dsAllocId{id} {}
+		~RDescriptorAllocator ()													__NE_OV;
 
-		ND_ RmDescriptorAllocatorID  Handle ()						C_NE___	{ return _dsAllocId; }
+		ND_ RmDescriptorAllocatorID  Handle ()										C_NE___	{ return _dsAllocId; }
 
 		// IDescriptorAllocator //
-		bool  Allocate (DescriptorSetLayoutID, OUT Storage &)		__NE_OV	{ return false; }
-		void  Deallocate (DescriptorSetLayoutID, INOUT Storage &)	__NE_OV	{}
+		bool  Allocate (DescriptorSetLayoutID, const DescSetParams*, OUT Storage &)	__NE_OV	{ return false; }
+		void  Deallocate (DescriptorSetLayoutID, INOUT Storage &)					__NE_OV	{}
 	};
 
 

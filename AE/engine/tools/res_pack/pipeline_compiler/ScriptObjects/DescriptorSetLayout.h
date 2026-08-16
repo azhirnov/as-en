@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #pragma once
 
@@ -97,6 +97,9 @@ namespace AE::PipelineCompiler
 		void  SetUsage (EDescSetUsage value)																												__Th___;
 		void  SetUsage2 (uint value)																														__Th___;
 
+		void  SetFlags (const String &name, EDescriptorFlags flags)																							__Th___;
+		void  SetFlags2 (const String &name, uint flags)																									__Th___;
+
 		void  ToGLSL (EShaderStages stages, uint dsBinding, INOUT String &outTypes, OUT String &outDecl, INOUT UniqueTypes_t &uniqueTypes)					C_Th___;
 		void  ToHLSL (EShaderStages stages, uint dsBinding, INOUT String &outTypes, OUT String &outDecl, INOUT UniqueTypes_t &uniqueTypes)					C_Th___;
 		void  ToMSL (EShaderStages stages, INOUT MSLBindings &bindings, INOUT String &outTypes, OUT String &outDecl, INOUT UniqueTypes_t &uniqueTypes)		C_Th___;
@@ -156,8 +159,11 @@ namespace AE::PipelineCompiler
 		void  _CheckStorageFormat (EPixelFormat fmt, bool isReadOnly)						C_Th___;
 		void  _CheckFields (const String &fields)											C_Th___;
 		void  _CheckStateForStorage (EResourceState state)									C_Th___;
+		void  _CheckDescriptorFlags (EDescriptorFlags)										C_Th___;
+		void  _CheckDescHeapSamplerArray (StringView, ArrayView<String> samplerNames)		C_Th___;
 
 		void  _ValidateShaderSample (INOUT EResourceState &state, EShaderStages stages)		C_Th___;
+		bool  _ValidateUniforms ()															__NE___;
 
 		void  _AddSRGB (const String &name, EImageType type)								__Th___;
 	};

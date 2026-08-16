@@ -1,8 +1,8 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 /*
 	Use 'FeatureSet'		to validate pipelines at resource compilation stage.
-	Use 'DeviceProperties'	for runtime limits like a alignment.
-	Use 'DeviceLimits'		for compile time limits like a alignment.
+	Use 'DeviceProperties'	for runtime limits like a offset alignment.
+	Use 'DeviceLimits'		for compile time limits like a offset alignment. This limit is always >= than 'DeviceProperties' reports.
 
 	[docs](https://github.com/azhirnov/as-en/blob/dev/AE/docs/engine/DeviceProperties.md)
 */
@@ -88,7 +88,7 @@ namespace AE::Graphics
 			POTBytes	minNonCoherentAtomSize;
 
 			POTBytes	minBufferCopyOffsetAlign;				// buffer <-> buffer copy alignment		Vulkan: optimal, Metal: required
-			POTBytes	minBufferCopyRowPitchAlign;				// buffer <-> image copy alignment		Vulkan: optimal, Metal: required
+			POTBytes	minBufferCopyRowPitchAlign;				// buffer <-> image copy alignment		Vulkan: optimal, Metal: required	// TODO: Vulkan requires 4b for non-graphics & non-compute queue
 
 			// video
 		//	POTBytes	minVideoBitstreamBufferOffsetAlignment;
@@ -123,7 +123,8 @@ namespace AE::Graphics
 			uint		meshTotalGroups			= 0;
 			uint		meshGroupCount [3]		= {};
 
-			uint		subgroupSize			= 0;	// TODO: POT
+			POTValue32	subgroupSize;			// Warning: on Intel it doesn't match with 'gl_SubgroupSize',
+												// use subgroup size control extension and explicitly set subgroup size.
 
 			bool		prefersLocalInvocationVertexOutput		: 1;
 			bool		prefersLocalInvocationPrimitiveOutput	: 1;
@@ -229,7 +230,7 @@ namespace AE::Graphics
 		{
 			constexpr CT_DeviceProperties ()
 			{
-				StaticAssert( sizeof(DeviceProperties) == 192 );
+				StaticAssert( sizeof(DeviceProperties) == 184 );
 
 				StaticAssert( sizeof(res) == 24 );
 				{
@@ -245,8 +246,8 @@ namespace AE::Graphics
 					res.maxBoundDescriptorSets				= 4;						// nvidia - 32,      amd -  32,   intel -   8,   mali -   4,   adreno -   4,   apple - 31
 					res.minMemoryMapAlign					= POTBytes_From< 4<<10 >;	// nvidia - 64,      amd -  64,   intel -  4k,   mali -  64,   adreno -  64,   apple - ?
 					res.minNonCoherentAtomSize				= POTBytes_From< 256 >;		// nvidia - 64,      amd - 128,   intel - 256,   mali -  64,   adreno -   1,   apple - 16/32/256
-					res.minBufferCopyOffsetAlign			= POTBytes_From< 512 >;		// nvidia -  1,      amd -   1,   intel - 128,   mali -  64,   adreno -  64,   apple - 1           other - 256
-					res.minBufferCopyRowPitchAlign			= POTBytes_From< 512 >;		// nvidia -  1,      amd -   1,   intel - 128,   mali -  64,   adreno -  64,   apple - 256         other - 256
+					res.minBufferCopyOffsetAlign			= POTBytes_From< 512 >;		// nvidia -  1,      amd -   1,   intel - 128,   mali -  64,   adreno -  64,   apple - 1           other - 512
+					res.minBufferCopyRowPitchAlign			= POTBytes_From< 512 >;		// nvidia -  1,      amd -   1,   intel - 128,   mali -  64,   adreno -  64,   apple - 256         other - 512
 				}
 				StaticAssert( sizeof(rayTracing) == 80 );
 				{

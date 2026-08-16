@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #pragma once
 
@@ -24,8 +24,8 @@ namespace AE::Graphics
 			CreateBuffer	= 1 << 4,	// exclusive sharing buffer
 
 			_Last,
-			_BITOPS_,
-			All				= ((_Last - 1) << 1) - 1
+			_BITOPS_		= 0,
+			All				= CT_AllBitMask2<EFlags>,
 		};
 
 

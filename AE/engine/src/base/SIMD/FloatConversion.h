@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 /*
 	SIMD version of 'base/Math/FloatConversion.h'
 */
@@ -14,6 +14,8 @@ struct SimdFloatConversion
 /*
 =================================================
 	FloatToHalf
+----
+	same as FloatConversion::ConvertBits_Fast()
 =================================================
 */
 public:
@@ -67,9 +69,10 @@ private:
 		}
 
 		m = m.template RShift_Logic< ManBitsDelta >().And( (1u<<HMan)-1 );
+		e = e.Max( 0 ).Min( int(HNanE) );
 
-		UIntV	v0		= m | e.Max( 0 ).template BitCast<UIntV>().template LShift_Logic< HMan >();	// default
-		UIntV	v1		= m.Or( HNanE << HMan );													// nan/inf
+		UIntV	v0		= m | e.template BitCast<UIntV>().template LShift_Logic< HMan >();	// default
+		UIntV	v1		= m.Or( HNanE << HMan );											// nan/inf
 
 		UIntV	c0		= src_e == UIntV{FNanE};
 		UIntV	c1		= src.And( (1u<<FSign)-1 ).IsZero();

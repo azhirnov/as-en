@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #pragma once
 
@@ -35,7 +35,7 @@ namespace AE::GeometryTools
 			_IndicesMode						= IndexedLineStrip | IndexedLineList | LineStrip,
 
 			Unknown								= 0,
-			_BITOPS_
+			_BITOPS_							= 0
 		};
 
 		using Index_t				= uint;

@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #ifdef AE_ENABLE_VULKAN
 # include "graphics_rhi/Vulkan/Resources/VPipelineCache.h"
@@ -14,7 +14,6 @@ namespace AE::Graphics
 */
 	VPipelineCache::~VPipelineCache () __NE___
 	{
-		DRC_EXLOCK( _drCheck );
 		CHECK( _cache == Default );
 	}
 
@@ -25,7 +24,6 @@ namespace AE::Graphics
 */
 	bool  VPipelineCache::_Create (const ResourceManager& resMngr, StringView dbgName, ArrayView<char> initialData) __NE___
 	{
-		DRC_EXLOCK( _drCheck );
 		CHECK_ERR( _cache == Default );
 
 		auto&	dev = resMngr.GetDevice();
@@ -96,8 +94,6 @@ namespace AE::Graphics
 */
 	void  VPipelineCache::Destroy (ResourceManager &resMngr) __NE___
 	{
-		DRC_EXLOCK( _drCheck );
-
 		if ( _cache != Default )
 		{
 			auto&	dev = resMngr.GetDevice();
@@ -115,8 +111,6 @@ namespace AE::Graphics
 */
 	bool  VPipelineCache::GetData (const VDevice &dev, OUT Array<char> &data) C_NE___
 	{
-		DRC_EXLOCK( _drCheck );
-
 		data.clear();
 
 		usize	size = 0;

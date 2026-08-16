@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #pragma once
 
@@ -156,16 +156,29 @@ namespace AE::Graphics
 		ubyte						m		= 0;
 		ubyte						n		= 0;
 		ubyte						k		= 0;
+		bool						satAccum = false;
 
 	// methods
-		CoopMatrixConfig ()							__NE___ {}
-		CoopMatrixConfig (const CoopMatrixConfig &)	__NE___ = default;
-		CoopMatrixConfig (CoopMatrixConfig &&)		__NE___ = default;
+		CoopMatrixConfig ()											__NE___ {}
+		CoopMatrixConfig (const CoopMatrixConfig &)					__NE___ = default;
+		CoopMatrixConfig (CoopMatrixConfig &&)						__NE___ = default;
 
-		explicit CoopMatrixConfig (ECoopMatrixCfg)	__NE___;
-		explicit operator ECoopMatrixCfg ()			C_NE___;
+		__Cx__ CoopMatrixConfig (ECoopMatrixComponentType AB,
+								 ECoopMatrixComponentType CR,
+								 uint M, uint N, uint K,
+								 bool satAccum = false)				__NE___ : a{AB}, b{AB}, c{CR}, res{CR}, m{ubyte(M)}, n{ubyte(N)}, k{ubyte(K)}, satAccum{satAccum} {}
 
-		ND_ ECoopMatrixCfg  ToECoopMatrixCfg ()		C_NE___;
+		explicit CoopMatrixConfig (ECoopMatrixCfg)					__NE___;
+		explicit operator ECoopMatrixCfg ()							C_NE___	{ return ToECoopMatrixCfg(); }
+
+		CoopMatrixConfig&	operator = (const CoopMatrixConfig &)	__NE___	= default;
+		ND_ bool			operator == (const CoopMatrixConfig &)	C_NE___ = default;
+
+		ND_ ECoopMatrixCfg  ToECoopMatrixCfg ()						C_NE___;
+
+	  #ifdef AE_ENABLE_LOGS
+		ND_ String  ToString ()										C_Th___;
+	  #endif
 	};
 
 
@@ -183,14 +196,29 @@ namespace AE::Graphics
 		bool						transpose				= false;
 
 	// methods
-		CoopVectorConfig ()							__NE___ {}
-		CoopVectorConfig (const CoopVectorConfig &)	__NE___ = default;
-		CoopVectorConfig (CoopVectorConfig &&)		__NE___ = default;
+		CoopVectorConfig ()														__NE___ {}
+		CoopVectorConfig (const CoopVectorConfig &)								__NE___ = default;
+		CoopVectorConfig (CoopVectorConfig &&)									__NE___ = default;
 
-		explicit CoopVectorConfig (ECoopVecCfg)		__NE___;
-		explicit operator ECoopVecCfg ()			C_NE___	{ return ToECoopVecCfg(); }
+		__Cx__ CoopVectorConfig (ECoopMatrixComponentType inputType,
+								 ECoopMatrixComponentType inputAndMatrixInterpretation,
+								 ECoopMatrixComponentType biasAndResultInterpretation,
+								 bool transpose)								__NE___ :
+			inputType{inputType}, inputInterpretation{inputAndMatrixInterpretation},
+			matrixInterpretation{inputAndMatrixInterpretation}, biasInterpretation{biasAndResultInterpretation},
+			resultType{biasAndResultInterpretation}, transpose{transpose} {}
 
-		ND_ ECoopVecCfg  ToECoopVecCfg ()			C_NE___;
+		explicit CoopVectorConfig (ECoopVecCfg)									__NE___;
+		explicit operator ECoopVecCfg ()										C_NE___	{ return ToECoopVecCfg(); }
+
+		CoopVectorConfig&	operator = (const CoopVectorConfig &)				__NE___	= default;
+		ND_ bool			operator == (const CoopVectorConfig &)				C_NE___ = default;
+
+		ND_ ECoopVecCfg		ToECoopVecCfg ()									C_NE___;
+
+	  #ifdef AE_ENABLE_LOGS
+		ND_ String  ToString ()													C_Th___;
+	  #endif
 	};
 
 } // AE::Graphics

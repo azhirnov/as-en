@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 /*
 	file system details:
 	https://en.wikipedia.org/wiki/Comparison_of_file_systems
@@ -217,7 +217,7 @@ namespace AE::Threading
 		_file{ file },
 		_fileSize{ GetFileSize( _file )},
 		_mode{ mode },
-		_align{ GetDirectAccessAlign( _file )}
+		_align{ GetDirectAccessAlign( _file DEBUG_ONLY(, filename ))}
 		DEBUG_ONLY(, _filename{ FileSystem::ToAbsolute( filename )})
 	{}
 
@@ -253,7 +253,7 @@ namespace AE::Threading
 		return	(AllBits( _mode, EMode::SequentialScan )	? ESourceType::SequentialAccess	: ESourceType::Unknown)	|
 				(AllBits( _mode, EMode::RandomAccess )	? ESourceType::RandomAccess		: ESourceType::Unknown)	|
 				ESourceType::Async		| ESourceType::FixedSize |
-				ESourceType::ThreadSafe	| ESourceType::ReadAccess;
+				ESourceType::ThreadSafe	| ESourceType::ReadOnly;
 	}
 
 /*
@@ -287,7 +287,7 @@ namespace AE::Threading
 */
 	UnixAsyncWDataSource::UnixAsyncWDataSource (Handle_t file, EMode DEBUG_ONLY(, Path filename)) __NE___ :
 		_file{ file },
-		_align{ GetDirectAccessAlign( _file )}
+		_align{ GetDirectAccessAlign( _file DEBUG_ONLY(, filename ))}
 		DEBUG_ONLY(, _filename{ FileSystem::ToAbsolute( filename )})
 	{}
 
@@ -320,7 +320,7 @@ namespace AE::Threading
 */
 	IDataSource::ESourceType  UnixAsyncWDataSource::GetSourceType () C_NE___
 	{
-		return	ESourceType::RandomAccess | ESourceType::WriteAccess | ESourceType::ThreadSafe | ESourceType::Async;
+		return	ESourceType::RandomAccess | ESourceType::WriteOnly | ESourceType::ThreadSafe | ESourceType::Async;
 	}
 
 /*

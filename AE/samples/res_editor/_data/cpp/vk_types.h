@@ -1,4 +1,4 @@
-//aea51dcf
+//135ab0a8
 #ifndef CameraData_DEFINED
 #	define CameraData_DEFINED
 	// size: 400, align: 16
@@ -168,18 +168,20 @@
 
 #ifndef ComputeMipPC_DEFINED
 #	define ComputeMipPC_DEFINED
-	// size: 16, align: 8 (16)
+	// size: 24, align: 8 (16)
 	struct ComputeMipPC
 	{
 		static constexpr auto   TypeName = ShaderStructName{HashVal32{0x68c279feu}};
 
-		float2  invResolution;
-		uint2   resolution;
+		float2  invDstResolution;
+		uint2   dstResolution;
+		uint2   srcResolution;
 	};
 #endif
-	StaticAssert( offsetof(ComputeMipPC, invResolution) == 0 );
-	StaticAssert( offsetof(ComputeMipPC, resolution) == 8 );
-	StaticAssert( sizeof(ComputeMipPC) == 16 );
+	StaticAssert( offsetof(ComputeMipPC, invDstResolution) == 0 );
+	StaticAssert( offsetof(ComputeMipPC, dstResolution) == 8 );
+	StaticAssert( offsetof(ComputeMipPC, srcResolution) == 16 );
+	StaticAssert( sizeof(ComputeMipPC) == 24 );
 
 #ifndef SceneGraphicsPassUB_DEFINED
 #	define SceneGraphicsPassUB_DEFINED

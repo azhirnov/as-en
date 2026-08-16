@@ -1,8 +1,8 @@
 
-wget -O external.zip "https://getfile.dokpub.com/yandex/get/https://disk.yandex.ru/d/QfvgJL2ypzGVAA"
+wget -O external.zip "https://getfile.dokpub.com/yandex/get/https://disk.yandex.ru/d/-RL5-ffLXJ50BA"
 
 HASH=$(sha256sum "external.zip" | awk '{print $1}')
-EXPECTED="EAE27EC285B040C87EE6657B3F9A9BF68723ECF6047DFDE12FC77E89683B2859"
+EXPECTED="CFCF706189070D3A453E1A4B9B7363FAFC257FA2B3268DA8B09678EF7B5AB6F7"
 
 if [[ "${HASH,,}" == "${EXPECTED,,}" ]]; then
 	unzip -f -d . 'external.zip'

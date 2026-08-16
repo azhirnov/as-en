@@ -42,7 +42,6 @@ void ASmain ()
 	fset.perPipeline_maxStorageBuffers (256);
 	fset.perPipeline_maxStorageImages (256);
 	fset.perPipeline_maxUniformBuffers (256);
-	fset.perPipeline_maxTotalResources (512);
 	fset.perStage_maxInputAttachments (8);
 	fset.perStage_maxSampledImages (128);
 	fset.perStage_maxSamplers (64);
@@ -50,6 +49,7 @@ void ASmain ()
 	fset.perStage_maxStorageImages (64);
 	fset.perStage_maxUniformBuffers (16);
 	fset.perStage_maxTotalResources (128);
+	fset.perDescSet_maxTotalResources (512);
 	fset.maxDescriptorSets (4);
 	fset.maxTexelOffset (7);
 	fset.maxFragmentOutputAttachments (8);

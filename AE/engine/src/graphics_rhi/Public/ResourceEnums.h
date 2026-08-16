@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #pragma once
 
@@ -29,30 +29,41 @@ namespace AE::Graphics
 	};
 
 
+	// Used only in aliased memory allocator.
+	// Allocator may put resources with different group into the same memory location.
+	enum class EMemAliasingGroup : ubyte
+	{
+		Unknown				= 0,
+
+		// user-defined
+	};
+
+
 	enum class EBufferUsage : uint
 	{
 		TransferSrc			= 1 << 0,
 		TransferDst			= 1 << 1,
-		UniformTexel		= 1 << 2,		// glsl: 'uniform samplerBuffer'
-		StorageTexel		= 1 << 3,		// glsl: 'uniform imageBuffer'
-		Uniform				= 1 << 4,		// uniform buffer
-		Storage				= 1 << 5,		// shader storage buffer
-		Index				= 1 << 6,		// index buffer
-		Vertex				= 1 << 7,		// vertex buffer
-		Indirect			= 1 << 8,		// indirect buffer for draw and dispatch
-		ShaderAddress		= 1 << 9,		// shader device address
+		UniformTexel		= 1 << 2,			// glsl: 'uniform samplerBuffer'
+		StorageTexel		= 1 << 3,			// glsl: 'uniform imageBuffer'
+		Uniform				= 1 << 4,			// uniform buffer
+		Storage				= 1 << 5,			// shader storage buffer
+		Index				= 1 << 6,			// index buffer
+		Vertex				= 1 << 7,			// vertex buffer
+		Indirect			= 1 << 8,			// indirect buffer for draw and dispatch
+		ShaderAddress		= 1 << 9,			// shader device address
 
 		// ray tracing & acceleration structure
-		ShaderBindingTable	= 1 << 10,		// shader binding table for ray tracing
-		ASBuild_ReadOnly	= 1 << 11,		// vertex, index, AABB, instance data, transform buffers
-		ASBuild_Scratch		= 1 << 12,		// scratch buffer for building acceleration structures
-		RTAS_Storage		= 1 << 13,		// store acceleration structure
+		ShaderBindingTable	= 1 << 10,			// shader binding table for ray tracing
+		ASBuild_ReadOnly	= 1 << 11,			// vertex, index, AABB, instance data, transform buffers
+		ASBuild_Scratch		= 1 << 12,			// scratch buffer for building acceleration structures
+		RTAS_Storage		= 1 << 13,			// store acceleration structure
 
 		// micromap
 		MMBuild_Scratch		= ASBuild_Scratch,	// scratch buffer for building micromap
 		MMBuild_ReadOnly	= 1 << 14,			// triangles, data, etc
 
 		ICB_Preprocess		= 1 << 15,			// indirect command buffer preprocessing buffer
+		//TileMemory		= 1 << 16,
 
 		_Last,
 		All					= ((_Last-1) << 1) - 1,
@@ -138,8 +149,9 @@ namespace AE::Graphics
 		ColorAttachment				= 1 << 4,		// color or resolve attachment
 		DepthStencilAttachment		= 1 << 5,		// depth/stencil attachment
 		InputAttachment				= 1 << 6,		// input attachment in shader
-		ShadingRate					= 1 << 7,		// shading rate attachment (defines fragment count in 4x4 region)
-		FragmentDensityMap			= 1 << 8,		// fragment density map attachment (defines tile scale for rasterization and FS)
+		ShadingRate					= 1 << 7,		// shading rate attachment, defines fragment count in 4x4 region
+		FragmentDensityMap			= 1 << 8,		// fragment density map attachment, defines tile scale for rasterization and FS. (requires 'fragmentDensityMap')
+		//TileMemory				= 1 << 9,
 		_Last,
 
 		All							= ((_Last-1) << 1) - 1,
@@ -161,14 +173,14 @@ namespace AE::Graphics
 		BlitDst						= 1 << 1,		// used to check format compatibility with Blit command
 		CubeCompatible				= 1 << 2,		// allows to create CubeMap and CubeMapArray from 2D Array
 		MutableFormat				= 1 << 3,		// allows to change image format
-		Array2DCompatible			= 1 << 4,		// allows to create 2D Array view from 3D image
-		BlockTexelViewCompatible	= 1 << 5,		// allows to create view with uncompressed format for compressed image
+		Array2DCompatible			= 1 << 4,		// allows to create 2D Array view from 3D image (requires 'maintenance1')
+		BlockTexelViewCompatible	= 1 << 5,		// allows to create view with uncompressed format for compressed image (requires 'imageViewExtendedUsage')
 
 		SparseResidency				= 1 << 6,		// allows unbound regions
 		SparseAliased				= 1 << 7,		// allows bind memory block to multiple regions or different images
 
 		Alias						= 1 << 8,		// two images can share same memory object
-		SampleLocationsCompatible	= 1 << 9,		// only for depth/stencil
+		SampleLocationsCompatible	= 1 << 9,		// only for depth/stencil (requires 'sampleLocations')
 
 		StorageAtomic				= 1 << 10,		// atomic operations on image
 		ColorAttachmentBlend		= 1 << 11,		// blend operations on color attachment
@@ -178,13 +190,13 @@ namespace AE::Graphics
 		FragmentPplnStore			= 1 << 15,		// storage image store and atomic operations in fragment shader
 
 		LossyRTCompression			= 1 << 16,		// allow to use hardware lossy compression for the color attachments
-		ExtendedUsage				= 1 << 17,		// image may not support all usage flags
+		ExtendedUsage				= 1 << 17,		// image may not support all usage flags (requires 'imageViewExtendedUsage')
 
 		Subsampled					= 1 << 18,		// intermediate attachments to use with fragment density map,
 													// when used fragment density map all other attachments in render pass
-													// must be created with this flag.
+													// must be created with this flag. (requires 'fragmentDensityMap')
 
-		SeparatePlanes				= 1 << 19,		// only for multiplanar formats, put each plane in separate memory, may add sampling cost
+		SeparatePlanes				= 1 << 19,		// only for multiplanar formats, put each plane in separate memory, may add sampling cost (requires 'samplerYcbcrConversion')
 
 		//DepthComparison	// TODO
 
@@ -525,11 +537,11 @@ namespace AE::Graphics
 		Android_DepthJPEG,
 		Android_DepthPointCloud,
 		Android_JPEG,
-		Android_Private,		// TODO: remove
+		//Android_Private,		// TODO: remove
 		Android_Raw16,			// -.
 		Android_Raw12,			// -|__ usually representing a single-channel Bayer-mosaic image
 		Android_Raw10,			// -|
-		Android_RawPrivate,		// -'	// TODO: remove
+		//Android_RawPrivate,	// -'	// TODO: remove
 		Android_NV16,			// EVideoFormat::NV16
 		Android_NV21,			// EVideoFormat::NV21
 		Android_YCBCR_P010,		// EVideoFormat::P010LE
@@ -549,7 +561,6 @@ namespace AE::Graphics
 
 	enum class EShaderIO : ubyte
 	{
-		Unknown		= 0,
 		Int,
 		UInt,
 		Float,

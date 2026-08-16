@@ -21,6 +21,8 @@ rmdir /Q /S "cicd\build"
 rmdir /Q /S "rg-device\.cxx"
 rmdir /Q /S "rg-device\build"
 
+rmdir /Q /S "res_editor\.cxx"
+rmdir /Q /S "res_editor\build"
 
 rmdir /Q /S "../engine/external/android-clang/AndroidTest/.gradle"
 cd ../build_scripts/android

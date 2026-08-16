@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #pragma once
 
@@ -127,5 +127,30 @@ namespace _hidden_
 
 	template <typename T, auto Count>
 	static constexpr T	CT_ToBitMask = _hidden_::_ToBitMask< T, Count >::mask;
+
+/*
+=================================================
+	CT_AllBitMask
+=================================================
+*/
+namespace _hidden_
+{
+	template <typename T>
+	struct _AllBitMask {
+		StaticAssert( IsEnum<T> );
+		using U = ToUnsignedInteger<T>;
+
+		static constexpr U	last_pot = U(T::_Last) - 1;
+		StaticAssert( CT_IsPowerOfTwo< last_pot >);
+		
+		static constexpr U	mask2	 = (last_pot << 1) - 1;
+		static constexpr T	mask	 = T(mask2);
+	};
+}
+	template <typename T>
+	static constexpr T		CT_AllBitMask = Base::_hidden_::_AllBitMask<T>::mask;
+	
+	template <typename T>
+	static constexpr auto	CT_AllBitMask2 = Base::_hidden_::_AllBitMask<T>::mask2;	// use it inside enum to fix error in GCC/clang
 
 } // AE::Base

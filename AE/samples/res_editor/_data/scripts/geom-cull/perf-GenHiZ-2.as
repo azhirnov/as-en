@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 /*
 	How to calculate mip levels for HiZ if source image is not power-of-2.
 
@@ -42,7 +42,7 @@
 		RC<Image>			rt			= Image( EPixelFormat::RGBA16F, SurfaceSize() );	rt.Name( "RT" );
 		RC<DynamicUInt>		repeat		= DynamicUInt();
 		RC<DynamicUInt>		raster		= DynamicUInt( 1 );
-		const bool			gfx_only	= false;	// some devices disable compression if have 'Storage' usage
+		const bool			gfx_only	= false;	// some devices disable compression if have 'Storage' usage for CS
 
 		RC<DynamicFloat>	time		= DynamicFloat();
 		RC<DynamicFloat>	time_ms		= time.Mul( 1000.0f );
@@ -52,7 +52,7 @@
 		Slider( repeat,		"Repeat",	1,	30 );
 
 		if ( not gfx_only )
-			Slider( raster,		"Gfx",	0,	1 );
+			Slider( raster,	"Gfx",		0,	1 );
 
 		// render loop //
 
@@ -83,7 +83,7 @@
 			pass.Output( "out_Color",		rt );
 			pass.ArgIn(  "un_Mipmaps",		mipmaps,		Sampler_NearestClamp );
 			pass.Slider( "iBeginEnd",		float2(0.0),	float2(1.0),	float2(0.0, 1.0) );
-			pass.Slider( "iMip",			-1,				5,				0 );
+			pass.Slider( "iMip",			-1,				8,				0 );
 			pass.Slider( "iGrid",			0,				1 );
 		}
 		Present( rt );
@@ -110,32 +110,33 @@
 #ifdef GEN_MIPMAP
 	#include "InvocationID.glsl"
 
-	// downsample 5x5 to 2x2
+	// example: downsample 5x5 to 2x2
 	//
 	// |0|1|2|3|4|
 	//  | 0 | 1 |
 
 	void  Main ()
 	{
-		int2	dim		= int2(iResolution) * 2;
+		uint2	dim		= pc.srcResolution; // gl.texture.GetSize( un_InImage, 0 );
+		float2	fdim	= float2(dim);
 		float2	inv_res	= iInvResolution;
 
-		float2	uv0		= (GetGlobalCoordUF().xy * inv_res) * dim;
-		float2	uv1		= ((GetGlobalCoordUF().xy + 1.0) * inv_res) * dim;
+		float2	uv0		= (GetGlobalCoordUF().xy * inv_res) * fdim;
+		float2	uv1		= ((GetGlobalCoordUF().xy + 1.0) * inv_res) * fdim;
 
 		float	d		= float_max;
 
 		int2	c0		= Max( int2(uv0), int2(0) );
-		int2	c1		= Min( int2(uv1), dim-1 );
+		int2	c1		= Min( int2(uv1), int2(dim-1) );
 
 		for (int y = c0.y; y <= c1.y; ++y)
 		for (int x = c0.x; x <= c1.x; ++x)
 		{
-			d = Min( d, gl.texture.Fetch( un_InImage, int2(x,y), 0 ).r);
+			d = Min( d, gl.texture.Fetch( un_InImage, int2(x,y), 0 ).r );
 		}
 
 		#ifdef SH_FRAG
-			out_Color = float4(d);
+			out_Color.r = d;
 		#else
 			gl.image.Store( un_OutImage, GetGlobalCoord().xy, float4(d) );
 		#endif

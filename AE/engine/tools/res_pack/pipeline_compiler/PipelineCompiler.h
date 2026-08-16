@@ -1,7 +1,8 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #pragma once
 
+#include "base/CompileTime/Math.h"
 #include "base/Math/BitMath.h"
 
 namespace AE::PipelineCompiler
@@ -18,7 +19,7 @@ namespace AE::PipelineCompiler
 		Folder						= 1 << 1,
 		RecursiveFolder				= 1 << 2,
 		_Last,
-		All							= ((_Last - 1) << 1) - 1,
+		All							= Base::CT_AllBitMask2<EPathParamsFlags>,
 	};
 
 
@@ -29,7 +30,7 @@ namespace AE::PipelineCompiler
 		RTechPass_Pipelines			= 1 << 1,
 		RTech_ShaderBindingTable	= 1 << 2,
 		_Last,
-		All							= ((_Last - 1) << 1) - 1,
+		All							= Base::CT_AllBitMask2<EReflectionFlags>,
 	};
 
 
@@ -39,7 +40,7 @@ namespace AE::PipelineCompiler
 		AddNameMapping					= 1 << 0,	// for debugging
 		IncludePipelinesFromCurrentDir	= 1 << 1,
 		SearchShadersInCurrentDir		= 1 << 2,
-		_BITOPS_
+		_BITOPS_						= 0
 	};
 
 

@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 /*
 	--- Task Dependencies ---
 
@@ -116,6 +116,8 @@ namespace AE::Threading
 		_Interrupted,
 		Canceled,		// task was externally canceled
 		Error,			// task has internal error
+
+		_Count
 	};
 }
 
@@ -168,7 +170,7 @@ namespace AE::_Coro_
 
 			DoNotRun			= 1 << 1,	// coroutine will never start.
 											// if all input dependency are complete then task marked as completed.
-			_BITOPS_
+			_BITOPS_			= 0
 		};
 
 		// Extra: 0 or 1 - weak or strong dependency
@@ -542,21 +544,21 @@ namespace AE::_Coro_
 
 		// implicit cast to AsyncTask
 		template <typename T = PromiseType>
-			requires( T::_allowImplicitCastToAsyncTask )
+		  requires( T::_allowImplicitCastToAsyncTask )
 		ND_ operator AsyncTask ()						CrNE___	{ return _coro; }
 
 		template <typename T = PromiseType>
-			requires( T::_allowImplicitCastToAsyncTask )
+		  requires( T::_allowImplicitCastToAsyncTask )
 		ND_ operator AsyncTask ()						rvNE___	{ return RVRef(_coro); }
 
 
 		// explicit cast to AsyncTask
 		template <typename T = PromiseType>
-			requires( not T::_allowImplicitCastToAsyncTask )
+		  requires( not T::_allowImplicitCastToAsyncTask )
 		ND_ explicit operator AsyncTask ()				CrNE___	{ return _coro; }
 
 		template <typename T = PromiseType>
-			requires( not T::_allowImplicitCastToAsyncTask )
+		  requires( not T::_allowImplicitCastToAsyncTask )
 		ND_ explicit operator AsyncTask ()				rvNE___	{ return RVRef(_coro); }
 
 
@@ -673,6 +675,9 @@ namespace AE::_Coro_
 	};
 
 
+	using PackedAsyncTaskPtr	= PackedPtr< AsyncTaskImpl >;
+
+
 	//
 	// Scheduled Inline Coroutine
 	//
@@ -683,13 +688,17 @@ namespace AE::_Coro_
 	public:
 		using promise_type	= InlineCoroImpl< Queue >;
 
+
 	// variables
 	private:
-		PackedPtr< AsyncTaskImpl >	_coro;
+		PackedAsyncTaskPtr	_coro;
+
+		StaticAssert( PackedAsyncTaskPtr::ExtraBits() >= 1 );	// need at least 1 bit
+
 
 	// methods
 	public:
-		explicit ScheduledInlineCoro (AsyncTaskImpl* ptr)				__NE___	{ _coro.SetPtr( ptr ); }
+		explicit ScheduledInlineCoro (AsyncTaskImpl* ptr)				__NE___	{ _coro.SetPtr( ptr );  ASSERT( _coro.Extra() == 0 ); }
 		~ScheduledInlineCoro ()											__NE___	{ _AddToScheduler(); }
 
 		operator BaseCoro<AsyncCoroImpl> ()								__NE___	{ _AddToScheduler();  return BaseCoro<AsyncCoroImpl>{ _coro.Ptr() }; }
@@ -852,12 +861,14 @@ namespace AE::_Coro_
 
 	// variables
 	private:
-		PackedPtr< AsyncTaskImpl >	_coro;
+		PackedAsyncTaskPtr	_coro;
+
+		StaticAssert( PackedAsyncTaskPtr::ExtraBits() >= 1 );	// need at least 1 bit
 
 
 	// methods
 	public:
-		explicit ScheduledInlinePromise (AsyncTaskImpl* ptr)		__NE___ { _coro.SetPtr( ptr ); }
+		explicit ScheduledInlinePromise (AsyncTaskImpl* ptr)		__NE___ { _coro.SetPtr( ptr );  ASSERT( _coro.Extra() == 0 ); }
 		~ScheduledInlinePromise ()									__NE___	{ _AddToScheduler(); }
 
 		operator BasePromise_t ()									__NE___	{ _AddToScheduler();  return BasePromise_t{_coro.Ptr()}; }
@@ -944,6 +955,8 @@ namespace AE::_Coro_
 		_TaskDependencyArray (TaskType const* ptr, usize count)		__NE___	: ArrayView<TaskType>{ptr, count} {}
 
 		_TaskDependencyArray (std::initializer_list<TaskType> list)	__NE___	: ArrayView<TaskType>{list.begin(), list.end()} {}
+
+		_TaskDependencyArray (MutableArrayView<TaskType> arr)		__NE___	: ArrayView<TaskType>{arr} {}
 
 		template <typename AllocT>
 		_TaskDependencyArray (const Array<TaskType,AllocT> &vec)	__NE___	: ArrayView<TaskType>{vec} {}
@@ -1292,13 +1305,16 @@ namespace AE::_Coro_
 		Nd__IF exact_t		operator -> ()	__NE___	{ return &get(); }
 		Nd__IF exact_t		operator * ()	__NE___	{ return get(); }
 
-		template <typename T = WrapT<Type>>	requires(T::_allowImplicitCast)
+		template <typename T = WrapT<Type>>
+		  requires(T::_allowImplicitCast)
 		Nd__IF operator Type const& ()		CrNE___	{ return get(); }
 
-		template <typename T = WrapT<Type>>	requires(T::_allowImplicitCast)
+		template <typename T = WrapT<Type>>
+		  requires(T::_allowImplicitCast)
 		Nd__IF operator Type & ()			r_NE___	{ return get(); }
 
-		template <typename T = WrapT<Type>>	requires(T::_allowImplicitCast)
+		template <typename T = WrapT<Type>>
+		  requires(T::_allowImplicitCast)
 		Nd__IF operator Type && ()			rvNE___	{ ASSERT( this->_bits.test(0) );  DEBUG_ONLY( this->_bits.reset(0) );  return RVRef( _result.Ref() ); }
 	};
 
@@ -2185,6 +2201,8 @@ namespace AE::Threading
 /*
 =================================================
 	CreateInline
+----
+	same as CreateAsync but used for inline coroutine
 =================================================
 */
 	template <typename CoroCtor, typename ...Args>
@@ -2201,7 +2219,7 @@ namespace AE::Threading
 		if constexpr( IsPromise< R >)
 			return Promise< typename R::promise_type::Result_t >{ RVRef(result) };
 		else
-			return AsyncTask{ RVRef(result) };
+			return AsyncTask{ RVRef(result) };	// TODO: this will add task to queue even if it is not needed, may be we should return inline coro type
 	}
 
 /*

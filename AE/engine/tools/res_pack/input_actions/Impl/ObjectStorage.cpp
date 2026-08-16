@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #include "res_pack/input_actions/Impl/ObjectStorage.h"
 
@@ -421,7 +421,6 @@ namespace
 
 } // AE::InputActions
 
-#include "platform/Private/EnumToString.h"
 #include "platform/Private/SerializableInputActions.cpp.h"
 #include "platform/GLFW/SerializableInputActionsGLFW.cpp.h"
 #include "platform/WinAPI/SerializableInputActionsWinAPI.cpp.h"

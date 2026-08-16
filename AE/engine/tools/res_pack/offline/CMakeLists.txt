@@ -1,6 +1,7 @@
-# Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+# Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
-if (TARGET "Scripting")
+if ( (TARGET "Scripting") AND (NOT ${AE_ANDROID_UI_MODE}) )
+
 	if (APPLE)
 		add_executable( "OfflinePacker" MACOSX_BUNDLE "main.cpp" )
 	else()
@@ -15,18 +16,20 @@ if (TARGET "Scripting")
 	set( CANVAS_VERTS_PATH	"${MAIN_SOURCE_DIR}/engine/src/graphics/Canvas/VertexTypes.as" )
 	set( UI_BINDINGS_PATH	"${MAIN_SOURCE_DIR}/engine/src/graphics/UI" )
 
-	if (NOT EXISTS ${CANVAS_VERTS_PATH})
-		message( FATAL_ERROR "Path '${CANVAS_VERTS_PATH}' is not exists" )
+	if (EXISTS ${CANVAS_VERTS_PATH})
+		target_compile_definitions( "OfflinePacker" PRIVATE AE_CANVAS_VERTS="${CANVAS_VERTS_PATH}" )
+	else()
+		message( STATUS "Path '${CANVAS_VERTS_PATH}' is not exists" )
 	endif()
-	if (NOT EXISTS ${UI_BINDINGS_PATH})
-		message( FATAL_ERROR "Path '${UI_BINDINGS_PATH}' is not exists" )
+
+	if (EXISTS ${UI_BINDINGS_PATH})
+		target_compile_definitions( "OfflinePacker" PRIVATE AE_UI_BINDINGS="${UI_BINDINGS_PATH}" )
+	else()
+		message( STATUS "Path '${UI_BINDINGS_PATH}' is not exists" )
 	endif()
 
 	target_compile_definitions( "OfflinePacker" PRIVATE
 		AE_SHARED_DATA="${AE_ENGINE_SHARED_DATA}"
-		AE_CANVAS_VERTS="${CANVAS_VERTS_PATH}"
-		AE_UI_BINDINGS="${UI_BINDINGS_PATH}"
-		#AE_DATA_FOLDER="${AE_DATA_FOLDER}"
 		AE_BUILD_ASSET_PACKER
 		AE_BUILD_INPUT_ACTIONS_BINDING
 		AE_BUILD_PIPELINE_COMPILER

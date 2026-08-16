@@ -1,4 +1,4 @@
-# Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+# Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 set( AE_EXTERNAL_BIN_PATH	"${CMAKE_CURRENT_SOURCE_DIR}/../../AE-Bin"	CACHE INTERNAL "" FORCE )
 set( AE_DATA_FOLDER			"${CMAKE_CURRENT_SOURCE_DIR}/../../AE-Data" CACHE INTERNAL "" FORCE )

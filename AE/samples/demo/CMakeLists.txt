@@ -1,9 +1,9 @@
-# Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+# Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 if (TARGET "Graphics")
 	file( GLOB_RECURSE CPP_SOURCES "*.h" "*.cpp" "*.as" "*.glsl" "*.msl" "*.md" )
 
-	if (ANDROID)
+	if (${AE_ANDROID_UI_MODE})
 		set( APP_NAME "SampleDemo" )
 		add_library( ${APP_NAME} SHARED ${CPP_SOURCES} )
 

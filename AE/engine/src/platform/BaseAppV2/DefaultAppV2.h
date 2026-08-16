@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 /*
 	--- AppCore ---
 
@@ -115,6 +115,7 @@ namespace AE::AppV2
 	  #else
 		ND_	bool  _InitVFS (const Path &archivePath)								__NE___;
 	  #endif
+		ND_	virtual bool  _InitVFS2 ()												__NE___;
 
 		ND_ bool  _InitInputActions (IInputActions &, VFS::FileName::Ref)			__NE___;
 
@@ -130,8 +131,6 @@ namespace AE::AppV2
 		ND_ virtual RC<IViewMode>	_CreateViewMode (ViewModeName::Ref)				__NE___ = 0;
 
 	private:
-		ND_	bool  _InitVFS2 ()														__NE___;
-
 			void  _StartRendering (IInputActions&, IOutputSurface&,
 								   IWindow::EState, IWindow*)						__NE___;
 	};

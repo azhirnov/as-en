@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #include "Perf_Common.h"
 
@@ -625,6 +625,145 @@ Write new shader which add only street lights:
 )"
 		);
 	}
+
+	static void  LLamaPerf_Test14 ()
+	{
+		LLamaPerf_RunTest2(
+			Path{OUTPUT_FOLDER} / AE_FUNCTION_NAME,
+			u8R"#(
+This code copy just 24x32 matrix instead of 32x32, why? Tile size in cfg is 16x16x16.
+```cpp
+
+	template <typename CType>
+	static void  CoopMat_Test2Impl (Executor &ex, const Graphics::CoopMatrixConfig &cfg, const uint mrows, const uint mcols)
+	{
+		const uint	rows_a	= cfg.m;
+		const uint	cols_a	= cfg.k;
+		const uint	rows_b	= cfg.k;
+		const uint	cols_b	= cfg.n;
+		const uint	rows_c	= cfg.m;
+		const uint	cols_c	= cfg.n;
+
+		const uint	M = mrows;
+		const uint	K = mcols;
+		const uint	N = mrows;
+
+		// A, B, C, R:		R = A * B + C
+		// M, N, K:			A[MxK], B[KxN], C[MxN], R[MxN]
+		CHECK( cols_a == rows_b );	// K tile
+		CHECK( rows_a == rows_c );	// M tile
+		CHECK( cols_b == cols_c );	// N tile
+
+		// large matrix which divided on tiles
+		const uint	num_tiles_m	= DivCeil( M, cfg.m );
+		const uint	num_tiles_n	= DivCeil( N, cfg.n );
+		const uint	wg_sg_count	= num_tiles_m * num_tiles_n;
+
+		CHECK( wg_sg_count > 0 );
+
+		// to avoid out-of-bounds read
+		CHECK( IsMultipleOf( M, cfg.m ));
+		CHECK( IsMultipleOf( N, cfg.n ));
+		CHECK( IsMultipleOf( K, cfg.k ));
+
+		const bool	is_fp32 = cfg.c == Graphics::ECoopMatrixComponentType::Float32;
+		CHECK( sizeof(CType) == (is_fp32 ? 4 : 2) );
+
+		for (uint t = 0; t < 2; ++t)
+		{
+			const bool		col_major	= t > 0;
+
+			String			src;
+			Array<half>		input_a, input_b;
+			Array<CType>	input_c, output;
+
+			input_a.resize( M * K, half::Zero() );
+			input_b.resize( K * N, half::Zero() );
+			input_c.resize( M * N, CType(0.f) );
+			output .resize( M * N, CType(0.f) );
+
+			FillWithLinearData( input_c, 0.02f,	0.1f );
+
+			src << "#define type_c		" << (is_fp32 ? "float" : "half") << '\n'
+				<< "#define c_scale		" << (is_fp32 ? "2" : "1") << '\n'		// because 'ex.Run()' gets 'sizeof(half)' - 2bytes
+				<< "#define rows_a		" << ToString( rows_a ) << '\n'
+				<< "#define cols_b		" << ToString( cols_b ) << '\n'
+				<< "#define rows_c		" << ToString( rows_c ) << '\n'
+				<< "#define cols_c		" << ToString( cols_c ) << '\n'
+				<< "#define layout		gl::CooperativeMatrixLayout::" << (col_major ? "ColumnMajor" : "RowMajor") << '\n'
+				<< "#define COL_MAJOR   " << ToString( col_major ? "1" : "0") << '\n'
+				<< "#define stride_c    " << ToString( (col_major ? M : N) * (is_fp32 ? 2 : 1) ) << '\n'
+				<< "#define num_tiles_n	" << ToString( num_tiles_n ) << '\n';
+
+			src << R"(
+				#define				OUT
+				#define CoopMatC	gl::CoopMat< type_c,  gl::Scope::Subgroup, rows_c, cols_c, gl::MatrixUse::C >
+
+				void Main ()
+				{
+					CoopMatC	c;
+
+					uint	tile_n		= gl.subgroup.GroupIndex % num_tiles_n;
+					uint	tile_m		= gl.subgroup.GroupIndex / num_tiles_n;
+
+					uint	offset_n	= cols_b * tile_n;
+					uint	offset_m	= rows_a * tile_m;
+
+					// in elements
+				  #if COL_MAJOR
+					uint	first_c		= (offset_n * rows_c + offset_m) * c_scale;
+				  #else
+					uint	first_c		= (offset_m * cols_c + offset_n) * c_scale;
+				  #endif
+
+					gl.CoopMatLoad( OUT c, un_InputC.data, first_c, stride_c, layout );
+
+					// whole subgroup must store data
+					gl.CoopMatStore( c, OUT un_Output.data, first_c, stride_c, layout );
+				}
+			)";
+			CHECK_FATAL( ex.Run( src, BufCast(input_a), BufCast(input_b), BufCast(input_c), BufCast(output), sizeof(half), wg_sg_count ));
+
+
+			TestMatMulAdd<half, half, CType>( input_a, input_b, input_c, output, MatrixDim{K, M}, MatrixDim{N, K}, MatrixDim{N, M}, col_major );
+		}
+	}
+
+
+	static void  CoopMat_Test2 (Executor &ex)
+	{
+		using namespace AE::Graphics;
+
+		const uint	size = 32; // M,N,K
+
+		auto	mat_bits = GraphicsScheduler().GetFeatureSet().cooperativeMatrixConfig;
+		for (auto e : mat_bits)
+		{
+			CoopMatrixConfig	cfg{e};
+
+			if ( cfg.a != ECoopMatrixComponentType::Float16 or
+				 cfg.b != ECoopMatrixComponentType::Float16 or
+				 cfg.c != cfg.res )
+				continue;
+
+			AE_LOGI( "Test config: "s << ToString(e) );
+
+			switch ( cfg.c )
+			{
+				case ECoopMatrixComponentType::Float16 :
+					CoopMat_Test2Impl<half>( ex, cfg, size, size );
+					break;
+
+				case ECoopMatrixComponentType::Float32 :
+					CoopMat_Test2Impl<float>( ex, cfg, size, size );
+					break;
+			}
+		}
+	}
+```)#" );
+
+		// correct answer: incorrect stride_c, must be `(offset_n * M + offset_m) * c_scale;` and `(offset_m * N + offset_n) * c_scale;`
+	}
 //-----------------------------------------------------------------------------
 }
 
@@ -644,4 +783,5 @@ extern void Perf_LLamaTokensPerSecond ()
 	LLamaPerf_Test11();
 	LLamaPerf_Test12();
 	LLamaPerf_Test13();
+	LLamaPerf_Test14();
 }

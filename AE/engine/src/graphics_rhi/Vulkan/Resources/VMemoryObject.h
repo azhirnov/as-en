@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #pragma once
 
@@ -20,8 +20,7 @@ namespace AE::Graphics
 		GfxMemAllocatorPtr				_memAllocator;
 		IGfxMemAllocator::Storage_t		_storage;
 
-		GFX_DBG_ONLY(	DebugName_t		_debugName;	)
-		DRC_ONLY(		RWDataRaceCheck	_drCheck;	)
+		GFX_DBG_ONLY( DebugName_t		_debugName;	)
 
 
 	// methods
@@ -36,7 +35,7 @@ namespace AE::Graphics
 
 		ND_ bool  GetMemoryInfo (OUT VulkanMemoryObjInfo &) C_NE___;
 
-		GFX_DBG_ONLY( ND_ StringView  GetDebugName ()		C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _debugName; })
+		GFX_DBG_ONLY( ND_ StringView  GetDebugName ()		C_NE___	{ return _debugName; })
 	};
 
 

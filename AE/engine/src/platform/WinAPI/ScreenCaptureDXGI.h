@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 /*
 	refs
 	https://github.com/microsoft/Windows-classic-samples/tree/main/Samples/DXGIDesktopDuplication

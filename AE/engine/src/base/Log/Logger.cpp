@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #include "base/Defines/StdInclude.h"
 
@@ -22,6 +22,7 @@
 #include "base/Platforms/ThreadUtils.h"
 #include "base/FileSystem/FileSystem.h"
 #include "base/Platforms/Platform.h"
+#include "base/Debug/StackTrace.h"
 
 
 #ifdef AE_PLATFORM_EMSCRIPTEN
@@ -44,42 +45,12 @@ namespace
 	ScopeToString
 =================================================
 */
-	ND_ static StringView  ScopeToString (ELogScope scope) __NE___
+	ND_ static String  ScopeToString (ELogScope scope) __Th___
 	{
-		switch_enum( scope )
-		{
-			case ELogScope::GraphicsDriver :	return "GraphicsDriver ";	break;
-			case ELogScope::Engine :			return "Engine ";			break;
-			case ELogScope::Client :			return "Client ";			break;
-			case ELogScope::System :			return "System ";			break;
-			case ELogScope::Network :			return "Network ";			break;
-
-			case ELogScope::Unknown :
-			case ELogScope::_Count :
-			default :							return {};
-		}
-		switch_end
-	}
-
-/*
-=================================================
-	LevelToString
-=================================================
-*/
-	ND_ static StringView  LevelToString (ELogLevel level) __NE___
-	{
-		switch_enum( level )
-		{
-			case ELogLevel::Debug :			return "Debug";	break;
-			case ELogLevel::Info :			return "Info";	break;
-			case ELogLevel::Warning :		return "Warn";	break;
-			case ELogLevel::Error :			return "Error";	break;
-			case ELogLevel::Fatal :			return "Fatal";	break;
-
-			case ELogLevel::_Count :
-			default :						return {};
-		}
-		switch_end
+		String	str{ToString( scope )};
+		if ( not str.empty() )
+			str << ' ';
+		return str;
 	}
 
 /*
@@ -117,6 +88,22 @@ namespace
 		return id;
 	}
 
+/*
+=================================================
+	GetCallStack
+=================================================
+*/
+	ND_ String  GetCallStack () __Th___
+	{
+		#ifdef AE_PLATFORM_WINDOWS
+			constexpr StringView	fname = "base\\Log\\Log.cpp";
+		#else
+			constexpr StringView	fname = "base/Log/Log.cpp";
+		#endif
+
+		return StackTrace::ToString( fname );
+	}
+
 } // namespace
 //-----------------------------------------------------------------------------
 
@@ -131,7 +118,7 @@ namespace
 	ILogger::EResult  VisualStudioLogOutput::Process (const MessageInfo &info)
 	{
 		const String	str = String{info.loc.FileName()} << '(' << ToString( info.loc.Line() ) << "): "
-							<< ScopeToString( info.scope ) << LevelToString( info.level )
+							<< ScopeToString( info.scope ) << ToString( info.level )
 							<< ": " << info.message << '\n';
 
 		::OutputDebugStringA( str.c_str() );	// thread safe
@@ -146,13 +133,28 @@ namespace
 */
 	ILogger::EResult  VSCodeLogOutput::Process (const MessageInfo &info)
 	{
-		const String	str = String{info.loc.FileName()} << ':' << ToString( info.loc.Line() ) << ": "
-							<< ScopeToString( info.scope ) << LevelToString( info.level )
-							<< ": in " << info.loc.FunctionName() << ": " << info.message << '\n';
+		const StringView	c_Reset		= "\033[0m";
+		const StringView	c_Red		= "\033[91m";
+		const StringView	c_Orange	= "\033[33m";
+
+		String	str;
+		switch ( info.level )
+		{
+			case ELevel::Warning :	str << c_Orange;	break;
+			case ELevel::Error :
+			case ELevel::Fatal :	str << c_Red; 		break;
+		}
+
+		str << info.loc.FileName() << ':' << ToString( info.loc.Line() ) << ": "
+			<< ScopeToString( info.scope ) << ToString( info.level )
+			<< ": in " << info.loc.FunctionName() << ": " << info.message;
+
+		if ( info.level >= ELevel::Warning )
+			str << c_Reset;
 
 		{
 			EXLOCK( _guard );
-			std::cout << str;
+			std::cout << str << std::endl;
 		}
 		return EResult::Unknown;
 	}
@@ -185,8 +187,8 @@ namespace
 	DialogLogOutput
 =================================================
 */
-#if defined(AE_PLATFORM_WINDOWS) or \
-	defined(AE_PLATFORM_APPLE) or \
+#if defined(AE_PLATFORM_WINDOWS)	or \
+	defined(AE_PLATFORM_APPLE)		or \
 	defined(AE_PLATFORM_LINUX)
 
 	ILogger::EResult  DialogLogOutput::Process (const MessageInfo &info)
@@ -205,8 +207,8 @@ namespace
 		String	str	= "File:      "s << FileSystem::ToShortPath( info.loc.FileName() ) <<
 					  "\nLine:     " << ToString( info.loc.Line() ) <<
 					  "\nFunction: " << info.loc.FunctionName() <<
-					  "\nScope:    " << ScopeToString( info.scope ) <<
-					//"\nLevel     " << LevelToString( info.level ) <<
+					  "\nScope:    " << ToString( info.scope ) <<
+					//"\nLevel     " << ToString( info.level ) <<
 					  "\n\nMessage:\n";
 		{
 			usize	pos = 0;
@@ -339,6 +341,12 @@ namespace
 		#elif defined(AE_PLATFORM_EMSCRIPTEN)
 			return MakeUnique<DialogLogOutputEms>( levelBits, scopeBits );
 
+		#elif defined(AE_PLATFORM_EMSCRIPTEN)
+			return MakeUnique<AndroidToastLogOutput>( levelBits, scopeBits );
+
+		#elif defined(AE_PLATFORM_ANDROID) and defined(AE_ANDROID_CONSOLE_MODE)
+			return MakeUnique<ConsolePauseOnError>();
+
 		#else
 			Unused( levelBits, scopeBits );
 			return ILogger::CreateBreakOnError();
@@ -376,15 +384,16 @@ namespace
 		String	short_path	{ FileSystem::ToShortPath( info.loc.FileName() )};
 		String	tid			= ToString<16>( MinimizeThreadID( ThreadUtils::GetIntID() ));
 
+	  #if 1
 		for (; offset < info.message.size();)
 		{
-			const usize	max = Min( offset + CountOf(buf)-1, info.message.size() );
-			usize		end = Clamp( info.message.rfind( '\n', max ), offset, max );
-						end = (max - end < 5 ? max : ((float(end - offset) / float(max - offset)) < 0.7f ? max : end));
-			const usize	pos = end - offset;
+			const usize	max		= Min( offset + CountOf(buf)-5, info.message.size() );
+			usize		end		= Clamp( info.message.rfind( '\n', max ), offset, max );
+						end		= (end - offset == 0) ? info.message.size() : end;
+			const usize	size	= end - offset;
 
-			MemCopy( OUT buf, Sizeof(buf), info.message.data() + offset, Bytes{pos} );
-			buf[pos] = 0;
+			MemCopy( OUT buf, Sizeof(buf), info.message.data() + offset, Bytes{size} );
+			buf[size] = 0;
 
 			// thread safe
 			if ( offset == 0 ){
@@ -394,11 +403,75 @@ namespace
 			}
 			offset = end;
 		}
+	  #else
+			Unused( __android_log_print( log_level, _tag.c_str(), "[%s] %s (%i): %s", tid.c_str(), short_path.c_str(), info.loc.Line(), info.message.data() ));
+	  #endif
+
+		if ( info.level >= ELevel::Error )
+		{
+			String	cs = GetCallStack();
+			if ( not cs.empty() )
+			{
+				"callstack:\n" >> cs;
+				Unused( __android_log_write( log_level, _tag.c_str(), cs.c_str() ));
+			}
+		}
 
 		return EResult::Unknown;
 	}
 
+/*
+=================================================
+	AndroidToastLogOutput
+=================================================
+*/
+	namespace {
+		static Mutex					s_ToastLogGuard;
+		static FixedArray<String, 16>	s_ToastLog;
+	}
+
+	ILogger::EResult  AndroidToastLogOutput::Process (const MessageInfo &info)
+	{
+		if_likely( not (_levelBits[ usize(info.level) ] and _scopeBits[ usize(info.scope) ] ))
+			return EResult::Unknown;
+
+		const usize		max_len	= 128;
+		usize			len		= Min( info.message.size(), max_len );
+		String			msg;
+
+		if ( len < info.message.size() )
+			msg = String{info.message.substr( 0, len )} << "...";
+		else
+			msg = String{info.message};
+
+		{
+			EXLOCK( s_ToastLogGuard );
+
+			if ( not s_ToastLog.IsFull() )
+				s_ToastLog.push_back( RVRef(msg) );
+		}
+		return EResult::Unknown;
+	}
+
+/*
+=================================================
+	ExtractToast
+=================================================
+*/
+	String  AndroidToastLogOutput::ExtractToast () __NE___
+	{
+		EXLOCK( s_ToastLogGuard );
+
+		if ( s_ToastLog.empty() )
+			return {};
+
+		String	res = RVRef(s_ToastLog.front());
+		s_ToastLog.erase( 0 );
+		return res;
+	}
+
 #endif // AE_PLATFORM_ANDROID
+
 
 /*
 =================================================
@@ -408,6 +481,13 @@ namespace
 	ILogger::EResult  ConsoleLogOutput::Process (const MessageInfo &info)
 	{
 		String	str = String{ FileSystem::ToShortPath( info.loc.FileName() )} << '(' << ToString( info.loc.Line() ) << "): " << info.message;
+
+		if ( info.level >= ELevel::Error )
+		{
+			String	cs = GetCallStack();
+			if ( not cs.empty() )
+				str << "\ncallstack:\n" << cs;
+		}
 
 	  #if defined(AE_PLATFORM_WINDOWS) and not (defined(AE_CI_BUILD_TEST) or defined(AE_CI_BUILD_PERF))
 		switch_enum( info.level )
@@ -424,10 +504,22 @@ namespace
 		switch_end
 	  #endif
 
-		str << '\n';
+	  #if defined(AE_PLATFORM_UNIX_BASED) and not (defined(AE_CI_BUILD_TEST) or defined(AE_CI_BUILD_PERF))
+		const StringView	c_Reset		= "\033[0m";
+		const StringView	c_Red		= "\033[91m";
+		const StringView	c_Orange	= "\033[33m";
+
+		switch ( info.level )
+		{
+			case ELevel::Warning :	c_Orange >> str;	str << c_Reset;		break;
+			case ELevel::Error :
+			case ELevel::Fatal :	c_Red >> str; 		str << c_Reset;		break;
+		}
+	  #endif
+
 		{
 			EXLOCK( _guard );
-			std::cout << str;
+			std::cout << str << std::endl;
 		}
 		return EResult::Unknown;
 	}
@@ -455,7 +547,7 @@ namespace
 
 		Unused( tag );
 
-		#ifdef AE_PLATFORM_ANDROID
+		#if defined(AE_PLATFORM_ANDROID) and not defined(AE_ANDROID_CONSOLE_MODE)
 			if ( tag.empty() )
 				tag = "<<<< AE >>>>";
 
@@ -467,6 +559,25 @@ namespace
 		#else
 			return MakeUnique<ConsoleLogOutput>();
 		#endif
+	}
+//-----------------------------------------------------------------------------
+
+
+/*
+=================================================
+	ConsolePauseOnError
+=================================================
+*/
+	ILogger::EResult  ConsolePauseOnError::Process (const MessageInfo &info) __Th___
+	{
+		if_unlikely( info.level >= ELogLevel::Error )
+		{
+			EXLOCK( _guard );
+			std::cout << "pause on error, press any key to continue " << std::endl;
+			char key;
+			std::cin >> key;
+		}
+		return EResult::Continue;
 	}
 //-----------------------------------------------------------------------------
 
@@ -494,7 +605,7 @@ namespace
 		if_likely( _file )
 		{
 			String str;
-			str << "[l:" << LevelToString( info.level ) << ", s:" << ScopeToString( info.scope ) << ", t:";
+			str << "[l:" << ToString( info.level ) << ", s:" << ToString( info.scope ) << ", t:";
 
 			// thread name
 			{
@@ -548,7 +659,7 @@ namespace
 		if ( file )
 		{
 			AE_LOG_DBG( "Created text logger to file '"s << ToString( FileSystem::ToAbsolute( path )) << "'" );
-			return MakeUnique<HtmlLogOutput>( RVRef(file), true );
+			return MakeUnique<FileLogOutput>( RVRef(file) );
 		}
 		return LoggerPtr{};
 	}
@@ -701,52 +812,22 @@ namespace
 			str << "  (file: '" << FileSystem::ToShortPath( info.loc.FileName() ) << "', line: " << ToString( info.loc.Line() ) << ")</font>";
 		}
 
-	  #if defined(__cpp_lib_stacktrace) and not defined(AE_COMPILER_GCC)
 		if_unlikely( info.level >= ELevel::Warning )
 		{
-			"<details><summary>" >> str;
-			str << "</summary>  callstack:\n";
-
-			_SetColor( EColor::DarkGrey, bg_col, INOUT str );
-
-			#ifdef AE_PLATFORM_WINDOWS
-				constexpr StringView	fname = "base\\Log\\Log.cpp";
-			#else
-				constexpr StringView	fname = "base/Log/Log.cpp";
-			#endif
-
-			auto		stack	= std::stacktrace::current();
-			auto		it		= stack.begin();
-			usize		i		= 0;
-			const usize	count	= stack.size();
-
-			// skip logger functions
+			String	cs = GetCallStack();
+			if ( not cs.empty() )
 			{
-				for (; i < count; ++i, ++it) {
-					if_unlikely( HasSubString( it->source_file(), fname )) {
-						++i;  ++it;
-						break;
-					}
-				}
-				for (; i < count; ++i, ++it) {
-					if_unlikely( not HasSubString( it->source_file(), fname ))
-						break;
-				}
+				"<details><summary>" >> str;
+				str << "</summary>  callstack:\n";
+
+				_SetColor( EColor::DarkGrey, bg_col, INOUT str );
+
+				str << cs << "</font></details>";
 			}
-
-			for (; i < count; ++i, ++it)
-			{
-				if ( it->source_file().empty() )
-					break;
-
-				str << "    " << FileSystem::ToShortPath( it->source_file() ) << '(' << ToString( it->source_line() ) << "): " << it->description() << '\n';
-			}
-
-			str.pop_back();
-			str << "</font></details>";
+			else
+				str << "\n";
 		}
 		else
-	  #endif
 			str << "\n";
 
 

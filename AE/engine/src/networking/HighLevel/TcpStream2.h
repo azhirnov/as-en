@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 /*
 	Thread-safe: must be externally synchronized
 	Use single coroutine with send/receive loop to avoid sync issues.
@@ -62,8 +62,11 @@ namespace AE::Networking
 		// Thread-safe:  yes
 		ND_ bool  IsClosed ()														C_NE___	{ return _isClosed.load(); }
 
+		ND_ bool  IsConnectionLost ()												C_NE___	{ return _connectionLost; }
+
 		// connect single client
-		ND_ auto  WaitForClient (TimePoint_t endTime)								__NE___ -> InlCoro;
+		ND_ auto  WaitForClient (TimePoint_t endTime,
+								 const SourceLoc loc = SourceLoc::current())		__NE___ -> InlCoro;
 		ND_ bool  IsConnected ()													C_NE___	{ return _client.IsOpen(); }
 
 		// send without buffering
@@ -81,7 +84,7 @@ namespace AE::Networking
 								TimePoint_t endTime)								__NE___ -> InlPromise<Bytes>;	// TODO: unsafe
 
 		// read without pause
-		ND_ Bytes ReadReceived (OUT void* data, Bytes size)							__NE___;
+		ND_ Bytes  ReadReceived (OUT void* data, Bytes size)						__NE___;
 
 		ND_ TcpSocket const&	ClientSocket ()										C_NE___	{ return _client; }
 
@@ -92,6 +95,9 @@ namespace AE::Networking
 
 		template <typename MsgType>
 		ND_ auto  _ReceiveAndEncode (TimePoint_t endTime)							__NE___;
+
+		template <typename MsgType>
+		ND_ auto  _ReceiveAndEncodeOrCancel (TimePoint_t endTime)					__NE___;
 
 		template <typename MsgType>
 		ND_ auto  _SyncReceiveAndEncode ()											__NE___ -> RC<MsgType>;
@@ -110,7 +116,8 @@ namespace AE::Networking
 		ND_ auto  _InitClient (IpAddress addr,
 							   Bytes bufferSize,
 							   Ptr<Serializing::ObjectFactory> factory,
-							   TimePoint_t endTime)									__NE___ -> InlCoro;
+							   TimePoint_t endTime,
+							   const SourceLoc loc = SourceLoc::current())		__NE___ -> InlCoro;
 
 	private:
 		ND_ bool  _Init (Bytes bufferSize,
@@ -142,20 +149,24 @@ namespace AE::Networking
 
 	public:
 		ReceiveAndEncodeAwaiter (TcpStream2 &s)										__NE___ : _self{s}, _endTime{HighResClock::now() + seconds{1}}, _isStrong{false} {}
-		ReceiveAndEncodeAwaiter (TcpStream2 &s, TimePoint_t endTime)				__NE___ : _self{s}, _endTime{endTime}, _isStrong{true} {}
+		ReceiveAndEncodeAwaiter (TcpStream2 &s, TimePoint_t endTime, Bool isStrong)	__NE___ : _self{s}, _endTime{endTime}, _isStrong{isStrong} {}
 
 		NdCx__ bool  await_ready ()													C_NE___	{ return false; }
 		NdCx__ auto  await_resume ()												C_NE___	{ return _msg; }		// return result of 'co_await'
 
 		template <typename P>
-		Nd____ bool  await_suspend (std::coroutine_handle<P> curCoro)				__NE___;
+		Nd____ bool  await_suspend (std::coroutine_handle<P> curCoro,
+									const SourceLoc	&loc = SourceLoc::current())	__NE___;
 	};
 
 	template <typename MsgType>
 	auto  TcpStream2::_ReceiveAndEncode ()											__NE___	{ return ReceiveAndEncodeAwaiter<MsgType>{ *this }; }
 
 	template <typename MsgType>
-	auto  TcpStream2::_ReceiveAndEncode (TimePoint_t endTime)						__NE___	{ return ReceiveAndEncodeAwaiter<MsgType>{ *this, endTime }; }
+	auto  TcpStream2::_ReceiveAndEncode (TimePoint_t endTime)						__NE___	{ return ReceiveAndEncodeAwaiter<MsgType>{ *this, endTime, False{"weak"} }; }
+
+	template <typename MsgType>
+	auto  TcpStream2::_ReceiveAndEncodeOrCancel (TimePoint_t endTime)				__NE___	{ return ReceiveAndEncodeAwaiter<MsgType>{ *this, endTime, True{"strong"} }; }
 
 /*
 =================================================
@@ -164,7 +175,7 @@ namespace AE::Networking
 */
 	template <typename MsgType>
 	template <typename P>
-	bool  TcpStream2::ReceiveAndEncodeAwaiter<MsgType>::await_suspend (std::coroutine_handle<P> curCoro) __NE___
+	bool  TcpStream2::ReceiveAndEncodeAwaiter<MsgType>::await_suspend (std::coroutine_handle<P> curCoro, const SourceLoc &loc) __NE___
 	{
 		_msg = _self._Encode<MsgType>();
 		if ( _msg )
@@ -183,7 +194,7 @@ namespace AE::Networking
 			return false;  // resume
 		}
 
-		return _Coro_::CoroAwaiterImpl::AwaitSuspendImpl2( curCoro.promise(), Tuple{SocketDependency{ _self._client, _endTime }}, Bool{_isStrong} );  // suspend
+		return _Coro_::CoroAwaiterImpl::AwaitSuspendImpl2( curCoro.promise(), Tuple{SocketDependency{ _self._client, _endTime, loc }}, Bool{_isStrong} );  // suspend
 	}
 
 /*
@@ -257,7 +268,7 @@ namespace AE::Networking
 
 /*
 =================================================
-	Encode
+	_Encode
 =================================================
 */
 	template <typename MsgType>

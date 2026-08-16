@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #include "UnitTest_Common.h"
 
@@ -73,7 +73,7 @@ namespace
 		TEST_Eq( data.finalCnt.load(), data.last_task_count );
 
 		for (auto& task : last_tasks) {
-			TEST( task->Status() == ETaskStatus::Completed );
+			TEST_Eq( task->Status(), ETaskStatus::Completed );
 		}
 	}
 }

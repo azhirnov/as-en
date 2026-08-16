@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #include "res_pack/pipeline_compiler/Compiler/SpirvCompiler.h"
 
@@ -43,7 +43,7 @@
 #	pragma message("GLSL-Trace library is missing, shader debugging and profiling will be disabled")
 #endif
 
-#if GLSLANG_VERSION_MAJOR != 16 or GLSLANG_VERSION_MINOR != 2
+#if GLSLANG_VERSION_MAJOR != 16 or GLSLANG_VERSION_MINOR != 3
 #	pragma message("invalid glslang version")
 #endif
 
@@ -611,6 +611,13 @@ namespace AE::PipelineCompiler
 			return false;
 		}
 
+		if ( auto* comp_warn = shader->getInfoLog();
+			 comp_warn != null and *comp_warn != 0 and not EndsWith( comp_warn, "ERROR: Source entry point must be \"main\"\n"sv ))
+		{
+			log += comp_warn;
+			_OnCompilationFailed( in, includer, INOUT log );
+		}
+
 		glslangData.prog.addShader( shader.get() );
 
 		if ( not glslangData.prog.link( messages ))
@@ -618,6 +625,12 @@ namespace AE::PipelineCompiler
 			log += glslangData.prog.getInfoLog();
 			_OnCompilationFailed( in, includer, INOUT log );
 			return false;
+		}
+
+		if ( auto* link_warn = glslangData.prog.getInfoLog();  link_warn != null and *link_warn != 0 )
+		{
+			log += link_warn;
+			_OnCompilationFailed( in, includer, INOUT log );
 		}
 
 		if ( not glslangData.prog.mapIO() )
@@ -1521,7 +1534,7 @@ namespace AE::PipelineCompiler
 
 		if ( type.isSubpass() )
 		{
-			StaticAssert( uint(EShaderIO::_Count) == 13 );
+			StaticAssert( uint(EShaderIO::_Count) == 12 );
 			switch( type.getSampler().type )
 			{
 				case TBasicType::EbtFloat :		return EShaderIO::Float;
@@ -1535,7 +1548,7 @@ namespace AE::PipelineCompiler
 
 		COMP_CHECK_ERR( type.getVectorSize() == 4 );
 
-		StaticAssert( uint(EShaderIO::_Count) == 13 );
+		StaticAssert( uint(EShaderIO::_Count) == 12 );
 		switch ( type.getBasicType() )
 		{
 			case TBasicType::EbtFloat :		return EShaderIO::Float;

@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 // [Multithreading test](https://github.com/azhirnov/as-en/blob/dev/AE/engine/tools/lfas/Tests/Test_LfIndexedPool3.cpp)
 // [Performance test]()

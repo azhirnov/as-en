@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 #include <asset_packer.as>
 
 void Style ()
@@ -32,7 +32,7 @@ void Style ()
 			style.MouseOver	( col_mouse_over, 1.01 );
 			style.TouchDown	( col_touch_down, 0.99 );
 			style.Selected	( col_selected	 );
-		}/*{
+		}{
 			RC<UIFontStyle>		style = collection.AddFontStyle( "text_red" );
 			style.Pipeline	( "ui.font_alpha" );
 			style.Disabled	( col_disabled );
@@ -40,8 +40,8 @@ void Style ()
 			style.MouseOver	( col_mouse_over );
 			style.TouchDown	( col_touch_down );
 			style.Selected	( col_selected );
-			style.Font		( "ui-sdf-font" );
-		}*/
+			style.Font		( "ui-font" );
+		}
 	}
 
 	// green
@@ -69,7 +69,7 @@ void Style ()
 			style.MouseOver	( col_mouse_over, 1.02 );
 			style.TouchDown	( col_touch_down, 0.98 );
 			style.Selected	( col_selected	 );
-		}/*{
+		}{
 			RC<UIFontStyle>		style = collection.AddFontStyle( "text_green" );
 			style.Pipeline	( "ui.font_alpha" );
 			style.Disabled	( col_disabled );
@@ -77,8 +77,8 @@ void Style ()
 			style.MouseOver	( col_mouse_over );
 			style.TouchDown	( col_touch_down );
 			style.Selected	( col_selected );
-			style.Font		( "ui-sdf-font" );
-		}*/
+			style.Font		( "ui-font" );
+		}
 	}
 
 	collection.DebugPipeline( "ui.dbgDraw" );

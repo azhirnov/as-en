@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #pragma once
 
@@ -26,6 +26,10 @@ namespace AE::Base
 	private:
 		usize		_value	= 0;
 
+	  RC_TRACK_ALL_REFS(
+		public: uint	_uid = 0;
+	  )
+
 
 	// methods
 	public:
@@ -34,55 +38,55 @@ namespace AE::Base
 		__Cx__ PackedRC (Default_t)							__NE___ {}
 
 		enum class DontIncRef {};
-		__Cx__ explicit PackedRC (T* ptr, DontIncRef)		__NE___ { _Set( ptr ); }
+		__Cx__ explicit PackedRC (T* ptr, DontIncRef)		__NE___ { _SetPtr( ptr ); }
 
-		explicit PackedRC (T* ptr)							__NE___ { _Inc( ptr );			_Set( ptr ); }
-		explicit PackedRC (Ptr<T> ptr)						__NE___ { _Inc( ptr.get() );	_Set( ptr.get() ); }
-		explicit PackedRC (Ref<T> ref)						__NE___ { _Inc( &ref );			_Set( &ref ); }
-		explicit PackedRC (const RC<T> &other)				__NE___	{ _Inc( other.get() );	_Set( other.get() ); }
+		explicit PackedRC (T* ptr)							__NE___ { _Inc( ptr );			_SetPtr( ptr ); }
+		explicit PackedRC (Ptr<T> ptr)						__NE___ { _Inc( ptr.get() );	_SetPtr( ptr.get() ); }
+		explicit PackedRC (Ref<T> ref)						__NE___ { _Inc( &ref );			_SetPtr( &ref ); }
+		explicit PackedRC (const RC<T> &other)				__NE___	{ _Inc( other.get() );	_SetPtr( other.get() ); }
 
-		PackedRC (RC<T> &&other)							__NE___	{ _Set( other.release() ); }
-		PackedRC (Self &&other)								__NE___ : _value{other.GetRawData()}	{ Unused( other.release() ); }
+		PackedRC (RC<T> &&other)							__NE___	{ _SetPtr( other.release() );	RC_TRACK_ALL_REFS( _uid = other._uid;  other._uid = 0; )}
+		PackedRC (Self &&other)								__NE___ : _value{other.GetRawData()}	{ Unused(other.release());  RC_TRACK_ALL_REFS( _uid = other._uid;  other._uid = 0; )}
 		PackedRC (const Self &other)						__NE___ : _value{other.GetRawData()}	{ _Inc( other.get() ); }
 
 		template <typename B, usize C>
 				  requires( IsBaseOfNotSame< T, B >)
-		__Cx__ PackedRC (PackedRC<B,C> &&other)				__NE___ : _value{other.GetRawData()}	{ Unused( static_cast<T*>(other.release()) ); }
+		__Cx__ PackedRC (PackedRC<B,C> &&other)				__NE___ : _value{other.GetRawData()}	{ Unused(other.release());  RC_TRACK_ALL_REFS( _uid = other._uid;  other._uid = 0; )}
 
 		template <typename B, usize C>
 				  requires( IsBaseOfNotSame< T, B >)
-		PackedRC (const PackedRC<B,C> &other)				__NE___ : _value{other.GetRawData()}	{ _Inc( static_cast<T*>(other.get()) ); }
+		PackedRC (const PackedRC<B,C> &other)				__NE___ : _value{other.GetRawData()}	{ _Inc( get() ); }
 
 
 		template <typename B, usize C>
 				  requires( IsBaseOfNotSame< B, T >)
-		explicit PackedRC (PackedRC<B,C> &&other)			__NE___ : _value{other.GetRawData()}	{ Unused( static_cast<T*>(other.release()) ); }
+		explicit PackedRC (PackedRC<B,C> &&other)			__NE___ : _value{other.GetRawData()}	{ Unused(other.release());  RC_TRACK_ALL_REFS( _uid = other._uid;  other._uid = 0; )}
 
 		template <typename B, usize C>
 				  requires( IsBaseOfNotSame< B, T >)
-		explicit PackedRC (const PackedRC<B,C> &other)		__NE___ : _value{other.GetRawData()}	{ _Inc( static_cast<T*>(other.get()) ); }
+		explicit PackedRC (const PackedRC<B,C> &other)		__NE___ : _value{other.GetRawData()}	{ _Inc( get() ); }
 
 
 		~PackedRC ()										__NE___ { _Dec(); }
 
 		Self&  operator = (std::nullptr_t)					__NE___ {						_Dec();  _value = 0;			return *this; }
 		Self&  operator = (Default_t)						__NE___ {						_Dec();  _value = 0;			return *this; }
-		Self&  operator = (T* rhs)							__NE___ { _Inc( rhs );			_Dec();  _Set( rhs );			return *this; }
-		Self&  operator = (Ptr<T> rhs)						__NE___ { _Inc( rhs.get() );	_Dec();  _Set( rhs.get() );		return *this; }
-		Self&  operator = (Ref<T> rhs)						__NE___ { _Inc( &rhs );			_Dec();  _Set( &rhs );			return *this; }
-		Self&  operator = (const RC<T> &rhs)				__NE___ { _Inc( rhs.get() );	_Dec();  _value = rhs._value;	return *this; }
-		Self&  operator = (const Self &rhs)					__NE___ { _Inc( rhs.get() );	_Dec();  _value = rhs._value;	return *this; }
+		Self&  operator = (T* rhs)							__NE___ { _Set( rhs );			return *this; }
+		Self&  operator = (Ptr<T> rhs)						__NE___ { _Set( rhs.get() );	return *this; }
+		Self&  operator = (Ref<T> rhs)						__NE___ { _Set( &rhs );			return *this; }
+		Self&  operator = (const RC<T> &rhs)				__NE___ { _Set( rhs.get() );	return *this; }
 
-		Self&  operator = (Self &&rhs)						__NE___ { ASSERT( this != &rhs );	_Dec();  _value = rhs._value;  Unused(rhs.release());  return *this; }
-		Self&  operator = (RC<T> &&rhs)						__NE___	{							_Dec();  _Set( rhs.release() );  return *this; }
-
-		template <typename B, usize C>
-				  requires( IsBaseOfNotSame< T, B >)
-		Self&  operator = (PackedRC<B,C> &&rhs)				__NE___ { _Dec();  _value = rhs.GetRawData();  Unused( static_cast<T*>(rhs.release()) );  return *this; }
+		Self&  operator = (const Self &rhs)					__NE___;
+		Self&  operator = (Self &&rhs)						__NE___;
+		Self&  operator = (RC<T> &&rhs)						__NE___;
 
 		template <typename B, usize C>
 				  requires( IsBaseOfNotSame< T, B >)
-		Self&  operator = (const PackedRC<B,C> &rhs)		__NE___ { T* r = static_cast<T*>(rhs.get());  _Inc( r );  _Dec();  _value = rhs.GetRawData();  return *this; }
+		Self&  operator = (PackedRC<B,C> &&rhs)				__NE___;
+
+		template <typename B, usize C>
+				  requires( IsBaseOfNotSame< T, B >)
+		Self&  operator = (const PackedRC<B,C> &rhs)		__NE___;
 
 		NdCx__ bool  operator == (const T* rhs)				C_NE___ { return get() == rhs; }
 		NdCx__ bool  operator == (Ptr<T> rhs)				C_NE___ { return get() == rhs.get(); }
@@ -111,8 +115,8 @@ namespace AE::Base
 		template <typename B>
 		NdCx__ explicit operator RC<B> ()					C_NE___	{ return RC<B>{ get() }; }
 
-			void		attach (T* ptr)						__NE___ {				_Dec();  _Set( ptr ); }
-			void		reset (T* ptr)						__NE___ { _Inc( ptr );	_Dec();  _Set( ptr ); }
+			void		attach (T* ptr)						__NE___ {				_Dec();  _SetPtr( ptr ); }
+			void		reset (T* ptr)						__NE___ { _Inc( ptr );	_Dec();  _SetPtr( ptr ); }
 			void		reset ()							__NE___ {				_Dec();  _value = 0; }
 
 			void		Swap (INOUT Self &rhs)				__NE___;
@@ -123,15 +127,49 @@ namespace AE::Base
 		NdCx__ usize		GetRawData ()					C_NE___	{ return _value; }
 
 	private:
-		static	void	_Inc (T* ptr)						__NE___;
-				void	_Dec ()								__NE___;
-				void	_Set (T* p)							__NE___	{ _value = BitCast<usize>( p );  ASSERT( Extra() == 0 ); }
+			void	_Set (T* ptr)							__NE___;
+			void	_Inc (T* ptr)							__NE___;
+			void	_Dec ()									__NE___;
+
+			void	_SetPtr (T* p)							__NE___	{ _value = BitCast<usize>( p );  ASSERT( Extra() == 0 ); }
 	};
 
 
 /*
 =================================================
-	_Inc / _Dec
+	_Set
+----
+	inc other ref
+	dec self
+	copy ref to self
+=================================================
+*/
+	template <typename T, usize C>
+	void  PackedRC<T,C>::_Set (T* ptr) __NE___
+	{
+		StaticAssert( IsBaseOf< EnableRCBase, T >);
+
+		uint	uid = 0;
+
+		if_likely( ptr != null )
+		{
+		  #ifdef AE_RC_TRACK_ALL_REFS
+			RefCounterUtils::IncRef( *ptr, OUT uid );
+		  #else
+			RefCounterUtils::IncRef( *ptr );
+			Unused( uid );
+		  #endif
+		}
+
+		_Dec();
+
+		_SetPtr( ptr );
+		RC_TRACK_ALL_REFS( _uid = uid; )
+	}
+
+/*
+=================================================
+	_Inc (self)
 =================================================
 */
 	template <typename T, usize C>
@@ -140,19 +178,31 @@ namespace AE::Base
 		StaticAssert( IsBaseOf< EnableRCBase, T >);
 
 		if_likely( ptr != null )
+		{
+		  #ifdef AE_RC_TRACK_ALL_REFS
+			RefCounterUtils::IncRef( *ptr, OUT _uid );
+		  #else
 			RefCounterUtils::IncRef( *ptr );
+		  #endif
+		}
 	}
 
+/*
+=================================================
+	_Dec (self)
+=================================================
+*/
 	template <typename T, usize C>
 	void  PackedRC<T,C>::_Dec () __NE___
 	{
 		StaticAssert( IsBaseOf< EnableRCBase, T >);
 
 		T*	ptr = get();
-		if_unlikely( RefCounterUtils::DecRefAndRelease( INOUT ptr ) == 1 )
+		if_unlikely( RefCounterUtils::DecRefAndRelease( INOUT ptr  RC_TRACK_ALL_REFS(, _uid )) == 1 )
 		{
 			_value = 0;
 		}
+		RC_TRACK_ALL_REFS( _uid = 0; )
 	}
 
 /*
@@ -166,5 +216,77 @@ namespace AE::Base
 		std::swap( _value, rhs._value );
 	}
 
+/*
+=================================================
+	operator =
+=================================================
+*/
+	template <typename T, usize C>
+	PackedRC<T,C>&  PackedRC<T,C>::operator = (const Self &rhs) __NE___
+	{
+		_Inc( rhs.get() );
+		RC_TRACK_ALL_REFS( uint  uid = _uid;)
+
+		_Dec();
+		RC_TRACK_ALL_REFS( _uid = uid; )
+
+		_value = rhs._value;
+		return *this;
+	}
+
+	template <typename T, usize C>
+	PackedRC<T,C>&  PackedRC<T,C>::operator = (PackedRC<T,C> &&rhs) __NE___
+	{
+		ASSERT( this != &rhs );
+
+		_Dec();
+		_value = rhs._value;
+
+		Unused(rhs.release());
+		RC_TRACK_ALL_REFS( _uid = rhs._uid;  rhs._uid = 0; )
+		return *this;
+	}
+
+	template <typename T, usize C>
+	PackedRC<T,C>&  PackedRC<T,C>::operator = (RC<T> &&rhs) __NE___
+	{
+		_Dec();
+		_SetPtr( rhs.release() );
+		RC_TRACK_ALL_REFS( _uid = rhs._uid;  rhs._uid = 0; )
+		return *this;
+	}
+
+/*
+=================================================
+	operator =
+=================================================
+*/
+	template <typename T, usize C>
+	template <typename B, usize S>
+		requires( IsBaseOfNotSame< T, B >)
+	PackedRC<T,C>&  PackedRC<T,C>::operator = (PackedRC<B,S> &&rhs) __NE___
+	{
+		_Dec();
+		_value = rhs.GetRawData();
+
+		Unused(rhs.release());
+		RC_TRACK_ALL_REFS( _uid = rhs._uid;  rhs._uid = 0; )
+		return *this;
+	}
+
+	template <typename T, usize C>
+	template <typename B, usize S>
+		requires( IsBaseOfNotSame< T, B >)
+	PackedRC<T,C>&  PackedRC<T,C>::operator = (const PackedRC<B,S> &rhs) __NE___
+	{
+		_Inc( static_cast<T*>(rhs.get()) );
+		RC_TRACK_ALL_REFS( uint  uid = _uid;)
+
+		_Dec();
+		RC_TRACK_ALL_REFS( _uid = uid; )
+
+		_value = rhs.GetRawData();
+		return *this;
+	}
 
 } // AE::Base

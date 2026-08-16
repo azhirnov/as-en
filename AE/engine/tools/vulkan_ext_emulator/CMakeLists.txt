@@ -1,4 +1,4 @@
-# Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+# Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 if (${AE_ENABLE_VULKAN})
 	file( GLOB_RECURSE HPP_SOURCES "*.h" )

@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #include "pch/Base.h"
 
@@ -25,3 +25,4 @@ int main (const int argc, char const* argv[])
 }
 
 #include "graphics_rhi/Private/ImageMemView.cpp"
+#include "graphics_rhi/Private/BufferMemView.cpp"

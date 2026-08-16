@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 /*
 	Multithreading:
 	  use io_uring per thread ([ref](https://github.com/axboe/liburing/issues/571#issuecomment-1106480309)).

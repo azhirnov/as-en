@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #ifdef AE_ENABLE_VULKAN
 # include "graphics_rhi/Vulkan/VulkanLoader.h"
@@ -326,6 +326,71 @@ namespace {
 
 /*
 =================================================
+	DescriptorBuffer_DisableOldAPI
+=================================================
+*/
+	void  VulkanDeviceFnTable::DescriptorBuffer_DisableOldAPI () __NE___
+	{
+		// TODO
+	}
+
+/*
+=================================================
+	DescriptorHeap_DisableOldAPI
+=================================================
+*/
+	void  VulkanDeviceFnTable::DescriptorHeap_DisableOldAPI () __NE___
+	{
+	#define VK_RESET_FN( _name_ )	_var_##_name_ = Dummy_##_name_;
+
+		// descriptor pool //
+		VK_RESET_FN( vkCreateDescriptorSetLayout );
+		VK_RESET_FN( vkGetDescriptorSetLayoutSupportKHR );
+		VK_RESET_FN( vkDestroyDescriptorSetLayout );
+
+		VK_RESET_FN( vkCreateDescriptorPool );
+		VK_RESET_FN( vkDestroyDescriptorPool );
+
+		VK_RESET_FN( vkAllocateDescriptorSets );
+		VK_RESET_FN( vkFreeDescriptorSets );
+		VK_RESET_FN( vkUpdateDescriptorSets );
+
+		VK_RESET_FN( vkCreateDescriptorUpdateTemplateKHR );
+		VK_RESET_FN( vkDestroyDescriptorUpdateTemplateKHR );
+		VK_RESET_FN( vkUpdateDescriptorSetWithTemplateKHR );
+
+		VK_RESET_FN( vkCreatePipelineLayout );
+		VK_RESET_FN( vkDestroyPipelineLayout );
+
+		VK_RESET_FN( vkCmdBindDescriptorSets );
+		VK_RESET_FN( vkCmdPushConstants );
+
+		// push descriptor //
+		VK_RESET_FN( vkCmdPushDescriptorSetKHR );
+		VK_RESET_FN( vkCmdPushDescriptorSetWithTemplateKHR );
+
+		// descriptor buffer //
+		VK_RESET_FN( vkCmdBindDescriptorBufferEmbeddedSamplersEXT );
+		VK_RESET_FN( vkCmdBindDescriptorBuffersEXT );
+		VK_RESET_FN( vkCmdSetDescriptorBufferOffsetsEXT );
+
+		VK_RESET_FN( vkGetDescriptorEXT );
+		VK_RESET_FN( vkGetDescriptorSetLayoutBindingOffsetEXT );
+		VK_RESET_FN( vkGetDescriptorSetLayoutSizeEXT );
+
+		// maintenance6 //
+		VK_RESET_FN( vkCmdBindDescriptorSets2KHR );
+		VK_RESET_FN( vkCmdPushConstants2KHR );
+		VK_RESET_FN( vkCmdSetDescriptorBufferOffsets2EXT );
+		VK_RESET_FN( vkCmdBindDescriptorBufferEmbeddedSamplers2EXT );
+		VK_RESET_FN( vkCmdPushDescriptorSet2KHR );
+		VK_RESET_FN( vkCmdPushDescriptorSetWithTemplate2KHR );
+
+	#undef VK_RESET_FN
+	}
+
+/*
+=================================================
 	SetupInstanceBackwardCompatibility
 =================================================
 */
@@ -390,15 +455,15 @@ namespace {
 			VK_COMPAT( vkGetImageMemoryRequirements2KHR,		vkGetImageMemoryRequirements2		);
 			VK_COMPAT( vkGetBufferMemoryRequirements2KHR,		vkGetBufferMemoryRequirements2		);
 			VK_COMPAT( vkGetImageSparseMemoryRequirements2KHR,	vkGetImageSparseMemoryRequirements2	);
-		/*
-		  // VK_KHR_sampler_ycbcr_conversion
-			VK_COMPAT( vkCreateSamplerYcbcrConversionKHR,		vkCreateSamplerYcbcrConversion		);
-			VK_COMPAT( vkDestroySamplerYcbcrConversionKHR,		vkDestroySamplerYcbcrConversion		);
 
 		  // VK_KHR_descriptor_update_template
 			VK_COMPAT( vkCreateDescriptorUpdateTemplateKHR,		vkCreateDescriptorUpdateTemplate	);
 			VK_COMPAT( vkDestroyDescriptorUpdateTemplateKHR,	vkDestroyDescriptorUpdateTemplate	);
 			VK_COMPAT( vkUpdateDescriptorSetWithTemplateKHR,	vkUpdateDescriptorSetWithTemplate	);
+		/*
+		  // VK_KHR_sampler_ycbcr_conversion
+			VK_COMPAT( vkCreateSamplerYcbcrConversionKHR,		vkCreateSamplerYcbcrConversion		);
+			VK_COMPAT( vkDestroySamplerYcbcrConversionKHR,		vkDestroySamplerYcbcrConversion		);
 
 		  // VK_KHR_device_group
 			VK_COMPAT( vkGetDeviceGroupPeerMemoryFeaturesKHR,	vkGetDeviceGroupPeerMemoryFeatures	);

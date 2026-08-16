@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #include "res_pack/pipeline_compiler/ScriptObjects/DescriptorSetLayout.h"
 #include "res_pack/pipeline_compiler/ScriptObjects/Common.inl.h"
@@ -228,12 +228,6 @@ namespace
 */
 	void  DescriptorSetLayout::ToGLSL (EShaderStages stages, const uint dsBinding, INOUT String &outTypes, OUT String &outDecl, INOUT UniqueTypes_t &uniqueTypes) C_Th___
 	{
-		const auto	ArraySizeToStr = [] (ArraySize_t arraySize)
-		{{
-			return	arraySize == 0 ? " []"s	:
-					arraySize == 1 ? ""s	: (" [" + ToString(arraySize) + ']');
-		}};
-
 		const auto	ImageToStr = [] (EImageType type, StringView typeName)
 		{{
 			String	str;
@@ -337,6 +331,25 @@ namespace
 		String&			str				= outDecl;
 		EShaderStages	prev_stages		= Default;
 		const bool		single_stage	= IsSingleBitSet( stages );
+		const bool		is_desc_heap	= AllBits( _dsLayout.usage, EDescSetUsage::DescriptorHeap );
+
+		const auto		BindingToStr	= [is_desc_heap, &ds_idx] (StringView binding) -> String
+		{{
+			if ( is_desc_heap )
+				return "  layout(descriptor_heap"s;
+			else
+				return "  layout(set="s << ds_idx << ", binding=" << binding;
+		}};
+
+		const auto		ArraySizeToStr	= [is_desc_heap] (ArraySize_t arraySize)
+		{{
+			if ( is_desc_heap )
+				return " []"s;
+
+			return	arraySize == 0 ? " []"s	:
+					arraySize == 1 ? ""s	: (" [" + ToString(arraySize) + ']');
+		}};
+
 
 		for (auto& [name, un] : _dsLayout.uniforms)
 		{
@@ -378,7 +391,7 @@ namespace
 						<< "\n  // size: " << ToString( un.buffer.staticSize );
 					if ( un.buffer.HasDynamicOffset() )
 						str << ", dynamic offset";
-					str << "\n  layout(set=" << ds_idx << ", binding=" << idx_str << ", std140) "
+					str << '\n' << BindingToStr( idx_str ) << ", std140) "
 						<< "uniform AE_Type_" << aux_info->type->Typename() << '_' << name_str << " {\n"
 						<< fields << "  } " << name_str << ArraySizeToStr( un.arraySize ) << ";\n";
 					break;
@@ -396,23 +409,23 @@ namespace
 						<< ", array stride: " << ToString( un.buffer.arrayStride );
 					if ( un.buffer.HasDynamicOffset() )
 						str << ", dynamic offset";
-					str << "\n  layout(set=" << ds_idx << ", binding=" << idx_str << ", std430) " << AccessToStr( aux_info->access, un.buffer.state )
+					str << '\n' << BindingToStr( idx_str ) << ", std430) " << AccessToStr( aux_info->access, un.buffer.state )
 						<< " buffer AE_Type_" << aux_info->type->Typename() << '_' << name_str << " {\n"
 						<< fields << "  } " << name_str << ArraySizeToStr( un.arraySize ) << ";\n";
 					break;
 				}
 				case EDescriptorType::UniformTexelBuffer :
 				{
-					str << "  // state: " << ToString( un.texelBuffer.state )
-						<< "\n  layout(set=" << ds_idx << ", binding=" << idx_str << ") uniform " << ImageToStr( un.texelBuffer.type, "sampler" )
+					str << "  // state: " << ToString( un.texelBuffer.state ) << '\n'
+						<< BindingToStr( idx_str ) << ") uniform " << ImageToStr( un.texelBuffer.type, "sampler" )
 						<< ' ' << name_str << ArraySizeToStr( un.arraySize ) << ";\n";
 					break;
 				}
 				case EDescriptorType::StorageTexelBuffer :
 				{
 					CHECK_THROW_MSG( aux_info != null );
-					str << "  // state: " << ToString( un.texelBuffer.state )
-						<< "\n  layout(set=" << ds_idx << ", binding=" << idx_str << ") "
+					str << "  // state: " << ToString( un.texelBuffer.state ) << '\n'
+						<< BindingToStr( idx_str ) << ") "
 						<< AccessToStr( aux_info->access, un.texelBuffer.state ) << " uniform " << ImageToStr( un.texelBuffer.type, "image" )
 						<< ' ' << name_str << ArraySizeToStr( un.arraySize ) << ";\n";
 					break;
@@ -420,8 +433,8 @@ namespace
 				case EDescriptorType::StorageImage :
 				{
 					CHECK_THROW_MSG( aux_info != null );
-					str << "  // state: " << ToString( un.image.state )
-						<< "\n  layout(set=" << ds_idx << ", binding=" << idx_str;
+					str << "  // state: " << ToString( un.image.state ) << '\n'
+						<< BindingToStr( idx_str );
 					if ( un.image.format != Default )
 						str << ", " << FormatToStr( un.image.format );
 					str	<< ") " << AccessToStr( aux_info->access, un.image.state )
@@ -431,8 +444,8 @@ namespace
 				}
 				case EDescriptorType::SampledImage :
 				{
-					str << "  // state: " << ToString( un.image.state )
-						<< "\n  layout(set=" << ds_idx << ", binding=" << idx_str << ") uniform "
+					str << "  // state: " << ToString( un.image.state ) << '\n'
+						<< BindingToStr( idx_str ) << ") uniform "
 						<< ImageToStr( un.image.type, "texture" ) << ' ' << name_str
 						<< ArraySizeToStr( un.arraySize ) << ";\n";
 					break;
@@ -443,7 +456,7 @@ namespace
 					str << "  // state: " << ToString( un.image.state );
 					if ( un.type == EDescriptorType::CombinedImage_ImmutableSampler )
 						str << ", immutable sampler";
-					str	<< "\n  layout(set=" << ds_idx << ", binding=" << idx_str << ") uniform "
+					str	<< '\n' << BindingToStr( idx_str ) << ") uniform "
 						<< ImageToStr( un.image.type, "sampler" ) << ' ' << name_str
 						<< ArraySizeToStr( un.arraySize ) << ";\n";
 					break;
@@ -454,8 +467,8 @@ namespace
 					String	tmp = ImageToStr( un.image.type, "_" );
 					FindAndReplace( INOUT tmp, "_2D", "subpassInput" );
 
-					str << "  // state: " << ToString( un.image.state )
-						<< "\n  layout(set=" << ds_idx << ", binding=" << idx_str << ", input_attachment_index="
+					str << "  // state: " << ToString( un.image.state ) << '\n'
+						<< BindingToStr( idx_str ) << ", input_attachment_index="
 						<< ToString( un.image.subpassInputIdx ) << ") uniform " << tmp << ' ' << name_str
 						<< ArraySizeToStr( un.arraySize ) << ";\n";
 					break;
@@ -465,23 +478,23 @@ namespace
 				{
 					if ( un.type == EDescriptorType::ImmutableSampler )
 						str << "  // immutable sampler\n";
-					str << "  layout(set=" << ds_idx << ", binding=" << idx_str << ") uniform sampler "
+					str << BindingToStr( idx_str ) << ") uniform sampler "
 						<< name_str << ArraySizeToStr( un.arraySize ) << ";\n";
 					break;
 				}
 				case EDescriptorType::RayTracingScene :
 				{
-					str	<< "  layout(set=" << ds_idx << ", binding=" << idx_str << ") uniform accelerationStructureEXT "
+					str	<< BindingToStr( idx_str ) << ") uniform accelerationStructureEXT "
 						<< name_str << ArraySizeToStr( un.arraySize ) << ";\n";
 					break;
 				}
 				case EDescriptorType::RayTracingPartitionedScene :
 				{
-					str	<< "  layout(set=" << ds_idx << ", binding=" << idx_str << ") uniform accelerationStructureEXT "
+					str	<< BindingToStr( idx_str ) << ") uniform accelerationStructureEXT "
 						<< name_str << ArraySizeToStr( un.arraySize ) << ";\n";
 					break;
 				}
-				case EDescriptorType::Unknown :
+				case EDescriptorType::_Count :
 				default :
 					CHECK_THROW_MSG( false, "unknown descriptor type" );
 			}
@@ -807,7 +820,7 @@ namespace
 					CHECK_THROW_MSG( false, "not supported" );
 					break;
 				}
-				case EDescriptorType::Unknown :
+				case EDescriptorType::_Count :
 				default :
 					CHECK_THROW_MSG( false, "unknown descriptor type" );
 			}
@@ -1081,7 +1094,7 @@ namespace
 					break;
 				}
 				case EDescriptorType::RayTracingPartitionedScene :
-				case EDescriptorType::Unknown :
+				case EDescriptorType::_Count :
 				default :
 					CHECK_THROW_MSG( false, "unknown descriptor type" );
 			}
@@ -1179,7 +1192,7 @@ namespace
 					if ( not is_argbuf ) bindings.bufferIdx += un.arraySize;
 					break;
 				}
-				case EDescriptorType::Unknown :
+				case EDescriptorType::_Count :
 				default :
 					RETURN_ERR( "unknown descriptor type" );
 			}
@@ -1211,37 +1224,23 @@ namespace
 	bool  DescriptorSetLayout::IsCompatibleWithMetal () const
 	{
 		ASSERT( _dsLayout.stages != Default );
-		return AnyBits( _dsLayout.stages, s_MetalStages );
+		return	AnyBits( _dsLayout.stages, s_MetalStages )			and
+				NoBits( _dsLayout.usage, EDescSetUsage::DescriptorHeap );
 	}
 
 /*
 =================================================
-	Build
+	_ValidateUniforms
 =================================================
 */
-	bool  DescriptorSetLayout::Build () __NE___
+	bool  DescriptorSetLayout::_ValidateUniforms () __NE___
 	{
-		if ( _uid.has_value() )
-			return true;
-
-		CHECK_ERR_MSG( not _dsLayout.uniforms.empty(),
-			"DescriptorSetLayout '"s << _name << "' is empty" );
-
-		ScriptFeatureSet::Minimize( INOUT _features );
-
 		const bool						is_argbuf		= AllBits( _dsLayout.usage, EDescSetUsage::ArgumentBuffer );
+		auto&							storage			= *ObjectStorage::Instance();
 		StaticArray< MSLBindings, 3 >	msl_per_stage	= {};
 		usize							vk_binding		= 0;
 		usize							msl_binding		= 0;
-		auto&							storage			= *ObjectStorage::Instance();
-
-		_dsLayout.stages = Default;
-		for (auto& [name, un] : _dsLayout.uniforms)
-		{
-			_dsLayout.stages |= un.stages;
-		}
-
-		_dsLayout.features = storage.CopyFeatures( _features );
+		const bool						is_desc_heap	= AllBits( _dsLayout.usage, EDescSetUsage::DescriptorHeap );
 
 		// validate
 		{
@@ -1258,6 +1257,13 @@ namespace
 			CHECK( not un.binding.IsVkDefined() );
 			CHECK( not un.binding.IsMetalDefined() );
 
+			if ( AllBits( un.flags, EDescriptorFlags::VariableSize ))
+			{
+				const bool	is_last = (&_dsLayout.uniforms.back().first == &name);
+				CHECK_ERR_MSG( is_last,
+					"Is DescriptorSetLayout '"s << _name << "' Descriptor '" << storage.GetName( name ) << "' has flag 'VariableSize' but not a last descriptor." );
+			}
+
 			// Vulkan
 			if ( IsCompatibleWithVulkan() )
 			{
@@ -1268,7 +1274,7 @@ namespace
 			// Metal
 			if ( IsCompatibleWithMetal() )
 			{
-				CHECK_ERR( un.arraySize != 0 );	// TODO: set uniform array size in runtime is not supported for Metal
+				CHECK_ERR( not un.IsRuntimeSizedArray() );	// TODO: set uniform array size in runtime is not supported for Metal
 
 				if ( is_argbuf )
 				{
@@ -1316,7 +1322,7 @@ namespace
 							un.binding.mtlIndex = DescriptorSetLayoutDesc::InvalidIdx;
 							break;	// skip
 
-						case EDescriptorType::Unknown :
+						case EDescriptorType::_Count :
 						default :						RETURN_ERR( "unknown descriptor type" );
 					}
 					switch_end
@@ -1369,13 +1375,66 @@ namespace
 							un.binding.mtlIndex = DescriptorSetLayoutDesc::InvalidIdx;
 							break;	// skip
 
-						case EDescriptorType::Unknown :
+						case EDescriptorType::_Count :
 						default :									RETURN_ERR( "unknown descriptor type" );
 					}
 					switch_end
 				}
 			}
+
+			if ( is_desc_heap )
+			{
+				CHECK_ERR_MSG( un.flags == Default,
+					"Per descriptor flags are not compatible with 'DescriptorHeap' usage." );
+
+				switch ( un.type )
+				{
+					case EDescriptorType::SubpassInput :
+						RETURN_ERR( "Is DescriptorSetLayout '"s << _name << "' Descriptor '" << storage.GetName( name ) <<
+									"' with 'SubpassInput' type is not compatible with 'DescriptorHeap' usage." );
+
+					case EDescriptorType::ImmutableSampler :
+						RETURN_ERR( "Is DescriptorSetLayout '"s << _name << "' Descriptor '" << storage.GetName( name ) <<
+									"' with 'ImmutableSampler' type is not compatible with 'DescriptorHeap' usage." );
+
+					case EDescriptorType::UniformBuffer :
+					case EDescriptorType::StorageBuffer :
+						CHECK_ERR_MSG( not un.buffer.HasDynamicOffset(),
+							"Is DescriptorSetLayout '"s << _name << "' Buffer Descriptor '" << storage.GetName( name ) <<
+							"' with dynamic offset is not compatible with 'DescriptorHeap' usage." );
+						break;
+				}
+			}
 		}
+		return true;
+	}
+
+/*
+=================================================
+	Build
+=================================================
+*/
+	bool  DescriptorSetLayout::Build () __NE___
+	{
+		if ( _uid.has_value() )
+			return true;
+
+		CHECK_ERR_MSG( not _dsLayout.uniforms.empty(),
+			"DescriptorSetLayout '"s << _name << "' is empty" );
+
+		ScriptFeatureSet::Minimize( INOUT _features );
+
+		auto&	storage = *ObjectStorage::Instance();
+
+		_dsLayout.stages = Default;
+		for (auto& [name, un] : _dsLayout.uniforms)
+		{
+			_dsLayout.stages |= un.stages;
+		}
+
+		_dsLayout.features = storage.CopyFeatures( _features );
+
+		CHECK_ERR( _ValidateUniforms() );
 
 		DescriptorCount		total		= {};
 		PerStageDescCount_t	per_stage	= {};
@@ -1429,7 +1488,7 @@ namespace
 			case EDescriptorType::RayTracingPartitionedScene :
 				rayTracingScenes += count;			break;
 
-			case EDescriptorType::Unknown :
+			case EDescriptorType::_Count :
 				break;
 		}
 		switch_end
@@ -1474,6 +1533,10 @@ namespace
 		binder.Comment( "Set descriptor set usage (EDescSetUsage)." );
 		AS_METHOD( binder, DescriptorSetLayout::SetUsage,						"SetUsage",			{} );
 		AS_METHOD( binder, DescriptorSetLayout::SetUsage2,						"SetUsage",			{} );
+
+		binder.Comment( "Set descriptor flags for uniform (EDescriptorFlags)." );
+		AS_METHOD( binder, DescriptorSetLayout::SetFlags,						"SetFlags",			{"uniform", "flags"} );
+		AS_METHOD( binder, DescriptorSetLayout::SetFlags2,						"SetFlags",			{"uniform", "flags"} );
 
 		binder.Comment( "Add input attachment from render technique graphics pass." );
 		AS_METHOD( binder, DescriptorSetLayout::AddSubpassInputFromRenderTech,	"SubpassInputFromRenderTech", {"rtech", "gpass"} );
@@ -1745,6 +1808,53 @@ namespace
 
 /*
 =================================================
+	SetFlags
+=================================================
+*/
+	void  DescriptorSetLayout::SetFlags (const String &name, const EDescriptorFlags flags) __Th___
+	{
+		CHECK_THROW_MSG( _uniqueNames.contains( name ),
+			"Uniform '"s << name << "' is not exist." );
+
+		_CheckDescriptorFlags( flags );  // throw
+
+		const UniformName	name_hash	{name};
+		bool				found		= false;
+
+		for (auto& [un_name, un] : _dsLayout.uniforms)
+		{
+			if_likely( name_hash != un_name )
+				continue;
+
+			// validate
+			switch_enum( flags )
+			{
+				case EDescriptorFlags::VariableSize :
+					CHECK_THROW_MSG( un.IsArray(),
+						"In DescriptorSetLayout '"s << _name << "' Uniform '" << name << "' must be array to add 'VariableSize' flag." );
+					break;
+
+				case EDescriptorFlags::_BITOPS_ :
+				case EDescriptorFlags::_Last :
+					break;
+			}
+			switch_end
+
+			un.flags = flags;
+			found	 = true;
+			break;
+		}
+
+		CHECK_THROW( found );
+	}
+
+	void  DescriptorSetLayout::SetFlags2 (const String &name, uint flags) __Th___
+	{
+		SetFlags( name, EDescriptorFlags(flags) );
+	}
+
+/*
+=================================================
 	Define
 =================================================
 */
@@ -1881,6 +1991,58 @@ namespace
 		{
 			CHECK_THROW_MSG( format < EPixelFormat::_Count );
 			TestFeature_PixelFormat( _features, &FeatureSet::storageImageFormats, format, "storageImageFormats" );
+		}
+	}
+
+/*
+=================================================
+	_CheckDescriptorFlags
+=================================================
+*/
+	void  DescriptorSetLayout::_CheckDescriptorFlags (const EDescriptorFlags flags) C_Th___
+	{
+		for (auto t : BitfieldIterate( flags ))
+		{
+			switch_enum( t )
+			{
+				case EDescriptorFlags::VariableSize :
+					TEST_FEATURE( _features, descriptorBindingVariableDescriptorCount );
+					break;
+
+				case EDescriptorFlags::_BITOPS_ :
+				case EDescriptorFlags::_Last :
+					break;
+			}
+			switch_end
+		}
+	}
+
+/*
+=================================================
+	_CheckDescHeapSamplerArray
+=================================================
+*/
+	void  DescriptorSetLayout::_CheckDescHeapSamplerArray (StringView uniformName, ArrayView<String> samplerNames) C_Th___
+	{
+		bool	has_desc_heap;
+		HAS_FEATURE( has_desc_heap, GetFeatures(), descriptorHeap );
+
+		if ( not has_desc_heap )
+			return;
+
+		// all samplers must be same
+		bool		all_equal	= true;
+		StringView	first		= samplerNames[0];
+
+		for (usize i = 1; i < samplerNames.size(); ++i) {
+			all_equal &= (first == samplerNames[i]);
+		}
+
+		if ( not all_equal )
+		{
+			AE_LOGW( "FeatureSet supports 'descriptorHeap' which enable DescriptorSet emulation using descriptor heaps, "
+					 "but in DescriptorSetLayout '"s << _name << "' uniform '" << uniformName << "' has immutable sampler array "
+					 "where samplers are not equal, which is not supported by descriptor heaps." );
 		}
 	}
 
@@ -2710,7 +2872,9 @@ namespace
 		if ( (type & EImageType::_ValMask) == Default )
 			type |= val_flags;
 
-		CHECK_THROW_MSG( EImageType_IsCompatible( (type & EImageType::_ValMask), val_flags ));
+		CHECK_THROW_MSG( EImageType_IsCompatible( (type & EImageType::_ValMask), val_flags ),
+			"Image type mismatch: from type ("s << EImageType_ToString( type ) << ") != from format (" <<
+			EImageType_ToString( (type & EImageType::_DimMask) | val_flags ) << ")" );
 
 		Uniform			un;
 		un.type			= EDescriptorType::StorageImage;
@@ -2820,10 +2984,9 @@ namespace
 		CHECK_THROW_MSG( EResourceState_Validate( state ));
 		TestFeature_Supported( GetFeatures(), state );  // throw
 
-		const uint	array_size = Max( uint(samplerNames.size()), arraySize.value );
+		CHECK_THROW_MSG( uint(samplerNames.size()) == arraySize.value or samplerNames.size() == 1 or arraySize.value == 1 );
 
-		if ( arraySize.value != array_size )
-			CHECK_THROW_MSG( arraySize.value == 1 );
+		const uint	array_size = Max( uint(samplerNames.size()), arraySize.value );
 
 		_CheckUniformName( name );
 		_CheckArraySize( array_size );
@@ -2843,6 +3006,9 @@ namespace
 
 		_dsLayout.uniforms.emplace_back( UniformName{name}, un );
 		_AddSRGB( name, type );
+
+		if ( samplerNames.size() > 1 )
+			_CheckDescHeapSamplerArray( name, samplerNames );  // throw
 
 		if ( samplerNames.size() == array_size )
 		{
@@ -2983,7 +3149,6 @@ namespace
 				case EShaderIO::Depth :			img_type |= EImageType::Depth;			break;
 				case EShaderIO::Stencil :		img_type |= EImageType::Stencil;		break;
 				case EShaderIO::DepthStencil:	img_type |= EImageType::DepthStencil;	break;
-				case EShaderIO::Unknown :
 				case EShaderIO::_Count :
 				default :						CHECK_THROW_MSG( false, "unknown ShaderIO type" );
 			}
@@ -3061,6 +3226,9 @@ namespace
 			_CheckSamplerName( samp );
 			_dsLayout.samplerStorage.push_back( SamplerName{samp} );
 		}
+
+		if ( samplerNames.size() > 1 )
+			_CheckDescHeapSamplerArray( name, samplerNames );  // throw
 	}
 
 /*
@@ -3113,7 +3281,7 @@ namespace
 		bool	result = true;
 		#define CHECK_LIMIT( _lhs_, _rhs_, _msg_ )																						\
 		{																																\
-			const auto	rhs_val = GetMaxValueFromFeatures( features, &FeatureSet::perPipeline, &FeatureSet::PerDescriptorSet::_rhs_ );	\
+			const auto	rhs_val = GetMaxValueFromFeatures( features, &FeatureSet::perPipeline, &FeatureSet::PerPipeline::_rhs_ );		\
 			if_unlikely( (_lhs_) > rhs_val ) {																							\
 				result = false;																											\
 				AE_LOGE( String{name} << ": number of " << (_msg_) << " (" << ToString(_lhs_) << ") exceeds the maximum allowed '" <<	\
@@ -3127,8 +3295,19 @@ namespace
 		CHECK_LIMIT( count.storageImages,		maxStorageImages,		"storage images per pipeline" );
 		CHECK_LIMIT( count.sampledImages,		maxSampledImages,		"sampler images per pipeline" );
 		CHECK_LIMIT( count.samplers,			maxSamplers,			"samplers per pipeline" );
-		CHECK_LIMIT( count.TotalCount(),		maxTotalResources,		"total resources per pipeline" );
 		#undef CHECK_LIMIT
+
+		{
+			const auto	lhs_val	= count.TotalCount();
+			const auto	rhs_val = GetMaxValueFromFeatures( features, &FeatureSet::perDescSet_maxTotalResources );
+
+			if_unlikely( lhs_val > rhs_val )
+			{
+				result = false;
+				AE_LOGE( String{name} << ": number of resources per descriptor set (" << ToString(lhs_val) << ") exceeds the maximum allowed '"
+						 "perDescSet_maxTotalResources' (" << ToString(rhs_val) << ")" );
+			}
+		}
 
 		#define CHECK_LIMIT( _lhs_, _rhs_, _msg_ )																						\
 		{																																\
@@ -3171,8 +3350,19 @@ namespace
 			CHECK_LIMIT( count.storageImages,		maxStorageImages,		"storage images per stage" );
 			CHECK_LIMIT( count.sampledImages,		maxSampledImages,		"sampler images per stage" );
 			CHECK_LIMIT( count.samplers,			maxSamplers,			"samplers per stage" );
-			CHECK_LIMIT( count.TotalCount(),		maxTotalResources,		"total resources per stage" );
 			#undef CHECK_LIMIT
+
+			{
+				const auto	lhs_val = count.TotalCount();
+				const auto	rhs_val = GetMaxValueFromFeatures( features, &FeatureSet::perStage_maxTotalResources );
+
+				if_unlikely( lhs_val > rhs_val )
+				{
+					result = false;
+					AE_LOGE( String{name} << ": number of total resources per stage (" << ToString(lhs_val) << ") exceeds the maximum allowed '"
+							 "perStage_maxTotalResources' (" << ToString(rhs_val) << ")" );
+				}
+			}
 		}
 		return result;
 	}
@@ -3231,6 +3421,8 @@ namespace
 		if ( args.IsArg< ImageLayer const& >(idx) )		desc.arrayLayers = args.Arg< ImageLayer const& >(idx++);
 		if ( args.IsArg< MultiSamples const& >(idx) )	desc.samples	 = args.Arg< MultiSamples const& >(idx++);
 
+		StaticAssert( sizeof(ImageDesc) == 24 );
+
 		CHECK_THROW_MSG( idx == args.ArgCount() );
 
 		desc.imageDim = EImageDim_2D;
@@ -3262,7 +3454,9 @@ namespace
 
 		if ( args.IsArg< EImage >(idx) )				view_desc.viewType	 = args.Arg< EImage >(idx++);
 		if ( args.IsArg< EPixelFormat >(idx) )			view_desc.format	 = args.Arg< EPixelFormat >(idx++);
-		if ( args.IsArg< EImageUsage >(idx) )			view_desc.extUsage	 = args.Arg< EImageUsage >(idx++);
+		if ( args.IsArg< EImageUsage >(idx) )			view_desc.usage		 = args.Arg< EImageUsage >(idx++);
+
+		StaticAssert( sizeof(ImageViewDesc) == 20 );
 
 		CHECK_THROW_MSG( idx == args.ArgCount() );
 
@@ -3289,6 +3483,8 @@ namespace
 		if ( args.IsArg< EBufferUsage >(idx) )	desc.usage	 = args.Arg< EBufferUsage >(idx++);
 		if ( args.IsArg< EBufferOpt >(idx) )	desc.options = args.Arg< EBufferOpt >(idx++);
 
+		StaticAssert( sizeof(BufferDesc) == 24 );
+
 		CHECK_THROW_MSG( idx == args.ArgCount() );
 		desc.Validate();
 
@@ -3313,6 +3509,9 @@ namespace
 		if ( args.IsArg< EBufferUsage >(idx) )	buf_desc.usage		= args.Arg< EBufferUsage >(idx++);
 		if ( args.IsArg< EBufferOpt >(idx) )	buf_desc.options	= args.Arg< EBufferOpt >(idx++);
 		if ( args.IsArg< EPixelFormat >(idx) )	view_desc.format	= args.Arg< EPixelFormat >(idx++);
+
+		StaticAssert( sizeof(BufferDesc) == 24 );
+		StaticAssert( sizeof(BufferViewDesc) == 24 );
 
 		CHECK_THROW_MSG( idx == args.ArgCount() );
 

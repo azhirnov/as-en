@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #ifdef CICD_SERVER
 # include "cicd/Server.h"
@@ -306,7 +306,7 @@ namespace AE::CICD
 			case EClientType::Build :		CHECK_ERR( _InitBuildClient() );	break;
 			case EClientType::Test :		CHECK_ERR( _InitTestClient() );		break;
 			case EClientType::User :		CHECK_ERR( _InitUserClient() );		break;
-			case EClientType::Unknown :		break;
+			case EClientType::_Count :		break;
 		}
 		switch_end
 
@@ -624,7 +624,7 @@ namespace AE::CICD
 					CHECK( FS::MergeDirectory( cmd.src, cmd.dst, FS::ECopyOpt::FileKeep ));
 					break;
 				}
-				case ECopyMode::Unknown :	break;
+				case ECopyMode::_Count :	break;
 			}
 			switch_end
 		}

@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 /*
 	Thread-safe:  no
 */
@@ -75,7 +75,8 @@ namespace AE::Graphics
 
 		struct DrawUtils
 		{
-			static void  DrawCursor (float2 pos, float scale = 1.f)							__NE___;
+			static void  DrawCursor (float2 pos, float scale = 1.f)											__NE___;
+			static void  LoadingSpinner (const char* label, float radius, float thickness, RGBA8u color)	__NE___;
 		};
 
 
@@ -91,9 +92,10 @@ namespace AE::Graphics
 
 		enum class EScaleType
 		{
-			Unknown,	// without scale
+			Unknown,		// without scale
 			Fixed,
-			Adaptive,
+			AdaptivePOT,	// 0.25, 0.5, 1, 2, 4
+			AdaptiveInt,	// 1, 2, 4 ...
 			AdaptiveFract,
 		};
 
@@ -116,6 +118,8 @@ namespace AE::Graphics
 		float						_pixToUI			= 1.f;		// surface coords to UI coords
 		float						_uiToPix			= 1.f;		// UI coords to surface coords
 		float						_scale				= -1.f;		// disable adaptive scaling
+
+		U8String					_clipboard;						// temp storage
 
 		RenderTechPipelinesPtr		_rtech;
 		PipelineMap_t				_pplnMap;
@@ -142,7 +146,9 @@ namespace AE::Graphics
 			void  Deinitialize ()																__NE___;
 
 			void  SetScale (float scale)														__NE___;
-			void  SetAdaptiveScale (float scale, bool round = true)								__NE___;
+			void  SetAdaptiveScaleToPOT (float scale)											__NE___;
+			void  SetAdaptiveScaleToInt (float scale)											__NE___;
+			void  SetAdaptiveFractScale (float scale)											__NE___;
 			void  DisableScale ()																__NE___;
 
 		// Convert screen space position to ui space.
@@ -204,6 +210,10 @@ namespace AE::Graphics
 		ND_ bool  _Upload (DirectCtx::Transfer &copyCtx);
 
 			void  _UpdateScale (float pixToMm);
+			void  _SetAdaptiveScale (float scale, EScaleType type);
+
+		static const char* _GetClipboardText (ImGuiContext* ctx);
+		static void        _SetClipboardText (ImGuiContext* ctx, const char* text);
 	};
 
 

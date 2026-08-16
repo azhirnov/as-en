@@ -58,6 +58,26 @@ ArrayView view{arr};
 
 Без подсказки компилятор выведет тип `Array<int[100}>` и это будет один элемент в view, а с подсказкой тип изменится на `ArrayView<int>` и view будет содержать массив из 100 элементов.
 
+Работает и для шаблонных конструкторов:
+
+```cpp
+template <typename T>
+struct Range
+{
+	template <typename BT, typename ET>
+	Range (BT begin, ET end)
+};
+
+int a, b;
+Range r{ a, b };  // error
+
+
+template <typename T>
+Range (T, T) -> Range<T>;
+
+Range r{ a, b };  // OK
+```
+
 ### Перегрузка методов
 
 ```cpp
@@ -609,6 +629,34 @@ void foo (const source_location &loc = source_location::current());
 
 foo();  // __FILE__, __LINE__ берется здесь
 ```
+
+### Использование с variadic template
+
+Иногда возникает потребность написать так:
+
+```cpp
+template <typename ...Args>
+void Foo (Args&& ...args, const source_location &loc = source_location::current());
+```
+
+Но такое не поддерживается, зато есть неочевидный способ:
+
+```cpp
+template <typename T>
+struct Wrapped
+{
+	T value;
+	source_location location;
+
+	Wrapped (T val, const source_location &loc = source_location::current()) : value{val}, location{loc} {}
+};
+
+template <typename ...Args>
+void Foo (Wrapped<Param> param, Args&& ...args, const source_location &loc = source_location::current());
+```
+
+Если функция принимает не только переменное количество аргументов, но и явные параметры, то легко обернуть один из них и протащить `source_location`.
+
 
 ## stacktrace
 

@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #pragma once
 
@@ -28,8 +28,7 @@ namespace AE::Graphics
 
 		DescriptorAllocatorPtr			_allocator;
 
-		GFX_DBG_ONLY(	DebugName_t		_debugName;	)
-		DRC_ONLY(		RWDataRaceCheck	_drCheck;	)
+		GFX_DBG_ONLY( DebugName_t		_debugName;	)
 
 
 	// methods
@@ -38,13 +37,17 @@ namespace AE::Graphics
 		~VDescriptorSet ()												__NE___;
 
 		ND_ bool  Create (ResourceManager &, DescriptorSetLayoutID,
+						  const DescSetParams* params,
 						  DescriptorAllocatorPtr, StringView dbgName)	__NE___;
 			void  Destroy (ResourceManager &)							__NE___;
 
-		ND_ VkDescriptorSet				Handle ()						C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _descrSet.handle; }
-		ND_ DescriptorSetLayoutID		LayoutId ()						C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _layoutId; }
+		ND_ VkDescriptorSet				Handle ()						C_NE___	{ return _descrSet.handle; }
+		ND_ DescriptorSetLayoutID		LayoutId ()						C_NE___	{ return _layoutId; }
 
-		GFX_DBG_ONLY( ND_ StringView	GetDebugName ()					C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _debugName; })
+		GFX_DBG_ONLY( ND_ StringView	GetDebugName ()					C_NE___	{ return _debugName; })
+
+	private:
+		bool  _Validate (ResourceManager &, const DescSetParams* params);
 	};
 
 

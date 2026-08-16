@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 /*
 	based on code from:
 	https://stackoverflow.com/questions/46444474/c-ffmpeg-create-mp4-file
@@ -143,7 +143,7 @@ namespace AE::Video
 			_config.dstDim = _config.srcDim;
 
 		if ( _config.bitrate == Bitrate{0} )
-			_config.bitrate = _CalcBitrate( _config );
+			_config.bitrate = CalcBitrate( _config );
 
 		if ( _config.hwAccelerated == EHwAcceleration::Disable )
 		{
@@ -157,8 +157,8 @@ namespace AE::Video
 			auto&	rts = GraphicsScheduler();
 			if ( not AllBits( rts.GetDevice().GetAvailableQueues(), EQueueMask::VideoEncode ))
 			{
-				AE_LOGW( "Vulkan Encoder require 'VideoEncode' queue, reset 'hwAccelerated' to 'Require'." );
-				_config.hwAccelerated = EHwAcceleration::Require;
+				AE_LOGW( "Vulkan Encoder require 'VideoEncode' queue which is not enabled, reset 'hwAccelerated' to 'Require'." );
+				_config.hwAccelerated = EHwAcceleration::Require;	// any HW acceleration
 			}
 		  #else
 			AE_LOGW( "Vulkan Encoder is not supported, reset 'hwAccelerated' to 'Require'." );
@@ -233,7 +233,7 @@ namespace AE::Video
 
 			ASSERT( _ffmpeg->av_codec_is_encoder( codec ) != 0 );
 
-			if ( not (codec->capabilities & AV_CODEC_CAP_HARDWARE) and
+			if ( not (codec->capabilities & (AV_CODEC_CAP_HARDWARE | AV_CODEC_CAP_HYBRID)) and
 				 _config.hwAccelerated == EHwAcceleration::Require )
 				return false;
 
@@ -425,17 +425,6 @@ namespace AE::Video
 
 /*
 =================================================
-	_CalcBitrate
-=================================================
-*/
-	Bitrate  FFmpegVideoEncoder::_CalcBitrate (const Config &) __NE___
-	{
-		// TODO
-		return {};
-	}
-
-/*
-=================================================
 	_CreateStream
 =================================================
 */
@@ -471,7 +460,7 @@ namespace AE::Video
 			if ( _dstStreamBeginPos != _dstStream->Position() )
 				CHECK_ERR( _dstStream->UpdateAt( _dstStreamBeginPos ));
 
-			const int	avio_buf_size = int(AlignUp( 4096_b, _dstStream->DirectAccessAlign().offsetAlign ));
+			const int	avio_buf_size = int(AlignUp( _config.ioBufferSize, _dstStream->DirectAccessAlign().offsetAlign ));
 
 			auto*	buf = Cast<unsigned char>( _ffmpeg->av_malloc( avio_buf_size ));
 			CHECK_ERR( buf != null );
@@ -495,6 +484,7 @@ namespace AE::Video
 				if ( config == null )
 					break;
 
+			  #ifdef AE_ENABLE_VULKAN
 				if ( config->device_type == AV_HWDEVICE_TYPE_VULKAN and
 					 AnyBits( config->methods, AV_CODEC_HW_CONFIG_METHOD_HW_DEVICE_CTX | AV_CODEC_HW_CONFIG_METHOD_HW_FRAMES_CTX ))
 				{
@@ -506,6 +496,7 @@ namespace AE::Video
 					}
 					_DestroyVulkanCtx();
 				}
+			  #endif
 			}
 		}
 
@@ -564,6 +555,13 @@ namespace AE::Video
 				_codecCtx->thread_count	= Max( _codecCtx->thread_count, int(_config.threadCount) );
 			}
 
+			if ( AnyBits( _config.flags, EEncoderFlags::LowLatency ))
+			{
+				_codecCtx->max_b_frames	= 0;
+				_codecCtx->gop_size		= int(_config.framerate.ToFloat<float>());
+				_codecCtx->flags		|= AV_CODEC_FLAG_LOW_DELAY;
+			}
+
 			AVDictionary*	codec_options	= null;
 			_SetCodecOptions( INOUT &codec_options );
 
@@ -571,9 +569,9 @@ namespace AE::Video
 			_ffmpeg->av_dict_free( &codec_options );
 			FF_CHECK( err );
 
-			// try without options
 			if_unlikely( err != 0 )
 			{
+				AE_LOGI( "Try create codec without options" );
 				err = _ffmpeg->avcodec_open2( _codecCtx, _codec, null );
 				FF_CHECK_ERR( err );
 			}
@@ -603,6 +601,12 @@ namespace AE::Video
 			int err = _ffmpeg->avformat_write_header( _outputCtx, &mux_options );
 			if ( not AnyEqual( err, AVSTREAM_INIT_IN_WRITE_HEADER, AVSTREAM_INIT_IN_INIT_OUTPUT ))
 				FF_CHECK_ERR( err );
+
+			if ( AllBits( _config.flags, EEncoderFlags::LowLatency ))
+			{
+				if ( _outputCtx->pb != null )
+					_ffmpeg->avio_flush( _outputCtx->pb );
+			}
 
 			DEBUG_ONLY( _ffmpeg->av_dump_format( _outputCtx, 0, _tempFile.c_str(), 1 );)
 
@@ -652,6 +656,7 @@ namespace AE::Video
 		_videoPacket = _ffmpeg->av_packet_alloc();
 		CHECK_ERR( _videoPacket != null );
 
+		_PrintEncoderInfo();
 		return true;
 	}
 
@@ -974,6 +979,12 @@ namespace AE::Video
 			_ffmpeg->av_packet_unref( _videoPacket );
 
 			FF_CHECK_ERR( err );
+
+			if ( AllBits( _config.flags, EEncoderFlags::LowLatency ))
+			{
+				if ( _outputCtx->pb != null )
+					_ffmpeg->avio_flush( _outputCtx->pb );
+			}
 		}
 		return true;
 	}
@@ -1432,6 +1443,22 @@ namespace AE::Video
 
 /*
 =================================================
+	_PrintEncoderInfo
+=================================================
+*/
+	void  FFmpegVideoEncoder::_PrintEncoderInfo () C_NE___
+	{
+	#ifdef AE_ENABLE_LOGS
+		String	str = "Created ffmpeg Video Encoder";
+		str << "\n  codec:  " << _codec->name;
+		str << "\n  desc:   " << _codec->long_name;
+
+		AE_LOGI( str );
+	#endif
+	}
+
+/*
+=================================================
 	CreateFFmpegEncoder
 =================================================
 */
@@ -1535,7 +1562,7 @@ namespace AE::Video
 		}
 		CHECK_ERR( vk_ctx->nb_qf > 0 );
 
-		vk_ctx->lock_queue		= _LockVkQueue;
+		vk_ctx->lock_queue		= _LockVkQueue;		// TODO
 		vk_ctx->unlock_queue	= _UnlockVkQueue;
 
 		int err = _ffmpeg->av_hwdevice_ctx_init( _hwDeviceCtx );

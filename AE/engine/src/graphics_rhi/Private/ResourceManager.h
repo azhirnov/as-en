@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #if defined(AE_ENABLE_VULKAN)
 #	define SUFFIX		V
@@ -322,25 +322,32 @@ namespace AE::Graphics
 
 		ND_ bool					CreateDescriptorSets (OUT DescSetBinding &binding, OUT Strong<DescriptorSetID> *dst, usize count,
 														  GraphicsPipelineID ppln, DescriptorSetName::Ref dsName,
-														  DescriptorAllocatorPtr allocator = null, StringView dbgName = Default)					__NE_OV;
+														  DescriptorAllocatorPtr allocator = null, StringView dbgName = Default,
+														  const DescSetParams* = null)																__NE_OV;
 		ND_ bool					CreateDescriptorSets (OUT DescSetBinding &binding, OUT Strong<DescriptorSetID> *dst, usize count,
 														  MeshPipelineID ppln, DescriptorSetName::Ref dsName,
-														  DescriptorAllocatorPtr allocator = null, StringView dbgName = Default)					__NE_OV;
+														  DescriptorAllocatorPtr allocator = null, StringView dbgName = Default,
+														  const DescSetParams* = null)																__NE_OV;
 		ND_ bool					CreateDescriptorSets (OUT DescSetBinding &binding, OUT Strong<DescriptorSetID> *dst, usize count,
 														  ComputePipelineID ppln, DescriptorSetName::Ref dsName,
-														  DescriptorAllocatorPtr allocator = null, StringView dbgName = Default)					__NE_OV;
+														  DescriptorAllocatorPtr allocator = null, StringView dbgName = Default,
+														  const DescSetParams* = null)																__NE_OV;
 		ND_ bool					CreateDescriptorSets (OUT DescSetBinding &binding, OUT Strong<DescriptorSetID> *dst, usize count,
 														  RayTracingPipelineID ppln, DescriptorSetName::Ref dsName,
-														  DescriptorAllocatorPtr allocator = null, StringView dbgName = Default)					__NE_OV;
+														  DescriptorAllocatorPtr allocator = null, StringView dbgName = Default,
+														  const DescSetParams* = null)																__NE_OV;
 		ND_ bool					CreateDescriptorSets (OUT DescSetBinding &binding, OUT Strong<DescriptorSetID> *dst, usize count,
 														  TilePipelineID ppln, DescriptorSetName::Ref dsName,
-														  DescriptorAllocatorPtr allocator = null, StringView dbgName = Default)					__NE_OV;
+														  DescriptorAllocatorPtr allocator = null, StringView dbgName = Default,
+														  const DescSetParams* = null)																__NE_OV;
 
 		ND_ bool					CreateDescriptorSets (OUT Strong<DescriptorSetID> *dst, usize count,
 														  PipelinePackID packId, DSLayoutName::Ref dslName,
-														  DescriptorAllocatorPtr allocator = null, StringView dbgName = Default)					__NE_OV;
+														  DescriptorAllocatorPtr allocator = null, StringView dbgName = Default,
+														  const DescSetParams* = null)																__NE_OV;
 		ND_ bool					CreateDescriptorSets (OUT Strong<DescriptorSetID> *dst, usize count, DescriptorSetLayoutID layoutId,
-														  DescriptorAllocatorPtr allocator = null, StringView dbgName = Default)					__NE_OV;
+														  DescriptorAllocatorPtr allocator = null, StringView dbgName = Default,
+														  const DescSetParams* = null)																__NE_OV;
 
 		ND_ PushConstantIndex		GetPushConstantIndex (GraphicsPipelineID   ppln, PushConstantName::Ref, ShaderStructName::Ref, Bytes dataSize)	__NE_OV;
 		ND_ PushConstantIndex		GetPushConstantIndex (MeshPipelineID       ppln, PushConstantName::Ref, ShaderStructName::Ref, Bytes dataSize)	__NE_OV;
@@ -511,7 +518,7 @@ namespace AE::Graphics
 		template <typename PplnID>
 		ND_ bool  _CreateDescriptorSets (OUT DescSetBinding &binding, OUT Strong<DescriptorSetID> *dst, usize count,
 										 PplnID pplnId, DescriptorSetName::Ref dsName,
-										 DescriptorAllocatorPtr allocator, StringView dbgName) __NE___;
+										 DescriptorAllocatorPtr allocator, StringView dbgName, const DescSetParams*) __NE___;
 
 		template <typename PplnID>
 		ND_ auto  _GetPushConstantIndex (PplnID ppln, PushConstantName::Ref pcName,
@@ -611,8 +618,8 @@ namespace AE::Graphics
 
 		ND_ Strong<PipelineCacheID>	LoadPipelineCache (RC<RStream> stream)													__NE___;
 
-		ND_ Strong<SamplerID>		CreateSampler (const SamplerDesc &, StringView dbgName = Default,
-													const VkSamplerYcbcrConversionCreateInfo * = null)						__NE___;
+		ND_ Strong<SamplerID>		CreateSampler (const SamplerDesc &, StringView dbgName,
+													const VkSamplerYcbcrConversionCreateInfo *, IAllocator*)				__NE___;
 		ND_ VkSampler				GetVkSampler (PipelinePackID packId, SamplerName::Ref name)								C_NE___;
 
 		ND_ Strong<RenderPassID>	CreateRenderPass (const SerializableRenderPassInfo &, const SerializableVkRenderPass &,
@@ -734,7 +741,7 @@ namespace AE::Graphics
 
 		auto&	dst = _expiredResources.GetCurrent();
 		EXLOCK( dst.guard );
-		ASSERT( dst.frameId == _expiredResources.GetFrameId() );
+		ASSERT_Eq( dst.frameId.Unique(), _expiredResources.GetFrameId().Unique() );
 
 		dst.resources.push_back( expired );
 	}

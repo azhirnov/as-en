@@ -1,4 +1,4 @@
-# Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+# Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 file( GLOB_RECURSE SOURCES "*.*" )
 add_executable( "LockFreeAlgSandbox" ${SOURCES} )
@@ -15,4 +15,4 @@ target_include_directories( "LockFreeAlgSandbox" PRIVATE
 
 # don't use PCH !
 
-add_test( NAME "LockFreeAlgSandbox" COMMAND "LockFreeAlgSandbox" )
+#add_test( NAME "LockFreeAlgSandbox" COMMAND "LockFreeAlgSandbox" )

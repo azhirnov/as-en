@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #pragma once
 
@@ -246,6 +246,7 @@ namespace AE::Graphics
 				case EShaderStages::PreRasterizationStages :
 				case EShaderStages::PostRasterizationStages :
 				case EShaderStages::All :
+				case EShaderStages::_Last :
 				default_unlikely :						RETURN_ERR( "unknown shader type!", Zero );
 			}
 			switch_end
@@ -935,6 +936,7 @@ namespace AE::Graphics
 				case VK_IMAGE_CREATE_MULTISAMPLED_RENDER_TO_SINGLE_SAMPLED_BIT_EXT :
 				case VK_IMAGE_CREATE_DESCRIPTOR_BUFFER_CAPTURE_REPLAY_BIT_EXT :
 				case VK_IMAGE_CREATE_VIDEO_PROFILE_INDEPENDENT_BIT_KHR :
+				case VK_IMAGE_CREATE_ALIAS_SINGLE_LAYER_DESCRIPTOR_BIT_KHR :
 
 				default_unlikely :													RETURN_ERR( "unsupported image create flags" );
 			}
@@ -1121,6 +1123,7 @@ namespace AE::Graphics
 				case EPipelineOpt::CaptureInternalRepresentation :	result |= VK_PIPELINE_CREATE_2_CAPTURE_INTERNAL_REPRESENTATIONS_BIT_KHR;			break;
 				case EPipelineOpt::IndirectBindable :				result |= VK_PIPELINE_CREATE_2_INDIRECT_BINDABLE_BIT_EXT;							break;
 				case EPipelineOpt::OpacityMicromap :				break;	// ignore
+				case EPipelineOpt::DescriptorHeap :					result |= VK_PIPELINE_CREATE_2_DESCRIPTOR_HEAP_BIT_EXT;								break;
 
 				case EPipelineOpt::_Last :
 				case EPipelineOpt::All :
@@ -1186,7 +1189,6 @@ namespace AE::Graphics
 				case ERTGeometryOpt::NoDuplicateAnyHitInvocation :	result |= VK_GEOMETRY_NO_DUPLICATE_ANY_HIT_INVOCATION_BIT_KHR;	break;
 
 				case ERTGeometryOpt::_Last :
-				case ERTGeometryOpt::_BITOPS_ :
 				case ERTGeometryOpt::Unknown :
 				default_unlikely :									RETURN_ERR( "unknown RT geometry options", Zero );
 			}
@@ -2219,6 +2221,37 @@ namespace AE::Graphics
 		}
 		switch_end
 		RETURN_ERR( "unknown AV1 picture type", STD_VIDEO_AV1_FRAME_TYPE_INVALID );
+	}
+
+/*
+=================================================
+	AEEnumCast (VkComponentTypeKHR)
+=================================================
+*/
+	Nd__In ECoopMatrixComponentType  AEEnumCast (VkComponentTypeKHR type) __NE___
+	{
+		switch_enum( type )
+		{
+			case VK_COMPONENT_TYPE_FLOAT16_KHR :		return ECoopMatrixComponentType::Float16;
+			case VK_COMPONENT_TYPE_FLOAT32_KHR :		return ECoopMatrixComponentType::Float32;
+			case VK_COMPONENT_TYPE_FLOAT64_KHR :		return ECoopMatrixComponentType::Float64;
+			case VK_COMPONENT_TYPE_SINT8_KHR :			return ECoopMatrixComponentType::SInt8;
+			case VK_COMPONENT_TYPE_SINT16_KHR :			return ECoopMatrixComponentType::SInt16;
+			case VK_COMPONENT_TYPE_SINT32_KHR :			return ECoopMatrixComponentType::SInt32;
+			case VK_COMPONENT_TYPE_SINT64_KHR :			return ECoopMatrixComponentType::SInt64;
+			case VK_COMPONENT_TYPE_UINT8_KHR :			return ECoopMatrixComponentType::UInt8;
+			case VK_COMPONENT_TYPE_UINT16_KHR :			return ECoopMatrixComponentType::UInt16;
+			case VK_COMPONENT_TYPE_UINT32_KHR :			return ECoopMatrixComponentType::UInt32;
+			case VK_COMPONENT_TYPE_UINT64_KHR :			return ECoopMatrixComponentType::UInt64;
+			case VK_COMPONENT_TYPE_BFLOAT16_KHR :		return ECoopMatrixComponentType::BFloat16;
+			case VK_COMPONENT_TYPE_SINT8_PACKED_NV :	return ECoopMatrixComponentType::SInt8x4;
+			case VK_COMPONENT_TYPE_UINT8_PACKED_NV :	return ECoopMatrixComponentType::UInt8x4;
+			case VK_COMPONENT_TYPE_FLOAT8_E4M3_EXT :	return ECoopMatrixComponentType::Float8_E4M3;
+			case VK_COMPONENT_TYPE_FLOAT8_E5M2_EXT :	return ECoopMatrixComponentType::Float8_E5M2;
+			case VK_COMPONENT_TYPE_MAX_ENUM_KHR :		break;
+		}
+		switch_end
+		RETURN_ERR( "unknown component type" );
 	}
 
 

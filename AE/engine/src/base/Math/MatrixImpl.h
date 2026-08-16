@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 namespace AE::Base
 {
@@ -19,7 +19,6 @@ namespace AE::Base
 		using _GLM_Mat_t	= glm::mat< glm::length_t(Columns), glm::length_t(Rows), T, Q >;
 		using Col_t			= typename _GLM_Mat_t::col_type;	// [Rows]
 		using Row_t			= typename _GLM_Mat_t::row_type;	// [Columns]
-		using Dim_t			= Base::_hidden_::_MatrixDim;
 		using Rect_t		= Rectangle<T>;
 		using Vec2_t		= TVec< T, 2, Q >;
 		using Vec3_t		= TVec< T, 3, Q >;
@@ -137,7 +136,7 @@ namespace AE::Base
 
 		NdCx__ static usize			size ()												__NE___	{ return Columns; }
 		NdCx__ static usize			ElementCount ()										__NE___	{ return Columns*Rows; }
-		NdCx__ static Dim_t			Dimension ()										__NE___	{ return Dim_t{ Columns, Rows }; }
+		NdCx__ static MatrixDim			Dimension ()									__NE___	{ return MatrixDim{ Columns, Rows }; }
 		NdCx__ static bool			IsColumnMajor ()									__NE___	{ return true; }
 
 

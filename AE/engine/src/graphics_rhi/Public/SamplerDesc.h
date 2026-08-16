@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #pragma once
 
@@ -90,7 +90,7 @@ namespace AE::Graphics
 													// if 'subsampledCoarseReconstructionEarlyAccess = true' then image will be additionally accessed in VS.
 
 		_Last,
-		All								= ((_Last - 1) << 1) - 1
+		All								= CT_AllBitMask2<ESamplerOpt>,
 	};
 
 

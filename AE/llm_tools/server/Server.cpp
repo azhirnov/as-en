@@ -1,7 +1,9 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #include "pch/LangModel.h"
 #include "lang_model/Remote/Server.h"
+
+#include "base/../../GlobalConfig.h"	// TODO: remove
 
 using namespace AE;
 using namespace AE::Base;

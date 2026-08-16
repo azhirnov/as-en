@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #ifdef AE_ENABLE_VULKAN
 # include "graphics_rhi/Vulkan/Resources/VRayTracingPipeline.h"
@@ -16,7 +16,6 @@ namespace AE::Graphics
 */
 	VRayTracingPipeline::~VRayTracingPipeline () __NE___
 	{
-		DRC_EXLOCK( _drCheck );
 		CHECK( not _handle );
 	}
 
@@ -27,7 +26,6 @@ namespace AE::Graphics
 */
 	bool  VRayTracingPipeline::Create (ResourceManager &resMngr, const CreateInfo &ci) __NE___
 	{
-		DRC_EXLOCK( _drCheck );
 		CHECK_ERR( (ci.specCI.dynamicState & ~EPipelineDynamicState::RayTracingPipelineMask) == Zero );
 		CHECK_ERR( not _handle and not _layout );
 		CHECK_ERR( ci.allocator != null );
@@ -37,7 +35,6 @@ namespace AE::Graphics
 		auto*	ppln_layout = resMngr.GetResource( ci.layoutId, True{"incRef"} );
 		CHECK_ERR( ppln_layout != null );
 
-		_layout = ppln_layout->Handle();
 		_layoutId.Attach( ci.layoutId );
 
 		auto&					dev			= resMngr.GetDevice();
@@ -59,7 +56,6 @@ namespace AE::Graphics
 		flags2_ci.flags				= VEnumCast( ci.specCI.options );
 
 		pipeline_info.sType			= VK_STRUCTURE_TYPE_RAY_TRACING_PIPELINE_CREATE_INFO_KHR;
-		pipeline_info.layout		= _layout;
 		pipeline_info.flags			= VkPipelineCreateFlags( flags2_ci.flags );
 		pipeline_info.groupCount	= group_count;
 		pipeline_info.pGroups		= groups;
@@ -69,6 +65,7 @@ namespace AE::Graphics
 		pipeline_info.basePipelineHandle			= Default;
 		pipeline_info.basePipelineIndex				= -1;
 
+		ExtractActiveStages( OUT _activeStages, ci.shaders );
 		CHECK_ERR( SetDynamicState( OUT dynamic_state_info, ci.specCI.dynamicState, false, *ci.tempAllocator ));
 		CHECK_ERR( SetShaderStages( OUT pipeline_info.pStages, OUT pipeline_info.stageCount, ci.shaders, ci.specCI.specialization, *ci.tempAllocator ));
 
@@ -76,6 +73,8 @@ namespace AE::Graphics
 		{
 			flags2_ci.flags |= VK_PIPELINE_CREATE_2_RAY_TRACING_OPACITY_MICROMAP_BIT_EXT;
 		}
+
+		CHECK_ERR( SetPipelineLayout( ext, INOUT pipeline_info, INOUT flags2_ci.flags, OUT _layout, *ppln_layout ));
 
 		if ( ext.maintenance5 ){
 			p_next.Add( flags2_ci );
@@ -198,8 +197,6 @@ namespace AE::Graphics
 */
 	void  VRayTracingPipeline::Destroy (ResourceManager &resMngr) __NE___
 	{
-		DRC_EXLOCK( _drCheck );
-
 		auto&	dev = resMngr.GetDevice();
 
 		if ( _handle != Default )
@@ -216,6 +213,7 @@ namespace AE::Graphics
 		_options		= Default;
 		_groupHandles	= Default;
 		_dbgTrace		= Default;
+		_activeStages	= Default;
 
 		GFX_DBG_ONLY( _debugName.clear() );
 	}
@@ -228,7 +226,6 @@ namespace AE::Graphics
 	bool  VRayTracingPipeline::ParseShaderTrace (const void* ptr, Bytes maxSize, ShaderDebugger::ELogFormat format, OUT Array<String> &result) C_NE___
 	{
 		result.clear();
-		DRC_SHAREDLOCK( _drCheck );
 
 		for (auto& trace : _dbgTrace)
 		{
@@ -247,7 +244,6 @@ namespace AE::Graphics
 	bool  VRayTracingPipeline::ParseShaderAsserts (const void* ptr, Bytes maxSize, ShaderDebugger::ELogFormat format, OUT Array<String> &result) C_NE___
 	{
 		result.clear();
-		DRC_SHAREDLOCK( _drCheck );
 
 		for (auto& trace : _dbgTrace)
 		{
@@ -265,8 +261,6 @@ namespace AE::Graphics
 */
 	bool  VRayTracingPipeline::CopyHandle (const VDevice &dev, RayTracingGroupName::Ref name, OUT void* dst, Bytes dstSize) C_NE___
 	{
-		DRC_SHAREDLOCK( _drCheck );
-
 		const Bytes		handle_size	{dev.GetVProperties().rayTracingPipelineProps.shaderGroupHandleSize};
 		CHECK_ERR( dstSize <= handle_size );
 
@@ -289,8 +283,6 @@ namespace AE::Graphics
 
 	bool  VRayTracingPipeline::CopyHandle (const VDevice &dev, uint index, OUT void* dst, Bytes dstSize) C_NE___
 	{
-		DRC_SHAREDLOCK( _drCheck );
-
 		const Bytes		handle_size	{dev.GetVProperties().rayTracingPipelineProps.shaderGroupHandleSize};
 		const Bytes		offset		= index * handle_size;
 
@@ -318,8 +310,6 @@ namespace AE::Graphics
 	{
 		if ( names.empty() )
 			return 0_b;
-
-		DRC_SHAREDLOCK( _drCheck );
 
 		const auto	vk_type = VEnumCast( type );
 		CHECK_ERR( vk_type != VK_SHADER_GROUP_SHADER_MAX_ENUM_KHR );

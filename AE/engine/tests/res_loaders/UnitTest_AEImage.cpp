@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #include "UnitTest_Common.h"
 #include "res_pack/asset_packer/Packer/ImagePacker.h"
@@ -9,6 +9,7 @@
 
 #include "graphics_rhi/Private/EnumUtils.cpp.h"
 #include "graphics_rhi/Private/ImageMemView.cpp"
+#include "graphics_rhi/Private/BufferMemView.cpp"
 
 using namespace AE::Graphics;
 

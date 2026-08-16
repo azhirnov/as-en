@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #pragma once
 
@@ -58,6 +58,7 @@ namespace AE::App
 
 		enum class EValueType : ubyte
 		{
+			Unknown,
 			Float,		// float,	unorm,		snorm
 			Float2,		// float2,	unorm2,		snorm2
 			Float3,		// float3,	unorm3,		snorm3
@@ -66,9 +67,7 @@ namespace AE::App
 			Float4x4,
 			Chars,		// 'Chars' type
 			GNS,		// 'GNSData' type
-
 			_Count,
-			Unknown	= 0xFF,
 		};
 
 

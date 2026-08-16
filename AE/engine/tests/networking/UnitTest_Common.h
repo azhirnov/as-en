@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #pragma once
 
@@ -19,6 +19,13 @@ struct LocalSocketMngr
 		TEST( Scheduler().Setup( cfg ));
 
 		TEST( SocketService::Instance().Initialize() );
+
+	  #ifdef AE_PLATFORM_ANDROID
+		SocketService::Callbacks	cb;
+		cb.getRouterIPAddress	= [](void*, OUT IpAddress &outAddr) __NE___ { outAddr = IpAddress::FromInt(192,168,0,1, 0);  return true; };
+
+		SocketService::Instance().SetCallbacks( cb );
+	  #endif
 	}
 
 	~LocalSocketMngr ()

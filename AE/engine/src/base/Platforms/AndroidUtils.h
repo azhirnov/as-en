@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #pragma once
 
@@ -38,6 +38,10 @@ namespace AE::Base
 		// Process //
 		ND_ static bool		SetProcessAffinity (CpuArchInfo::CoreBits_t)					__NE___;
 
+		ND_ static bool		OpenURL (U8StringView url)										__NE___;
+		ND_ static bool		OpenURL (StringView url)										__NE___;
+		ND_ static bool		OpenURL (const Path &url)										__NE___;
+
 
 		// OS //
 		ND_ static bool			IsUnderDebugger ()											__NE___;
@@ -49,6 +53,28 @@ namespace AE::Base
 		ND_ static auto			GetOSType ()												__NE___	{ return EOperationSystem::Android; }
 
 		ND_ static String		GetUserName ()												__NE___	{ return "AndroidUser"; }
+
+
+		// Clipboard //
+		ND_ static bool		ClipboardExtract (OUT U8String &result, void* wnd = null)		__NE___;
+		ND_ static bool		ClipboardPut (U8StringView str, void* wnd = null)				__NE___;
+		ND_ static bool		ClipboardClear (void* wnd = null)								__NE___;
+
+
+		// Private //
+		struct ActivityCallbacks
+		{
+			void*	userData													= null;
+
+			bool	(*openURL)				(void*, U8StringView)		__NE___	= null;
+
+			bool	(*setSystemSleepState)	(void*, ESystemSleepState)	__NE___	= null;
+
+			bool	(*clipboardExtract)		(void*, OUT U8String &)		__NE___	= null;
+			bool	(*clipboardPut)			(void*, U8StringView)		__NE___	= null;
+			bool	(*clipboardClear)		(void*)						__NE___	= null;
+		};
+		static void			_SetActivityCallbacks (const ActivityCallbacks &)				__NE___;
 	};
 
 } // AE::Base

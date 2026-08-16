@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #if 0 //def AE_PLATFORM_ANDROID
 # include "platform/Android/GameAppAndroid.h"
@@ -140,7 +140,7 @@ namespace {
 	GetStoragePath
 =================================================
 */
-	Path  GameAppAndroid::GetStoragePath (EAppStorage type) __NE___
+	Path  GameAppAndroid::GetStoragePath (EAppStorage type) C_NE___
 	{
 		switch_enum( type )
 		{
@@ -380,6 +380,8 @@ void  android_main (android_app* app)
 
 	JavaEnv::SetVM( app->activity->vm );
 	JavaEnv  env;
+
+	CHECK( CpuArchInfo::Get().CheckCompilationOptions() );
 
 	const int	argc	= 1;
 	const char*	argv[]	= { "" };

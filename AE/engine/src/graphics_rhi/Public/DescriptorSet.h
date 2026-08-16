@@ -1,9 +1,9 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 /*
 	IDescriptorUpdater - helper class for descriptor updating.
 
 	IDescriptorUpdater
-		Thread-safe:	no
+		Thread-safe:	no,  create one per thread
 */
 #pragma once
 
@@ -22,18 +22,19 @@ namespace AE::Graphics
 		AllowPartialyUpdate	= 1 << 0,
 
 		// vulkan only
-		UpdateTemplate		= 1 << 1,	// extension 'descriptorUpdateTemplate'
+		UpdateTemplate		= 1 << 1,	// requires 'descriptorUpdateTemplate'
+		DescriptorHeap		= 1 << 2,	// requires 'descriptorHeap', raw access to resource descriptors, all descriptors in pipeline are aliased.
 
 		// metal only
-		ArgumentBuffer		= 1 << 2,
-		MutableArgBuffer	= 1 << 3,	// use 'device' type instead of 'constant'
+		ArgumentBuffer		= 1 << 3,
+		MutableArgBuffer	= 1 << 4,	// use 'device' type instead of 'constant'
 
 		// private
-		MaybeUnsupported	= 1 << 4,	// for PipelinePack
+		MaybeUnsupported	= 1 << 5,	// for PipelinePack
 
 		_Last,
 		_PrivateMask		= MaybeUnsupported,
-		All					= ((_Last - 1) << 1) - 1,
+		All					= CT_AllBitMask2<EDescSetUsage>,
 	};
 
 
@@ -61,18 +62,29 @@ namespace AE::Graphics
 		//InlineUniformBlock,	// TODO
 		//ThreadgroupMemory,	// metal only
 
-		_Count,
-		Unknown		= _Count,
+		_Count
+	};
+
+
+	enum class EDescriptorFlags : ubyte
+	{
+		VariableSize	= 1 << 0,		// only for last descriptor in DS
+		_Last,
+		_BITOPS_		= 0
 	};
 
 
 	enum class EDescUpdateMode : ubyte
 	{
 		Partialy,
-		UpdateTemplate,		// extension 'descriptorUpdateTemplate'
-		_Count,
+		UpdateTemplate,		// requires 'descriptorUpdateTemplate'
+		_Count
+	};
 
-		Unknown			= _Count,
+
+	struct DescSetParams
+	{
+		uint			variableArraySize	= 0;	// 0 - default from DSL, requires 'descriptorBindingVariableDescriptorCount'
 	};
 
 
@@ -255,6 +267,9 @@ namespace AE::Graphics
 					bool  BindBuffer (UniformName::Ref name, BufferID buffer, uint elementIndex = 0)														__NE___	{ return BindBuffer( name, Default, buffer, elementIndex ); }
 					bool  BindBuffer (UniformName::Ref name, BufferID buffer, Bytes offset, Bytes size, uint elementIndex = 0)								__NE___	{ return BindBuffer( name, Default, buffer, offset, size, elementIndex ); }
 					bool  BindBuffers (UniformName::Ref name, ArrayView<BufferID> buffers, uint firstIndex = 0)												__NE___	{ return BindBuffers( name, Default, buffers, firstIndex ); }
+
+		// TODO:
+		//	virtual bool  BindBuffers (UniformName::Ref, ShaderStructName::Ref typeName, ArrayView<BufferID> buffers, ArrayView<Bytes> offsets, Bytes size, uint firstIndex = 0) __NE___	= 0;
 
 		ND_ virtual ShaderStructName  GetBufferStructName (UniformName::Ref)																				C_NE___ = 0;
 
