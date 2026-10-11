@@ -1260,6 +1260,11 @@ namespace AE::PipelineCompiler
 			}
 
 			case TSamplerDim::EsdBuffer :
+			{
+				result |= EImageType::Buffer;
+				break;
+			}
+
 			case TSamplerDim::EsdNone :
 			case TSamplerDim::EsdRect :
 			case TSamplerDim::EsdNumDims :

@@ -8,7 +8,7 @@
 #include "res_pack/pipeline_compiler/Packer/RenderPassPack.h"
 #include "res_pack/pipeline_compiler/Compiler/IShaderPreprocessor.h"
 
-#include "res_pack/pipeline_compiler/ScriptObjects/Common.h"
+#include "res_pack/pipeline_compiler/Compiler/Common.h"
 
 class TIntermNode;
 

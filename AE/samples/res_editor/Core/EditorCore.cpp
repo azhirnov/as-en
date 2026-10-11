@@ -12,7 +12,7 @@
 # error AE_GRAPHICS_STRONG_VALIDATION must be enabled for public version
 #endif
 
-#if defined(AE_ENABLE_VULKAN) and not defined(AE_CFG_RELEASE)
+#if defined(AE_ENABLE_VULKAN) and not defined(AE_PLATFORM_ANDROID) and not defined(AE_CFG_RELEASE)
 # define ENABLE_RDC		1
 #else
 # define ENABLE_RDC		0

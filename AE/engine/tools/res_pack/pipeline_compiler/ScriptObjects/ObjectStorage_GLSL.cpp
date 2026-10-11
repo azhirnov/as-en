@@ -185,7 +185,7 @@ namespace AE::PipelineCompiler
 			"#extension GL_GOOGLE_cpp_style_line_directive              : require\n"
 			"#extension GL_EXT_control_flow_attributes                  : require\n"
 			"#extension GL_EXT_control_flow_attributes2                 : require\n"
-			"#extension GL_EXT_samplerless_texture_functions            : enable\n";
+			"#extension GL_EXT_samplerless_texture_functions            : require\n";
 
 		if ( hasDebugInfo )
 			ext << "#extension GL_EXT_debug_printf                             : enable\n";

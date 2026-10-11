@@ -7066,7 +7066,7 @@ LowPower
 
 </details>
 
-<details><summary><b>memset, multithreading (4 threads, 4 cores)</b></summary>
+<details><summary><b>memset, multithreading (2 threads, 2 cores)</b></summary>
 
 **memset**
 
@@ -7199,7 +7199,7 @@ LowPower
 
 </details>
 
-<details><summary><b>other, multithreading (4 threads, 4 cores)</b></summary>
+<details><summary><b>other, multithreading (2 threads, 2 cores)</b></summary>
 
 **4x read, 2x write (SIMD fp32 sum)**
 
