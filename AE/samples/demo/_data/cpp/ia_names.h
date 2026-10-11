@@ -46,20 +46,15 @@ namespace InputActions
 	{
 		constexpr operator InputModeName_t () const { return InputModeName_t{Hash_t{0x2655069fu}}; }  // 'imGUI'
 
-		static constexpr uint  actionCount = 2;
+		static constexpr uint  actionCount = 6;
 		enum Bindings : uint {
+			MouseLBDown  = 0xd0f2e875u,  // InputActionName{"MouseLBDown"}
+			MousePos  = 0x4f44c5bu,  // InputActionName{"MousePos"}
+			MouseWheel  = 0xc2e16d5u,  // InputActionName{"MouseWheel"}
 			Touch_Click  = 0x5fb61d88u,  // InputActionName{"Touch.Click"}
 			Touch_Move  = 0x7a5f92b5u,  // InputActionName{"Touch.Move"}
+			UI_Char  = 0xb7aff412u,  // InputActionName{"UI.Char"}
 		};
-		static constexpr struct _Desktop {
-			static constexpr uint  actionCount = 4;
-			enum Bindings : uint {
-				MouseLBDown  = 0xd0f2e875u,  // InputActionName{"MouseLBDown"}
-				MousePos  = 0x4f44c5bu,  // InputActionName{"MousePos"}
-				MouseWheel  = 0xc2e16d5u,  // InputActionName{"MouseWheel"}
-				UI_Char  = 0xb7aff412u,  // InputActionName{"UI.Char"}
-			};
-		} Desktop = {};
 	} imGUI = {};
 
 }

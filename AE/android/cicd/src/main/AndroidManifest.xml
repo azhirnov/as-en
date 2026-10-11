@@ -18,9 +18,9 @@
 			android:name=".CICDActivity"
 			android:theme="@style/Theme.AppCompat.Light"
 			android:launchMode="singleTask"
-			android:configChanges="keyboard|keyboardHidden|orientation|screenLayout|uiMode|screenSize|smallestScreenSize"
+			android:configChanges="keyboard|keyboardHidden|orientation|screenLayout|uiMode|screenSize|smallestScreenSize|navigation"
 			android:resizeableActivity="true"
-			android:windowSoftInputMode="adjustPan"
+			android:windowSoftInputMode="adjustNothing"
 			android:exported="true">
 			<intent-filter>
 				<action android:name="android.intent.action.MAIN" />

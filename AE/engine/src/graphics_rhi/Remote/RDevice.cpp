@@ -366,21 +366,7 @@ namespace {
 
 		if ( _graphics )
 		{
-			#ifdef CMAKE_INTDIR
-				StringView	config = CMAKE_INTDIR;
-			#else
-			# ifdef AE_CFG_DEBUG
-				StringView	config = "Debug";
-			# elif defined(AE_CFG_DEVELOP)
-				StringView	config = "Develop";
-			# elif defined(AE_CFG_PROFILE)
-				StringView	config = "Profile";
-			# elif defined(AE_CFG_RELEASE)
-				StringView	config = "Release";
-			# else
-			#	error unknown config!
-			# endif
-			#endif
+			StringView	config = AE_BUILD_TYPE;
 			CHECK_ERR( _graphics->Initialize( ci, config, AE_OPTIMIZE_IDS, Version3{AE_VERSION.Get<0>(), AE_VERSION.Get<1>(), AE_VERSION.Get<2>()} ));
 		}
 		return true;

@@ -150,6 +150,7 @@ namespace AE::Graphics
 
 		// submit
 		{
+			TRACY( ZoneScopedN("vkQueueSubmit"));
 			EXLOCK( queue->guard );
 			VK_CHECK_ERR( dev.vkQueueSubmit( queue->handle, submits_count, submits, fence->Handle() ));
 
@@ -234,6 +235,7 @@ namespace AE::Graphics
 
 		// submit
 		{
+			TRACY( ZoneScopedN("vkQueueSubmit2"));
 			EXLOCK( queue->guard );
 			VK_CHECK_ERR( dev.vkQueueSubmit2KHR( queue->handle, submits_count, submits, Default ));
 
@@ -340,6 +342,8 @@ namespace AE::Graphics
 */
 	bool  RenderTaskScheduler::_IsFrameCompleted (FrameUID frameId) __NE___
 	{
+		TRACY( ZoneScoped );
+
 	  #if AE_VK_TIMELINE_SEMAPHORE
 		return _IsFrameComplete_Timeline( frameId );
 	  #else

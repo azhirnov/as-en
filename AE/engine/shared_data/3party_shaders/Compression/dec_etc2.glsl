@@ -1,3 +1,4 @@
+// TODO: can be removed
 #ifdef AE_LICENSE_MIT
 
 // from https://github.com/Themaister/Granite/blob/master/assets/shaders/decode/etc2.comp
@@ -217,13 +218,13 @@
 	}
 
 
-	ND_ float4  DecodeETC2 (uint2 block, int2 localTexel)
+	ND_ float4  DecodeETC2_v2 (uint2 block, int2 localTexel)
 	{
 		uint4 rgba8 = decode_etc2( block, localTexel, false );
 		return float4(rgba8) / float(255.0);
 	}
 
-	ND_ float4  DecodeETC2A1 (uint2 block, int2 localTexel)
+	ND_ float4  DecodeETC2A1_v2 (uint2 block, int2 localTexel)
 	{
 		uint4 rgba8 = decode_etc2( block, localTexel, true );
 		return float4(rgba8) / float(255.0);

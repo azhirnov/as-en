@@ -32,9 +32,9 @@ void  Executor::_CompileDecodeAllETC () __Th___
 	_CompileETCDecode
 =================================================
 */
-void  Executor::_CompileETCDecode (EPixelFormat compFmt, StringView decodeFnName) __Th___
+void  Executor::_CompileETCDecode (ECompFormat compFmt, StringView decodeFnName) __Th___
 {
-	auto			block_size	= EPixelFormat_GetInfo( compFmt ).BytesPerBlock();
+	auto			block_size	= EPixelFormat_GetInfo( ToPixFmt( compFmt )).BytesPerBlock();
 	EPixelFormat	block_fmt	= Default;
 
 	String	src =
@@ -81,37 +81,37 @@ void  Executor::_CompileETCDecode (EPixelFormat compFmt, StringView decodeFnName
 */
 void  Executor::_CompileDecodeETC_RGB8 ()
 {
-	_CompileETCDecode( EPixelFormat::ETC2_RGB8_UNorm, "DecodeETC2" );
+	_CompileETCDecode( ECompFormat::ETC2_RGB8_UNorm, "DecodeETC2" );
 }
 
 void  Executor::_CompileDecodeETC_RGB8A1 ()
 {
-	_CompileETCDecode( EPixelFormat::ETC2_RGB8_A1_UNorm, "DecodeETC2A1" );
+	_CompileETCDecode( ECompFormat::ETC2_RGB8_A1_UNorm, "DecodeETC2A1" );
 }
 
 void  Executor::_CompileDecodeETC_RGBA8 ()
 {
-	_CompileETCDecode( EPixelFormat::ETC2_RGBA8_UNorm, "DecodeETC2_EAC" );
+	_CompileETCDecode( ECompFormat::ETC2_RGBA8_UNorm, "DecodeETC2_EAC" );
 }
 
 void  Executor::_CompileDecodeEAC_R11U ()
 {
-	_CompileETCDecode( EPixelFormat::EAC_R11_UNorm, "DecodeEAC_Ru" );
+	_CompileETCDecode( ECompFormat::EAC_R11_UNorm, "DecodeEAC_Ru" );
 }
 
 void  Executor::_CompileDecodeEAC_R11S ()
 {
-	_CompileETCDecode( EPixelFormat::EAC_R11_SNorm, "DecodeEAC_Rs" );
+	_CompileETCDecode( ECompFormat::EAC_R11_SNorm, "DecodeEAC_Rs" );
 }
 
 void  Executor::_CompileDecodeEAC_RG11U ()
 {
-	_CompileETCDecode( EPixelFormat::EAC_RG11_UNorm, "DecodeEAC_RGu" );
+	_CompileETCDecode( ECompFormat::EAC_RG11_UNorm, "DecodeEAC_RGu" );
 }
 
 void  Executor::_CompileDecodeEAC_RG11S ()
 {
-	_CompileETCDecode( EPixelFormat::EAC_RG11_SNorm, "DecodeEAC_RGs" );
+	_CompileETCDecode( ECompFormat::EAC_RG11_SNorm, "DecodeEAC_RGs" );
 }
 
 /*
@@ -160,7 +160,7 @@ void  Executor::_CompileEncodeAllETC () __Th___
 {
 	AE_LOGI( "Compile ETC Encoder" );
 
-//	_CompileEncodeETC_RGB8();
+	_CompileEncodeETC_RGB8();
 	_CompileEncodeEAC_R11U();
 }
 
@@ -169,11 +169,11 @@ void  Executor::_CompileEncodeAllETC () __Th___
 	_CompileETCEncode
 =================================================
 */
-void  Executor::_CompileETCEncode (EPixelFormat compFmt, StringView decodeFnName) __Th___
+void  Executor::_CompileETCEncode (ECompFormat compFmt, StringView decodeFnName) __Th___
 {
-	auto			block_size	= EPixelFormat_GetInfo( compFmt ).BytesPerBlock();
+	auto			block_size	= EPixelFormat_GetInfo( ToPixFmt( compFmt )).BytesPerBlock();
 	EPixelFormat	block_fmt	= Default;
-	StringView		scalar, swizzle, block_type, block_to_u4;
+	StringView		pix_type, swizzle, block_type, block_to_u4;
 
 	if ( block_size == 8 ){
 		block_type	= "uint2";
@@ -189,13 +189,13 @@ void  Executor::_CompileETCEncode (EPixelFormat compFmt, StringView decodeFnName
 
 	switch ( compFmt )
 	{
-		case EPixelFormat::ETC2_RGB8_UNorm :	scalar = "float3";	swizzle = ".rgb";	break;
-		case EPixelFormat::ETC2_RGB8_A1_UNorm :
-		case EPixelFormat::ETC2_RGBA8_UNorm :	scalar = "float4";						break;
-		case EPixelFormat::EAC_R11_UNorm :
-		case EPixelFormat::EAC_R11_SNorm :		scalar = "float";	swizzle = ".r";		break;
-		case EPixelFormat::EAC_RG11_UNorm :
-		case EPixelFormat::EAC_RG11_SNorm :		scalar = "float2";	swizzle = ".rg";	break;
+		case ECompFormat::ETC2_RGB8_UNorm :		pix_type = "float3";	swizzle = ".rgb";	break;
+		case ECompFormat::ETC2_RGB8_A1_UNorm :
+		case ECompFormat::ETC2_RGBA8_UNorm :	pix_type = "float4";						break;
+		case ECompFormat::EAC_R11_UNorm :
+		case ECompFormat::EAC_R11_SNorm :		pix_type = "float";		swizzle = ".r";		break;
+		case ECompFormat::EAC_RG11_UNorm :
+		case ECompFormat::EAC_RG11_SNorm :		pix_type = "float2";	swizzle = ".rg";	break;
 		default :								CHECK_THROW( false, "unsupported format" );
 	}
 
@@ -206,13 +206,14 @@ void  Executor::_CompileETCEncode (EPixelFormat compFmt, StringView decodeFnName
 
 "void  Main ()\n"
 "{\n"
-"	"s << scalar << "	values[16];\n"
+"	int2	coord = int2(gl.GlobalInvocationID.xy);\n"
+"	"s << pix_type << "	values[16];\n"
 "	for (int y = 0; y < 4; ++y)\n"
 "	for (int x = 0; x < 4; ++x) {\n"
-"		values[x + y*4] = gl.image.Load( d_InputImg, int2(x,y) )" << swizzle << ";\n"
+"		values[x + y*4] = gl.image.Load( d_InputImg, coord*4 + int2(x,y) )" << swizzle << ";\n"
 "	}\n"
 "	" << block_type << "	block = " << decodeFnName << "( values );\n"
-"	gl.image.Store( d_OutputBlocks, int2(0), " << block_to_u4 << ");\n"
+"	gl.image.Store( d_OutputBlocks, coord, " << block_to_u4 << ");\n"
 "}";
 
 	_CompileCS( src, "SwEnc."s << ToString(compFmt),
@@ -231,10 +232,57 @@ void  Executor::_CompileETCEncode (EPixelFormat compFmt, StringView decodeFnName
 */
 void  Executor::_CompileEncodeETC_RGB8 () __Th___
 {
-	_CompileETCEncode( EPixelFormat::ETC2_RGB8_UNorm, "EncodeETC2" );
+	_CompileETCEncode( ECompFormat::ETC2_RGB8_UNorm, "EncodeETC2" );
 }
 
 void  Executor::_CompileEncodeEAC_R11U () __Th___
 {
-	_CompileETCEncode( EPixelFormat::EAC_R11_UNorm, "EncodeEAC_Ru" );
+	_CompileETCEncode( ECompFormat::EAC_R11_UNorm,	"EncodeEAC_Ru" );
+	_CompileETCEncode( ECompFormat::EAC_RG11_UNorm,	"EncodeEAC_RGu" );
+}
+
+/*
+=================================================
+	_GetModeETC2
+=================================================
+*/
+static int  ETC2Branch (uint lo, bool has1BitAlpha)
+{
+    const uint s0 =  lo        & 0xFFu;
+    const uint s1 = (lo >>  8) & 0xFFu;
+    const uint s2 = (lo >> 16) & 0xFFu;
+    const uint s3 = (lo >> 24) & 0xFFu;
+
+    const bool diffBit = (s3 & 2u) != 0u;
+    if ( not has1BitAlpha and not diffBit )
+        return 0;
+
+    auto delta3 = [](uint32_t v) -> int {
+        int d = int(v & 7u);
+        return d >= 4 ? d - 8 : d;
+    };
+
+    const int R1 = int(s0 >> 3) + delta3(s0);
+    const int G1 = int(s1 >> 3) + delta3(s1);
+    const int B1 = int(s2 >> 3) + delta3(s2);
+
+    if ( R1 < 0 or R1 > 31 ) return 1;
+    if ( G1 < 0 or G1 > 31 ) return 2;
+    if ( B1 < 0 or B1 > 31 ) return 3;
+    return 4;
+}
+
+int  Executor::_GetModeETC2 (const RGBA32u &block)
+{
+	return ETC2Branch( block.r, false );
+}
+
+int  Executor::_GetModeETC2A1 (const RGBA32u &block)
+{
+	return ETC2Branch( block.r, true );
+}
+
+int  Executor::_GetModeETC2_EAC (const RGBA32u &block)
+{
+	return ETC2Branch( block.b, false );
 }

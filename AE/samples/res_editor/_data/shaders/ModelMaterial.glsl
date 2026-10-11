@@ -39,17 +39,17 @@ ND_ float4  CalcLighting (const float3 worldPos, const float3 worldNormal, const
 {
 	float3	diffuse = float3(0.0);
 
-	for (uint i = 0; i < un_Lights.directionalCount; ++i)
+	for (uint i = 0; i < un_SceneLights.directionalCount; ++i)
 	{
-		const SceneDirectionalLight	light = un_Lights.directional[i];
+		const SceneDirectionalLight	light = un_SceneLights.directional[i];
 
 		float	atten	= 1.0 / light.attenuation.x;		// only linear attenuation
 		diffuse += UnpackRGBM( light.colorRGBM ).rgb * LambertDiffuse( light.direction, worldNormal ) * atten;
 	}
 
-	for (uint i = 0; i < un_Lights.coneCount; ++i)
+	for (uint i = 0; i < un_SceneLights.coneCount; ++i)
 	{
-		const SceneConeLight	light = un_Lights.cone[i];
+		const SceneConeLight	light = un_SceneLights.cone[i];
 
 		float3	pos		= light.position - cameraPos;
 		float	dist	= Distance( worldPos, pos );
@@ -58,9 +58,9 @@ ND_ float4  CalcLighting (const float3 worldPos, const float3 worldNormal, const
 		diffuse += UnpackRGBM( light.colorRGBM ).rgb * LambertDiffuse( light.direction, worldNormal ) * atten;
 	}
 
-	for (uint i = 0; i < un_Lights.omniCount; ++i)
+	for (uint i = 0; i < un_SceneLights.omniCount; ++i)
 	{
-		const SceneOmniLight	light = un_Lights.omni[i];
+		const SceneOmniLight	light = un_SceneLights.omni[i];
 
 		float3	pos		= light.position - cameraPos;
 		float	dist	= Distance( worldPos, pos );

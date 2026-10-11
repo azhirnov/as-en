@@ -78,6 +78,7 @@ ND_ float2  RayInverse_PlaneToCubemapVR360 (const float3 rayDir, const uint eye,
 ND_ float2  RayInverse_PlaneToSphere (const float2 invHalfFov, const float3 rayDir);
 ND_ float2  RayInverse_Perspective (const float2 fov, const float3 rayDir);
 ND_ float2  RayInverse_Perspective (const float fovY, const float ratio, const float3 rayDir);
+ND_ float2  RayInverse_Perspective (const float4x4 proj, const float3 rayDir);
 ND_ float2	RayInverse_FishEye (const float2 fov, const float3 rayDir, float uvScale);
 ND_ float2	RayInverse_FishEye (const float fov, const float3 rayDir);
 ND_ float2	RayInverse_DualFishEye (const float fov, const float3 rayDir, float uvScale);
@@ -174,6 +175,14 @@ float2  RayInverse_Perspective (const float fovY, const float ratio, const float
 
 	uv.x = uv.x / (ratio * tan_h);
 	uv.y = uv.y / tan_h;
+
+	return ToUNorm( uv );
+}
+
+float2  RayInverse_Perspective (const float4x4 proj, const float3 rayDir)
+{
+	float4	clip	= proj * float4( rayDir, 0.0 );
+	float2	uv		= clip.xy * Rcp( clip.w );
 
 	return ToUNorm( uv );
 }

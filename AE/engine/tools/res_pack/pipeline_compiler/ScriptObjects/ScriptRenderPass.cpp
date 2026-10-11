@@ -1484,51 +1484,51 @@ namespace
 
 			case EAttachment::Invalidate :
 				binder.Comment( "Discard previous content. Used as optimization for TBDR architectures." );
-				binder.AddValue( "Invalidate",		EAttachment::Invalidate		);
+				binder.AddValue< EAttachment::Invalidate >();
 
 			case EAttachment::Color :
 				binder.Comment( "Color attachment." );
-				binder.AddValue( "Color",			EAttachment::Color			);
+				binder.AddValue< EAttachment::Color >();
 
 			case EAttachment::ColorResolve :
 				binder.Comment( "Resolve attachment - will get content from multisampled color attachment." );
-				binder.AddValue( "ColorResolve",	EAttachment::ColorResolve	);
+				binder.AddValue< EAttachment::ColorResolve >();
 
 			case EAttachment::ReadWrite :
 				binder.Comment( "Used as input attachment and color attachment.\n"
 								"Only one primitive can modify pixel, otherwise pipeline barrier is required between draws." );
-				binder.AddValue( "ReadWrite",		EAttachment::ReadWrite		);
+				binder.AddValue< EAttachment::ReadWrite >();
 
 			case EAttachment::Input :
 				binder.Comment( "Input attachment." );
-				binder.AddValue( "Input",			EAttachment::Input			);
+				binder.AddValue< EAttachment::Input >();
 
 			case EAttachment::Depth :
 				binder.Comment( "Depth attachment." );
-				binder.AddValue( "Depth",			EAttachment::Depth			);
+				binder.AddValue< EAttachment::Depth >();
 
 				binder.Comment( "Depth and stencil attachment." );
-				binder.AddValue( "DepthStencil",	EAttachment::DepthStencil	);
+				binder.AddValue( "DepthStencil", EAttachment::DepthStencil );
 
 			case EAttachment::Preserve :
 				binder.Comment( "Keep attachment content between passes." );
-				binder.AddValue( "Preserve",		EAttachment::Preserve		);
+				binder.AddValue< EAttachment::Preserve >();
 
 			case EAttachment::ShadingRate :
 				binder.Comment( "Fragment shading rate attachment.\n"
 								"Requires 'attachmentFragmentShadingRate' feature." );
-				binder.AddValue( "ShadingRate",		EAttachment::ShadingRate	);
+				binder.AddValue< EAttachment::ShadingRate >();
 
 			case EAttachment::FragmentDensity :
 				binder.Comment( "Fragment density (read-only) attachment.\n"
 								"Requires 'fragmentDensityMap' feature." );
-				binder.AddValue( "FragmentDensity",	EAttachment::FragmentDensity );
+				binder.AddValue< EAttachment::FragmentDensity >();
 
 			case EAttachment::RasterOrder :
 				binder.Comment( "Used as input attachment and color attachment.\n"
 								"Allows to access framebuffer content in rasterization order, without explicit synchronization.\n"
 								"Awailable in TBDR architectures. Requires 'rasterizationOrderColorAttachmentAccess' feature." );
-				binder.AddValue( "RasterOrder",		EAttachment::RasterOrder	);
+				binder.AddValue< EAttachment::RasterOrder >();
 		}
 		switch_end
 	}
@@ -1545,22 +1545,22 @@ namespace
 			case EAttachmentLoadOp::Invalidate :
 				binder.Comment( "Previous content will not be preserved.\n"
 								"In TBDR it allow to avoid transfer from global memory to cache." );
-				binder.AddValue( "Invalidate",	EAttachmentLoadOp::Invalidate );
+				binder.AddValue< EAttachmentLoadOp::Invalidate >();
 
 			case EAttachmentLoadOp::Load :
 				binder.Comment( "Preserve attachment content.\n"
 								"In TBDR contents in global memory will be copied to cache." );
-				binder.AddValue( "Load",		EAttachmentLoadOp::Load );
+				binder.AddValue< EAttachmentLoadOp::Load >();
 
 			case EAttachmentLoadOp::Clear :
 				binder.Comment( "Clear attachment before first pass.\n"
 								"In TBDR it allow to avoid transfer from global memory to cache." );
-				binder.AddValue( "Clear",		EAttachmentLoadOp::Clear );
+				binder.AddValue< EAttachmentLoadOp::Clear >();
 
 			case EAttachmentLoadOp::None :
 				binder.Comment( "Attachment is not used at all.\n"
 								"Can be used to keep one compatible render pass and avoid unnecessary synchronizations for unused attachment." );
-				binder.AddValue( "None",		EAttachmentLoadOp::None );
+				binder.AddValue< EAttachmentLoadOp::None >();
 		}
 		switch_end
 	}
@@ -1577,21 +1577,21 @@ namespace
 			case EAttachmentStoreOp::Invalidate :
 				binder.Comment( "Attachment content will not needed after rendering.\n"
 								"In TBDR it allow to avoid transfer from cache to global memory." );
-				binder.AddValue( "Invalidate",	EAttachmentStoreOp::Invalidate );
+				binder.AddValue< EAttachmentStoreOp::Invalidate >();
 
 			case EAttachmentStoreOp::Store :
 				binder.Comment( "Attachment content will be written to global memory." );
-				binder.AddValue( "Store",		EAttachmentStoreOp::Store );
+				binder.AddValue< EAttachmentStoreOp::Store >();
 
 			case EAttachmentStoreOp::None :
 				binder.Comment( "Attachment is read-only. Content may not be written to memory, but if changed then content in memory will be undefined.\n"
 								"In TBDR it allow to avoid transfer from cache to global memory." );
-				binder.AddValue( "None",		EAttachmentStoreOp::None );
+				binder.AddValue< EAttachmentStoreOp::None >();
 
 			case EAttachmentStoreOp::StoreCustomSamplePositions :
 				//binder.Comment( "Vulkan: same as 'Store'.\n"
 				//				"Metal: " );
-				//binder.AddValue( "StoreCustomSamplePositions",	EAttachmentStoreOp::StoreCustomSamplePositions );
+				//binder.AddValue< EAttachmentStoreOp::StoreCustomSamplePositions >();
 				{}
 		}
 		switch_end

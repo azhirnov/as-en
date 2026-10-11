@@ -23,7 +23,7 @@
 
 # include "base/SIMD/Neon.h"
 # include "base/SIMD/SVE.h"
-//# include "base/SIMD/SME.h"
+# include "base/SIMD/SME.h"
 # include "base/SIMD/ARMCrypto.h"
 
 #endif // AE_SIMD_NEON or AE_SIMD_SVE

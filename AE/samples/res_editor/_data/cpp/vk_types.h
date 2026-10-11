@@ -1,4 +1,4 @@
-//135ab0a8
+//7a9c133a
 #ifndef CameraData_DEFINED
 #	define CameraData_DEFINED
 	// size: 400, align: 16
@@ -14,7 +14,7 @@
 		float2                      clipPlanes;
 		float2                      fov;
 		float                       zoom;
-		StaticArray< float4, 6 >    frustum;
+		StaticArray< float4, 6 >    wsFrustum;
 	};
 #endif
 	StaticAssert( offsetof(CameraData, viewProj) == 0 );
@@ -25,7 +25,7 @@
 	StaticAssert( offsetof(CameraData, clipPlanes) == 272 );
 	StaticAssert( offsetof(CameraData, fov) == 280 );
 	StaticAssert( offsetof(CameraData, zoom) == 288 );
-	StaticAssert( offsetof(CameraData, frustum) == 304 );
+	StaticAssert( offsetof(CameraData, wsFrustum) == 304 );
 	StaticAssert( sizeof(CameraData) == 400 );
 
 #ifndef CameraData_DEFINED
@@ -43,7 +43,7 @@
 		float2                      clipPlanes;
 		float2                      fov;
 		float                       zoom;
-		StaticArray< float4, 6 >    frustum;
+		StaticArray< float4, 6 >    wsFrustum;
 	};
 #endif
 	StaticAssert( offsetof(CameraData, viewProj) == 0 );
@@ -54,7 +54,7 @@
 	StaticAssert( offsetof(CameraData, clipPlanes) == 272 );
 	StaticAssert( offsetof(CameraData, fov) == 280 );
 	StaticAssert( offsetof(CameraData, zoom) == 288 );
-	StaticAssert( offsetof(CameraData, frustum) == 304 );
+	StaticAssert( offsetof(CameraData, wsFrustum) == 304 );
 	StaticAssert( sizeof(CameraData) == 400 );
 
 #ifndef PostprocessPassUB_DEFINED

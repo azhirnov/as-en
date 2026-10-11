@@ -1012,7 +1012,7 @@ namespace
 		str << ", in " << asFunc;
 		str << ", function: " << func;
 
-		AE_LOGE( str, loc );
+		AE_LOGW( str, loc );
 		return false;
 	}
 //-----------------------------------------------------------------------------

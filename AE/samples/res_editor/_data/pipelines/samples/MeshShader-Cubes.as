@@ -116,7 +116,7 @@
 	WGShared uint  s_TaskCount;
 
 	ND_ bool  IsVisible (float3 center, float radius) {
-		return Frustum_IsSphereVisible( un_PerPass.camera.frustum, center, radius );
+		return Frustum_IsSphereVisible( un_PerPass.camera.wsFrustum, center, radius );
 	}
 
 	void Main ()

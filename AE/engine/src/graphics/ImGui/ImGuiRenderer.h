@@ -7,6 +7,7 @@
 
 #ifdef AE_ENABLE_IMGUI
 # include "graphics/Common.h"
+# include "platform/Public/InputActions.h"
 
 struct ImGuiContext;
 struct ImDrawData;
@@ -89,6 +90,8 @@ namespace AE::Graphics
 		using PipelineMap_t		= FixedMap< EPixelFormat, PipelineSet, 8 >;
 		using RenderTaskRef		= _Coro_::RenderTaskImpl::UserApi;
 		using DescSetArray_t	= FixedArray< Strong<DescriptorSetID>, GraphicsConfig::MaxFrames >;
+		using KeyStates_t		= Array<Pair< int, bool >>;
+		using IRawKeyListener	= App::IInputActions::IRawKeyListener;
 
 		enum class EScaleType
 		{
@@ -99,6 +102,20 @@ namespace AE::Graphics
 			AdaptiveFract,
 		};
 
+		class KeyListener final : public IRawKeyListener
+		{
+		private:
+			SpinLock		_guard;
+			KeyStates_t		_keyStates;		// ImGuiKey
+
+		public:
+			KeyListener ()	__NE___;
+
+			void  KeyEvent (/*EInputType*/ushort type, App::EGestureState state, App::ControllerID id, App::IInputActions::Duration_t timestamp) __NE_OV;
+
+			void  Get (INOUT KeyStates_t &) __NE___;
+		};
+
 
 	// variables
 	public:
@@ -107,7 +124,7 @@ namespace AE::Graphics
 		MouseDownBits				mouseBtnDown;
 		bool						touchActive			= false;
 		U8String					inputText;
-		Array<Pair< int, bool >>	keyStates;			// ImGuiKey
+		KeyStates_t					keyStates;			// ImGuiKey, prefer to use 'SetRawKeyListener( CreateKeyListener() )'
 
 	private:
 		// imgui
@@ -131,6 +148,8 @@ namespace AE::Graphics
 		PushConstantIndex			_fsPCIndex;						// imgui_fs_pc
 
 		StrongImageAndViewID		_font;
+
+		RC<KeyListener>				_keyListener;
 
 
 	// methods
@@ -166,6 +185,8 @@ namespace AE::Graphics
 		ND_ bool  IsInitialized ()																C_NE___	{ return bool{_rtech}; }
 		ND_ auto  GetRenderTech ()																__NE___	{ return Ptr{_rtech.get()}; }
 		ND_ auto  GetContext ()																	__NE___	{ return _imguiCtx; }
+
+		ND_ RC<IRawKeyListener>  CreateKeyListener ()											__NE___;
 
 		// Override all previous textures.
 		// Index '0' is reserved for font texture.

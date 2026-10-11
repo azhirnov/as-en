@@ -8,6 +8,7 @@
 #endif
 
 #include "Quaternion.glsl"
+#include "SafeMath.glsl"
 
 
 // 2D Shapes

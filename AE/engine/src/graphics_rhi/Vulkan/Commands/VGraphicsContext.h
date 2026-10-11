@@ -98,7 +98,7 @@ namespace AE::Graphics::_hidden_
 		using RenderCoroRef	= typename CtxImpl::RenderCoroRef;
 	private:
 		using RawCtx		= CtxImpl;
-		using AccumBar		= AccumBarriers< _VGraphicsContextImpl< CtxImpl >>;
+		using AccumBar		= TAccumBarriers< _VGraphicsContextImpl< CtxImpl >>;
 		using DeferredBar	= AccumDeferredBarriersForCtx< _VGraphicsContextImpl< CtxImpl >>;
 		using Validator_t	= GraphicsContextValidation;
 		using FinalStates_t	= VBarrierManager::RPassFinalStates_t;

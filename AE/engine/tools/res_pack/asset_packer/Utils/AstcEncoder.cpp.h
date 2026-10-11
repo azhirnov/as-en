@@ -27,6 +27,7 @@
 		CHECK_ERR( srcView.Parts().size() == 1 );
 		CHECK_ERR( dstView.Parts().size() == 1 );
 		CHECK_ERR( EPixelFormat_IsASTC( dstView.Format() ));
+		CHECK_ERR( All( srcView.Dimension() == dstView.Dimension() ));
 
 		auto&	src_fmt_info = EPixelFormat_GetInfo( srcView.Format() );
 		auto&	dst_fmt_info = EPixelFormat_GetInfo( dstView.Format() );
@@ -42,6 +43,9 @@
 		const float	quality		= Clamp( inQuality * 100.f, 0.f, 100.f );
 
 		const astcenc_swizzle	swizzle { ASTCENC_SWZ_R, ASTCENC_SWZ_G, ASTCENC_SWZ_B, ASTCENC_SWZ_A };
+
+		CHECK_ERR( IsMultipleOf( srcView.Dimension().x, block_x ));
+		CHECK_ERR( IsMultipleOf( srcView.Dimension().y, block_y ));
 
 		astcenc_config	config = {};
 		astcenc_error	status;
@@ -102,6 +106,7 @@
 		CHECK_ERR( srcView.Parts().size() == 1 );
 		CHECK_ERR( dstView.Parts().size() == 1 );
 		CHECK_ERR( EPixelFormat_IsASTC( srcView.Format() ));
+		CHECK_ERR( All( srcView.Dimension() == dstView.Dimension() ));
 
 		auto&	src_fmt_info = EPixelFormat_GetInfo( srcView.Format() );
 		auto&	dst_fmt_info = EPixelFormat_GetInfo( dstView.Format() );
@@ -115,6 +120,9 @@
 								  EPixelFormat_IsASTC_LDR_sRGB( srcView.Format() )	? ASTCENC_PRF_LDR_SRGB :
 																					  ASTCENC_PRF_LDR;
 		const astcenc_swizzle	swizzle { ASTCENC_SWZ_R, ASTCENC_SWZ_G, ASTCENC_SWZ_B, ASTCENC_SWZ_A };
+
+		CHECK_ERR( IsMultipleOf( dstView.Dimension().x, block_x ));
+		CHECK_ERR( IsMultipleOf( dstView.Dimension().y, block_y ));
 
 		astcenc_config	config = {};
 		astcenc_error	status;

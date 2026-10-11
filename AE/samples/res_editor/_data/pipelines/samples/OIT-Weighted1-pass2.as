@@ -1,0 +1,87 @@
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
+/*
+	Approximate OIT
+	based on https://github.com/nvpro-samples/vk_order_independent_transparency (Apache-2.0 license)
+*/
+#ifdef __INTELLISENSE__
+#	include <pipeline_compiler.as>
+#	include <glsl.h>
+#endif
+//-----------------------------------------------------------------------------
+#ifdef SCRIPT
+
+	void ASmain ()
+	{
+		const string	pass = "pass-1";
+		{
+			RC<DescriptorSetLayout>	ds = DescriptorSetLayout( pass+".mtr.ds" );
+			ds.UniformBuffer( EShaderStages::Vertex,	"un_PerObject",	"UnifiedGeometryMaterialUB" );
+		}{
+			RC<PipelineLayout>		pl = PipelineLayout( pass+".pl" );
+			pl.DSLayout( "pass",	 0, pass+".ds" );
+			pl.DSLayout( "material", 1, pass+".mtr.ds" );
+		}
+
+		RC<GraphicsPipeline>	ppln = GraphicsPipeline( pass+".tmpl" );
+		ppln.SetLayout( pass+".pl" );
+		ppln.SetFragmentOutputFromRenderTech( "rtech", pass );
+
+		{
+			RC<Shader>	vs = Shader();
+			vs.LoadSelf();
+			ppln.SetVertexShader( vs );
+		}{
+			RC<Shader>	fs = Shader();
+			fs.LoadSelf();
+			ppln.SetFragmentShader( fs );
+		}
+
+		// specialization
+		{
+			RC<GraphicsPipelineSpec>	spec = ppln.AddSpecialization( pass+".spec" );
+			spec.AddToRenderTech( "rtech", pass );  // in ScriptSceneGraphicsPass
+
+			RenderState	rs;
+			rs.inputAssembly.topology		= EPrimitive::TriangleStrip;
+
+			rs.rasterization.frontFaceCCW	= true;
+			rs.rasterization.cullMode		= ECullMode::Back;
+
+			spec.SetRenderState( rs );
+		}
+	}
+
+#endif
+//-----------------------------------------------------------------------------
+#ifdef SH_VERT
+	#include "CodeTemplates.glsl"
+
+	void Main ()
+	{
+		gl.Position = FullscreenTrianglePos();
+	}
+
+#endif
+//-----------------------------------------------------------------------------
+#ifdef SH_FRAG
+	#include "Math.glsl"
+
+	void  Main ()
+	{
+		const float4	accum	= gl.subpass.Load( un_TexColor );
+		const float		reveal	= gl.subpass.Load( un_TexWeights ).r;
+
+		out_Color2 = float4( accum.rgb / Max(accum.a, 1.0e-5), 1.0 );
+		out_Color2.rgb *= 1.0 - reveal;
+
+		float	scale = Exp2( float(iDbgScale) );
+
+		switch ( iDbgView )
+		{
+			case 1 :	out_Color2 = accum * scale;					break;
+			case 2 :	out_Color2 = float4(1.0 - reveal) * scale;	break;
+		}
+	}
+
+#endif
+//-----------------------------------------------------------------------------

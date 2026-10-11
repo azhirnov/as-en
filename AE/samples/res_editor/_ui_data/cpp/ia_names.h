@@ -179,13 +179,18 @@ namespace InputActions
 			UI_Screenshot  = 0x96bf9eb7u,  // InputActionName{"UI.Screenshot"}
 			UI_ShowHide  = 0xbebd792fu,  // InputActionName{"UI.ShowHide"}
 		};
+		static constexpr struct _Mobile {
+			static constexpr uint  actionCount = 2;
+			enum Bindings : uint {
+				RmCamera_Gravity  = 0x392564b3u,  // InputActionName{"RmCamera.Gravity"}
+				RmCamera_Rotate  = 0x9a49f11u,  // InputActionName{"RmCamera.Rotate"}
+			};
+		} Mobile = {};
 		static constexpr struct _GLFW {
-			static constexpr uint  actionCount = 4;
+			static constexpr uint  actionCount = 2;
 			enum Bindings : uint {
 				CustomKey3  = 0xcdef4b29u,  // InputActionName{"CustomKey3"}
 				CustomKey4  = 0x538bde8au,  // InputActionName{"CustomKey4"}
-				RmCamera_Gravity  = 0x392564b3u,  // InputActionName{"RmCamera.Gravity"}
-				RmCamera_Rotate  = 0x9a49f11u,  // InputActionName{"RmCamera.Rotate"}
 			};
 		} GLFW = {};
 	} Controller_RemoteCamera = {};
@@ -262,6 +267,7 @@ namespace InputActions
 			CustomKey2  = 0xbae87bbfu,  // InputActionName{"CustomKey2"}
 			Freeze  = 0x413df12cu,  // InputActionName{"Freeze"}
 			FullscreenOnOff  = 0xf5db7d10u,  // InputActionName{"FullscreenOnOff"}
+			MousePosToShader  = 0x704929b6u,  // InputActionName{"MousePosToShader"}
 			PauseRendering  = 0xba3bd32fu,  // InputActionName{"PauseRendering"}
 			ShowHelp  = 0x3d738410u,  // InputActionName{"ShowHelp"}
 			UI_Char  = 0xb7aff412u,  // InputActionName{"UI.Char"}
@@ -269,7 +275,6 @@ namespace InputActions
 			UI_FrameCapture  = 0x678708edu,  // InputActionName{"UI.FrameCapture"}
 			UI_MouseLBDown  = 0x27e160bu,  // InputActionName{"UI.MouseLBDown"}
 			UI_MousePos  = 0x2b2426e3u,  // InputActionName{"UI.MousePos"}
-			UI_MouseRBDown  = 0x3ba275e0u,  // InputActionName{"UI.MouseRBDown"}
 			UI_MouseWheel  = 0x8d5595f3u,  // InputActionName{"UI.MouseWheel"}
 			UI_ReloadScript  = 0xbc2fa9b4u,  // InputActionName{"UI.ReloadScript"}
 			UI_ResExport  = 0xce5140e2u,  // InputActionName{"UI.ResExport"}
@@ -279,6 +284,12 @@ namespace InputActions
 			UI_StartStopRecording  = 0xd679d80cu,  // InputActionName{"UI.StartStopRecording"}
 			UI_SwitchInputMode  = 0xb3d19d69u,  // InputActionName{"UI.SwitchInputMode"}
 		};
+		static constexpr struct _Mobile {
+			static constexpr uint  actionCount = 1;
+			enum Bindings : uint {
+				UI_Touch  = 0x658483ccu,  // InputActionName{"UI.Touch"}
+			};
+		} Mobile = {};
 		static constexpr struct _GLFW {
 			static constexpr uint  actionCount = 2;
 			enum Bindings : uint {

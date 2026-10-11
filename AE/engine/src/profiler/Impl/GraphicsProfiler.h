@@ -98,11 +98,13 @@ namespace AE::Profiler
 	  #	error not implemented
 	  #endif
 
+		using PassName_t	= FixedString<64>;
+
 		struct Pass
 		{
 			Query			pplnStat;
 			Query			timestamp;
-			String			name;
+			PassName_t		name;
 			RGBA8u			color;
 			bool			recorded	= false;	// set 'true' in 'EndContext()'
 		};
@@ -220,8 +222,11 @@ namespace AE::Profiler
 	private:
 		void  _ReadResults ();
 		void  _ReadResultsPVR ();
+		void  _InitPVRProfiler ();
 
 		void  _InitImGUI (const ImLineGraph::ColorStyle &style4, const ImLineGraph::ColorStyle &style1);
+
+		void  _InitTracy ();
 
 		static AsyncCoro  _ReadResultsTask (RC<GraphicsProfiler>);
 	};

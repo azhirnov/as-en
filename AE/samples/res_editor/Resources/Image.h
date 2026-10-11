@@ -18,12 +18,15 @@ namespace AE::ResEditor
 	{
 	// types
 	public:
+		using ClearValue_t	= Union< NullUnion, RGBA32f, RGBA32u, RGBA32i, DepthStencil >;
+
 		enum class ELoadOpFlags : uint
 		{
-			Unknown		= 0,
-			GenMipmaps	= 1 << 0,
+			Unknown			= 0,
+			GenMipmaps		= 1 << 0,
+			BlockTexelView	= 1 << 1,
 			_Last,
-			All			= CT_AllBitMask2<ELoadOpFlags>,
+			All				= CT_AllBitMask2<ELoadOpFlags>,
 		};
 
 		struct LoadOp
@@ -33,6 +36,7 @@ namespace AE::ResEditor
 			MipmapLevel		mipmap;
 			ImageLayer		layer;
 			ELoadOpFlags	flags		= Default;
+			ClearValue_t	clearValue;
 
 			LoadOp () {}
 		};
@@ -48,7 +52,7 @@ namespace AE::ResEditor
 		{
 			Unknown					= 0,
 			AllMipmaps				= 1 << 0,		// for dynamic dimension
-			DynamicZ_As_ArrayLayer	= 1 << 1,
+		//	DynamicZ_As_ArrayLayer	= 1 << 1,
 		};
 
 
@@ -152,7 +156,7 @@ namespace AE::ResEditor
 									  RC<DynamicDim>		inDynSize,
 									  RC<DynamicDim>		outDynSize,
 									  EImageFlags			flags,
-									  StringView			dbgName)				__NE___;
+									  StringView			dbgName)				__Th___;
 
 			bool  Resize (TransferCtx_t &ctx)										__Th_OV;
 			bool  RequireResize ()													C_Th_OV;
@@ -198,11 +202,12 @@ namespace AE::ResEditor
 	private:
 		ND_ bool  _UpdateView ()													__NE___;
 
-		template <typename CtxType>
+			void  _ClearImage (TransferCtx_t &, const ClearValue_t &)				C_NE___;
+
 		ND_ bool  _CreateImage (const ResLoader::IntermImage &, MipmapLevel, ImageLayer,
-								bool allMipmaps, CtxType &ctx);
+								ELoadOpFlags, TransferCtx_t &ctx);
 		ND_ bool  _ResizeImage (TransferCtx_t &ctx, const ImageDesc &, const ImageViewDesc &);
-			void  _GenMipmaps (TransferCtx_t &ctx)									const;
+			void  _GenMipmaps (TransferCtx_t &ctx)									C_NE___;
 
 		ND_ static IntermImageRC  _Load (const AsyncDSRequestResult &in, String dbgName, EImageFormat fileFormat);
 	};

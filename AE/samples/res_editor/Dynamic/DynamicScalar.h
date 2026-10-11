@@ -32,6 +32,11 @@ namespace AE::ResEditor
 		Max,			// max( x, const )
 		AlignUp,
 		AlignDown,
+		Rcp,			// const / x
+		Abs,			// abs( x )
+		ACos,			// acos( saturate( x * const ))
+		ToRad,			// radiance( x * const )
+		ToDeg,			// degrees( x * const )
 	};
 
 	template <typename T, int I>
@@ -47,6 +52,8 @@ namespace AE::ResEditor
 	template <typename T>
 	class TDynamicScalar final : public EnableRC< TDynamicScalar<T> >
 	{
+		StaticAssert( IsScalar<T> );
+
 	// types
 	public:
 		using Self			= TDynamicScalar< T >;
@@ -166,14 +173,14 @@ namespace AE::ResEditor
 		switch_enum( _op )
 		{
 			case_likely EOperator::Unknown :	break;
-			case EOperator::Mul :				result *= r_value;							break;
-			case EOperator::Div :				result /= r_value;							break;
-			case EOperator::DivNear :			result = (result + r_value/2) / r_value;	break;
-			case EOperator::DivCeil :			result = (result + r_value-1) / r_value;	break;
-			case EOperator::Add :				result += r_value;							break;
-			case EOperator::Sub :				result -= r_value;							break;
-			case EOperator::Min :				result = Min( result, r_value );			break;
-			case EOperator::Max :				result = Max( result, r_value );			break;
+			case EOperator::Mul :				result *= r_value;								break;
+			case EOperator::Div :				result /= r_value;								break;
+			case EOperator::DivNear :			result = (result + r_value / T(2)) / r_value;	break;
+			case EOperator::DivCeil :			result = (result + r_value - T(1)) / r_value;	break;
+			case EOperator::Add :				result += r_value;								break;
+			case EOperator::Sub :				result -= r_value;								break;
+			case EOperator::Min :				result = Min( result, r_value );				break;
+			case EOperator::Max :				result = Max( result, r_value );				break;
 
 			case EOperator::FloorPOT :
 				if constexpr( IsInteger<T> )
@@ -214,6 +221,31 @@ namespace AE::ResEditor
 			case EOperator::AlignDown :
 				if constexpr( IsInteger<T> )
 					result = AlignDown( result, r_value );
+				break;
+
+			case EOperator::Rcp :
+				if constexpr( IsFloatPoint<T> )
+					result = r_value / result;
+				break;
+
+			case EOperator::Abs :
+				if constexpr( IsSigned<T> )
+					result = Abs( result );
+				break;
+
+			case EOperator::ACos :
+				if constexpr ( IsFloatPoint<T> )
+					result = glm::acos( Saturate( r_value * result ));
+				break;
+
+			case EOperator::ToRad :
+				if constexpr ( IsFloatPoint<T> )
+					result = glm::radians( r_value * result );
+				break;
+
+			case EOperator::ToDeg :
+				if constexpr ( IsFloatPoint<T> )
+					result = glm::degrees( r_value * result );
 				break;
 		}
 		switch_end

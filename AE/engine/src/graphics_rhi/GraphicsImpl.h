@@ -35,6 +35,7 @@ types:
 	CommandBatch
 	CommandBatchPtr
 	CmdBatchOnSubmit
+	OnNextFrame
 	OnFrameNextCycle
 
 	DrawCommandBatch

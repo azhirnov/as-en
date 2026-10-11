@@ -59,6 +59,7 @@ namespace
 */
 	bool  STBImageSaver::SaveImage (WStream &stream, const IntermImage &image, EImageFormat fileFormat, Bool) __NE___
 	{
+		TRACY( ZoneScoped );
 		CHECK_ERR( image.GetData().size() == 1 );
 		CHECK_ERR( image.GetData()[0].size() == 1 );
 

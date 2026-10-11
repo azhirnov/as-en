@@ -91,6 +91,11 @@ namespace AE::Base
 
 	inline void  ThreadUtils::ProgressiveSleep (const uint iteration, const milliseconds maxWait) __NE___
 	{
+		TRACY(
+			ZoneScoped;
+			ZoneColor( 1 );
+		)
+
 		constexpr uint	nano_sleep_count	= 8;
 		constexpr uint	micro_sleep_count	= nano_sleep_count + 8;
 
@@ -107,8 +112,15 @@ namespace AE::Base
 			return;
 		}
 
+		// long sleep
+		if ( iteration > 4'000 )
+		{
+			MilliSleep( seconds{1} );
+			return;
+		}
+
 		// multiple threads at the same core is rare case
-		if ( not PlatformUtils::SwitchToPendingThread() )
+		if ( not PlatformUtils::SwitchToPendingThread() or (iteration & 2) != 0 )
 		{
 			Unused( maxWait );
 			ASSERT_MSG( (iteration - micro_sleep_count) * milliseconds{15} < maxWait, "deadlock" );

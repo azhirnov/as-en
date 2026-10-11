@@ -22,7 +22,7 @@ namespace AE::VFS
 			AE_LOG_DBG( "AsyncFile is not open" );
 		}
 
-		if ( syncFile  and not syncFile->IsOpen() ){
+		if ( syncFile and not syncFile->IsOpen() ){
 			syncFile = null;
 			AE_LOG_DBG( "File is not open" );
 		}
@@ -43,8 +43,14 @@ namespace AE::VFS
 			syncFile = MakeRC< Threading::SyncRDataSource >( asyncFile );
 			AE_LOG_DBG( "Performance warning: used 'SyncRDataSource' on top of 'AsyncRDataSource'" );
 		}
+		else
+		if ( not asyncFile )
+		{
+			asyncFile = MakeRC< Threading::EmulatedAsyncRDataSource >( syncFile );
+		}
 
 		CHECK_ERR( syncFile and syncFile->IsOpen() );
+		CHECK_ERR( asyncFile and asyncFile->IsOpen() );
 
 		CHECK_ERR( _ReadHeader( *syncFile ));
 
@@ -61,7 +67,7 @@ namespace AE::VFS
 	bool  ArchiveStaticStorage::_Create (const Path &filename) __NE___
 	{
 		using EMode = Threading::FileAsyncRDataSource::EMode;
-		const auto	mode = EMode::RandomAccess;		// TODO: Direct
+		const auto	mode = EMode::RandomAccess;
 
 		auto	async_file	= MakeRC< Threading::FileAsyncRDataSource >( filename, mode );
 		auto	sync_file	= MakeRC< Base::FileRDataSource >( filename, mode );
@@ -307,7 +313,6 @@ namespace AE::VFS
 	bool  ArchiveStaticStorage::Open (OUT RC<AsyncRDataSource> &outDS, FileName::Ref name) C_NE___
 	{
 		DRC_SHAREDLOCK( _drCheck );
-		CHECK_ERR( _asyncFile );
 
 		auto	iter = _map.find( FileName::Optimized_t{name} );
 		if_likely( iter != _map.end() )
@@ -339,7 +344,6 @@ namespace AE::VFS
 	bool  ArchiveStaticStorage::Open (OUT RC<AsyncRStream> &outStream, FileName::Ref name) C_NE___
 	{
 		DRC_SHAREDLOCK( _drCheck );
-		CHECK_ERR( _asyncFile );
 
 		auto	iter = _map.find( FileName::Optimized_t{name} );
 		if_likely( iter != _map.end() )
@@ -448,7 +452,6 @@ namespace AE::VFS
 	bool  ArchiveStaticStorage::_OpenByIter (OUT RC<AsyncRStream> &outStream, FileName::Ref name, const void* ref) C_NE___
 	{
 		DRC_SHAREDLOCK( _drCheck );
-		CHECK_ERR( _asyncFile );
 
 		DEBUG_ONLY(
 			auto	iter = _map.find( FileName::Optimized_t{name} );
@@ -468,7 +471,6 @@ namespace AE::VFS
 	bool  ArchiveStaticStorage::_OpenByIter (OUT RC<AsyncRDataSource> &outDS, FileName::Ref name, const void* ref) C_NE___
 	{
 		DRC_SHAREDLOCK( _drCheck );
-		CHECK_ERR( _asyncFile );
 
 		DEBUG_ONLY(
 			auto	iter = _map.find( FileName::Optimized_t{name} );

@@ -16,6 +16,7 @@ namespace AE::ResEditor
 										StringView		dbgName) __Th___ :
 		_baseBuffer{ RVRef(buf) },
 		_format{ format },
+		_texbufType{ EImageType::Buffer | PipelineCompiler::EImageType_FromPixelFormatRelaxed( format )},
 		_dbgName{ dbgName }
 	{}
 
@@ -89,28 +90,21 @@ namespace AE::ResEditor
 		if ( _resource )
 			return _resource;
 
+		TRACY( ZoneScoped );
+
 		// duplicate
 		CHECK_THROW_MSG( not _baseBuffer->HasLayout() );
 
 		RC<Buffer>	buffer = _baseBuffer->ToResource();
 		CHECK_THROW( buffer );
 
-		auto&		res_mngr	= GraphicsScheduler().GetResourceManager();
-		Renderer&	renderer	= ScriptExe::ScriptResourceApi::GetRenderer(); // throw
-		auto		desc		= buffer->GetBufferDesc();
-		BufferID	buf_id		= buffer->GetBufferId(0);
+		auto	desc = buffer->GetBufferDesc();
 
 		BufferViewDesc	view_desc;
 		view_desc.size		= desc.size;
 		view_desc.format	= _format;
 
-		CHECK_THROW_MSG( res_mngr.IsSupported( buf_id, view_desc ),
-			"BufferView '"s << _dbgName << "' description is not supported by GPU device" );
-
-		Strong<BufferViewID>	view_id = res_mngr.CreateBufferView( view_desc, buf_id, _dbgName );
-		CHECK_THROW_MSG( view_id );
-
-		_resource.reset( new BufferView{ RVRef(buffer), RVRef(view_id), _format, renderer, _dbgName });
+		_resource = buffer->CreateView( view_desc, _dbgName );  // throw
 		return _resource;
 	}
 

@@ -23,6 +23,7 @@ namespace AE::Networking
 	template <typename NativeAddress, typename AddressType>
 	inline bool  TcpSocket::_Accept (const TcpSocket &other, OUT AddressType &clientAddr) __NE___
 	{
+		TRACY( ZoneScoped );
 		DRC_EXLOCK( _drCheck );
 		CHECK_ERR( not IsOpen() );
 
@@ -81,6 +82,7 @@ namespace AE::Networking
 	{
 		constexpr bool	is_ipv6 = IsSame< AddressType, IpAddress6 >;
 
+		TRACY( ZoneScoped );
 		DRC_EXLOCK( _drCheck );
 		ASSERT( addr.IsValid() );
 		CHECK_ERR( _Create( cfg, Bool{is_ipv6} ));
@@ -151,6 +153,7 @@ namespace AE::Networking
 	{
 		constexpr bool	is_ipv6 = IsSame< AddressType, IpAddress6 >;
 
+		TRACY( ZoneScoped );
 		DRC_EXLOCK( _drCheck );
 		ASSERT( addr.IsValid() );
 		CHECK_ERR( _Create( cfg, Bool{is_ipv6} ));
@@ -210,6 +213,7 @@ namespace AE::Networking
 	{
 		constexpr bool	is_ipv6 = IsSame< AddressType, IpAddress6 >;
 
+		TRACY( ZoneScoped );
 		DRC_EXLOCK( _drCheck );
 		ASSERT( addr.IsValid() );
 		CHECK_ERR( _Create( cfg, Bool{is_ipv6} ));

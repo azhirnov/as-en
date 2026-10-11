@@ -42,6 +42,7 @@ namespace AE::Threading
 */
 	void  Barrier::Wait () __NE___
 	{
+		TRACY( ZoneScoped );
 		CHECK( ::EnterSynchronizationBarrier( _data.Ptr<SYNCHRONIZATION_BARRIER>(), SYNCHRONIZATION_BARRIER_FLAGS_NO_DELETE ) != FALSE );  // win8
 	}
 
@@ -60,6 +61,8 @@ namespace AE::Threading
 */
 	void  Barrier::Wait () __NE___
 	{
+		TRACY( ZoneScoped );
+
 		// flush cache
 		MemoryBarrier( EMemoryOrder::Release );
 

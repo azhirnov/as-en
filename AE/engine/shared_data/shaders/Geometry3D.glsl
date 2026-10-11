@@ -45,7 +45,14 @@ ND_ float		Ray_MinDistance (const float3 dir, const float3 point);
 ND_ Line3d		Line_Create (const float3 begin, const float3 end);
 
 ND_ float		Line_MinDistance (const Line3d line, const float3 point);
+ND_ float		Line_MinDistance (const Line3d line0, const Line3d line1);
 ND_ float3		Line_ProjectPoint (const Line3d line, const float3 point);
+
+ND_ float3		Line_ClosestPoint (const Line3d line0, const Line3d line1);
+ND_ float		Line_ClosestPointT (const Line3d line0, const Line3d line1);	// [0,1] if on line, -max if parallel
+
+	void		Line_ClosestPoints (const Line3d line0, const Line3d line1,
+									out float3 line0Pt, out float3 line1Pt, out float line0T, out float line1T);
 
 ND_ bool		Line_IsPointInside (const Line3d line, const float3 projectedPoint);
 ND_ bool		Line_IsPointOnLine (const Line3d line, const float3 point);
@@ -175,13 +182,138 @@ Line3d  Line_Create (const float3 begin, const float3 end)
 
 /*
 =================================================
-	Line_MinDistance
+	Line_MinDistance (line to point)
 =================================================
 */
 float  Line_MinDistance (const Line3d line, const float3 point)
 {
 	return Min(	Ray_MinDistance( Line_Dir( line ), point - line.begin ),
 				Min( Distance( point, line.begin ), Distance( point, line.end )) );
+}
+
+/*
+=================================================
+	Line_MinDistance (line to line)
+=================================================
+*
+float  Line_MinDistance (const Line3d line0, const Line3d line1)
+{
+	const float	eps = 1.0e-6;
+
+	float3	w0			= line0.begin - line1.begin;
+	float3	vec0		= line0.end - line0.begin;
+	float3	vec1		= line1.end - line1.begin;
+
+	float3	cross_dir	= Cross( vec0, vec1 );
+	float3	cross_mag	= Length( cross_dir );
+
+	// lines are parallel
+	if ( cross_mag < eps )
+	{
+		float3	cross_par	= Cross( w0, vec0 );
+		float	denom		= Length( vec0 );
+
+		if ( denom < eps )
+			return 0.0;		// zero direction vector
+
+		return Length( cross_par ) / denom;
+	}
+
+	// skew or intersecting lines
+	float	dist = Abs(Dot( w0, cross_dir )) / cross_mag;
+
+	if ( dist < eps )
+		return 0.0;  // intersects
+
+	return dist;
+}
+
+/*
+=================================================
+	Line_ClosestPoint
+=================================================
+*/
+float  Line_ClosestPointT (const Line3d line0, const Line3d line1)
+{
+	const float eps = 1.0e-6;
+
+	float3	w0		= line0.begin - line1.begin;
+	float3	vec0	= line0.end - line0.begin;
+	float3	vec1	= line1.end - line1.begin;
+
+	float	a		= Dot( vec0, vec0 );
+	float	b		= Dot( vec0, vec1 );
+	float	c		= Dot( vec1, vec1 );
+	float	d		= Dot( vec0, w0 );
+	float	e		= Dot( vec1, w0 );
+
+	// denom is equivalent to 'Length(Square(Cross( vec0, vec1 )))'
+	float	denom	= a * c - b * b;
+	return	Abs( denom ) < eps ?
+				-float_max :  // lines are parallel
+				(b * e - c * d) / denom;
+}
+
+float3  Line_ClosestPoint (const Line3d line0, const Line3d line1)
+{
+	float	t = Line_ClosestPointT( line0, line1 );
+	return	Line_Lerp( line0, Saturate( t ));
+}
+
+float  Line_MinDistance (const Line3d line0, const Line3d line1)
+{
+	float	t		= Line_ClosestPointT( line0, line1 );
+	float3	vec0	= line0.end - line0.begin;
+	float3	pt		= line0.begin + Saturate( t ) * vec0;
+	return	Line_MinDistance( line1, pt );
+}
+
+/*
+=================================================
+	Line_ClosestPoint
+=================================================
+*/
+void  LineSeg_ClosestPoints (const Line3d line0, const Line3d line1,
+							 out float3 line0Pt, out float3 line1Pt, out float line0T, out float line1T)
+{
+	const float eps = 1.0e-8;
+
+	float3	u = line0.end - line0.begin;
+	float3	v = line1.end - line1.begin;
+	float3	r = line0.begin - line1.begin;	// w0
+
+	float	a = Dot( u, u );				// |u|²
+	float	b = Dot( u, v );
+	float	c = Dot( v, v );				// |v|²
+	float	d = Dot( u, r );
+	float	e = Dot( v, r );
+	float	den = a * c - b * b;
+
+	// nearly parallel
+	if ( den < eps * a * c )
+	{
+		line0T = 0.0;
+		line1T = (c > eps) ? Saturate( e / c ) : 0.0;
+
+		line0T = (a > eps) ? Saturate( (b*line1T - d) / a ) : 0.0;
+		line1T = (c > eps) ? Saturate( (b*line0T + e) / c ) : 0.0;
+	}
+	else
+	{
+		line0T = Saturate( (b*e - c*d) / den );
+		line1T = Saturate( (a*e - b*d) / den );
+
+		float3	ps = line0.begin + u * line0T;
+		float3	qt = line1.begin + v * line1T;
+
+		line1T = (c > eps) ? Saturate( Dot( v, ps - line1.begin ) / c ) : 0.0;
+		float3	qq = line1.begin + v * line1T;
+
+		line0T = (a > eps) ? Saturate( Dot( u, qq - line0.begin ) / a ) : 0.0;
+	}
+
+	line0Pt = line0.begin + u * line0T;
+	line1Pt = line1.begin + v * line1T;
 }
 
 /*
@@ -351,15 +483,20 @@ float3  Plane_IntersectionPoint (const float4 p0, const float4 p1, const float4 
 	Plane_FromPoints
 =================================================
 */
+float4  Plane_FromNormalAndPoint (float3 n, const float3 p)
+{
+	float	len	= LengthSq( n );
+			n	*= Max( InvSqrt( len ), 0.0 );	// zero on NaN
+	float	d	= Dot( n, p );
+	return	float4( n, -d );
+}
+
 float4  Plane_FromPoints (const float3 p0, const float3 p1, const float3 p2)
 {
 	float3	v0	= p1 - p0;
 	float3	v1	= p2 - p0;
 	float3	n	= Cross( v0, v1 );
-	float	len	= LengthSq( n );
-			n	*= Max( InvSqrt( len ), 0.0 );	// zero on NaN
-	float	d	= Dot( n, p0 );
-	return	float4( n, -d );
+	return 	Plane_FromNormalAndPoint( n, p0 );
 }
 
 /*

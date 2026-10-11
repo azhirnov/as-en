@@ -33,6 +33,8 @@ namespace AE::ResEditor
 		template <typename B>
 		static void  _BindBase (B &binder)								__Th___;
 
+		void  _Validate ()												__Th___;
+
 		ScriptDynamicDim*	_Dimension ()								__Th___	{ return ScriptDynamicDimPtr{_dynamicDim}.Detach(); }
 
 		void  _SetDimension (const ScriptDynamicDimPtr &)				__Th___;
@@ -141,6 +143,7 @@ namespace AE::ResEditor
 		float3			_rotationScale	{1.f};
 		MovingScale		_movingScale;
 		float3			_initialPos		{0.f};
+		float3			_initialViewDir	{0.f, 0.f, 1.f};
 		bool			_reverseZ		= false;
 
 
@@ -162,6 +165,7 @@ namespace AE::ResEditor
 		void  SideMovementScale (float value)							__Th___;
 
 		void  SetPosition (const packed_float3 &pos)					__Th___	{ _initialPos = pos; }
+		void  SetViewDir (const packed_float3 &dir)						__Th___	{ _initialViewDir = Normalize( dir ); }
 
 	protected:
 		template <typename B>

@@ -425,8 +425,8 @@ namespace AE::Graphics
 
 		ND_ BufferDesc const&			GetDescription (BufferID id)									C_NE_OV;
 		ND_ ImageDesc const&			GetDescription (ImageID id)										C_NE_OV;
-		ND_ BufferViewDesc const&		GetDescription (BufferViewID id)								C_NE_OV;
-		ND_ ImageViewDesc const&		GetDescription (ImageViewID id)									C_NE_OV;
+		ND_ BufferViewDesc const&		GetDescription (BufferViewID id, OUT BufferID* baseBuf = null)	C_NE_OV;
+		ND_ ImageViewDesc const&		GetDescription (ImageViewID id, OUT ImageID* baseImg = null)	C_NE_OV;
 		ND_ RTShaderBindingDesc const&	GetDescription (RTShaderBindingID id)							C_NE_OV;
 		ND_ RTGeometryDesc const&		GetDescription (RTGeometryID id)								C_NE_OV;
 		ND_ RTSceneDesc const&			GetDescription (RTSceneID id)									C_NE_OV;
@@ -788,33 +788,6 @@ namespace AE::Graphics
 	{
 		return GetResource( *id, incRef, quiet );
 	}
-
-/*
-=================================================
-	GetDescription
-=================================================
-*/
-	template <typename ID>
-	auto const&  ResourceManager::_GetDescription (ID id) C_NE___
-	{
-		auto*	res = GetResource( id );
-
-		using T = RemoveAllQualifiers< decltype(*res) >;
-		static const typename FunctionInfo< decltype(&T::Description) >::result	defaultDesc{};
-
-		return res ? res->Description() : defaultDesc;
-	}
-
-	inline BufferDesc const&			ResourceManager::GetDescription (BufferID			id) C_NE___ { return _GetDescription( id ); }
-	inline ImageDesc const&				ResourceManager::GetDescription (ImageID			id)	C_NE___ { return _GetDescription( id ); }
-	inline BufferViewDesc const&		ResourceManager::GetDescription (BufferViewID		id)	C_NE___ { return _GetDescription( id ); }
-	inline ImageViewDesc const&			ResourceManager::GetDescription (ImageViewID		id)	C_NE___ { return _GetDescription( id ); }
-	inline RTShaderBindingDesc const&	ResourceManager::GetDescription (RTShaderBindingID	id) C_NE___ { return _GetDescription( id ); }
-	inline RTGeometryDesc const&		ResourceManager::GetDescription (RTGeometryID		id) C_NE___ { return _GetDescription( id ); }
-	inline RTSceneDesc const&			ResourceManager::GetDescription (RTSceneID			id) C_NE___ { return _GetDescription( id ); }
-	inline VideoImageDesc const&		ResourceManager::GetDescription (VideoImageID		id) C_NE___ { return _GetDescription( id ); }
-	inline VideoBufferDesc const&		ResourceManager::GetDescription (VideoBufferID		id) C_NE___ { return _GetDescription( id ); }
-	inline VideoSessionDesc const&		ResourceManager::GetDescription (VideoSessionID		id) C_NE___ { return _GetDescription( id ); }
 
 /*
 =================================================

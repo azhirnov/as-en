@@ -118,12 +118,12 @@ public:
 	AE_OnAppCreated / AE_OnAppDestroyed
 =================================================
 */
-Unique<IApplication::IAppListener>  AE_OnAppCreated (const int argc, char const* argv[])
+AppListenerPtr  AE_OnAppCreated (const int argc, char const* argv[])
 {
 	Unused( argc, argv );
 	AE::Base::StaticLogger::InitDefault();
 
-	return MakeUnique<AppListener>();
+	return AppListenerPtr{new AppListener{}};
 }
 
 void  AE_OnAppDestroyed ()

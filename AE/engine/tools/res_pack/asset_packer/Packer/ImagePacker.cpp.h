@@ -2,10 +2,12 @@
 
 #pragma once
 
-using ImgPackHeader_t		= AssetPacker::ImagePacker::Header;
-using ImgPackFileHeader_t	= AssetPacker::ImagePacker::FileHeader;
+using ImgPackHeader_t		= AE::AssetPacker::ImagePacker::Header;
+using ImgPackFileHeader_t	= AE::AssetPacker::ImagePacker::FileHeader;
 using ImageUtils_t			= Graphics::ImageUtils;
 using ImageDim_t			= Graphics::ImageDim_t;
+using ImageLayer_t			= Graphics::ImageLayer;
+using MipmapLevel_t			= Graphics::MipmapLevel;
 
 
 /*
@@ -34,7 +36,7 @@ using ImageDim_t			= Graphics::ImageDim_t;
 	ImagePacker_GetOffset
 =================================================
 */
-	inline void  ImagePacker_GetOffset (const ImgPackHeader_t &header, ImageLayer layer, MipmapLevel mipmap, const ImageDim_t &imageOffset,
+	inline void  ImagePacker_GetOffset (const ImgPackHeader_t &header, ImageLayer_t layer, MipmapLevel_t mipmap, const ImageDim_t &imageOffset,
 										OUT ImageDim_t &imageDim, OUT Bytes &dataOffset,
 										OUT Bytes32u &rowSize, OUT Bytes &sliceSize) __NE___
 	{
@@ -148,7 +150,7 @@ using ImageDim_t			= Graphics::ImageDim_t;
 
 			for (usize layer = 0; layer < layers.size(); ++layer)
 			{
-				const ImageMemView	src_view	= const_cast<ResLoader::IntermImage &>(src).ToView( MipmapLevel{mip}, ImageLayer{layer} );
+				const ImageMemView	src_view	= const_cast<ResLoader::IntermImage &>(src).ToView( MipmapLevel_t{mip}, ImageLayer_t{layer} );
 				const Bytes			pos			= stream.Position();
 
 				for (auto& part : src_view.Parts())
@@ -159,7 +161,7 @@ using ImageDim_t			= Graphics::ImageDim_t;
 				ImageDim_t	dim;
 				Bytes32u	row_size;
 				Bytes		off, slice_size;
-				ImagePacker_GetOffset( header, ImageLayer{layer}, MipmapLevel{mip}, ImageDim_t{0},
+				ImagePacker_GetOffset( header, ImageLayer_t{layer}, MipmapLevel_t{mip}, ImageDim_t{0},
 									   OUT dim, OUT off, OUT row_size, OUT slice_size );
 
 				CHECK( src_view.Format() == header.format );

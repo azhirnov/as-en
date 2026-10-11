@@ -117,6 +117,7 @@ namespace AE::Threading
 
 		void  Wait ()														__NE___
 		{
+			TRACY( ZoneScoped );
 			std::unique_lock lock{ _mutex };
 
 			while ( not _triggered ) {
@@ -136,6 +137,7 @@ namespace AE::Threading
 		template <typename Rep, typename Period>
 		ND_ bool  Wait (const std::chrono::duration<Rep, Period>& timeout)	__NE___
 		{
+			TRACY( ZoneScoped );
 			bool	res = false;
 
 			std::unique_lock lock{ _mutex };

@@ -151,6 +151,12 @@ namespace
 	static constexpr GraphName	NV_FanSpeed					{"FanSpeed"};
 
 
+	// Intel GPU //
+	static constexpr GraphName	Intel_ActFreq				{"ActFreq"};
+	static constexpr GraphName	Intel_RC6Residency			{"RC6Residency"};
+	static constexpr GraphName	Intel_Throttle				{"Throttle"};
+
+
 	// OS performance counters //
 	static constexpr GraphName	GenPerf_ProcMemUsage		{"ProcMemUsage"};
 	static constexpr GraphName	GenPerf_MemUsage			{"MemUsagePercent"};
@@ -168,6 +174,8 @@ namespace
 	static constexpr GraphName	GenPerf_BatteryTemperature	{"BatteryTemperature"};
 	static constexpr GraphName	GenPerf_BatteryCurrent		{"BatteryCurrent"};
 	static constexpr GraphName	GenPerf_BatteryVoltage		{"BatteryVoltage"};
+
+	static constexpr GraphName	GenPerf_CpuTemperature		{"CpuTemperature"};
 
 
 	static constexpr char		c_ExtMemInfo [] =
@@ -326,6 +334,7 @@ namespace
 			_DrawProfilerMaliImGui();
 			_DrawProfilerAdrenoImGui();
 			_DrawProfilerNVidiaImGui();
+			_DrawProfilerIntelImGui();
 			_DrawProfilerPowerVRImGui();
 			ImGui::Dummy( ImVec2{1,1} );
 		}
@@ -347,6 +356,7 @@ namespace
 		_InitArmCountersImGui( per_frame, style4, style1 );
 		_InitMaliCountersImGui( per_frame, style4, style1 );
 		_InitNVidiaCountersImGui( per_frame, style4, style1 );
+		_InitIntelCountersImGui( per_frame, style4, style1 );
 		_InitAdrenoCountersImGui( per_frame, style4, style1 );
 		_InitPowerVRCountersImGui( per_frame, style4, style1 );
 	}
@@ -447,10 +457,103 @@ namespace
 
 #if 1
 /*
-=================================================
-	_DrawProfilerMaliImGui
-=================================================
-*/
+ =================================================
+	_DrawProfilerIntelImGui
+ =================================================
+ */
+	void  HwpcProfiler::_DrawProfilerIntelImGui ()
+	{
+		auto&	prof = _intelProf;
+		if ( not prof.profiler.IsInitialized() )
+			return;
+
+		const float		wnd_pos_x	= ImGui::GetCursorScreenPos().x;
+		const ImVec2	wnd_size	= ImGui::GetContentRegionAvail();
+
+		if ( ImGui::CollapsingHeader( "Intel GPU profiler", ImGuiTreeNodeFlags_DefaultOpen ))
+		{
+			prof.graphTable.Draw( wnd_size.x, c_GraphHeight, c_GraphPadding, ImGui::IsItemHovered() );
+		}
+		ImGui::SetCursorScreenPos( ImVec2{ wnd_pos_x, ImGui::GetCursorScreenPos().y });
+	}
+
+/*
+ =================================================
+	_UpdateIntelCountersImGui
+ =================================================
+ */
+	void  HwpcProfiler::_UpdateIntelCountersImGui (const bool, const float)
+	{
+		using ECounter = IntelProfiler::ECounter;
+
+		auto&	prof	= _intelProf;
+		auto&	cnt		= prof.counters;
+
+		if ( cnt.empty() )
+			return;
+
+		const auto	AddPoint1 = [&] (ECounter type, GraphName::Ref graphName, float scale = 1.f) {
+			_AddPoint1( prof, cnt, type, graphName, scale );
+		};
+
+		AddPoint1( ECounter::ActFreq,		Intel_ActFreq,		1.0e+6f );
+		AddPoint1( ECounter::RC6Residency,	Intel_RC6Residency,	1.0 );
+		AddPoint1( ECounter::Throttle,		Intel_Throttle,		1.0 );
+	}
+
+/*
+ =================================================
+	_InitIntelCountersImGui
+ =================================================
+ */
+	void  HwpcProfiler::_InitIntelCountersImGui (const bool, const ImLineGraph::ColorStyle &, const ImLineGraph::ColorStyle &style1)
+	{
+		const uint	capacity	= 50;
+		auto&		prof		= _intelProf;
+
+		{
+			constexpr SecName	sec {"GPU"};
+			{
+				auto&	graph = prof.graphTable.Add( sec, Intel_ActFreq );
+				graph.SetCapacity( capacity );
+				graph.SetName( "freq" );
+				graph.SetColor( style1 );
+				graph.SetSuffix( "Hz" );
+				graph.SetDescription( "Actual achieved GPU frequency" );
+			}
+			{
+				auto&	graph = prof.graphTable.Add( sec, Intel_RC6Residency );
+				graph.SetCapacity( capacity );
+				graph.SetName( "idle" );
+				graph.SetColor( style1 );
+				graph.SetSuffix( "ms" );
+				graph.SetDescription( "RC6 (Render C-state 6) residency in milliseconds.\n"
+									  "RC6 is a power saving state where the GPU is completely idle." );
+			}{
+				auto	style = style1;	style.mode = ImLineGraph::EMode::Line;
+				auto&	graph = prof.graphTable.Add( sec, Intel_Throttle );
+				graph.SetCapacity( capacity );
+				graph.SetName( "throttle" );
+				graph.SetColor( style );
+				graph.SetRange( 0.f, 1.f );
+				graph.SetAlertLimits( 0.5f, 1.0f );
+				graph.SetDescription( "Throttle status (0 = not throttling, 1 = throttling)" );
+			}
+			prof.graphTable.SetCaption( sec, "GPU" );
+		}
+	}
+
+#endif
+//-----------------------------------------------------------------------------
+
+
+
+#if 1
+/*
+ =================================================
+	_DrawProfilerAdrenoImGui
+ =================================================
+ */
 	void  HwpcProfiler::_DrawProfilerMaliImGui ()
 	{
 		auto&	prof = _maliProf;
@@ -1844,6 +1947,18 @@ namespace
 				}
 			}
 			_genProf.graphTable.SetCaption( sec, "Battery" );
+		}{
+			constexpr SecName	sec {"Temperature"};
+			{
+				auto&	graph = _genProf.graphTable.Add( sec, GenPerf_CpuTemperature );
+				graph.SetCapacity( capacity );
+				graph.SetName( "CPU" );
+				graph.SetColor( style1 );
+				graph.SetSuffix( "C" );
+				graph.SetAlertLimits( 75.f, 90.f );
+				graph.SetDescription( "CPU package temperature from coretemp hwmon" );
+			}
+			_genProf.graphTable.SetCaption( sec, "Temperature" );
 		}
 	}
 
@@ -1974,6 +2089,8 @@ namespace
 			AddPoint1( ECounter::BatteryCurrent,		GenPerf_BatteryCurrent,		1.0 );
 			AddPoint1( ECounter::BatteryVoltage,		GenPerf_BatteryVoltage,		1.0 );
 		}
+
+		AddPoint1( ECounter::CpuTemperature,	GenPerf_CpuTemperature,		1.0 );
 
 		AddPoint2( ECounter::ProcessMemoryUsed,		ECounter::ProcessPeakMemory,		GenPerf_ProcMemUsage,		1.0	);	// %
 		AddPoint2( ECounter::BatteryDischarge,		ECounter::BatteryDischargeAvg,		GenPerf_BatteryDischarge,	1.0 );

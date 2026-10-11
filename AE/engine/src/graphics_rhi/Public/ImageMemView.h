@@ -9,6 +9,8 @@
 
 namespace AE::Graphics
 {
+	enum class EFilter : ubyte;
+
 
 	//
 	// Image Memory View
@@ -92,14 +94,18 @@ namespace AE::Graphics
 		ND_ bool	operator == (const ImageMemView &rhs)	C_NE___ { return Compare( rhs ) == 0_b; }
 
 
-		// Copy between images with same format.
+		// Copy between images with compatible format.
 		// 'dataSize' - number of copied bytes.
 		// Returns 'true' if all required data are copied.
 			bool  CopyFrom (const ImageMemView &src, OUT Bytes &dataSize)																			__NE___;
 			bool  CopyFrom (const uint3 &dstOffset, const uint3 &srcOffset, const ImageMemView &srcImage, const uint3 &dim, OUT Bytes &dataSize)	__NE___;
+			bool  CopyFrom (const uint3 &dstOffset, const uint3 &srcOffset, const uint3 &dstDim, const uint3 &srcDim,
+							const ImageMemView &srcImage, OUT Bytes &dataSize)																		__NE___;
 
 		ND_ bool  CopyFrom (const ImageMemView &src)																								__NE___;
 		ND_ bool  CopyFrom (const uint3 &dstOffset, const uint3 &srcOffset, const ImageMemView &srcImage, const uint3 &dim)							__NE___;
+		ND_ bool  CopyFrom (const uint3 &dstOffset, const uint3 &srcOffset, const uint3 &dstDim, const uint3 &srcDim,
+							const ImageMemView &srcImage)																							__NE___;
 
 		// Copy to buffer.
 		// Returns 'true' if all required data are copied.
@@ -109,6 +115,11 @@ namespace AE::Graphics
 		// Returns how much bytes are different.
 		ND_ Bytes  Compare (const ImageMemView &rhs)																		C_NE___;
 		ND_ Bytes  Compare (const uint3 &lhsOffset, const uint3 &rhsOffset, const ImageMemView &rhsImage, const uint3 &dim)	C_NE___;
+
+	private:
+		ND_ static bool  _CopyImage (const uint3 &dstOffset, const uint3 &srcOffset,
+									 const uint3 &dstDim, const uint3 &srcDim,
+									 ImageMemView &dstImage, const ImageMemView &srcImage, OUT Bytes &dataSize) __NE___;
 	};
 
 
@@ -120,8 +131,8 @@ namespace AE::Graphics
 	{
 	// types
 	public:
-		template <typename T>	using LoadPixelTFn_t	= void (*) (const CRow_t &, uint x, OUT T &);
-		template <typename T>	using StorePixelTFn_t	= void (*) (OUT Row_t, uint x, const T &);
+		template <typename T>	using LoadPixelTFn_t	= void (*) (const CRow_t &, uint x, OUT T &) __NE___;
+		template <typename T>	using StorePixelTFn_t	= void (*) (OUT Row_t, uint x, const T &) __NE___;
 
 		using PixStorage_t		= StaticArray<uint,4>;
 
@@ -137,16 +148,61 @@ namespace AE::Graphics
 		using StoreRGBA32iFn_t	= StorePixelTFn_t< RGBA32i >;
 		using StoreDSFn_t		= StorePixelTFn_t< DepthStencil >;
 
+		using FilterPixelsFn_t	= void (*) (const PixStorage_t[4], OUT PixStorage_t &) __NE___;
+
+
+		// allow to read both images (src and dst)
 		struct Swizzle
 		{
 			uint4	_value;
 
+			Swizzle ()										__NE___ : _value{0,1,2,3} {}
 			Swizzle (VecSwizzle src0, VecSwizzle src1)		__NE___;
 			Swizzle (ImageSwizzle src0, ImageSwizzle src1)	__NE___;
 			Swizzle (const uint4 &src0, const uint4 & src1)	__NE___;
 
+			ND_ bool  IsSrc0Identity ()						C_NE___;
+			ND_ bool  IsSrc1Identity ()						C_NE___;
+
 			template <typename T>
 			ND_ RGBAColor<T>  Transform (const RGBAColor<T> &src0, const RGBAColor<T> &src1) C_NE___;
+		};
+
+		struct BlitOp
+		{
+			uint3					dstOffset;
+			uint3					srcOffset;
+
+			uint3					dim;
+			Swizzle					swizzle;
+
+			RWImageMemView &		dstImage;
+			RWImageMemView const&	srcImage;
+
+			BlitOp (RWImageMemView const& src, RWImageMemView &dst)						__NE___;
+			BlitOp (RWImageMemView const& src, RWImageMemView &dst, const Swizzle &sw)	__NE___;
+		};
+
+		struct FilteredBlitOp
+		{
+			uint3					dstOffset;
+			uint3					srcOffset;
+
+			uint3					dstDim;
+			uint3					srcDim;
+
+			EFilter					filter;		// TODO: Lanczos-2
+
+			RWImageMemView &		dstImage;
+			RWImageMemView const&	srcImage;
+
+			FilteredBlitOp (RWImageMemView const& src, RWImageMemView &dst, EFilter filter)	__NE___;
+		};
+
+		struct BlitResult
+		{
+			Bytes					readn;
+			Bytes					written;
 		};
 
 
@@ -185,20 +241,12 @@ namespace AE::Graphics
 			void  Store (const uint3 &point, const DepthStencil &ds)	__NE___	{ NonNull( _storeDS );	_storeDS( GetRow( point.y, point.z ), point.x, ds ); }
 
 		// convert between different formats without filtering
-		ND_ bool  Blit (const RWImageMemView &src)																			__NE___;
-		ND_ bool  Blit (const RWImageMemView &src, OUT Bytes &readn, OUT Bytes &written)									__NE___;
-		ND_ bool  Blit (const uint3 &dstOffset, const uint3 &srcOffset, const RWImageMemView &srcImage, const uint3 &dim)	__NE___;
-		ND_ bool  Blit (const uint3 &dstOffset, const uint3 &srcOffset, const RWImageMemView &srcImage, const uint3 &dim,
-						OUT Bytes &readn, OUT Bytes &written)																__NE___;
+		ND_ static bool  Blit (const BlitOp &)										__NE___;
+		ND_ static bool  Blit (const BlitOp &, OUT BlitResult &)					__NE___;
 
-		// with component swizzle
-		ND_ bool  Blit (const RWImageMemView &src, const Swizzle &swizzle)													__NE___;
-		ND_ bool  Blit (const RWImageMemView &src, const Swizzle &swizzle, OUT Bytes &readn, OUT Bytes &written)			__NE___;
-		ND_ bool  Blit (const uint3 &dstOffset, const uint3 &srcOffset, const RWImageMemView &srcImage,
-						const uint3 &dim, const Swizzle &swizzle)															__NE___;
-		ND_ bool  Blit (const uint3 &dstOffset, const uint3 &srcOffset, const RWImageMemView &srcImage,
-						const uint3 &dim, const Swizzle &swizzle, OUT Bytes &readn, OUT Bytes &written)						__NE___;
-
+		// convert between different formats with nearest filtering and 2x downsample
+		ND_ static bool  Blit (const FilteredBlitOp &)								__NE___;
+		ND_ static bool  Blit (const FilteredBlitOp &, OUT BlitResult &)			__NE___;
 
 		ND_ bool  Fill (const RGBA32f &col)											__NE___	{ return Fill( col, uint3{}, Dimension() ); }
 		ND_ bool  Fill (const RGBA32u &col)											__NE___	{ return Fill( col, uint3{}, Dimension() ); }
@@ -212,10 +260,14 @@ namespace AE::Graphics
 	private:
 		ND_ bool  _Fill (const CRow_t &data, const uint3 &offset, const uint3 &dim)	__NE___;
 
+		ND_ static bool  _Blit (const BlitOp &, OUT BlitResult &, LoadPixelFn_t load, StorePixelFn_t store) __NE___;
+
+		ND_ static bool  _FilteredBlit (const FilteredBlitOp &, OUT BlitResult &,
+										LoadPixelFn_t load, StorePixelFn_t store,
+										FilterPixelsFn_t filter)					__NE___;
+
 		template <typename T>
-		ND_ bool  _Blit (const uint3 &dstOffset, const uint3 &srcOffset, const RWImageMemView &srcImage,
-						 const uint3 &dim, const Swizzle &swizzle, LoadPixelTFn_t<T> loadSrc, LoadPixelTFn_t<T> loadDst,
-						 StorePixelTFn_t<T> store, OUT Bytes &readn, OUT Bytes &written) __NE___;
+		ND_ static bool  _BlitSw (const BlitOp &, OUT BlitResult &, LoadPixelTFn_t<T> loadSrc, LoadPixelTFn_t<T> loadDst, StorePixelTFn_t<T> store) __NE___;
 	};
 
 

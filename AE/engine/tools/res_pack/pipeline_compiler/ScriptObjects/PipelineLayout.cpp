@@ -149,11 +149,13 @@ namespace
 			if ( auto ptr = ds.Get<0>() )
 			{
 				CHECK_THROW_MSG( name != storage.GetName( ds.Get<1>() ),
+					"In PipelineLayout '"s << _name << "': "
 					"descriptor set name '"s << name << "' is already used" );
 
 				for (auto& un_name : ptr->_uniqueNames)
 				{
 					CHECK_THROW_MSG( not dsPtr->_uniqueNames.contains( un_name ),
+						"In PipelineLayout '"s << _name << "': "
 						"uniform with name '"s << un_name << "' is already exists in DescSet '" << ptr->_name << "'" );
 				}
 			}
@@ -164,6 +166,7 @@ namespace
 
 		_dsLayouts.resize( Max( index+1, _dsLayouts.size() ));
 		CHECK_THROW_MSG( not _dsLayouts[index].Get<0>(),
+			"In PipelineLayout '"s << _name << "': "
 			"DescSet index "s << ToString(index) << " is already used" );
 
 		_dsLayouts[index] = Tuple{ dsPtr, DescriptorSetName{name} };
@@ -198,6 +201,7 @@ namespace
 		for (auto& pc : _pushConstants)
 		{
 			CHECK_THROW_MSG( pc.Get<0>() != name,
+				"In PipelineLayout '"s << _name << "': "
 				"push constant name '"s << name << "' is already used" );
 		}
 
@@ -261,7 +265,8 @@ namespace
 		Bytes		array_stride	= 4_b;
 		String		name			= "DbgDS_";
 
-		CHECK_THROW_MSG( not _dbgInfo.IsDefined(), "debug descriptor set is already defined" );
+		CHECK_THROW_MSG( not _dbgInfo.IsDefined(),
+			"In PipelineLayout '"s << _name << "': debug descriptor set is already defined" );
 		CHECK_THROW_MSG( (dbgMode & ~EShaderOpt::_ShaderTrace_Mask) == Default, "only 'ShaderTrace_Mask' flags are supported" );
 
 		// validate
@@ -277,11 +282,13 @@ namespace
 					case EShaderStages::TessEvaluation :
 					case EShaderStages::Geometry :
 						CHECK_THROW_MSG( dbg_feats.vertexPipelineStoresAndAtomics,
+							"In PipelineLayout '"s << _name << "': "
 							"Shader debugger requires 'vertexPipelineStoresAndAtomics' feature for "s << ToString(t) << " shader." );
 						break;
 
 					case EShaderStages::Fragment :
 						CHECK_THROW_MSG( dbg_feats.fragmentStoresAndAtomics,
+							"In PipelineLayout '"s << _name << "': "
 							"Shader debugger requires 'fragmentStoresAndAtomics' feature for "s << ToString(t) << " shader." );
 						break;
 				}
@@ -292,6 +299,7 @@ namespace
 				case EShaderOpt::FnProfiling :
 				case EShaderOpt::TimeHeatMap :
 					CHECK_THROW_MSG( dbg_feats.shaderDeviceClock or dbg_feats.shaderSubgroupClock,
+						"In PipelineLayout '"s << _name << "': "
 						"Shader profiler requires 'shaderDeviceClock' or 'shaderSubgroupClock' feature." );
 					break;
 			}

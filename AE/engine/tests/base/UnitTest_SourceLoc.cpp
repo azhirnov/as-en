@@ -50,6 +50,14 @@ namespace
 			StringView	fn_sig	= "void AA::Callback(void (__cdecl *)(int), float, int (__cdecl *)())";
 			StringView	fn_name	= SourceLoc::_ExtractFnName( fn_sig );
 			TEST_Eq( fn_name, "Callback" );
+		}{
+			StringView	fn_sig	= "void AA::SomeCbFn(int (*)(float), int, void (T::*)(int) const)";
+			StringView	fn_name	= SourceLoc::_ExtractFnName( fn_sig );
+			TEST_Eq( fn_name, "SomeCbFn" );
+		}{
+			StringView	fn_sig	= "SourceLoc (anonymous namespace)::SomeCbFn(int (*)(float), int, void (T::*)(int) const) [T = A]";
+			StringView	fn_name	= SourceLoc::_ExtractFnName( fn_sig );
+			TEST_Eq( fn_name, "SomeCbFn" );
 		}
 
 		// MSVC style signature
@@ -156,13 +164,13 @@ namespace
 
 		TEST( Path{loc.FileName()}.filename() == "UnitTest_SourceLoc.cpp" );
 		#if defined(AE_COMPILER_GCC)
-			TEST_Eq( loc.FunctionSignature(), "" );
+			TEST_Eq( loc.FunctionSignature(), "AE::Base::SourceLoc {anonymous}::SomeCbFn(int (*)(float), int, void (T::*)(int) const) [with T = A]" );
 
 		#elif defined(AE_COMPILER_CLANG)
-			TEST_Eq( loc.FunctionSignature(), "" );
+			TEST_Eq( loc.FunctionSignature(), "SourceLoc (anonymous namespace)::SomeCbFn(int (*)(float), int, void (T::*)(int) const) [T = A]" );
 
 		#elif defined(AE_COMPILER_CLANG_CL)
-			TEST_Eq( loc.FunctionSignature(), "" );
+			TEST_Eq( loc.FunctionSignature(), "SourceLoc __cdecl (anonymous namespace)::SomeCbFn(int (*)(float), int, void (T::*)(int) const) [T = A]" );
 
 		#elif defined(AE_COMPILER_MSVC)
 			TEST_Eq( loc.FunctionSignature(), "struct AE::Base::SourceLoc __cdecl `anonymous-namespace'::SomeCbFn<struct `anonymous-namespace'::SourceLoc_Test4::A>(int (__cdecl *)(float),int,void (__cdecl `anonymous-namespace'::SourceLoc_Test4::A::* )(int) const)" );
@@ -181,13 +189,15 @@ namespace
 		{
 			T0,
 			T1,
-			_Count
+			_Count = 100
 		};
 
 		StaticAssert( EnumToString<ETest>::ToString(ETest::T0) == "T0" );
 		StaticAssert( EnumToString<ETest>::ToString(ETest::T1) == "T1" );
 		StaticAssert( EnumToString<ETest>::ToString(ETest::_Count) == Default );
+
 		StaticAssert( EnumToString<ETest>::ToString(ETest(10)) == Default );
+		StaticAssert( EnumToString<ETest>::ToString(static_cast<ETest>(11)) == Default );
 	}
 
 

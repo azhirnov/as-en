@@ -19,7 +19,7 @@ struct Sphere
 ND_ Sphere  Sphere_Create (const float3 center, const float radius);
 
 ND_ Rect	Sphere_FastProject (const Sphere sphereInViewSpace, const float P00, const float P11);
-ND_ bool	Sphere_FastProject2 (const Sphere sphereInViewSpace, const float P00, const float P11, float nearZ, OUT Rect ndcRect);
+ND_ bool	Sphere_FastProject2 (const Sphere sphereInViewSpace, const float P00, const float P11, float nearZ, out Rect ndcRect);
 
 // spherical coordinates
 ND_ float3	SphericalToCartesian (const float2 phiTheta);
@@ -113,7 +113,7 @@ float3  CartesianToSpherical (const float3 cartesian)
 		return Rect_Create( minx * P00, miny * P11, maxx * P00, maxy * P11 );
 	}
 
-	bool  Sphere_FastProject2 (const Sphere sp, const float P00, const float P11, float nearZ, OUT Rect ndcRect)
+	bool  Sphere_FastProject2 (const Sphere sp, const float P00, const float P11, float nearZ, out Rect ndcRect)
 	{
 		if ( sp.center.z - sp.radius < nearZ )
 			return false;

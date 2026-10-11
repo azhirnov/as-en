@@ -121,8 +121,6 @@ namespace AE::ResEditor
 			DirectCtx::Compute	ctx{ pd.rtask, RVRef(pd.cmdbuf), DebugLabel{_dbgName, _dbgColor} };
 			DescriptorSetID		ds	= _descSets[ ctx.GetFrameId().Index() ];
 
-			if ( i == 0 ) _BeginTimeQuery( ctx );
-
 			// state transition
 			{
 				_resources.SetStates( ctx, Default );
@@ -130,6 +128,8 @@ namespace AE::ResEditor
 				if ( cnt > 1 ) ctx.MemoryBarrier( EPipelineScope::All, EPipelineScope::All );	// disable overlapping, only for profiling!
 				ctx.CommitBarriers();
 			}
+
+			if ( i == 0 ) _BeginTimeQuery( ctx );
 
 			ctx.BindPipeline( ppln );
 			ctx.BindDescriptorSet( _dsIndex, ds );

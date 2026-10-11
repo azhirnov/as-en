@@ -421,6 +421,8 @@ namespace AE::ResEditor
 		if ( _resource )
 			return _resource;
 
+		TRACY( ZoneScoped );
+
 		Renderer&	renderer = ScriptExe::ScriptResourceApi::GetRenderer(); // throw
 
 		if ( _dummy )

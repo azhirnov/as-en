@@ -1,0 +1,31 @@
+apply plugin: 'com.android.library'
+
+android {
+	namespace  'AE.engine'	// api28
+	compileSdk 28
+
+	defaultConfig {
+		minSdkVersion 		24 // 24+ for vulkan
+		targetSdkVersion 	28
+	}
+
+	buildTypes {
+		release {
+			minifyEnabled false
+			proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+			signingConfig signingConfigs.debug
+		}
+	}
+
+	ndkVersion "29.0.14206865"
+
+	compileOptions {
+		sourceCompatibility JavaVersion.VERSION_1_8
+		targetCompatibility JavaVersion.VERSION_1_8
+	}
+}
+
+dependencies {
+	implementation project(path: ':engine')
+	implementation 'androidx.appcompat:appcompat:1.0.2'
+}

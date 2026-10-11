@@ -15,7 +15,7 @@
 			ds.UniformBuffer( EShaderStages::Vertex, "un_PerObject", "UnifiedGeometryMaterialUB" );
 		}{
 			RC<PipelineLayout>		pl = PipelineLayout( "pl1" );
-			pl.DSLayout( "pass",	 0, "subpass-2.ds" );
+			pl.DSLayout( "pass",	 0, "pass-2.ds" );
 			pl.DSLayout( "material", 1, "mtr-1.ds" );
 		}
 

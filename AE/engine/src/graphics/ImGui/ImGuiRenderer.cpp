@@ -20,6 +20,10 @@
 #	pragma message( "required ImGui version 1.92.6" )
 # endif
 
+# include "platform/Android/SerializableInputActionsAndroid.h"
+# include "platform/GLFW/SerializableInputActionsGLFW.h"
+# include "platform/WinAPI/SerializableInputActionsWinAPI.h"
+
 namespace AE::Graphics
 {
 	using namespace AE::App;
@@ -489,6 +493,9 @@ namespace AE::Graphics
 			io.MouseWheelH	= Clamp( mouseWheel.x, -1.f, 1.f );
 		}
 
+		if ( _keyListener )
+			_keyListener->Get( INOUT keyStates );
+
 		for (auto [key, down] : keyStates)
 		{
 			io.AddKeyEvent( ImGuiKey(key), down );
@@ -678,12 +685,7 @@ namespace AE::Graphics
 	const char*  ImGuiRenderer::_GetClipboardText (ImGuiContext* ctx)
 	{
 		auto&	self = *Cast<ImGuiRenderer>( ctx->PlatformIO.Platform_ClipboardUserData );
-
-	  #ifdef AE_PLATFORM_ANDROID
-		// TODO
-	  #else
 		CHECK( PlatformUtils::ClipboardExtract( OUT self._clipboard ));
-	  #endif
 		return Cast<char>( self._clipboard.c_str() );
 	}
 
@@ -694,11 +696,20 @@ namespace AE::Graphics
 */
 	void  ImGuiRenderer::_SetClipboardText (ImGuiContext*, const char* text)
 	{
-	  #ifdef AE_PLATFORM_ANDROID
-		// TODO
-	  #else
 		CHECK( PlatformUtils::ClipboardPut( U8StringView{ Cast<CharUtf8>(text) }));
-	  #endif
+	}
+
+/*
+=================================================
+	CreateKeyListener
+=================================================
+*/
+	RC<IInputActions::IRawKeyListener>  ImGuiRenderer::CreateKeyListener () __NE___
+	{
+		CHECK_ERR( not _keyListener );
+
+		_keyListener = MakeRC<KeyListener>();
+		return _keyListener;
 	}
 
 /*
@@ -929,7 +940,73 @@ namespace {
 
 		window->DrawList->PathStroke( BitCast<uint>(color), false, thickness );
 	}
+//-----------------------------------------------------------------------------
 
+
+
+/*
+=================================================
+	KeyListener::KeyEvent
+=================================================
+*/
+	void  ImGuiRenderer::KeyListener::KeyEvent (ushort inType, EGestureState state, ControllerID, IInputActions::Duration_t) __NE___
+	{
+	  #ifdef AE_PLATFORM_ANDROID
+		using EInputType = SerializableInputActionsAndroid::EInputType;
+
+	  #elif defined(AE_ENABLE_GLFW)
+		using EInputType = SerializableInputActionsGLFW::EInputType;
+
+	  #elif defined(AE_WINAPI_WINDOW)
+		using EInputType = SerializableInputActionsWinAPI::EInputType;
+	  #else
+	  #	error Not implemented!
+	  #endif
+
+		EInputType	type	{inType};
+		bool		down	= (state != EGestureState::End);
+		ImGuiKey	key		= ImGuiKey_None;
+
+		switch ( type )
+		{
+			case EInputType::Key_Backspace :	key = ImGuiKey_Backspace;	break;
+			case EInputType::Key_Delete :		key = ImGuiKey_Delete;		break;
+			case EInputType::Key_Enter :		key = ImGuiKey_Enter;		break;
+
+			case EInputType::Key_ArrowRight :	key = ImGuiKey_RightArrow;	break;
+			case EInputType::Key_ArrowLeft :	key = ImGuiKey_LeftArrow;	break;
+			case EInputType::Key_ArrowDown :	key = ImGuiKey_DownArrow;	break;
+			case EInputType::Key_ArrowUp :		key = ImGuiKey_UpArrow;		break;
+
+			// TODO: Ctrl+V, Ctrl+C
+		}
+
+		EXLOCK( _guard );
+		_keyStates.emplace_back( key, down );
+	}
+
+/*
+=================================================
+	KeyListener::Get
+=================================================
+*/
+	void  ImGuiRenderer::KeyListener::Get (INOUT KeyStates_t &outStates) __NE___
+	{
+		EXLOCK( _guard );
+
+		outStates.insert( outStates.end(), _keyStates.begin(), _keyStates.end() );
+		outStates.clear();
+	}
+
+/*
+=================================================
+	KeyListener ctor
+=================================================
+*/
+	ImGuiRenderer::KeyListener::KeyListener () __NE___
+	{
+		_keyStates.reserve( 128 );
+	}
 
 } // AE::Graphics
 

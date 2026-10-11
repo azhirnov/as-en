@@ -206,6 +206,8 @@ namespace
 		if ( not IsNullUnion( _resource ))
 			return _resource;
 
+		TRACY( ZoneScoped );
+
 		ImageDesc	desc;
 		desc.imageDim	= EImageDim_2D;
 		desc.format		= _format;

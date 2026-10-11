@@ -542,7 +542,7 @@ namespace AE::Scripting
 =================================================
 */
 	template <typename T> template <typename Fn>
-	void  ClassBinder<T>::AddGenericMethod (void (*fn)(ScriptArgList), StringView name, ArgNames_t argNames) __Th___
+	void  ClassBinder<T>::AddGenericMethod (void (*fn)(ScriptArgList), StringView name, ArgNames_t argNames, Bool genHeader) __Th___
 	{
 		using namespace AngelScript;
 
@@ -556,7 +556,7 @@ namespace AE::Scripting
 								asFUNCTION( FnUnsafeCast< asGENFUNC_t >( fn )),
 								asCALL_GENERIC ));
 
-		if_unlikely( _genHeader )
+		if_unlikely( _genHeader and genHeader )
 		{
 			_header << '\t';
 			if constexpr( IsGlobalFunction<Fn> )

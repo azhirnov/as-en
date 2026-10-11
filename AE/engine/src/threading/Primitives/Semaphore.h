@@ -130,7 +130,7 @@ namespace AE::Threading
 	public:
 		explicit Semaphore (uint desired)		__NE___	: _sem{desired} {}
 
-			void  Acquire ()					__NE___	{ _sem.acquire(); }
+			void  Acquire ()					__NE___	{ TRACY( ZoneScoped );  _sem.acquire(); }
 			void  Release (uint update = 1)		__NE___	{ _sem.release( update ); }
 
 		ND_ bool  TryAcquire ()					__NE___	{ return _sem.try_acquire(); }
@@ -212,6 +212,7 @@ namespace AE::Threading
 	template <uint V>
 	void  Semaphore<V>::Acquire () __NE___
 	{
+		TRACY( ZoneScoped );
 		std::unique_lock	lock {_mtx};
 
 		for (; _counter <= 0; ) {

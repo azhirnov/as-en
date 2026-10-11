@@ -2,6 +2,7 @@
 
 #include "graphics_rhi/Public/ImageMemView.h"
 #include "graphics_rhi/Private/EnumUtils.h"
+#include "graphics_rhi/Public/SamplerDesc.h"
 
 namespace AE::Graphics
 {
@@ -22,19 +23,17 @@ namespace
 		NdCx__ operator float ()	C_NE___	{ return f; }
 	};
 
-	struct RGBBits
+	// warning: bit order may be compiler defined
+	struct R11G11B10Bits
 	{
-		// Blue //
-		uint	b_m	: 5;
-		uint	b_e	: 5;
-		// Green //
-		uint	g_m	: 6;
-		uint	g_e	: 5;
-		// Red //
-		uint	r_m	: 6;
-		uint	r_e	: 5;
+		uint r_m : 6;   // bits  0..5
+		uint r_e : 5;   // bits  6..10
+		uint g_m : 6;   // bits 11..16
+		uint g_e : 5;   // bits 17..21
+		uint b_m : 5;   // bits 22..26
+		uint b_e : 5;   // bits 27..31
 	};
-	StaticAssert( CT_SizeOfInBits<RGBBits> == (11+11+10) );
+	StaticAssert( CT_SizeOfInBits<R11G11B10Bits> == (11+11+10) );
 
 
 /*
@@ -248,10 +247,10 @@ namespace
 */
 	static void  ReadFloat_11_11_10 (const BufferMemView::ConstData &row, uint x, OUT RGBA32f &result) __NE___
 	{
-		RGBBits	bits = {};
+		R11G11B10Bits	bits = {};
 
 		NonNull( row.ptr );
-		MemCopy( OUT &bits, row.ptr + Bytes{x * sizeof(RGBBits)}, Sizeof(bits) );
+		MemCopy( OUT &bits, row.ptr + Bytes{x * sizeof(R11G11B10Bits)}, Sizeof(bits) );
 
 		FloatBits	f;
 
@@ -268,6 +267,23 @@ namespace
 		result.b = f;
 
 		result.a = 1.0f;
+	}
+
+/*
+=================================================
+	ReadBlock*
+=================================================
+*/
+	static void  ReadBlock64 (const BufferMemView::ConstData &row, uint x, OUT RGBA32u &result) __NE___
+	{
+		NonNull( row.ptr );
+		MemCopy( OUT &result.r, row.ptr + 8_b * x, 8_b );
+	}
+
+	static void  ReadBlock128 (const BufferMemView::ConstData &row, uint x, OUT RGBA32u &result) __NE___
+	{
+		NonNull( row.ptr );
+		MemCopy( OUT &result.r, row.ptr + 16_b * x, 16_b );
 	}
 //-----------------------------------------------------------------------------
 
@@ -483,8 +499,8 @@ namespace
 */
 	static void  WriteFloat_11_11_10 (BufferMemView::Data row, uint x, const RGBA32f &result) __NE___
 	{
-		RGBBits		bits;
-		FloatBits	f;
+		R11G11B10Bits	bits;
+		FloatBits		f;
 
 		f.f = result.r;
 		bits.r_m = f.bits.m >> (23 - 6);
@@ -499,7 +515,22 @@ namespace
 		bits.b_e = f.bits.e - (127 - 15);
 
 		NonNull( row.ptr );
-		MemCopy( OUT row.ptr + Bytes{x * sizeof(RGBBits)}, &bits, Sizeof(bits) );
+		MemCopy( OUT row.ptr + Bytes{x * sizeof(R11G11B10Bits)}, &bits, Sizeof(bits) );
+	}
+
+/*
+=================================================
+	Filter
+=================================================
+*/
+	static void  NearestFilter (const RWImageMemView::PixStorage_t srcPixels[4], OUT RWImageMemView::PixStorage_t &dstPix) __NE___
+	{
+		std::memcpy( dstPix.data(), srcPixels[0].data(), sizeof(dstPix) );
+	}
+
+	static void  LinearFilterF4 (const RGBA32f srcPixels[4], OUT RGBA32f &dstPix) __NE___
+	{
+		dstPix = (srcPixels[0] + srcPixels[1] + srcPixels[2] + srcPixels[3]) * 0.25f;
 	}
 
 } // namespace
@@ -663,6 +694,12 @@ namespace
 		return CopyFrom( dstOffset, srcOffset, srcImage, dim, OUT data_size );
 	}
 
+	bool  ImageMemView::CopyFrom (const uint3 &dstOffset, const uint3 &srcOffset, const uint3 &dstDim, const uint3 &srcDim, const ImageMemView &srcImage) __NE___
+	{
+		Bytes	data_size;
+		return _CopyImage( dstOffset, srcOffset, dstDim, srcDim, *this, srcImage, OUT data_size );
+	}
+
 	bool  ImageMemView::CopyFrom (const ImageMemView &src, OUT Bytes &written) __NE___
 	{
 		if_unlikely( Any( Dimension() != src.Dimension() ))
@@ -673,43 +710,65 @@ namespace
 
 	bool  ImageMemView::CopyFrom (const uint3 &dstOffset, const uint3 &srcOffset, const ImageMemView &srcImage, const uint3 &dim, OUT Bytes &written) __NE___
 	{
-		written = 0_b;
-
-		if_unlikely( this->Empty() or srcImage.Empty() )
+		if ( Any( this->TexBlockDim() != srcImage.TexBlockDim() ))
 			return false;
 
-		ASSERT( All( dstOffset + dim <= this->Dimension() ));
-		ASSERT( All( srcOffset + dim <= srcImage.Dimension() ));
+		return _CopyImage( dstOffset, srcOffset, dim, dim, *this, srcImage, OUT written );
+	}
 
-		ASSERT( All( IsMultipleOf( uint2{dstOffset}, TexBlockDim() )));
-		ASSERT( All( IsMultipleOf( uint2{srcOffset}, TexBlockDim() )));
+	bool  ImageMemView::CopyFrom (const uint3 &dstOffset, const uint3 &srcOffset, const uint3 &dstDim, const uint3 &srcDim, const ImageMemView &srcImage, OUT Bytes &written) __NE___
+	{
+		return _CopyImage( dstOffset, srcOffset, dstDim, srcDim, *this, srcImage, OUT written );
+	}
 
-		ASSERT( All( IsMultipleOf( uint2{dstOffset + dim}, TexBlockDim() )));
-		ASSERT( All( IsMultipleOf( uint2{srcOffset + dim}, TexBlockDim() )));
+/*
+=================================================
+	_CopyImage
+=================================================
+*/
+	bool  ImageMemView::_CopyImage (const uint3 &dstOffset, const uint3 &srcOffset, const uint3 &dstDim, const uint3 &srcDim,
+									ImageMemView &dstImage, const ImageMemView &srcImage, OUT Bytes &written) __NE___
+	{
+		written = 0_b;
 
-		if_unlikely( not All( dstOffset + dim <= this->Dimension() )	or
-					 not All( srcOffset + dim <= srcImage.Dimension() )	or
-					 this->_format != srcImage._format					or
-					 this->_aspect != srcImage._aspect )
+		if_unlikely( dstImage.Empty() or srcImage.Empty() )
+			return false;
+
+		ASSERT( All( dstOffset + dstDim <= dstImage.Dimension() ));
+		ASSERT( All( srcOffset + srcDim <= srcImage.Dimension() ));
+
+		ASSERT( All( IsMultipleOf( uint2{dstOffset}, dstImage.TexBlockDim() )));
+		ASSERT( All( IsMultipleOf( uint2{srcOffset}, srcImage.TexBlockDim() )));
+
+		ASSERT( All( IsMultipleOf( uint2{dstOffset + dstDim}, dstImage.TexBlockDim() )));
+		ASSERT( All( IsMultipleOf( uint2{srcOffset + srcDim}, srcImage.TexBlockDim() )));
+
+		ASSERT( dstImage._bitsPerBlock == srcImage._bitsPerBlock );
+
+		if_unlikely( not All( dstOffset + dstDim <= dstImage.Dimension() )	or
+					 not All( srcOffset + srcDim <= srcImage.Dimension() )	or
+					 dstImage._bitsPerBlock != srcImage._bitsPerBlock		or
+					 dstImage._aspect != srcImage._aspect )
 		{
 			return false;
 		}
 
-		ASSERT( this->_bitsPerBlock == srcImage._bitsPerBlock );
+		const Bytes		row_size		= ImageUtils::RowSize( dstDim.x, dstImage._bitsPerBlock, dstImage.TexBlockDim() );
+		const Bytes		src_row_size	= ImageUtils::RowSize( srcDim.x, srcImage._bitsPerBlock, srcImage.TexBlockDim() );
+		ASSERT( row_size == src_row_size );
 
-		const Bytes		row_size		= ImageUtils::RowSize( dim.x, _bitsPerBlock, TexBlockDim() );
-		const Bytes		dst_row_pitch	= this->RowPitch();
+		const Bytes		dst_row_pitch	= dstImage.RowPitch();
 		const Bytes		src_row_pitch	= srcImage.RowPitch();
-		const Bytes		dst_slice_pitch	= this->SlicePitch();
+		const Bytes		dst_slice_pitch	= dstImage.SlicePitch();
 		const Bytes		src_slice_pitch	= srcImage.SlicePitch();
 
-		const uint		block_count_y	= dim.y / TexBlockDim().y;
-		const Bytes		src_row_off		= ImageUtils::RowSize( srcOffset.x, _bitsPerBlock, TexBlockDim() );
-		const Bytes		dst_row_off		= ImageUtils::RowSize( dstOffset.x, _bitsPerBlock, TexBlockDim() );
-		const uint		src_offset_y	= srcOffset.y / TexBlockDim().y;
-		const uint		dst_offset_y	= dstOffset.y / TexBlockDim().y;
+		const uint		block_count_y	= dstDim.y / dstImage.TexBlockDim().y;
+		const Bytes		src_row_off		= ImageUtils::RowSize( srcOffset.x, srcImage._bitsPerBlock, srcImage.TexBlockDim() );
+		const Bytes		dst_row_off		= ImageUtils::RowSize( dstOffset.x, dstImage._bitsPerBlock, dstImage.TexBlockDim() );
+		const uint		src_offset_y	= srcOffset.y / srcImage.TexBlockDim().y;
+		const uint		dst_offset_y	= dstOffset.y / dstImage.TexBlockDim().y;
 
-		const auto		dst_parts		= this->Parts();
+		const auto		dst_parts		= dstImage.Parts();
 		const auto		src_parts		= srcImage.Parts();
 		auto			dst_part_it		= dst_parts.begin();
 		auto			src_part_it		= src_parts.begin();
@@ -717,7 +776,7 @@ namespace
 		Bytes			dst_offset;
 		Bytes			src_offset;
 
-		for (uint z = 0; z < dim.z; ++z)
+		for (uint z = 0; z < dstDim.z; ++z)
 		{
 			for (uint y = 0; y < block_count_y; ++y)
 			{
@@ -916,6 +975,41 @@ namespace
 		const T	temp[8] = { src0.r, src0.g, src0.b, src0.a, src1.r, src1.g, src1.b, src1.a, };
 		return RGBAColor<T>{ temp[_value.x & 7], temp[_value.y & 7], temp[_value.z & 7], temp[_value.w & 7] };
 	}
+
+	bool  RWImageMemView::Swizzle::IsSrc0Identity () C_NE___
+	{
+		return All( _value == uint4{0, 1, 2, 3} );
+	}
+
+	bool  RWImageMemView::Swizzle::IsSrc1Identity () C_NE___
+	{
+		return All( _value == uint4{4, 5, 6, 7} );
+	}
+//-----------------------------------------------------------------------------
+
+
+
+/*
+=================================================
+	BlitOp
+=================================================
+*/
+	RWImageMemView::BlitOp::BlitOp (RWImageMemView const& src, RWImageMemView &dst) __NE___ :
+		dim{src.Dimension()}, dstImage{dst}, srcImage{src}
+	{}
+
+	RWImageMemView::BlitOp::BlitOp (RWImageMemView const& src, RWImageMemView &dst, const Swizzle &sw) __NE___ :
+		dim{src.Dimension()}, swizzle{sw}, dstImage{dst}, srcImage{src}
+	{}
+
+/*
+=================================================
+	FilteredBlitOp
+=================================================
+*/
+	RWImageMemView::FilteredBlitOp::FilteredBlitOp (RWImageMemView const& src, RWImageMemView &dst, EFilter filter) __NE___ :
+		dstDim{dst.Dimension()}, srcDim{src.Dimension()}, filter{filter}, dstImage{dst}, srcImage{src}
+	{}
 //-----------------------------------------------------------------------------
 
 
@@ -1365,9 +1459,15 @@ namespace
 			case EPixelFormat::ASTC_RGBA16F_10x10 :
 			case EPixelFormat::ASTC_RGBA16F_12x10 :
 			case EPixelFormat::ASTC_RGBA16F_12x12 :
+			{
 				REQ_COLOR_ASPECT();
-				DBG_WARNING( "TODO" );
+				if ( _bitsPerBlock == 64 )
+					_loadU4 = &ReadBlock64;
+				else
+				if ( _bitsPerBlock == 128 )
+					_loadU4 = &ReadBlock128;
 				break;
+			}
 
 			case EPixelFormat::G8B8G8R8_422_UNorm :
 			case EPixelFormat::B8G8R8G8_422_UNorm :
@@ -1421,100 +1521,108 @@ namespace
 
 /*
 =================================================
-	Blit
+	Blit (without filtering)
 =================================================
 */
-	bool  RWImageMemView::Blit (const RWImageMemView &srcImage) __NE___
+	bool  RWImageMemView::Blit (const BlitOp &op) __NE___
 	{
-		Bytes	readn, written;
-		return Blit( srcImage, OUT readn, OUT written );
+		BlitResult	res;
+		return Blit( op, OUT res );
 	}
 
-	bool  RWImageMemView::Blit (const uint3 &dstOffset, const uint3 &srcOffset, const RWImageMemView &srcImage, const uint3 &dim) __NE___
+	bool  RWImageMemView::Blit (const BlitOp &op, OUT BlitResult &res) __NE___
 	{
-		Bytes	readn, written;
-		return Blit( dstOffset, srcOffset, srcImage, dim, OUT readn, OUT written );
-	}
+		res.readn	= 0_b;
+		res.written	= 0_b;
 
-	bool  RWImageMemView::Blit (const RWImageMemView &srcImage, OUT Bytes &readn, OUT Bytes &written) __NE___
-	{
-		return Blit( uint3{}, uint3{}, srcImage, Dimension(), OUT readn, OUT written );
-	}
-
-	bool  RWImageMemView::Blit (const uint3 &dstOffset, const uint3 &srcOffset, const RWImageMemView &srcImage, const uint3 &dim, OUT Bytes &readn, OUT Bytes &written) __NE___
-	{
-		readn	= 0_b;
-		written	= 0_b;
-
-		if_unlikely( Empty() or srcImage.Empty() )
+		if_unlikely( op.dstImage.Empty() or op.srcImage.Empty() )
 			return false;
 
-		ASSERT( All( dstOffset + dim <= this->Dimension() ));
-		ASSERT( All( srcOffset + dim <= srcImage.Dimension() ));
+		const auto&		src_info	= EPixelFormat_GetInfo( op.srcImage._format );
+		const auto&		dst_info	= EPixelFormat_GetInfo( op.dstImage._format );
 
-		if ( not All( dstOffset + dim <= this->Dimension() )	or
-			 not All( srcOffset + dim <= srcImage.Dimension() )	or
-			 this->_aspect != srcImage._aspect )
+		CHECK_ERR( not src_info.IsCompressed() );
+		CHECK_ERR( not dst_info.IsCompressed() );
+
+		CHECK_ERR( All( op.dstOffset + op.dim <= op.dstImage.Dimension() ));
+		CHECK_ERR( All( op.srcOffset + op.dim <= op.srcImage.Dimension() ));
+		CHECK_ERR( op.dstImage._aspect == op.srcImage._aspect );
+
+		using EType = PixelFormatInfo::EType;
+		constexpr auto	float_mask	= EType::UNorm | EType::SNorm | EType::SFloat | EType::UFloat;
+		constexpr auto	int_mask	= EType::SInt;
+		constexpr auto	uint_mask	= EType::UInt;
+
+		if ( op.swizzle.IsSrc0Identity() )
 		{
-			return false;
-		}
+			if ( op.dstImage._format == op.srcImage._format )
+				return op.dstImage.CopyFrom( op.dstOffset, op.srcOffset, op.srcImage, op.dim );
 
-		if ( this->_format == srcImage._format )
-			return CopyFrom( dstOffset, srcOffset, srcImage, dim );
-
-		LoadPixelFn_t	load	= null;
-		StorePixelFn_t	store	= null;
-		{
-			const auto&		src_info	= EPixelFormat_GetInfo( srcImage._format );
-			const auto&		dst_info	= EPixelFormat_GetInfo( this->_format );
-
-			CHECK_ERR( not dst_info.IsCompressed() );	// not supported
-
-			using EType = PixelFormatInfo::EType;
-			constexpr auto	float_mask	= EType::UNorm | EType::SNorm | EType::SFloat | EType::UFloat;
-			constexpr auto	int_mask	= EType::SInt;
-			constexpr auto	uint_mask	= EType::UInt;
-
-			if ( AnyBits( src_info.valueType, float_mask ) and AnyBits( dst_info.valueType, float_mask ))
+			LoadPixelFn_t	load	= null;
+			StorePixelFn_t	store	= null;
 			{
-				load	= FnUnsafeCast<LoadPixelFn_t>( srcImage._loadF4 );
-				store	= FnUnsafeCast<StorePixelFn_t>( this->_storeF4 );
-			}else
-			if ( AnyBits( src_info.valueType, int_mask ) and AnyBits( dst_info.valueType, int_mask ))
-			{
-				load	= FnUnsafeCast<LoadPixelFn_t>( srcImage._loadI4 );
-				store	= FnUnsafeCast<StorePixelFn_t>( this->_storeI4 );
-			}else
-			if ( AnyBits( src_info.valueType, uint_mask ) and AnyBits( dst_info.valueType, uint_mask ))
-			{
-				load	= FnUnsafeCast<LoadPixelFn_t>( srcImage._loadU4 );
-				store	= FnUnsafeCast<StorePixelFn_t>( this->_storeU4 );
+				if ( AnyBits( src_info.valueType, float_mask ) and AnyBits( dst_info.valueType, float_mask ))
+				{
+					load	= FnUnsafeCast<LoadPixelFn_t >( op.srcImage._loadF4 );
+					store	= FnUnsafeCast<StorePixelFn_t>( op.dstImage._storeF4 );
+				}else
+				if ( AnyBits( src_info.valueType, int_mask ) and AnyBits( dst_info.valueType, int_mask ))
+				{
+					load	= FnUnsafeCast<LoadPixelFn_t >( op.srcImage._loadI4 );
+					store	= FnUnsafeCast<StorePixelFn_t>( op.dstImage._storeI4 );
+				}else
+				if ( AnyBits( src_info.valueType, uint_mask ) and AnyBits( dst_info.valueType, uint_mask ))
+				{
+					load	= FnUnsafeCast<LoadPixelFn_t >( op.srcImage._loadU4 );
+					store	= FnUnsafeCast<StorePixelFn_t>( op.dstImage._storeU4 );
+				}
 			}
+			CHECK_ERR( load != null and store != null );
+			return _Blit( op, OUT res, load, store );
 		}
-		CHECK_ERR( load != null and store != null );
-
-		const Bytes		src_row_size	= ImageUtils::RowSize( dim.x, srcImage._bitsPerBlock, srcImage.TexBlockDim() );
-		const Bytes		dst_row_size	= ImageUtils::RowSize( dim.x, this->_bitsPerBlock, this->TexBlockDim() );
-
-		for (uint z = 0; z < dim.z; ++z)
+		else
 		{
-			for (uint y = 0; y < dim.y; ++y)
+			if ( AnyBits( src_info.valueType, float_mask ) and AnyBits( dst_info.valueType, float_mask ))
+				return _BlitSw<RGBA32f>( op, OUT res, op.srcImage._loadF4, op.dstImage._loadF4, op.dstImage._storeF4 );
+
+			if ( AnyBits( src_info.valueType, int_mask ) and AnyBits( dst_info.valueType, int_mask ))
+				return _BlitSw<RGBA32i>( op, OUT res, op.srcImage._loadI4, op.dstImage._loadI4, op.dstImage._storeI4 );
+
+			if ( AnyBits( src_info.valueType, uint_mask ) and AnyBits( dst_info.valueType, uint_mask ))
+				return _BlitSw<RGBA32u>( op, OUT res, op.srcImage._loadU4, op.dstImage._loadU4, op.dstImage._storeU4 );
+		}
+		return false;
+	}
+
+/*
+=================================================
+	_Blit (without swizzle)
+=================================================
+*/
+	bool  RWImageMemView::_Blit (const BlitOp &op, OUT BlitResult &res, LoadPixelFn_t load, StorePixelFn_t store) __NE___
+	{
+		const Bytes		src_row_size	= ImageUtils::RowSize( op.dim.x, op.srcImage._bitsPerBlock, op.srcImage.TexBlockDim() );
+		const Bytes		dst_row_size	= ImageUtils::RowSize( op.dim.x, op.dstImage._bitsPerBlock, op.dstImage.TexBlockDim() );
+
+		for (uint z = 0; z < op.dim.z; ++z)
+		{
+			for (uint y = 0; y < op.dim.y; ++y)
 			{
-				auto	src_row	= srcImage.GetRow( srcOffset.y + y, srcOffset.z + z );
-				auto	dst_row	= this->GetRow( dstOffset.y + y, dstOffset.z + z );
+				auto	src_row	= op.srcImage.GetRow( op.srcOffset.y + y, op.srcOffset.z + z );
+				auto	dst_row	= op.dstImage.GetRow( op.dstOffset.y + y, op.dstOffset.z + z );
 
 				if_unlikely( src_row.Empty() or dst_row.Empty() )
 					return false;
 
-				for (uint x = 0; x < dim.x; ++x)
+				for (uint x = 0; x < op.dim.x; ++x)
 				{
 					PixStorage_t	pix_storage;
-					load(  src_row, srcOffset.x + x, OUT pix_storage );
-					store( dst_row, dstOffset.x + x, pix_storage );
+					load(  src_row, op.srcOffset.x + x, OUT pix_storage );
+					store( dst_row, op.dstOffset.x + x, pix_storage );
 				}
 
-				readn	+= src_row_size;
-				written	+= dst_row_size;
+				res.readn	+= src_row_size;
+				res.written	+= dst_row_size;
 			}
 		}
 		return true;
@@ -1522,114 +1630,150 @@ namespace
 
 /*
 =================================================
-	Blit (with swizzle)
+	_BlitSw (with swizzle)
 =================================================
 */
-	bool  RWImageMemView::Blit (const RWImageMemView &srcImage, const Swizzle &swizzle) __NE___
+	template <typename T>
+	bool  RWImageMemView::_BlitSw (const BlitOp &op, OUT BlitResult &res, LoadPixelTFn_t<T> loadSrc, LoadPixelTFn_t<T> loadDst, StorePixelTFn_t<T> store) __NE___
 	{
-		Bytes	readn, written;
-		return Blit( srcImage, swizzle, OUT readn, OUT written );
+		StaticAssert( sizeof(T) == sizeof(PixStorage_t) );
+
+		const Bytes		src_row_size	= ImageUtils::RowSize( op.dim.x, op.srcImage._bitsPerBlock, op.srcImage.TexBlockDim() );
+		const Bytes		dst_row_size	= ImageUtils::RowSize( op.dim.x, op.dstImage._bitsPerBlock, op.dstImage.TexBlockDim() );
+
+		for (uint z = 0; z < op.dim.z; ++z)
+		{
+			for (uint y = 0; y < op.dim.y; ++y)
+			{
+				auto	src_row	= op.srcImage.GetRow( op.srcOffset.y + y, op.srcOffset.z + z );
+				auto	dst_row	= op.dstImage.GetRow( op.dstOffset.y + y, op.dstOffset.z + z );
+
+				if_unlikely( src_row.Empty() or dst_row.Empty() )
+					return false;
+
+				for (uint x = 0; x < op.dim.x; ++x)
+				{
+					T	pix_storage0;
+					T	pix_storage1;
+
+					loadSrc( src_row,         op.srcOffset.x + x, OUT pix_storage0 );
+					loadDst( CRow_t{dst_row}, op.dstOffset.x + x, OUT pix_storage1 );
+
+					T	pix_storage = op.swizzle.Transform( pix_storage0, pix_storage1 );
+
+					store( dst_row, op.dstOffset.x + x, pix_storage );
+				}
+
+				res.readn	+= src_row_size;
+				res.written	+= dst_row_size;
+			}
+		}
+		return true;
 	}
 
-	bool  RWImageMemView::Blit (const RWImageMemView &srcImage, const Swizzle &swizzle, OUT Bytes &readn, OUT Bytes &written) __NE___
+/*
+=================================================
+	Blit (with filtering)
+=================================================
+*/
+	bool  RWImageMemView::Blit (const FilteredBlitOp &op) __NE___
 	{
-		return Blit( uint3{}, uint3{}, srcImage, Dimension(), swizzle, OUT readn, OUT written );
+		BlitResult	res;
+		return Blit( op, OUT res );
 	}
 
-	bool  RWImageMemView::Blit (const uint3 &dstOffset, const uint3 &srcOffset, const RWImageMemView &srcImage, const uint3 &dim, const Swizzle &swizzle) __NE___
+	bool  RWImageMemView::Blit (const FilteredBlitOp &op, OUT BlitResult &res) __NE___
 	{
-		Bytes	readn, written;
-		return Blit( dstOffset, srcOffset, srcImage, dim, swizzle, OUT readn, OUT written );
-	}
+		res.readn	= 0_b;
+		res.written	= 0_b;
 
-	bool  RWImageMemView::Blit (const uint3 &dstOffset, const uint3 &srcOffset, const RWImageMemView &srcImage,
-								const uint3 &dim, const Swizzle &swizzle, OUT Bytes &readn, OUT Bytes &written) __NE___
-	{
-		const auto&		src_info	= EPixelFormat_GetInfo( srcImage._format );
-		const auto&		dst_info	= EPixelFormat_GetInfo( this->_format );
+		if_unlikely( op.dstImage.Empty() or op.srcImage.Empty() )
+			return false;
 
-		CHECK_ERR( not dst_info.IsCompressed() );	// not supported
+		const auto&		src_info	= EPixelFormat_GetInfo( op.srcImage._format );
+		const auto&		dst_info	= EPixelFormat_GetInfo( op.dstImage._format );
+
+		CHECK_ERR( not src_info.IsCompressed() );
+		CHECK_ERR( not dst_info.IsCompressed() );
+
+		CHECK_ERR( All( op.dstDim == Max( op.srcDim/2, 1u )));
+		CHECK_ERR( All( op.dstOffset + op.dstDim <= op.dstImage.Dimension() ));
+		CHECK_ERR( All( op.srcOffset + op.srcDim <= op.srcImage.Dimension() ));
+		CHECK_ERR( op.dstImage._aspect == op.srcImage._aspect );
 
 		using EType = PixelFormatInfo::EType;
 		constexpr auto	float_mask	= EType::UNorm | EType::SNorm | EType::SFloat | EType::UFloat;
 		constexpr auto	int_mask	= EType::SInt;
 		constexpr auto	uint_mask	= EType::UInt;
 
-		if ( AnyBits( src_info.valueType, float_mask ) and AnyBits( dst_info.valueType, float_mask ))
+		LoadPixelFn_t		load	= null;
+		StorePixelFn_t		store	= null;
+		FilterPixelsFn_t	filter	= null;
 		{
-			return _Blit<RGBA32f>( dstOffset, srcOffset, srcImage, dim, swizzle,
-								   srcImage._loadF4, this->_loadF4, this->_storeF4, OUT readn, OUT written );
-
-		}else
-		if ( AnyBits( src_info.valueType, int_mask ) and AnyBits( dst_info.valueType, int_mask ))
-		{
-			return _Blit<RGBA32i>( dstOffset, srcOffset, srcImage, dim, swizzle,
-								   srcImage._loadI4, this->_loadI4, this->_storeI4, OUT readn, OUT written );
-		}else
-		if ( AnyBits( src_info.valueType, uint_mask ) and AnyBits( dst_info.valueType, uint_mask ))
-		{
-			return _Blit<RGBA32u>( dstOffset, srcOffset, srcImage, dim, swizzle,
-								   srcImage._loadU4, this->_loadU4, this->_storeU4, OUT readn, OUT written );
+			if ( AnyBits( src_info.valueType, float_mask ) and AnyBits( dst_info.valueType, float_mask ))
+			{
+				load	= FnUnsafeCast<LoadPixelFn_t >( op.srcImage._loadF4 );
+				store	= FnUnsafeCast<StorePixelFn_t>( op.dstImage._storeF4 );
+				filter	= op.filter == EFilter::Linear ? FnUnsafeCast<FilterPixelsFn_t>( &LinearFilterF4 ) : &NearestFilter;
+			}else
+			if ( AnyBits( src_info.valueType, int_mask ) and AnyBits( dst_info.valueType, int_mask ))
+			{
+				load	= FnUnsafeCast<LoadPixelFn_t >( op.srcImage._loadI4 );
+				store	= FnUnsafeCast<StorePixelFn_t>( op.dstImage._storeI4 );
+				filter	= &NearestFilter;
+			}else
+			if ( AnyBits( src_info.valueType, uint_mask ) and AnyBits( dst_info.valueType, uint_mask ))
+			{
+				load	= FnUnsafeCast<LoadPixelFn_t >( op.srcImage._loadU4 );
+				store	= FnUnsafeCast<StorePixelFn_t>( op.dstImage._storeU4 );
+				filter	= &NearestFilter;
+			}
 		}
-		return false;
+		CHECK_ERR( load != null and store != null );
+		return _FilteredBlit( op, OUT res, load, store, filter );
 	}
 
 /*
 =================================================
-	_Blit (with swizzle)
+	_FilteredBlit
 =================================================
 */
-	template <typename T>
-	bool  RWImageMemView::_Blit (const uint3 &dstOffset, const uint3 &srcOffset, const RWImageMemView &srcImage,
-								 const uint3 &dim, const Swizzle &swizzle, LoadPixelTFn_t<T> loadSrc, LoadPixelTFn_t<T> loadDst,
-								 StorePixelTFn_t<T> store, OUT Bytes &readn, OUT Bytes &written) __NE___
+	bool  RWImageMemView::_FilteredBlit (const FilteredBlitOp &op, OUT BlitResult &res,
+										 LoadPixelFn_t load, StorePixelFn_t store, FilterPixelsFn_t filter) __NE___
 	{
-		StaticAssert( sizeof(T) == sizeof(PixStorage_t) );
+		res.readn	= 0_b;
+		res.written	= 0_b;
 
-		readn	= 0_b;
-		written	= 0_b;
+		const Bytes		src_row_size	= ImageUtils::RowSize( op.srcDim.x, op.srcImage._bitsPerBlock, op.srcImage.TexBlockDim() );
+		const Bytes		dst_row_size	= ImageUtils::RowSize( op.dstDim.x, op.dstImage._bitsPerBlock, op.dstImage.TexBlockDim() );
 
-		if_unlikely( Empty() or srcImage.Empty() )
-			return false;
-
-		ASSERT( All( dstOffset + dim <= this->Dimension() ));
-		ASSERT( All( srcOffset + dim <= srcImage.Dimension() ));
-
-		if ( not All( dstOffset + dim <= this->Dimension() )	or
-			 not All( srcOffset + dim <= srcImage.Dimension() )	or
-			 this->_aspect != srcImage._aspect )
+		for (uint z = 0; z < op.dstDim.z; ++z)
 		{
-			return false;
-		}
-
-		const Bytes		src_row_size	= ImageUtils::RowSize( dim.x, srcImage._bitsPerBlock, srcImage.TexBlockDim() );
-		const Bytes		dst_row_size	= ImageUtils::RowSize( dim.x, this->_bitsPerBlock, this->TexBlockDim() );
-
-		for (uint z = 0; z < dim.z; ++z)
-		{
-			for (uint y = 0; y < dim.y; ++y)
+			for (uint y = 0; y < op.dstDim.y; ++y)
 			{
-				auto	src_row	= srcImage.GetRow( srcOffset.y + y, srcOffset.z + z );
-				auto	dst_row	= this->GetRow( dstOffset.y + y, dstOffset.z + z );
+				auto	src_row0	= op.srcImage.GetRow( op.srcOffset.y + y*2 + 0,	op.srcOffset.z + z );
+				auto	src_row1	= op.srcImage.GetRow( op.srcOffset.y + y*2 + 1,	op.srcOffset.z + z );
+				auto	dst_row		= op.dstImage.GetRow( op.dstOffset.y + y,		op.dstOffset.z + z );
 
-				if_unlikely( src_row.Empty() or dst_row.Empty() )
+				if_unlikely( src_row0.Empty() or src_row1.Empty() or dst_row.Empty() )
 					return false;
 
-				for (uint x = 0; x < dim.x; ++x)
+				for (uint x = 0; x < op.dstDim.x; ++x)
 				{
-					T	pix_storage0;
-					T	pix_storage1;
+					PixStorage_t	src_pixels[4];
+					PixStorage_t	dst_pixel;
 
-					loadSrc( src_row,         srcOffset.x + x, OUT pix_storage0 );
-					loadDst( CRow_t{dst_row}, dstOffset.x + x, OUT pix_storage1 );
+					for (uint y2 = 0; y2 < 2; ++y2)
+					for (uint x2 = 0; x2 < 2; ++x2){
+						load( (y2 == 0 ? src_row0 : src_row1), op.srcOffset.x + x*2 + x2, OUT src_pixels[x2 + y2*2] );
+					}
 
-					T	pix_storage = swizzle.Transform( pix_storage0, pix_storage1 );
-
-					store( dst_row, dstOffset.x + x, pix_storage );
+					filter( src_pixels, OUT dst_pixel );
+					store( dst_row, op.dstOffset.x + x, dst_pixel );
 				}
 
-				readn	+= src_row_size;
-				written	+= dst_row_size;
+				res.readn	+= src_row_size;
+				res.written	+= dst_row_size;
 			}
 		}
 		return true;

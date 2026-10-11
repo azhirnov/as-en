@@ -134,6 +134,8 @@ namespace AE::ResEditor
 */
 	void  DataTransferQueue::_Upload (TransferCtx_t &ctx, Queue &q)
 	{
+		TRACY( ZoneScoped );
+
 		const uint	max_uploads		= 100;
 		const uint	max_low_mem		= 4;
 		uint		low_mem			= 0;
@@ -243,6 +245,8 @@ namespace AE::ResEditor
 */
 	void  DataTransferQueue::_Readback (TransferCtx_t &ctx, Queue &q)
 	{
+		TRACY( ZoneScoped );
+
 		const uint	max_readbacks	= 10;
 		const uint	max_low_mem		= 4;
 		uint		low_mem			= 0;

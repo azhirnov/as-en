@@ -136,16 +136,24 @@ DEBUG_ONLY(
 		)
 
 		// resume coroutine
-		auto	coro_handle = CoroHandle_t::from_promise( *this );
+		{
+			TRACY(PROFILE_ONLY(
+				ZoneScoped;
+				if ( _dbgName.get() != null ) {
+					ZoneName( _dbgName.get(), strlen(_dbgName.get()) );
+				}
+			))
 
-		ASSERT( bool{coro_handle} and not coro_handle.done() );
-		ASSERT( NoBits( _flags, EFlags::DoNotRun ));
+			auto	coro_handle = CoroHandle_t::from_promise( *this );
 
-		coro_handle.resume();	// throw
+			ASSERT( bool{coro_handle} and not coro_handle.done() );
+			ASSERT( NoBits( _flags, EFlags::DoNotRun ));
 
-		if_unlikely( bool{coro_handle} and not coro_handle.done() )
-			ASSERT( AnyEqual( Status(), EStatus::Cancellation, EStatus::Continue, EStatus::Error ));
+			coro_handle.resume();	// throw
 
+			if_unlikely( bool{coro_handle} and not coro_handle.done() )
+				ASSERT( AnyEqual( Status(), EStatus::Cancellation, EStatus::Continue, EStatus::Error ));
+		}
 
 		PROFILE_ONLY(
 			if ( _profiler )
@@ -354,6 +362,7 @@ DEBUG_ONLY(
 */
 	void  AsyncTaskImpl::_FreeOutputChunks (Bool isCanceled) __NE___
 	{
+		TRACY( ZoneScoped );
 		ASSERT( _output.is_locked() );
 
 		auto&	chunk_pool = TaskScheduler::AsyncTaskApi::GetChunkPool();
@@ -836,6 +845,8 @@ namespace AE::Threading
 */
 	bool  TaskScheduler::ProcessIO () __NE___
 	{
+		TRACY( ZoneScoped );
+
 		auto	io_services = _ioServices.ReadLock();
 		usize	count		= 0;
 
@@ -858,6 +869,7 @@ namespace AE::Threading
 */
 	bool  TaskScheduler::ProcessTasks (const EThreadArray &threads, const EThreadSeed seed) __NE___
 	{
+		TRACY( ZoneScoped );
 		ASSERT( not threads.empty() );
 
 		constexpr uint	max_task_per_queue = 16;
@@ -892,6 +904,7 @@ namespace AE::Threading
 */
 	bool  TaskScheduler::ProcessTasks (const EThreadArray &threads, const EThreadSeed seed, const uint maxTasks) __NE___
 	{
+		TRACY( ZoneScoped );
 		ASSERT( not threads.empty() );
 
 		uint	processed = 0;
@@ -947,9 +960,15 @@ namespace AE::Threading
 		for (auto& task : tasks)
 		{
 			if_likely( not task )
+			{
 				++complete_count;
-			else
-			if_likely( task->IsFinished() )
+				continue;
+			}
+
+			auto	status = task->Status();
+			ASSERT( status != ETaskStatus::Initial );	// must be in queue
+
+			if_likely( status > ETaskStatus::_Finished )
 				++complete_count;
 		}
 		return complete_count >= tasks.size();
@@ -966,6 +985,11 @@ namespace AE::Threading
 	{
 		if_unlikely( tasks.empty() )
 			return true;
+
+		TRACY(
+			ZoneScoped;
+			ZoneColor( 1 );
+		)
 
 		for (;;)
 		{
@@ -994,6 +1018,11 @@ namespace AE::Threading
 		ASSERT( not threads.empty() );
 		if_unlikely( tasks.empty() )
 			return true;
+
+		TRACY(
+			ZoneScoped;
+			ZoneColor( 1 );
+		)
 
 		const auto	seed = SeedFromThreadID();
 		for (;;)
@@ -1205,6 +1234,10 @@ namespace AE::Threading
 	void  TaskScheduler::DbgDetectDeadlock () __NE___
 	{
 	#ifdef AE_DEBUG
+		TRACY(
+			ZoneScoped;
+			ZoneColor( 1 );
+		)
 
 		// do we need to check for deadlocks again?
 		{
@@ -1315,7 +1348,8 @@ namespace AE::Threading
 
 			log << "\n\n  '" << task->DbgName() << "' (" << ToString<16>(usize(task)) << ")"
 				<< " wait for (" << ToString( wait_count ) << ")"
-				<< (TaskApi::IsFastCancellation( *task ) ? ", fast canceled" : "");
+				<< (TaskApi::IsFastCancellation( *task ) ? ", fast canceled" : "")
+				<< ", queue: " << ToString( task->QueueType() );
 
 			switch_enum( task->Status() )
 			{
@@ -1338,7 +1372,7 @@ namespace AE::Threading
 
 			if ( wait_count != 0 )
 			{
-				log	<< ", in:";
+				log	<< "\n    input:";
 				int	i = 0;
 				for (auto& dep : io.in)
 				{
@@ -1355,7 +1389,7 @@ namespace AE::Threading
 
 			if ( not io.out.empty() )
 			{
-				log	<< "\n    out:";
+				log	<< "\n    output:";
 
 				for (auto& dep : io.out)
 				{

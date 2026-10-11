@@ -8,6 +8,7 @@
 
 extern int AE_glslang_Test ()
 {
+	return 0;
 }
 
 #else

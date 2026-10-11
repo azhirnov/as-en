@@ -39,6 +39,7 @@ namespace AE::ResEditor
 		Array<Path>		scriptIncludeDirs;
 		Path			cppTypesFolder;
 		Path			scriptHeaderOutFolder;
+		Path			startupScript;
 
 		// output
 		Path			shaderTraceFolder;

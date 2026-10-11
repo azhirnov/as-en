@@ -34,13 +34,14 @@ void ASmain ()
 
 			ppln.SetOutputCPPFile( "cpp/" + suffix[i] + "_types.h",  "cpp/" + suffix[i] + "_names.h",  EReflectionFlags::All );
 			ppln.AddNameMapping();
-			ppln.Compile( output + suffix[i] + "/ui_pipelines.bin" );
+			ppln.Compile( output + suffix[i] + "_ui_pipelines.bin" );
 		}
 	}
 
 	// input actions
 	{
 		RC<InputActions>	iact = InputActions();
+		iact.Add( "controls/android.as" );
 		iact.Add( "controls/glfw.as" );
 		iact.Add( "controls/winapi.as" );
 		iact.SetOutputCPPFile( "cpp/ia_names.h" );

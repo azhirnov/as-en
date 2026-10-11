@@ -700,6 +700,55 @@ The second synchronization scope includes all commands which reference the queri
 		return err == VK_SUCCESS and available;
 	}
 
+/*
+=================================================
+	GetCurrentTimestamp
+=================================================
+*/
+	bool  VQueryManager::GetCurrentTimestamp (OUT ulong &timeInNs,OUT ulong *maxDeviationINs) C_NE___
+	{
+		DRC_SHAREDLOCK( _drCheck );
+
+		timeInNs = 0;
+
+		if ( not _calibratedTs )
+			return false;
+
+		VkCalibratedTimestampInfoKHR	info = {};
+		info.sType		= VK_STRUCTURE_TYPE_CALIBRATED_TIMESTAMP_INFO_KHR;
+		info.timeDomain	= VK_TIME_DOMAIN_DEVICE_KHR;
+
+		ulong	max_deviation		= 0;
+		ulong*	max_deviation_ptr	= (maxDeviationINs != null ? maxDeviationINs : &max_deviation);
+
+		auto	err = _device.vkGetCalibratedTimestampsEXT( _device.GetVkDevice(), 1, &info, OUT &timeInNs, OUT max_deviation_ptr );
+		return err == VK_SUCCESS;
+	}
+
+	bool  VQueryManager::GetCurrentTimestamp (OUT nanosecondsd &time, OUT nanosecondsd *maxDeviation) C_NE___
+	{
+		DRC_SHAREDLOCK( _drCheck );
+
+		time = nanosecondsd{0.0};
+
+		if ( not _calibratedTs )
+			return false;
+
+		VkCalibratedTimestampInfoKHR	info = {};
+		info.sType		= VK_STRUCTURE_TYPE_CALIBRATED_TIMESTAMP_INFO_KHR;
+		info.timeDomain	= VK_TIME_DOMAIN_DEVICE_KHR;
+
+		ulong	ts				= 0;
+		ulong	max_deviation	= 0;
+
+		auto	err = _device.vkGetCalibratedTimestampsEXT( _device.GetVkDevice(), 1, &info, OUT &ts, OUT &max_deviation );
+
+		time = nanosecondsd{double(ts)};
+		if ( maxDeviation != null )
+			*maxDeviation = nanosecondsd{double(max_deviation)};
+
+		return err == VK_SUCCESS;
+	}
 
 } // AE::Graphics
 

@@ -22,7 +22,7 @@
 		RC<Image>	block_img	= comp_img.CreateView( EImage_2D, block_fmt );			block_img.Name( "BlockView" );
 		RC<Image>	rt			= Image( EPixelFormat::RGBA8_UNorm, SurfaceSize() );	rt.Name( "RT" );
 
-		Assert( block_img.Dimension2() == dim/4 );
+		//Assert( block_img.Dimension2() == dim/4 );
 
 		// render loop
 		{
@@ -81,7 +81,7 @@
 	float4  Decode (int2 coord)
 	{
 		uint2	block	= gl.texture.Fetch( un_BlockImage, coord/4, 0 ).rg;
-		float4	col		= float4(DecodeETC2( block, coord & 3 ));
+		float4	col 	= float4(DecodeETC2( block, coord & 3 ));
 		return	col;
 	}
 

@@ -118,7 +118,7 @@ namespace AE::Graphics
 
 		CHECK_ERR( SetPipelineLayout( ext, INOUT pipeline_info, INOUT flags2_ci.flags, OUT _layout, *ppln_layout ));
 
-		if ( ext.maintenance5 ){
+		if ( ext.maintenance5 and flags2_ci.flags != 0 ){
 			p_next.Add( flags2_ci );
 		}else{
 			CHECK_ERR_MSG( flags2_ci.flags == pipeline_info.flags,

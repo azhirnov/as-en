@@ -37,6 +37,7 @@ namespace AE::Networking
 */
 	void  BaseSocket::Close () __NE___
 	{
+		TRACY( ZoneScoped );
 		DRC_EXLOCK( _drCheck );
 
 		if ( _handle != Default )
@@ -66,6 +67,7 @@ namespace AE::Networking
 */
 	void  BaseSocket::FastClose () __NE___
 	{
+		TRACY( ZoneScoped );
 		DRC_EXLOCK( _drCheck );
 
 		if ( _handle != Default )
@@ -86,6 +88,7 @@ namespace AE::Networking
 */
 	void  BaseSocket::BlockingClose () __NE___
 	{
+		TRACY( ZoneScoped );
 		DRC_EXLOCK( _drCheck );
 
 		if ( _handle != Default )

@@ -165,7 +165,7 @@
 		#	error !!!
 		#endif
 
-		out_Color = float4(n) * 0.001;
+		out_Color = float4(n) / 255.0;	// RT compression will decrease overhead of writing to memory
 	}
 
 #endif

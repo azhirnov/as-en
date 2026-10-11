@@ -29,6 +29,7 @@ namespace AE::ResEditor
 		const float2			_rotationScale;		// x, y
 		const MovingScale		_movingScale;
 		const float3			_initialPos;
+		const float3			_initialViewDir;
 		const float				_zoomSpeed		= 10.f;	// zoom/sec
 		const bool				_reverseZ;
 
@@ -40,7 +41,8 @@ namespace AE::ResEditor
 	public:
 		FPSCamera (RC<DynamicDim> dim, float2 clipPlanes, Rad fovY,
 				   const MovingScale &, float2 rotationScale,
-				   float3 initialPos, bool reverseZ)					__Th___;
+				   float3 initialPos, float3 initialViewDir,
+				   bool reverseZ)										__Th___;
 
 		// IController //
 		void  ProcessInput (ActionQueueReader, secondsf)				__NE_OV;

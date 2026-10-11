@@ -23,13 +23,21 @@ if (${AE_INCLUDE_ANDROID_SRC})
 	file( GLOB_RECURSE ANDROID_SOURCES "${ANDROID_SRC_PATH}/*.java" "${ANDROID_SRC_PATH}/*.xml" )
 	list( APPEND ANDROID_SOURCES "${ANDROID_SRC_PATH}/../../build.gradle" )
 
-	set( ANDROID_SRC_PATH2 "${MAIN_SOURCE_DIR}/android/engine_java/src/main" )
+	set( ANDROID_SRC_PATH2 "${MAIN_SOURCE_DIR}/android/engine_latest/src/main" )
 	if (NOT EXISTS "${ANDROID_SRC_PATH2}")
 		message( FATAL_ERROR "Android source is not exists in ${ANDROID_SRC_PATH2}" )
 	endif()
 
 	file( GLOB_RECURSE ANDROID_SOURCES2 "${ANDROID_SRC_PATH2}/*.java" "${ANDROID_SRC_PATH2}/*.xml" )
 	list( APPEND ANDROID_SOURCES ${ANDROID_SOURCES2} "${ANDROID_SRC_PATH2}/../../build.gradle" )
+
+	set( ANDROID_SRC_PATH3 "${MAIN_SOURCE_DIR}/android/engine_api28/src/main" )
+	if (NOT EXISTS "${ANDROID_SRC_PATH3}")
+		message( FATAL_ERROR "Android source is not exists in ${ANDROID_SRC_PATH3}" )
+	endif()
+
+	file( GLOB_RECURSE ANDROID_SOURCES2 "${ANDROID_SRC_PATH3}/*.java" "${ANDROID_SRC_PATH3}/*.xml" )
+	list( APPEND ANDROID_SOURCES ${ANDROID_SOURCES2} "${ANDROID_SRC_PATH3}/../../build.gradle" )
 endif()
 
 

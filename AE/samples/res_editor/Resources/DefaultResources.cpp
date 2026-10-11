@@ -28,10 +28,15 @@ namespace AE::ResEditor
 		_gfxLinearAlloc	= rts.GetResourceManager().CreateLinearGfxMemAllocator( _pageSize, 1_KiB );
 		_gfxLargeAlloc	= rts.GetResourceManager().CreateLargeSizeGfxMemAllocator();
 
-		_CreateDummyImage2D( OUT _dummyRes.image2D, _gfxLinearAlloc );
-		_CreateDummyImage3D( OUT _dummyRes.image3D, _gfxLinearAlloc );
-		_CreateDummyImage2DArray( OUT _dummyRes.imageCube, _gfxLinearAlloc, True{"CubeMap"} );
-		_CreateDummyImage2DArray( OUT _dummyRes.image2DArr, _gfxLinearAlloc, False{} );
+		_CreateDummyImage2D( OUT _dummyRes.image2D[0],	EPixelFormat::R8_UNorm,	_gfxLinearAlloc );
+		_CreateDummyImage2D( OUT _dummyRes.image2D[1],	EPixelFormat::R8I,		_gfxLinearAlloc );
+		_CreateDummyImage2D( OUT _dummyRes.image2D[2],	EPixelFormat::R8U,		_gfxLinearAlloc );
+		_CreateDummyImage3D( OUT _dummyRes.image3D,		EPixelFormat::R8_UNorm, _gfxLinearAlloc );
+
+		_CreateDummyImage2DArray( OUT _dummyRes.image2DArr[0],	EPixelFormat::R8_UNorm,	_gfxLinearAlloc, False{} );
+		_CreateDummyImage2DArray( OUT _dummyRes.image2DArr[1],	EPixelFormat::R8I,		_gfxLinearAlloc, False{} );
+		_CreateDummyImage2DArray( OUT _dummyRes.image2DArr[2],	EPixelFormat::R8U,		_gfxLinearAlloc, False{} );
+		_CreateDummyImage2DArray( OUT _dummyRes.imageCube,		EPixelFormat::R8_UNorm,	_gfxLinearAlloc, True{"CubeMap"} );
 
 		if ( rts.GetFeatureSet().accelerationStructure() == FeatureSet::EFeature::RequireTrue )
 		{
@@ -49,10 +54,14 @@ namespace AE::ResEditor
 	{
 		auto&	res_mngr = GraphicsScheduler().GetResourceManager();
 
-		res_mngr.ReleaseResources( _dummyRes.image2D.image,		_dummyRes.image2D.view );
+		for (auto& img_view : _dummyRes.image2D) {
+			res_mngr.ReleaseResources( img_view.image, img_view.view );
+		}
+		for (auto& img_view : _dummyRes.image2DArr) {
+			res_mngr.ReleaseResources( img_view.image, img_view.view );
+		}
 		res_mngr.ReleaseResources( _dummyRes.image3D.image,		_dummyRes.image3D.view );
 		res_mngr.ReleaseResources( _dummyRes.imageCube.image,	_dummyRes.imageCube.view );
-		res_mngr.ReleaseResources( _dummyRes.image2DArr.image,	_dummyRes.image2DArr.view );
 		res_mngr.ReleaseResources( _dummyRes.rtGeometry,		_dummyRes.rtScene );
 	}
 
@@ -71,25 +80,32 @@ namespace AE::ResEditor
 		const bool	is_2d		= (desc.imageDim == EImageDim_2D and desc.arrayLayers.Get() == 1);
 		const bool	is_3d		= (desc.imageDim == EImageDim_3D);
 
+		auto&		fmt_info	= EPixelFormat_GetInfo( desc.format );
+		uint		fmt_idx		= fmt_info.IsFloat() ? 0 :
+								  fmt_info.IsSignedInteger() ? 1 :
+								  fmt_info.IsUnsignedInteger() ? 2 : 0;
+
 		StrongImageAndViewID	result;
 
 		if ( is_cube )
 		{
+			CHECK_ERR( fmt_idx == 0 );
 			result.image = res_mngr.AcquireResource( _dummyRes.imageCube.image.Get() );
 			result.view  = res_mngr.AcquireResource( _dummyRes.imageCube.view.Get() );
 		}else
 		if ( is_2darr )
 		{
-			result.image = res_mngr.AcquireResource( _dummyRes.image2DArr.image.Get() );
-			result.view  = res_mngr.AcquireResource( _dummyRes.image2DArr.view.Get() );
+			result.image = res_mngr.AcquireResource( _dummyRes.image2DArr[fmt_idx].image.Get() );
+			result.view  = res_mngr.AcquireResource( _dummyRes.image2DArr[fmt_idx].view.Get() );
 		}else
 		if ( is_2d )
 		{
-			result.image = res_mngr.AcquireResource( _dummyRes.image2D.image.Get() );
-			result.view  = res_mngr.AcquireResource( _dummyRes.image2D.view.Get() );
+			result.image = res_mngr.AcquireResource( _dummyRes.image2D[fmt_idx].image.Get() );
+			result.view  = res_mngr.AcquireResource( _dummyRes.image2D[fmt_idx].view.Get() );
 		}else
 		if ( is_3d )
 		{
+			CHECK_ERR( fmt_idx == 0 );
 			result.image = res_mngr.AcquireResource( _dummyRes.image3D.image.Get() );
 			result.view  = res_mngr.AcquireResource( _dummyRes.image3D.view.Get() );
 		}
@@ -126,12 +142,12 @@ namespace AE::ResEditor
 	_CreateDummyImage2D
 =================================================
 */
-	void  DefaultResources::_CreateDummyImage2D (OUT StrongImageAndViewID &dst, GfxMemAllocatorPtr gfxAlloc) const
+	void  DefaultResources::_CreateDummyImage2D (OUT StrongImageAndViewID &dst, EPixelFormat fmt, GfxMemAllocatorPtr gfxAlloc) const
 	{
 		auto&		res_mngr = GraphicsScheduler().GetResourceManager();
 		ImageDesc	desc;
 
-		desc.SetFormat( EPixelFormat::R8_UNorm );
+		desc.SetFormat( fmt );
 		desc.SetDimension( uint2{2} );
 		desc.SetUsage( EImageUsage::Sampled | EImageUsage::TransferSrc );
 		desc.SetOptions( EImageOpt::BlitSrc );
@@ -154,12 +170,12 @@ namespace AE::ResEditor
 	_CreateDummyImage3D
 =================================================
 */
-	void  DefaultResources::_CreateDummyImage3D (OUT StrongImageAndViewID &dst, GfxMemAllocatorPtr gfxAlloc) const
+	void  DefaultResources::_CreateDummyImage3D (OUT StrongImageAndViewID &dst, EPixelFormat fmt, GfxMemAllocatorPtr gfxAlloc) const
 	{
 		auto&		res_mngr = GraphicsScheduler().GetResourceManager();
 		ImageDesc	desc;
 
-		desc.SetFormat( EPixelFormat::R8_UNorm );
+		desc.SetFormat( fmt );
 		desc.SetDimension( uint3{2} );
 		desc.SetUsage( EImageUsage::Sampled | EImageUsage::TransferSrc );
 		desc.SetOptions( EImageOpt::BlitSrc );
@@ -182,12 +198,12 @@ namespace AE::ResEditor
 	_CreateDummyImage2DArray
 =================================================
 */
-	void  DefaultResources::_CreateDummyImage2DArray (OUT StrongImageAndViewID &dst, GfxMemAllocatorPtr gfxAlloc, Bool cubemap) const
+	void  DefaultResources::_CreateDummyImage2DArray (OUT StrongImageAndViewID &dst, EPixelFormat fmt, GfxMemAllocatorPtr gfxAlloc, Bool cubemap) const
 	{
 		auto&		res_mngr = GraphicsScheduler().GetResourceManager();
 		ImageDesc	desc;
 
-		desc.SetFormat( EPixelFormat::R8_UNorm );
+		desc.SetFormat( fmt );
 		desc.SetDimension( uint2{2} );
 		desc.SetUsage( EImageUsage::Sampled | EImageUsage::TransferSrc );
 		desc.SetOptions( EImageOpt::BlitSrc );

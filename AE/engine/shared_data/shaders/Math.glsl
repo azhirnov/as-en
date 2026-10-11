@@ -182,6 +182,7 @@ ND_ float2  SinCos (const float x)		{ return float2(sin(x), cos(x)); }
 #	define float_HalfPi		(1.57079632679489661923f)
 #	define float_InvPi		(0.31830988618379067153f)
 #	define float_SqrtOf2	(1.41421356237309504880f)			// Sqrt(2.0f)
+#	define float_SqrtOf3	(1.73205080757f)					// Sqrt(3.0f)
 #	define float_InvSqrtOf2	(0.70710678118654752440f)			// InvSqrt(2.0f)
 #	define float_Euler		(2.71828182845904523536f)
 #	define float_epsilon	(2.0e-5f)
@@ -1519,6 +1520,8 @@ ND_ float4  UIndexToUNormRound (const float4 index, const float4 count)		{ retur
 /*
 =================================================
 	IndexToVec2 / IndexToVec3
+----
+	Y is now wrapped and may be >= tile
 =================================================
 */
 #define Gen_INDEXTOVEC2( _type_, _type2_ )\
@@ -1564,11 +1567,21 @@ ND_ uint2  IndexToVec2_POT (const uint index, const uint tileXmask, const uint t
 					index >> tileXlog2 );
 }
 
+ND_ uint2  IndexToVec2_POT (const uint index, const uint tileXlog2)
+{
+	return IndexToVec2_POT( index, (1u << tileXlog2) - 1u, tileXlog2 );
+}
+
 ND_ uint3  IndexToVec3_POT (const uint index, const uint2 tileXYmask, const uint2 tileXYlog2)
 {
 	return	uint3(	index & tileXYmask.x,
 					(index >> tileXYlog2.x) & tileXYmask.y,
 					index >> (tileXYlog2.x + tileXYlog2.y) );
+}
+
+ND_ uint3  IndexToVec3_POT (const uint index, const uint2 tileXYlog2)
+{
+	return IndexToVec3_POT( index, (uint2(1u) << tileXYlog2) - 1u, tileXYlog2 );
 }
 
 /*

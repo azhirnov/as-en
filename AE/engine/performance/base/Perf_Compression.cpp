@@ -8,9 +8,9 @@ namespace
 	#define PROF_BEGIN()																					\
 		profiler.BeginTest( name, [&comp_size_arr, &buffer, i = comp_size_arr.size()] (nanoseconds dt)		\
 			{																								\
-				double	comp_size	= double(ulong{comp_size_arr[i]});										\
-				double	rate		= 100.0 * comp_size / double(buffer.size());							\
-				double	bw			= double(buffer.size()) * 1.0e+9 / double(dt.count());					\
+				double	comp_sz	= double(ulong{comp_size_arr[i]});											\
+				double	rate	= 100.0 * comp_sz / double(buffer.size());									\
+				double	bw		= double(buffer.size()) * 1.0e+9 / double(dt.count());						\
 				return	ToString(rate, 1) << "% | " <<														\
 						ToStringSfx(bw) << "B/s";															\
 			});

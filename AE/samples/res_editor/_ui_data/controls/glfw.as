@@ -51,6 +51,7 @@ void ASmain (GLFW_ActionBindings& bindings)
 		bind.Add( GLFW_Input::Equal,
 				  ActionInfo( "CustomKey2", EValueType::Float, EGestureType::Down, float4(3.f) ));
 
+		// GamePad
 		bind.Add( GLFW_Input::GP_Start,
 				  ActionInfo( "UI.ReloadScript", EGestureType::Down ));
 
@@ -97,10 +98,13 @@ void ASmain (GLFW_ActionBindings& bindings)
 				  ActionInfo( "UI.MousePos", EValueType::Float2, EGestureType::Move ));
 		bind.Add( GLFW_Input::MouseLeft,
 				  ActionInfo( "UI.MouseLBDown", EGestureType::Hold ));
-		bind.Add( GLFW_Input::MouseRight,
-				  ActionInfo( "UI.MouseRBDown", EGestureType::Hold ));
 		bind.Add( GLFW_Input::MouseWheel,
 				  ActionInfo( "UI.MouseWheel", EValueType::Float2, EGestureType::Move ));
+
+		bind.Add( GLFW_Input::MouseRight,
+				  ActionInfo( "MousePosToShader", EGestureType::Hold ));
+		bind.Add( GLFW_Input::Q,	// for touchpad
+				  ActionInfo( "MousePosToShader", EGestureType::Hold ));
 
 		bind.Add( GLFW_Input::U,
 				  ActionInfo( "UI.StartStopRecording", EGestureType::Down ));

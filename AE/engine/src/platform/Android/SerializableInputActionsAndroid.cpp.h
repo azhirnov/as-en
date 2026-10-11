@@ -67,6 +67,21 @@ namespace AE::App
 
 				BIND( MultiTouch )
 
+				BIND( MouseLeft )
+				BIND( MouseRight )
+				BIND( MouseMiddle )
+				BIND( MouseBtn4 )
+				BIND( MouseBtn5 )
+				BIND( StylusPrimary )
+				BIND( StylusSecondary )
+
+				BIND( MouseWheel )
+
+				BIND( CursorPos )
+				BIND( CursorPos_mm )
+				BIND( CursorDelta )
+				BIND( CursorDelta_norm )
+
 				BIND( TouchPos )
 				BIND( TouchPos_mm )
 				BIND( TouchDelta )
@@ -78,6 +93,11 @@ namespace AE::App
 				default : break;
 			}
 			switch_end
+
+			binder.AddValue( "ArrowDown",	EInputType::Key_ArrowDown );
+			binder.AddValue( "ArrowUp",		EInputType::Key_ArrowUp );
+			binder.AddValue( "ArrowLeft",	EInputType::Key_ArrowLeft );
+			binder.AddValue( "ArrowRight",	EInputType::Key_ArrowRight );
 		}
 
 		// BindingsMode

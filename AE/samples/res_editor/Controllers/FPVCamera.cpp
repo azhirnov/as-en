@@ -12,10 +12,11 @@ namespace AE::ResEditor
 =================================================
 */
 	FPVCamera::FPVCamera (RC<DynamicDim> dim, float2 clipPlanes, Rad fovY, const MovingScale &movingScale,
-						  float2 rotationScale, float3 initialPos, bool reverseZ) __Th___ :
+						  float2 rotationScale, float3 initialPos, float3 initialViewDir, bool reverseZ) __Th___ :
 		_dynDim{ RVRef(dim) },				_clipPlanes{ clipPlanes },	_fovY{ fovY },
 		_rotationScale{ rotationScale },	_movingScale{ movingScale },
-		_initialPos{ initialPos },			_reverseZ{ reverseZ }
+		_initialPos{ initialPos },			_initialViewDir{ initialViewDir },
+		_reverseZ{ reverseZ }
 	{
 		CHECK_THROW( _dynDim );
 		_Reset();
@@ -88,7 +89,8 @@ namespace AE::ResEditor
 	void  FPVCamera::_Reset ()
 	{
 		_camera.SetPosition( _initialPos );
-		_camera.ResetOrientation();
+		_camera.SetOrientation( Quat::LookAt( _initialViewDir, float3{0.f, 1.f, 0.f} ));
+
 		_zoom		= 1.0f;
 		_dimRatio	= _dynDim->Ratio();
 

@@ -17,6 +17,8 @@ namespace AE::ResLoader
 									  const Config		&cfg,
 									  EModelFormat		format) __NE___
 	{
+		TRACY( ZoneScoped );
+
 		if ( format == EModelFormat::CSV )
 		{
 			CSVModelLoader	loader;
@@ -43,6 +45,8 @@ namespace AE::ResLoader
 									  const Path		&scenePath,
 									  const Config		&cfg) __NE___
 	{
+		TRACY( ZoneScoped );
+
 		String	ext = ToString( scenePath.extension() );
 		for (char& c : ext) { c = ToLowerCase( c ); }
 

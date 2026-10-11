@@ -32,6 +32,9 @@ namespace AE::App
 
 	// variables
 	private:
+		float2					_cursorPosPx;
+		float2					_cursorDeltaPx;
+
 		Quat					_screenOrient;
 
 		GestureRecognizer		_gestureRecognizer;
@@ -47,8 +50,10 @@ namespace AE::App
 
 		void  Initialize (EnableSensorsFn_t fn)														__NE___;
 
-		void  SetKey (jint key, EGestureState state, Duration_t timestamp, uint count)				__NE___;
+		void  SetKey (jint key, EGestureState state, Duration_t timestamp, uint count, CharUtf32)	__NE___;
 		void  SetTouch (uint touchId, float x, float y, EGestureState state, Duration_t timestamp)	__NE___;
+		void  SetCursorPos (float2 pos)																__NE___;
+		void  SetMouseWheel (float2 delta)															__NE___;
 		void  SetMonitor (const uint2 &surfaceSize, const Monitor &)								__NE___;
 		void  SetSensor (jint sensorId, ArrayView<float> values)									__NE___;
 

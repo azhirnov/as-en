@@ -1,9 +1,6 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 /*
 	Generate random BC1 image and decode it using software and hardware algorithms.
-
-	https://fgiesen.wordpress.com/2021/10/04/gpu-bcn-decoding/
-	https://github.com/castano/icbc
 */
 #ifdef __INTELLISENSE__
 # 	include <res_editor.as>

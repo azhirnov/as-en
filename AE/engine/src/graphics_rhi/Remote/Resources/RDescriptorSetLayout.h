@@ -42,14 +42,14 @@ namespace AE::Graphics
 
 	// methods
 	public:
-		RDescriptorSetLayout ()										__NE___	{}
-		~RDescriptorSetLayout ()									__NE___;
+		RDescriptorSetLayout ()												__NE___	{}
+		~RDescriptorSetLayout ()											__NE___;
 
-		ND_ bool  Create (const RDevice &dev, StringView dbgName)	__NE___;
-		ND_ bool  Create (const RDevice &dev, const CreateInfo &ci)	__NE___;
-			void  Destroy (ResourceManager &)						__NE___;
+		ND_ bool  Create (const RDevice &, StringView dbgName)				__NE___;
+		ND_ bool  Create (const ResourceManager &, const CreateInfo &ci)	__NE___;
+			void  Destroy (ResourceManager &)								__NE___;
 
-		ND_ RmDescriptorSetLayoutID		Handle ()					C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _dslId; }
+		ND_ RmDescriptorSetLayoutID		Handle ()							C_NE___	{ return _dslId; }
 	};
 
 } // AE::Graphics

@@ -261,6 +261,8 @@ namespace AE::Graphics
 */
 	bool  VDedicatedMemAllocator::Dealloc (INOUT Storage_t &data) __NE___
 	{
+		TRACY( ZoneScoped );
+
 		auto&	mem_data = _CastStorage( data );
 
 		if ( mem_data.mem != Default )

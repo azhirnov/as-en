@@ -523,7 +523,7 @@ float2  SDF_Rotate2D (const float2 p, const float angle)
 			_sdf_( pos + h.xyy ) - _sdf_( pos - h.xyy ),		\
 			_sdf_( pos + h.yxy ) - _sdf_( pos - h.yxy ),		\
 			_sdf_( pos + h.yyx ) - _sdf_( pos - h.yyx ) );		\
-		return Normalize( norm );								\
+		return SafeNormalize( norm );							\
 	}															\
 																\
 	ND_ float3  _fnName_ (const float3 pos) {					\
@@ -541,7 +541,7 @@ float2  SDF_Rotate2D (const float2 p, const float angle)
 			k.yyx * _sdf_( pos + k.yyx * eps ) +				\
 			k.yxy * _sdf_( pos + k.yxy * eps ) +				\
 			k.xxx * _sdf_( pos + k.xxx * eps );					\
-		return Normalize( norm );								\
+		return SafeNormalize( norm );							\
 	}															\
 																\
 	ND_ float3  _fnName_ (const float3 pos) {					\
@@ -561,7 +561,7 @@ float2  SDF_Rotate2D (const float2 p, const float angle)
 			float3	dir = float3(x, y, z);						\
 			norm += dir * _sdf_( pos + dir * eps );				\
 		}														\
-		return Normalize( norm );								\
+		return SafeNormalize( norm );							\
 	}															\
 																\
 	ND_ float3  _fnName_ (const float3 pos) {					\

@@ -568,6 +568,8 @@ namespace
 */
 	VkResult  VDevice::AllocateMemory (const VkMemoryAllocateInfo &allocateInfo, OUT VkDeviceMemory &memory) C_NE___
 	{
+		TRACY( ZoneScoped );
+
 		auto	err = vkAllocateMemory( GetVkDevice(), &allocateInfo, null, OUT &memory );
 
 	  #if AE_DBG_GRAPHICS
@@ -678,11 +680,17 @@ namespace
 		if_unlikely( not IsInitialized() )
 			return result;
 
-		Bytes*	total [] = { &result.deviceTotal, &result.hostTotal, &result.unifiedTotal };
-		auto&	props	 = _properties.memoryProperties;
+		auto&	props = _properties.memoryProperties;
+		Bytes*	total [uint(EHeapType::_Count)] = {};
+		total[uint(EHeapType::DeviceLocal)]	= &result.deviceTotal;
+		total[uint(EHeapType::HostVisible)]	= &result.hostTotal;
+		total[uint(EHeapType::Unified)]		= &result.unifiedTotal;
 
-		for (uint i = 0; i < props.memoryHeapCount; ++i) {
-			*total[ _memHeapToType[i] ] += props.memoryHeaps[i].size;
+		for (uint i = 0; i < props.memoryHeapCount; ++i)
+		{
+			EHeapType	type = _memHeapToType[i];
+			if ( type < EHeapType::_Count and total[uint(type)] != null )
+				*total[uint(type)] += props.memoryHeaps[i].size;
 		}
 
 		return result;
@@ -711,13 +719,28 @@ namespace
 
 		vkGetPhysicalDeviceMemoryProperties2KHR( _vkPhysicalDevice, OUT &props );
 
-		Bytes*	usage [] = { &result->deviceUsage,		&result->hostUsage,		&result->unifiedUsage };
-		Bytes*	avail [] = { &result->deviceAvailable,	&result->hostAvailable,	&result->unifiedAvailable };
+		Bytes*	usage [uint(EHeapType::_Count)] = {};
+		Bytes*	avail [uint(EHeapType::_Count)] = {};
+
+		usage[uint(EHeapType::DeviceLocal)]	= &result->deviceUsage;
+		avail[uint(EHeapType::DeviceLocal)]	= &result->deviceAvailable;
+
+		usage[uint(EHeapType::HostVisible)]	= &result->hostUsage;
+		avail[uint(EHeapType::HostVisible)]	= &result->hostAvailable;
+
+		usage[uint(EHeapType::Unified)]		= &result->unifiedUsage;
+		avail[uint(EHeapType::Unified)]		= &result->unifiedAvailable;
 
 		for (uint i = 0; i < props.memoryProperties.memoryHeapCount; ++i)
 		{
-			*usage[ _memHeapToType[i] ] += budget.heapUsage[i];
-			*avail[ _memHeapToType[i] ] += budget.heapBudget[i];
+			EHeapType	type = _memHeapToType[i];
+			if ( type < EHeapType::_Count	and
+				 usage[uint(type)] != null	and
+				 avail[uint(type)] != null	)
+			{
+				*usage[uint(type)] += budget.heapUsage[i];
+				*avail[uint(type)] += budget.heapBudget[i];
+			}
 		}
 
 		// driver bug: memory_budget extension enabled but not active
@@ -1425,6 +1448,7 @@ namespace
 */
 	bool  VDeviceInitializer::CreateInstance (const InstanceCreateInfo &ci) __NE___
 	{
+		TRACY( ZoneScoped );
 		DRC_EXLOCK( _drCheck );
 
 		VkValidationFeaturesEXT		validation		= {};
@@ -1511,8 +1535,10 @@ namespace
 				instance_ci.pNext = pValidation;
 		}
 
-		VK_CHECK_ERR( vkCreateInstance( &instance_ci, null, OUT &_vkInstance ));
-
+		{
+			TRACY( ZoneScopedN( "vkCreateInstance" ));
+			VK_CHECK_ERR( vkCreateInstance( &instance_ci, null, OUT &_vkInstance ));
+		}
 		CHECK_ERR( VulkanLoader::LoadInstance( _vkInstance ));
 
 		_OnCreateInstance( instance_extensions, instance_layers );	// throw
@@ -1590,6 +1616,7 @@ namespace
 */
 	bool  VDeviceInitializer::DestroyInstance () __NE___
 	{
+		TRACY( ZoneScoped );
 		DRC_EXLOCK( _drCheck );
 
 		if ( _vkInstance == Default )
@@ -1653,6 +1680,7 @@ namespace {
 */
 	bool  VDeviceInitializer::ChooseDevice (StringView deviceName) __NE___
 	{
+		TRACY( ZoneScoped );
 		DRC_EXLOCK( _drCheck );
 		CHECK_ERR( _vkInstance != Default );
 		CHECK_ERR( _vkLogicalDevice == Default );
@@ -1710,6 +1738,7 @@ namespace {
 */
 	bool  VDeviceInitializer::ChooseHighPerformanceDevice () __NE___
 	{
+		TRACY( ZoneScoped );
 		NOTHROW_ERR(
 			return _ChooseHighPerformanceDevice();
 		)
@@ -2126,13 +2155,13 @@ namespace {
 
 		const auto&	mem_props = GetVProperties().memoryProperties;
 
-		result.fill( VK_MAX_MEMORY_HEAPS-1 );
+		result.fill( EHeapType::_Count );
 
 		auto	dev_mem		= _memTypeToBits.find( EMemoryType::DeviceLocal );
 		auto	uni_mem		= _memTypeToBits.find( EMemoryType::Unified );
 		uint	heap_bits	= 0;
 
-		const auto	SetHeapBits = [&heap_bits, &mem_props, &result] (uint typeBits, ubyte memType)
+		const auto	SetHeapBits = [&heap_bits, &mem_props, &result] (uint typeBits, EHeapType memType)
 		{{
 			uint	new_heap_bits = 0;
 			for (uint i : BitIndexIterate( typeBits ))
@@ -2154,13 +2183,13 @@ namespace {
 			if ( uni_mem_bits != 0 )
 			{
 				// discrete GPU with unified memory
-				SetHeapBits( uni_mem_bits, 2 );
-				SetHeapBits( dev_mem->second & ~uni_mem->second, 0 );
+				SetHeapBits( uni_mem_bits, EHeapType::Unified );
+				SetHeapBits( dev_mem->second & ~uni_mem->second, EHeapType::DeviceLocal );
 			}
 			else
 			{
 				// integrated GPU or discrete GPU without unified memory
-				SetHeapBits( dev_mem->second, 0 );
+				SetHeapBits( dev_mem->second, EHeapType::DeviceLocal );
 			}
 		}
 
@@ -2171,10 +2200,10 @@ namespace {
 			if ( AllBits( mem_props.memoryHeaps[i].flags, VK_MEMORY_HEAP_DEVICE_LOCAL_BIT )) continue;
 
 			heap_bits |= ToBit<uint>( i );
-			result[i]  = 1;
+			result[i]  = EHeapType::HostVisible;
 		}
 
-		ASSERT( heap_bits == ToBitMask<uint>( mem_props.memoryHeapCount ));
+		//ASSERT_Eq( heap_bits, ToBitMask<uint>( mem_props.memoryHeapCount ));
 	}
 
 /*
@@ -2311,6 +2340,7 @@ namespace {
 */
 	bool  VDeviceInitializer::CreateDefaultQueues (EQueueMask required, EQueueMask optional) __NE___
 	{
+		TRACY( ZoneScoped );
 		CHECK_ERR( _queueCount == 0 );
 
 		uint	count = 0;
@@ -2410,6 +2440,7 @@ namespace {
 */
 	bool  VDeviceInitializer::CreateQueues (ArrayView<QueueCreateInfo> queues) __NE___
 	{
+		TRACY( ZoneScoped );
 		CHECK_ERR( _queueCount == 0 );
 
 		uint	count = 0;
@@ -2460,6 +2491,7 @@ namespace {
 */
 	bool  VDeviceInitializer::CreateLogicalDevice (const DeviceCreateInfo &ci) __NE___
 	{
+		TRACY( ZoneScoped );
 		NOTHROW_ERR(
 			return _CreateLogicalDevice( ci );
 		)
@@ -2617,8 +2649,10 @@ namespace {
 
 		dev_info_last_pnext = null;
 
-		VK_CHECK_ERR( vkCreateDevice( _vkPhysicalDevice, &device_info, null, OUT &_vkLogicalDevice ));
-
+		{
+			TRACY( ZoneScopedN( "vkCreateDevice" ));
+			VK_CHECK_ERR( vkCreateDevice( _vkPhysicalDevice, &device_info, null, OUT &_vkLogicalDevice ));
+		}
 		CHECK_ERR( VulkanLoader::LoadDevice( _vkLogicalDevice, OUT _deviceFnTable ));
 		VulkanLoader::SetupDeviceBackwardCompatibility( _vkDeviceVersion.Cast<0>(), INOUT _deviceFnTable );
 
@@ -2701,6 +2735,7 @@ namespace {
 */
 	bool  VDeviceInitializer::DestroyLogicalDevice () __NE___
 	{
+		TRACY( ZoneScoped );
 		DRC_EXLOCK( _drCheck );
 
 		if ( _vkLogicalDevice == Default )
@@ -2739,6 +2774,13 @@ namespace {
 
 		//if ( AllBits( _devInitFlags, EDeviceFlags::DisableDescBuffer ))
 		//	ext.descriptorBuffer = false;
+
+		// cannot enable fragmentDensityMap and attachmentFragmentShadingRate features simultaneously
+		if ( ext.fragShadingRate and ext.fragDensityMap )
+		{
+			ext.fragDensityMap	= false;
+			ext.fragDensityMap2	= false;
+		}
 
 		ext.pipelineRobustness		= false;	// not supported yet
 
@@ -3108,6 +3150,8 @@ namespace {
 */
 	void  VDeviceInitializer::_ValidateInstanceVersion (VkInstance instance, ArrayView<const char*> layers, ArrayView<const char*> extensions, INOUT uint &version) C_Th___
 	{
+		TRACY( ZoneScoped );
+
 		const uint	min_ver		= VK_API_VERSION_1_0;
 		const uint	old_ver		= version;
 		uint		current_ver	= 0;
@@ -3204,6 +3248,8 @@ namespace {
 */
 	void  VDeviceInitializer::_ValidateInstanceLayers (INOUT Array<const char*> &layers, Bool silent) C_Th___
 	{
+		TRACY( ZoneScoped );
+
 		// load supported layers
 		uint	count = 0;
 		VK_CHECK( vkEnumerateInstanceLayerProperties( OUT &count, null ));
@@ -3271,6 +3317,8 @@ namespace {
 */
 	void  VDeviceInitializer::_ValidateInstanceExtensions (Array<const char*> layers, INOUT Array<const char*> &extensions, Bool silent) C_Th___
 	{
+		TRACY( ZoneScoped );
+
 		FlatHashSet<StringView>	instance_extensions;
 
 		// load supported extensions
@@ -3321,6 +3369,8 @@ namespace {
 */
 	void  VDeviceInitializer::_ValidateDeviceExtensions (VkPhysicalDevice physDev, INOUT Array<const char*> &extensions) C_Th___
 	{
+		TRACY( ZoneScoped );
+
 		// load supported device extensions
 		uint	count = 0;
 		VK_CHECK( vkEnumerateDeviceExtensionProperties( physDev, null, OUT &count, null ));
@@ -3621,11 +3671,6 @@ namespace {
 			  HasSubString( pCallbackData->pMessage, "VkStructureType (1000133001)" )))
 			return VK_FALSE;
 
-		// skip false positive
-		if ( HasSubString( pCallbackData->pMessage, "Most recently acquired image indices:" )					or		// TODO: fix it
-			 HasSubString( pCallbackData->pMessage, "vkDestroySwapchainKHR(): can't be called on VkSwapchainKHR" ))		// TODO: fix it
-			return VK_FALSE;
-
 		auto	dbg_report	= self->_dbgReport.WriteLock();
 
 		TRY{
@@ -3795,6 +3840,7 @@ namespace {
 */
 	bool  VDeviceInitializer::Init (const VDeviceInitializer &otherDev) __NE___
 	{
+		TRACY( ZoneScoped );
 		DRC_EXLOCK( _drCheck );
 		CHECK_ERR( _vkLogicalDevice == Default );
 		CHECK_ERR( _vkPhysicalDevice == Default );
@@ -3864,6 +3910,7 @@ namespace {
 */
 	bool  VDeviceInitializer::Init (const GraphicsCreateInfo &ci, ArrayView<const char*> instanceExtensions) __NE___
 	{
+		TRACY( ZoneScoped );
 		DRC_EXLOCK( _drCheck );
 
 		// driver

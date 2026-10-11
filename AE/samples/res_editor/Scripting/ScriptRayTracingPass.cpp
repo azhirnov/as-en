@@ -442,6 +442,7 @@ namespace
 */
 	RC<IPass>  ScriptRayTracingPass::ToPass () __Th___
 	{
+		TRACY( ZoneScoped );
 		CHECK_THROW_MSG( not _iterations.empty(), "add at least one Dispatch() call" );
 		CHECK_THROW_MSG( not _args.Empty(), "empty argument list" );
 		CHECK_THROW_MSG( _rayGen.IsDefined(), "RayGen shader must be defined" );

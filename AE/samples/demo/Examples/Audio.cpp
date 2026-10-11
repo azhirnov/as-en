@@ -172,23 +172,17 @@ namespace AE::Samples::Demo
 		ActionQueueReader::Header	hdr;
 		for (; reader.ReadHeader( OUT hdr );)
 		{
-			switch_IA2( IA.Desktop, hdr.name )
-			{
-				case IA.Desktop.MousePos :
-					t->imgui.mousePos = reader.Data<packed_float2>( hdr.offset );	break;
-
-				case IA.Desktop.MouseWheel :
-					t->imgui.mouseWheel = reader.Data<packed_float2>( hdr.offset );	break;
-
-				case IA.Desktop.MouseLBDown :
-					t->imgui.mouseBtnDown[0] = true;								break;
-
-				case IA.Desktop.UI_Char :
-					break;
-			}
-			switch_end
 			switch_IA( hdr.name )
 			{
+				case IA.MouseWheel :
+					t->imgui.mouseWheel = reader.Data<packed_float2>( hdr.offset );	break;
+
+				case IA.MouseLBDown :
+					t->imgui.mouseBtnDown[0] = true;								break;
+
+				case IA.MousePos :
+					t->imgui.mousePos = reader.Data<packed_float2>( hdr.offset );	break;
+
 				case IA.Touch_Move :
 					t->imgui.mousePos    = reader.Data<packed_float2>( hdr.offset );
 					t->imgui.touchActive = hdr.state != EGestureState::End;			break;
@@ -196,6 +190,9 @@ namespace AE::Samples::Demo
 				case IA.Touch_Click :
 					t->imgui.mousePos    = reader.Data<packed_float2>( hdr.offset );
 					t->imgui.mouseBtnDown[0] = true;								break;
+
+				case IA.UI_Char :
+					break;
 			}
 			switch_end
 		}

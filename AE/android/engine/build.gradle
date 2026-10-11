@@ -2,11 +2,11 @@ apply plugin: 'com.android.library'
 
 android {
 	namespace  'AE.engine.cpp'
-	compileSdk 34
+	compileSdk 28
 
 	defaultConfig {
 		minSdkVersion 		24 // 24+ for vulkan
-		targetSdkVersion 	34
+		targetSdkVersion 	28
 	}
 
 	buildTypes {

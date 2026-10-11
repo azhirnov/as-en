@@ -14,14 +14,18 @@ namespace AE::Base
 	{
 		X86,
 		X64,
-		ARM_32,		// ARMv7
-		ARM_64,		// ARMv8
+		ARMv7,
+		ARMv8,
+		ARMv9,
 		RISCV,
 		RISCV_64,
 		Loong64,
 		E2K,
 		_Count,
+
 		Unknown	= 0xFF,
+		ARM_32	= ARMv7,
+		ARM_64	= ARMv8,
 	};
 
 	enum class ECPUMicroArch : ushort
@@ -183,10 +187,8 @@ namespace AE::Base
 	{
 	// types
 	public:
-		struct Features
+		struct FeaturesX64
 		{
-		// x86-x64 features
-		#ifdef AE_CPU_ARCH_X86_64
 			bool	SSE2			: 1;	// AE_SIMD_SSE	20
 			bool	SSE3			: 1;	// AE_SIMD_SSE	30
 			bool	SSSE3			: 1;	// AE_SIMD_SSE	31
@@ -243,10 +245,10 @@ namespace AE::Base
 			bool	SHA2_256		: 1;	// AE_SIMD_SHA	20		- SHA2-256 and SHA-1
 			bool	SHA2_512		: 1;	// AE_SIMD_SHA	21		- SHA2-512
 			// TODO: PMULL
-		#endif
+		};
 
-		// ARM features
-		#ifdef AE_CPU_ARCH_ARM_BASED
+		struct FeaturesARM
+		{
 			bool	NEON			: 1;	// AE_SIMD_NEON
 			bool	NEON_fp16		: 1;	// AE_SIMD_NEON_HALF	- 'asimdhp', half-precision arithmetic
 			bool	NEON_i8MM		: 1;	//						- matrix multiply: i8 x i8 = i32, replaced by 'smei8i32'
@@ -271,11 +273,21 @@ namespace AE::Base
 			// TODO: PMULL
 
 			bool	Atomics			: 1;	// Armv8.1				- single instruction atomics, otherwise only load/store + emulation
-		#endif
+		};
 
-		// RISC-V features
+		struct FeaturesRISCV
+		{
 			// TODO
+		};
 
+		struct Features :
+			#ifdef AE_CPU_ARCH_X86_64
+				FeaturesX64
+			#endif
+			#ifdef AE_CPU_ARCH_ARM_BASED
+				FeaturesARM
+			#endif
+		{
 		// shared features
 			bool	CmpXchg16		: 1;	// 128 bit atomic compare exchange
 		};

@@ -112,6 +112,9 @@ namespace AE::Base
 
 			static void		SetCurrentThreadName (StringView name)				__NE___;
 
+			static void 	OnException ()										__NE___;
+			static void		SetBreakOnException (bool enable)					__NE___;
+
 		struct LoggerScope
 		{
 			bool	checkMemLeaks = true;

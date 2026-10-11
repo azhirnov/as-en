@@ -34,7 +34,7 @@ namespace AE::App
 		StringView	GetClassName ()														C_NE___	{ return _className; }
 		void*		GetHInstance ()														C_NE___	{ return _instance; }
 
-		static int  Run (Unique<IAppListener>)											__NE___;
+		static int  Run (AppListenerPtr)												__NE___;
 
 
 	// IApplication //
@@ -52,7 +52,7 @@ namespace AE::App
 
 
 	private:
-		explicit ApplicationWinAPI (Unique<IAppListener>)								__NE___;
+		explicit ApplicationWinAPI (AppListenerPtr)										__NE___;
 		~ApplicationWinAPI ()															__NE___;
 
 		ND_ bool  _RegisterClass ()														__NE___;

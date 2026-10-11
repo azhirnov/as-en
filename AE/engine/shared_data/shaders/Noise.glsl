@@ -88,7 +88,17 @@ struct VoronoiResult2
 {
 	float2	icenter;	// range: floor(pos) +-1
 	float2	offset;		// ceil center = icenter + offset
-	float	minDist;	// squared (?) distance in range [0..inf]
+	float	minDist;	// squared distance in range [0..inf]
+};
+
+struct VoronoiResult22
+{
+	float2	icenter;    // nearest cell, floor(pos)+[-1..1]
+	float2	icenter2;   // cell across the closest edge
+	float2	offset;     // ceil center = icenter + offset
+	float2	offset2;    // ceil2 center = icenter2 + offset2
+	float	minDist;    // squared distance in range [0..inf]
+	float	edgeDist;	// distance to closest Voronoi edge
 };
 
 // range [0..inf],	MIT
@@ -104,8 +114,11 @@ ND_ float  Voronoi (const float2 pos);
 // range [0..inf],	MIT
 // custom:
 //		float	maxCeilOffset;
-ND_ VoronoiResult2  VoronoiContourR (const float2 pos,	const NoiseParams params);
+ND_ VoronoiResult2  VoronoiContourR (const float2 pos, const NoiseParams params);
 ND_ VoronoiResult2  VoronoiContourR (const float2 pos);
+
+ND_ VoronoiResult22  VoronoiContourR2 (const float2 pos, const NoiseParams params);
+ND_ VoronoiResult22  VoronoiContourR2 (const float2 pos);
 
 // range [0..inf],	MIT
 // custom:

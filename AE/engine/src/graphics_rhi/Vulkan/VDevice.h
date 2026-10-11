@@ -50,8 +50,16 @@ namespace AE::Graphics
 		using QueueFamilyProperties_t	= FixedArray< VkQueueFamilyProperties, MaxQueueFamilies >;
 		using QueueCount_t				= FixedArray< uint, MaxQueueFamilies >;
 
+		enum class EHeapType : ubyte
+		{
+			DeviceLocal,
+			HostVisible,
+			Unified,		// device local host visible
+			_Count
+		};
+
 		using MemTypeToTypeBits_t	= FixedMap< EMemoryType, uint, 8 >;
-		using MemHeapToMemType_t	= StaticArray< ubyte, VK_MAX_MEMORY_HEAPS >;
+		using MemHeapToMemType_t	= StaticArray< EHeapType, VK_MAX_MEMORY_HEAPS >;
 
 
 	// variables

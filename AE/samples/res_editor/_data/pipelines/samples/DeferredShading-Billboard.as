@@ -105,7 +105,7 @@
 		const float4	wpos		= LocalPosToWorldSpace( obj.position );
 
 		Cone			cone		= Cone_Create( wpos.xyz, obj.dir, obj.angle, obj.height );	// world space
-		bool			is_visible	= Frustum_IsVisible( Frustum_Create(un_PerPass.camera.frustum), cone );
+		bool			is_visible	= Frustum_IsVisible( Frustum_Create(un_PerPass.camera.wsFrustum), cone );
 
 		Cone_Rotate( INOUT cone, float3x3(un_PerPass.camera.view) );							// to view space
 

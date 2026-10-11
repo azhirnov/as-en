@@ -19,7 +19,7 @@
 		EPixelFormat		format			= EPixelFormat::RGBA16F;		// R11G11B10F or RGBA16F
 		RC<Image>			scene_color		= Image( format, SurfaceSize() );						scene_color.Name( "RT-Color" );
 		RC<Image>			scene_depth		= Image( EPixelFormat::Depth32F, SurfaceSize() );		scene_depth.Name( "RT-Depth" );
-		RC<Image>			rt				= Image( EPixelFormat::RGBA8_UNorm, SurfaceSize() );
+		RC<Image>			rt				= Image( EPixelFormat::RGBA16F, SurfaceSize() );
 		RC<Image>			light_mask		= Image( format, SurfaceSize()/4 );						light_mask.Name( "Light mask" );
 		RC<Image>			blur1			= Image( format, light_mask.Dimension() );
 		RC<Image>			blur2			= Image( format, light_mask.Dimension() );
@@ -28,6 +28,7 @@
 		RC<Scene>			scene			= Scene();
 		RC<DynamicFloat3>	center			= DynamicFloat3();
 		RC<DynamicFloat>	blur			= DynamicFloat();
+		RC<DynamicFloat>	halo			= DynamicFloat();
 		RC<DynamicUInt>		sample_cnt		= DynamicUInt();
 		const uint			tree_grid		= 32;
 
@@ -74,16 +75,17 @@
 			scene.Add( geometry );
 		}
 
-		Slider( center,		"Center",		float3(-0.1),	float3(1.1),	float3(0.5, 0.2, 0.999) );
+		Slider( center,		"Center",		float3(-0.1,-0.1, 0.0),	float3(1.1, 1.1, 1.0),	float3(0.5, 0.2, 0.999) );
 		Slider( sample_cnt,	"SampleCount",	2,				64,				18 );
-		Slider( blur,		"Blur",			0.0,			1.0,			0.5 );
+		Slider( blur,		"Blur",			0.0,			1.0,			0.6 );
+		Slider( halo,		"HaloRadius",	0.01,			0.3,			0.075 );
 
 		// render loop
 		{
 			RC<Postprocess>		pass = Postprocess( "", "DRAW_SKY" );
 			pass.Output(	"out_Color",		scene_color,	RGBA32f(0.0) );
 			pass.Slider(	"iBright",			0.2,	4.0,	0.8 );
-			pass.Slider(	"iHaloRadius",		0.1,	1.0,	0.16 );
+			pass.Constant(	"iHaloRadius",		halo );
 			pass.Constant(	"iCenter",			center );
 			pass.ColorSelector( "iLightCol",	RGBA32f(1.0, 0.8, 0.0, 1.0) );
 			pass.ColorSelector( "iSkyCol",		RGBA32f(0.4, 0.5, 0.6, 1.0) );
@@ -94,10 +96,13 @@
 			pass.Output(						scene_depth,	DepthStencil(1.f, 0) );
 			pass.Constant(	"iGridSize",		tree_grid );
 		}{
+			// sky can be rendered in separate RT, then read here, then combine and apply to main RT
 			RC<Postprocess>		pass = Postprocess( "", "LIGHT_MASK" );
 			pass.Output(	"out_Color",		light_mask );
 			pass.ArgIn(		"un_SceneColor",	scene_color,	Sampler_LinearClamp );
 			pass.ArgIn(		"un_SceneDepth",	scene_depth,	Sampler_LinearClamp );
+			pass.Slider(	"iMask",			-1,		2,		-1 );		// cull: -1-all, 0-depth, 1-luminance, 2-dist to ligth
+			pass.Constant(	"iHaloRadius",		halo );
 			pass.Constant(	"iCenter",			center );
 		}{
 			RC<Postprocess>		pass = Postprocess( "", "RADIAL_BLUR" );
@@ -121,7 +126,8 @@
 			pass.ArgIn(		"un_LightMask",		light_mask,		Sampler_NearestClamp );
 			pass.ArgIn(		"un_SceneColor",	scene_color,	Sampler_NearestClamp );
 			pass.ArgIn(		"un_SceneDepth",	scene_depth,	Sampler_NearestClamp );
-			pass.Slider(	"iDbgView",			-1,		2 );
+			pass.Slider(	"iStrength",		0.0,	2.0,	1.0 );
+			pass.Slider(	"iDbgView",			-1,		3,		-1 );
 			pass.Constant(	"iCenter",			center );
 		}
 
@@ -164,6 +170,7 @@
 //-----------------------------------------------------------------------------
 #ifdef LIGHT_MASK
 	#include "Math.glsl"
+	#include "Color.glsl"
 
 	void  Main ()
 	{
@@ -172,7 +179,11 @@
 		float2	duv			= inv_src_dim;
 		float	min_d		= iCenter.z;
 
-		// 4x downsample using linear filter
+		float2	center		= un_PerPass.mouse.z > 0.0 ? un_PerPass.mouse.xy : iCenter.xy;
+		float2	ratio		= float2(1.0, un_PerPass.resolution.y * un_PerPass.invResolution.x);	// aspect ratio correction
+		float	atten		= 1.0 - (Distance( uv * ratio, center * ratio ) / (iHaloRadius * 1.5));	// 1.0 in center, 0.0 on edge
+
+		// 4x downsample using linear filter for smooth transition
 		//
 		// 0,  1,  2,  3 - X axis
 		// -------------
@@ -188,7 +199,16 @@
 		float	d3	= GreaterF( gl.texture.Sample( un_SceneDepth, uv + float2( duv.x,  duv.y) ).r, min_d );
 		float	d	= (d0 + d1 + d2 + d3) / 4.0;
 
-		float3	col = gl.texture.Sample( un_SceneColor, uv + float2(-duv.x,  duv.y) ).rgb * d;
+		float3	col = gl.texture.Sample( un_SceneColor, uv ).rgb;
+
+		if ( iMask == -1 or iMask == 0 )
+			col *= d;
+
+		if ( iMask == -1 or iMask == 1 )
+			col *= GreaterF( RGBtoLuminance( col ), 0.5 );
+
+		if ( iMask == -1 or iMask == 2 )
+			col *= Saturate( atten );
 
 		out_Color.rgb = col;
 	}
@@ -223,25 +243,27 @@
 
 	float3  LightShafts (float3 sceneColor, float2 uv)
 	{
-		float3	blur	= gl.texture.Sample( un_Blur2, uv ).rgb;
-		float3	col		= ToneMap_LinearHDR( blur );
-		return	col + sceneColor;
+		float3	blur	= gl.texture.Sample( un_Blur2, uv ).rgb * iStrength;
+		float3	col		= ToneMap_LinearHDR( blur + sceneColor );
+		return	col;
 	}
 
 
 	void  Main ()
 	{
 		float2	uv		= GetGlobalCoordUNorm().xy;
+		float4	scene	= gl.texture.Sample( un_SceneColor, uv );
 
-		out_Color = RemoveSRGBCurve( gl.texture.Sample( un_SceneColor, uv ));
+		out_Color = RemoveSRGBCurve( scene );
 		out_Color.rgb = LightShafts( out_Color.rgb, uv );
 		out_Color = ApplySRGBCurve( out_Color );
 
 		switch ( iDbgView )
 		{
-			case 0 :	out_Color.rgb = gl.texture.Sample( un_LightMask, uv ).rgb;		break;
-			case 1 :	out_Color.rgb = gl.texture.Sample( un_Blur1, uv ).rgb;			break;
-			case 2 :	out_Color.rgb = gl.texture.Sample( un_Blur2, uv ).rgb;			break;
+			case 0 :	out_Color.rgb = scene.rgb;										break;
+			case 1 :	out_Color.rgb = gl.texture.Sample( un_LightMask, uv ).rgb;		break;
+			case 2 :	out_Color.rgb = gl.texture.Sample( un_Blur1, uv ).rgb;			break;
+			case 3 :	out_Color.rgb = gl.texture.Sample( un_Blur2, uv ).rgb;			break;
 		}
 		out_Color.a = 1.0;
 	}

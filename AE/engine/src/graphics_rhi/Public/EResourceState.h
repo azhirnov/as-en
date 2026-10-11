@@ -225,7 +225,7 @@ namespace AE::Graphics
 		Invalidate								= _EResState::Invalidate,				// only for image
 
 		// shader bits
-		MeshTaskShader							= _EResState::MeshTaskShader,			// can be executed in compute queue
+		MeshTaskShader							= _EResState::MeshTaskShader,			// driver may execute this stage in HW compute queue
 		VertexProcessingShaders					= _EResState::VertexProcessingShaders,	// executed only in graphics queue (VS, TCS, TES, GS, Mesh)
 		TileShader								= _EResState::TileShader,
 		FragmentShader							= _EResState::FragmentShader,

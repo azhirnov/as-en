@@ -68,7 +68,7 @@ namespace
 
 			ThreadUtils::SetName( _cfg.name );
 
-			// TODO: Android in background does not allow to bind (some?) threads
+			// TODO: Android in background does not allow to bind threads to inactive (P) cores
 			if ( coreId != Default )
 				CHECK( ThreadUtils::SetAffinity( uint(coreId) % ThreadUtils::MaxThreadCount() ));
 

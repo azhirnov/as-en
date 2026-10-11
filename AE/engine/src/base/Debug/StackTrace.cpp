@@ -4,7 +4,7 @@
 
 #if defined(__cpp_lib_stacktrace) and not defined(AE_COMPILER_GCC)
 #	include <stacktrace>
-#	define AE_HAS_CALLSTACK
+#	define AE_HAS_STD_CALLSTACK
 
 #elif defined(AE_PLATFORM_ANDROID)
 #	include <unwind.h>
@@ -26,7 +26,7 @@ namespace AE::Base
 		return {};
 	}
 
-#elif defined(AE_HAS_CALLSTACK)
+#elif 0 //defined(AE_HAS_STD_CALLSTACK)
 /*
 =================================================
 	GetCallStack (std::stacktrace)
@@ -73,7 +73,7 @@ namespace AE::Base
 		return str;
 	}
 
-#elif defined(AE_PLATFORM_ANDROID)
+#elif 0 //defined(AE_PLATFORM_ANDROID)
 /*
 =================================================
 	GetCallStack

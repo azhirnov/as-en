@@ -12,11 +12,12 @@ namespace AE::ResEditor
 =================================================
 */
 	FlightCamera::FlightCamera (RC<DynamicDim> dim, float2 clipPlanes, Rad fovY, float2 engineThrustRange,
-								float3 rotationScale, float3 initialPos, bool reverseZ) __Th___ :
+								float3 rotationScale, float3 initialPos, float3 initialViewDir, bool reverseZ) __Th___ :
 		_dynDim{ RVRef(dim) },				_clipPlanes{ clipPlanes },
 		_rotationScale{ rotationScale },	_fovY{ fovY },
 		_minThrust{ engineThrustRange.x },	_maxThrust{ engineThrustRange.y },
-		_initialPos{ initialPos },			_reverseZ{ reverseZ }
+		_initialPos{ initialPos },			_initialViewDir{ initialViewDir },
+		_reverseZ{ reverseZ }
 	{
 		CHECK_THROW( _dynDim );
 		_Reset();
@@ -95,7 +96,8 @@ namespace AE::ResEditor
 	void  FlightCamera::_Reset ()
 	{
 		_camera.SetPosition( _initialPos );
-		_camera.SetOrientation( Quat::Identity() );
+		_camera.SetOrientation( Quat::LookAt( _initialViewDir, float3{0.f, 1.f, 0.f} ));
+
 		_zoom			= 1.0f;
 		_engineThrust	= 0.f;
 		_dimRatio		= _dynDim->Ratio();

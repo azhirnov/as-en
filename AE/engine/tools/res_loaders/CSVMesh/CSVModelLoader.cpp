@@ -289,6 +289,8 @@ namespace
 		if ( not (fileFormat == Default or fileFormat == EModelFormat::CSV) )
 			return false;
 
+		TRACY( ZoneScoped );
+
 		String	str;
 		CHECK_ERR( stream.Read( stream.RemainingSize(), OUT str ));
 
@@ -304,6 +306,8 @@ namespace
 									 const Path			&scenePath,
 									 const Config		&cfg) __NE___
 	{
+		TRACY( ZoneScoped );
+
 		FileRStream		file {scenePath};
 		CHECK_ERR( file.IsOpen() );
 

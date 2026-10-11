@@ -13,10 +13,19 @@ namespace AE::App
 
 /*
 =================================================
+	IAppListener::Release
+----
+	it is safe to delete listener from DLL
+=================================================
+*/
+	void  IApplication::IAppListener::Release () __NE___ { delete this; }
+
+/*
+=================================================
 	constructor
 =================================================
 */
-	ApplicationBase::ApplicationBase (Unique<IAppListener> listener) __NE___ :
+	ApplicationBase::ApplicationBase (AppListenerPtr listener) __NE___ :
 		_listener{ RVRef(listener) }
 	{
 		CHECK( _listener );

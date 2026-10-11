@@ -49,6 +49,14 @@ Tools:
  * [FeatureSet Generator](AE/engine/tools/feature_set_gen/Readme.md)
  * [Remote Graphics Device](AE/rem_tools/remote_graphics_device/Readme.md)
  * [Android Remote Control](AE/samples/android_remote_control/Readme.md)
+	
+Tested on GPUs:
+* ARM Mali Midgard (deprecated), Valhall gen1/gen3
+* Adreno 500(deprecated)/600/700/800
+* AMD GCN4 (deprecated), RDNA3
+* Intel gen9.5, gen12 (UHD730 on Intel N150), Arc140T
+* NVIDIA RTX2000, RTX5000
+* PowerVR B-Series
 
 
 ## rus

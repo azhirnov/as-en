@@ -73,9 +73,12 @@ ND_ float3  GetGlobalCoordUF ();					// 0..size-1, without subpixel offset
 ND_ float3  GetGlobalSizeRcp ();					// 1/size
 
 // global normalized coordinate in 2D with same aspect ratio
-ND_ float2  GetGlobalCoordUNormCorrected ();		//  0..1
-ND_ float2  GetGlobalCoordSNormCorrected ();		// -1..1
-ND_ float2  GetGlobalCoordSNormCorrected2 ();		// -X..X,	X may be > 1
+ND_ float2  GetGlobalCoordUNormCorrected ();			//  0..1
+ND_ float2  GetGlobalCoordUNormCorrected (int2 offset);	//  0..1
+ND_ float2  GetGlobalCoordSNormCorrected ();			// -1..1
+ND_ float2  GetGlobalCoordSNormCorrected (int2 offset);	// -1..1
+ND_ float2  GetGlobalCoordSNormCorrected2 ();			// -X..X,	X may be > 1
+ND_ float2  GetGlobalCoordSNormCorrected2 (int2 offset);// -X..X,	X may be > 1
 
 ND_ float4  GetGlobalRectUNormCorrected ();			//  0..1
 ND_ float4  GetGlobalRectSNormCorrected ();			// -1..1
@@ -514,14 +517,29 @@ float2  GetGlobalCoordUNormCorrected ()
 	return MapPixCoordToUNormCorrected( float2(GetGlobalCoord().xy), float2(GetGlobalSize().xy) );
 }
 
+float2  GetGlobalCoordUNormCorrected (int2 offset)
+{
+	return MapPixCoordToUNormCorrected( float2(GetGlobalCoord().xy + offset), float2(GetGlobalSize().xy) );
+}
+
 float2  GetGlobalCoordSNormCorrected ()
 {
 	return MapPixCoordToSNormCorrected( float2(GetGlobalCoord().xy), float2(GetGlobalSize().xy) );
 }
 
+float2  GetGlobalCoordSNormCorrected (int2 offset)
+{
+	return MapPixCoordToSNormCorrected( float2(GetGlobalCoord().xy + offset), float2(GetGlobalSize().xy) );
+}
+
 float2  GetGlobalCoordSNormCorrected2 ()
 {
 	return MapPixCoordToSNormCorrected2( float2(GetGlobalCoord().xy), float2(GetGlobalSize().xy) );
+}
+
+float2  GetGlobalCoordSNormCorrected2 (int2 offset)
+{
+	return MapPixCoordToSNormCorrected2( float2(GetGlobalCoord().xy + offset), float2(GetGlobalSize().xy) );
 }
 
 float4  GetGlobalRectUNormCorrected ()

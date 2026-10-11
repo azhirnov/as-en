@@ -844,14 +844,14 @@ using namespace AE::UIEditor;
 #include "base/Defines/DetectLicense.inl.h"
 
 
-Unique<IApplication::IAppListener>  AE_OnAppCreated (const int argc, char const* argv[])
+AppListenerPtr  AE_OnAppCreated (const int argc, char const* argv[])
 {
 	Unused( argc, argv );
 	StaticLogger::InitDefault();
 
 	AE_LOG_DBG( "License: "s << AE_LICENSE );
 
-	return MakeUnique<UIEditorApplication>();
+	return AppListenerPtr{new UIEditorApplication{}};
 }
 
 void  AE_OnAppDestroyed ()

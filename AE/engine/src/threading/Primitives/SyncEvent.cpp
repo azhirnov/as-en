@@ -66,6 +66,7 @@ namespace AE::Threading
 */
 	bool  SyncEvent::_Wait (uint timeoutMS) __NE___
 	{
+		TRACY( ZoneScoped );
 		return ::WaitForSingleObject( static_cast<HANDLE>( _event ), timeoutMS ) == WAIT_OBJECT_0;
 	}
 

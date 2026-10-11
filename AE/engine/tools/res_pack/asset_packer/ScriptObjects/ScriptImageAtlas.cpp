@@ -273,7 +273,11 @@ namespace {
 
 				ASSERT( All( texc.Size() == int2(src.region.Size()) ));
 
-				CHECK_ERR( dst_view.Blit( uint3{int3{ texc.left, texc.top, 0 }}, uint3{src.region.left, src.region.top, 0u}, src_img, uint3{int3{ texc.Size(), 1 }} ));
+				RWImageMemView::BlitOp	op{ src_img, dst_view };
+				op.dstOffset	= uint3{int3{ texc.left, texc.top, 0 }};
+				op.srcOffset	= uint3{src.region.left, src.region.top, 0u};
+				op.dim			= uint3{int3{ texc.Size(), 1 }};
+				CHECK_ERR( RWImageMemView::Blit( op ));
 
 				src.region = RectU{texc};
 			}
@@ -353,8 +357,13 @@ namespace {
 			CHECK_ERR( texc.right <= int(dst_view.Dimension().x) );
 			CHECK_ERR( texc.bottom <= int(dst_view.Dimension().y) );
 
+			RWImageMemView::BlitOp	op{ src_img, dst_view };
+			op.dstOffset	= uint3{int3{ texc.left, texc.top, 0 }};
+			op.srcOffset	= uint3{src.region.left, src.region.top, 0u};
+			op.dim			= uint3{int3{ texc.Size(), 1 }};
+
 			// 'src.region' - region inside 'src_img'
-			CHECK_ERR( dst_view.Blit( uint3{int3{ texc.left, texc.top, 0 }}, uint3{src.region.left, src.region.top, 0u}, src_img, uint3{int3{ texc.Size(), 1 }} ));
+			CHECK_ERR( RWImageMemView::Blit( op ));
 
 			src.region = RectU{texc};
 		}

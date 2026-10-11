@@ -45,11 +45,7 @@ namespace
 			result.indirect			= indirect->ToResource();	// throw
 			result.indirectOffset	= indirectOffset;
 
-			if ( not indirectCmdField.empty() )
-			{
-				ASSERT( indirectOffset == 0 );
-				result.indirectOffset = indirect->GetFieldOffset( indirectCmdField );	// throw
-			}
+			ASSERT( indirectCmdField.empty() );
 		}
 		return result;
 	}
@@ -142,13 +138,37 @@ namespace
 	_CompilePipeline
 =================================================
 */
-	auto  ScriptComputePass::_CompilePipeline () C_Th___
+	auto  ScriptComputePass::_CompilePipeline (Iterations_t &iterations) C_Th___
 	{
 		return ScriptExe::ScriptPassApi::ConvertAndLoad(
-					[this] (ScriptEnginePtr) {
-						_CompilePipeline2();	// throw
+					[this, &iterations] (ScriptEnginePtr) __Th___ {
+						_CompilePipeline2();					// throw
+						_UpdateDispatchCommands( iterations );	// throw
 					},
 					_baseFlags );
+	}
+
+/*
+=================================================
+	_UpdateDispatchCommands
+=================================================
+*/
+	void  ScriptComputePass::_UpdateDispatchCommands (Iterations_t &iterations) C_Th___
+	{
+		for (auto& it : iterations)
+		{
+			if ( it.indirect )
+			{
+				Unused( it.indirect->ToResource() );  // throw
+
+				if ( not it.indirectCmdField.empty() )
+				{
+					ASSERT( it.indirectOffset == 0 );
+					it.indirectOffset = it.indirect->GetFieldOffset( it.indirectCmdField );	// throw
+					it.indirectCmdField.clear();
+				}
+			}
+		}
 	}
 
 /*
@@ -158,6 +178,7 @@ namespace
 */
 	RC<IPass>  ScriptComputePass::ToPass () __Th___
 	{
+		TRACY( ZoneScoped );
 		CHECK_THROW_MSG( All( _localSize > 0u ), "LocalSize() is not used" );
 		CHECK_THROW_MSG( not _iterations.empty(), "add at least one Dispatch() call" );
 		CHECK_THROW_MSG( not _args.Empty(), "empty argument list" );
@@ -166,7 +187,7 @@ namespace
 		auto&		res_mngr	= GraphicsScheduler().GetResourceManager();
 		const auto	max_frames	= GraphicsScheduler().GetMaxFrames();
 
-		result->_rtech = _CompilePipeline();	// throw
+		result->_rtech = _CompilePipeline( INOUT _iterations );	// throw
 
 		EnumSet<IPass::EDebugMode>	dbg_modes;
 
@@ -206,7 +227,7 @@ namespace
 		{
 			CHECK_THROW( res_mngr.CreateDescriptorSets( OUT result->_dsIndex, OUT result->_descSets.data(), max_frames,
 														ppln, DescriptorSetName{"ds0"}, null, _dbgName ));
-			_args.InitResources( OUT result->_resources, result->_rtech.packId );  // throw
+			_args.InitResources( OUT result->_resources, result->_rtech.packId, AllBits( _baseFlags, EFlags::ZeroContentOfArgOut ));  // throw
 		}
 
 		result->_pcIndex = res_mngr.GetPushConstantIndex<ShaderTypes::ComputePassPC>( ppln, PushConstantName{"pc"} );
@@ -217,7 +238,6 @@ namespace
 
 		return result;
 	}
-
 
 } // AE::ResEditor
 

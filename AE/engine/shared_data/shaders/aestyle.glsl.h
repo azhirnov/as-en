@@ -24,7 +24,8 @@
 #define WGShared	// workgroup shared variable qualifier
 #define invariant	// all shaders must output same result on same input, only for shader IO
 
-#define coherent
+#define coherent	// qualifier
+#define restrict	// qualifier
 
 #define out
 #define inout
@@ -36,6 +37,7 @@
 
 #define length			__reserved__
 #define input			__reserved__
+#define filter			__reserved__
 
 #define sg_uniform		// used scalar register and uniform control flow
 #define nonuniform		// used vector register
@@ -942,13 +944,15 @@ public:
 		ND_ sg_uniform	uint4	Ballot (bool) const;				// returns a set of bitfields containing the result of evaluating the expression 'value' in all active invocations in the subgroup
 
 		// helpers, doesnt use cross-lane operations
-		ND_ bool	InverseBallot (uint4) const;
-		ND_ bool	BallotBitExtract (uint4 value, uint index) const;
-		ND_ uint	BallotBitCount (uint4) const;
-		ND_ uint	BallotInclusiveBitCount (uint4) const;			// see Inclusive<op>
-		ND_ uint	BallotExclusiveBitCount (uint4) const;			// see Exclusive<op>
-		ND_ uint	BallotFindLSB (uint4) const;
-		ND_ uint	BallotFindMSB (uint4) const;
+		// output is subgroup uniform if input is uniform
+		ND_ sg_uniform 	bool	InverseBallot (uint4) const;
+		ND_ sg_uniform 	bool	BallotBitExtract (uint4 value, uint index) const;
+		ND_ sg_uniform 	uint	BallotBitCount (uint4) const;
+		ND_ sg_uniform	uint	BallotFindLSB (uint4) const;					// If <value> is 0, an undefined value is returned.
+		ND_ sg_uniform	uint	BallotFindMSB (uint4) const;					// If <value> is 0, an undefined value is returned.
+
+		ND_ 			uint	BallotInclusiveBitCount (uint4) const;			// see Inclusive<op>
+		ND_ 			uint	BallotExclusiveBitCount (uint4) const;			// see Exclusive<op>
 
 		// in
 		const	uint4	EqMask;		// 1 << Index
@@ -1967,10 +1971,14 @@ public:
 //	[[unroll, partial_count(2)]]
 
 // GL_EXT_subgroup_uniform_control_flow
-//	void main() [[subroup_uniform_control_flow]]
+//	void main() [[subgroup_uniform_control_flow]]
 
 // GL_EXT_maximal_reconvergence
 //	void main() [[maximally_reconverges]]
+
+// GL_EXT_function_control_attributes
+//	[[inline]]
+//	[[noinline]]
 
 #ifdef __INTELLISENSE__
 #	define SH_VERT

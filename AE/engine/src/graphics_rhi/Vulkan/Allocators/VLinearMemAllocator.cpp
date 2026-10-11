@@ -14,7 +14,7 @@ namespace AE::Graphics
 {
 namespace
 {
-	static constexpr Bytes	c_PageAlign			= 4_KiB;
+	static constexpr Bytes	c_PageAlign			= 64_KiB;
 	static constexpr Bytes	c_DefaultPageSize	= 64_MiB;
 
 	ND_ static Bytes  ValidatePageSize (Bytes pageSize)
@@ -180,7 +180,7 @@ namespace
 
 		mem_alloc.sType			 = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
 		mem_alloc.pNext			 = AllBits( flags, EFlags::ShaderAddress ) ? &mem_flag : null;
-		mem_alloc.allocationSize = VkDeviceSize{ Max( AlignUp( memSize*2, c_PageAlign ), _pageSize )};
+		mem_alloc.allocationSize = VkDeviceSize{ Max( AlignUp( memSize*4, c_PageAlign ), _pageSize )};
 
 		mem_flag.sType			 = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_FLAGS_INFO;
 		mem_flag.flags			 = VK_MEMORY_ALLOCATE_DEVICE_ADDRESS_BIT;
@@ -216,6 +216,7 @@ namespace
 
 		auto	[it, inserted] = _pages.emplace( key, PageArr_t{} );
 		CHECK_ERR_MSG( it, "overflow!" );
+		CHECK_ERR_MSG( not it->second.IsFull(), "overflow!" );
 
 		auto&	page_arr	= it->second;
 		auto&	page		= page_arr.emplace_back();

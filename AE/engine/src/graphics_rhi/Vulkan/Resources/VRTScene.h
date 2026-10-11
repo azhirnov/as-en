@@ -39,6 +39,7 @@ namespace AE::Graphics
 			void  Destroy (ResourceManager &)																		__NE___;
 
 		ND_ VkAccelerationStructureKHR	Handle ()																	C_NE___	{ return _accelStruct; }
+		ND_ VkBuffer					Storage ()																	C_NE___	{ return _storage; }
 		ND_ DeviceAddress				GetDeviceAddress ()															C_NE___	{ return _address; }
 		ND_ RTSceneDesc const&			Description ()																C_NE___	{ return _desc; }
 		ND_ MemoryID					MemoryId ()																	C_NE___	{ return _memoryId; }

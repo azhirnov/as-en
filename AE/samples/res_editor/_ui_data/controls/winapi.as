@@ -73,10 +73,13 @@ void ASmain (WinAPI_ActionBindings& bindings)
 				  ActionInfo( "UI.MousePos", EValueType::Float2, EGestureType::Move ));
 		bind.Add( WinAPI_Input::MouseLeft,
 				  ActionInfo( "UI.MouseLBDown", EGestureType::Hold ));
-		bind.Add( WinAPI_Input::MouseRight,
-				  ActionInfo( "UI.MouseRBDown", EGestureType::Hold ));
 		bind.Add( WinAPI_Input::MouseWheel,
 				  ActionInfo( "UI.MouseWheel", EValueType::Float2, EGestureType::Move ));
+
+		bind.Add( WinAPI_Input::MouseRight,
+				  ActionInfo( "MousePosToShader", EGestureType::Hold ));
+		bind.Add( WinAPI_Input::Q,
+				  ActionInfo( "MousePosToShader", EGestureType::Hold ));
 
 		bind.Add( WinAPI_Input::U,
 				  ActionInfo( "UI.StartStopRecording", EGestureType::Down ));

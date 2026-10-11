@@ -89,6 +89,10 @@
 /shared/stable-diffusion/build
 /shared/stable-diffusion/temp
 
+/shared/tracy/.gradle
+/shared/tracy/build
+/shared/tracy/temp
+
 /shared/zstd/.gradle
 /shared/zstd/build
 /shared/zstd/temp

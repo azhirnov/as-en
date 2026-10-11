@@ -255,14 +255,14 @@
 		if ( AnyGreaterEqual( cluster_idx, cluster_count ))
 			return;
 
-		float3	corners[8];
+		float3	corners[8];	// view space
 
 		if ( iUseFrustum == 0 )
 			GetClusterCorners_v1( cluster_idx, cluster_count, OUT corners );
 		else
 			GetClusterCorners_v2( cluster_idx, cluster_count, OUT corners );
 
-		Sphere	sp = FrustumCornerPoints_ToSphere( corners );
+		Sphere	sp = FrustumCornerPoints_ToSphere( corners );	// view space
 
 		un_Clusters.elements[ idx ].sp		= float4( sp.center, sp.radius );
 		un_Clusters.elements[ idx ].points	= corners;

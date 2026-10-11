@@ -23,6 +23,7 @@ namespace
 	static Optional< Array< Unique<ILogger> >>	s_loggers;
 	static int									s_refCounter	= 0;
 	static thread_local Atomic<int>				s_recursion		{0};
+	static Atomic<bool>							s_breakOnExc	{false};
 
 /*
 =================================================
@@ -102,6 +103,11 @@ namespace
 
 		++s_refCounter;
 		s_loggers.emplace();
+
+		#if 0 //defined(AE_PLATFORM_LINUX)
+			if ( PlatformUtils::IsUnderDebugger() )
+				SetBreakOnException( true );
+		#endif
 	}
 
 /*
@@ -210,8 +216,9 @@ namespace
 			AddLogger( ILogger::CreateConsoleOutput() );
 
 			#if defined(AE_CI_BUILD_TEST) or defined(AE_CI_BUILD_PERF)
-				//AddLogger( ILogger::CreateFileOutput( "log" ));
+			# ifndef AE_PLATFORM_ANDROID	// create it later
 				AddLogger( ILogger::CreateHtmlOutput( "log" ));
+			# endif
 			#else
 				AddLogger( ILogger::CreateIDEOutput() );
 				AddLogger( ILogger::CreateDialogOutput() );
@@ -271,6 +278,22 @@ namespace
 		}
 	}
 
+/*
+=================================================
+	OnException / SetBreakOnException
+=================================================
+*/
+	void  StaticLogger::OnException () __NE___
+	{
+		if ( s_breakOnExc.load() )
+			AE_PRIVATE_BREAK_POINT();
+	}
+
+	void  StaticLogger::SetBreakOnException (bool enable) __NE___
+	{
+		s_breakOnExc.store( enable );
+	}
+
 } // AE::Base
 //-----------------------------------------------------------------------------
 
@@ -285,6 +308,8 @@ namespace AE::Base
 	void  StaticLogger::AddLogger (Unique<ILogger>)				__NE___	{}
 	void  StaticLogger::InitDefault ()							__NE___	{}
 	void  StaticLogger::SetCurrentThreadName (StringView) 		__NE___ {}
+	void  StaticLogger::OnException () 							__NE___ {}
+	void  StaticLogger::SetBreakOnException (bool) 				__NE___ {}
 
 	StaticLogger::EResult  StaticLogger::Process (StringView, StringView, StringView, unsigned int, ILogger::ELevel, ILogger::EScope) __Th___ { return StaticLogger::EResult::Continue; }
 	StaticLogger::EResult  StaticLogger::Process (const char*, const char*, const char*, unsigned int, ILogger::ELevel, ILogger::EScope) __Th___ { return StaticLogger::EResult::Continue; }

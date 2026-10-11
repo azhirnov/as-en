@@ -1,4 +1,7 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
+/*
+	Render scene to cubemap and apply different projections (180/360)
+*/
 #ifdef __INTELLISENSE__
 # 	include <res_editor.as>
 #	include <glsl.h>

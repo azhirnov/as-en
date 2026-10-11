@@ -8,7 +8,12 @@
 #include "graphics_rhi/Private/EnumUtils.h"
 #include "graphics_rhi/Private/EnumToString.h"
 
-#include "res_pack/pipeline_compiler/ScriptObjects/ObjectStorage.h"
+#ifndef AE_WITH_OBJECT_STORAGE
+#	define AE_WITH_OBJECT_STORAGE	1
+#endif
+#if AE_WITH_OBJECT_STORAGE
+#	include "res_pack/pipeline_compiler/ScriptObjects/ObjectStorage.h"
+#endif
 
 #ifdef AE_ENABLE_GLSL_TRACE
 # include "ShaderTrace.h"
@@ -403,6 +408,7 @@ namespace AE::PipelineCompiler
 	IsCompatible
 =================================================
 */
+#if AE_WITH_OBJECT_STORAGE
 	bool  DescriptorSetLayoutDesc::IsCompatible (const DescriptorSetLayoutDesc &fromRefl,
 												 const DescriptorSetLayoutDesc &fromScript)
 	{
@@ -545,7 +551,7 @@ namespace AE::PipelineCompiler
 		}
 		return true;
 	}
-
+#endif
 /*
 =================================================
 	operator ==
@@ -2058,6 +2064,8 @@ namespace {
 */
 	bool  PipelineStorage::SerializePipelines (WStream &stream) const
 	{
+		TRACY( ZoneScoped );
+
 		BlockOffsets_t	offsets		= {};
 		auto			mem			= MakeRC<ArrayWStream>();
 		Bytes			pos;
@@ -2383,6 +2391,7 @@ namespace {
 */
 	bool  PipelineStorage::WriteShaders (WStream &stream) const
 	{
+		TRACY( ZoneScoped );
 		CHECK_ERR( stream.Write( ShaderPack_Name ));
 		CHECK_ERR( stream.Write( ShaderPack_Version ));
 

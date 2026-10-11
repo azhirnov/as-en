@@ -33,8 +33,8 @@ namespace AE::Graphics
 
 		struct MutableIdxBits
 		{
-			uint	semaphoreId		: _SemaphoreIndexBits;
-			uint	imageIdx		: _ImageIndexBits;
+			uint	semaphoreId		: _SemaphoreIndexBits;		// only for '_imageAvailableSem'
+			uint	imageIdx		: _ImageIndexBits;			// for '_renderFinishedSem', '_imageIDs', ...
 
 			MutableIdxBits () __NE___ : semaphoreId{0}, imageIdx{_MaxImageIndex} {}
 		};
@@ -59,9 +59,11 @@ namespace AE::Graphics
 			EImageOpt						colorImageOptions	= Default;
 			VkPresentScalingFlagBitsEXT		presentScaling		= Zero;
 			float							scale				= 1.f;
+			bool							stallingResize		= false;	// wait for GPU and flush resources during resize
 		};
 
 		using Semaphores_t		= StaticArray< VkSemaphore, _MaxSwapchainLength >;
+		using Fences_t			= StaticArray< VkFence,		_MaxSwapchainLength >;
 		using WeakImageIDs_t	= StaticArray< ImageID,		_MaxSwapchainLength >;
 		using WeakViewIDs_t		= StaticArray< ImageViewID,	_MaxSwapchainLength >;
 
@@ -85,6 +87,7 @@ namespace AE::Graphics
 
 		Semaphores_t					_imageAvailableSem		{};
 		Semaphores_t					_renderFinishedSem		{};
+		Fences_t						_presentFence			{};
 
 		SwapchainDesc					_desc;								// protected by '_guard'
 
@@ -175,10 +178,18 @@ namespace AE::Graphics
 		ND_ bool  _CreateColorAttachment (ResourceManager &resMngr, const VkSwapchainCreateInfoKHR &, EImageOpt options)	__NE___;
 			void  _PrintInfo (const VkSwapchainCreateInfoKHR &)																C_NE___;
 
+		ND_ bool  _ValidateCaps (const VSwapchainDesc& info,
+								 INOUT VkSurfaceCapabilitiesKHR &surfCaps,
+								 INOUT VkSwapchainPresentScalingCreateInfoEXT &swapchainScaling,
+								 INOUT VkSwapchainCreateInfoKHR &swapchainInfo)												C_NE___;
+
 		ND_ bool  _ChooseColorFormat (INOUT VkFormat &colorFormat, INOUT VkColorSpaceKHR &colorSpace)						C_NE___;
 
 		ND_ bool  _CreateSemaphores ()																						__NE___;
 			void  _DestroySemaphores ()																						__NE___;
+
+		ND_ bool  _CreateFences ()																							__NE___;
+			void  _DestroyFences ()																							__NE___;
 
 		ND_ bool  _GetImageUsage (OUT VkImageUsageFlags &imageUsage, VkPresentModeKHR presentMode,
 								  VkFormat colorFormat, const VkSurfaceCapabilitiesKHR &surfaceCaps)						C_NE___;
@@ -189,6 +200,32 @@ namespace AE::Graphics
 			void  _GetSurfaceTransform (INOUT VkSurfaceTransformFlagBitsKHR &transform,
 										const VkSurfaceCapabilitiesKHR &surfaceCaps)										C_NE___;
 			void  _GetSurfaceImageCount (INOUT uint &minImageCount, const VkSurfaceCapabilitiesKHR &surfaceCaps)			C_NE___;
+
+			void  _WaitFence (uint imageIdx)																				C_NE___;
+			void  _WaitAll ()																								C_NE___;
+
+		struct ObsoleteResources
+		{
+			using ImageIDs2_t		= StaticArray< Strong<ImageID>,		_MaxSwapchainLength >;
+			using ImageViewIDs2_t	= StaticArray< Strong<ImageViewID>,	_MaxSwapchainLength >;
+
+			VkSwapchainKHR		swapchain;
+
+			ImageIDs2_t			imageIDs;
+			ImageViewIDs2_t		imageViewIDs;
+
+			Semaphores_t		imageAvailableSem;
+			Semaphores_t		renderFinishedSem;
+			Fences_t			presentFence;
+
+			ObsoleteResources (VkSwapchainKHR	swapchain,
+							   ImageIDs_t&&		imageIDs,
+							   ImageViewIDs_t&&	imageViewIDs,
+							   Semaphores_t&&	imageAvailableSem,
+							   Semaphores_t&&	renderFinishedSem,
+							   Fences_t&&		presentFence) __NE___;
+		};
+		static AsyncCoro  _DelayedRelease (ObsoleteResources res)															__NE___;
 	};
 
 

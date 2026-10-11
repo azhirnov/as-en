@@ -87,6 +87,22 @@
 #endif
 
 
+#ifdef CMAKE_INTDIR
+#	define AE_BUILD_TYPE	CMAKE_INTDIR
+#else
+# ifdef AE_CFG_DEBUG
+#	define AE_BUILD_TYPE	"Debug"
+# elif defined(AE_CFG_DEVELOP)
+#	define AE_BUILD_TYPE	"Develop"
+# elif defined(AE_CFG_PROFILE)
+#	define AE_BUILD_TYPE	"Profile"
+# elif defined(AE_CFG_RELEASE)
+#	define AE_BUILD_TYPE	"Release"
+# else
+#	error unknown config
+# endif
+#endif
+
 #ifdef __INTELLISENSE__
 #  define AE_PLATFORM_ANDROID
 #endif

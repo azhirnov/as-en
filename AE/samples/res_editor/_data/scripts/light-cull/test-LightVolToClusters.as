@@ -6,7 +6,7 @@
 	related:
 	* [view clusters in 3D](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/scripts/light-cull/test-ClusterBoundingSphere.as)
 	* [frustum culling](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/scripts/geom-cull/FrustumCulling.as)
-	* [Cluster Forward](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/scripts/light-cull/wip-ClusterForward.as)
+	* [Cluster Forward](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/scripts/light-cull/ClusterForward.as)
 */
 #ifdef __INTELLISENSE__
 # 	include <res_editor.as>
@@ -197,8 +197,8 @@
 
 		clusters.ArrayLayout(
 			"Cluster",
-			"	float4		sp;"
-			"	float3		points [8];"
+			"	float4		sp;"			// view space
+			"	float3		points [8];"	// view space
 			"	uint		visible;",
 			clusters_count.Volume()
 		);
@@ -211,7 +211,7 @@
 			"	float		coneAngle;"
 			"	float		coneHeight;"
 			"	float2		clipPlanes;"
-			"	float4		frustumPlanes [6];"
+			"	float4		vsFrustumPlanes [6];"	// view space
 			"	uint		visibleClusters;"
 		);
 
@@ -311,7 +311,7 @@
 	{
 		Frustum		frustum	= Frustum_FromMatrix( un_PerPass.camera.proj, iClipPlanes );	// view space
 
-		un_Params.frustumPlanes		= frustum.planes;
+		un_Params.vsFrustumPlanes	= frustum.planes;
 		un_Params.clipPlanes		= iClipPlanes;
 		un_Params.visibleClusters	= 0;
 
@@ -407,8 +407,8 @@
 		if ( AnyGreaterEqual( cluster_idx, cluster_count ))
 			return;
 
-		Frustum		main_frustum	= Frustum_Create( un_Params.frustumPlanes );	// view space
-		Frustum		cl_frustum		= CreateClusterFrustum( main_frustum, cluster_idx, cluster_count );
+		Frustum		main_frustum	= Frustum_Create( un_Params.vsFrustumPlanes );						// view space
+		Frustum		cl_frustum		= CreateClusterFrustum( main_frustum, cluster_idx, cluster_count );	// view space
 		Sphere		sp;
 
 		// cluster geometry

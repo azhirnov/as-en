@@ -9,7 +9,7 @@
 //-----------------------------------------------------------------------------
 // Fullscreen Triangle
 
-#if SH_VERT
+#ifdef SH_VERT
 
 // range: 0..1
 ND_ float2  FullscreenTriangleUV ()		{ return float2( gl.VertexIndex>>1, gl.VertexIndex&1 ) * 2.f; }
@@ -17,10 +17,13 @@ ND_ float2  FullscreenTriangleUV ()		{ return float2( gl.VertexIndex>>1, gl.Vert
 // range: -1..+1
 ND_ float4  FullscreenTrianglePos ()	{ return float4( float2( gl.VertexIndex>>1, gl.VertexIndex&1 ) * 4.f - 1.f, 0.f, 1.f ); }
 
-// range 0..1
+// range 0..2
 ND_ float2  FullscreenQuadUV ()			{ return float2( gl.VertexIndex>>1, gl.VertexIndex&1 ) * 2.f; }
 
 // range 0..1
+// 0---2
+// | / |
+// 1---3
 ND_ float2  ProceduralQuadUV ()			{ return float2( (gl.VertexIndex>>1)&1, gl.VertexIndex&1 ); }
 
 #endif
@@ -28,8 +31,10 @@ ND_ float2  ProceduralQuadUV ()			{ return float2( (gl.VertexIndex>>1)&1, gl.Ver
 //-----------------------------------------------------------------------------
 // Grid
 
-#if SH_VERT
+#ifdef SH_VERT
 
+// 'vtx'  - X coord (single strip of triangles)
+// 'inst' - Y coord
 ND_ int2  GenGridWithInstancingTriStrip (int vtx, int inst)
 {
 	return int2( (vtx >> 1), (vtx & 1) + inst );
@@ -41,12 +46,23 @@ ND_ int2  GenGridWithInstancingTriStrip ()
 }
 
 // if x > gridSize then set NaN to disable triangle
-ND_ int2  GenGridTriStrip (const int gridSize)
+ND_ int2  GenGridTriStrip (const int gridSizeX)
 {
-	int		size	= gridSize * 2 + 4;
+	int		size	= gridSizeX * 2 + 4;
 	int2	pos		= int2( gl.VertexIndex % size, gl.VertexIndex / size );
 			pos.y	+= pos.x & 1;
 			pos.x	= pos.x >> 1;
+	return pos;
+}
+
+ND_ int2  GenGridSerpantineTriStrip (const int gridSizeX)
+{
+	int		size	= (gridSizeX + 1) * 2;
+	int		row		= gl.VertexIndex / size;
+	int		k		= gl.VertexIndex % size;
+	int		odd		= row & 1;
+	int2	pos		= int2( Abs( gridSizeX * odd - (k >> 1) ),
+							row + ((k & 1) ^ odd) );
 	return pos;
 }
 
@@ -69,12 +85,100 @@ ND_ int2  GenGridTriStrip (const int gridSize)
 	return pos;
 }*/
 
+float2  _GenHexGridInstancingTris_HexCenter (int col, int row)
+{
+	float	s		= 1.0;
+	float	stagger = float(row & 1);
+	return	float2( s * float_SqrtOf3 * (float(col) + 0.5 * stagger),
+					s * 1.5 * float(row) );
+}
+
+float2  _GenHexGridInstancingTris_HexCorner (int i)
+{
+	float	s	= 1.0;
+	float	ang	= ToRad( 60.0 * float(i) - 30.0 ); // -30 => pointy top
+	return	s * float2(Cos( ang ), Sin( ang ));
+}
+
+struct HexGridData
+{
+	float2	worldPos;	// [-1, +1]
+	float2	hexUV;		// [0, 1]
+	int2	icenter;	// [0, gridSize-1]
+};
+ND_ HexGridData  GenHexGridInstancingTris (int gridSizeXY)
+{
+	int		hex_id	= gl.InstanceIndex;
+	int		q		= hex_id % gridSizeXY;
+	int		r		= hex_id / gridSizeXY;
+
+	int		tri		= gl.VertexIndex / 3;          // 0..5
+	int		tv		= gl.VertexIndex % 3;          // 0,1,2
+	int		c0		= tri;
+	int		c1		= (tri + 1) % 6;
+
+	float2	center	= _GenHexGridInstancingTris_HexCenter( q, r );
+	float2	local	= float2(0.0);
+
+	if ( tv != 0 )
+		local = _GenHexGridInstancingTris_HexCorner( tv == 1 ? c1 : c0 );
+
+	float2	p		= center + local;
+	float	n		= float(gridSizeXY);
+
+	float	xMin	= -0.5 * float_SqrtOf3;
+	float	xMax	= (n < 1.5) ? (0.5 * float_SqrtOf3) : (float_SqrtOf3 * n);
+	float	yMin	= -1.0;
+	float	yMax	= 1.5 * (n - 1.0) + 1.0;
+
+	float2	bmin	= float2( xMin, yMin );
+	float2	bmax	= float2( xMax, yMax );
+	float	h		= 0.25 * Max( bmax.x - bmin.x, bmax.y - bmin.y );
+	float2	mid		= 0.5 * (bmin + bmax);
+
+	HexGridData	res;
+	res.worldPos	= (p - mid) / h;
+	res.hexUV		= ToUNorm( local );
+	res.icenter		= int2(q, r);
+	return res;
+}
+
 #endif // SH_VERT
+
+// commonly used in compute shader to init DrawIndirect structure
+#ifdef SH_COMPUTE
+
+ND_ uint  GenGridWithInstancingTriStrip_VertexCount (const int gridSizeX)
+{
+	return (gridSizeX + 1) * 2;
+}
+
+ND_ uint  GenGridTriStrip_VertexCount (const int gridSize)
+{
+	return Square( gridSize + 1 ) * 2 - 4;
+}
+
+ND_ uint  GenGridTriStrip_VertexCount (const int2 gridSize)
+{
+	return gridSize.y * (gridSize.x * 2 + 4) - 2;
+}
+
+ND_ uint  GenGridSerpantineTriStrip_VertexCount (const int2 gridSize)
+{
+	return gridSize.y * (gridSize.x + 1) * 2;
+}
+
+ND_ uint  GenHexGridInstancingTris_VertexCount ()
+{
+	return 18;
+}
+
+#endif // SH_COMPUTE
 
 //-----------------------------------------------------------------------------
 // Cube
 
-#if SH_VERT
+#ifdef SH_VERT
 
 uint  GenCube_Mod3 (uint i)  { return i >= 3 ? i - 3 : i; }
 
@@ -90,7 +194,7 @@ ND_ float3  GenCube (const uint vertexId, const uint face)
 	float3	neg		= float3( Equal( uint3(face), uint3(1,3,5) ));
 	float3	fpos	= pos - neg;									// [-1..+1]
 
-	float3	vpos	= float3( vid & 1, (vid >> 1) & 1, 0.5 );
+	float3	vpos	= float3( (vid & 1) == (face & 1), (vid >> 1) & 1, 0.5 );
 			vpos	= ToSNorm( float3( vpos[ GenCube_Mod3(nf+2) ], vpos[ GenCube_Mod3(nf+1) ], vpos[ GenCube_Mod3(nf+0) ] ));	// [-1..+1]
 
 	return (fpos + vpos);

@@ -6,7 +6,7 @@
 #include "Math.glsl"
 
 #ifndef USE_LOW_PRECISION
-#	define USE_LOW_PRECISION	1
+#	define USE_LOW_PRECISION	0
 #endif
 
 #if USE_LOW_PRECISION and AE_ENABLE_HALF_TYPE
@@ -17,13 +17,35 @@
 #endif
 //-----------------------------------------------------------------------------
 
+ND_ bool  DecodeASTC (uint4 block, const uint2 blockSize, const int2 localTexel, out float4 outColor);	// RGBA8_UNorm
 
-ND_ float4  DecodeASTC (uint4 block, int2 localTexel);		// RGBA8_UNorm
-ND_ float4  DecodeASTC16F (uint4 block, int2 localTexel);	// RGBA16F
+
+ND_ float4  DecodeASTC_4x4 (uint4 block, int2 localTexel);		// RGBA8_UNorm / RGBA16F
+ND_ float4  DecodeASTC_8x8 (uint4 block, int2 localTexel);		// RGBA8_UNorm / RGBA16F
 //-----------------------------------------------------------------------------
 
 
-//#include "Compression/dec_astc.glsl"
+#include "../3party_shaders/Compression/dec_astc.glsl"
+//-----------------------------------------------------------------------------
+
+
+float4  DecodeASTC_4x4 (uint4 block, int2 localTexel)
+{
+	float4	col;
+	if ( !DecodeASTC( block, uint2(4,4), localTexel, OUT col ))
+		return float4(-1.0);
+
+	return col;
+}
+
+float4  DecodeASTC_8x8 (uint4 block, int2 localTexel)
+{
+	float4	col;
+	if ( !DecodeASTC( block, uint2(8,8), localTexel, OUT col ))
+		return float4(-1.0);
+
+	return col;
+}
 //-----------------------------------------------------------------------------
 
 

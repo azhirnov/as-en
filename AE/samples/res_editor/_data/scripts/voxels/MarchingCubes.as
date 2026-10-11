@@ -32,7 +32,9 @@
 		RC<Buffer>			select		= Buffer();
 		RC<DynamicFloat>	min_den		= DynamicFloat();
 		const uint3			local_size	= uint3( 8, 8, 8 );	// 512
-		const uint3			grid_size	= uint3(32);
+		RC<DynamicUInt>		grid_pot	= DynamicUInt();
+		RC<DynamicUInt3>	grid_size	= grid_pot.Exp2().XXX();
+		RC<DynamicUInt>		vox_count	= grid_size.Volume();
 
 		// setup camera
 		{
@@ -44,6 +46,9 @@
 			camera.UpDownScale( s );
 			camera.SideMovementScale( s );
 
+			camera.Position( -0.87, 0.0, 2.67 );
+			camera.ViewDir( 0.49, 0.0, 0.87 );
+
 			scene.Set( camera );
 		}
 
@@ -52,7 +57,7 @@
 			"	uint	packedPos;"		// 3x 8 bit
 			"	uint	tableOffset;"
 			"	float3	vpos [12];",	// [0..1]
-			Area( grid_size )
+			vox_count
 		);
 
 		select.UseLayout(
@@ -69,7 +74,7 @@
 
 			UnifiedGeometry_Draw	cmd;
 			cmd.vertexCount		= 5*3;	// 5 tris
-			cmd.instanceCount	= Area( grid_size );
+			cmd.InstanceCount( vox_count );
 			geometry.Draw( cmd );
 
 			scene.Add( geometry, float3(0.0, 0.0, 4.0) );
@@ -88,6 +93,7 @@
 		}
 
 		Slider( min_den,	"MinDensity",	0.0,	0.5,	0.0 );
+		Slider( grid_pot,	"GridSizePOT",	3,		7,		5 );
 
 		// render loop
 		{
@@ -100,6 +106,7 @@
 			pass.ArgInOut(	"un_Voxels",	voxels );
 			pass.ArgIn(		"un_CBuf",		cbuf );
 			pass.Constant(	"iMinDensity",	min_den );
+			pass.Constant(	"iGridSize",	grid_size );
 			pass.LocalSize( local_size );
 			pass.DispatchThreads( grid_size );
 		}{
@@ -173,7 +180,7 @@
 
 		if ( Abs(diff) > 1.0e-5 )
 		{
-			float	f = Saturate( (iMinDensity - den0) / (den1 - den0) );
+			float	f = Saturate( (0.0 - den0) / (den1 - den0) );
 			pos	= Lerp( float3(uvw0), float3(uvw1), f );
 		}
 		else
@@ -183,8 +190,12 @@
 
 	void  Main ()
 	{
-		int3	coord		= GetGlobalCoord();
-		int3	size		= GetGlobalSize();
+		const int3	coord	= GetGlobalCoord();
+		const int3	size	= iGridSize;
+
+		if ( AnyGreaterEqual( coord, size ))
+			return;
+
 		float3	inv_size	= 1.0 / float3(size);
 
 		// cache density
@@ -200,7 +211,7 @@
 		{
 			for (uint i = 0; i < 8; ++i)
 			{
-				if ( LocalDensity( un_CBuf.uvw[i] ) > iMinDensity )
+				if ( LocalDensity( un_CBuf.uvw[i] ) > 0.0 )
 					tri_type |= 1u << i;
 			}
 		}

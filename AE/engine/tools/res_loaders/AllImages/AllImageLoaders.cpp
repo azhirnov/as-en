@@ -17,6 +17,7 @@ namespace AE::ResLoader
 */
 	bool  AllImageLoaders::LoadImage (INOUT IntermImage &image, RStream &stream, Bool flipY, RC<IAllocator> allocator, EImageFormat fileFormat) __NE___
 	{
+		TRACY( ZoneScoped );
 		const Bytes	pos = stream.Position();
 
 		// multithreaded

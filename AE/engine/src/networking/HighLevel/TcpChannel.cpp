@@ -92,6 +92,8 @@ namespace {
 		if_unlikely( _toSend.queue.empty() )
 			return;
 
+		TRACY( ZoneScoped );
+
 		auto&		storage			= _toSend.storage;
 		Bytes		encoded			= _toSend.encoded;		// offset in 'storage' to the end of encoded messages
 		Bytes		pending;								// offset in 'storage' to begin of data which can be sent
@@ -235,6 +237,8 @@ namespace {
 */
 	void  TcpChannel::_ReceiveMessages (TcpSocket &socket, const FrameUID frameId, const EClientLocalID clientId, INOUT bool &isDisconnected) __NE___
 	{
+		TRACY( ZoneScoped );
+
 		auto&	storage		= _received.storage;
 		Bytes	received	= _received.received;	// offset in 'storage' to the end of received data
 		Bytes	decoded;							// offset in 'storage' to the begin of data which can be decoded, if enough size
@@ -436,6 +440,8 @@ namespace {
 */
 	void  TcpClientChannel::ProcessMessages (const FrameUID frameId, INOUT MsgQueueStatistic &stat) __NE___
 	{
+		TRACY( ZoneScoped );
+
 		if ( _lastFrameId != frameId )
 		{
 			_toSend.FlushPendingQueue();
@@ -522,6 +528,7 @@ namespace {
 */
 	void  TcpClientChannel::_Reconnect () __NE___
 	{
+		TRACY( ZoneScoped );
 		_socket.FastClose();
 
 		_status				= EStatus::Disconnected;
@@ -622,6 +629,8 @@ namespace {
 */
 	void  TcpServerChannel::ProcessMessages (const FrameUID frameId, INOUT MsgQueueStatistic &stat) __NE___
 	{
+		TRACY( ZoneScoped );
+
 		if ( _lastFrameId != frameId )
 		{
 			_toSend.FlushPendingQueue();
@@ -660,6 +669,8 @@ namespace {
 */
 	void  TcpServerChannel::_CheckNewConnections () __NE___
 	{
+		TRACY( ZoneScoped );
+
 		for (uint i = 0; i < _maxClients; ++i)
 		{
 			IpAddress	addr;

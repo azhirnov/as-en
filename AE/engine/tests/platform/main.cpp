@@ -18,7 +18,7 @@ using namespace AE::App;
 	extern void Test_Input ();
 	extern void Test_SendInput ();
 
-	Unique<IApplication::IAppListener>  AE_OnAppCreated (const int argc, char const* argv[])
+	AppListenerPtr  AE_OnAppCreated (const int argc, char const* argv[])
 	{
 		BEGIN_TEST();
 

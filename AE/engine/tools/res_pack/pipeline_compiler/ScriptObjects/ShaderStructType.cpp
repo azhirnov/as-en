@@ -3679,21 +3679,21 @@ namespace {
 			binder.Create();
 
 			binder.Comment( "Used as interface between graphics pipeline stages. Reflection to C++ is not supported." );
-			binder.AddValue( "ShaderIO",		EUsage::ShaderIO );
+			binder.AddValue< EUsage::ShaderIO >();
 
 			binder.Comment( "Used as vertex buffer layout. Enables reflection to C++." );
-			binder.AddValue( "VertexLayout",	EUsage::VertexLayout );
+			binder.AddValue< EUsage::VertexLayout >();
 
 			binder.Comment( "Used as vertex attributes in shader.\n"
 							"Reflection to C++ is not enabled, use 'VertexLayout' to enable it." );
-			binder.AddValue( "VertexAttribs",	EUsage::VertexAttribs );
+			binder.AddValue< EUsage::VertexAttribs >();
 
 			binder.Comment( "Used as uniform/storage buffer. Layout must be same in GLSL/MSL and C++. Enables reflection to C++." );
-			binder.AddValue( "BufferLayout",	EUsage::BufferLayout );
+			binder.AddValue< EUsage::BufferLayout >();
 
 			binder.Comment( "Used as buffer reference in shader. Layout must be same between shaders in single platform.\n"
 							"Reflection to C++ is not enabled, use 'BufferLayout' to enable it." );
-			binder.AddValue( "BufferReference",	EUsage::BufferReference );
+			binder.AddValue< EUsage::BufferReference >();
 			StaticAssert( uint(EUsage::All) == 31 );
 		}
 		{

@@ -14,6 +14,8 @@ namespace AE::App
 {
 # ifdef AE_PLATFORM_ANDROID
 
+	static constexpr auto	c_RawCharType = SerializableInputActions::c_RawCharType;
+
 	#define AE_ANDROID_KEY_CODES_VISITOR( _key_, _code_, _name_, _and_code_ )\
 		StaticAssert( uint(SerializableInputActionsAndroid::EInputType::_key_) == uint(_and_code_) );
 
@@ -47,7 +49,23 @@ namespace AE::App
 
 			case EInputType::MultiTouch :		return "MultiTouch";
 
+			case EInputType::MouseLeft :		return "MouseLeft";
+			case EInputType::MouseRight :		return "MouseRight";
+			case EInputType::MouseMiddle :		return "MouseMiddle";
+			case EInputType::MouseBtn4 :		return "MouseBtn4";
+			case EInputType::MouseBtn5 :		return "MouseBtn5";
+
+			case EInputType::StylusPrimary :	return "StylusPrimary";
+			case EInputType::StylusSecondary :	return "StylusSecondary";
+
 			// Cursor2DBegin
+			case EInputType::MouseWheel :		return "MouseWheel";
+
+			case EInputType::CursorPos :		return "CursorPos";
+			case EInputType::CursorPos_mm :		return "CursorPos_mm";
+			case EInputType::CursorDelta :		return "CursorDelta";
+			case EInputType::CursorDelta_norm :	return "CursorDelta_norm";
+
 			case EInputType::TouchPos :			return "TouchPos";
 			case EInputType::TouchPos_mm :		return "TouchPos_mm";
 			case EInputType::TouchDelta :		return "TouchDelta";

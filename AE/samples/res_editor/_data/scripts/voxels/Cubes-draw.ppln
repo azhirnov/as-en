@@ -110,9 +110,8 @@ struct Voxel
 		{
 			case 0 :	out_Color.rgb = float3(n_dot_l);  break;
 			case 1 :	out_Color.rgb = DHash31( float( In.uniqueId >> 8 ));  break;
-			case 2 :	out_Color.rgb = DHash31( float( In.uniqueId ));  break;
+			case 2 :	out_Color.rgb = DHash32( float2( In.uniqueId >> 8, In.uniqueId & 0xFF ));  break;
 		}
-		out_Color.a = 1.0;
 
 		if ( un_PerPass.mouse.z > 0.0 )
 		{
@@ -131,6 +130,7 @@ struct Voxel
 			if ( un_Select.instanceId == (In.uniqueId >> 8) )
 				out_Color.rgb = float3(1.0);
 		}
+		out_Color.a = 1.0;
 	}
 
 #endif

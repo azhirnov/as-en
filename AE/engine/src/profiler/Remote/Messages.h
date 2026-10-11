@@ -8,6 +8,7 @@
 #include "profiler/Profilers/AdrenoProfiler.h"
 #include "profiler/Profilers/PowerVRProfiler.h"
 #include "profiler/Profilers/GeneralProfiler.h"
+#include "profiler/Profilers/IntelProfiler.h"
 #include "pch/Networking.h"
 
 namespace AE::Networking
@@ -305,6 +306,50 @@ namespace AE::Networking
 //=============================================================================
 
 
+	DECL_CSMSG( IntelProf_InitReq,  Debug,
+		Profiler::IntelProfiler::ECounterSet	enable;
+		secondsf								updateInterval;
+	);
+
+	DECL_CSMSG( IntelProf_InitRes,  Debug,
+		bool									ok;
+		Profiler::IntelProfiler::ECounterSet	enabled;
+		Profiler::IntelProfiler::HWInfo			info;
+	);
+
+	DECL_CSMSG( IntelProf_NextSample,  Debug,
+		ubyte		index;
+		float		invdt;	// seconds
+	);
+
+	DECL_CSMSG( IntelProf_Sample,  Debug,
+		using KeyVal = Pair< Profiler::IntelProfiler::ECounter, float >;
+		ubyte		index;
+		ubyte		count;
+		KeyVal		arr [1];
+	);
+	//--------------------------------------------------------
+
+
+	CSMSG_ENC_DEC( IntelProf_InitReq,			enable, updateInterval );
+	CSMSG_ENC_DEC( IntelProf_InitRes,			ok, enabled, info );
+	CSMSG_ENC_DEC( IntelProf_NextSample,		index, invdt );
+	CSMSG_ENC_DEC_EXARRAY( IntelProf_Sample,	count, arr,  AE_ARGS( index, count ));
+	//--------------------------------------------------------
+
+
+	Nd__In bool  Register_IntelProfiler (MessageFactory &mf) __NE___
+	{
+		return	mf.Register<
+					CSMsg_IntelProf_InitReq,
+					CSMsg_IntelProf_InitRes,
+					CSMsg_IntelProf_NextSample,
+					CSMsg_IntelProf_Sample
+				>( False{} );
+	}
+//=============================================================================
+
+
 	Nd__In bool  Register_RemoteProfilers (MessageFactory &mf) __NE___
 	{
 		return	Register_ArmProfiler( mf )		and
@@ -312,7 +357,8 @@ namespace AE::Networking
 				Register_MaliProfiler( mf )		and
 				Register_PVRProfiler( mf )		and
 				Register_NVidiaProfiler( mf )	and
-				Register_GeneralProfiler( mf );
+				Register_GeneralProfiler( mf )	and
+				Register_IntelProfiler( mf );
 	}
 
 

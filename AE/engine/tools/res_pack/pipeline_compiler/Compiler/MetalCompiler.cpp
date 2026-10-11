@@ -106,6 +106,8 @@ namespace
 	bool  MetalCompiler::SpirvToMsl (const SpirvToMslConfig &cfg, SpirvBytecode_t spirv,
 									 INOUT SpirvCompiler::ShaderReflection &reflection, OUT String &src) const
 	{
+		TRACY( ZoneScoped );
+
 		using namespace spirv_cross;
 		try
 		{
@@ -179,6 +181,7 @@ namespace
 */
 	bool  MetalCompiler::Compile (const Input &in, OUT MetalBytecode_t &bytecode, OUT String &log) const
 	{
+		TRACY( ZoneScoped );
 		bytecode.clear();
 		log.clear();
 
@@ -425,6 +428,7 @@ namespace
 */
 	bool  MetalCompiler::BuildReflection (const Input &in, INOUT ShaderReflection &reflection, OUT String &log) const
 	{
+		TRACY( ZoneScoped );
 		log.clear();
 
 		CHECK_ERR( not in.source.empty() );

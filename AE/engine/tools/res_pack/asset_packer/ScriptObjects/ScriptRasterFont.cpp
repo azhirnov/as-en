@@ -260,13 +260,13 @@ namespace {
 			binder.Create();
 
 			binder.Comment( "Raster font, glyph dimension on screen should be multiple of glyph bitmap size." );
-			binder.AddValue( "Raster",	ERasterFontMode::Raster );
+			binder.AddValue< ERasterFontMode::Raster >();
 
 			binder.Comment( "SDF font, can be scaled, but have smooth angles." );
-			binder.AddValue( "SDF",		ERasterFontMode::SDF );
+			binder.AddValue< ERasterFontMode::SDF >();
 
 			binder.Comment( "Multichannel SDF font, can be scaled, have sharp angles, but a bit less performance." );
-			binder.AddValue( "MC_SDF",	ERasterFontMode::MC_SDF );
+			binder.AddValue< ERasterFontMode::MC_SDF >();
 			StaticAssert( uint(ERasterFontMode::_Count) == 3 );
 		}
 		{
@@ -405,7 +405,11 @@ namespace {
 
 				ASSERT( All( img_rect.Size() == int2(src.dimension) ));
 
-				CHECK_ERR( dst_view.Blit( uint3{int3{ img_rect.left, img_rect.top, 0 }}, uint3{0}, src_view, uint3{int3{ img_rect.Size(), 1 }} ));
+				RWImageMemView::BlitOp	op{ src_view, dst_view };
+				op.dstOffset	= uint3{int3{ img_rect.left, img_rect.top, 0 }};
+				op.srcOffset	= uint3{0};
+				op.dim			= uint3{int3{ img_rect.Size(), 1 }};
+				CHECK_ERR( RWImageMemView::Blit( op ));
 
 				src.texcoord = Rectangle<ushort>{img_rect};
 			}
@@ -517,7 +521,10 @@ namespace {
 			CHECK_ERR( texc.right <= int(dst_view.Dimension().x) );
 			CHECK_ERR( texc.bottom <= int(dst_view.Dimension().y) );
 
-			CHECK_ERR( dst_view.Blit( uint3{int3{ texc.left, texc.top, 0 }}, uint3{}, src_img, uint3{int3{ texc.Size(), 1 }} ));
+			RWImageMemView::BlitOp	op{ src_img, dst_view };
+			op.dstOffset	= uint3{int3{ texc.left, texc.top, 0 }};
+			op.dim			= uint3{int3{ texc.Size(), 1 }};
+			CHECK_ERR( RWImageMemView::Blit( op ));
 
 			src.texcoord = Rectangle<ushort>{texc};
 		}
@@ -1064,7 +1071,9 @@ namespace AE::AssetPacker
 			CHECK_ERR( glyph.data != null );
 
 			RWImageMemView	dst_view{ glyph.data, Bytes{glyph.dataSize}, uint3{}, dim, 0_b, 0_b, glyph.format, EImageAspect::Color };
-			CHECK_ERR( dst_view.Blit( src_view ));
+
+			RWImageMemView::BlitOp	op{ src_view, dst_view };
+			CHECK_ERR( RWImageMemView::Blit( op ));
 		}
 
 		return true;

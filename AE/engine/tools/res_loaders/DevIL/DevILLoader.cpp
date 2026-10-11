@@ -231,6 +231,7 @@ namespace {
 */
 	bool DevILLoader::LoadImage (INOUT IntermImage &image, RStream &stream, Bool flipY, RC<IAllocator> allocator, EImageFormat fileFormat) __NE___
 	{
+		TRACY( ZoneScoped );
 		CHECK_ERR( stream.IsOpen() );
 
 		switch_enum( fileFormat )
@@ -270,7 +271,9 @@ namespace {
 				if ( il_img_type == IL_TYPE_UNKNOWN )
 					il_img_type = devil.ilDetermineTypeL( data.data(), ILuint(data.size()) );
 
-				CHECK_ERR( il_img_type != IL_TYPE_UNKNOWN );
+				if ( il_img_type == IL_TYPE_UNKNOWN )
+					return false;  // can not load
+
 				CHECK_ERR( devil.ilLoadL( il_img_type, data.data(), ILuint(data.size()) ) == IL_TRUE );
 				return true;
 			}};
@@ -290,7 +293,8 @@ namespace {
 			{
 				ArrayRStream	mem_stream;
 				CHECK_ERR( mem_stream.DecompressFrom( stream ));
-				CHECK_ERR( DevILLoad( mem_stream.GetData() ));
+				if ( not DevILLoad( mem_stream.GetData() ))
+					return false;
 			}
 		}
 

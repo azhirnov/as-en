@@ -591,21 +591,26 @@ namespace
 		Graphics::DirectCtx::Transfer	tctx {rtask};
 		if ( hasSurface )
 		{
+			CHECK_CE( surface.GetTargets( OUT targets ));
+			CHECK_CE( targets.size() >= 1 );
+
+			const auto&		remoute_rt = targets[0];
+
 			// clear screen on device
 			if ( isFirst )
 			{
 			#if RE_PROFILING
 				// only transit to final state
-				tctx.ResourceBarrier( rt.imageId, rt.initialState | EResourceState::Invalidate, rt.finalState );
+				tctx.ResourceBarrier( remoute_rt.imageId, remoute_rt.initialState | EResourceState::Invalidate, remoute_rt.finalState );
 				tctx.CommitBarriers();
 			#else
 				// clear screen
-				tctx.ResourceBarrier( rt.imageId, rt.initialState | EResourceState::Invalidate, EResourceState::ClearDst );
+				tctx.ResourceBarrier( remoute_rt.imageId, remoute_rt.initialState | EResourceState::Invalidate, EResourceState::ClearDst );
 				tctx.CommitBarriers();
 
-				tctx.ClearColorImage( rt.imageId, RGBA8u{20, 0, 60, 255}, {ImageSubresourceRange{ EImageAspect::Color }} );
+				tctx.ClearColorImage( remoute_rt.imageId, RGBA8u{20, 0, 60, 255}, {ImageSubresourceRange{ EImageAspect::Color }} );
 
-				tctx.ResourceBarrier( rt.imageId, EResourceState::ClearDst, rt.finalState );
+				tctx.ResourceBarrier( remoute_rt.imageId, EResourceState::ClearDst, remoute_rt.finalState );
 				tctx.CommitBarriers();
 			#endif
 			}
@@ -867,7 +872,7 @@ namespace
 
 			ImGui::NextColumn();
 			if ( bool enable = g_mode->shaderFlags.contains( UIInteraction::EShaderFlags::EnableAsserts );
-				 ImGui::Checkbox( "Enable", INOUT &enable ))
+				 ImGui::Checkbox( "Enable everywhere", INOUT &enable ))
 				g_mode->shaderFlags.set( UIInteraction::EShaderFlags::EnableAsserts, enable );
 
 			ImGui::NextColumn();
@@ -1319,17 +1324,17 @@ namespace
 */
 	void  EditorUI::DrawTask::_UpdateDbgView (INOUT float2 &wnd_pos)
 	{
-		// setup style
-		{
-			// window / frame
-			ImGui::PushStyleColor( ImGuiCol_WindowBg,	RGBA8u{ 20, 0, 40, 255} );
-		}
-
 		const auto	dbg_wnd_flags = ImGuiWindowFlags_AlwaysVerticalScrollbar | ImGuiWindowFlags_AlwaysHorizontalScrollbar |
 									ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoScrollWithMouse;
 
 		if ( not imgui->showDbgViews )
 			return;
+
+		// setup style
+		{
+			// window / frame
+			ImGui::PushStyleColor( ImGuiCol_WindowBg,	RGBA8u{ 20, 0, 40, 255} );
+		}
 
 		for (uint i = 0; i < UIInteraction::MaxDebugViews; ++i)
 		{
@@ -1376,6 +1381,8 @@ namespace
 			}
 			ImGui::End();
 		}
+
+		ImGui::PopStyleColor();
 	}
 
 /*
@@ -1413,6 +1420,8 @@ namespace
 		ImGui::Begin( "CompilingPopup", null, wnd_flags );
 		ImGui::Text( "%s", text.data() );
 		ImGui::End();
+
+		ImGui::PopStyleColor();
 	}
 
 /*
@@ -1847,6 +1856,8 @@ namespace
 		if ( _initialized.load() )
 			return true;
 
+		TRACY( ZoneScoped );
+
 		_scriptDir.root = RVRef(scriptPath);
 		CHECK( not _scriptDir.root.empty() );
 		CHECK( FileSystem::IsDirectory( _scriptDir.root ));
@@ -1865,6 +1876,7 @@ namespace
 				_windowMode.windowedMode = wndMode;
 			}
 
+			AE_LOGI( "Initial UI scale: "s << ToString(uiScale, 1) );
 			_imgui->uiScale = int(uiScale * 4.0f + 0.5f);
 
 			_InitDeviceInfo();
@@ -1936,13 +1948,13 @@ namespace
 		StringView	fname;
 		switch_enum( resMngr.GetDevice().GetGraphicsAPI() )
 		{
-			case EGraphicsAPI::Vulkan :		fname = "vk/ui_pipelines.bin";	break;
-			case EGraphicsAPI::Metal :		fname = "mac/ui_pipelines.bin";	break;
+			case EGraphicsAPI::Vulkan :		fname = "vk_ui_pipelines.bin";	break;
+			case EGraphicsAPI::Metal :		fname = "mac_ui_pipelines.bin";	break;
 		}
 		switch_end
 
-		auto	file = MakeRC<FileRStream>( NtStringView{fname} );
-		CHECK_ERR( file->IsOpen() );
+		RC<RStream>		file;
+		CHECK_ERR( GetVFS().Open( OUT file, VFS::FileName{ String{StoragePrefix_Builtin} << fname }));
 
 		PipelinePackDesc	desc;
 		desc.stream		= file;
@@ -1964,8 +1976,18 @@ namespace
 	{
 		auto	imgui = _imgui.WriteLock();
 
-		CHECK( _profiler.Initialize( null ));
-		CHECK( _profiler.InitLogWindow() );
+		// profilers
+		{
+			using EProfilersMask = Profiler::ProfilerUI::EMask;
+			EProfilersMask	mask = Profiler::ProfilerUI::c_DefaultMask;
+
+		  #ifdef AE_PLATFORM_ANDROID
+			mask = EProfilersMask::Graphics | EProfilersMask::HardwareGPU;
+		  #endif
+
+			CHECK( _profiler.Initialize( null, mask ));
+			CHECK( _profiler.InitLogWindow() );
+		}
 
 		// init ImGUI context
 		if ( imgui->ctx == null )
@@ -2080,11 +2102,14 @@ namespace
 		auto	imgui = _imgui.WriteLock();
 
 		switchMode					= false;
-		imgui->mouseLBDown			= false;
 		imgui->mouseWheel			= {};
 		imgui->runShaderDebugger	= false;
 		imgui->reloadScript			= false;
 		imgui->inputChars.clear();
+
+		#ifndef AE_PLATFORM_ANDROID
+			imgui->mouseLBDown		= false;	// TODO: fix 'Hold' for mouse btn
+		#endif
 
 		ActionQueueReader::Header	hdr;
 		for (; reader.ReadHeader( OUT hdr );)
@@ -2092,13 +2117,17 @@ namespace
 			switch_IA( hdr.name )
 			{
 				case IA.UI_MousePos :
-					imgui->mousePos = reader.Data<packed_float2>( hdr.offset );		break;
+				  #ifdef AE_PLATFORM_ANDROID
+					if ( not imgui->mouseLBDown )
+				  #endif
+						imgui->mousePos = reader.Data<packed_float2>( hdr.offset );
+					break;
 
 				case IA.UI_MouseWheel :
-					imgui->mouseWheel = reader.Data<packed_float2>( hdr.offset );	break;
+					imgui->mouseWheel	= reader.Data<packed_float2>( hdr.offset );	break;
 
 				case IA.UI_MouseLBDown :
-					imgui->mouseLBDown = true;										break;
+					imgui->mouseLBDown	= EGestureState_IsActive( hdr.state );		break;
 
 				case IA.UI_SwitchInputMode :
 					switchMode = true;												break;
@@ -2141,13 +2170,22 @@ namespace
 					break;
 				}
 
-				case IA.UI_MouseRBDown :
+				case IA.MousePosToShader :
 				case IA.UI_ResExport :
 				case IA.CustomKey1 :
 				case IA.CustomKey2 :
 				case IA.Freeze :			break;	// ignore
 			}
 			switch_end
+
+		  #ifdef AE_PLATFORM_ANDROID
+			switch ( uint{hdr.name} )
+			{
+				case IA.Mobile.UI_Touch :
+					imgui->mouseLBDown	= EGestureState_IsActive( hdr.state );
+					imgui->mousePos		= reader.Data<packed_float2>( hdr.offset );	break;
+			}
+		  #endif
 		}
 	}
 
@@ -2296,6 +2334,8 @@ R"(UI controls:
 
 		if ( scriptDir.root.empty() )
 			return;
+
+		TRACY( ZoneScoped );
 
 		usize	node_id = 0;
 		_RecursiveCheckScriptDir( INOUT scriptDir.rootInfo, INOUT node_id, scriptDir.root, 0, scriptDir.maxDepth );

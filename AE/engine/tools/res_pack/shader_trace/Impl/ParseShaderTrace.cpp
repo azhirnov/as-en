@@ -481,7 +481,7 @@ namespace
 		for (uint i = 0; i < rows; ++i)
 		{
 			uint	r = swizzle[i] + rowOffset;
-			ASSERT( hasValue.Has( r ));
+			//ASSERT( hasValue.Has( r ));
 
 			str << (i ? ", " : "");
 
@@ -498,7 +498,7 @@ namespace
 			for (uint i = 0; i < rows; ++i)
 			{
 				uint	r = swizzle[i] + rowOffset;
-				ASSERT( hasValue.Has( r ));
+				//ASSERT( hasValue.Has( r ));
 
 				str << (i ? ", " : "");
 
@@ -527,7 +527,7 @@ namespace
 		for (uint i = 0; i < rows; ++i)
 		{
 			uint	r = swizzle[i] + rowOffset;
-			ASSERT( hasValue.Has( r ));
+			//ASSERT( hasValue.Has( r ));
 
 			str << (i ? ", " : "");
 

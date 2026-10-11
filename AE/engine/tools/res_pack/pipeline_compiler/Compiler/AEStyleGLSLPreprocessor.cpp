@@ -831,6 +831,8 @@ namespace AE::PipelineCompiler
 */
 	bool  AEStyleGLSLPreprocessor::Process (EShader, const PathAndLine &fileLoc, usize headerLines, StringView inStr, OUT String &outStr)
 	{
+		TRACY( ZoneScoped );
+
 		const auto	IsPartOfWord = [](char c) { return Parser::CPP.IsWord( c ); };
 
 		usize	hdr_size = 0;

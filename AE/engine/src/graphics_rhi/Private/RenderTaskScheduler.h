@@ -487,6 +487,17 @@ namespace AE::Graphics
 
 
 	//
+	// On Next Frame
+	//
+	struct OnNextFrame
+	{
+		FrameUID		frameId;
+
+		explicit OnNextFrame (FrameUID fid) __NE___ : frameId{fid} {}
+	};
+
+
+	//
 	// On Frame Next Cycle
 	//
 	struct OnFrameNextCycle

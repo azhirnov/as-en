@@ -1,4 +1,5 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
+// LLM generated
 
 ND_ float4  DecodeEAC_Ru (uint2 block, int2 localTexel)
 {

@@ -46,6 +46,7 @@ namespace AE::Threading::_hidden_
 */
 	void  WinSemaphore::Acquire () __NE___
 	{
+		TRACY( ZoneScoped );
 		NonNull( _handle );
 
 		auto ret = ::WaitForSingleObject( HANDLE{_handle}, INFINITE );
@@ -123,6 +124,7 @@ namespace AE::Threading::_hidden_
 */
 	void  PThreadSemaphore::Acquire () __NE___
 	{
+		TRACY( ZoneScoped );
 		int ret = ::sem_wait( _sem.Ptr<sem_t>() );
 
 		if_unlikely( ret != 0 )

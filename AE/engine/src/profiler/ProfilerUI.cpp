@@ -5,6 +5,11 @@
 # include "graphics/ImGui/ImGuiRenderer.h"
 #endif
 
+#include "profiler/Impl/GraphicsProfiler.h"
+#include "profiler/Impl/MemoryProfiler.h"
+#include "profiler/Impl/TaskProfiler.h"
+#include "profiler/Impl/HwpcProfiler.h"
+
 #include "profiler/ProfilerUI.h"
 
 namespace AE::Profiler
@@ -15,9 +20,12 @@ namespace AE::Profiler
 
 /*
 =================================================
-	destructor
+	constructor / destructor
 =================================================
 */
+	ProfilerUI::ProfilerUI ()
+	{}
+
 	ProfilerUI::~ProfilerUI ()
 	{
 		Deinitialize();
@@ -28,7 +36,7 @@ namespace AE::Profiler
 	Initialize
 =================================================
 */
-	bool  ProfilerUI::Initialize (Ptr<Networking::ClientServerBase> client)
+	bool  ProfilerUI::Initialize (Ptr<Networking::ClientServerBase> client, EMask mask)
 	{
 		const auto	start_time = ProfilerUtils::TimePoint_t::clock::now();
 
@@ -38,30 +46,41 @@ namespace AE::Profiler
 			CHECK( client->Add( _msgProducer ));
 		}
 
-		_hwpcProf.reset( new HwpcProfiler{ start_time });
-		if ( not _hwpcProf->Initialize( client, _msgProducer ))
-			_hwpcProf.reset( null );
-
 		PowerVRProfiler*	pvr = null;
-		if ( _hwpcProf )
+		if ( AnyBits( mask, EMask::HardwareCPU | EMask::HardwareGPU | EMask::OSMetrics ))
 		{
-			#if defined(AE_ENABLE_REMOTE_GRAPHICS) or defined(AE_ENABLE_PVRCOUNTER)
-			const bool	enable	= true;
-			#else
-			const bool	enable	= false;
-			#endif
+			_hwpcProf.reset( new HwpcProfiler{ start_time });
+			if ( not _hwpcProf->Initialize( client, _msgProducer ))
+				_hwpcProf.reset( null );
 
-			if ( client or enable )
-				pvr = &_hwpcProf->GetPowerVRProfiler();
+			if ( _hwpcProf )
+			{
+				#if defined(AE_ENABLE_REMOTE_GRAPHICS) or defined(AE_ENABLE_PVRCOUNTER)
+				const bool	enable	= true;
+				#else
+				const bool	enable	= false;
+				#endif
+
+				if ( client or enable )
+					pvr = &_hwpcProf->GetPowerVRProfiler();
+			}
 		}
 
-		_task		= MakeRC<TaskProfiler>( start_time );
-		_graphics	= MakeRC<GraphicsProfiler>( start_time, pvr );
-		_memory		= MakeRC<MemoryProfiler>( start_time );
-
-		Scheduler().SetProfiler( _task );
-		MemoryManager().SetProfiler( _memory );
-		GraphicsScheduler().SetProfiler( _graphics );
+		if ( AllBits( mask, EMask::Task ))
+		{
+			_task = MakeRC<TaskProfiler>( start_time );
+			Scheduler().SetProfiler( _task );
+		}
+		if ( AllBits( mask, EMask::Graphics ))
+		{
+			_graphics = MakeRC<GraphicsProfiler>( start_time, pvr );
+			GraphicsScheduler().SetProfiler( _graphics );
+		}
+		if ( AllBits( mask, EMask::Memory ))
+		{
+			_memory = MakeRC<MemoryProfiler>( start_time );
+			MemoryManager().SetProfiler( _memory );
+		}
 
 		_timer.Start( start_time, secondsf{1.f} );
 		_enabled.store( true );

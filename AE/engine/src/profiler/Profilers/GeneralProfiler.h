@@ -59,6 +59,8 @@ namespace AE::Profiler
 			BatteryCurrent,				// A
 			BatteryVoltage,				// V
 
+			CpuTemperature,				// C, from hwmon coretemp
+
 			_Count
 		};
 

@@ -960,6 +960,8 @@ namespace
 		binder.Comment( "Load CSV and put it to buffer with same column names." );
 		AS_METHOD( binder, ScriptBuffer::LoadCSV,				"LoadCSV",			{"filename", "elemTypeName"} );
 
+		AS_METHOD( binder, ScriptBuffer::CreateView1,			"CreateView",		{} );
+
 		binder.Comment( "Build buffer data layout with initial content.\n"
 						"Returns offset in bytes where data is begin." );
 
@@ -1063,6 +1065,7 @@ namespace
 		if ( _resource )
 			return _resource;
 
+		TRACY( ZoneScoped );
 		AddLayoutReflection();  // throw
 
 		Buffer::EBufferFlags	flags = Default;
@@ -1216,16 +1219,9 @@ namespace
 			ref_buffers.push_back( src->ToResource() );
 		}
 
-		Array<RC<BufferView>>	views;
-		views.reserve( _views.size() );
-
-		for (auto& src : _views) {
-			views.push_back( src->ToResource() );
-		}
-
 		_resource = Buffer::Create( RVRef(buf_ids), _desc, static_size, elem_size, RVRef(load_op), struct_type,
 									renderer, (_inDynCount ? _inDynCount->Get() : null), (_outDynCount ? _outDynCount->Get() : null),
-									_dbgName, flags, RVRef(ref_buffers), RVRef(views) );  // throw
+									_dbgName, flags, RVRef(ref_buffers) );  // throw
 		return _resource;
 	}
 
@@ -1395,6 +1391,8 @@ namespace
 */
 	void  ScriptBuffer::LoadCSV (const String &filename, const String &elemTypeName) __Th___
 	{
+		TRACY( ZoneScoped );
+
 		_CanSetLayout();  // throw
 		CHECK_THROW_MSG( not _filename.IsDefined(), "Buffer data is already loaded from file" );
 
@@ -1628,7 +1626,7 @@ namespace
 				_layout._data.resize( usize{ offset + size });
 
 				ASSERT( align <= max_align );
-				//ASSERT_Eq( offset - begin, ref_offset );
+				//ASSERT_Eq( offset - begin, ref_offset );	// TODO
 
 				switch ( type & EType::ValueMask )
 				{

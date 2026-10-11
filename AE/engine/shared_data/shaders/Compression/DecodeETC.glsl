@@ -19,21 +19,24 @@
 //-----------------------------------------------------------------------------
 
 
-ND_ float4  DecodeETC2 (uint2 block, int2 localTexel);		// RGB8
-ND_ float4  DecodeETC2A1 (uint2 block, int2 localTexel);	// RGB8_A1 mode
-ND_ float4  DecodeETC2_EAC (uint4 block, int2 localTexel);	// RGBA8 mode
+ND_ float4  DecodeETC2 		(uint2 block, int2 localTexel);	// RGB8				max error: ~0%
+ND_ float4  DecodeETC2A1 	(uint2 block, int2 localTexel);	// RGB8_A1 mode
+ND_ float4  DecodeETC2_EAC 	(uint4 block, int2 localTexel);	// RGBA8 mode
 
-ND_ float4  DecodeEAC_Ru (uint2 block, int2 localTexel);	// R11_UNorm
-ND_ float4  DecodeEAC_Rs (uint2 block, int2 localTexel);	// R11_SNorm
+ND_ float4  DecodeEAC_Ru  (uint2 block, int2 localTexel);	// R11_UNorm
+ND_ float4  DecodeEAC_Rs  (uint2 block, int2 localTexel);	// R11_SNorm		max error: ~0%
 ND_ float4  DecodeEAC_RGu (uint4 block, int2 localTexel);	// RG11_UNorm
 ND_ float4  DecodeEAC_RGs (uint4 block, int2 localTexel);	// RG11_SNorm
 //-----------------------------------------------------------------------------
 
 
 #include "Compression/dec_etc2.glsl"
-//#include "3party_shaders/Compression/dec_etc2.glsl"
-
 #include "Compression/dec_eac.glsl"
+//-----------------------------------------------------------------------------
+
+
+#define DecodeETC2		DecodeETC2_v1
+#define DecodeETC2A1	DecodeETC2A1_v1
 //-----------------------------------------------------------------------------
 
 

@@ -336,7 +336,7 @@ namespace
 				// see 'model.mtr.ds' in [src](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/pipeline_inc/ModelTypes.as)
 				buf_names.insert( UniformName::Optimized_t{"un_Nodes"} );
 				buf_names.insert( UniformName::Optimized_t{"un_Materials"} );
-				buf_names.insert( UniformName::Optimized_t{"un_Lights"} );
+				buf_names.insert( UniformName::Optimized_t{"un_SceneLights"} );
 				img_names.emplace( UniformName::Optimized_t{"un_AlbedoMaps"} );
 				break;
 			}
@@ -358,6 +358,7 @@ namespace
 				usize	texbuf_counter	= 0;
 				usize	img_counter		= 0;
 				usize	rtas_counter	= 0;
+				unbound_names.clear();
 
 				const auto	IncCounter = [&unbound_names] (bool found, UniformName::Ref name, INOUT usize &resCount)
 				{{
@@ -446,9 +447,9 @@ namespace
 						names.pop_back();
 						names.pop_back();
 
-						CHECK_THROW_MSG( false,
-							"Pipeline '"s << ppln->NameStr() << "' with DS '" << dsName << "' has all resources from geometry, but has " << ToString(unbound_names.size()) <<
-							" unbound resources: " << names );
+						AE_LOGW( "Pipeline '"s << ppln->NameStr() << "' with DS '" << dsName << "' has all resources from geometry, but has " <<
+								 ToString(unbound_names.size()) << " unbound resources: " << names );
+						continue; // skip pipeline
 					}
 					out_pplns.push_back( ppln );
 					break;
@@ -653,7 +654,7 @@ namespace
 		{
 			result = _GetSuitablePipeline( pipelines, subpassIdx, hint, objId );
 			CHECK_THROW_MSG( result.size() == 1,
-				"Expected to find one suitable pipeline, instead found "s << ToString(result.size()) );
+				"Expected to find one suitable pipeline with hint '"s << hint << "' , instead found "s << ToString(result.size()) );
 		}
 
 		for (EShaderStages stage : BitfieldIterate( stages ))

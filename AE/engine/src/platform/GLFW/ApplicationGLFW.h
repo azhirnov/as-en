@@ -26,7 +26,7 @@ namespace AE::App
 
 	// methods
 	public:
-		static int   Run (Unique<IAppListener>, bool useX11 = false)					__NE___;
+		static int   Run (AppListenerPtr, bool useX11 = false)							__NE___;
 		static bool  GetMonitorInfo (GLFWmonitor*, OUT Monitor &)						__NE___;
 
 
@@ -45,7 +45,7 @@ namespace AE::App
 
 
 	private:
-		explicit ApplicationGLFW (Unique<IAppListener>)									__NE___;
+		explicit ApplicationGLFW (AppListenerPtr)										__NE___;
 		~ApplicationGLFW ()																__NE___;
 
 		void  _MainLoop ()																__NE___;

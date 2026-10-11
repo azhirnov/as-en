@@ -442,6 +442,7 @@ namespace
 		if ( _resource )
 			return _resource;
 
+		TRACY( ZoneScoped );
 		CHECK_THROW_MSG( not _instances.empty() );
 		CHECK_THROW_MSG( _instanceBuffer );
 

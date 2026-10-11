@@ -5,4 +5,12 @@ add_executable( "ResourceUpdater" ${SOURCES} )
 source_group( TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${SOURCES} )
 target_link_libraries( "ResourceUpdater" PUBLIC "ResourceLoaders" "Threading" )
 set_property( TARGET "ResourceUpdater" PROPERTY FOLDER "Engine/ToolApps" )
+
+if (TARGET "Compressonator-lib")
+	target_link_libraries( "ResourceUpdater" PUBLIC "Compressonator-lib" )
+endif()
+if (TARGET "AstcEncoder-lib")
+	target_link_libraries( "ResourceUpdater" PUBLIC "AstcEncoder-lib" )
+endif()
+
 UseEnginePCH2( "ResourceUpdater" )

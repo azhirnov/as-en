@@ -524,6 +524,7 @@ namespace
 */
 	bool  SLangCompiler::Compile (const Input &in, OUT Output &out) __NE___
 	{
+		TRACY( ZoneScoped );
 		try{
 			return _CompileImpl( in, OUT out );
 		}

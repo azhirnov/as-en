@@ -130,6 +130,7 @@ namespace AE::ResEditor
 */
 	RC<IPass>  ScriptSceneRayQueryPass::ToPass () __Th___
 	{
+		TRACY( ZoneScoped );
 		CHECK_THROW_MSG( All( _localSize > 0u ), "LocalSize() is not used" );
 		CHECK_THROW_MSG( not _iterations.empty(), "add at least one Dispatch() call" );
 		CHECK_THROW_MSG( not _args.Empty(), "empty argument list" );

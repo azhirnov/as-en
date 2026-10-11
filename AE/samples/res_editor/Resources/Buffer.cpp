@@ -47,8 +47,7 @@ namespace
 					RC<DynamicUInt>		outDynCount,
 					StringView			dbgName,
 					EBufferFlags		flags,
-					Array<RC<Buffer>>	refBuffers,
-					Array<RC<BufferView>> views) __NE___ :
+					Array<RC<Buffer>>	refBuffers) __NE___ :
 		IResource{ renderer },
 		_typeName{ typeName },
 		_staticSize{ staticSize },
@@ -59,8 +58,7 @@ namespace
 		_loadOp{ RVRef(loadOp) },
 		_flags{ flags },
 		_dbgName{ dbgName },
-		_refBuffers{ RVRef(refBuffers) },
-		_views{ RVRef(views) }
+		_refBuffers{ RVRef(refBuffers) }
 	{
 		for (usize i = 0; i < ids.size(); ++i) {
 			Unused( _ids[i].Attach( RVRef(ids[i]) ));
@@ -137,11 +135,10 @@ namespace
 								RC<DynamicUInt>		outDynCount,
 								StringView			dbgName,
 								EBufferFlags		flags,
-								Array<RC<Buffer>>	refBuffers,
-								Array<RC<BufferView>> refViews)	__Th___
+								Array<RC<Buffer>>	refBuffers)	__Th___
 	{
 		RC<Buffer>	res{ new Buffer{ RVRef(ids), desc, staticSize, elemSize, RVRef(loadOp), typeName, renderer,
-									 RVRef(inDynCount), RVRef(outDynCount), dbgName, flags, RVRef(refBuffers), RVRef(refViews) }};
+									 RVRef(inDynCount), RVRef(outDynCount), dbgName, flags, RVRef(refBuffers) }};
 		res->_Init();
 		return res;
 	}
@@ -244,8 +241,13 @@ namespace
 			}
 		}
 
-		for (auto& view : _views) {
-			view->_OnBufferResized( buf.Get(), desc.size );
+		// update views
+		{
+			auto	derived = _derived.ReadLock();
+
+			for (auto* view : *derived) {
+				view->_OnBufferResized( buf.Get(), desc.size );
+			}
 		}
 
 		if ( _loadOp.clear )
@@ -282,6 +284,8 @@ namespace
 	{
 		if ( auto stat = _uploadStatus.load();  stat != EUploadStatus::InProgress )
 			return stat;
+
+		TRACY( ZoneScoped );
 
 		const auto	CopyHistory = [this, &ctx] (Bytes size)
 		{{
@@ -424,6 +428,7 @@ namespace
 		if ( auto stat = _uploadStatus.load();  stat != EUploadStatus::InProgress )
 			return stat;
 
+		TRACY( ZoneScoped );
 		ASSERT( _storeOp.IsDefined() );
 
 		const Bytes	offset = _storeOp.stream.pos;
@@ -461,5 +466,32 @@ namespace
 		return GraphicsScheduler().GetResourceManager().GetDescription( _ids[0].Get() );
 	}
 
+/*
+=================================================
+	CreateView
+=================================================
+*/
+	RC<BufferView>  Buffer::CreateView (const BufferViewDesc &viewDesc, StringView dbgName) __Th___
+	{
+		CHECK_THROW_MSG( not HasHistory(),
+			"Can not create view for buffer with history" );
+
+		auto&		res_mngr	= GraphicsScheduler().GetResourceManager();
+		BufferID	buf_id		= GetBufferId(0);
+
+		CHECK_THROW_MSG( res_mngr.IsSupported( buf_id, viewDesc ),
+			"BufferView '"s << dbgName << "' description is not supported by GPU device" );
+
+		Strong<BufferViewID>	view_id = res_mngr.CreateBufferView( viewDesc, buf_id, dbgName );
+		CHECK_THROW_MSG( view_id );
+
+		RC<BufferView>	result{ new BufferView{ GetRC<Buffer>(), RVRef(view_id), viewDesc.format, _Renderer(), dbgName }};
+
+		result->_uploadStatus.store( EUploadStatus::Completed );
+
+		_derived->insert( result.get() );
+
+		return result;
+	}
 
 } // AE::ResEditor

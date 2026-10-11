@@ -23,63 +23,39 @@ namespace AE::ResEditor
 
 	// methods
 	public:
-		explicit ScriptDynamicDim ()									__NE___ {}
-		explicit ScriptDynamicDim (RC<DynamicDim> ds)					__NE___ : _dynSize{RVRef(ds)} {}
+		explicit ScriptDynamicDim ()										__NE___ {}
+		explicit ScriptDynamicDim (RC<DynamicDim> ds)						__NE___ : _dynSize{RVRef(ds)} {}
 
-		ND_ RC<DynamicDim>		Get ()									C_NE___	{ return _dynSize; }
+		ND_ RC<DynamicDim>			Get ()									C_NE___	{ return _dynSize; }
 
-		ND_ ScriptDynamicDim*	Mul1 (int value)						C_Th___	{ return Mul3( packed_int3{value} ); }
-		ND_ ScriptDynamicDim*	Div1 (int value)						C_Th___	{ return Div3( packed_int3{value} ); }
-		ND_ ScriptDynamicDim*	DivRound1 (int value)					C_Th___	{ return DivRound3( packed_int3{value} ); }
-		ND_ ScriptDynamicDim*	DivCeil1 (int value)					C_Th___	{ return DivCeil3( packed_int3{value} ); }
+		ND_ ScriptDynamicDim*		Mul1 (int value)						C_Th___	{ return Mul3( packed_int3{value} ); }
+		ND_ ScriptDynamicDim*		Div1 (int value)						C_Th___	{ return Div3( packed_int3{value} ); }
+		ND_ ScriptDynamicDim*		DivRound1 (int value)					C_Th___	{ return DivRound3( packed_int3{value} ); }
+		ND_ ScriptDynamicDim*		DivCeil1 (int value)					C_Th___	{ return DivCeil3( packed_int3{value} ); }
 
-		ND_ ScriptDynamicDim*	Mul2 (const packed_int2 &value)			C_Th___	{ return Mul3( packed_int3{value,1} ); }
-		ND_ ScriptDynamicDim*	Div2 (const packed_int2 &value)			C_Th___	{ return Div3( packed_int3{value,1} ); }
-		ND_ ScriptDynamicDim*	DivRound2 (const packed_int2 &value)	C_Th___	{ return DivRound3( packed_int3{value,1} ); }
-		ND_ ScriptDynamicDim*	DivCeil2 (const packed_int2 &value)		C_Th___	{ return DivCeil3( packed_int3{value,1} ); }
+		ND_ ScriptDynamicDim*		Mul2 (const packed_int2 &value)			C_Th___	{ return Mul3( packed_int3{value,1} ); }
+		ND_ ScriptDynamicDim*		Div2 (const packed_int2 &value)			C_Th___	{ return Div3( packed_int3{value,1} ); }
+		ND_ ScriptDynamicDim*		DivRound2 (const packed_int2 &value)	C_Th___	{ return DivRound3( packed_int3{value,1} ); }
+		ND_ ScriptDynamicDim*		DivCeil2 (const packed_int2 &value)		C_Th___	{ return DivCeil3( packed_int3{value,1} ); }
 
-		ND_ ScriptDynamicDim*	Mul3 (const packed_int3 &value)			C_Th___;
-		ND_ ScriptDynamicDim*	Div3 (const packed_int3 &value)			C_Th___;
-		ND_ ScriptDynamicDim*	DivRound3 (const packed_int3 &value)	C_Th___;
-		ND_ ScriptDynamicDim*	DivCeil3 (const packed_int3 &value)		C_Th___;
+		ND_ ScriptDynamicDim*		Mul3 (const packed_int3 &value)			C_Th___;
+		ND_ ScriptDynamicDim*		Div3 (const packed_int3 &value)			C_Th___;
+		ND_ ScriptDynamicDim*		DivRound3 (const packed_int3 &value)	C_Th___;
+		ND_ ScriptDynamicDim*		DivCeil3 (const packed_int3 &value)		C_Th___;
 
-		ND_ ScriptDynamicDim*	FloorPOT ()								C_Th___;
+		ND_ ScriptDynamicDim*		FloorPOT ()								C_Th___;
 
-		ND_ ScriptDynamicUInt*  X ()									C_Th___;
-		ND_ ScriptDynamicUInt*  Y ()									C_Th___;
-		ND_ ScriptDynamicUInt2* XY ()									C_Th___;
-		ND_ ScriptDynamicUInt*  Area ()									C_Th___;
-		ND_ ScriptDynamicUInt*  Volume ()								C_Th___;
+		ND_ ScriptDynamicUInt*		X ()									C_Th___;
+		ND_ ScriptDynamicUInt*		Y ()									C_Th___;
+		ND_ ScriptDynamicUInt2*		XY ()									C_Th___;
+		ND_ ScriptDynamicUInt*		Area ()									C_Th___;
+		ND_ ScriptDynamicUInt*		Volume ()								C_Th___;
 
-		ND_ ScriptDynamicFloat2*  ToFloat2 ()							C_Th___;
-		ND_ ScriptDynamicFloat2*  Inverse ()							C_Th___;
+		ND_ ScriptDynamicFloat2*	ToFloat2 ()								C_Th___;
+		ND_ ScriptDynamicFloat2*	Inverse ()								C_Th___;
 
-		static void  Bind (const ScriptEnginePtr &se)					__Th___;
+		static void  Bind (const ScriptEnginePtr &se)						__Th___;
 	};
-
-
-
-	//
-	// Script Dynamic Matrix4x4
-	//
-	/*
-	class ScriptDynamicMatrix4x4 final : public EnableScriptRC
-	{
-	// variables
-	private:
-		RC<DynamicMatrix4x4>	_value;
-
-
-	// methods
-	public:
-		explicit ScriptDynamicMatrix4x4 ()								__Th___ {}
-		explicit ScriptDynamicMatrix4x4 (RC<DynamicMatrix4x4> dm)		__NE___ : _value{RVRef(dm)} {}
-
-		ND_ RC<DynamicMatrix4x4>  Get ()								C_NE___	{ return _value; }
-
-		static void  Bind (const ScriptEnginePtr &se)					__Th___;
-	};
-	*/
 
 
 
@@ -95,47 +71,47 @@ namespace AE::ResEditor
 
 	// methods
 	public:
-		explicit ScriptDynamicUInt ()									__Th___ : _value{ MakeRC<DynamicUInt>() } {}
-		explicit ScriptDynamicUInt (RC<DynamicUInt> dv)					__NE___ : _value{RVRef(dv)} {}
+		explicit ScriptDynamicUInt ()										__Th___ : _value{ MakeRC<DynamicUInt>() } {}
+		explicit ScriptDynamicUInt (RC<DynamicUInt> dv)						__NE___ : _value{RVRef(dv)} {}
 
-		ND_ RC<DynamicUInt>		Get ()									C_NE___	{ return _value; }
+		ND_ RC<DynamicUInt>			Get ()									C_NE___	{ return _value; }
 
-		ND_ ScriptDynamicUInt*	Mul (uint value)						__Th___;
-		ND_ ScriptDynamicUInt*	Div (uint value)						__Th___;
-		ND_ ScriptDynamicUInt*	DivNear (uint value)					__Th___;
-		ND_ ScriptDynamicUInt*	DivCeil (uint value)					__Th___;
-		ND_ ScriptDynamicUInt*	Add (uint value)						__Th___;
-		ND_ ScriptDynamicUInt*	Sub (uint value)						__Th___;
-		ND_ ScriptDynamicUInt*	Pow (uint value)						__Th___;
-		ND_ ScriptDynamicUInt*	Min (uint value)						__Th___;
-		ND_ ScriptDynamicUInt*	Max (uint value)						__Th___;
-		ND_ ScriptDynamicUInt*	Exp2 ()									__Th___;
-		ND_ ScriptDynamicUInt*	Exp2Mul (uint value)					__Th___;
-		ND_ ScriptDynamicUInt*	FloorPOT ()								__Th___;
-		ND_ ScriptDynamicUInt*	CeilPOT ()								__Th___;
-		ND_ ScriptDynamicUInt*	NearPOT ()								__Th___;
+		ND_ ScriptDynamicUInt*		Mul (uint value)						__Th___;
+		ND_ ScriptDynamicUInt*		Div (uint value)						__Th___;
+		ND_ ScriptDynamicUInt*		DivNear (uint value)					__Th___;
+		ND_ ScriptDynamicUInt*		DivCeil (uint value)					__Th___;
+		ND_ ScriptDynamicUInt*		Add (uint value)						__Th___;
+		ND_ ScriptDynamicUInt*		Sub (uint value)						__Th___;
+		ND_ ScriptDynamicUInt*		Pow (uint value)						__Th___;
+		ND_ ScriptDynamicUInt*		Min (uint value)						__Th___;
+		ND_ ScriptDynamicUInt*		Max (uint value)						__Th___;
+		ND_ ScriptDynamicUInt*		Exp2 ()									__Th___;
+		ND_ ScriptDynamicUInt*		Exp2Mul (uint value)					__Th___;
+		ND_ ScriptDynamicUInt*		FloorPOT ()								__Th___;
+		ND_ ScriptDynamicUInt*		CeilPOT ()								__Th___;
+		ND_ ScriptDynamicUInt*		NearPOT ()								__Th___;
 
-		ND_ ScriptDynamicDim*	ToDim2 ()								__Th___;
-		ND_ ScriptDynamicDim*	ToDim3 ()								__Th___;
+		ND_ ScriptDynamicDim*		ToDim2 ()								__Th___;
+		ND_ ScriptDynamicDim*		ToDim3 ()								__Th___;
 
-		ND_ ScriptDynamicUInt*	Add1 (const ScriptDynamicUIntPtr &)		__Th___;
-		ND_ ScriptDynamicUInt*	Sub1 (const ScriptDynamicUIntPtr &)		__Th___;
-		ND_ ScriptDynamicUInt*	Mul1 (const ScriptDynamicUIntPtr &)		__Th___;
-		ND_ ScriptDynamicUInt*	Div1 (const ScriptDynamicUIntPtr &)		__Th___;
-		ND_ ScriptDynamicUInt*	Min1 (const ScriptDynamicUIntPtr &)		__Th___;
-		ND_ ScriptDynamicUInt*	Max1 (const ScriptDynamicUIntPtr &)		__Th___;
+		ND_ ScriptDynamicUInt*		Add1 (const ScriptDynamicUIntPtr &)		__Th___;
+		ND_ ScriptDynamicUInt*		Sub1 (const ScriptDynamicUIntPtr &)		__Th___;
+		ND_ ScriptDynamicUInt*		Mul1 (const ScriptDynamicUIntPtr &)		__Th___;
+		ND_ ScriptDynamicUInt*		Div1 (const ScriptDynamicUIntPtr &)		__Th___;
+		ND_ ScriptDynamicUInt*		Min1 (const ScriptDynamicUIntPtr &)		__Th___;
+		ND_ ScriptDynamicUInt*		Max1 (const ScriptDynamicUIntPtr &)		__Th___;
 
-		ND_ ScriptDynamicUInt2*	X1 ()									__Th___;
-		ND_ ScriptDynamicUInt3*	X11 ()									__Th___;
+		ND_ ScriptDynamicUInt2*		X1 ()									__Th___;
+		ND_ ScriptDynamicUInt3*		X11 ()									__Th___;
 
-		ND_ ScriptDynamicUInt2*	XX ()									__Th___;
-		ND_ ScriptDynamicUInt3*	XXX ()									__Th___;
+		ND_ ScriptDynamicUInt2*		XX ()									__Th___;
+		ND_ ScriptDynamicUInt3*		XXX ()									__Th___;
 
-		ND_ ScriptDynamicFloat*	ToFloat ()								__Th___;
-		ND_ ScriptDynamicFloat*	AsFloat ()								__Th___;
-		ND_ ScriptDynamicFloat*	Percent (const ScriptDynamicUIntPtr &)	__Th___;
+		ND_ ScriptDynamicFloat*		ToFloat ()								__Th___;
+		ND_ ScriptDynamicFloat*		AsFloat ()								__Th___;
+		ND_ ScriptDynamicFloat*		Percent (const ScriptDynamicUIntPtr &)	__Th___;
 
-		static void  Bind (const ScriptEnginePtr &se)					__Th___;
+		static void  Bind (const ScriptEnginePtr &se)						__Th___;
 	};
 
 
@@ -152,43 +128,45 @@ namespace AE::ResEditor
 
 	// methods
 	public:
-		explicit ScriptDynamicUInt2 ()									__Th___ : _value{ MakeRC<DynamicUInt2>() } {}
-		explicit ScriptDynamicUInt2 (RC<DynamicUInt2> dv)				__NE___ : _value{RVRef(dv)} {}
+		explicit ScriptDynamicUInt2 ()										__Th___ : _value{ MakeRC<DynamicUInt2>() } {}
+		explicit ScriptDynamicUInt2 (RC<DynamicUInt2> dv)					__NE___ : _value{RVRef(dv)} {}
 
-		ND_ RC<DynamicUInt2>  Get ()									C_NE___	{ return _value; }
+		ND_ RC<DynamicUInt2>		Get ()									C_NE___	{ return _value; }
 
-		ND_ ScriptDynamicUInt2*	Add (const packed_uint2 &value)			__Th___;
-		ND_ ScriptDynamicUInt2*	Sub (const packed_uint2 &value)			__Th___;
-		ND_ ScriptDynamicUInt2*	Pow (const packed_uint2 &value)			__Th___;
-		ND_ ScriptDynamicUInt2*	Min (const packed_uint2 &value)			__Th___;
-		ND_ ScriptDynamicUInt2*	Max (const packed_uint2 &value)			__Th___;
-		ND_ ScriptDynamicUInt2*	Mul (const packed_uint2 &value)			__Th___;
-		ND_ ScriptDynamicUInt2*	Div (const packed_uint2 &value)			__Th___;
-		ND_ ScriptDynamicUInt2*	DivNear (const packed_uint2 &value)		__Th___;
-		ND_ ScriptDynamicUInt2*	DivCeil (const packed_uint2 &value)		__Th___;
-		ND_ ScriptDynamicUInt2*	FloorPOT ()								__Th___;
-		ND_ ScriptDynamicUInt2*	CeilPOT ()								__Th___;
-		ND_ ScriptDynamicUInt2*	NearPOT ()								__Th___;
-		ND_ ScriptDynamicUInt2*	AlignUp (const packed_uint2 &value)		__Th___;
-		ND_ ScriptDynamicUInt2*	AlignDown (const packed_uint2 &value)	__Th___;
+		ND_ ScriptDynamicUInt2*		Add (const packed_uint2 &value)			__Th___;
+		ND_ ScriptDynamicUInt2*		Sub (const packed_uint2 &value)			__Th___;
+		ND_ ScriptDynamicUInt2*		Pow (const packed_uint2 &value)			__Th___;
+		ND_ ScriptDynamicUInt2*		Min (const packed_uint2 &value)			__Th___;
+		ND_ ScriptDynamicUInt2*		Max (const packed_uint2 &value)			__Th___;
+		ND_ ScriptDynamicUInt2*		Mul (const packed_uint2 &value)			__Th___;
+		ND_ ScriptDynamicUInt2*		Div (const packed_uint2 &value)			__Th___;
+		ND_ ScriptDynamicUInt2*		DivNear (const packed_uint2 &value)		__Th___;
+		ND_ ScriptDynamicUInt2*		DivCeil (const packed_uint2 &value)		__Th___;
+		ND_ ScriptDynamicUInt2*		FloorPOT ()								__Th___;
+		ND_ ScriptDynamicUInt2*		CeilPOT ()								__Th___;
+		ND_ ScriptDynamicUInt2*		NearPOT ()								__Th___;
+		ND_ ScriptDynamicUInt2*		AlignUp (const packed_uint2 &value)		__Th___;
+		ND_ ScriptDynamicUInt2*		AlignDown (const packed_uint2 &value)	__Th___;
+		ND_ ScriptDynamicUInt2*		Exp2 ()									__Th___;
 
-		ND_ ScriptDynamicUInt2*	Add1 (const ScriptDynamicUInt2Ptr &)	__Th___;
-		ND_ ScriptDynamicUInt2*	Sub1 (const ScriptDynamicUInt2Ptr &)	__Th___;
-		ND_ ScriptDynamicUInt2*	Mul1 (const ScriptDynamicUInt2Ptr &)	__Th___;
-		ND_ ScriptDynamicUInt2*	Div1 (const ScriptDynamicUInt2Ptr &)	__Th___;
-		ND_ ScriptDynamicUInt2*	Min1 (const ScriptDynamicUInt2Ptr &)	__Th___;
-		ND_ ScriptDynamicUInt2*	Max1 (const ScriptDynamicUInt2Ptr &)	__Th___;
-		ND_ ScriptDynamicUInt2*	DivNear1 (const ScriptDynamicUInt2Ptr &)__Th___;
-		ND_ ScriptDynamicUInt2*	DivCeil1 (const ScriptDynamicUInt2Ptr &)__Th___;
+		ND_ ScriptDynamicUInt2*		Add1 (const ScriptDynamicUInt2Ptr &)	__Th___;
+		ND_ ScriptDynamicUInt2*		Sub1 (const ScriptDynamicUInt2Ptr &)	__Th___;
+		ND_ ScriptDynamicUInt2*		Mul1 (const ScriptDynamicUInt2Ptr &)	__Th___;
+		ND_ ScriptDynamicUInt2*		Div1 (const ScriptDynamicUInt2Ptr &)	__Th___;
+		ND_ ScriptDynamicUInt2*		Min1 (const ScriptDynamicUInt2Ptr &)	__Th___;
+		ND_ ScriptDynamicUInt2*		Max1 (const ScriptDynamicUInt2Ptr &)	__Th___;
+		ND_ ScriptDynamicUInt2*		DivNear1 (const ScriptDynamicUInt2Ptr &)__Th___;
+		ND_ ScriptDynamicUInt2*		DivCeil1 (const ScriptDynamicUInt2Ptr &)__Th___;
 
-		ND_ ScriptDynamicUInt*  X ()									C_Th___;
-		ND_ ScriptDynamicUInt*  Y ()									C_Th___;
-		ND_ ScriptDynamicUInt*  Area ()									C_Th___;
+		ND_ ScriptDynamicFloat2*	ToFloat ()								__Th___;
 
-		ND_ ScriptDynamicUInt2*	Exp2 ()									__Th___;
-		ND_ ScriptDynamicDim*	ToDim ()								__Th___;
+		ND_ ScriptDynamicUInt*		X ()									C_Th___;
+		ND_ ScriptDynamicUInt*		Y ()									C_Th___;
+		ND_ ScriptDynamicUInt*		Area ()									C_Th___;
 
-		static void  Bind (const ScriptEnginePtr &se)					__Th___;
+		ND_ ScriptDynamicDim*		ToDim ()								__Th___;
+
+		static void  Bind (const ScriptEnginePtr &se)						__Th___;
 	};
 
 
@@ -205,42 +183,45 @@ namespace AE::ResEditor
 
 	// methods
 	public:
-		explicit ScriptDynamicUInt3 ()									__Th___ : _value{ MakeRC<DynamicUInt3>() } {}
-		explicit ScriptDynamicUInt3 (RC<DynamicUInt3> dv)				__NE___ : _value{RVRef(dv)} {}
+		explicit ScriptDynamicUInt3 ()										__Th___ : _value{ MakeRC<DynamicUInt3>() } {}
+		explicit ScriptDynamicUInt3 (RC<DynamicUInt3> dv)					__NE___ : _value{RVRef(dv)} {}
 
-		ND_ RC<DynamicUInt3>  Get ()									C_NE___	{ return _value; }
+		ND_ RC<DynamicUInt3>		Get ()									C_NE___	{ return _value; }
 
-		ND_ ScriptDynamicUInt*  X ()									C_Th___;
-		ND_ ScriptDynamicUInt*  Y ()									C_Th___;
-		ND_ ScriptDynamicUInt*  Z ()									C_Th___;
-		ND_ ScriptDynamicUInt2* XY ()									C_Th___;
+		ND_ ScriptDynamicUInt*		X ()									C_Th___;
+		ND_ ScriptDynamicUInt*		Y ()									C_Th___;
+		ND_ ScriptDynamicUInt*		Z ()									C_Th___;
+		ND_ ScriptDynamicUInt2*		XY ()									C_Th___;
 
-		ND_ ScriptDynamicUInt3*	Add (const packed_uint3 &value)			__Th___;
-		ND_ ScriptDynamicUInt3*	Sub (const packed_uint3 &value)			__Th___;
-		ND_ ScriptDynamicUInt3*	Pow (const packed_uint3 &value)			__Th___;
-		ND_ ScriptDynamicUInt3*	Min (const packed_uint3 &value)			__Th___;
-		ND_ ScriptDynamicUInt3*	Max (const packed_uint3 &value)			__Th___;
-		ND_ ScriptDynamicUInt3*	Mul (const packed_uint3 &value)			__Th___;
-		ND_ ScriptDynamicUInt3*	Div (const packed_uint3 &value)			__Th___;
-		ND_ ScriptDynamicUInt3*	DivNear (const packed_uint3 &value)		__Th___;
-		ND_ ScriptDynamicUInt3*	DivCeil (const packed_uint3 &value)		__Th___;
-		ND_ ScriptDynamicUInt3*	FloorPOT ()								__Th___;
-		ND_ ScriptDynamicUInt3*	CeilPOT ()								__Th___;
-		ND_ ScriptDynamicUInt3*	NearPOT ()								__Th___;
+		ND_ ScriptDynamicUInt3*		Add (const packed_uint3 &value)			__Th___;
+		ND_ ScriptDynamicUInt3*		Sub (const packed_uint3 &value)			__Th___;
+		ND_ ScriptDynamicUInt3*		Pow (const packed_uint3 &value)			__Th___;
+		ND_ ScriptDynamicUInt3*		Min (const packed_uint3 &value)			__Th___;
+		ND_ ScriptDynamicUInt3*		Max (const packed_uint3 &value)			__Th___;
+		ND_ ScriptDynamicUInt3*		Mul (const packed_uint3 &value)			__Th___;
+		ND_ ScriptDynamicUInt3*		Div (const packed_uint3 &value)			__Th___;
+		ND_ ScriptDynamicUInt3*		DivNear (const packed_uint3 &value)		__Th___;
+		ND_ ScriptDynamicUInt3*		DivCeil (const packed_uint3 &value)		__Th___;
+		ND_ ScriptDynamicUInt3*		FloorPOT ()								__Th___;
+		ND_ ScriptDynamicUInt3*		CeilPOT ()								__Th___;
+		ND_ ScriptDynamicUInt3*		NearPOT ()								__Th___;
+		ND_ ScriptDynamicUInt3*		Exp2 ()									__Th___;
 
-		ND_ ScriptDynamicUInt3*	Add1 (const ScriptDynamicUInt3Ptr &)	__Th___;
-		ND_ ScriptDynamicUInt3*	Sub1 (const ScriptDynamicUInt3Ptr &)	__Th___;
-		ND_ ScriptDynamicUInt3*	Mul1 (const ScriptDynamicUInt3Ptr &)	__Th___;
-		ND_ ScriptDynamicUInt3*	Div1 (const ScriptDynamicUInt3Ptr &)	__Th___;
-		ND_ ScriptDynamicUInt3*	Min1 (const ScriptDynamicUInt3Ptr &)	__Th___;
-		ND_ ScriptDynamicUInt3*	Max1 (const ScriptDynamicUInt3Ptr &)	__Th___;
-		ND_ ScriptDynamicUInt3*	DivNear1 (const ScriptDynamicUInt3Ptr &)__Th___;
-		ND_ ScriptDynamicUInt3*	DivCeil1 (const ScriptDynamicUInt3Ptr &)__Th___;
+		ND_ ScriptDynamicFloat3*	ToFloat ()								__Th___;
 
-		ND_ ScriptDynamicUInt*  Volume ()								C_Th___;
-		ND_ ScriptDynamicDim*	ToDim ()								__Th___;
+		ND_ ScriptDynamicUInt3*		Add1 (const ScriptDynamicUInt3Ptr &)	__Th___;
+		ND_ ScriptDynamicUInt3*		Sub1 (const ScriptDynamicUInt3Ptr &)	__Th___;
+		ND_ ScriptDynamicUInt3*		Mul1 (const ScriptDynamicUInt3Ptr &)	__Th___;
+		ND_ ScriptDynamicUInt3*		Div1 (const ScriptDynamicUInt3Ptr &)	__Th___;
+		ND_ ScriptDynamicUInt3*		Min1 (const ScriptDynamicUInt3Ptr &)	__Th___;
+		ND_ ScriptDynamicUInt3*		Max1 (const ScriptDynamicUInt3Ptr &)	__Th___;
+		ND_ ScriptDynamicUInt3*		DivNear1 (const ScriptDynamicUInt3Ptr &)__Th___;
+		ND_ ScriptDynamicUInt3*		DivCeil1 (const ScriptDynamicUInt3Ptr &)__Th___;
 
-		static void  Bind (const ScriptEnginePtr &se)					__Th___;
+		ND_ ScriptDynamicUInt*		Volume ()								C_Th___;
+		ND_ ScriptDynamicDim*		ToDim ()								__Th___;
+
+		static void  Bind (const ScriptEnginePtr &se)						__Th___;
 	};
 
 
@@ -257,17 +238,19 @@ namespace AE::ResEditor
 
 	// methods
 	public:
-		explicit ScriptDynamicUInt4 ()									__Th___ : _value{ MakeRC<DynamicUInt4>() } {}
-		explicit ScriptDynamicUInt4 (RC<DynamicUInt4> dv)				__NE___ : _value{RVRef(dv)} {}
+		explicit ScriptDynamicUInt4 ()										__Th___ : _value{ MakeRC<DynamicUInt4>() } {}
+		explicit ScriptDynamicUInt4 (RC<DynamicUInt4> dv)					__NE___ : _value{RVRef(dv)} {}
 
-		ND_ RC<DynamicUInt4>  Get ()									C_NE___	{ return _value; }
+		ND_ RC<DynamicUInt4>		Get ()									C_NE___	{ return _value; }
 
-		ND_ ScriptDynamicUInt*  X ()									C_Th___;
-		ND_ ScriptDynamicUInt*  Y ()									C_Th___;
-		ND_ ScriptDynamicUInt*  Z ()									C_Th___;
-		ND_ ScriptDynamicUInt*  W ()									C_Th___;
+		ND_ ScriptDynamicUInt*		X ()									C_Th___;
+		ND_ ScriptDynamicUInt*		Y ()									C_Th___;
+		ND_ ScriptDynamicUInt*		Z ()									C_Th___;
+		ND_ ScriptDynamicUInt*		W ()									C_Th___;
 
-		static void  Bind (const ScriptEnginePtr &se)					__Th___;
+		ND_ ScriptDynamicFloat4*	ToFloat ()								__Th___;
+
+		static void  Bind (const ScriptEnginePtr &se)						__Th___;
 	};
 
 
@@ -284,12 +267,14 @@ namespace AE::ResEditor
 
 	// methods
 	public:
-		explicit ScriptDynamicInt ()									__Th___ : _value{ MakeRC<DynamicInt>() } {}
-		explicit ScriptDynamicInt (RC<DynamicInt> dv)					__NE___ : _value{RVRef(dv)} {}
+		explicit ScriptDynamicInt ()										__Th___ : _value{ MakeRC<DynamicInt>() } {}
+		explicit ScriptDynamicInt (RC<DynamicInt> dv)						__NE___ : _value{RVRef(dv)} {}
 
-		ND_ RC<DynamicInt>  Get ()										C_NE___	{ return _value; }
+		ND_ RC<DynamicInt>			Get ()									C_NE___	{ return _value; }
 
-		static void  Bind (const ScriptEnginePtr &se)					__Th___;
+		ND_ ScriptDynamicFloat*		ToFloat ()								__Th___;
+
+		static void  Bind (const ScriptEnginePtr &se)						__Th___;
 	};
 
 
@@ -306,15 +291,17 @@ namespace AE::ResEditor
 
 	// methods
 	public:
-		explicit ScriptDynamicInt2 ()									__Th___ : _value{ MakeRC<DynamicInt2>() } {}
-		explicit ScriptDynamicInt2 (RC<DynamicInt2> dv)					__NE___ : _value{RVRef(dv)} {}
+		explicit ScriptDynamicInt2 ()										__Th___ : _value{ MakeRC<DynamicInt2>() } {}
+		explicit ScriptDynamicInt2 (RC<DynamicInt2> dv)						__NE___ : _value{RVRef(dv)} {}
 
-		ND_ RC<DynamicInt2>  Get ()										C_NE___	{ return _value; }
+		ND_ RC<DynamicInt2>			Get ()									C_NE___	{ return _value; }
 
-		ND_ ScriptDynamicInt*  X ()										C_Th___;
-		ND_ ScriptDynamicInt*  Y ()										C_Th___;
+		ND_ ScriptDynamicInt*		X ()									C_Th___;
+		ND_ ScriptDynamicInt*		Y ()									C_Th___;
 
-		static void  Bind (const ScriptEnginePtr &se)					__Th___;
+		ND_ ScriptDynamicFloat2*	ToFloat ()								__Th___;
+
+		static void  Bind (const ScriptEnginePtr &se)						__Th___;
 	};
 
 
@@ -331,16 +318,18 @@ namespace AE::ResEditor
 
 	// methods
 	public:
-		explicit ScriptDynamicInt3 ()									__Th___ : _value{ MakeRC<DynamicInt3>() } {}
-		explicit ScriptDynamicInt3 (RC<DynamicInt3> dv)					__NE___ : _value{RVRef(dv)} {}
+		explicit ScriptDynamicInt3 ()										__Th___ : _value{ MakeRC<DynamicInt3>() } {}
+		explicit ScriptDynamicInt3 (RC<DynamicInt3> dv)						__NE___ : _value{RVRef(dv)} {}
 
-		ND_ RC<DynamicInt3>  Get ()										C_NE___	{ return _value; }
+		ND_ RC<DynamicInt3>			Get ()									C_NE___	{ return _value; }
 
-		ND_ ScriptDynamicInt*  X ()										C_Th___;
-		ND_ ScriptDynamicInt*  Y ()										C_Th___;
-		ND_ ScriptDynamicInt*  Z ()										C_Th___;
+		ND_ ScriptDynamicInt*		X ()									C_Th___;
+		ND_ ScriptDynamicInt*		Y ()									C_Th___;
+		ND_ ScriptDynamicInt*		Z ()									C_Th___;
 
-		static void  Bind (const ScriptEnginePtr &se)					__Th___;
+		ND_ ScriptDynamicFloat3*	ToFloat ()								__Th___;
+
+		static void  Bind (const ScriptEnginePtr &se)						__Th___;
 	};
 
 
@@ -357,17 +346,19 @@ namespace AE::ResEditor
 
 	// methods
 	public:
-		explicit ScriptDynamicInt4 ()									__Th___ : _value{ MakeRC<DynamicInt4>() } {}
-		explicit ScriptDynamicInt4 (RC<DynamicInt4> dv)					__NE___ : _value{RVRef(dv)} {}
+		explicit ScriptDynamicInt4 ()										__Th___ : _value{ MakeRC<DynamicInt4>() } {}
+		explicit ScriptDynamicInt4 (RC<DynamicInt4> dv)						__NE___ : _value{RVRef(dv)} {}
 
-		ND_ RC<DynamicInt4>  Get ()										C_NE___	{ return _value; }
+		ND_ RC<DynamicInt4>			Get ()									C_NE___	{ return _value; }
 
-		ND_ ScriptDynamicInt*  X ()										C_Th___;
-		ND_ ScriptDynamicInt*  Y ()										C_Th___;
-		ND_ ScriptDynamicInt*  Z ()										C_Th___;
-		ND_ ScriptDynamicInt*  W ()										C_Th___;
+		ND_ ScriptDynamicInt*		X ()									C_Th___;
+		ND_ ScriptDynamicInt*		Y ()									C_Th___;
+		ND_ ScriptDynamicInt*		Z ()									C_Th___;
+		ND_ ScriptDynamicInt*		W ()									C_Th___;
 
-		static void  Bind (const ScriptEnginePtr &se)					__Th___;
+		ND_ ScriptDynamicFloat4*	ToFloat ()								__Th___;
+
+		static void  Bind (const ScriptEnginePtr &se)						__Th___;
 	};
 
 
@@ -401,6 +392,11 @@ namespace AE::ResEditor
 		ND_ ScriptDynamicFloat*		Exp2 ()									__Th___;
 		ND_ ScriptDynamicFloat*		Exp2Mul (float value)					__Th___;
 		ND_ ScriptDynamicFloat*		Log2 ()									__Th___;
+		ND_ ScriptDynamicFloat*		Rcp ()									__Th___;
+		ND_ ScriptDynamicFloat*		Abs ()									__Th___;
+		ND_ ScriptDynamicFloat*		ACos ()									__Th___;
+		ND_ ScriptDynamicFloat*		ToRad ()								__Th___;
+		ND_ ScriptDynamicFloat*		ToDeg ()								__Th___;
 
 		ND_ ScriptDynamicFloat*		Add1 (const ScriptDynamicFloatPtr &)	__Th___;
 		ND_ ScriptDynamicFloat*		Sub1 (const ScriptDynamicFloatPtr &)	__Th___;
@@ -430,15 +426,24 @@ namespace AE::ResEditor
 
 	// methods
 	public:
-		explicit ScriptDynamicFloat2 ()									__Th___ : _value{ MakeRC<DynamicFloat2>() } {}
-		explicit ScriptDynamicFloat2 (RC<DynamicFloat2> dv)				__NE___ : _value{RVRef(dv)} {}
+		explicit ScriptDynamicFloat2 ()										__Th___ : _value{ MakeRC<DynamicFloat2>() } {}
+		explicit ScriptDynamicFloat2 (RC<DynamicFloat2> dv)					__NE___ : _value{RVRef(dv)} {}
 
-		ND_ RC<DynamicFloat2>  Get ()									C_NE___	{ return _value; }
+		ND_ RC<DynamicFloat2>		Get ()									C_NE___	{ return _value; }
 
-		ND_ ScriptDynamicFloat*  X ()									C_Th___;
-		ND_ ScriptDynamicFloat*  Y ()									C_Th___;
+		ND_ ScriptDynamicFloat*		X ()									C_Th___;
+		ND_ ScriptDynamicFloat*		Y ()									C_Th___;
 
-		static void  Bind (const ScriptEnginePtr &se)					__Th___;
+		ND_ ScriptDynamicFloat2*	Add (const packed_float2 &value)		__Th___;
+		ND_ ScriptDynamicFloat2*	Exp2 ()									__Th___;
+		ND_ ScriptDynamicFloat2*	Exp2Mul (const packed_float2 &value)	__Th___;
+
+		ND_ ScriptDynamicUInt2*		ToUInt ()								__Th___;
+		ND_ ScriptDynamicInt2*		ToInt ()								__Th___;
+
+		ND_ ScriptDynamicFloat2*	Add1 (const ScriptDynamicFloat2Ptr &)	__Th___;
+
+		static void  Bind (const ScriptEnginePtr &se)						__Th___;
 	};
 
 
@@ -455,16 +460,22 @@ namespace AE::ResEditor
 
 	// methods
 	public:
-		explicit ScriptDynamicFloat3 ()									__Th___ : _value{ MakeRC<DynamicFloat3>() } {}
-		explicit ScriptDynamicFloat3 (RC<DynamicFloat3> dv)				__NE___ : _value{RVRef(dv)} {}
+		explicit ScriptDynamicFloat3 ()										__Th___ : _value{ MakeRC<DynamicFloat3>() } {}
+		explicit ScriptDynamicFloat3 (RC<DynamicFloat3> dv)					__NE___ : _value{RVRef(dv)} {}
 
-		ND_ RC<DynamicFloat3>  Get ()									C_NE___	{ return _value; }
+		ND_ RC<DynamicFloat3>		Get ()									C_NE___	{ return _value; }
 
-		ND_ ScriptDynamicFloat*  X ()									C_Th___;
-		ND_ ScriptDynamicFloat*  Y ()									C_Th___;
-		ND_ ScriptDynamicFloat*  Z ()									C_Th___;
+		ND_ ScriptDynamicFloat*		X ()									C_Th___;
+		ND_ ScriptDynamicFloat*		Y ()									C_Th___;
+		ND_ ScriptDynamicFloat*		Z ()									C_Th___;
 
-		static void  Bind (const ScriptEnginePtr &se)					__Th___;
+		ND_ ScriptDynamicFloat3*	Exp2 ()									__Th___;
+		ND_ ScriptDynamicFloat3*	Exp2Mul (const packed_float3 &value)	__Th___;
+
+		ND_ ScriptDynamicUInt3*		ToUInt ()								__Th___;
+		ND_ ScriptDynamicInt3*		ToInt ()								__Th___;
+
+		static void  Bind (const ScriptEnginePtr &se)						__Th___;
 	};
 
 
@@ -481,17 +492,23 @@ namespace AE::ResEditor
 
 	// methods
 	public:
-		explicit ScriptDynamicFloat4 ()									__Th___ : _value{ MakeRC<DynamicFloat4>() } {}
-		explicit ScriptDynamicFloat4 (RC<DynamicFloat4> dv)				__NE___ : _value{RVRef(dv)} {}
+		explicit ScriptDynamicFloat4 ()										__Th___ : _value{ MakeRC<DynamicFloat4>() } {}
+		explicit ScriptDynamicFloat4 (RC<DynamicFloat4> dv)					__NE___ : _value{RVRef(dv)} {}
 
-		ND_ RC<DynamicFloat4>  Get ()									C_NE___	{ return _value; }
+		ND_ RC<DynamicFloat4>		Get ()									C_NE___	{ return _value; }
 
-		ND_ ScriptDynamicFloat*  X ()									C_Th___;
-		ND_ ScriptDynamicFloat*  Y ()									C_Th___;
-		ND_ ScriptDynamicFloat*  Z ()									C_Th___;
-		ND_ ScriptDynamicFloat*  W ()									C_Th___;
+		ND_ ScriptDynamicFloat*		X ()									C_Th___;
+		ND_ ScriptDynamicFloat*		Y ()									C_Th___;
+		ND_ ScriptDynamicFloat*		Z ()									C_Th___;
+		ND_ ScriptDynamicFloat*		W ()									C_Th___;
 
-		static void  Bind (const ScriptEnginePtr &se)					__Th___;
+		ND_ ScriptDynamicFloat4*	Exp2 ()									__Th___;
+		ND_ ScriptDynamicFloat4*	Exp2Mul (const packed_float4 &value)	__Th___;
+
+		ND_ ScriptDynamicUInt4*		ToUInt ()								__Th___;
+		ND_ ScriptDynamicInt4*		ToInt ()								__Th___;
+
+		static void  Bind (const ScriptEnginePtr &se)						__Th___;
 	};
 
 
@@ -508,12 +525,12 @@ namespace AE::ResEditor
 
 	// methods
 	public:
-		explicit ScriptDynamicULong ()									__Th___ : _value{ MakeRC<DynamicULong>() } {}
-		explicit ScriptDynamicULong (RC<DynamicULong> dv)				__NE___ : _value{RVRef(dv)} {}
+		explicit ScriptDynamicULong ()										__Th___ : _value{ MakeRC<DynamicULong>() } {}
+		explicit ScriptDynamicULong (RC<DynamicULong> dv)					__NE___ : _value{RVRef(dv)} {}
 
-		ND_ RC<DynamicULong>  Get ()									C_NE___	{ return _value; }
+		ND_ RC<DynamicULong>		Get ()									C_NE___	{ return _value; }
 
-		static void  Bind (const ScriptEnginePtr &se)					__Th___;
+		static void  Bind (const ScriptEnginePtr &se)						__Th___;
 	};
 
 

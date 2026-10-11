@@ -63,8 +63,8 @@ namespace AE::Graphics
 		BufferViewDesc ()									__NE___ {}
 
 		BufferViewDesc (EPixelFormat	format,
-						Bytes			offset,
-						Bytes			size)				__NE___ :
+						Bytes			offset	= 0_b,
+						Bytes			size	= UMax)		__NE___ :
 			offset{offset}, size{size}, format{format} {}
 
 		void  Validate (const BufferDesc &desc)				__NE___;

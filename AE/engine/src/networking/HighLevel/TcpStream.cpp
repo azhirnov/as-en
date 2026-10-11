@@ -46,6 +46,7 @@ namespace AE::Networking
 */
 	bool  TcpStream::WaitForClient () __NE___
 	{
+		TRACY( ZoneScoped );
 		CHECK_ERR( _server.IsOpen() );
 		CHECK_ERR( not _client.IsOpen() );
 
@@ -71,6 +72,7 @@ namespace AE::Networking
 */
 	bool  TcpStream::_WaitForClient (const TcpStream &mainServer) __NE___
 	{
+		TRACY( ZoneScoped );
 		CHECK_ERR( not _server.IsOpen() );
 		CHECK_ERR( not _client.IsOpen() );
 		CHECK_ERR( mainServer._server.IsOpen() );
@@ -96,6 +98,7 @@ namespace AE::Networking
 */
 	bool  TcpStream::_InitClient (IpAddress addr, Bytes bufferSize, Ptr<Serializing::ObjectFactory> factory) __NE___
 	{
+		TRACY( ZoneScoped );
 		CHECK_ERR( not _client.IsOpen() );
 
 		TcpSocket::Config	cfg;

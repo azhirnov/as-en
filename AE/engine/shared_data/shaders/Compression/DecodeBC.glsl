@@ -19,23 +19,34 @@
 //-----------------------------------------------------------------------------
 
 
-ND_ float4  DecodeBC1 (uint2 block, int2 localTexel);		// RGB & RGB_A1 mode
+ND_ float4  DecodeBC1 (uint2 block, int2 localTexel);		// RGB & RGB_A1 mode				max error: NV 2%, Intel 0.01%;  avr: NV 0.2%, Intel ~0%
+ND_ float4  DecodeBC3 (uint4 block, int2 localTexel);		// RGBA8
 ND_ float4  DecodeBC4S (uint2 block, int2 localTexel);		// R8_SNorm
-ND_ float4  DecodeBC4U (uint2 block, int2 localTexel);		// R8_UNorm	- better accuracy
+ND_ float4  DecodeBC4U (uint2 block, int2 localTexel);		// R8_UNorm	- better accuracy		max error: NV 2%, Intel 0.01%;  avr: NV 0.2%, Intel ~0%
 ND_ float4  DecodeBC5S (uint4 block, int2 localTexel);		// RG8_SNorm
 ND_ float4  DecodeBC5U (uint4 block, int2 localTexel);		// RG8_UNorm - better accuracy
-ND_ float4  DecodeBC6_UF16 (uint4 block, int2 localTexel);	// RGB16F
+ND_ float4  DecodeBC6_UF16 (uint4 block, int2 localTexel);	// RGB16F							max error: ~0%
 ND_ float4  DecodeBC6_SF16 (uint4 block, int2 localTexel);	// RGB16F
-ND_ float4  DecodeBC7 (uint4 block, int2 localTexel);		// RGBA high quality
+ND_ float4  DecodeBC7 (uint4 block, int2 localTexel);		// RGBA high quality				max error: ~0%
 //-----------------------------------------------------------------------------
 
 
 #include "Compression/dec_bc1.glsl"
 #include "Compression/dec_bc4_bc5.glsl"
 
-#include "3party_shaders/Compression/dec_bc_bitextract.glsl"
-#include "3party_shaders/Compression/dec_bc6h.glsl"
-#include "3party_shaders/Compression/dec_bc7.glsl"
+#include "../3party_shaders/Compression/dec_bc_bitextract.glsl"
+#include "../3party_shaders/Compression/dec_bc6h.glsl"
+#include "../3party_shaders/Compression/dec_bc7.glsl"
+//-----------------------------------------------------------------------------
+
+
+float4  DecodeBC3 (uint4 bc3Block, int2 localTexel)
+{
+    return float4(
+        DecodeBC1(  bc3Block.zw, localTexel ).rgb,
+        DecodeBC4U( bc3Block.xy, localTexel ).r
+    );
+}
 //-----------------------------------------------------------------------------
 
 

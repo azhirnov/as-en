@@ -33,7 +33,7 @@ namespace AE::App
 		Atomic< int >			_timeSinceStart	{0};
 		Atomic< bool >			_isRunning		{true};
 
-		Unique< IAppListener >	_listener;
+		AppListenerPtr			_listener;
 		const Clock				_timer;
 
 		WindowArray_t			_windows;
@@ -52,7 +52,7 @@ namespace AE::App
 
 	// methods
 	protected:
-		explicit ApplicationBase (Unique<IAppListener>)											__NE___;
+		explicit ApplicationBase (AppListenerPtr)												__NE___;
 		~ApplicationBase ()																		__NE___;
 
 		// main thread

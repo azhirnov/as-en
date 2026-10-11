@@ -68,4 +68,40 @@ namespace AE::App
 		// TODO: clipboard
 	};
 
+
+
+	struct InputKeyConversion
+	{
+		using KeyCode_t = ISendInput::KeyCode_t;
+
+		static constexpr ushort		c_KeyCount			= 600;
+		//static constexpr ushort	c_CursorPosTag		= 601;
+		//static constexpr ushort	c_CursorMoveTag		= 602;
+
+		struct ConversionTable
+		{
+			ushort	_conv [c_KeyCount] = {};
+
+			bool  operator () (KeyCode_t src, OUT KeyCode_t &dst) const
+			{
+				if_likely( src < CountOf(_conv) )
+				{
+					dst = _conv[src];
+					return dst != 0;
+				}
+				return false;
+			}
+		};
+
+		static Unique<ConversionTable>  WinApiToAndroid ();
+		static Unique<ConversionTable>  WinApiToGLFW ();
+
+		static Unique<ConversionTable>  GLFWtoAndroid ();
+		static Unique<ConversionTable>  GLFWtoWinApi ();
+
+		static Unique<ConversionTable>  AndroidToWinApi ();
+		static Unique<ConversionTable>  AndroidToGLFW ();
+	};
+
+
 } // AE::App

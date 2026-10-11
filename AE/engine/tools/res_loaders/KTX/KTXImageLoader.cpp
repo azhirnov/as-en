@@ -259,6 +259,7 @@ namespace
 		if ( not (fileFormat == Default or fileFormat == EImageFormat::KTX) )
 			return false;
 
+		TRACY( ZoneScoped );
 		Unused( &CreateKtxWStream, &EPixelFormatToGLFormat, &EPixelFormatToVkFormat );
 
 		const Bytes		start_pos	= stream.Position();

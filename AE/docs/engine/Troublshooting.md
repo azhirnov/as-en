@@ -75,7 +75,7 @@ Run as app instead of build step.
 
 ## Android
 
-### Stack trace dosn't contains source location
+### Stack trace doesn't contains source location
 
 You should build with debug symbols.
 

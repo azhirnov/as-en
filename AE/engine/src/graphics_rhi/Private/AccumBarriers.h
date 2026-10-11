@@ -7,13 +7,13 @@ namespace AE::Graphics::_hidden_
 	// Accumulate Context Barriers
 	//
 	template <typename Ctx>
-	class AccumBarriers final
+	class TAccumBarriers final
 	{
 		friend Ctx;
 
 	// types
 	private:
-		using Self	= AccumBarriers< Ctx >;
+		using Self	= TAccumBarriers< Ctx >;
 
 	// variables
 	private:
@@ -21,13 +21,13 @@ namespace AE::Graphics::_hidden_
 
 	// methods
 	private:
-		AccumBarriers (Ctx &ctx)			__NE___ : _ctx{ctx} {}
+		TAccumBarriers (Ctx &ctx)			__NE___ : _ctx{ctx} {}
 
 	public:
-		AccumBarriers ()							= delete;
-		AccumBarriers (const Self &)				= delete;
-		AccumBarriers (Self &&)				__NE___	= default;
-		~AccumBarriers ()					__Th___	{ _ctx.CommitBarriers(); }
+		TAccumBarriers ()							= delete;
+		TAccumBarriers (const Self &)				= delete;
+		TAccumBarriers (Self &&)			__NE___	= default;
+		~TAccumBarriers ()					__Th___	{ _ctx.CommitBarriers(); }
 
 		Self&&  ResourceBarrier (BufferID      id, EResourceState srcState, EResourceState dstState)														rvTh___	{ _ctx.ResourceBarrier( id, srcState, dstState );				return RVRef(*this); }
 		Self&&  ResourceBarrier (BufferViewID  id, EResourceState srcState, EResourceState dstState)														rvTh___	{ _ctx.ResourceBarrier( id, srcState, dstState );				return RVRef(*this); }

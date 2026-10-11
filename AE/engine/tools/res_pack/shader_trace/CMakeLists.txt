@@ -1,7 +1,7 @@
 # Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 # TODO: failed to link on Linux
-if ( (TARGET "GLSLang-lib") AND WIN32 )
+if ( (TARGET "GLSLang-lib") )
 	file( GLOB_RECURSE SOURCES1 "*.*" )
 	add_library( "ShaderTrace" STATIC ${SOURCES1} )
 	source_group( TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${SOURCES1} )

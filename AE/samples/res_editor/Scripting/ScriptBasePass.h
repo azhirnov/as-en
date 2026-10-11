@@ -42,6 +42,7 @@ namespace AE::ResEditor
 			Enable_ShaderAsserts	= 1 << 3,	// can be enabled globally
 
 			UseSLang				= 1 << 4,
+			ZeroContentOfArgOut		= 1 << 5,
 
 			_Last,
 			All						= CT_AllBitMask2<EFlags>,
@@ -129,6 +130,8 @@ namespace AE::ResEditor
 
 	// methods
 	public:
+		ND_ StringView	GetName ()																							C_NE___	{ return _dbgName; }
+
 		void  SetDebugLabel1 (const String &name)																			__Th___;
 		void  SetDebugLabel2 (const String &name, const RGBA8u &color)														__Th___;
 		void  SetDebugLabel3 (const String &name, const RGBA32f &color)														__Th___;

@@ -26,7 +26,9 @@
 		RC<Buffer>			select		= Buffer();
 		RC<DynamicFloat>	min_den		= DynamicFloat();
 		const uint3			local_size	= uint3( 8, 8, 8 );	// 512
-		const uint3			grid_size	= uint3(32);
+		RC<DynamicUInt>		grid_pot	= DynamicUInt();
+		RC<DynamicUInt3>	grid_size	= grid_pot.Exp2().XXX();
+		RC<DynamicUInt>		vox_count	= grid_size.Volume();
 
 		// setup camera
 		{
@@ -45,7 +47,7 @@
 			"Voxel",
 			"	uint	packedPos;"		// 3x 8 bit
 			"	uint	faceBits;",		// max bit: 6
-			Area( grid_size )
+			vox_count
 		);
 
 		select.UseLayout(
@@ -62,13 +64,14 @@
 
 			UnifiedGeometry_Draw	cmd;
 			cmd.vertexCount		= 6*6;	// 6 verts * 6 faces
-			cmd.instanceCount	= Area( grid_size );
+			cmd.InstanceCount( vox_count );
 			geometry.Draw( cmd );
 
 			scene.Add( geometry, float3(0.0, 0.0, 4.0) );
 		}
 
-		Slider( min_den,	"MinDensity",	0.0,	0.5,	0.0 );
+		Slider( min_den,	"MinDensity",	-0.2,	0.5,	0.0 );
+		Slider( grid_pot,	"GridSizePOT",	3,		7,		5 );
 
 		// render loop
 		{
@@ -80,6 +83,7 @@
 			RC<ComputePass>		pass = ComputePass( "", "SDF_TO_VOXELS" );
 			pass.ArgInOut(	"un_Voxels",	voxels );
 			pass.Constant(	"iMinDensity",	min_den );
+			pass.Constant(	"iGridSize",	grid_size );
 			pass.LocalSize( local_size );
 			pass.DispatchThreads( grid_size );
 		}{
@@ -132,20 +136,24 @@
 
 	void  Main ()
 	{
-		int3	coord		= GetGlobalCoord();
-		int3	size		= GetGlobalSize();
+		const int3	coord	= GetGlobalCoord();
+		const int3	size	= iGridSize;
+
+		if ( AnyGreaterEqual( coord, size ))
+			return;
+
 		float3	inv_size	= 1.0 / float3(size);
 		uint	face_bits	= 0;
 		float	density		= Density( coord, size, inv_size );
 
-		if ( density > iMinDensity )
+		if ( density > 0.0 )
 		{
 			for (int i = 0; i < 6; ++i)
 			{
 				int3	off	= CM_FaceOffsetI( i );
 				float	d	= Density( coord + off, size, inv_size );
 
-				if ( d < iMinDensity )
+				if ( d < 0.0 )
 					face_bits |= (1u << i);
 			}
 		}
@@ -154,8 +162,6 @@
 
 		un_Voxels.elements[ idx ].packedPos = (coord.x & 0xFF) | ((coord.y & 0xFF) << 8) | ((coord.z & 0xFF) << 16);
 		un_Voxels.elements[ idx ].faceBits	= face_bits;
-
-		// TODO: merge workgroup items into single draw call
 	}
 
 #endif

@@ -170,6 +170,8 @@ namespace AE::AppV1
 */
 	bool  AppCoreV1::_CreateWindow (IApplication &app, const AppConfig::WindowDesc &wndCfg, const AppConfig::VRConfig &vrCfg) __NE___
 	{
+		TRACY( ZoneScoped );
+
 		// create VR device without window
 		if ( vrCfg.enableVR and vrCfg.onlyVR )
 		{
@@ -366,6 +368,7 @@ namespace AE::AppV1
 			case EState::Started :
 				break;
 
+			case EState::_Count :
 			default :
 				DBG_WARNING( "unsupported window state" );
 				break;

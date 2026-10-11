@@ -7,19 +7,20 @@
 	MtBlockCompression
 =================================================
 */
-	template <typename Fn>
-	ND_ bool  MtBlockCompression (const Fn &fn, const uint2 blockCount, const uint threadCount)
+	template <typename InitThreadStateFn, typename BlockFn>
+	ND_ bool  MtBlockCompression (const InitThreadStateFn &initFn, const BlockFn &fn, const uint2 blockCount, const uint threadCount)
 	{
 		// multithreading
-		if ( threadCount > 0 )
+		if ( threadCount > 1 )
 		{
 			Atomic<uint>		block_y		{0};
 			Atomic<uint>		error_cnt	{0};
 			Array<StdThread>	thread_arr;
-			thread_arr.resize( threadCount );
+			thread_arr.resize( threadCount - 1 );
 
-			const auto	thread_fn = [&fn, &error_cnt, &block_y, blockCount] ()
+			const auto	thread_fn = [&initFn, &fn, &error_cnt, &block_y, blockCount] ()
 			{{
+				auto	state = initFn();
 				for (;;)
 				{
 					uint	y = block_y.fetch_add( 1 );
@@ -28,7 +29,7 @@
 
 					bool	ok = true;
 					for (uint x = 0; x < blockCount.x and ok; ++x) {
-						ok = fn( x, y );
+						ok = fn( state, x, y );
 					}
 					if ( not ok )
 					{
@@ -54,11 +55,13 @@
 		else
 		// single thread
 		{
-			bool	ok = true;
+			auto	state	= initFn();
+			bool	ok		= true;
+
 			for (uint y = 0; y < blockCount.y; ++y)
 			for (uint x = 0; x < blockCount.x; ++x)
 			{
-				ok &= fn( x, y );
+				ok &= fn( state, x, y );
 			}
 			return ok;
 		}

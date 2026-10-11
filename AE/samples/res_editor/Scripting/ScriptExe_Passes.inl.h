@@ -1014,13 +1014,13 @@
 	{
 	private:
 		Array< ScriptBasePassPtr >	_passes;
-		const PassGroup::EFlags		_flags;
 		RC<Renderer>				_renderer;
 		RC<IPass>					_result;
+		const PassGroup::EFlags		_flags;
 
 	public:
 		ScriptPassGroup (PassGroup::EFlags flags, RC<Renderer> renderer) :
-			_flags{flags}, _renderer{RVRef(renderer)}
+			_renderer{RVRef(renderer)}, _flags{flags}
 		{}
 
 			void  Add (ScriptBasePassPtr pass)							{ _passes.push_back( RVRef(pass) ); }

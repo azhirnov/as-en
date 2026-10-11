@@ -90,7 +90,11 @@
 	void Main ()
 	{
 		const uint	idx			= gl.InstanceIndex / un_Nodes.instanceCount;
+	  #ifdef iCameraIdx
+		const int	face		= iCameraIdx;
+	  #else
 		const int	face		= int(gl.InstanceIndex - idx * un_Nodes.instanceCount);
+	  #endif
 
 		ModelNode	node		= un_Nodes.elements[idx];
 		float4		world_pos	= node.transform * float4( in_Position, 1.0f );
@@ -109,7 +113,9 @@
 		Out.texcoord	= in_Texcoord;
 	  #endif
 
+	  #ifndef iCameraIdx
 		gl.Layer = face;
+	  #endif
 	}
 
 #endif

@@ -6099,13 +6099,13 @@ namespace
 =================================================
 	GetName
 =================================================
-*/
+*
 	template <typename T>
 	String  VulkanLogger::GetName (T handle) const
 	{
 		// TODO
 	}
-
+*/
 } // namespace
 
 INTERNAL_LINKAGE( bool  s_Initialized = false; )

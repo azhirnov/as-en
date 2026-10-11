@@ -14,7 +14,7 @@ namespace AE::App
 	constructor
 =================================================
 */
-	ApplicationWinAPI::ApplicationWinAPI (Unique<IAppListener> listener) __NE___ :
+	ApplicationWinAPI::ApplicationWinAPI (AppListenerPtr listener) __NE___ :
 		ApplicationBase{ RVRef(listener) }
 	{
 	  #if AE_PLATFORM_TARGET_VERSION_MAJOR >= 8
@@ -375,7 +375,7 @@ namespace AE::App
 	Run
 =================================================
 */
-	int  ApplicationWinAPI::Run (Unique<IAppListener> listener) __NE___
+	int  ApplicationWinAPI::Run (AppListenerPtr listener) __NE___
 	{
 		int	res = 0;
 		{

@@ -100,6 +100,13 @@ namespace
 
 		_outDynSize = ScriptDynamicDimPtr{ new ScriptDynamicDim{ MakeRC<DynamicDim>( uint3{}, _desc.imageDim )}};
 
+		if ( AllBits( flags, ELoadOpFlags::BlockTexelView ))
+		{
+			CHECK_THROW_MSG( (imageType & EImageType::_ValMask) == EImageType::UInt );
+			CHECK_THROW_MSG( NoBits( flags, ELoadOpFlags::GenMipmaps ),
+				"BlockTexelView is not compatible with GenMipmaps" );
+		}
+
 		_Load( filename, 0_mipmap, 0_layer, flags );
 	}
 
@@ -518,6 +525,65 @@ namespace
 
 /*
 =================================================
+	GetMipmaps
+=================================================
+*/
+	void  ScriptImage::GetMipmaps (OUT ScriptArray<ScriptImagePtr> &mipmaps) __Th___
+	{
+		CHECK_THROW_MSG( not IsMutableDimension(),
+			"Can not get mipmap chain for image with dynamic dimension." );
+
+		mipmaps.resize( MipmapCount() );  // throw
+
+		for (usize i = 0; i < mipmaps.size(); ++i)
+		{
+			mipmaps[i].Attach( CreateView3( EImage_2D, MipmapLevel(i), 1u ));
+		}
+	}
+
+/*
+=================================================
+	InitialValue
+=================================================
+*/
+	void  ScriptImage::InitialValue1 (const RGBA32f &value) __Th___
+	{
+		CHECK_THROW_MSG( _loadOps.empty(),
+			"Can not fill image when load oparation already used." );
+
+		auto&	op = _loadOps.emplace_back();
+		op.clearValue = value;
+	}
+
+	void  ScriptImage::InitialValue2 (const RGBA32u &value) __Th___
+	{
+		CHECK_THROW_MSG( _loadOps.empty(),
+			"Can not fill image when load oparation already used." );
+
+		auto&	op = _loadOps.emplace_back();
+		op.clearValue = value;
+	}
+
+	void  ScriptImage::InitialValue3 (const RGBA32i &value) __Th___
+	{
+		CHECK_THROW_MSG( _loadOps.empty(),
+			"Can not fill image when load oparation already used." );
+
+		auto&	op = _loadOps.emplace_back();
+		op.clearValue = value;
+	}
+
+	void  ScriptImage::InitialValue4 (const DepthStencil &value) __Th___
+	{
+		CHECK_THROW_MSG( _loadOps.empty(),
+			"Can not fill image when load oparation already used." );
+
+		auto&	op = _loadOps.emplace_back();
+		op.clearValue = value;
+	}
+
+/*
+=================================================
 	AddOption
 =================================================
 */
@@ -567,9 +633,12 @@ namespace
 			binder.Create();
 
 			binder.Comment( "Generate mipmaps after loading" );
-			binder.AddValue( "GenMipmaps",	ELoadOpFlags::GenMipmaps );
+			binder.AddValue< ELoadOpFlags::GenMipmaps >();
 
-			StaticAssert( uint(ELoadOpFlags::All) == 0x1 );
+			binder.Comment( "Interpret compressed image as raw blocks. Used when compressed format is not supported by current GPU." );
+			binder.AddValue< ELoadOpFlags::BlockTexelView >();
+
+			StaticAssert( uint(ELoadOpFlags::All) == 0x3 );
 		}{
 			ClassBinder<ScriptImage>	binder{ se };
 			binder.CreateRef( 0, False{"no ctor"} );
@@ -647,6 +716,13 @@ namespace
 			AS_METHOD( binder, ScriptImage::CreateView7,		"CreateView",			{} );
 
 			AS_METHOD( binder, ScriptImage::AddOption,			"AddOption",			{} );
+
+			AS_METHOD( binder, ScriptImage::InitialValue1,		"InitialValue",			{} );
+			AS_METHOD( binder, ScriptImage::InitialValue2,		"InitialValue",			{} );
+			AS_METHOD( binder, ScriptImage::InitialValue3,		"InitialValue",			{} );
+			AS_METHOD( binder, ScriptImage::InitialValue4,		"InitialValue",			{} );
+
+			AS_METHOD( binder, ScriptImage::GetMipmaps,			"GetMipmapsView",		{} );
 		}
 	}
 
@@ -698,6 +774,8 @@ namespace
 	{
 		if ( _resource )
 			return _resource;
+
+		TRACY( ZoneScoped );
 
 		if ( not _base )
 			CHECK_THROW_MSG( _resUsage != Default, "failed to create image '"s << _dbgName << "'" );

@@ -174,6 +174,7 @@ namespace AE::App
 		class IRawKeyListener : public EnableRC<IRawKeyListener>
 		{
 		public:
+			//   Thread safe: yes
 			virtual void  KeyEvent (/*EInputType*/ushort type, EGestureState state, ControllerID id, Duration_t timestamp) __NE___ = 0;
 		};
 

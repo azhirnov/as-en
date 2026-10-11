@@ -16,7 +16,6 @@ namespace AE::Graphics
 */
 	RDescriptorSetLayout::~RDescriptorSetLayout () __NE___
 	{
-		DRC_EXLOCK( _drCheck );
 		CHECK( not _dslId );
 	}
 
@@ -27,7 +26,6 @@ namespace AE::Graphics
 */
 	bool  RDescriptorSetLayout::Create (const RDevice &, StringView dbgName) __NE___
 	{
-		DRC_EXLOCK( _drCheck );
 		CHECK_ERR( not _dslId );
 
 		GFX_DBG_ONLY( _debugName = dbgName; )
@@ -39,9 +37,8 @@ namespace AE::Graphics
 	Create
 =================================================
 */
-	bool  RDescriptorSetLayout::Create (const RDevice &, const CreateInfo &ci) __NE___
+	bool  RDescriptorSetLayout::Create (const ResourceManager &, const CreateInfo &ci) __NE___
 	{
-		DRC_EXLOCK( _drCheck );
 		CHECK_ERR( not _dslId );
 
 		_dslId		= ci.id;
@@ -60,8 +57,6 @@ namespace AE::Graphics
 */
 	void  RDescriptorSetLayout::Destroy (ResourceManager &) __NE___
 	{
-		DRC_EXLOCK( _drCheck );
-
 		// don't release ref on device side!
 
 		_unOffsets.fill( 0 );

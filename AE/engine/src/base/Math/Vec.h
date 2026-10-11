@@ -428,14 +428,14 @@ namespace _hidden_
 		if constexpr( I == 2 )
 		{
 			return
-				detail::compute_equal<T, std::numeric_limits<T>::is_iec559>::call(v1.x, v2.x) &&
+				detail::compute_equal<T, std::numeric_limits<T>::is_iec559>::call(v1.x, v2.x) and
 				detail::compute_equal<T, std::numeric_limits<T>::is_iec559>::call(v1.y, v2.y);
 		}
 		if constexpr( I == 3 )
 		{
 			return
-				detail::compute_equal<T, std::numeric_limits<T>::is_iec559>::call(v1.x, v2.x) &&
-				detail::compute_equal<T, std::numeric_limits<T>::is_iec559>::call(v1.y, v2.y) &&
+				detail::compute_equal<T, std::numeric_limits<T>::is_iec559>::call(v1.x, v2.x) and
+				detail::compute_equal<T, std::numeric_limits<T>::is_iec559>::call(v1.y, v2.y) and
 				detail::compute_equal<T, std::numeric_limits<T>::is_iec559>::call(v1.z, v2.z);
 		}
 		if constexpr( I == 4 )
@@ -713,12 +713,14 @@ namespace _hidden_
 	template <typename T> requires(IsScalar<T>)
 	NdCx__ T  Abs (const T x) __NE___
 	{
+		StaticAssert( IsSigned<T> );
 		return std::abs( x );
 	}
 
 	template <typename T, int I, glm::qualifier Q> requires(IsScalar<T>)
 	ND_ TVec<T,I,Q>  Abs (const TVec<T,I,Q> &value) __NE___
 	{
+		StaticAssert( IsSigned<T> );
 		return glm::abs( value );
 	}
 

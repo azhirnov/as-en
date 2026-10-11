@@ -37,7 +37,7 @@ namespace
 		// threading
 		{
 			cfg.threading.maxThreads			= 2;
-			cfg.threading.maxIOAccessThreads	= 1;
+			cfg.threading.maxIOAccessThreads	= 2;
 			cfg.threading.mask					= { EThread::PerFrame, EThread::Renderer, EThread::Background, EThread::IO };
 		}
 
@@ -167,6 +167,7 @@ namespace
 */
 	bool  ResEditorApplication::_InitVFS () __NE___
 	{
+		TRACY( ZoneScoped );
 		CHECK_ERR( _app );
 
 		ResEditorAppConfig::Init( *_app );
@@ -205,15 +206,22 @@ namespace
 										    VFS::VirtualFileStorageFactory::CreateDynamicFolder( re_cfg.exportFolder, "export/" )));
 		}
 
-		GetVFS().MakeImmutable();
-
 		// for imgui
 		{
 			const auto&		ui_path = re_cfg.uiDataFolder;
 
 			CHECK_ERR( FileSystem::IsDirectory( ui_path ));
 			CHECK_ERR( FileSystem::SetCurrentPath( ui_path ));	// TODO: use VFS ?
+
+		  #ifdef AE_PLATFORM_ANDROID
+			CHECK_ERR( GetVFS().AddStorage( Storage_Builtin, _app->OpenStorage( EAppStorage::Builtin )));
+		  #else
+			CHECK_ERR( GetVFS().AddStorage( Storage_Builtin,
+											VFS::VirtualFileStorageFactory::CreateStaticFolder( ui_path, StoragePrefix_Builtin )));
+		  #endif
 		}
+
+		GetVFS().MakeImmutable();
 
 		CHECK_ERR( FileSystem::IsDirectory( re_cfg.scriptFolder ));
 		return true;
@@ -226,6 +234,8 @@ namespace
 */
 	void  ResEditorApplication::OnStart (IApplication &app) __NE___
 	{
+		TRACY( ZoneScoped );
+
 		_app = &app;
 		CHECK_FATAL( _InitVFS() );
 
@@ -389,6 +399,7 @@ namespace
 */
 	bool  ResEditorCore::OnStart ()
 	{
+		TRACY( ZoneScoped );
 		NOTHROW_ERR(
 			_rg.reset( new RenderGraphImpl{} );
 
@@ -437,13 +448,15 @@ namespace
 */
 	bool  ResEditorCore::_LoadInputActions ()
 	{
+		TRACY( ZoneScoped );
+
 		// load input actions
 		_inputActionsData = MakeRC<ArrayRStream>();
 
-		FileRStream		file {Path{"controls.bin"}};		// TODO: use VFS
-		CHECK_ERR( file.IsOpen() );
-		CHECK_ERR( _inputActionsData->LoadRemainingFrom( file ));
+		RC<RStream>	file;
+		CHECK_ERR( GetVFS().Open( OUT file, VFS::FileName{ String{StoragePrefix_Builtin} << "controls.bin" }));
 
+		CHECK_ERR( _inputActionsData->LoadRemainingFrom( *file ));
 		return true;
 	}
 
@@ -456,6 +469,8 @@ namespace
 */
 	bool  ResEditorCore::OnSurfaceCreated (IWindow &wnd) __NE___
 	{
+		TRACY( ZoneScoped );
+
 		auto&	re_cfg = ResEditorAppConfig::Get();
 
 	  #if ENABLE_RDC
@@ -473,7 +488,13 @@ namespace
 	  #endif
 
 		_window = &wnd;
-		return _ui.Init( wnd.GetSurface(), re_cfg.windowMode, wnd.GetMonitor().uiScale, re_cfg.scriptFolder );
+		CHECK_ERR( _ui.Init( wnd.GetSurface(), re_cfg.windowMode, wnd.GetMonitor().uiScale, re_cfg.scriptFolder ));
+
+		if ( not re_cfg.startupScript.empty() and FileSystem::IsFile( re_cfg.startupScript ))
+		{
+			Unused( RunRenderScriptAsync( re_cfg.startupScript ));
+		}
+		return true;
 	}
 
 /*
@@ -550,6 +571,8 @@ namespace
 */
 	bool  ResEditorCore::RunRenderScriptAsync (const Path &scriptPath)
 	{
+		TRACY( ZoneScoped );
+
 		auto&	re_cfg = ResEditorAppConfig::Get();
 
 		ScriptExe::ScriptConfig	cfg;
@@ -646,6 +669,8 @@ namespace
 */
 	void  ResEditorCore::RenderFrame () __NE___
 	{
+		TRACY( ZoneScoped );
+
 		#if ENABLE_RDC
 		if ( _ui.IsCaptureRequested() )
 		{
@@ -809,6 +834,8 @@ namespace
 	void  ResEditorCore::WaitFrame (const Threading::EThreadArray	&threadMask,
 									Ptr<IWindow>					window) __NE___
 	{
+		TRACY( ZoneScoped );
+
 		milliseconds	timeout = AE::DefaultTimeout;
 
 	  #ifdef AE_ENABLE_REMOTE_GRAPHICS
@@ -878,7 +905,7 @@ using namespace AE::ResEditor;
 	AE_OnAppCreated
 =================================================
 */
-Unique<IApplication::IAppListener>  AE_OnAppCreated (const int argc, char const* argv[])
+AppListenerPtr  AE_OnAppCreated (const int argc, char const* argv[])
 {
 	Unused( argc, argv );
 
@@ -888,16 +915,22 @@ Unique<IApplication::IAppListener>  AE_OnAppCreated (const int argc, char const*
 
 #  ifdef AE_DEBUG
 	StaticLogger::AddLogger( ILogger::CreateIDEOutput() );
-	StaticLogger::AddLogger( ILogger::CreateHtmlOutput( "log" ));
+
+	#ifndef AE_PLATFORM_ANDROID
+		StaticLogger::AddLogger( ILogger::CreateHtmlOutput( "log" ));
+	#endif
 #  endif
 #else
 	StaticLogger::InitDefault();
 #endif
 
-	AE_LOGI( String{AE_ENGINE_NAME} << ' ' << ToString(AE_VERSION.Get<0>()) << '.' << ToString(AE_VERSION.Get<1>()) << '.' << ToString(AE_VERSION.Get<2>()) );
-	AE_LOG_DBG( "License: "s << AE_LICENSE );
+	AE_LOGI( "Info:"s <<
+		"\n  Engine: " << AE_ENGINE_NAME << ' ' << ToString(AE_VERSION.Get<0>()) << '.' << ToString(AE_VERSION.Get<1>()) << '.' << ToString(AE_VERSION.Get<2>()) <<
+		"\n  License: " << AE_LICENSE <<
+		"\n  Config: " << AE_BUILD_TYPE
+	);
 
-	return MakeUnique<ResEditorApplication>();
+	return AppListenerPtr{new ResEditorApplication{}};
 }
 
 /*

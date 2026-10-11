@@ -58,6 +58,7 @@ namespace AE::RemoteGraphics
 			case EState::Unknown :
 			case EState::Created :
 			case EState::Started :
+            case EState::_Count :
 				break;
 		}
 		switch_end
@@ -860,7 +861,7 @@ using namespace AE::RemoteGraphics;
 	AE_OnAppCreated / AE_OnAppDestroyed
 =================================================
 */
-Unique<IApplication::IAppListener>  AE_OnAppCreated (const int argc, char const* argv[])
+AppListenerPtr  AE_OnAppCreated (const int argc, char const* argv[])
 {
 	ushort		port		= AE_RMG_PORT;
 	String		port_str	= Parser::GetCommandLineArg( ArrayView<const char*>{ argv, usize(argc) }, "-port" );
@@ -870,7 +871,7 @@ Unique<IApplication::IAppListener>  AE_OnAppCreated (const int argc, char const*
 	CHECK_FATAL( port != 0 );
 
 	StaticLogger::InitDefault();
-	return MakeUnique<RmGAppListener>( port );
+	return AppListenerPtr{new RmGAppListener{ port }};
 }
 
 void  AE_OnAppDestroyed ()

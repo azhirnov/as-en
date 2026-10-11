@@ -146,6 +146,7 @@ namespace
 */
 	RC<IPass>  ScriptComputeMip::ToPass () __Th___
 	{
+		TRACY( ZoneScoped );
 		CHECK_THROW_MSG( not _variables.empty(), "empty variable args list" );
 		CHECK_THROW_MSG( not _controller, "controller must be null" );
 

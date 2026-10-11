@@ -26,6 +26,31 @@ namespace {
 }
 /*
 =================================================
+	_MapMouseButton
+=================================================
+*/
+namespace {
+	ND_ static ushort  _MapMouseButton (jint btn) __NE___
+	{
+		using EInputType = SerializableInputActionsAndroid::EInputType;
+		const EInputType	buttons [8] = {
+			EInputType::MouseBtn1,	// BUTTON_PRIMARY			= 1
+			EInputType::MouseBtn2,	// BUTTON_SECONDARY			= 2
+			EInputType::MouseBtn3,	// BUTTON_TERTIARY			= 4
+			EInputType::MouseBtn4,	// BUTTON_BACK				= 8
+			EInputType::MouseBtn5,	// BUTTON_FORWARD			= 16
+			EInputType::StylusBtn1,	// BUTTON_STYLUS_PRIMARY	= 32
+			EInputType::StylusBtn2,	// BUTTON_STYLUS_SECONDARY	= 64
+		};
+		ASSERT( IsSingleBitSet( btn ));
+
+		int	idx = IntLog2( btn );
+		ASSERT( idx < 7 );
+		return ushort(buttons[ idx & 7 ]);
+	}
+}
+/*
+=================================================
 	_MapTouchAction
 =================================================
 */
@@ -485,11 +510,62 @@ namespace {
 	native_OnKey
 =================================================
 */
-	void JNICALL  WindowAndroid::native_OnKey (JNIEnv*, jclass, WinID wndId, jint keycode, jint action, jint repeatCount) __NE___
+	void JNICALL  WindowAndroid::native_OnKey (JNIEnv*, jclass, WinID wndId, jint keycode, jint action, jint repeatCount, jint unicodeChar) __NE___
 	{
 		if_likely( auto window = GetAppWindow( wndId ))
 		{
-			window->_input.SetKey( keycode, _MapKeyAction( action ), window->_app.GetTimeSinceStart(), repeatCount );
+			window->_input.SetKey( keycode, _MapKeyAction( action ), window->_app.GetTimeSinceStart(), repeatCount, CharUtf32(unicodeChar) );
+		}
+		else
+		{
+			DBG_WARNING( "unknown window" );
+		}
+	}
+
+/*
+=================================================
+	native_OnMouseBtn
+=================================================
+*/
+	void  JNICALL  WindowAndroid::native_OnMouseBtn (JNIEnv*, jclass, WinID wndId, jint mouseBtn, jint action) __NE___
+	{
+		if_likely( auto window = GetAppWindow( wndId ))
+		{
+			window->_input.SetKey( _MapMouseButton( mouseBtn ), _MapKeyAction( action ), window->_app.GetTimeSinceStart(), 1, CharUtf32{0} );
+		}
+		else
+		{
+			DBG_WARNING( "unknown window" );
+		}
+	}
+
+/*
+=================================================
+	native_OnMouseMove
+=================================================
+*/
+	void  JNICALL  WindowAndroid::native_OnMouseMove (JNIEnv*, jclass, WinID wndId, jfloat x, jfloat y) __NE___
+	{
+		if_likely( auto window = GetAppWindow( wndId ))
+		{
+			window->_input.SetCursorPos( float2{x,y} );
+		}
+		else
+		{
+			DBG_WARNING( "unknown window" );
+		}
+	}
+
+/*
+=================================================
+	native_OnMouseWheel
+=================================================
+*/
+	void  JNICALL  WindowAndroid::native_OnMouseWheel (JNIEnv*, jclass, WinID wndId, jfloat hor, jfloat ver) __NE___
+	{
+		if_likely( auto window = GetAppWindow( wndId ))
+		{
+			window->_input.SetMouseWheel( float2{hor, ver} );
 		}
 		else
 		{

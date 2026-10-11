@@ -11,39 +11,43 @@ namespace AE::ResEditor
 	InitResources
 =================================================
 */
-	void  ScriptPassArgs::InitResources (OUT ResourceArray &resources, PipelinePackID packId) C_Th___
+	void  ScriptPassArgs::InitResources (OUT ResourceArray &resources, PipelinePackID packId, bool clearContentOfArgOut) C_Th___
 	{
 		for (auto& arg : _args)
 		{
+			bool	clear_content = clearContentOfArgOut							and
+									not EResourceState_HasReadAccess( arg.state )	and
+									EResourceState_HasWriteAccess( arg.state );
+
 			Visit( arg.res,
 				[&] (ScriptBufferPtr buf) {
 					auto	res = buf->ToResource();
 					CHECK_THROW( res );
-					resources.Add( UniformName{arg.name}, res, arg.state );
+					resources.Add( UniformName{arg.name}, res, arg.state, clear_content );
 				},
 				[&] (ScriptBufferViewPtr buf) {
 					auto	res = buf->ToResource();
 					CHECK_THROW( res );
-					resources.Add( UniformName{arg.name}, res, arg.state );
+					resources.Add( UniformName{arg.name}, res, arg.state, clear_content );
 				},
 				[&] (ScriptImagePtr tex) {
 					auto	res = tex->ToResource();
 					CHECK_THROW( res );
-					resources.Add( UniformName{arg.name}, res, arg.state );
+					resources.Add( UniformName{arg.name}, res, arg.state, clear_content );
 				},
 				[&] (ScriptVideoImagePtr video) {
 					auto	res = video->ToResource( packId );
 					CHECK_THROW( not IsNullUnion( res ));
 					Visit( res,
-						[&] (RC<VideoImage>  vi) { resources.Add( UniformName{arg.name}, vi, arg.state ); },
-						[&] (RC<VideoImage2> vi) { resources.Add( UniformName{arg.name}, vi, arg.state ); },
+						[&] (RC<VideoImage>  vi) { resources.Add( UniformName{arg.name}, vi, arg.state, false ); },
+						[&] (RC<VideoImage2> vi) { resources.Add( UniformName{arg.name}, vi, arg.state, false ); },
 						[] (NullUnion) {}
 					);
 				},
 				[&] (ScriptRTScenePtr scene) {
 					auto	res = scene->ToResource();
 					CHECK_THROW( res );
-					resources.Add( UniformName{arg.name}, res, arg.state );
+					resources.Add( UniformName{arg.name}, res, arg.state, false );
 				},
 				[&] (const Array<ScriptImagePtr> &arr)
 				{
@@ -55,7 +59,7 @@ namespace AE::ResEditor
 						CHECK_THROW( res );
 						images.push_back( RVRef(res) );
 					}
-					resources.Add( UniformName{arg.name}, RVRef(images), arg.state );
+					resources.Add( UniformName{arg.name}, RVRef(images), arg.state, clear_content );
 				},
 				[] (NullUnion) {
 					CHECK_THROW_MSG( false, "unsupported argument type" );

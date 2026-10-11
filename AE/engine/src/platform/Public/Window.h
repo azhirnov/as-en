@@ -79,6 +79,7 @@ namespace AE::App
 				InBackground,	//|						| window is minimized	| window is hidden		| HMD is active but not mounted	|
 				Stopped,		//| before window close	|						| screen turned OFF		| HMD screen is turned OFF		|
 				Destroyed,		//| window closed		|						|						|								|
+				_Count
 			};
 
 		// interface

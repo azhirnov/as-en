@@ -45,7 +45,8 @@ Content:
 * Windows x64
 * Linux x64
 * MacOS arm64
-* Android in progress
+* Android
+* VR in progress
 * Remote rendering on any platform
 
 

@@ -4,12 +4,12 @@ rm -rf "../../../../../AE-Bin/external/linux-x64/ffmpeg"
 rm -rf "temp"
 mkdir "build"
 mkdir "temp"
-wget -O temp.zip "https://github.com/BtbN/FFmpeg-Builds/releases/download/latest/ffmpeg-n8.1-latest-linux64-lgpl-shared-8.1.tar.xz"
-unzip temp.zip -d "temp"
-rm temp.zip
+wget -O temp.tar"https://github.com/BtbN/FFmpeg-Builds/releases/download/latest/ffmpeg-n8.1-latest-linux64-lgpl-shared-8.1.tar.xz"
+tar -xf temp.tar -C "temp"
+rm temp.tar
 cd "temp/ffmpeg-n8.1-latest-linux64-lgpl-shared-8.1/lib"
 find . -type d -exec mkdir -p "../../../../../../../../AE-Bin/external/linux-x64/ffmpeg/lib/"{} \;
-find . -type f -name '*.so' -exec cp {} "../../../../../../../../AE-Bin/external/linux-x64/ffmpeg/lib/"{} \;
+find . -type f -name '*.so*' -exec cp {} "../../../../../../../../AE-Bin/external/linux-x64/ffmpeg/lib/"{} \;
 cd "../../.."
 cd "temp/ffmpeg-n8.1-latest-linux64-lgpl-shared-8.1/include"
 find . -type d -exec mkdir -p "../../../../../../../../AE-Bin/external/linux-x64/ffmpeg/include/"{} \;

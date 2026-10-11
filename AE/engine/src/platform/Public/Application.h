@@ -45,8 +45,6 @@ namespace AE::App
 		{
 		// interface
 		public:
-			virtual ~IAppListener ()							__NE___	{}
-
 			// Used to store app data.
 			// You can use same name to share configs between apps.
 			virtual String  GetAppName ()						__NE___	{ return "as-en"; }
@@ -61,8 +59,19 @@ namespace AE::App
 
 			//   Thread safe: main thread only
 			virtual void  OnEvent (IApplication &, EAppEvent)	__NE___ {}
+
+			virtual void  Release ()							__NE___;
+
+		protected:
+			virtual ~IAppListener ()							__NE___	{}
 		};
 
+		struct AppListenerDeleter
+		{
+			void operator () (IAppListener *ptr) __NE___	{ ptr->Release(); }
+		};
+
+		using AppListenerPtr	= Unique< AE::App::IApplication::IAppListener, AppListenerDeleter >;
 		using WndListenerPtr	= Unique< IWindow::IWndListener >;
 		using EnumWindowsFn_t	= Function< void (ArrayView< IWindow* >) >;
 		using Duration_t		= IInputActions::Duration_t;
@@ -224,8 +233,10 @@ namespace AE::App
 } // AE::App
 
 
-extern std::unique_ptr<AE::App::IApplication::IAppListener>  AE_OnAppCreated (const int argc, char const* argv[]);
-extern void													 AE_OnAppDestroyed ();
+using AppListenerPtr = AE::App::IApplication::AppListenerPtr;
+
+extern AE_DLL_EXPORT AppListenerPtr		AE_OnAppCreated (const int argc, char const* argv[]);
+extern AE_DLL_EXPORT void				AE_OnAppDestroyed ();
 
 
 #ifdef AE_CPP_DETECT_MISMATCH

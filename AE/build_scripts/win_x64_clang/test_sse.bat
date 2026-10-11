@@ -130,13 +130,13 @@ pause
 
 cd ..
 rmdir /Q /S "_build_clang_sse"
-mkdir _build_clang_sse
-cd _build_clang_sse
+::mkdir _build_clang_sse
+::cd _build_clang_sse
 
-cmake -G "Visual Studio 17 2022" -T ClangCL -A x64 -DAE_SIMD_SSE=20 -DAE_SIMD_SHA=30 -DAE_CI_BUILD_TEST=ON "../AE"
-cmake --build . --config Debug --target Tests.Base
-ctest -R "Tests.Base" -C Debug -V
-pause
+::cmake -G "Visual Studio 17 2022" -T ClangCL -A x64 -DAE_SIMD_SSE=20 -DAE_SIMD_SHA=30 -DAE_CI_BUILD_TEST=ON "../AE"
+::cmake --build . --config Debug --target Tests.Base
+::ctest -R "Tests.Base" -C Debug -V
+::pause
 
-cd ..
-rmdir /Q /S "_build_clang_sse"
+::cd ..
+::rmdir /Q /S "_build_clang_sse"

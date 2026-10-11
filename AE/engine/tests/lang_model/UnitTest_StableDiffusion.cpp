@@ -1,10 +1,12 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #include "../tests/shared/UnitTest_Shared.h"
-#include "pch/LangModel.h"
 
-#include "res_loaders/AllImages/AllImageSavers.h"
-#include "res_loaders/Intermediate/IntermImage.h"
+#ifdef AE_ENABLE_STABLE_DIFFUSION
+# include "pch/LangModel.h"
+
+# include "res_loaders/AllImages/AllImageSavers.h"
+# include "res_loaders/Intermediate/IntermImage.h"
 
 using namespace AE::LangModel;
 
@@ -168,3 +170,11 @@ extern void  UnitTest_StableDiffusion (const Path &dstFolder)
 
 	TEST_PASSED();
 }
+
+#else
+
+extern void  UnitTest_StableDiffusion (const Path &)
+{
+}
+
+#endif // AE_ENABLE_STABLE_DIFFUSION

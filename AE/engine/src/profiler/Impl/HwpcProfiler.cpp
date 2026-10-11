@@ -6,6 +6,7 @@
 #include "profiler/Remote/RemoteArmProfiler.h"
 #include "profiler/Remote/RemoteMaliProfiler.h"
 #include "profiler/Remote/RemoteNVidiaProfiler.h"
+#include "profiler/Remote/RemoteIntelProfiler.h"
 #include "profiler/Remote/RemoteAdrenoProfiler.h"
 #include "profiler/Remote/RemotePowerVRProfiler.h"
 #include "profiler/Remote/RemoteGeneralProfiler.h"
@@ -43,15 +44,19 @@ namespace AE::Profiler
 		_isRemote = bool{client};
 
 		_initialized |= _InitNvProf( client, msgProducer );
+		_initialized |= _InitIntelProf( client, msgProducer );
 		_initialized |= _InitArmProf( client, msgProducer );
 		_initialized |= _InitMaliProf( client, msgProducer );
 		_initialized |= _InitAdrenoProf( client, msgProducer );
 		_initialized |= _InitPowerVRProf( client, msgProducer );
 		_initialized |= _InitGeneralProf( client, msgProducer );
 
-		#ifdef AE_ENABLE_IMGUI
+	  #ifdef AE_ENABLE_IMGUI
 		_InitImGui();
-		#endif
+	  #endif
+	  #ifdef AE_ENABLE_TRACY
+		_InitTracy();
+	  #endif
 
 		return true;
 	}
@@ -93,9 +98,19 @@ namespace AE::Profiler
 		_UpdateAdrenoCountersImGui( per_frame, inv_frames );
 		_UpdatePowerVRCountersImGui( per_frame, inv_frames );
 		_UpdateNVidiaCountersImGui( per_frame, inv_frames );
-	  #else
-		Unused( dt, frameCount );
+		_UpdateIntelCountersImGui( per_frame, inv_frames );
 	  #endif
+
+	  #ifdef AE_ENABLE_TRACY
+		_UpdateArmCountersTracy( per_frame, inv_frames );
+		_UpdateMaliCountersTracy( per_frame, inv_frames );
+		_UpdateAdrenoCountersTracy( per_frame, inv_frames );
+		_UpdateNVidiaCountersTracy( per_frame, inv_frames );
+		_UpdateIntelCountersTracy( per_frame, inv_frames );
+		_UpdatePowerVRCountersTracy( per_frame, inv_frames );
+	  #endif
+
+		Unused( dt, frameCount );
 	}
 
 /*
@@ -139,10 +154,40 @@ namespace AE::Profiler
 	}
 
 /*
-=================================================
+ =================================================
+	_InitIntelProf
+ =================================================
+ */
+	bool  HwpcProfiler::_InitIntelProf (ClientServer_t client, MsgProducer_t msgProducer)
+	{
+	  #if defined(AE_ENABLE_REMOTE_GRAPHICS) or defined(AE_PLATFORM_LINUX)
+		Unused( client, msgProducer );
+	  #else
+		// initialize remote profiling
+		if ( client )
+		{
+			CHECK( msgProducer->GetChannels() == EnumSet<EChannel>{EChannel::Reliable} );
+
+			auto	intel_prof_client = MakeRC<IntelProfilerClient>( RVRef(msgProducer) );
+
+			CHECK( client->Add( intel_prof_client->GetMsgConsumer() ));
+
+			CHECK( _intelProf.profiler.InitClient( intel_prof_client ));
+		}
+	  #endif
+
+		using ECounter = IntelProfiler::ECounter;
+
+		_intelProf.requiredCounters = IntelProfiler::ECounterSet{}.SetAll();
+
+		return _intelProf.profiler.Initialize( _intelProf.requiredCounters );
+	}
+
+/*
+ =================================================
 	_InitArmProf
-=================================================
-*/
+ =================================================
+ */
 	bool  HwpcProfiler::_InitArmProf (ClientServer_t client, MsgProducer_t msgProducer)
 	{
 	  #if defined(AE_ENABLE_REMOTE_GRAPHICS) or defined(AE_ENABLE_ARM_PMU)
@@ -434,6 +479,7 @@ namespace AE::Profiler
 	void  HwpcProfiler::Deinitialize ()
 	{
 		_nvProf.profiler.Deinitialize();
+		_intelProf.profiler.Deinitialize();
 		_armProf.profiler.Deinitialize();
 		_pvrProf.profiler.Deinitialize();
 		_genProf.profiler.Deinitialize();
@@ -442,8 +488,10 @@ namespace AE::Profiler
 
 		// free memory
 		Reconstruct( _nvProf.counters );
+		Reconstruct( _intelProf.counters );
 		Reconstruct( _armProf.counters );
 		Reconstruct( _pvrProf.counters );
+		Reconstruct( _genProf.counters );
 		Reconstruct( _maliProf.counters );
 		Reconstruct( _adrenoProf.counters );
 
@@ -467,6 +515,7 @@ namespace AE::Profiler
 		}};
 
 		Sample( _nvProf );
+		Sample( _intelProf );
 		Sample( _pvrProf );
 		Sample( _maliProf );
 		Sample( _adrenoProf );

@@ -1,4 +1,4 @@
-//744d6cfb
+//cdd1c95c
 #pragma once
 #include <vector>
 #include <string>
@@ -24,66 +24,66 @@ using array = std::vector<T>;
 
 using namespace std::string_literals;
 
-struct RectU;
-struct UIImageStyle;
-struct uint4;
-struct MetaData;
-struct RectI;
-struct RectangleDrawable;
-struct uint3;
-struct uint2;
-struct FillStackLayout;
-struct RGBA32u;
-struct RectF;
-struct RGBA8u;
-struct ImageAtlas;
-struct TextDrawable;
-struct BaseUIController;
-struct BaseLayout;
-struct UIStyleCollection;
-struct UIWidget;
-struct MipmapLevel;
-struct FixedLayout;
-struct DepthStencil;
-struct Mesh;
-struct Material;
-struct BaseUIDrawable;
-struct ImageDrawable;
-struct sbyte2;
-struct ushort3;
-struct ushort2;
-struct short4;
-struct SharedImage;
-struct UIFontStyle;
-struct int3;
-struct int2;
-struct int4;
-struct ImageLayer;
-struct Model;
-struct float4;
+struct ubyte4;
+struct ubyte3;
+struct ubyte2;
+struct RGBA32i;
+struct bool4;
+struct bool2;
+struct bool3;
+struct RGBA32f;
+struct HSVColor;
+struct PaddingLayout;
 struct ButtonController;
-struct short2;
-struct ushort4;
-struct short3;
+struct float4;
 struct sbyte4;
 struct sbyte3;
 struct Texture;
+struct ushort4;
+struct short2;
+struct short3;
 struct AlignedLayout;
 struct MultiSamples;
 struct UIColorStyle;
 struct float2;
 struct float3;
 struct RasterFont;
-struct ubyte4;
-struct ubyte3;
-struct ubyte2;
-struct RGBA32f;
-struct HSVColor;
-struct PaddingLayout;
-struct bool4;
-struct RGBA32i;
-struct bool2;
-struct bool3;
+struct MipmapLevel;
+struct DepthStencil;
+struct Mesh;
+struct Material;
+struct FixedLayout;
+struct UIFontStyle;
+struct ImageLayer;
+struct int4;
+struct int3;
+struct int2;
+struct ImageDrawable;
+struct BaseUIDrawable;
+struct short4;
+struct sbyte2;
+struct ushort3;
+struct SharedImage;
+struct ushort2;
+struct Model;
+struct MetaData;
+struct RectI;
+struct uint2;
+struct RectangleDrawable;
+struct uint3;
+struct uint4;
+struct RectU;
+struct UIImageStyle;
+struct RGBA8u;
+struct ImageAtlas;
+struct RGBA32u;
+struct FillStackLayout;
+struct RectF;
+struct BaseUIController;
+struct TextDrawable;
+struct UIStyleCollection;
+struct BaseLayout;
+struct UIWidget;
 
 enum class EImage : uint8
 {
@@ -1482,7 +1482,6 @@ uint8  operator | (EMicromapType lhs, uint8 rhs);
 
 enum class EOpacityMicromapFormat : uint16
 {
-	Unknown,
 	TwoState,
 	FourState,
 };
@@ -1529,7 +1528,6 @@ uint32  operator | (ERasterFontMode lhs, uint32 rhs);
 
 enum class ELayoutType : uint8
 {
-	Unknown,
 	FixedLayoutPx,
 	FixedLayoutMm,
 	PaddingLayoutPx,
@@ -3026,111 +3024,9 @@ struct UIWidget
 };
 
 template <>
-struct RC<UIImageStyle> : UIImageStyle
+struct RC<PaddingLayout> : PaddingLayout
 {
-	RC (const UIImageStyle &);
-};
-
-template <>
-struct RC<MetaData> : MetaData
-{
-	RC (const MetaData &);
-};
-
-template <>
-struct RC<RectangleDrawable> : RectangleDrawable
-{
-	RC (const RectangleDrawable &);
-};
-
-template <>
-struct RC<FillStackLayout> : FillStackLayout
-{
-	RC (const FillStackLayout &);
-};
-
-template <>
-struct RC<ImageAtlas> : ImageAtlas
-{
-	RC (const ImageAtlas &);
-};
-
-template <>
-struct RC<TextDrawable> : TextDrawable
-{
-	RC (const TextDrawable &);
-};
-
-template <>
-struct RC<BaseUIController> : BaseUIController
-{
-	RC (const BaseUIController &);
-};
-
-template <>
-struct RC<BaseLayout> : BaseLayout
-{
-	RC (const BaseLayout &);
-};
-
-template <>
-struct RC<UIStyleCollection> : UIStyleCollection
-{
-	RC (const UIStyleCollection &);
-};
-
-template <>
-struct RC<UIWidget> : UIWidget
-{
-	RC (const UIWidget &);
-};
-
-template <>
-struct RC<FixedLayout> : FixedLayout
-{
-	RC (const FixedLayout &);
-};
-
-template <>
-struct RC<Mesh> : Mesh
-{
-	RC (const Mesh &);
-};
-
-template <>
-struct RC<Material> : Material
-{
-	RC (const Material &);
-};
-
-template <>
-struct RC<BaseUIDrawable> : BaseUIDrawable
-{
-	RC (const BaseUIDrawable &);
-};
-
-template <>
-struct RC<ImageDrawable> : ImageDrawable
-{
-	RC (const ImageDrawable &);
-};
-
-template <>
-struct RC<SharedImage> : SharedImage
-{
-	RC (const SharedImage &);
-};
-
-template <>
-struct RC<UIFontStyle> : UIFontStyle
-{
-	RC (const UIFontStyle &);
-};
-
-template <>
-struct RC<Model> : Model
-{
-	RC (const Model &);
+	RC (const PaddingLayout &);
 };
 
 template <>
@@ -3164,8 +3060,110 @@ struct RC<RasterFont> : RasterFont
 };
 
 template <>
-struct RC<PaddingLayout> : PaddingLayout
+struct RC<Mesh> : Mesh
 {
-	RC (const PaddingLayout &);
+	RC (const Mesh &);
+};
+
+template <>
+struct RC<Material> : Material
+{
+	RC (const Material &);
+};
+
+template <>
+struct RC<FixedLayout> : FixedLayout
+{
+	RC (const FixedLayout &);
+};
+
+template <>
+struct RC<UIFontStyle> : UIFontStyle
+{
+	RC (const UIFontStyle &);
+};
+
+template <>
+struct RC<ImageDrawable> : ImageDrawable
+{
+	RC (const ImageDrawable &);
+};
+
+template <>
+struct RC<BaseUIDrawable> : BaseUIDrawable
+{
+	RC (const BaseUIDrawable &);
+};
+
+template <>
+struct RC<SharedImage> : SharedImage
+{
+	RC (const SharedImage &);
+};
+
+template <>
+struct RC<Model> : Model
+{
+	RC (const Model &);
+};
+
+template <>
+struct RC<MetaData> : MetaData
+{
+	RC (const MetaData &);
+};
+
+template <>
+struct RC<RectangleDrawable> : RectangleDrawable
+{
+	RC (const RectangleDrawable &);
+};
+
+template <>
+struct RC<UIImageStyle> : UIImageStyle
+{
+	RC (const UIImageStyle &);
+};
+
+template <>
+struct RC<ImageAtlas> : ImageAtlas
+{
+	RC (const ImageAtlas &);
+};
+
+template <>
+struct RC<FillStackLayout> : FillStackLayout
+{
+	RC (const FillStackLayout &);
+};
+
+template <>
+struct RC<BaseUIController> : BaseUIController
+{
+	RC (const BaseUIController &);
+};
+
+template <>
+struct RC<TextDrawable> : TextDrawable
+{
+	RC (const TextDrawable &);
+};
+
+template <>
+struct RC<UIStyleCollection> : UIStyleCollection
+{
+	RC (const UIStyleCollection &);
+};
+
+template <>
+struct RC<BaseLayout> : BaseLayout
+{
+	RC (const BaseLayout &);
+};
+
+template <>
+struct RC<UIWidget> : UIWidget
+{
+	RC (const UIWidget &);
 };
 

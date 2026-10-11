@@ -119,14 +119,18 @@
 			"Input image in '"s << ToString(srcView.Format()) <<
 			"' format, but BC6 format requires input in 'RGBA16F' format" );
 
-		BC6Enc	bc6_enc { dstView.Format() == EPixelFormat::BC6H_RGB16F, quality };
-		CHECK_ERR( bc6_enc.enc != null );
-
 		half*		src_ptr		= Cast<half>( srcView.Parts().front().ptr );
 		CMP_BYTE*	dst_ptr		= Cast<CMP_BYTE>( dstView.Parts().front().ptr );
 
-		const auto	EncodeBlock	= [&] (const uint x, const uint y) -> bool
+		const auto	InitState	= [&] ()
 		{{
+			return BC6Enc{ dstView.Format() == EPixelFormat::BC6H_RGB16F, quality };
+		}};
+
+		const auto	EncodeBlock	= [&] (BC6Enc &bc6_enc, const uint x, const uint y) -> bool
+		{{
+			CHECK_ERR( bc6_enc.enc != null );
+
 			CMP_FLOAT	src [BC_BLOCK_PIXELS][BC_COMPONENT_COUNT];
 
 			for (uint i = 0, c = 0; c < 4; ++c)
@@ -155,7 +159,7 @@
 			return true;
 		}};
 
-		return MtBlockCompression( EncodeBlock, dstView.TexelBlocks(), threadCount );
+		return MtBlockCompression( InitState, EncodeBlock, dstView.TexelBlocks(), threadCount );
 	}
 
 /*
@@ -167,6 +171,8 @@
 */
 	ND_ static bool  Compressonator_DecodeBC6 (ImageMemView srcView, ImageMemView dstView, const uint threadCount)
 	{
+		struct EmptyCtx {};
+
 		CHECK_ERR_MSG( dstView.Format() == EPixelFormat::RGBA16F,
 			"Output image in '"s << ToString(srcView.Format()) <<
 			"' format, but BC6 format requires output in 'RGBA16F' format" );
@@ -174,7 +180,12 @@
 		CMP_BYTE*	src_ptr		= Cast<CMP_BYTE>( srcView.Parts().front().ptr );
 		half*		dst_ptr		= Cast<half>( dstView.Parts().front().ptr );
 
-		const auto	DecodeBlock = [&] (const uint x, const uint y) -> bool
+		const auto	InitState	= [&] ()
+		{{
+			return EmptyCtx{};
+		}};
+
+		const auto	DecodeBlock = [&] (EmptyCtx &, const uint x, const uint y) -> bool
 		{{
 			CMP_FLOAT	dst [BC_BLOCK_PIXELS][BC_COMPONENT_COUNT];
 
@@ -203,7 +214,7 @@
 			return true;
 		}};
 
-		return MtBlockCompression( DecodeBlock, srcView.TexelBlocks(), threadCount );
+		return MtBlockCompression( InitState, DecodeBlock, srcView.TexelBlocks(), threadCount );
 	}
 
 /*
@@ -238,14 +249,18 @@
 			"Input image in '"s << ToString(srcView.Format()) <<
 			"' format, but BC7 format requires input in 'RGBA8_UNorm' format" );
 
-		BC7Enc	bc7_enc { quality };
-		CHECK_ERR( bc7_enc.enc != null );
-
 		ubyte*		src_ptr		= Cast<ubyte>( srcView.Parts().front().ptr );
 		CMP_BYTE*	dst_ptr		= Cast<CMP_BYTE>( dstView.Parts().front().ptr );
 
-		const auto	EncodeBlock = [&] (const uint x, const uint y) -> bool
+		const auto	InitState	= [&] ()
 		{{
+			return BC7Enc{ quality };
+		}};
+
+		const auto	EncodeBlock = [&] (BC7Enc &bc7_enc, const uint x, const uint y) -> bool
+		{{
+			CHECK_ERR( bc7_enc.enc != null );
+
 			double	src [BC_BLOCK_PIXELS][BC_COMPONENT_COUNT];
 
 			for (uint i = 0, c = 0; c < 4; ++c)
@@ -274,7 +289,7 @@
 			return true;
 		}};
 
-		return MtBlockCompression( EncodeBlock, dstView.TexelBlocks(), threadCount );
+		return MtBlockCompression( InitState, EncodeBlock, dstView.TexelBlocks(), threadCount );
 	}
 
 /*
@@ -286,6 +301,8 @@
 */
 	ND_ static bool  Compressonator_DecodeBC7 (ImageMemView srcView, ImageMemView dstView, const uint threadCount)
 	{
+		struct EmptyCtx {};
+
 		CHECK_ERR_MSG( dstView.Format() == EPixelFormat::RGBA8_UNorm,
 			"Output image in '"s << ToString(srcView.Format()) <<
 			"' format, but BC7 format requires output in 'RGBA8_UNorm' format" );
@@ -293,7 +310,12 @@
 		CMP_BYTE*	src_ptr		= Cast<CMP_BYTE>( srcView.Parts().front().ptr );
 		ubyte*		dst_ptr		= Cast<ubyte>( dstView.Parts().front().ptr );
 
-		const auto	DecodeBlock	= [&] (const uint x, const uint y) -> bool
+		const auto	InitState	= [&] ()
+		{{
+			return EmptyCtx{};
+		}};
+
+		const auto	DecodeBlock	= [&] (EmptyCtx &, const uint x, const uint y) -> bool
 		{{
 			double			dst [BC_BLOCK_PIXELS][BC_COMPONENT_COUNT];
 
@@ -322,7 +344,7 @@
 			return true;
 		}};
 
-		return MtBlockCompression( DecodeBlock, srcView.TexelBlocks(), threadCount );
+		return MtBlockCompression( InitState, DecodeBlock, srcView.TexelBlocks(), threadCount );
 	}
 
 /*
@@ -356,7 +378,12 @@
 			return Compressonator_EncodeBC7( srcView, dstView, threadCount, quality );
 
 
-		auto&	fmt_info = EPixelFormat_GetInfo( dstView.Format() );
+		auto&	src_fmt_info = EPixelFormat_GetInfo( srcView.Format() );
+		auto&	dst_fmt_info = EPixelFormat_GetInfo( dstView.Format() );
+
+		CHECK_ERR( All( IsMultipleOf( srcView.Dimension2(), src_fmt_info.TexBlockDim() )));
+		CHECK_ERR( All( IsMultipleOf( dstView.Dimension2(), dst_fmt_info.TexBlockDim() )));
+
 
 		CMP_Texture		src_tex = {};
 		src_tex.dwSize		= sizeof(src_tex);
@@ -376,8 +403,8 @@
 		dst_tex.dwHeight	 = dstView.Dimension().y;
 		dst_tex.dwPitch		 = CMP_DWORD(dstView.RowPitch());
 		dst_tex.format		 = Compressonator_ConvertFormat( dstView.Format() );
-		dst_tex.nBlockHeight = CMP_BYTE(fmt_info.TexBlockDim().x);
-		dst_tex.nBlockWidth	 = CMP_BYTE(fmt_info.TexBlockDim().y);
+		dst_tex.nBlockHeight = CMP_BYTE(dst_fmt_info.TexBlockDim().x);
+		dst_tex.nBlockWidth	 = CMP_BYTE(dst_fmt_info.TexBlockDim().y);
 		dst_tex.nBlockDepth	 = 1;
 		CHECK_ERR( dst_tex.format != CMP_FORMAT_Unknown );
 

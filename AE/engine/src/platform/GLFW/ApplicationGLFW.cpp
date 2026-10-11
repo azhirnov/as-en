@@ -33,7 +33,7 @@ namespace {
 	constructor
 =================================================
 */
-	ApplicationGLFW::ApplicationGLFW (Unique<IAppListener> listener) __NE___ :
+	ApplicationGLFW::ApplicationGLFW (AppListenerPtr listener) __NE___ :
 		ApplicationBase{ RVRef(listener) }
 	{
 	  #ifndef AE_CFG_RELEASE
@@ -364,6 +364,8 @@ namespace {
 
 		for (; _isRunning.load();)
 		{
+			TRACY( ZoneScoped );
+
 			ApplicationBase::_BeforeUpdate();
 
 			glfwPollEvents();
@@ -385,16 +387,20 @@ namespace {
 	Run
 =================================================
 */
-	int  ApplicationGLFW::Run (Unique<IAppListener> listener, bool useX11) __NE___
+	int  ApplicationGLFW::Run (AppListenerPtr listener, bool useX11) __NE___
 	{
 		int	res = 0;
 		{
 			// Choose X11 or Wayland
 			#ifdef AE_PLATFORM_LINUX
-			if ( useX11 )
+			if ( useX11 ){
 				glfwInitHint( GLFW_PLATFORM, GLFW_PLATFORM_X11 );
-			else
+				glfwInitHint( GLFW_X11_XCB_VULKAN_SURFACE, GLFW_TRUE );  // X11 or XCB
+			}else{
 				glfwInitHint( GLFW_PLATFORM, GLFW_PLATFORM_WAYLAND );
+				//glfwInitHint( GLFW_WAYLAND_LIBDECOR, GLFW_WAYLAND_PREFER_LIBDECOR );
+				glfwInitHint( GLFW_WAYLAND_LIBDECOR, GLFW_WAYLAND_DISABLE_LIBDECOR );  // fallback
+			}
 			#endif
 			Unused( useX11 );
 
@@ -448,7 +454,7 @@ extern int  main (const int argc, char const* argv[])
   #ifdef AE_PLATFORM_LINUX
 	bool	use_x11	= Parser::HasCommandLineArg( ArrayView{ argv, usize(Max( argc, 0 ))}, "-x11" );
 	bool	use_wl	= Parser::HasCommandLineArg( ArrayView{ argv, usize(Max( argc, 0 ))}, "-wayland" );
-			use_x11	= use_x11 and not use_wl;
+			use_x11	= use_x11 or not use_wl;
   #else
 	bool	use_x11	= false;
 	Unused( argc );

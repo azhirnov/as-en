@@ -88,7 +88,9 @@ namespace AE::ResEditor
 		const String				_dbgName;
 
 		Array<RC<Buffer>>			_refBuffers;
-		Array<RC<BufferView>>		_views;
+
+		Synchronized< RWSpinLock,
+			FlatHashSet<BufferView*> >	_derived;
 
 
 	// methods
@@ -107,8 +109,7 @@ namespace AE::ResEditor
 				RC<DynamicUInt>		outDynCount,
 				StringView			dbgName,
 				EBufferFlags		flags,
-				Array<RC<Buffer>>	refBuffers,
-				Array<RC<BufferView>> views)						__NE___;
+				Array<RC<Buffer>>	refBuffers)						__NE___;
 
 		void  _Init ()												__Th___;
 
@@ -129,8 +130,7 @@ namespace AE::ResEditor
 										RC<DynamicUInt>		outDynCount,
 										StringView			dbgName,
 										EBufferFlags		flags,
-										Array<RC<Buffer>>	refBuffers,
-										Array<RC<BufferView>> views)	__Th___;
+										Array<RC<Buffer>>	refBuffers)	__Th___;
 
 		ND_ BufferID				GetBufferId (uint fid)			const	{ return _ids[ fid ].Get(); }
 		ND_ BufferID				GetBufferId (FrameUID fid)		const	{ return _ids[ fid.Index() ].Get(); }
@@ -151,6 +151,8 @@ namespace AE::ResEditor
 		ND_ bool					HasHistory ()					const	{ return AllBits( _flags, EBufferFlags::WithHistory ); }
 
 		ND_ ArrayView<RC<Buffer>>	GetRefBuffers ()				const	{ return _refBuffers; }
+
+		ND_ RC<BufferView>			CreateView (const BufferViewDesc &, StringView dbgName)	__Th___;
 
 	// IResource //
 		bool			Resize (TransferCtx_t &ctx)					__Th_OV;

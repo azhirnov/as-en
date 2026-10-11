@@ -19,7 +19,7 @@ if ((TARGET "Scripting") AND (TARGET "PipelineCompiler") AND (TARGET "ResourceLo
 		if (NOT EXISTS "${ANDROID_SRC_PATH}")
 			message( FATAL_ERROR "Android source is not exists in ${ANDROID_SRC_PATH}" )
 		endif()
-		file( GLOB_RECURSE ANDROID_SOURCES "${ANDROID_SRC_PATH}/*.*" )
+		file( GLOB_RECURSE ANDROID_SOURCES "${ANDROID_SRC_PATH}/*.java" "${ANDROID_SRC_PATH}/*.gradle" "${ANDROID_SRC_PATH}/*.xml" )
 		list( APPEND ANDROID_SOURCES "${ANDROID_SRC_PATH}/../../build.gradle" )
 
 		add_executable( ${APP_NAME} ${SOURCES} ${ANDROID_SOURCES} )

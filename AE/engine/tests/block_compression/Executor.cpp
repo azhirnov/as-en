@@ -2,7 +2,67 @@
 
 #include "Executor.h"
 
+#include "res_pack/asset_packer/Packer/ImagePacker.h"
 #include "res_pack/pipeline_compiler/ScriptObjects/ObjectStorage.h"
+
+static const auto	c_Timeout = seconds{5*60};
+
+/*
+=================================================
+	ToPixFmt
+=================================================
+*/
+EPixelFormat  ToPixFmt (ECompFormat src)
+{
+	switch_enum( src )
+	{
+		#define CASE( _name_ )	case ECompFormat::_name_ :	return EPixelFormat::_name_;
+
+		CASE( BC1_RGB8_UNorm )
+		CASE( BC1_RGB8_A1_UNorm )
+		CASE( BC3_RGBA8_UNorm )
+		CASE( BC4_R8_SNorm )
+		CASE( BC4_R8_UNorm )
+		CASE( BC5_RG8_SNorm )
+		CASE( BC5_RG8_UNorm )
+		CASE( BC6H_RGB16F )
+		CASE( BC6H_RGB16UF )
+		CASE( BC7_RGBA8_UNorm )
+
+		CASE( ETC2_RGB8_UNorm )
+		CASE( ETC2_RGB8_A1_UNorm )
+		CASE( ETC2_RGBA8_UNorm )
+
+		CASE( EAC_R11_SNorm )
+		CASE( EAC_R11_UNorm )
+		CASE( EAC_RG11_SNorm )
+		CASE( EAC_RG11_UNorm )
+
+		CASE( ASTC_RGBA8_4x4 )
+		CASE( ASTC_RGBA8_8x8 )
+
+		#undef CASE
+
+		case ECompFormat::_Count :			break;
+		case ECompFormat::BC7_RGB8_UNorm :	return EPixelFormat::BC7_RGBA8_UNorm;
+	}
+	switch_end
+	return Default;
+}
+
+/*
+=================================================
+	FixChannelCount
+=================================================
+*/
+ND_ static uint  FixChannelCount (ECompFormat fmt, uint cnt)
+{
+	switch ( fmt )
+	{
+		case ECompFormat::BC7_RGB8_UNorm :	return 3;
+	}
+	return cnt;
+}
 
 /*
 =================================================
@@ -54,13 +114,38 @@ bool  Executor::Images::Allocate (EPixelFormat compFmt, EPixelFormat decompFmt, 
 
 /*
 =================================================
+	PerMode::operator +=
+=================================================
+*/
+Executor::PerMode&  Executor::PerMode::operator += (const PerMode &rhs)
+{
+	this->maxError	= Max( this->maxError, rhs.maxError );
+	this->avgError	= (this->avgError + rhs.avgError) * 0.5;
+	this->blockCount += rhs.blockCount;
+	return *this;
+}
+
+/*
+=================================================
 	CmpResult::operator +=
 =================================================
 */
 Executor::CmpResult&  Executor::CmpResult::operator += (const CmpResult &rhs)
 {
-	this->maxError	= Max( this->maxError, rhs.maxError );
-	this->avgError	= (this->avgError + rhs.avgError) * 0.5;
+	PerMode::operator+=( rhs );
+
+	if ( this->histogram.empty() and rhs.histogram.empty() )
+		return *this;
+
+	histogram.resize( Max( histogram.size(), rhs.histogram.size() ));
+
+	for (usize i = 0; i < histogram.size(); ++i)
+	{
+		if ( i >= rhs.histogram.size() )
+			break;
+
+		histogram[i] += rhs.histogram[i];
+	}
 	return *this;
 }
 
@@ -71,8 +156,175 @@ Executor::CmpResult&  Executor::CmpResult::operator += (const CmpResult &rhs)
 */
 String  Executor::CmpResult::ToString () const
 {
-	return "max err: "s << Base::ToString( maxError, 2, Bool{maxError < 0.01f} ) << "%, avg: " << Base::ToString( avgError, 2, Bool{avgError < 0.01f} ) << "%";
+	String	str;
+	str	<< "max err: "s << Base::ToString( maxError * 100.0, 2, Bool{maxError < 0.01} )
+		<< "%, avg: " << Base::ToString( avgError * 100.0, 2, Bool{avgError < 0.01} )
+		<< "%, blocks: " << Base::ToString( blockCount );
+
+	if ( not histogram.empty() )
+	{
+		str << "\n| mode | max err % | avr % | blocks |";
+		for (auto [his, i] : WithIndex( histogram ))
+		{
+			if ( his.blockCount == 0 )
+				continue;
+
+			str << "\n| " << Base::ToString( i )
+				<< " | " << Base::ToString( his.maxError * 100.0, 2, Bool{maxError < 0.01} )
+				<< " | " << Base::ToString( his.avgError * 100.0, 2, Bool{maxError < 0.01} )
+				<< " | " << Base::ToString( his.blockCount ) << " |";
+		}
+	}
+	return str;
 }
+//-----------------------------------------------------------------------------
+
+
+namespace {
+#	include "res_pack/asset_packer/Packer/ImagePacker.cpp.h"
+}
+
+/*
+=================================================
+	ASTCDecode::_Load
+=================================================
+*/
+Graphics::RenderCoro  Executor::ASTCDecode::_Load ()
+{
+	using namespace AE::Graphics;
+
+	DirectCtx::Transfer  ctx {RenderCoro_Get()};
+
+	auto&	res_mngr = GraphicsScheduler().GetResourceManager();
+
+	const auto	LoadBuffer = [&res_mngr, &ctx] (const Path &path, EPixelFormat fmt, Strong<BufferID> &buf, Strong<BufferViewID> &view) -> bool
+	{{
+		CHECK_ERR( not buf and not view );
+
+		Array<ubyte>	data;
+		{
+			FileRStream		file {path};
+			CHECK_ERR( file.IsOpen() );
+			CHECK_ERR( file.Read( file.RemainingSize(), OUT data ));
+		}
+
+		buf = res_mngr.CreateBuffer( BufferDesc{ ArraySizeOf(data), EBufferUsage::Transfer | EBufferUsage::UniformTexel }, ToString(path.stem()) );
+		CHECK_ERR( buf );
+
+		view = res_mngr.CreateBufferView( BufferViewDesc{ fmt }, buf );
+		CHECK_ERR( view );
+
+		CHECK_ERR( ctx.UploadBuffer( buf, 0_b, ArraySizeOf(data), data.data(), EStagingHeapType::Dynamic ));
+		return true;
+	}};
+
+	CHECK_CE( LoadBuffer( Path{AE_ASTC_TABLES} / "LUTRemainingBitsToEndpointQuantizer.bin", EPixelFormat::RGBA16U,	OUT buf0, OUT view0 ));
+	CHECK_CE( LoadBuffer( Path{AE_ASTC_TABLES} / "LUTEndpointUnquantize.bin",				EPixelFormat::R8U,		OUT buf1, OUT view1 ));
+	CHECK_CE( LoadBuffer( Path{AE_ASTC_TABLES} / "LUTWeightQuantizer.bin",					EPixelFormat::RGBA8U,	OUT buf2, OUT view2 ));
+	CHECK_CE( LoadBuffer( Path{AE_ASTC_TABLES} / "LUTWeightUnquantize.bin",					EPixelFormat::R8U,		OUT buf3, OUT view3 ));
+	CHECK_CE( LoadBuffer( Path{AE_ASTC_TABLES} / "LUTTritQuintDecode.bin",					EPixelFormat::R16U,		OUT buf4, OUT view4 ));
+
+	// load image
+	{
+		FileRStream		file { Path{AE_ASTC_TABLES} / "LUTPartitionTable_128x128_4x4.aeimg" };
+		CHECK_CE( file.IsOpen() );
+
+		AssetPacker::ImagePacker::FileHeader	file_hdr;
+		CHECK_CE( ImagePacker_ReadHeader( file, OUT file_hdr ));
+		CHECK_CE( not file_hdr.fileName.IsDefined() );
+
+		auto&	img_header	= file_hdr.imageHeader;
+
+		img5 = res_mngr.CreateImage( img_header.ToDesc().SetUsage( EImageUsage::Sampled | EImageUsage::Transfer ), Default );
+		CHECK_CE( img5 );
+
+		view5 = res_mngr.CreateImageView( ImageViewDesc{img_header.viewType}, img5 );
+		CHECK_CE( view5 );
+
+		CHECK_CE( img_header.arrayLayers == 1 );
+		CHECK_CE( img_header.mipmaps == 1 );
+
+		ctx.AccumBarriers()
+			.ResourceBarrier( img5, EResourceState::Invalidate, EResourceState::CopyDst );
+
+		// upload
+		{
+			UploadImageDesc	upload;
+			upload.imageDim	= img_header.dimension;
+
+			ImageMemView	dst_mem;
+			ctx.UploadImage( img5, upload, OUT dst_mem );
+
+			Array<ubyte>	data;
+			CHECK_CE( file.Read( file.RemainingSize(), OUT data ));
+
+			auto&	fmt_info	= EPixelFormat_GetInfo( img_header.format );
+			Bytes	row_pitch	= AlignUp( ImageUtils::RowSize( img_header.dimension.x, fmt_info.bitsPerBlock, uint2{1} ), img_header.rowAlignPOT );
+			Bytes	slice_pitch	= ImageUtils::SliceSize( img_header.dimension.y, row_pitch, uint2{1} );
+
+			ImageMemView	src_mem{ data.data(), ArraySizeOf(data), uint3{}, uint3{img_header.dimension}, row_pitch, slice_pitch, img_header.format, EImageAspect::Color };
+			CHECK_CE( dst_mem.CopyFrom( src_mem ));
+		}
+
+		ctx.AccumBarriers()
+			.ResourceBarrier( img5, EResourceState::CopyDst, EResourceState::ShaderSample | EResourceState::AllShaderStages );
+	}
+
+	RenderCoro_Execute( ctx );
+	co_return;
+}
+
+/*
+=================================================
+	ASTCDecode::Load
+=================================================
+*/
+bool  Executor::ASTCDecode::Load ()
+{
+	using namespace AE::Threading;
+	using namespace AE::Graphics;
+
+	auto&	rts	= GraphicsScheduler();
+
+	const EThreadArray	threads { EThread::Main, EThread::Renderer, EThread::PerFrame, EThread::Background };
+	CHECK_ERR( rts.WaitNextFrame( threads, c_Timeout ));
+	CHECK_ERR( rts.BeginFrame() );
+
+	auto	batch = rts.BeginCmdBatch( EQueueType::Graphics, 0 );
+
+	auto	task = batch->Run( _Load(), Tuple{}, True{"Last"}, {"load ASTC decode tables"} );
+
+	auto	end = rts.EndFrame( Tuple{task} );
+
+
+	// wait for submit
+	CHECK_ERR( Scheduler().Wait( {end}, threads, c_Timeout ));
+
+	// wait for complete on GPU
+	CHECK_ERR( rts.WaitAll( threads, c_Timeout ));
+
+	return true;
+}
+
+/*
+=================================================
+	ASTCDecode::Release
+=================================================
+*/
+void  Executor::ASTCDecode::Release ()
+{
+	auto&	res_mngr = GraphicsScheduler().GetResourceManager();
+
+	res_mngr.ReleaseResources( buf0, view0 );
+	res_mngr.ReleaseResources( buf1, view1 );
+	res_mngr.ReleaseResources( buf2, view2 );
+	res_mngr.ReleaseResources( buf3, view3 );
+	res_mngr.ReleaseResources( buf4, view4 );
+	res_mngr.ReleaseResources( img5, view5 );
+}
+//-----------------------------------------------------------------------------
+
+
 
 /*
 =================================================
@@ -112,6 +364,8 @@ bool  Executor::Initialize ()
 
 	CHECK_ERR( _DetectIntermFormat() );
 
+	CHECK_ERR( _astcDecode.Load() );
+
 	try {
 		_CompileRTech( [this]()
 			{
@@ -121,8 +375,8 @@ bool  Executor::Initialize ()
 				_CompileDecodeAllETC();
 				_CompileEncodeAllETC();
 
-				//_CompileDecodeAllASTC();
-				//_CompileEncodeAllASTC();
+				_CompileDecodeAllASTC();
+				_CompileEncodeAllASTC();
 			});
 	}
 	catch(...)
@@ -142,6 +396,8 @@ void  Executor::Deinitialize ()
 {
 	using namespace Threading;
 	using namespace Graphics;
+
+	_astcDecode.Release();
 
 	_rtech  = null;
 	_packId = Default;
@@ -218,8 +474,6 @@ bool  Executor::_HwDecode (const ImageMemView &compressedInput, ImageMemView &ds
 
 	CHECK_ERR( _intermPixFmt == dstImgMem.Format() );
 
-	const auto	timeout = seconds{10};
-
 	const bool	is_bc	= EPixelFormat_IsBC( compressedInput.Format() );
 	const bool	is_etc	= EPixelFormat_IsETC( compressedInput.Format() ) or EPixelFormat_IsEAC( compressedInput.Format() );
 	const bool	is_astc	= EPixelFormat_IsASTC_LDR( compressedInput.Format() );
@@ -276,7 +530,7 @@ bool  Executor::_HwDecode (const ImageMemView &compressedInput, ImageMemView &ds
 
 
 	const EThreadArray	threads { EThread::Main, EThread::Renderer, EThread::PerFrame, EThread::Background };
-	CHECK_ERR( rts.WaitNextFrame( threads, timeout ));
+	CHECK_ERR( rts.WaitNextFrame( threads, c_Timeout ));
 	CHECK_ERR( rts.BeginFrame() );
 
 	AsyncTask read_op;
@@ -284,17 +538,18 @@ bool  Executor::_HwDecode (const ImageMemView &compressedInput, ImageMemView &ds
 	auto	batch = rts.BeginCmdBatch( EQueueType::Graphics, 0 );
 
 	auto	task = batch->Run(
-					[&] () -> RenderCoro
+					[] (ComputePipelineID pipeId, ImageID srcImg, ImageID dstImg, const ImageMemView &compressedInput, DescriptorSetID ds,
+						ImageMemView &dstImgMem, AsyncTask &readOp) -> RenderCoro
 					{
 						DirectCtx::CommandBuffer	cmdbuf;
 						{
 							DirectCtx::Transfer  ctx { RenderCoro_Get(), RVRef(cmdbuf) };
 
 							ctx.AccumBarriers()
-								.ResourceBarrier( src_img, EResourceState::Invalidate, EResourceState::CopyDst );
+								.ResourceBarrier( srcImg, EResourceState::Invalidate, EResourceState::CopyDst );
 
 							ImageMemView	dst_mem;
-							ctx.UploadImage( src_img, UploadImageDesc{}, OUT dst_mem );
+							ctx.UploadImage( srcImg, UploadImageDesc{}, OUT dst_mem );
 							CHECK_CE( dst_mem.CopyFrom( compressedInput ));
 
 							cmdbuf = ctx.ReleaseCommandBuffer();
@@ -302,21 +557,21 @@ bool  Executor::_HwDecode (const ImageMemView &compressedInput, ImageMemView &ds
 							DirectCtx::Compute	ctx { RenderCoro_Get(), RVRef(cmdbuf) };
 
 							ctx.AccumBarriers()
-								.ResourceBarrier( src_img, EResourceState::CopyDst,		EResourceState::ShaderSample | EResourceState::ComputeShader )
-								.ResourceBarrier( dst_img, EResourceState::Invalidate,	EResourceState::ShaderStorage_Write | EResourceState::ComputeShader );
+								.ResourceBarrier( srcImg, EResourceState::CopyDst,		EResourceState::ShaderSample | EResourceState::ComputeShader )
+								.ResourceBarrier( dstImg, EResourceState::Invalidate,	EResourceState::ShaderStorage_Write | EResourceState::ComputeShader );
 
-							ctx.BindPipeline( pipe_id );
+							ctx.BindPipeline( pipeId );
 							ctx.BindDescriptorSet( DescSetBinding{0}, ds );
-							ctx.Dispatch( DivCeil( dim, _wgSize ));
+							ctx.Dispatch( DivCeil( dstImgMem.Dimension2(), _wgSize ));
 
 							ctx.AccumBarriers()
-								.ResourceBarrier( dst_img, EResourceState::ShaderStorage_Write | EResourceState::ComputeShader,  EResourceState::CopySrc );
+								.ResourceBarrier( dstImg, EResourceState::ShaderStorage_Write | EResourceState::ComputeShader,  EResourceState::CopySrc );
 
 							cmdbuf = ctx.ReleaseCommandBuffer();
 						}{
 							DirectCtx::Transfer  ctx { RenderCoro_Get(), RVRef(cmdbuf) };
 
-							read_op = ctx.ReadbackImage( dst_img, Default ).IfFullyRead(
+							readOp = ctx.ReadbackImage( dstImg, Default ).IfFullyRead(
 										dstImgMem,
 										[] (Promise<ImageMemView> readRes, CoSafe<ImageMemView&> output) -> InlineCoro<>
 										{
@@ -326,7 +581,7 @@ bool  Executor::_HwDecode (const ImageMemView &compressedInput, ImageMemView &ds
 
 							RenderCoro_Execute( ctx );
 						}
-					}(),
+					}( pipe_id, src_img, dst_img, compressedInput, ds, INOUT dstImgMem, OUT read_op ),
 					Tuple{},
 					True{"Last"},
 					{"Hw Decode task"}
@@ -336,13 +591,13 @@ bool  Executor::_HwDecode (const ImageMemView &compressedInput, ImageMemView &ds
 
 
 	// wait for submit
-	CHECK_ERR( Scheduler().Wait( {end}, threads, timeout ));
+	CHECK_ERR( Scheduler().Wait( {end}, threads, c_Timeout ));
 
 	// wait for complete on GPU
-	CHECK_ERR( rts.WaitAll( threads, timeout ));
+	CHECK_ERR( rts.WaitAll( threads, c_Timeout ));
 
 	// wait for result
-	CHECK_ERR( Scheduler().Wait( {read_op}, threads, timeout ));
+	CHECK_ERR( Scheduler().Wait( {read_op}, threads, c_Timeout ));
 
 	return true;
 }
@@ -358,8 +613,6 @@ bool  Executor::_SwDecode (const ImageMemView &compressedInput, ImageMemView &ds
 	using namespace Graphics;
 
 	CHECK_ERR( _intermPixFmt == dstImgMem.Format() );
-
-	const auto	timeout = seconds{10};
 
 	auto&	rts			= GraphicsScheduler();
 	auto&	res_mngr	= rts.GetResourceManager();
@@ -403,12 +656,22 @@ bool  Executor::_SwDecode (const ImageMemView &compressedInput, ImageMemView &ds
 		updater.Set( ds, EDescUpdateMode::Partialy );
 		updater.BindImage( UniformName{"d_InputBlocks"},	src_view );
 		updater.BindImage( UniformName{"d_OutputImg"},		dst_view );
+
+		if ( EPixelFormat_IsASTC( compressedInput.Format() ))
+		{
+			updater.BindTexelBuffer( UniformName{"LUTRemainingBitsToEndpointQuant"},	_astcDecode.view0 );
+			updater.BindTexelBuffer( UniformName{"LUTEndpointUnquantize"},				_astcDecode.view1 );
+			updater.BindTexelBuffer( UniformName{"LUTWeightQuantizer"},					_astcDecode.view2 );
+			updater.BindTexelBuffer( UniformName{"LUTWeightUnquantize"},				_astcDecode.view3 );
+			updater.BindTexelBuffer( UniformName{"LUTTritQuintDecode"},					_astcDecode.view4 );
+			updater.BindImage(		 UniformName{"LUTPartitionTable"},					_astcDecode.view5 );
+		}
 		updater.Flush();
 	}
 
 
 	const EThreadArray	threads { EThread::Main, EThread::Renderer, EThread::PerFrame, EThread::Background };
-	CHECK_ERR( rts.WaitNextFrame( threads, timeout ));
+	CHECK_ERR( rts.WaitNextFrame( threads, c_Timeout ));
 	CHECK_ERR( rts.BeginFrame() );
 
 	AsyncTask read_op;
@@ -416,17 +679,18 @@ bool  Executor::_SwDecode (const ImageMemView &compressedInput, ImageMemView &ds
 	auto	batch = rts.BeginCmdBatch( EQueueType::Graphics, 0 );
 
 	auto	task = batch->Run(
-					[&] () -> RenderCoro
+					[] (ComputePipelineID pipeId, ImageID srcImg, ImageID dstImg, const ImageMemView &compressedInput, DescriptorSetID ds,
+						ImageMemView &dstImgMem, AsyncTask &readOp) -> RenderCoro
 					{
 						DirectCtx::CommandBuffer	cmdbuf;
 						{
 							DirectCtx::Transfer  ctx { RenderCoro_Get(), RVRef(cmdbuf) };
 
 							ctx.AccumBarriers()
-								.ResourceBarrier( src_img, EResourceState::Invalidate, EResourceState::CopyDst );
+								.ResourceBarrier( srcImg, EResourceState::Invalidate, EResourceState::CopyDst );
 
 							ImageMemView	dst_mem;
-							ctx.UploadImage( src_img, UploadImageDesc{}, OUT dst_mem );
+							ctx.UploadImage( srcImg, UploadImageDesc{}, OUT dst_mem );
 							CHECK_CE( compressedInput.CopyTo( dst_mem.AsBufferView() ));
 
 							cmdbuf = ctx.ReleaseCommandBuffer();
@@ -434,21 +698,21 @@ bool  Executor::_SwDecode (const ImageMemView &compressedInput, ImageMemView &ds
 							DirectCtx::Compute	ctx { RenderCoro_Get(), RVRef(cmdbuf) };
 
 							ctx.AccumBarriers()
-								.ResourceBarrier( src_img, EResourceState::CopyDst,		EResourceState::ShaderStorage_Read | EResourceState::ComputeShader )
-								.ResourceBarrier( dst_img, EResourceState::Invalidate,	EResourceState::ShaderStorage_Write | EResourceState::ComputeShader );
+								.ResourceBarrier( srcImg, EResourceState::CopyDst,		EResourceState::ShaderStorage_Read | EResourceState::ComputeShader )
+								.ResourceBarrier( dstImg, EResourceState::Invalidate,	EResourceState::ShaderStorage_Write | EResourceState::ComputeShader );
 
-							ctx.BindPipeline( pipe_id );
+							ctx.BindPipeline( pipeId );
 							ctx.BindDescriptorSet( DescSetBinding{0}, ds );
-							ctx.Dispatch( DivCeil( dim, _wgSize ));
+							ctx.Dispatch( DivCeil( compressedInput.Dimension2(), _wgSize ));
 
 							ctx.AccumBarriers()
-								.ResourceBarrier( dst_img, EResourceState::ShaderStorage_Write | EResourceState::ComputeShader,  EResourceState::CopySrc );
+								.ResourceBarrier( dstImg, EResourceState::ShaderStorage_Write | EResourceState::ComputeShader,  EResourceState::CopySrc );
 
 							cmdbuf = ctx.ReleaseCommandBuffer();
 						}{
 							DirectCtx::Transfer  ctx { RenderCoro_Get(), RVRef(cmdbuf) };
 
-							read_op = ctx.ReadbackImage( dst_img, Default ).IfFullyRead(
+							readOp = ctx.ReadbackImage( dstImg, Default ).IfFullyRead(
 										dstImgMem,
 										[] (Promise<ImageMemView> readRes, CoSafe<ImageMemView&> output) -> InlineCoro<>
 										{
@@ -458,7 +722,7 @@ bool  Executor::_SwDecode (const ImageMemView &compressedInput, ImageMemView &ds
 
 							RenderCoro_Execute( ctx );
 						}
-					}(),
+					}( pipe_id, src_img, dst_img, compressedInput, ds, INOUT dstImgMem, OUT read_op ),
 					Tuple{},
 					True{"Last"},
 					{"Sw Decode task"}
@@ -468,13 +732,13 @@ bool  Executor::_SwDecode (const ImageMemView &compressedInput, ImageMemView &ds
 
 
 	// wait for submit
-	CHECK_ERR( Scheduler().Wait( {end}, threads, timeout ));
+	CHECK_ERR( Scheduler().Wait( {end}, threads, c_Timeout ));
 
 	// wait for complete on GPU
-	CHECK_ERR( rts.WaitAll( threads, timeout ));
+	CHECK_ERR( rts.WaitAll( threads, c_Timeout ));
 
 	// wait for result
-	CHECK_ERR( Scheduler().Wait( {read_op}, threads, timeout ));
+	CHECK_ERR( Scheduler().Wait( {read_op}, threads, c_Timeout ));
 
 	return true;
 }
@@ -484,12 +748,12 @@ bool  Executor::_SwDecode (const ImageMemView &compressedInput, ImageMemView &ds
 	Encode
 =================================================
 */
-bool  Executor::Encode (const ImageMemView &uncompressedInput, EPixelFormat dstFmt, OUT Images &output)
+bool  Executor::Encode (const ImageMemView &uncompressedInput, ECompFormat dstFmt, OUT Images &output)
 {
 	CHECK_ERR( _rtech );
-	CHECK_ERR( output.Allocate( dstFmt, _intermPixFmt, uncompressedInput.Dimension2() ));
+	CHECK_ERR( output.Allocate( ToPixFmt( dstFmt ), _intermPixFmt, uncompressedInput.Dimension2() ));
 
-	CHECK_ERR( _SwEncode( uncompressedInput, output.outCompressedImg ));
+	CHECK_ERR( _SwEncode( uncompressedInput, output.outCompressedImg, dstFmt ));
 	return true;
 }
 
@@ -498,19 +762,17 @@ bool  Executor::Encode (const ImageMemView &uncompressedInput, EPixelFormat dstF
 	_SwEncode
 =================================================
 */
-bool  Executor::_SwEncode (const ImageMemView &uncompressedInput, ImageMemView &dstImgMem)
+bool  Executor::_SwEncode (const ImageMemView &uncompressedInput, ImageMemView &dstImgMem, ECompFormat compFmt)
 {
 	using namespace Threading;
 	using namespace Graphics;
 
 	CHECK_ERR( _intermPixFmt == uncompressedInput.Format() );
 
-	const auto	timeout = seconds{10};
-
 	auto&	rts			= GraphicsScheduler();
 	auto&	res_mngr	= rts.GetResourceManager();
 
-	String	pipe_name	= "SwEnc."s << ToString( dstImgMem.Format() );
+	String	pipe_name	= "SwEnc."s << ToString( compFmt );
 
 	auto	pipe_id		= _rtech->GetComputePipeline( PipelineName{pipe_name} );
 	CHECK_ERR( pipe_id );
@@ -555,7 +817,7 @@ bool  Executor::_SwEncode (const ImageMemView &uncompressedInput, ImageMemView &
 
 
 	const EThreadArray	threads { EThread::Main, EThread::Renderer, EThread::PerFrame, EThread::Background };
-	CHECK_ERR( rts.WaitNextFrame( threads, timeout ));
+	CHECK_ERR( rts.WaitNextFrame( threads, c_Timeout ));
 	CHECK_ERR( rts.BeginFrame() );
 
 	AsyncTask read_op;
@@ -563,17 +825,18 @@ bool  Executor::_SwEncode (const ImageMemView &uncompressedInput, ImageMemView &
 	auto	batch = rts.BeginCmdBatch( EQueueType::Graphics, 0 );
 
 	auto	task = batch->Run(
-					[&] () -> RenderCoro
+					[] (ComputePipelineID pipeId, ImageID srcImg, ImageID dstImg, const ImageMemView &uncompressedInput, DescriptorSetID ds,
+						ImageMemView &tempMem, AsyncTask &readOp) -> RenderCoro
 					{
 						DirectCtx::CommandBuffer	cmdbuf;
 						{
 							DirectCtx::Transfer  ctx { RenderCoro_Get(), RVRef(cmdbuf) };
 
 							ctx.AccumBarriers()
-								.ResourceBarrier( src_img, EResourceState::Invalidate, EResourceState::CopyDst );
+								.ResourceBarrier( srcImg, EResourceState::Invalidate, EResourceState::CopyDst );
 
 							ImageMemView	dst_mem;
-							ctx.UploadImage( src_img, UploadImageDesc{}, OUT dst_mem );
+							ctx.UploadImage( srcImg, UploadImageDesc{}, OUT dst_mem );
 							CHECK_CE( uncompressedInput.CopyTo( dst_mem.AsBufferView() ));
 
 							cmdbuf = ctx.ReleaseCommandBuffer();
@@ -581,22 +844,22 @@ bool  Executor::_SwEncode (const ImageMemView &uncompressedInput, ImageMemView &
 							DirectCtx::Compute	ctx { RenderCoro_Get(), RVRef(cmdbuf) };
 
 							ctx.AccumBarriers()
-								.ResourceBarrier( src_img, EResourceState::CopyDst,		EResourceState::ShaderStorage_Read | EResourceState::ComputeShader )
-								.ResourceBarrier( dst_img, EResourceState::Invalidate,	EResourceState::ShaderStorage_Write | EResourceState::ComputeShader );
+								.ResourceBarrier( srcImg, EResourceState::CopyDst,		EResourceState::ShaderStorage_Read | EResourceState::ComputeShader )
+								.ResourceBarrier( dstImg, EResourceState::Invalidate,	EResourceState::ShaderStorage_Write | EResourceState::ComputeShader );
 
-							ctx.BindPipeline( pipe_id );
+							ctx.BindPipeline( pipeId );
 							ctx.BindDescriptorSet( DescSetBinding{0}, ds );
-							ctx.Dispatch( DivCeil( dim, _wgSize ));
+							ctx.Dispatch( DivCeil( uncompressedInput.Dimension2(), _wgSize ));
 
 							ctx.AccumBarriers()
-								.ResourceBarrier( dst_img, EResourceState::ShaderStorage_Write | EResourceState::ComputeShader,  EResourceState::CopySrc );
+								.ResourceBarrier( dstImg, EResourceState::ShaderStorage_Write | EResourceState::ComputeShader,  EResourceState::CopySrc );
 
 							cmdbuf = ctx.ReleaseCommandBuffer();
 						}{
 							DirectCtx::Transfer  ctx { RenderCoro_Get(), RVRef(cmdbuf) };
 
-							read_op = ctx.ReadbackImage( dst_img, Default ).IfFullyRead(
-										tmp_mem,
+							readOp = ctx.ReadbackImage( dstImg, Default ).IfFullyRead(
+										tempMem,
 										[] (Promise<ImageMemView> readRes, CoSafe<ImageMemView&> output) -> InlineCoro<>
 										{
 											auto  view = co_await readRes;
@@ -605,7 +868,7 @@ bool  Executor::_SwEncode (const ImageMemView &uncompressedInput, ImageMemView &
 
 							RenderCoro_Execute( ctx );
 						}
-					}(),
+					}( pipe_id, src_img, dst_img, uncompressedInput, ds, INOUT tmp_mem, OUT read_op ),
 					Tuple{},
 					True{"Last"},
 					{"Sw Decode task"}
@@ -615,13 +878,13 @@ bool  Executor::_SwEncode (const ImageMemView &uncompressedInput, ImageMemView &
 
 
 	// wait for submit
-	CHECK_ERR( Scheduler().Wait( {end}, threads, timeout ));
+	CHECK_ERR( Scheduler().Wait( {end}, threads, c_Timeout ));
 
 	// wait for complete on GPU
-	CHECK_ERR( rts.WaitAll( threads, timeout ));
+	CHECK_ERR( rts.WaitAll( threads, c_Timeout ));
 
 	// wait for result
-	CHECK_ERR( Scheduler().Wait( {read_op}, threads, timeout ));
+	CHECK_ERR( Scheduler().Wait( {read_op}, threads, c_Timeout ));
 
 	return true;
 }
@@ -631,7 +894,7 @@ bool  Executor::_SwEncode (const ImageMemView &uncompressedInput, ImageMemView &
 	Compare
 =================================================
 */
-Executor::CmpResult  Executor::Compare (const ImageMemView &input, const ImageMemView &reference, EPixelFormat actualFmt) const
+Executor::CmpResult  Executor::Compare (const ImageMemView &input, const ImageMemView &reference, ECompFormat actualFmt, const ImageMemView *compBlocks) const
 {
 	using namespace Graphics;
 
@@ -642,27 +905,59 @@ Executor::CmpResult  Executor::Compare (const ImageMemView &input, const ImageMe
 	const auto&		in_data		= input.Parts().front();
 	const auto&		ref_data	= reference.Parts().front();
 	const uint2		dim			= input.Dimension2();
+	const auto		actual_fmt2	= ToPixFmt( actualFmt );
+	const auto&		fmt_info	= EPixelFormat_GetInfo( actual_fmt2 );
+	const uint2		block_cnt	= dim / fmt_info.TexBlockDim();
+	const uint2		block_dim	= fmt_info.TexBlockDim();
+	const uint		channels	= FixChannelCount( actualFmt, fmt_info.channels );
+	CmpResult		res;
+
+	res.blockCount = Area( block_cnt );
 
 	CHECK_ERR( in_data.size == ref_data.size );
 
 	if_likely( MemEqual( in_data.ptr, ref_data.ptr, in_data.size ))
-		return CmpResult{};
+		return res;
+
+	GetModeFn_t		get_mode = null;
+	if ( compBlocks != null )
+	{
+		CHECK_ERR( compBlocks->Format() == actual_fmt2 );
+		switch ( actualFmt )
+		{
+			case ECompFormat::ETC2_RGB8_UNorm :		get_mode = _GetModeETC2; break;
+			case ECompFormat::ETC2_RGB8_A1_UNorm :	get_mode = _GetModeETC2A1; break;
+			case ECompFormat::ETC2_RGBA8_UNorm :	get_mode = _GetModeETC2_EAC; break;
+
+			case ECompFormat::ASTC_RGBA8_4x4 :		get_mode = _GetModeASTC4x4; break;
+
+			case ECompFormat::BC6H_RGB16F :
+			case ECompFormat::BC6H_RGB16UF :		get_mode = _GetModeBC6; break;
+
+			case ECompFormat::BC7_RGB8_UNorm :
+			case ECompFormat::BC7_RGBA8_UNorm :		get_mode = _GetModeBC7;	break;
+		}
+	}
 
 	// find error
 	RWImageMemView	in_rw		{input};
 	RWImageMemView	ref_rw		{reference};
-	const auto&		fmt_info	= EPixelFormat_GetInfo( actualFmt );
-	const double4	ch_mask		{bool4{ fmt_info.channels > 0, fmt_info.channels > 1, fmt_info.channels > 2, fmt_info.channels > 3 }};
-	CmpResult		res;
+	const double4	ch_mask		{bool4{ channels > 0, channels > 1, channels > 2, channels > 3 }};
 
-	for (uint y = 0; y < dim.y; ++y)
+	for (uint block_y = 0; block_y < block_cnt.y; ++block_y)
+	for (uint block_x = 0; block_x < block_cnt.x; ++block_x)
 	{
-		for (uint x = 0; x < dim.x; ++x)
+		double	max_block_err	= 0.0;
+		double	avr_block_err	= 0.0;
+
+		for (uint y = 0; y < block_dim.y; ++y)
+		for (uint x = 0; x < block_dim.x; ++x)
 		{
 			RGBA32f	in_col, ref_col;
+			uint2	coord = uint2{block_x, block_y} * block_dim + uint2{x, y};
 
-			in_rw .Load( uint3{ x, y, 0 }, OUT in_col );
-			ref_rw.Load( uint3{ x, y, 0 }, OUT ref_col );
+			in_rw .Load( uint3{ coord, 0 }, OUT in_col );
+			ref_rw.Load( uint3{ coord, 0 }, OUT ref_col );
 
 			double4	diff	= double4{ Abs( float4{in_col} - float4{ref_col} )} * ch_mask;
 			double	err		= 0.0;
@@ -672,15 +967,32 @@ Executor::CmpResult  Executor::Compare (const ImageMemView &input, const ImageMe
 			err = Max( err, diff.b );
 			err = Max( err, diff.a );
 
-			res.maxError = Max( res.maxError, err );
-			res.avgError += diff.r + diff.g + diff.b + diff.a;
+			max_block_err = Max( max_block_err, err );
+			avr_block_err += diff.r + diff.g + diff.b + diff.a;
+		}
+
+		res.maxError = Max( res.maxError, max_block_err );
+		res.avgError += avr_block_err;
+
+		if ( compBlocks != null and get_mode != null )
+		{
+			RWImageMemView	comp_rw{*compBlocks};
+			RGBA32u			block;
+
+			comp_rw.Load( uint3{block_x, block_y, 0}, OUT block );
+
+			int	mode = get_mode( block );
+			if ( mode >= 0 )
+			{
+				avr_block_err /= double(channels) * double(Area( block_dim ));
+
+				res.histogram.resize( Max( mode+1u, res.histogram.size() ));
+				res.histogram[ mode ] += PerMode{ max_block_err, avr_block_err, 1u };
+			}
 		}
 	}
 
-	res.avgError /= double(fmt_info.channels) * double(dim.x * dim.y);
-	res.maxError *= 100.0;
-	res.avgError *= 100.0;
-
+	res.avgError /= double(channels) * double(Area( dim ));
 	return res;
 }
 
@@ -949,25 +1261,6 @@ Array<ubyte>  RandomByteArray (Bytes size, uint seed)
 		uint	u = rnd.Uniform<uint>() ^ seed;
 		memcpy( OUT arr.data() + i, &u, sizeof(u) );
 		seed += uint(i);
-	}
-	return arr;
-}
-
-/*
-=================================================
-	RandomFloatArray
-=================================================
-*/
-Array<float>  RandomFloatArray (usize count)
-{
-	Random			rnd;
-	Array<float>	arr;
-
-	arr.resize( count );
-
-	for (usize i = 0; i < arr.size(); ++i)
-	{
-		arr[i] = rnd.Uniform<float>( 0.0f, 1.f );
 	}
 	return arr;
 }

@@ -326,6 +326,7 @@
 #	define AE_PRIVATE_CHECK_THROW_MSG( _expr_, _text_ )		\
 		{cold_if_not( _expr_ ){								\
 			AE_LOGW( _text_ );								\
+			AE::Base::StaticLogger::OnException();			\
 			throw AE::Exception{ _text_ };					\
 		}}
 
@@ -334,10 +335,11 @@
 									AE_PRIVATE_GETARG_1( __VA_ARGS__, AE_TOSTRING( __VA_ARGS__ ), ))
 
 
-#	define AE_PRIVATE_CHECK_THROW( _expr_, _exception_ )	\
-		{cold_if_not( _expr_ ){								\
-			AE_LOGW( AE_TOSTRING( _expr_ ));				\
-			throw (_exception_);							\
+#	define AE_PRIVATE_CHECK_THROW( _expr_, _exception_ )			\
+		{cold_if_not( _expr_ ){										\
+			AE_LOGW( "Throw if not(" AE_TOSTRING( _expr_ ) ")" );	\
+			AE::Base::StaticLogger::OnException();					\
+			throw (_exception_);									\
 		}}
 
 #	define CHECK_THROW( /*expr, exception*/... )														\

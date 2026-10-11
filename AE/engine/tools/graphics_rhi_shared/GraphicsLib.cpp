@@ -397,8 +397,8 @@ namespace
 
 		BufferDesc const&			GetDescription (BufferID id)										C_NE_OV	{ return _rm->GetDescription( id ); }
 		ImageDesc const&			GetDescription (ImageID id)											C_NE_OV	{ return _rm->GetDescription( id ); }
-		BufferViewDesc const&		GetDescription (BufferViewID id)									C_NE_OV	{ return _rm->GetDescription( id ); }
-		ImageViewDesc const&		GetDescription (ImageViewID id)										C_NE_OV	{ return _rm->GetDescription( id ); }
+		BufferViewDesc const&		GetDescription (BufferViewID id, OUT BufferID* baseBuf)				C_NE_OV	{ return _rm->GetDescription( id, OUT baseBuf ); }
+		ImageViewDesc const&		GetDescription (ImageViewID id, OUT ImageID* baseImg)				C_NE_OV	{ return _rm->GetDescription( id, OUT baseImg ); }
 		RTShaderBindingDesc const&	GetDescription (RTShaderBindingID id)								C_NE_OV	{ return _rm->GetDescription( id ); }
 		RTGeometryDesc const&		GetDescription (RTGeometryID id)									C_NE_OV	{ return _rm->GetDescription( id ); }
 		RTSceneDesc const&			GetDescription (RTSceneID id)										C_NE_OV	{ return _rm->GetDescription( id ); }
@@ -667,21 +667,7 @@ namespace
 
 		if ( not buildConfig.empty() )
 		{
-		#ifdef CMAKE_INTDIR
-			CHECK_ERR( buildConfig == CMAKE_INTDIR );
-		#else
-		# ifdef AE_CFG_DEBUG
-			CHECK_ERR( buildConfig == "Debug" );
-		# elif defined(AE_CFG_DEVELOP)
-			CHECK_ERR( buildConfig == "Develop" );
-		# elif defined(AE_CFG_PROFILE)
-			CHECK_ERR( buildConfig == "Profile" );
-		# elif defined(AE_CFG_RELEASE)
-			CHECK_ERR( buildConfig == "Release" );
-		# else
-		#	error unknown config!
-		# endif
-		#endif
+			CHECK_ERR( buildConfig == AE_BUILD_TYPE );
 		}
 		if ( engineVersion != Default )
 		{

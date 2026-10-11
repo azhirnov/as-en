@@ -18,7 +18,7 @@ void  AE_OnAppDestroyed ()
 {
 	// do nothing
 }
-Unique<IApplication::IAppListener>  AE_OnAppCreated (const int argc, char const* argv[])
+AppListenerPtr  AE_OnAppCreated (const int argc, char const* argv[])
 #else
 TEST_ENTRY()
 #endif

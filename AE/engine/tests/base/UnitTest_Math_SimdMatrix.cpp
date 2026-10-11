@@ -11,7 +11,7 @@ namespace
 		const usize	count	= buf.Dimension().Size();
 
 		for (usize i = 0; i < count; ++i) {
-			arr[i] = T( float(i) * scale + bias );
+			arr[i] = T( float((i * 17) % count) * scale + bias );
 		}
 	}
 
@@ -22,7 +22,7 @@ namespace
 		const usize	count	= buf.Length();
 
 		for (usize i = 0; i < count; ++i) {
-			arr[i] = T( float(i) * scale + bias );
+			arr[i] = T( float((i * 17) % count) * scale + bias );
 		}
 	}
 
@@ -107,6 +107,9 @@ namespace
 		}
 		avr_err /= float(dimC.Size());
 
+		if ( max_err > 0.1f )
+			str.clear();
+
 		str << "max error: " << ToString( max_err, 2 ) << "%, avr: " << ToString( avr_err, 2 ) << "%\n";
 	//	str << "----------------------------------------\n\n";
 		AE_LOGI( str );
@@ -181,6 +184,9 @@ namespace
 				<< ToString( err, 2 ) << "% |\n";
 		}
 		avr_err /= float(rowC);
+
+		if ( max_err > 0.1f )
+			str.clear();
 
 		str << "max error: " << ToString( max_err, 2 ) << "%, avr: " << ToString( avr_err, 2 ) << "%\n";
 		//str << "----------------------------------------\n\n";

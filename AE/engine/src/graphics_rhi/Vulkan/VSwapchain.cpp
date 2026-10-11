@@ -226,6 +226,7 @@ namespace AE::Graphics
 */
 	VkResult  VSwapchain::AcquireNextImage () __NE___
 	{
+		TRACY( ZoneScoped );
 		SHAREDLOCK( _guard );
 
 		MutableIdxBits	cur_idx = _indices.load();
@@ -261,9 +262,12 @@ namespace AE::Graphics
 
 	VkResult  VSwapchain::Present (VQueuePtr queue, ArrayView<VkSemaphore> renderFinished, FrameUID frameId) __NE___
 	{
+		TRACY( ZoneScoped );
 		SHAREDLOCK( _guard );
 		CHECK_ERR( _vkSwapchain != Default, VK_RESULT_MAX_ENUM );
 		CHECK_ERR( queue, VK_RESULT_MAX_ENUM );
+
+		const auto&	ext	= _device->GetVExtensions();
 
 		MutableIdxBits	cur_idx = _indices.load();
 		CHECK_ERR( cur_idx.imageIdx < _MaxSwapchainLength, VK_RESULT_MAX_ENUM );
@@ -289,14 +293,26 @@ namespace AE::Graphics
 		present_info.waitSemaphoreCount	= uint(renderFinished.size());
 		present_info.pWaitSemaphores	= renderFinished.data();
 
+		VkSwapchainPresentFenceInfoEXT fence_info = {};
+		if ( ext.swapchainMaintenance1 )
+		{
+			VkFence*	fence_ptr = &_presentFence[ cur_idx.semaphoreId ];
+			VK_CHECK_ERR( _device->vkResetFences( _device->GetVkDevice(), 1, fence_ptr ), VK_RESULT_MAX_ENUM );
+
+			fence_info.sType          = VK_STRUCTURE_TYPE_SWAPCHAIN_PRESENT_FENCE_INFO_EXT;
+			fence_info.swapchainCount = 1;
+			fence_info.pFences        = fence_ptr;
+			p_next.Add( fence_info );
+		}
+
 	  #ifdef AE_DEBUG
 		VkFrameBoundaryEXT	frame_boundary = {};
-		frame_boundary.sType	= VK_STRUCTURE_TYPE_FRAME_BOUNDARY_EXT;
-		frame_boundary.frameID	= ulong(frameId.Unique());
-		frame_boundary.flags	= VK_FRAME_BOUNDARY_FRAME_END_BIT_EXT;
-
-		if ( _device->GetVExtensions().frameBoundary and frameId.IsValid() )
+		if ( ext.frameBoundary and frameId.IsValid() )
 		{
+
+			frame_boundary.sType	= VK_STRUCTURE_TYPE_FRAME_BOUNDARY_EXT;
+			frame_boundary.frameID	= ulong(frameId.Unique());
+			frame_boundary.flags	= VK_FRAME_BOUNDARY_FRAME_END_BIT_EXT;
 			p_next.Add( frame_boundary );
 		}
 	  #else
@@ -418,6 +434,7 @@ namespace AE::Graphics
 */
 	bool  VSwapchainInitializer::CreateSurface (const NativeWindow &window, StringView dbgName) __NE___
 	{
+		TRACY( ZoneScoped );
 		EXLOCK( _guard );
 
 		_device = &GraphicsScheduler().GetDevice();
@@ -560,6 +577,7 @@ namespace AE::Graphics
 		CHECK_ERR( present_supported );
 
 		CHECK_ERR( _CreateSemaphores() );
+		CHECK_ERR( _CreateFences() );
 		return true;
 	}
 
@@ -570,6 +588,7 @@ namespace AE::Graphics
 */
 	void  VSwapchainInitializer::DestroySurface () __NE___
 	{
+		TRACY( ZoneScoped );
 		EXLOCK( _guard );
 		CHECK( _vkSwapchain == Default );
 
@@ -591,6 +610,7 @@ namespace AE::Graphics
 			if ( _device->GetVkDevice() != Default )
 			{
 				_DestroySemaphores();
+				_DestroyFences();
 			}
 		}
 	}
@@ -732,6 +752,7 @@ namespace AE::Graphics
 	bool  VSwapchainInitializer::_Create (const VSwapchainDesc&		info,
 										  StringView				dbgName) __NE___
 	{
+		TRACY( ZoneScoped );
 		CHECK_ERR( _device != null );
 		CHECK_ERR( _device->GetVkPhysicalDevice() != Default and
 				   _device->GetVkDevice()		  != Default and
@@ -767,54 +788,10 @@ namespace AE::Graphics
 
 		if ( ext.surfaceCaps2 and ext.swapchainMaintenance1 and info.presentScaling != 0 )
 		{
-			// in //
-			// values returned in 'minImageCount, maxImageCount, minScaledImageExtent, maxScaledImageExtent' are valid only for the specified 'presentMode'.
-			VkSurfacePresentModeEXT		present_mode_info = {};
-			present_mode_info.sType			= VK_STRUCTURE_TYPE_SURFACE_PRESENT_MODE_EXT;
-			present_mode_info.presentMode	= info.presentMode;
+			CHECK_ERR( _ValidateCaps( info, INOUT surf_caps, INOUT swapchain_scaling, INOUT swapchain_info ));
 
-			VkPhysicalDeviceSurfaceInfo2KHR	surf_info = {};
-			surf_info.sType		= VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SURFACE_INFO_2_KHR;
-			surf_info.pNext		= &present_mode_info;
-			surf_info.surface	= _vkSurface;
-
-			// out //
-			VkSurfaceCapabilities2KHR	surf_caps2 = {};
-			surf_caps2.sType = VK_STRUCTURE_TYPE_SURFACE_CAPABILITIES_2_KHR;
-
-			VkPresentModeKHR						present_modes [16];
-			VkSurfacePresentModeCompatibilityEXT	present_mode_caps = {};
-			present_mode_caps.sType				= VK_STRUCTURE_TYPE_SURFACE_PRESENT_MODE_COMPATIBILITY_EXT;
-			present_mode_caps.presentModeCount	= uint(CountOf( present_modes ));
-			present_mode_caps.pPresentModes		= present_modes;	// will contain compatible present modes
-
-			VkSurfacePresentScalingCapabilitiesEXT	scaling_caps = {};
-			scaling_caps.sType = VK_STRUCTURE_TYPE_SURFACE_PRESENT_SCALING_CAPABILITIES_EXT;
-
-			surf_caps2.pNext = &scaling_caps;
-			scaling_caps.pNext = &present_mode_caps;
-
-			VK_CHECK_ERR( vkGetPhysicalDeviceSurfaceCapabilities2KHR( _device->GetVkPhysicalDevice(), &surf_info, OUT &surf_caps2 ));
-
-			// validate //
-			surf_caps = surf_caps2.surfaceCapabilities;
-
-			swapchain_scaling.scalingBehavior = info.presentScaling & scaling_caps.supportedPresentScaling;
-			// If presentGravityX or presentGravityY are 0, the presentation gravity must match that defined
-			// by the native platform surface on platforms which define surface gravity.
-
-			if ( swapchain_scaling.scalingBehavior != 0 ){
+			if ( swapchain_scaling.scalingBehavior != 0 )
 				p_next.Add( swapchain_scaling );
-			}
-			if ( swapchain_scaling.scalingBehavior != VK_PRESENT_SCALING_ONE_TO_ONE_BIT_EXT )
-			{
-				surf_caps.currentExtent  = { UMax, UMax };
-				surf_caps.minImageExtent = scaling_caps.minScaledImageExtent;
-				surf_caps.maxImageExtent = scaling_caps.maxScaledImageExtent;
-
-				swapchain_info.imageExtent.width  = uint( float(swapchain_info.imageExtent.width)  * info.scale + 0.5f );
-				swapchain_info.imageExtent.height = uint( float(swapchain_info.imageExtent.height) * info.scale + 0.5f );
-			}
 		}
 		else
 		{
@@ -864,25 +841,53 @@ namespace AE::Graphics
 			AEEnumCast( VkImageUsageFlagBits(swapchain_info.imageUsage), OUT _desc.usage, OUT mem_type );
 		}
 
+		auto&	rts		 = GraphicsScheduler();
+		auto&	res_mngr = rts.GetResourceManager();
+
 		// destroy obsolete resources
-		// TODO: can be delayed to avoid stalls, but it requires to double-buffer semaphores
-
-		auto&	res_mngr = GraphicsScheduler().GetResourceManager();
+		if ( old_swapchain != Default )
 		{
-			VK_CHECK_ERR( _device->vkDeviceWaitIdle( _device->GetVkDevice() ));
+			if ( info.stallingResize )
+			{
+				// Stalling resize: wait for GPU and flush resources synchronously
+				CHECK( rts.WaitAll( AE::DefaultTimeout ));
 
-			for (auto& id : _imageViewIDs)
-			{
-				if ( auto tmp = id.Release() )
-					CHECK( res_mngr.DelayedRelease( INOUT tmp ) == 0 );
+				_WaitAll();
+				_device->vkDestroySwapchainKHR( _device->GetVkDevice(), old_swapchain, null );
+
+				for (auto& id : _imageViewIDs)
+				{
+					if ( auto tmp = id.Release() )
+						DEV_CHECK( res_mngr.ImmediatelyRelease( INOUT tmp ) <= 0 );
+				}
+				for (auto& id : _imageIDs)
+				{
+					if ( auto tmp = id.Release() )
+						DEV_CHECK( res_mngr.ImmediatelyRelease( INOUT tmp ) <= 0 );
+				}
+
+				_DestroySemaphores();
+				_DestroyFences();
+
+				res_mngr.ForceReleaseResources();
 			}
-			for (auto& id : _imageIDs)
+			else
 			{
-				if ( auto tmp = id.Release() )
-					CHECK( res_mngr.DelayedRelease( INOUT tmp ) == 1 );
+				// Non-stalling resize: release resources asynchronously
+				auto	task = Scheduler().Run( ETaskQueue::PerFrame,
+												_DelayedRelease( ObsoleteResources{ old_swapchain,
+																	RVRef(_imageIDs), RVRef(_imageViewIDs),
+																	RVRef(_imageAvailableSem), RVRef(_renderFinishedSem),
+																	RVRef(_presentFence) }
+											  ));
+
+				GraphicsScheduler().AddNextCycleEndDeps( RVRef(task) );
 			}
-			if ( old_swapchain != Default )
-				res_mngr.DelayedRelease( old_swapchain );
+
+			CHECK_ERR( _CreateSemaphores() );
+			CHECK_ERR( _CreateFences() );
+
+			_indices.store( MutableIdxBits{} );
 		}
 
 		_vkImages.fill( Default );
@@ -920,6 +925,7 @@ namespace AE::Graphics
 		swapchain_ci.preTransform		= desc.usePreTransform ? VK_SURFACE_TRANSFORM_FLAG_BITS_MAX_ENUM_KHR : VK_SURFACE_TRANSFORM_IDENTITY_BIT_KHR;
 		swapchain_ci.presentScaling		= VEnumCast( desc.scaling );
 		swapchain_ci.scale				= desc.scale;
+		swapchain_ci.stallingResize		= desc.stallingResize;
 
 		return Create( swapchain_ci, dbgName );
 	}
@@ -931,6 +937,7 @@ namespace AE::Graphics
 */
 	void  VSwapchainInitializer::Destroy () __NE___
 	{
+		TRACY( ZoneScoped );
 		EXLOCK( _guard );
 
 		CHECK( not IsImageAcquired() );		// TODO: use vkReleaseSwapchainImagesEXT (VK_EXT_swapchain_maintenance1)
@@ -942,6 +949,7 @@ namespace AE::Graphics
 		{
 			if ( _vkSwapchain != Default )
 			{
+				_WaitAll();
 				_device->vkDestroySwapchainKHR( _device->GetVkDevice(), _vkSwapchain, null );
 
 				AE_LOG_DBG( "Destroyed Vulkan swapchain" );
@@ -965,6 +973,64 @@ namespace AE::Graphics
 
 		_vkSwapchain	= Default;
 		_desc			= Default;
+	}
+
+/*
+=================================================
+	_ValidateCaps
+=================================================
+*/
+	bool  VSwapchainInitializer::_ValidateCaps (const VSwapchainDesc& info,
+												INOUT VkSurfaceCapabilitiesKHR &surfCaps,
+												INOUT VkSwapchainPresentScalingCreateInfoEXT &swapchainScaling,
+												INOUT VkSwapchainCreateInfoKHR &swapchainInfo) C_NE___
+	{
+		// in //
+		// values returned in 'minImageCount, maxImageCount, minScaledImageExtent, maxScaledImageExtent' are valid only for the specified 'presentMode'.
+		VkSurfacePresentModeEXT		present_mode_info = {};
+		present_mode_info.sType			= VK_STRUCTURE_TYPE_SURFACE_PRESENT_MODE_EXT;
+		present_mode_info.presentMode	= info.presentMode;
+
+		VkPhysicalDeviceSurfaceInfo2KHR	surf_info = {};
+		surf_info.sType		= VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SURFACE_INFO_2_KHR;
+		surf_info.pNext		= &present_mode_info;
+		surf_info.surface	= _vkSurface;
+
+		// out //
+		VkSurfaceCapabilities2KHR	surf_caps2 = {};
+		surf_caps2.sType = VK_STRUCTURE_TYPE_SURFACE_CAPABILITIES_2_KHR;
+
+		VkPresentModeKHR						present_modes [16];
+		VkSurfacePresentModeCompatibilityEXT	present_mode_caps = {};
+		present_mode_caps.sType				= VK_STRUCTURE_TYPE_SURFACE_PRESENT_MODE_COMPATIBILITY_EXT;
+		present_mode_caps.presentModeCount	= uint(CountOf( present_modes ));
+		present_mode_caps.pPresentModes		= present_modes;	// will contain compatible present modes
+
+		VkSurfacePresentScalingCapabilitiesEXT	scaling_caps = {};
+		scaling_caps.sType = VK_STRUCTURE_TYPE_SURFACE_PRESENT_SCALING_CAPABILITIES_EXT;
+
+		surf_caps2.pNext = &scaling_caps;
+		scaling_caps.pNext = &present_mode_caps;
+
+		VK_CHECK_ERR( vkGetPhysicalDeviceSurfaceCapabilities2KHR( _device->GetVkPhysicalDevice(), &surf_info, OUT &surf_caps2 ));
+
+		// validate //
+		surfCaps = surf_caps2.surfaceCapabilities;
+
+		swapchainScaling.scalingBehavior = info.presentScaling & scaling_caps.supportedPresentScaling;
+		// If presentGravityX or presentGravityY are 0, the presentation gravity must match that defined
+		// by the native platform surface on platforms which define surface gravity.
+
+		if ( swapchainScaling.scalingBehavior != VK_PRESENT_SCALING_ONE_TO_ONE_BIT_EXT )
+		{
+			surfCaps.currentExtent  = { UMax, UMax };
+			surfCaps.minImageExtent = scaling_caps.minScaledImageExtent;
+			surfCaps.maxImageExtent = scaling_caps.maxScaledImageExtent;
+
+			swapchainInfo.imageExtent.width  = uint( float(swapchainInfo.imageExtent.width)  * info.scale + 0.5f );
+			swapchainInfo.imageExtent.height = uint( float(swapchainInfo.imageExtent.height) * info.scale + 0.5f );
+		}
+		return true;
 	}
 
 /*
@@ -1322,13 +1388,159 @@ namespace AE::Graphics
 			}
 		}};
 
-		// no way to know that semaphore is not used by presenting engine
-		VK_CHECK( _device->vkDeviceWaitIdle( _device->GetVkDevice() ));
+		_WaitAll();
 
 		DestroySems( _imageAvailableSem );
 		DestroySems( _renderFinishedSem );
 	}
 
+/*
+=================================================
+	_CreateFences
+=================================================
+*/
+	bool  VSwapchainInitializer::_CreateFences () __NE___
+	{
+		VkFenceCreateInfo	info = {};
+		info.sType	= VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
+		info.flags	= VK_FENCE_CREATE_SIGNALED_BIT;
+
+		for (auto& fence : _presentFence)
+		{
+			ASSERT( fence == Default );
+			VK_CHECK_ERR( _device->vkCreateFence( _device->GetVkDevice(), &info, null, OUT &fence ));
+		}
+		return true;
+	}
+
+/*
+=================================================
+	_DestroyFences
+=================================================
+*/
+	void  VSwapchainInitializer::_DestroyFences () __NE___
+	{
+		_WaitAll();
+
+		for (auto& fence : _presentFence)
+		{
+			_device->vkDestroyFence( _device->GetVkDevice(), fence, null );
+			fence = Default;
+		}
+	}
+
+/*
+=================================================
+	_WaitFence
+=================================================
+*
+	void  VSwapchainInitializer::_WaitFence (uint imageIdx) C_NE___
+	{
+		CHECK_ERRV( imageIdx < _MaxSwapchainLength );
+
+		if ( _device->GetVExtensions().swapchainMaintenance1 )
+		{
+			const nanoseconds timeout = seconds{60};
+			VK_CHECK( _device->vkWaitForFences( _device->GetVkDevice(), 1, &_presentFence[imageIdx], VK_TRUE, timeout.count() ));
+		}
+		else
+		{
+			// no way to know that swapchain/image/semaphore/fence is not used by presenting engine
+			VK_CHECK( _device->vkDeviceWaitIdle( _device->GetVkDevice() ));
+		}
+	}
+
+/*
+=================================================
+	_WaitAll
+=================================================
+*/
+	void  VSwapchainInitializer::_WaitAll () C_NE___
+	{
+		if ( _device->GetVExtensions().swapchainMaintenance1 )
+		{
+			const nanoseconds timeout = seconds{60};
+			VK_CHECK( _device->vkWaitForFences( _device->GetVkDevice(), uint(_presentFence.size()), _presentFence.data(), VK_TRUE, timeout.count() ));
+		}
+		else
+		{
+			// no way to know that swapchain/image/semaphore/fence is not used by presenting engine
+			VK_CHECK( _device->vkDeviceWaitIdle( _device->GetVkDevice() ));
+		}
+	}
+
+/*
+=================================================
+	ObsoleteResources ctor
+=================================================
+*/
+	VSwapchainInitializer::ObsoleteResources::ObsoleteResources (VkSwapchainKHR		swapchain,
+															     ImageIDs_t&&		inImageIDs,
+															     ImageViewIDs_t&&	inImageViewIDs,
+															     Semaphores_t&&		inImageAvailableSem,
+															     Semaphores_t&&		inRenderFinishedSem,
+															     Fences_t&&			inPresentFence) __NE___ :
+		swapchain{swapchain},
+		imageAvailableSem{inImageAvailableSem}, renderFinishedSem{inRenderFinishedSem},
+		presentFence{inPresentFence}
+	{
+		for (usize i = 0; i < imageIDs.size(); ++i) {
+			imageIDs[i] = inImageIDs[i].Release();
+		}
+		for (usize i = 0; i < imageViewIDs.size(); ++i) {
+			imageViewIDs[i] = inImageViewIDs[i].Release();
+		}
+
+		inImageAvailableSem.fill( Default );
+		inRenderFinishedSem.fill( Default );
+		inPresentFence.fill( Default );
+	}
+
+/*
+=================================================
+	_DelayedRelease
+=================================================
+*/
+	AsyncCoro  VSwapchainInitializer::_DelayedRelease (ObsoleteResources res) __NE___
+	{
+		auto&	rts		 = GraphicsScheduler();
+		auto&	res_mngr = rts.GetResourceManager();
+		auto&	dev		 = rts.GetDevice();
+
+		if ( dev.GetVExtensions().swapchainMaintenance1 )
+		{
+			const nanoseconds timeout = seconds{60};
+			VK_CHECK( dev.vkWaitForFences( dev.GetVkDevice(), uint(res.presentFence.size()), res.presentFence.data(), VK_TRUE, timeout.count() ));
+
+			for (auto& fence : res.presentFence) {
+				dev.vkDestroyFence( dev.GetVkDevice(), fence, null );
+			}
+		}
+		else
+		{
+			// no way to know that swapchain/image/semaphore/fence is not used by presenting engine
+			VK_CHECK( dev.vkDeviceWaitIdle( dev.GetVkDevice() ));
+		}
+
+		for (auto& id : res.imageViewIDs) {
+			CHECK( res_mngr.ImmediatelyRelease( INOUT id ) <= 0 );
+		}
+
+		for (auto& id : res.imageIDs) {
+			CHECK( res_mngr.ImmediatelyRelease( INOUT id ) <= 0 );
+		}
+
+		for (auto& sem : res.imageAvailableSem) {
+			dev.vkDestroySemaphore( dev.GetVkDevice(), sem, null );
+		}
+
+		for (auto& sem : res.renderFinishedSem) {
+			dev.vkDestroySemaphore( dev.GetVkDevice(), sem, null );
+		}
+
+		dev.vkDestroySwapchainKHR( dev.GetVkDevice(), res.swapchain, null );
+		co_return;
+	}
 
 } // AE::Graphics
 

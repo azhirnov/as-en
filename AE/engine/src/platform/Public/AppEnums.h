@@ -40,6 +40,11 @@ namespace AE::App
 		_Count
 	};
 
+	NdCxIn bool  EGestureState_IsActive (EGestureState state) __NE___
+	{
+		return state  <= EGestureState::Update;
+	}
+
 
 	enum class EAppStorage
 	{
@@ -52,10 +57,49 @@ namespace AE::App
 		_Count
 	};
 
-	static constexpr VFS::StorageName	Storage_Builtin			{"builtin:/"};
-	static constexpr VFS::StorageName	Storage_Cache			{"cache:/"};
-	static constexpr VFS::StorageName	Storage_ExternalCache	{"ext-cache:/"};
-	static constexpr VFS::StorageName	Storage_SharedData		{"shared-data:/"};
-	static constexpr VFS::StorageName	Storage_UserData		{"user-data:/"};
+
+	// Used to identify different gamepads and to send feedback actions (vibrations, ...).
+	enum class ControllerID : ushort
+	{
+		Default			= 0,
+		Invalid			= 0xFFFF,
+
+		_First			= 1,
+		_GamepadFirst	= 1 << 12,
+		_VRFirst		= 1 << 14,
+
+	  // default IDs:
+		Mouse			= _First,
+		Keyboard,
+		Touchscreen,
+		Sensor,
+
+		Gamepad			= _GamepadFirst,
+
+		VR_HMD			= _VRFirst,
+		VR_LeftHand,
+		VR_RightHand,
+	};
+
+
+	enum class EWindowDisplayMode : ubyte
+	{
+		AlwaysVisible,
+		VisibleOnScreen_ClippedForCapture,		// capture will show black window
+		VisibleOnScreen_HiddenForCapture,		// window completelly hidden in capture
+	};
+
+
+	static constexpr StringView			StoragePrefix_Builtin		{"builtin:/"};
+	static constexpr StringView			StoragePrefix_Cache			{"cache:/"};
+	static constexpr StringView			StoragePrefix_ExternalCache	{"ext-cache:/"};
+	static constexpr StringView			StoragePrefix_SharedData	{"shared-data:/"};
+	static constexpr StringView			StoragePrefix_UserData		{"user-data:/"};
+
+	static constexpr VFS::StorageName	Storage_Builtin				{StoragePrefix_Builtin};
+	static constexpr VFS::StorageName	Storage_Cache				{StoragePrefix_Cache};
+	static constexpr VFS::StorageName	Storage_ExternalCache		{StoragePrefix_ExternalCache};
+	static constexpr VFS::StorageName	Storage_SharedData			{StoragePrefix_SharedData};
+	static constexpr VFS::StorageName	Storage_UserData			{StoragePrefix_UserData};
 
 } // AE::App

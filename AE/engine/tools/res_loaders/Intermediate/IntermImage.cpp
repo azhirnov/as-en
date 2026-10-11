@@ -83,6 +83,19 @@ namespace AE::ResLoader
 				ArrayView<ubyte>{ Cast<ubyte>(PixelData()), usize(DataSize()) } :
 				Default;
 	}
+
+/*
+=================================================
+	Level::ToView
+=================================================
+*/
+	ImageMemView  IntermImage::Level::ToView () C_NE___
+	{
+		EImageAspect	aspect = EPixelFormat_ToImageAspect( format );
+		aspect = ExtractBit( INOUT aspect );	// must be single bit
+
+		return ImageMemView{ PixelData(), DataSize(), uint3{}, dimension, rowPitch, slicePitch, format, aspect };
+	}
 //-----------------------------------------------------------------------------
 
 
@@ -232,10 +245,7 @@ namespace AE::ResLoader
 		auto&	img = _data [mipmap.Get()] [layer.Get()];
 		CHECK_ERR_MSG( not img.Empty(), "not allocated" );
 
-		EImageAspect	aspect = EPixelFormat_ToImageAspect( img.format );
-
-		return ImageMemView{ img.PixelData(), img.DataSize(), uint3{}, img.dimension, img.rowPitch,
-							 img.slicePitch, img.format, ExtractBit( INOUT aspect )};
+		return img.ToView();
 	}
 
 /*
@@ -261,7 +271,12 @@ namespace AE::ResLoader
 		CHECK_ERR( mipmaps.Get() > 0 );
 		CHECK_ERR( All( dim > uint3{0} ));
 
-		mipmaps = MipmapLevel{ Min( mipmaps.Get(), ImageUtils::NumberOfMipmaps( dim ))};
+		auto&	fmt_info = EPixelFormat_GetInfo( fmt );
+		CHECK_ERR( fmt_info.IsValid() );
+
+		const uint	max_mips = ImageUtils::NumberOfMipmaps( uint3{ uint2{dim} / fmt_info.TexBlockDim(), dim.z });
+
+		mipmaps = MipmapLevel{ Min( mipmaps.Get(), max_mips )};
 
 		switch ( type )
 		{
@@ -292,9 +307,6 @@ namespace AE::ResLoader
 			default :
 				return false;
 		}
-
-		auto&	fmt_info = EPixelFormat_GetInfo( fmt );
-		CHECK_ERR( fmt_info.IsValid() );
 
 		NOTHROW_ERR( _data.resize( mipmaps.Get() ));
 
@@ -421,10 +433,11 @@ namespace AE::ResLoader
 				ImageMemView	r_view	= ConstCast(this)->ToView( MipmapLevel(mip), ImageLayer(layer) );
 				RWImageMemView	w_view	{dstImage.ToView( MipmapLevel(mip), ImageLayer(layer) )};
 
-				CHECK_ERR( w_view.Blit( r_view ));
+				RWImageMemView::BlitOp	op{ r_view, w_view };
+
+				CHECK_ERR( RWImageMemView::Blit( op ));
 			}
 		}
-
 		return true;
 	}
 

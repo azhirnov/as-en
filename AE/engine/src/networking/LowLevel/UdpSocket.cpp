@@ -14,6 +14,7 @@ namespace AE::Networking
 	template <typename NativeAddress, typename AddressType>
 	bool  UdpSocket::_Open (const AddressType &addr, const Config &cfg) __NE___
 	{
+		TRACY( ZoneScoped );
 		DRC_EXLOCK( _drCheck );
 		ASSERT( addr.IsValid() );
 		CHECK_ERR( not IsOpen() );

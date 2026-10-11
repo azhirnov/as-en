@@ -22,10 +22,10 @@ namespace AE::ResEditor
 		GfxMemAllocatorPtr		_gfxLargeAlloc;
 
 		struct {
-			StrongImageAndViewID	image2D;
-			StrongImageAndViewID	imageCube;
-			StrongImageAndViewID	image2DArr;
-			StrongImageAndViewID	image3D;
+			StrongImageAndViewID	image2D [3];		// float, int uint
+			StrongImageAndViewID	imageCube;			// float
+			StrongImageAndViewID	image2DArr [3];		// float, int, uint
+			StrongImageAndViewID	image3D;			// float
 
 			Strong<RTGeometryID>	rtGeometry;
 			Strong<RTSceneID>		rtScene;
@@ -60,11 +60,11 @@ namespace AE::ResEditor
 		DefaultResources ();
 
 	private:
-		void  _CreateDummyImage2D (OUT StrongImageAndViewID &, GfxMemAllocatorPtr)				const;
-		void  _CreateDummyImage3D (OUT StrongImageAndViewID &, GfxMemAllocatorPtr)				const;
-		void  _CreateDummyImage2DArray (OUT StrongImageAndViewID &, GfxMemAllocatorPtr, Bool)	const;
-		void  _CreateDummyRTGeometry (OUT Strong<RTGeometryID> &, GfxMemAllocatorPtr)			const;
-		void  _CreateDummyRTScene (OUT Strong<RTSceneID> &, GfxMemAllocatorPtr)					const;
+		void  _CreateDummyImage2D (OUT StrongImageAndViewID &, EPixelFormat, GfxMemAllocatorPtr)			const;
+		void  _CreateDummyImage3D (OUT StrongImageAndViewID &, EPixelFormat, GfxMemAllocatorPtr)			const;
+		void  _CreateDummyImage2DArray (OUT StrongImageAndViewID &, EPixelFormat, GfxMemAllocatorPtr, Bool)	const;
+		void  _CreateDummyRTGeometry (OUT Strong<RTGeometryID> &, GfxMemAllocatorPtr)						const;
+		void  _CreateDummyRTScene (OUT Strong<RTSceneID> &, GfxMemAllocatorPtr)								const;
 	};
 
 

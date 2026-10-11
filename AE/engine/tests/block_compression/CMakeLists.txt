@@ -24,6 +24,7 @@ if ((TARGET "PipelineCompiler") AND ${AE_ENABLE_VULKAN})
 		"AE_TEST_PIPELINE_COMPILER"
 		AE_SHADER_PATH="${AE_ENGINE_SHARED_DATA}/shaders"
 		AE_SHADER_PATH2="${AE_ENGINE_SHARED_DATA}"
+		AE_ASTC_TABLES="${AE_DATA_FOLDER}/res_editor_data/utils/astc_lut"
 	)
 
 	UseEnginePCH2( ${TEST_NAME} )

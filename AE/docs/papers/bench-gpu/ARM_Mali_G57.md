@@ -426,7 +426,7 @@ TODO
 ## Blur
 
 | tech | dimension & format| time (ms) | traffic (GB/s) | cache miss R/W (%) | FMA (%) |
-|---|---|---|
+|------|-------------------|-----------|----------------|--------------------|---------|
 | 5x5x4 texel fetch | 1024x1024, RGBA16F    |  75 |
 | x9, 2 pass        | 5120x5120, RGBA16F    | 120 | 11.0 | 41 / 42 | 45 |
 | Dual filter       | 5120x5120, RGBA16F    | 150 | 8.1  | 34 / 51 | 40 |
@@ -440,7 +440,7 @@ TODO
 Display: 2.6 MPix
 
 | vertices | triangles | position threads | varying threads | comments |
-|---|---|---|---|---|
+|----------|-----------|------------------|-----------------|----------|
 | 64 800     | 85 050     | 64 800     | 64 870     |
 | 4 500 000  | 5 906 250  | 4 500 000  | 3 245 000  | attribute interpolation optimized when triangle is 1px size |
 | 14 753 312 | 19 363 722 | 14 750 000 | 6 630 000  |

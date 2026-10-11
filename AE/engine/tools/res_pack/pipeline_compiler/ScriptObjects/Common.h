@@ -86,7 +86,7 @@ namespace AE::PipelineCompiler
 
 	using RenderTechniquePtr			= ScriptRC< RenderTechnique >;
 	using RayTracingShaderBindingPtr	= ScriptRC< RayTracingShaderBinding >;
-	
+
 
 	//
 	// Access Type

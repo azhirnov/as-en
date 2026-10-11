@@ -17,6 +17,8 @@ namespace AE::ResLoader
 		if ( not (fileFormat == Default or fileFormat == EAudioFormat::RAW) )
 			return false;
 
+		TRACY( ZoneScoped );
+
 		const auto&		desc = sound.Description();
 		WavePcmHeader	hdr;
 

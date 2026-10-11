@@ -17,7 +17,7 @@ namespace AE::Graphics
 	{
 	// types
 	private:
-		using AccumBar		= Graphics::_hidden_::AccumBarriers< RComputeContext >;
+		using AccumBar		= Graphics::_hidden_::TAccumBarriers< RComputeContext >;
 		using DeferredBar	= Graphics::_hidden_::AccumDeferredBarriersForCtx< RComputeContext >;
 		using Validator_t	= Graphics::_hidden_::ComputeContextValidation;
 

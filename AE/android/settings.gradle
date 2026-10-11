@@ -7,5 +7,6 @@ include ':test',
 		':rg-device',
 		':remote-ctrl',
 		':cicd',
-		':engine_java',
+		':engine_api28',
+		':engine_latest',
 		':engine'

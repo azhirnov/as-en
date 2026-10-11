@@ -19,6 +19,7 @@ When building from Android device:
 * Install Linux terminal: **Termux** ([github](https://github.com/termux/termux-app), [f-droid](https://f-droid.org/en/packages/com.termux/), [play store](https://play.google.com/store/apps/details?id=com.termux))
 * In terminal install: git, clang, cmake.<br/>
   ```
+  pkg up
   pkg install git
   pkg install clang
   pkg install cmake
@@ -39,7 +40,7 @@ When building from Android device:
     libxi-dev libxrandr-dev yasm liburing-dev libpng-dev libbz2-dev libwayland-dev \
     libxkbcommon-dev libc++-dev libc++abi-dev \
     mesa-vulkan-drivers libvulkan1 vulkan-validationlayers \
-    libpng-dev libzip-dev libbz2-dev
+    libpng-dev libzip-dev libbz2-dev libdecor-0-dev
   ```
 * Optional: install clang<br/>
   ```sh

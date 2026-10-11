@@ -17,12 +17,21 @@ namespace AE::ResEditor
 	public:
 		using AnyResource_t		= Union< NullUnion, RC<Buffer>, RC<BufferView>, RC<RTScene>, RC<Image>, RC<VideoImage>,
 										 RC<VideoImage2>, Array<RC<Image>> >;
-		using Resources_t		= Array<Tuple< UniformName, AnyResource_t, EResourceState >>;
+
+		struct Resource
+		{
+			UniformName		name;
+			AnyResource_t	res;
+			EResourceState	state;
+			bool			clearContent;
+		};
+		using Resources_t	= Array< Resource >;
 
 
 	// variables
 	private:
 		Resources_t		_resources;
+		bool			_needClearContent	= false;
 
 
 	// methods
@@ -33,7 +42,8 @@ namespace AE::ResEditor
 		ND_ bool				Empty ()											const	{ return _resources.empty(); }
 		ND_ Resources_t const&	Get ()												const	{ return _resources; }
 
-			void  Add (UniformName::Ref name, AnyResource_t res, EResourceState state);
+			void  Add (UniformName::Ref name, AnyResource_t res,
+						EResourceState state, bool clearContent = false);
 
 			void  SetStates (DirectCtx::Compute &, EResourceState shaderStages)		const;
 			void  SetStates (DirectCtx::Graphics &, EResourceState shaderStages)	const;
@@ -46,6 +56,8 @@ namespace AE::ResEditor
 	private:
 		template <typename CtxType>
 		void  _SetStates (CtxType &ctx, EResourceState shaderStages)				const;
+
+		void  _ClearContent (DirectCtx::Transfer &ctx)								const;
 	};
 
 

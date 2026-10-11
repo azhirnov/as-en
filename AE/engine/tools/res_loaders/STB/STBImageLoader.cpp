@@ -20,6 +20,10 @@
 #	pragma GCC diagnostic ignored "-Wdouble-promotion"
 # endif
 
+#ifdef AE_RELEASE
+# define STBI_NO_FAILURE_STRINGS
+#endif
+
 # define STB_IMAGE_IMPLEMENTATION
 # include "stb_image.h"
 
@@ -47,6 +51,7 @@ namespace AE::ResLoader
 */
 	bool  STBImageLoader::LoadImage (INOUT IntermImage &image, RStream &stream, Bool flipY, RC<IAllocator> allocator, EImageFormat fileFormat) __NE___
 	{
+		TRACY( ZoneScoped );
 		Unused( fileFormat );
 
 		stbi__context		ctx;
@@ -67,7 +72,12 @@ namespace AE::ResLoader
 
 		void*	data_ptr = stbi__load_main( &ctx, OUT &x, OUT &y, OUT &comp, req_comp, OUT &ri, 8 );
 		if ( data_ptr == null )
+		{
+		  #ifndef STBI_NO_FAILURE_STRINGS
+			AE_LOGI( "STB error: "s << stbi_failure_reason() );
+		  #endif
 			return false;
+		}
 
 		//ASSERT( comp != 1 );	// TODO: optimize for 1 channel
 		comp = req_comp;

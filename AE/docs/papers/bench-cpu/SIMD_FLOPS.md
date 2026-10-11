@@ -509,21 +509,14 @@ Simd Double2 - Div     : 1.17 s  +959.6%    - 0.5GFLOPS
 * Clock: 3.1 GHz
 * Theoretical performance (FMA):
 	- 2x 128bit FMA pipes
-	- 16 FLOPS * 3.1 GHz =
+	- 16 FLOPS * 3.1 GHz = 49.6 GFLOPS
 
 ### Float SIMD
 
 | | FLOPS | SOL |
 |----------------------------|------------|
-| Simd Float4 - Add ilp5     | 99.5GFLOPS |
-| Simd Float4 - Add ilp7     | 99.5GFLOPS |
-| Simd Float4 - Add ilp4     | 99.3GFLOPS |
-| Simd Float4 - Add ilp6     | 99.3GFLOPS |
-| Simd Float4 - Mul          | 99.2GFLOPS |
-| Simd Float4 - Div ilp4     | 33.1GFLOPS |
 | Simd Float4 - Add ilp8     | 24.9GFLOPS |
 | Simd Float4 - FMA ilp4     | 24.8GFLOPS |
-| Simd Float4 - Div ilp8     | 24.8GFLOPS |
 | Simd Float4 - FMA ilp5     | 21.8GFLOPS |
 | Simd Float4 - FMA ilp16    | 21.8GFLOPS |
 | Simd Float4 - FMA ilp8     | 21.2GFLOPS |
@@ -540,7 +533,7 @@ Simd Double2 - Div     : 1.17 s  +959.6%    - 0.5GFLOPS
 
 |         |  time    | diff  |    FLOPS    |  bandwidth | SOL |
 |---------|----------|-------|-------------|------------|---|
-| NEON v1 | 50.18 ms | -     | 42.8GFLOPS  |  334.3MB/s |
+| NEON v1 | 50.18 ms | -     | 42.8GFLOPS  |  334.3MB/s | 86% |
 | AE GEMM | 51.71 ms | +3%   | 41.5GFLOPS  |  324.5MB/s |
 | NEON v3 | 0.14 s   | +179% | 15.3GFLOPS  |  119.8MB/s |
 
@@ -548,7 +541,7 @@ Simd Double2 - Div     : 1.17 s  +959.6%    - 0.5GFLOPS
 
 |         |  time    | diff |    FLOPS    | bandwidth | SOL |
 |---------|----------|------|-------------|-----------|---|
-| AE GEMM | 89.86 us | -    | 46.5GFLOPS  |  2.92GB/s |
+| AE GEMM | 89.86 us | -    | 46.5GFLOPS  |  2.92GB/s | 94% |
 | NEON v1 | 89.93 us | -    | 46.5GFLOPS  |  2.92GB/s |
 | NEON v3 | 0.15 ms  | +69% | 27.5GFLOPS  |  1.73GB/s |
 
@@ -578,19 +571,12 @@ Simd Double2 - Div     : 1.17 s  +959.6%    - 0.5GFLOPS
 * Clock: 3.0 GHz
 * Theoretical performance (FMA):
 	- 2x 128bit FMA pipes
-	- 16 FLOPS * 3.0 GHz =
+	- 16 FLOPS * 3.0 GHz = 48 GFLOPS
 
 ### Float SIMD
 
 | | FLOPS | SOL |
 |----------------------------|------------|
-| Simd Float4 - Add ilp4     | 84.1GFLOPS |
-| Simd Float4 - Add ilp5     | 81.6GFLOPS |
-| Simd Float4 - Mul          | 81.3GFLOPS |
-| Simd Float4 - Add ilp6     | 81.2GFLOPS |
-| Simd Float4 - Add ilp7     | 79.5GFLOPS |
-| Simd Float4 - Div ilp4     | 27.1GFLOPS |
-| Simd Float4 - Div ilp8     | 20.6GFLOPS |
 | Simd Float4 - FMA ilp4     | 20.5GFLOPS |
 | Simd Float4 - Add ilp8     | 20.0GFLOPS |
 | Simd Float4 - FMA ilp5     | 17.9GFLOPS |
@@ -654,14 +640,7 @@ Simd Double2 - Div     : 1.17 s  +959.6%    - 0.5GFLOPS
 
 | | FLOPS | SOL |
 |----------------------------|------------|---|
-| Simd Float4 - Add ilp4     | 65.3GFLOPS | incorrect? |
-| Simd Float4 - Add ilp6     | 65.1GFLOPS |
-| Simd Float4 - Add ilp5     | 65.0GFLOPS |
-| Simd Float4 - Add ilp7     | 64.8GFLOPS |
-| Simd Float4 - Mul          | 36.1GFLOPS |
-| Simd Float4 - Div ilp4     | 21.6GFLOPS | incorrect? |
 | Simd Float4 - FMA ilp4     | 16.3GFLOPS |
-| Simd Float4 - Div ilp8     | 16.3GFLOPS | incorrect? |
 | Simd Float4 - Add ilp8     | 16.2GFLOPS |
 | Simd Float4 - FMA ilp5     | 13.7GFLOPS |
 | Simd Float4 - FMA ilp16    | 13.7GFLOPS |
@@ -762,13 +741,6 @@ Simd Double2 - Div        : 0.65 s  +1339.2%   - 493.3MFLOPS,  1.0GB/s
 
 | | FLOPS | SOL |
 |----------------------------|------------|---|
-| Simd Float4 - Add ilp4     | 31.3GFLOPS  |
-| Simd Float4 - Add ilp5     | 31.3GFLOPS  |
-| Simd Float4 - Add ilp6     | 31.3GFLOPS  |
-| Simd Float4 - Add ilp7     | 31.3GFLOPS  |
-| Simd Float4 - Mul          | 29.5GFLOPS  |
-| Simd Float4 - Div ilp4     | 15.9GFLOPS  | incorrect? |
-| Simd Float4 - Div ilp8     | 7.92GFLOPS  | incorrect? |
 | Simd Float4 - FMA ilp7     | 7.91GFLOPS  |
 | Simd Float4 - FMA ilp6     | 7.84GFLOPS  |
 | Simd Float4 - MulAdd       | 7.82GFLOPS  |
@@ -2014,13 +1986,9 @@ Simd Float8 FMA ilp8 test.
 
 | | FLOPS | SOL |
 |-------------------------------|----------------|
-| Simd Float4 - Mul             | 115.8GFLOPS    |
-| Simd Float4 - Add ilp6        | 38.6GFLOPS     |
 | Simd Float4 - MulAdd          | 28.6GFLOPS     |
 | Simd Float4 - FMA ilp16       | 27.6GFLOPS     |
-| Simd Float4 - Div ilp8        | 26.0GFLOPS     |
 | Simd Float4 - FMA ilp8        | 26.0GFLOPS     |
-| Simd Float4 - Div ilp4        | 26.0GFLOPS     |
 | Simd Float4 - FMA ilp6        | 19.5GFLOPS     |
 | Simd Float4 - FMA ilp7        | 22.5GFLOPS     |
 | Simd Float4 - FMA ilp4        | 13.0GFLOPS     |
@@ -2032,8 +2000,8 @@ Simd Float8 FMA ilp8 test.
 ## Float SIMD (2 threads, 2 cores)
 
 | | FLOPS per thread | SOL |
-|------------------------------|------------|
-| Simd Float4 - Add ilp6       | 36.6GFLOPS |
+|------------------------------|------------|---|
+| Simd Float4 - Add ilp6       | 36.6GFLOPS | 25% |
 | Simd Float4 - FMA ilp6       | 18.4GFLOPS |
 | Simd Float4 - FMA ilp8       | 24.5GFLOPS |
 | Simd Float4 - FMA ilp7       | 21.3GFLOPS |
@@ -2048,7 +2016,7 @@ Simd Float8 FMA ilp8 test.
 
 |         |  time    | diff  |    FLOPS     |  bandwidth | SOL |
 |---------|----------|-------|--------------|------------|---|
-| NEON v1 | 21.15 ms | -     | 101.5GFLOPS  |  793.2MB/s |
+| NEON v1 | 21.15 ms | -     | 101.5GFLOPS  |  793.2MB/s | 69% |
 | AE GEMM | 32.44 ms | +53%  | 66.2GFLOPS   |  517.2MB/s |
 | NEON v3 | 45.87 ms | +117% | 46.8GFLOPS   |  365.8MB/s |
 
@@ -2056,7 +2024,7 @@ Simd Float8 FMA ilp8 test.
 
 |         |  time    | diff  |    FLOPS   | bandwidth | SOL |
 |---------|----------|------|-------------|-----------|---|
-| AE GEMM | 64.98 us | -    | 64.3GFLOPS  |  4.03GB/s |
+| AE GEMM | 64.98 us | -    | 64.3GFLOPS  |  4.03GB/s | 44% |
 | NEON v1 | 65.55 us | +1%  | 63.7GFLOPS  |  4.00GB/s |
 | NEON v3 | 86.06 us | +32% | 48.5GFLOPS  |  3.05GB/s |
 
@@ -2066,7 +2034,7 @@ Simd Float8 FMA ilp8 test.
 
 |         |  time   | diff  |    FLOPS    | bandwidth | SOL |
 |---------|---------|-------|-------------|-----------|---|
-| NEON v3 | 0.25 ms | -     | 33.7GFLOPS  |  67.6GB/s |
+| NEON v3 | 0.25 ms | -     | 33.7GFLOPS  |  67.6GB/s | 23% |
 | NEON v4 | 0.27 ms | +7%   | 31.4GFLOPS  |  62.9GB/s |
 | NEON v1 | 0.28 ms | +13%  | 30.0GFLOPS  |  60.0GB/s |
 | NEON v2 | 0.84 ms | +238% | 9.98GFLOPS  |  20.0GB/s |
@@ -2075,7 +2043,7 @@ Simd Float8 FMA ilp8 test.
 
 |         |  time   | diff  |    FLOPS    | bandwidth | SOL |
 |---------|---------|-------|-------------|-----------|---|
-| NEON v1 | 2.85 us | -     | 45.9GFLOPS  |  92.6GB/s |
+| NEON v1 | 2.85 us | -     | 45.9GFLOPS  |  92.6GB/s | 31% |
 | NEON v3 | 5.12 us | +80%  | 25.6GFLOPS  |  51.6GB/s |
 | NEON v4 | 6.32 us | +122% | 20.7GFLOPS  |  41.8GB/s |
 | NEON v2 | 7.64 us | +168% | 17.2GFLOPS  |  34.6GB/s |
@@ -2087,19 +2055,15 @@ Simd Float8 FMA ilp8 test.
 * Clock: 3.6 GHz
 * Cores: 6
 * Theoretical performance (FMA):
-	- 4x fp32 128-bit FMA pipes ?
-	- 32 FLOPS * 3.6 G = 115 GFLOPS
-	- 691 GFLOPS for all cores
+	- 2x or 4x fp32 128-bit FMA pipes ?
+	- 32 FLOPS * 3.6 G = 115 GFLOPS, 691 GFLOPS for 6 cores ?
+	- 16 FLOPS * 3.6 G = 58 GFLOPS, 115 GFLOPS for 6 cores
 
 ## Float SIMD (single thread)
 
 | | FLOPS | SOL |
-|-------------------------------|----------------|
-| Simd Float4 - Mul             | 65.5GFLOPS     |
-| Simd Float4 - Add ilp6        | 50.7GFLOPS     |
-| Simd Float4 - Div ilp8        | 34.1GFLOPS     |
-| Simd Float4 - Div ilp4        | 34.0GFLOPS     |
-| Simd Float4 - FMA ilp8        | 32.1GFLOPS     |
+|-------------------------------|----------------|---|
+| Simd Float4 - FMA ilp8        | 32.1GFLOPS     | 56% |
 | Simd Float4 - MulAdd          | 32.0GFLOPS     |
 | Simd Float4 - FMA ilp16       | 29.5GFLOPS     |
 | Simd Float4 - FMA ilp7        | 29.1GFLOPS     |
@@ -2113,9 +2077,8 @@ Simd Float8 FMA ilp8 test.
 ## Float SIMD (6 threads, 6 cores)
 
 | | FLOPS per thread | SOL |
-|------------------------------|------------|
-| Simd Float4 - Add ilp6       | 45.4GFLOPS |
-| Simd Float4 - FMA ilp8       | 29.5GFLOPS |
+|------------------------------|------------|---|
+| Simd Float4 - FMA ilp8       | 29.5GFLOPS | 51% |
 | Simd Float4 - FMA ilp7       | 26.8GFLOPS |
 | Simd Float4 - FMA ilp6       | 23.3GFLOPS |
 | Simd Float4 - FMA ilp16      | 28.6GFLOPS |
@@ -2129,7 +2092,7 @@ Simd Float8 FMA ilp8 test.
 
 |         |  time    | diff |    FLOPS    |  bandwidth | SOL |
 |---------|----------|------|-------------|------------|---|
-| AE GEMM | 67.60 ms | -    | 31.8GFLOPS  |  248.2MB/s |
+| AE GEMM | 67.60 ms | -    | 31.8GFLOPS  |  248.2MB/s | 55% |
 | NEON v1 | 68.92 ms | +2%  | 31.1GFLOPS  |  243.4MB/s |
 | NEON v3 | 98.16 ms | +45% | 21.9GFLOPS  |  170.9MB/s |
 
@@ -2137,7 +2100,7 @@ Simd Float8 FMA ilp8 test.
 
 |         |  time   | diff |    FLOPS    | bandwidth | SOL |
 |---------|---------|------|-------------|-----------|---|
-| AE GEMM | 0.13 ms | -    | 31.5GFLOPS  |  1.98GB/s |
+| AE GEMM | 0.13 ms | -    | 31.5GFLOPS  |  1.98GB/s | 55% |
 | NEON v1 | 0.13 ms | -    | 31.4GFLOPS  |  1.97GB/s |
 | NEON v3 | 0.19 ms | +42% | 22.1GFLOPS  |  1.39GB/s |
 

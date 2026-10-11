@@ -38,12 +38,20 @@ namespace AE::App
 	SetKey
 =================================================
 */
-	void  InputActionsAndroid::SetKey (jint key, EGestureState state, Duration_t timestamp, uint repeatCount) __NE___
+	void  InputActionsAndroid::SetKey (jint key, EGestureState state, Duration_t timestamp, uint repeatCount, CharUtf32 unicodeChar) __NE___
 	{
 		DRC_EXLOCK( _drCheck );
-		ASSERT( repeatCount == 0 );	// TODO: for key up is always 0
+		//ASSERT( repeatCount == 0 );	// TODO: for key up it always 0
 
-		_UpdateKey( EInputType(key), state, ControllerID::Keyboard, timestamp );
+		ControllerID	id = (EInputType(key) < EInputType::MouseBegin ? ControllerID::Keyboard : ControllerID::Mouse);
+
+		_UpdateKey( EInputType(key), state, id, timestamp );
+
+		if ( unicodeChar != CharUtf32{0} )
+		{
+			ASSERT( state == EGestureState::Begin );
+			_AddChar( unicodeChar );
+		}
 	}
 
 /*
@@ -56,6 +64,52 @@ namespace AE::App
 		DRC_EXLOCK( _drCheck );
 
 		_gestureRecognizer.SetTouch( touchId, float2{x,y}, state, timestamp );
+	}
+
+/*
+=================================================
+	SetCursorPos
+=================================================
+*/
+	void  InputActionsAndroid::SetCursorPos (float2 pos) __NE___
+	{
+		DRC_EXLOCK( _drCheck );
+
+		if_unlikely( _curMode == null )
+			return;
+
+		const auto	id = ControllerID::Mouse;
+
+		_Update2F( EInputType::CursorPos, EGestureType::Move, id, pos, EGestureState::Update );
+
+		const float2	pos_mm = pos * _pixToMm;
+		_Update2F( EInputType::CursorPos_mm, EGestureType::Move, id, pos_mm, EGestureState::Update );
+
+		const float2	delta = pos - _cursorPosPx;
+		_Update2F( EInputType::CursorDelta, EGestureType::Move, id, delta, EGestureState::Update );
+
+		const float2	delta_norm = delta * _toSNorm;
+		_Update2F( EInputType::CursorDelta_norm, EGestureType::Move, id, delta_norm, EGestureState::Update );
+
+		_cursorPosPx	= pos;	// may be changed in 'CursorPosChanged()'
+		_cursorDeltaPx	= delta;
+	}
+
+/*
+=================================================
+	SetMouseWheel
+=================================================
+*/
+	void  InputActionsAndroid::SetMouseWheel (const float2 delta) __NE___
+	{
+		DRC_EXLOCK( _drCheck );
+
+		if_unlikely( _curMode == null )
+			return;
+
+		const auto	id = ControllerID::Mouse;
+
+		_Update2F( EInputType::MouseWheel, EGestureType::Move, id, delta, EGestureState::Update );
 	}
 
 /*

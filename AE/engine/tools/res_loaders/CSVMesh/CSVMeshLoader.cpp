@@ -469,6 +469,8 @@ namespace
 		if ( not (fileFormat == Default or fileFormat == EModelFormat::CSV) )
 			return false;
 
+		TRACY( ZoneScoped );
+
 		Array<VertexMapping2>	vert_mapping;	// per column
 		CSVConfig const*		csv_cfg		= null;
 

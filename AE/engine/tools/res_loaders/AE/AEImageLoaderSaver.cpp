@@ -25,6 +25,7 @@ namespace {
 		if ( not (fileFormat == Default or fileFormat == EImageFormat::AEImg) )
 			return false;
 
+		TRACY( ZoneScoped );
 		AssetPacker::ImagePacker::Header	header;
 
 		if ( not ImagePacker_ReadHeader( stream, OUT header ))
@@ -94,6 +95,7 @@ namespace {
 		if ( not (fileFormat == Default or fileFormat == EImageFormat::AEImg) )
 			return false;
 
+		TRACY( ZoneScoped );
 		CHECK_ERR( not image.GetData().empty() );
 		CHECK_ERR( not image.GetData()[0].empty() );
 

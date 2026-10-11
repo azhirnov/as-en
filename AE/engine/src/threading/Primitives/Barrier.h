@@ -147,6 +147,7 @@ namespace AE::Threading
 
 		void  Wait ()							__NE___
 		{
+			TRACY( ZoneScoped );
 			std::unique_lock	lock{ _mutex };
 
 			if ( (--_value) == 0 )
@@ -199,6 +200,7 @@ namespace AE::Threading
 
 		void  Wait ()							__NE___
 		{
+			TRACY( ZoneScoped );
 			_barrier.arrive_and_wait();
 		}
 

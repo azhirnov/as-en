@@ -14,6 +14,9 @@ namespace AE::ResEditor
 	template <typename T, int I>
 	class TDynamicVec final : public EnableRC< TDynamicVec< T, I >>
 	{
+		StaticAssert( IsScalar<T> );
+		StaticAssert( I >= 2 and I <= 4 );
+
 	// types
 	public:
 		using Self			= TDynamicVec< T, I >;
@@ -187,6 +190,10 @@ namespace AE::ResEditor
 			case EOperator::Pow :
 				if constexpr( IsFloatPoint<T> )
 					result = Pow( result, r_value );
+				else{
+					ASSERT( All( r_value == r_value.x ));
+					result = IPow( result, r_value.x );
+				}
 				break;
 
 			case EOperator::AlignUp :
@@ -197,6 +204,31 @@ namespace AE::ResEditor
 			case EOperator::AlignDown :
 				if constexpr( IsInteger<T> )
 					result = AlignDown( result, r_value );
+				break;
+
+			case EOperator::Rcp :
+				if constexpr ( IsFloatPoint<T> )
+					result = r_value / result;
+				break;
+
+			case EOperator::Abs :
+				if constexpr( IsSigned<T> )
+					result = Abs( result );
+				break;
+
+			case EOperator::ACos :
+				if constexpr ( IsFloatPoint<T> )
+					result = glm::acos( Saturate( r_value * result ));
+				break;
+
+			case EOperator::ToRad :
+				if constexpr ( IsFloatPoint<T> )
+					result = glm::radians( r_value * result );
+				break;
+
+			case EOperator::ToDeg :
+				if constexpr ( IsFloatPoint<T> )
+					result = glm::degrees( r_value * result );
 				break;
 		}
 		switch_end

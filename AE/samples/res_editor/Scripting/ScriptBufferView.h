@@ -16,17 +16,12 @@ namespace AE::ResEditor
 	{
 		friend class ScriptBuffer;
 
-	// types
-	public:
-
-
-
 	// variables
 	private:
 		ScriptBufferPtr			_baseBuffer;
 		const EPixelFormat		_format			= Default;
 		EResourceUsage			_resUsage		= Default;
-		const EImageType		_texbufType		= EImageType::Buffer;
+		const EImageType		_texbufType;
 		String					_dbgName;
 
 		RC<BufferView>			_resource;

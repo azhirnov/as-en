@@ -1,0 +1,224 @@
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
+#ifdef __INTELLISENSE__
+#	include <pipeline_compiler.as>
+#	include <glsl.h>
+#endif
+//-----------------------------------------------------------------------------
+#ifdef SCRIPT
+
+	void  CreatePipeline (bool dbgFS)
+	{
+		const string prefix = "opaque" + (dbgFS ? ".dbgFS" : "");
+
+		{
+			RC<PipelineLayout>		pl = PipelineLayout( prefix+".pl" );
+			pl.DSLayout( "pass",	 0, "pass.ds" );
+			pl.DSLayout( "material", 1, "opaque.mtr.ds" );
+			if ( dbgFS ) pl.AddDebugDSLayout( EShaderOpt::Trace, EShaderStages::Fragment );
+		}
+
+		RC<GraphicsPipeline>	ppln = GraphicsPipeline( prefix+".t" );
+		ppln.SetLayout( prefix+".pl" );
+		ppln.SetFragmentOutputFromRenderTech( "rtech", "main" );
+		ppln.SetShaderIO( EShader::Vertex, EShader::Fragment, "opaque.io" );
+
+		{
+			RC<Shader>	vs = Shader();
+			vs.LoadSelf();
+			ppln.SetVertexShader( vs );
+		}{
+			RC<Shader>	fs = Shader();
+			fs.LoadSelf();
+			if ( dbgFS ) fs.options = EShaderOpt::Trace;
+			ppln.SetFragmentShader( fs );
+		}
+
+		// specialization
+		{
+			RC<GraphicsPipelineSpec>	spec = ppln.AddSpecialization( prefix );
+			spec.AddToRenderTech( "rtech", "main" );  // in ScriptSceneGraphicsPass
+
+			RenderState	rs;
+
+			rs.depth.test					= true;
+			rs.depth.write					= true;
+			rs.depth.compareOp				= ECompareOp::GEqual;
+
+			rs.inputAssembly.topology		= EPrimitive::TriangleList;
+
+			rs.rasterization.frontFaceCCW	= true;
+			rs.rasterization.cullMode		= ECullMode::Back;
+
+			spec.SetRenderState( rs );
+		}
+	}
+
+	void  ASmain ()
+	{
+		{
+			RC<ShaderStructType>	st = ShaderStructType( "opaque.io" );
+			st.Set( EStructLayout::InternalIO,
+					"mediump float3		color;"
+					"float3				worldPos;"
+					"float				viewZ;"
+					"flat uint			objectId;" );
+		}{
+			RC<DescriptorSetLayout>	ds = DescriptorSetLayout( "opaque.mtr.ds" );
+			ds.UniformBuffer( EShaderStages::Vertex,	"un_PerObject",	"UnifiedGeometryMaterialUB" );
+			ds.StorageBuffer( EShaderStages::Vertex,	"un_Geometry",	"GeometryData",				EResourceState::ShaderStorage_Read );	// external
+			ds.StorageBuffer( EShaderStages::Vertex,	"un_Transform",	"ObjectTransform_Array",	EResourceState::ShaderStorage_Read );	// external
+		}
+
+		CreatePipeline( false );
+	//	CreatePipeline( true );
+	}
+
+#endif
+//-----------------------------------------------------------------------------
+#ifdef SH_VERT
+	#include "Transform.glsl"
+
+	void Main ()
+	{
+		ObjectTransform	obj	= un_Transform.elements[ gl.InstanceIndex ];
+		float3			pos = un_Geometry.position[ gl.VertexIndex ];
+
+		pos *= obj.scale;
+		pos += obj.position;
+
+		gl.Position		= LocalPosToClipSpace( pos );
+		Out.color		= Lerp( unpackUnorm4x8( obj.color ).rgb, float3(0.2), 0.75 );
+		Out.worldPos	= pos;
+		Out.viewZ		= LocalPosToViewSpace( pos ).z;
+		Out.objectId	= gl.InstanceIndex;
+	}
+
+#endif
+//-----------------------------------------------------------------------------
+#ifdef SH_FRAG
+	#include "PBR.glsl"
+	#include "Cone.glsl"
+	#include "Normal.glsl"
+	#include "Matrix.glsl"
+	#include "ColorSpace.glsl"
+	#include "LightClusters.glsl"
+
+	struct GBuffer
+	{
+		float3	albedo;
+		float	metalness;
+		float3	normal;
+		float	roughness;
+		float3	wpos;
+		float3	viewDir;
+	};
+
+
+	// same as [DeferredShading](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/pipelines/samples/DeferredShading-Volume.as)
+	float3  ApplyLight (const GBuffer gbuf, const LightObject light)
+	{
+		float3	wpos		= light.position - un_PerPass.camera.pos;
+		Cone	cone		= Cone_Create( wpos, light.dir, light.angle, light.height );
+		float	range		= Cone_SlantLength( cone );
+		float	outer_cos	= Cos( cone.halfAngle );
+		float3	light_dir	= -light.dir;
+
+		float3	dir_to_l	= Normalize( wpos - gbuf.wpos );
+		float	cos_theta	= Dot( dir_to_l, light_dir );
+		float	dist		= Distance( wpos, gbuf.wpos );
+
+		// uniform
+		if ( gl.subgroup.All( dist > range or cos_theta < outer_cos ))
+			return float3(0.0);
+
+		LightingResult	res = CookTorrance( gbuf.albedo, gbuf.albedo, dir_to_l, gbuf.viewDir, gbuf.normal, gbuf.roughness, gbuf.metalness );
+
+		float	atten	= SpotAttenuation( float3(1.0, light.atten), cos_theta, dist, float2(1.0, outer_cos) );
+		float3	col		= res.diffuse + res.specular;
+		float3	l_col	= unpackUnorm4x8( light.color ).rgb * light.brightness;
+
+		col *= l_col * atten;
+		return col;
+	}
+
+
+	float4  Lighting (const GBuffer gbuf)
+	{
+		sg_uniform const uint	word_count	= DivCeil( iLightCount, 32 );
+		float					cluster_z	= Cluster_InvZProjection_Log( In.viewZ, float(iClusterCount.z), un_PerPass.camera.clipPlanes );
+								cluster_z	= Clamp( cluster_z, 0.0, float(iClusterCount.z-1) );
+		float2					cluster_xy	= Min( (gl.FragCoord.xy * un_PerPass.invResolution) * float2(iClusterCount.xy), float2(iClusterCount.xy-1) );
+		const uint3				cluster_id	= uint3( cluster_xy, cluster_z );
+		const uint				cluster_idx	= VecToIndex( cluster_id, iClusterCount );
+
+		float3	color	= float3(0.0);
+		float	count	= 0.0;
+
+		// uniform
+		for (sg_uniform uint word_idx = 0; word_idx < word_count; ++word_idx)
+		{
+			const uint		mask		= un_Clusters.elements[ cluster_idx ].indices[ word_idx ];
+			sg_uniform uint	merged_mask = gl.subgroup.BroadcastFirst( gl.subgroup.Or( mask ));
+
+			// uniform
+			for (; merged_mask != 0;)
+			{
+				sg_uniform uint			light_id	= ExtractLowBitIndex( INOUT merged_mask ) + word_idx * 32;
+				sg_uniform LightObject	light		= un_Lights.elements[ light_id ];
+
+				color += ApplyLight( gbuf, light );
+				count += 1.0;
+			}
+		}
+		return float4( color, count );
+	}
+
+
+	void Main () [[maximally_reconverges]]
+	{
+		float3	norm	= ComputeNormalInWS_dxdy( In.worldPos );
+		float2	uv		= gl.FragCoord.xy * un_PerPass.invResolution;
+		float3	ambient	= RemoveSRGBCurve( float3(54.0, 61.0, 75.0) / 255.0 );
+
+		GBuffer			gbuf;
+		gbuf.albedo		= In.color;
+		gbuf.normal		= norm;
+		gbuf.wpos		= In.worldPos - un_PerPass.camera.pos;
+		gbuf.roughness	= 0.5;
+		gbuf.metalness	= 0.8;
+		gbuf.viewDir	= ViewDir( un_PerPass.camera.invViewProj, uv );
+
+		float4	light_and_count = Lighting( gbuf );
+
+		out_Normal.rgb	= ToUNorm( norm );
+		out_Normal.a	= (In.objectId == 0 ? 0.0 : 1.0);
+
+		switch ( iView )
+		{
+			case 0 :
+				out_Color.rgb = ApplySRGBCurve( gbuf.albedo * (light_and_count.rgb * iLightScale + ambient) );
+				out_Color.a   = 1.0;
+				break;
+
+			case 1 :
+				out_Color = float4( gbuf.albedo, 1.0 );
+				break;
+
+			case 2 :
+				out_Color = float4( light_and_count.rgb, 1.0 );
+				if ( Any( IsNaN( light_and_count.rgb )))
+					out_Color = float4(1.0, 0.0, 1.0, 1.0);
+				break;
+
+			case 3 :
+				out_Color = float4( gbuf.albedo, light_and_count.a );
+				break;
+
+			case 4 :
+				out_Color = float4( gbuf.albedo * 0.5, 1.0 );
+				break;
+		}
+	}
+
+#endif
+//-----------------------------------------------------------------------------

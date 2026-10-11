@@ -77,7 +77,7 @@ namespace AE::App
 			_visitor_( Key_Browser,			64,		"Browser",			AKEYCODE_EXPLORER			)\
 			_visitor_( Key_LaunchMail,		65,		"LaunchMail",		AKEYCODE_ENVELOPE			)\
 			_visitor_( Key_Enter,			66,		"Enter",			AKEYCODE_ENTER				)\
-			_visitor_( Key_Delete,			67,		"Delete",			AKEYCODE_DEL				)\
+			_visitor_( Key_Backspace,		67,		"Backspace",		AKEYCODE_DEL				)\
 			_visitor_( Key_Grave,			68,		"Grave",			AKEYCODE_GRAVE				)	/* '`' */\
 			_visitor_( Key_Minus,			69,		"Minus",			AKEYCODE_MINUS				)	/* '-' */\
 			_visitor_( Key_Equals,			70,		"Equal",			AKEYCODE_EQUALS				)	/* '=' */\
@@ -99,7 +99,7 @@ namespace AE::App
 			_visitor_( Key_PictSymbols,		94,		"PictSymbols",		AKEYCODE_PICTSYMBOLS		)\
 			_visitor_( Key_SwitchCharset,	95,		"SwitchCharset",	AKEYCODE_SWITCH_CHARSET		)\
 			_visitor_( Key_Escape,			111,	"Escape",			AKEYCODE_ESCAPE				)\
-			_visitor_( Key_ForwardDelete,	112,	"ForwardDelete",	AKEYCODE_FORWARD_DEL		)\
+			_visitor_( Key_Delete,			112,	"ForwardDelete",	AKEYCODE_FORWARD_DEL		)\
 			_visitor_( Key_LeftControl,		113,	"LeftControl",		AKEYCODE_CTRL_LEFT			)\
 			_visitor_( Key_RightControl,	114,	"RightControl",		AKEYCODE_CTRL_RIGHT			)\
 			_visitor_( Key_CapsLock,		115,	"CapsLock",			AKEYCODE_CAPS_LOCK			)\
@@ -306,6 +306,8 @@ namespace AE::App
 			_visitor_( Key_TV_ContentsMenu,		256,	"TV_ContentsMenu",		AKEYCODE_TV_CONTENTS_MENU		)\
 			_visitor_( Key_TV_MediaContextMenu,	257,	"TV_MediaContextMenu",	AKEYCODE_TV_MEDIA_CONTEXT_MENU	)\
 			_visitor_( Key_TV_TimerProgramming,	258,	"TV_TimerProgramming",	AKEYCODE_TV_TIMER_PROGRAMMING	)\
+			/* other */\
+			_visitor_( RawChar,			c_RawCharType,	"RawChar",				c_RawCharType  )
 
 		#define AE_ANDROID_SERNSORS( _visitor_ )\
 			_visitor_( Accelerometer,							 1,		 3,		Float3,		ASENSOR_TYPE_ACCELEROMETER		)\
@@ -357,16 +359,42 @@ namespace AE::App
 		enum class EInputType : InputType_t
 		{
 			KeyBegin			= 0,
-			KeyEnd				= 512,
+			MouseBegin			= 500,
+
+			MouseBtn1			= MouseBegin,		// BUTTON_PRIMARY
+			MouseBtn2,								// BUTTON_SECONDARY
+			MouseBtn3,								// BUTTON_TERTIARY
+			MouseBtn4,								// BUTTON_BACK
+			MouseBtn5,								// BUTTON_FORWARD
+			StylusBtn1,								// BUTTON_STYLUS_PRIMARY
+			StylusBtn2,								// BUTTON_STYLUS_SECONDARY
+
+			KeyEnd,
 
 			#define AE_ANDROID_KEY_CODES_VISITOR( _key_, _code_,... )		_key_ = _code_,
 			AE_ANDROID_KEY_CODES( AE_ANDROID_KEY_CODES_VISITOR )
 			#undef AE_ANDROID_KEY_CODES_VISITOR
 
+			Key_ArrowUp			= Key_DPadUp,
+			Key_ArrowDown		= Key_DPadDown,
+			Key_ArrowLeft		= Key_DPadLeft,
+			Key_ArrowRight		= Key_DPadRight,
+
+			MouseLeft			= MouseBtn1,
+			MouseRight			= MouseBtn2,
+			MouseMiddle			= MouseBtn3,
+			StylusPrimary		= StylusBtn1,
+			StylusSecondary		= StylusBtn2,
+
 			// touch
-			MultiTouch			= KeyEnd + 10,		// float2 (scale, rotate)
+			MultiTouch			= KeyEnd + 1,		// float2 (scale, rotate)
 			Cursor2DBegin,
-			TouchPos			= Cursor2DBegin,	// float2 (absolute in pixels)
+			MouseWheel			= Cursor2DBegin,	// float2 (delta)
+			CursorPos,								// float2 (absolute in pixels)
+			CursorPos_mm,							// float2 (absolute in mm)
+			CursorDelta,							// float2 (delta in pixels)
+			CursorDelta_norm,						// snorm2 (with correct proportions)
+			TouchPos,								// float2 (absolute in pixels)
 			TouchPos_mm,							// float2 (absolute in mm)
 			TouchDelta,								// float2 (delta in pixels)
 			TouchDelta_norm,						// snorm2 (with correct proportions)

@@ -69,7 +69,7 @@ namespace AE::App
 
 	// methods
 	private:
-		explicit ApplicationAndroid (Unique<IAppListener>)								__NE___;
+		explicit ApplicationAndroid (AppListenerPtr)									__NE___;
 
 		void  _OnDestroy ()																__NE___;
 

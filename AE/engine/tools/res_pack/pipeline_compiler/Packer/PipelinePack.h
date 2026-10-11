@@ -1295,14 +1295,14 @@ struct std::hash< AE::PipelineCompiler::PipelineLayoutDesc::DescSetLayout > fina
 
 template <>
 struct std::hash< AE::PipelineCompiler::SpirvWithTrace > {
-	ND_ size_t  operator () (const AE::PipelineCompiler::SpirvWithTrace &x) const {
+	ND_ size_t  operator () (const AE::PipelineCompiler::SpirvWithTrace &x) C_NE___ {
 		return size_t(AE::Base::HashOf( x.bytecode ));
 	}
 };
 
 template <>
 struct std::hash< AE::PipelineCompiler::SerializableGraphicsPipeline::VertexAttrib > {
-	size_t  operator () (const AE::PipelineCompiler::SerializableGraphicsPipeline::VertexAttrib &x) const {
+	size_t  operator () (const AE::PipelineCompiler::SerializableGraphicsPipeline::VertexAttrib &x) C_NE___ {
 		return size_t(AE::Base::HashOf(x.type) + AE::Base::HashOf(x.index));
 	}
 };

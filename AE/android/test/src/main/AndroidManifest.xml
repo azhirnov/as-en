@@ -7,7 +7,7 @@
 
 	<uses-permission android:name="android.permission.INTERNET" android:required="true" />
 	<uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" android:required="true" />
-
+	
 	<application
 		android:name=".TestApplication"
 		android:label="AE tests"
@@ -18,10 +18,10 @@
 			android:name=".TestActivity"
 			android:theme="@android:style/Theme.NoTitleBar.Fullscreen"
 			android:launchMode="singleTask"
-			android:configChanges="keyboard|keyboardHidden|orientation|screenLayout|uiMode|screenSize|smallestScreenSize"
+			android:configChanges="keyboard|keyboardHidden|orientation|screenLayout|uiMode|screenSize|smallestScreenSize|navigation"
 			android:resizeableActivity="true"
 			android:screenOrientation="userLandscape"
-			android:windowSoftInputMode="adjustPan"
+			android:windowSoftInputMode="adjustNothing"
 			android:exported="true">
 			<intent-filter>
 				<action android:name="android.intent.action.MAIN" />

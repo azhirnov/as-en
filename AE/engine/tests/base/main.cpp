@@ -60,32 +60,17 @@ TEST_ENTRY()
 {
 	BEGIN_TEST();
 
-	String	config = "\n\tConfig: ";
-	#ifdef CMAKE_INTDIR
-		config << CMAKE_INTDIR;
-	#else
-	# ifdef AE_CFG_DEBUG
-		config << "Debug";
-	# elif defined(AE_CFG_DEVELOP)
-		config << "Develop";
-	# elif defined(AE_CFG_PROFILE)
-		config << "Profile";
-	# elif defined(AE_CFG_RELEASE)
-		config << "Release";
-	# else
-	#	error unknown config
-	# endif
-	#endif
-
 	AE_LOGI( "Engine: "s <<  AE_ENGINE_NAME << " (" << ToString( AE_VERSION ) << ')' );
 	AE_LOGI(
 		"\n\tPlatform name: "s << AE_PLATFORM_NAME <<
 		"\n\tCPU arch: " << AE_CPU_ARCH_NAME <<
 		"\n\tCompiler: " << AE_COMPILER_NAME <<
 		"\n\tCompiler ver: " << ToString(AE_COMPILER_VERSION) <<
-		config <<
+		"\n\tConfig: " << AE_BUILD_TYPE <<
 		"\n\tOS name: " << PlatformUtils::GetOSName() <<
 		"\n\tOS ver: " << ToString(PlatformUtils::GetOSVersion()) <<
+		"\n\tPC name: " << PlatformUtils::GetComputerName() <<
+		"\n\tUser name: " << PlatformUtils::GetUserName() <<
 		"\n\tStack size: " << ToString(PlatformUtils::GetDefaultStackSize()) <<
 		"\n\tMemory page size: "s << ToString(PlatformUtils::GetMemoryPageInfo().pageSize)
 	);

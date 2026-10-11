@@ -34,6 +34,7 @@ namespace
 			ASSERT( dst < end );
 			ASSERT( src <= end );
 		}
+		Unused( end );
 
 		level.format		= EPixelFormat::Depth32F;
 		level.rowPitch		= d32_row_pitch;
@@ -219,6 +220,8 @@ namespace
 
 		if ( not (fileFormat == Default or fileFormat == EImageFormat::DDS) )
 			return false;
+
+		TRACY( ZoneScoped );
 
 		// load DDS header
 		DDS_HEADER					header		= {};

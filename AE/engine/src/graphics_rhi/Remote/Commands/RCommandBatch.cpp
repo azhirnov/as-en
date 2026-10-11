@@ -87,10 +87,10 @@ namespace AE::Graphics
 		CHECK_ERR( GraphicsScheduler().GetDevice().SendAndWait( msg, OUT res ));
 
 		_batchId		= res->batchId;
-		_tlSemaphore	= res->semaphoreId;
+		_tlSemaphore	= res->semaphoreId;		// may be undefined if AE_VK_TIMELINE_SEMAPHORE=0
 		_tlSemaphoreVal.store( res->semaphoreVal );
 
-		CHECK_ERR( _batchId and _tlSemaphore );
+		CHECK_ERR( _batchId );
 
 		CHECK_ERR( _status.Set( EStatus::Destroyed, EStatus::Initial ));
 		return true;

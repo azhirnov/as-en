@@ -193,7 +193,8 @@ namespace AE::Scripting
 		void  AddProperty (const T &self, B &value, StringView name)									__Th___;
 
 		template <typename Fn>
-		void  AddGenericMethod (void (*fn)(ScriptArgList), StringView name, ArgNames_t = {})			__Th___;
+		void  AddGenericMethod (void (*fn)(ScriptArgList), StringView name, ArgNames_t = {},
+								Bool genHeader = True{})												__Th___;
 
 
 	  #ifndef AS_MAX_PORTABILITY

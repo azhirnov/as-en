@@ -191,7 +191,7 @@ namespace
 		if ( not FileSystem::IsDirectory( path ))
 		{
 			CHECK_THROW_MSG( FileSystem::CreateDirectories( path ),
-				"Failed to create folder '"s << ToString(path) << "'" );
+				"Failed to create folder '"s << path << "'" );
 		}
 
 		CHECK_THROW( self.renderDocFolder.empty() );
@@ -206,10 +206,28 @@ namespace
 	static void  ResEditorAppConfig_ScriptDir (ResEditorAppConfig &self, const String &path)
 	{
 		CHECK_THROW_MSG( FileSystem::IsDirectory( path ),
-			"ScriptDir '"s << ToString(path) << "' must be existed folder" );
+			"ScriptDir '"s << path << "' must be existed folder" );
 
 		CHECK_THROW( self.scriptFolder.empty() );
 		self.scriptFolder = FileSystem::ToAbsolute( Path{path} );
+	}
+
+/*
+=================================================
+	ResEditorAppConfig_StartupScript
+=================================================
+*/
+	static void  ResEditorAppConfig_StartupScript (ResEditorAppConfig &self, const String &path)
+	{
+		self.startupScript = Path{path};
+
+		if ( not FileSystem::IsFile( self.startupScript ))
+			self.startupScript = self.scriptFolder / self.startupScript;
+
+		self.startupScript = FileSystem::ToAbsolute( self.startupScript );
+
+		CHECK_THROW_MSG( FileSystem::IsFile( self.startupScript ),
+			"StartupScript '"s << path << "' must be existed file" );
 	}
 
 /*
@@ -260,10 +278,37 @@ namespace
 */
 	static void  ResEditorAppConfig_SetGraphicsLibPath (ResEditorAppConfig &self, const String &path)
 	{
-		CHECK_THROW_MSG( FileSystem::IsFile( path ),
-			"GraphicsLibPath '"s << path << "' is not exists" );
+		if ( FileSystem::IsFile( path ))
+		{
+			self.graphicsLibPath = path;
+			return;
+		}
 
-		self.graphicsLibPath = path;
+		if ( FileSystem::IsDirectory( path ))
+		{
+			String	lib = "GraphicsRHI-shared.";
+			#ifdef AE_PLATFORM_WINDOWS
+				lib << "dll";
+			#else
+				lib << "so";
+			#endif
+
+			Path	p = Path{path} / lib;
+			if ( FileSystem::IsFile( p ))
+			{
+				self.graphicsLibPath = p.string();
+				return;
+			}
+
+			p = Path{path} / AE_BUILD_TYPE / lib;
+			if ( FileSystem::IsFile( p ))
+			{
+				self.graphicsLibPath = p.string();
+				return;
+			}
+		}
+
+		CHECK_THROW_MSG( false, "GraphicsLibPath '"s << path << "' is not exists" );
 	}
 
 /*
@@ -368,6 +413,8 @@ namespace
 	{
 		using namespace AE::Scripting;
 
+		AE_LOGI( "Load config from '"s << ToString(filename) << "'" );
+
 		ScriptEnginePtr		se = MakeRC<ScriptEngine>();
 		CHECK_THROW( se->Create() );
 
@@ -388,6 +435,7 @@ namespace
 			AS_METHOD( binder, ResEditorAppConfig_ShaderSearchDir,			"ShaderSearchDir",		{} );
 			AS_METHOD( binder, ResEditorAppConfig_ShaderIncludeDir,			"ShaderIncludeDir",		{} );
 			AS_METHOD( binder, ResEditorAppConfig_ScriptDir,				"ScriptDir",			{} );
+			AS_METHOD( binder, ResEditorAppConfig_StartupScript,			"StartupScript",		{} );
 			AS_METHOD( binder, ResEditorAppConfig_CallableScriptDir,		"CallableScriptDir",	{} );
 			AS_METHOD( binder, ResEditorAppConfig_AddScriptIncludeDir,		"ScriptIncludeDir",		{} );
 			AS_METHOD( binder, ResEditorAppConfig_ShaderTraceDir,			"ShaderTraceDir",		{} );
@@ -449,10 +497,20 @@ namespace
 		String	str;
 		if ( AE_PORTABLE_APP )
 		{
+			str << "void main (Config &out cfg)\n{\n";
+
+		  #ifdef AE_PLATFORM_ANDROID
+			{
+				Path	folder = filename.parent_path() / "res_editor";
+				FileSystem::CreateDirectories( folder );
+				str << "\tconst string	vfs_path 			= \"" << ToString( folder ) << "/\";\n";
+			}
+		  #else
+			str << "\tconst string	vfs_path 			= \"../\";\n";
+		  #endif
+
+
 			str << R"(
-void main (Config &out cfg)
-{
-	const string	vfs_path 			= "../";
 	const string	local_path			= vfs_path + "src/";
 	const string	shader_data_path	= vfs_path + "shared_data/";
 	const string	ui_path				= vfs_path + "ui";
@@ -515,6 +573,8 @@ void main (Config &out cfg)
 	cfg.CallableScriptDir( local_path + "scripts/callable" );
 	//	scripts which can be included in other scripts
 	cfg.ScriptIncludeDir( local_path + "script_inc" );
+	//	runs once at startup
+	//cfg.StartupScript( "..." );
 
 	// output //
 	//	path for imgui and ui pipelines
@@ -551,7 +611,7 @@ void main (Config &out cfg)
 #ifdef AE_ENABLE_REMOTE_GRAPHICS
 		str << R"(
 	// remote graphics device //
-	cfg.RemoteDeviceIpAddress( 192, 168, 0, 0 );
+	cfg.RemoteDeviceIpAddress( 192,168,0,100, 1000 );
 	cfg.GraphicsLibPath( "GraphicsRHI-shared.dll" );
 )";
 #endif
@@ -613,20 +673,57 @@ void main (Config &out cfg)
 */
 	void  ResEditorAppConfig::Init (IApplication &app) __NE___
 	{
-	#ifdef AE_PLATFORM_ANDROID
-	#else
-		Unused( app );
-	#endif
+		TRACY( ZoneScoped );
 
-		const Path	path = FileSystem::CurrentPath() / "res_editor_cfg.as";
+		// "Documents/as-en" or "/sdcard/as-en"
+	  #ifdef AE_ENABLE_REMOTE_GRAPHICS
+		const Path	shared_path	= app.GetStoragePath( EAppStorage::SharedData ) / "rmg_res_editor_cfg.as";
+	  #else
+		const Path	shared_path	= app.GetStoragePath( EAppStorage::SharedData ) / "res_editor_cfg.as";
+	  #endif
 
-		if ( not FileSystem::IsFile( path ))
-			CHECK_FATAL( _CreateDefaultResEditorAppConfig( path ));
+	  #ifdef AE_PLATFORM_ANDROID
+		const Path	local_path	= app.GetStoragePath( EAppStorage::UserData ) / "res_editor_cfg.as";
+	  #else
+		// search in working directory
+		const Path	local_path	= FileSystem::CurrentPath() / "res_editor_cfg.as";
+	  #endif
+
+		Path	path = shared_path;
+
+		// prefer shared
+		bool	has_cfg = FileSystem::IsFile( path );
+
+		// try create shared
+		if ( not has_cfg )
+		{
+			// may be read only
+			has_cfg = _CreateDefaultResEditorAppConfig( path );
+			if ( has_cfg )
+				AE_LOGI( "used shared config: "s << ToString( path ));
+		}
+
+		// try local
+		if ( not has_cfg )
+		{
+			path	= local_path;
+			has_cfg	= FileSystem::IsFile( path );
+			if ( not has_cfg )
+			{
+				has_cfg = _CreateDefaultResEditorAppConfig( path );
+			}
+		}
+		CHECK_FATAL( has_cfg );
 
 		try{
 			if ( not _LoadResEditorAppConfigFromScript( path ))
 			{
+				// TODO: save backup
 				// recreate
+			  #ifdef AE_PLATFORM_ANDROID
+				if ( not _CreateDefaultResEditorAppConfig( path ))
+					path = local_path;
+			  #endif
 				CHECK_FATAL( _CreateDefaultResEditorAppConfig( path ));
 				CHECK_FATAL( _LoadResEditorAppConfigFromScript( path ));
 			}

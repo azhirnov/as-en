@@ -2685,6 +2685,8 @@ namespace
 	void  DescriptorSetLayout::AddUniformBuffer (EShaderStages stages, const String &name, const ArraySize &arraySize, const String &typeName, EResourceState state, Bool dynamic) __Th___
 	{
 		CHECK_THROW_MSG( ToEResState(state) == _EResState::ShaderUniform );
+
+		stages &= FeatureSet_GetSupportedStages( GetFeatures() );
 		CHECK_THROW_MSG( stages != Default );
 
 		state |= EResourceState_FromShaders( stages );
@@ -2739,6 +2741,8 @@ namespace
 	void  DescriptorSetLayout::AddStorageBuffer (EShaderStages stages, const String &name, const ArraySize &arraySize, const String &typeName, EAccessType access, EResourceState state, Bool dynamic) __Th___
 	{
 		CHECK_THROW_MSG( AnyEqual( ToEResState(state), _EResState::ShaderStorage_Read, _EResState::ShaderStorage_Write, _EResState::ShaderStorage_RW ));
+
+		stages &= FeatureSet_GetSupportedStages( GetFeatures() );
 		CHECK_THROW_MSG( stages != Default );
 
 		state |= EResourceState_FromShaders( stages );
@@ -2782,8 +2786,12 @@ namespace
 	void  DescriptorSetLayout::AddUniformTexelBuffer (EShaderStages stages, const String &name, const ArraySize &arraySize, EImageType type, EResourceState state) __Th___
 	{
 		CHECK_THROW_MSG( ToEResState(state) == _EResState::ShaderSample );
+
+		stages &= FeatureSet_GetSupportedStages( GetFeatures() );
 		CHECK_THROW_MSG( stages != Default );
-		CHECK_THROW_MSG( (type & EImageType::_DimMask) == EImageType::Buffer );
+
+		CHECK_THROW_MSG( (type & EImageType::_DimMask) == Default or
+						 (type & EImageType::_DimMask) == EImageType::Buffer );
 		CHECK_THROW_MSG( (type & EImageType::_ValMask) != Default );
 
 		state |= EResourceState_FromShaders( stages );
@@ -2800,7 +2808,7 @@ namespace
 
 		un.texelBuffer			= Default;
 		un.texelBuffer.state	= state;
-		un.texelBuffer.type		= type;
+		un.texelBuffer.type		= type | EImageType::Buffer;
 
 		_dsLayout.uniforms.emplace_back( UniformName{name}, un );
 		//_AddSRGB( name, type );
@@ -2814,8 +2822,12 @@ namespace
 	void  DescriptorSetLayout::AddStorageTexelBuffer (EShaderStages stages, const String &name, const ArraySize &arraySize, EImageType type, EPixelFormat format, EAccessType access, EResourceState state) __Th___
 	{
 		CHECK_THROW_MSG( AnyEqual( ToEResState(state), _EResState::ShaderStorage_Read, _EResState::ShaderStorage_Write, _EResState::ShaderStorage_RW ));
+
+		stages &= FeatureSet_GetSupportedStages( GetFeatures() );
 		CHECK_THROW_MSG( stages != Default );
-		CHECK_THROW_MSG( (type & EImageType::_DimMask) == EImageType::Buffer );
+
+		CHECK_THROW_MSG( (type & EImageType::_DimMask) == Default or
+						 (type & EImageType::_DimMask) == EImageType::Buffer );
 		CHECK_THROW_MSG( (type & EImageType::_ValMask) != Default );
 
 		state |= EResourceState_FromShaders( stages );
@@ -2835,7 +2847,7 @@ namespace
 
 		un.texelBuffer			= Default;
 		un.texelBuffer.state	= state;
-		un.texelBuffer.type		= type;
+		un.texelBuffer.type		= type | EImageType::Buffer;
 	//	un.texelBuffer.format	= format;
 
 		_dsLayout.uniforms.emplace_back( UniformName{name}, un );
@@ -2853,7 +2865,10 @@ namespace
 	void  DescriptorSetLayout::AddStorageImage (EShaderStages stages, const String &name, const ArraySize &arraySize, EImageType type, EPixelFormat format, EAccessType access, EResourceState state) __Th___
 	{
 		CHECK_THROW_MSG( AnyEqual( ToEResState(state), _EResState::ShaderStorage_Read, _EResState::ShaderStorage_Write, _EResState::ShaderStorage_RW ));
+
+		stages &= FeatureSet_GetSupportedStages( GetFeatures() );
 		CHECK_THROW_MSG( stages != Default );
+
 		CHECK_THROW_MSG( (type & EImageType::_DimMask) != Default );
 
 		state |= EResourceState_FromShaders( stages );
@@ -2900,7 +2915,9 @@ namespace
 */
 	void  DescriptorSetLayout::AddSampledImage (EShaderStages stages, const String &name, const ArraySize &arraySize, EImageType type, EResourceState state) __Th___
 	{
+		stages &= FeatureSet_GetSupportedStages( GetFeatures() );
 		CHECK_THROW_MSG( stages != Default );
+
 		CHECK_THROW_MSG( (type & EImageType::_DimMask) != Default );
 		CHECK_THROW_MSG( (type & EImageType::_ValMask) != Default );
 		_ValidateShaderSample( INOUT state, stages );  // throw
@@ -2932,7 +2949,9 @@ namespace
 */
 	void  DescriptorSetLayout::AddCombinedImage (EShaderStages stages, const String &name, const ArraySize &arraySize, EImageType type, EResourceState state) __Th___
 	{
+		stages &= FeatureSet_GetSupportedStages( GetFeatures() );
 		CHECK_THROW_MSG( stages != Default );
+
 		CHECK_THROW_MSG( (type & EImageType::_DimMask) != Default );
 		CHECK_THROW_MSG( (type & EImageType::_ValMask) != Default );
 		_ValidateShaderSample( INOUT state, stages );  // throw
@@ -2976,7 +2995,9 @@ namespace
 	void  DescriptorSetLayout::AddCombinedImage_ImmutableSampler (EShaderStages stages, const String &name, EImageType type, EResourceState state,
 																  const ArraySize &arraySize, ArrayView<String> samplerNames) __Th___
 	{
+		stages &= FeatureSet_GetSupportedStages( GetFeatures() );
 		CHECK_THROW_MSG( stages != Default );
+
 		CHECK_THROW_MSG( (type & EImageType::_DimMask) != Default );
 		CHECK_THROW_MSG( (type & EImageType::_ValMask) != Default );
 		_ValidateShaderSample( INOUT state, stages );  // throw
@@ -3047,7 +3068,9 @@ namespace
 			case _EResState::InputDepthStencilAttachment_RW :	break;
 			default :											CHECK_THROW_MSG( false, "state must be one of InputColorAttachment or InputDepthStencilAttachment" );
 		}
+		stages &= FeatureSet_GetSupportedStages( GetFeatures() );
 		CHECK_THROW_MSG( stages != Default );
+
 		CHECK_THROW_MSG( (type & EImageType::_DimMask) != Default );
 		CHECK_THROW_MSG( (type & EImageType::_ValMask) != Default );
 
@@ -3179,6 +3202,7 @@ namespace
 */
 	void  DescriptorSetLayout::AddSampler (EShaderStages stages, const String &name, const ArraySize &arraySize) __Th___
 	{
+		stages &= FeatureSet_GetSupportedStages( GetFeatures() );
 		CHECK_THROW_MSG( stages != Default );
 
 		_CheckUniformName( name );
@@ -3204,6 +3228,7 @@ namespace
 
 	void  DescriptorSetLayout::AddImmutableSampler (EShaderStages stages, const String &name, ArrayView<String> samplerNames) __Th___
 	{
+		stages &= FeatureSet_GetSupportedStages( GetFeatures() );
 		CHECK_THROW_MSG( stages != Default );
 
 		const uint	array_size = uint(samplerNames.size());
@@ -3238,6 +3263,7 @@ namespace
 */
 	void  DescriptorSetLayout::AddRayTracingScene (EShaderStages stages, const String &name, const ArraySize &arraySize) __Th___
 	{
+		stages &= FeatureSet_GetSupportedStages( GetFeatures() );
 		CHECK_THROW_MSG( stages != Default );
 
 		_CheckUniformName( name );
@@ -3258,6 +3284,7 @@ namespace
 */
 	void  DescriptorSetLayout::AddRayTracingPartitionedScene (EShaderStages stages, const String &name, const ArraySize &arraySize) __Th___
 	{
+		stages &= FeatureSet_GetSupportedStages( GetFeatures() );
 		CHECK_THROW_MSG( stages != Default );
 
 		_CheckUniformName( name );

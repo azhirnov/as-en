@@ -1,4 +1,4 @@
-//67cb482d
+//0b2facb3
 #pragma once
 #include <vector>
 #include <string>
@@ -24,40 +24,40 @@ using array = std::vector<T>;
 
 using namespace std::string_literals;
 
-struct ubyte2;
-struct ubyte3;
-struct WinAPI_ActionBindings;
-struct ubyte4;
-struct VecSwizzle;
-struct Android_ActionBindings;
-struct OpenVR_BindingsMode;
-struct short4;
-struct ushort2;
-struct ushort3;
-struct Android_BindingsMode;
-struct ActionInfo;
-struct sbyte2;
-struct int4;
-struct bool4;
-struct int2;
-struct int3;
-struct bool2;
-struct bool3;
-struct GLFW_BindingsMode;
-struct sbyte3;
-struct short3;
-struct ushort4;
-struct sbyte4;
-struct short2;
+struct WinAPI_BindingsMode;
+struct GLFW_ActionBindings;
+struct OpenVR_ActionBindings;
+struct float2;
+struct float3;
 struct uint4;
 struct float4;
 struct uint2;
 struct uint3;
-struct float3;
-struct float2;
-struct WinAPI_BindingsMode;
-struct GLFW_ActionBindings;
-struct OpenVR_ActionBindings;
+struct GLFW_BindingsMode;
+struct sbyte4;
+struct sbyte3;
+struct short2;
+struct ushort4;
+struct short3;
+struct short4;
+struct OpenVR_BindingsMode;
+struct sbyte2;
+struct ushort3;
+struct ushort2;
+struct bool4;
+struct ActionInfo;
+struct int4;
+struct Android_BindingsMode;
+struct bool2;
+struct int3;
+struct int2;
+struct bool3;
+struct VecSwizzle;
+struct Android_ActionBindings;
+struct WinAPI_ActionBindings;
+struct ubyte4;
+struct ubyte3;
+struct ubyte2;
 
 enum class EGestureState : uint8
 {
@@ -88,7 +88,6 @@ uint8  operator | (EGestureType lhs, uint8 rhs);
 
 enum class EValueType : uint8
 {
-	Unknown,
 	Float,
 	Float2,
 	Float3,
@@ -514,7 +513,7 @@ enum class Android_Input : uint16
 	Browser,
 	LaunchMail,
 	Enter,
-	Delete,
+	Backspace,
 	Grave,
 	Minus,
 	Equal,
@@ -754,6 +753,10 @@ enum class Android_Input : uint16
 	TouchPos_mm,
 	TouchDelta,
 	TouchDelta_norm,
+	ArrowDown,
+	ArrowUp,
+	ArrowLeft,
+	ArrowRight,
 };
 uint16  operator | (Android_Input lhs, Android_Input rhs);
 uint16  operator | (uint16 lhs, Android_Input rhs);
@@ -1867,36 +1870,6 @@ struct OpenVR_ActionBindings
 };
 
 template <>
-struct RC<WinAPI_ActionBindings> : WinAPI_ActionBindings
-{
-	RC (const WinAPI_ActionBindings &);
-};
-
-template <>
-struct RC<Android_ActionBindings> : Android_ActionBindings
-{
-	RC (const Android_ActionBindings &);
-};
-
-template <>
-struct RC<OpenVR_BindingsMode> : OpenVR_BindingsMode
-{
-	RC (const OpenVR_BindingsMode &);
-};
-
-template <>
-struct RC<Android_BindingsMode> : Android_BindingsMode
-{
-	RC (const Android_BindingsMode &);
-};
-
-template <>
-struct RC<GLFW_BindingsMode> : GLFW_BindingsMode
-{
-	RC (const GLFW_BindingsMode &);
-};
-
-template <>
 struct RC<WinAPI_BindingsMode> : WinAPI_BindingsMode
 {
 	RC (const WinAPI_BindingsMode &);
@@ -1912,5 +1885,35 @@ template <>
 struct RC<OpenVR_ActionBindings> : OpenVR_ActionBindings
 {
 	RC (const OpenVR_ActionBindings &);
+};
+
+template <>
+struct RC<GLFW_BindingsMode> : GLFW_BindingsMode
+{
+	RC (const GLFW_BindingsMode &);
+};
+
+template <>
+struct RC<OpenVR_BindingsMode> : OpenVR_BindingsMode
+{
+	RC (const OpenVR_BindingsMode &);
+};
+
+template <>
+struct RC<Android_BindingsMode> : Android_BindingsMode
+{
+	RC (const Android_BindingsMode &);
+};
+
+template <>
+struct RC<Android_ActionBindings> : Android_ActionBindings
+{
+	RC (const Android_ActionBindings &);
+};
+
+template <>
+struct RC<WinAPI_ActionBindings> : WinAPI_ActionBindings
+{
+	RC (const WinAPI_ActionBindings &);
 };
 

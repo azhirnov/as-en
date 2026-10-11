@@ -165,6 +165,8 @@ namespace AE::ResEditor
 		if ( auto stat = _uploadStatus.load();  stat != EUploadStatus::InProgress )
 			return stat;
 
+		TRACY( ZoneScoped );
+
 		// invalidate cache to load '_frameTimes'
 		States	states = _states.load( EMemoryOrder::Acquire );
 		_Validate( states );
@@ -278,6 +280,8 @@ namespace AE::ResEditor
 */
 	AsyncCoro  VideoImage2::_DecodeFrameTask (RC<VideoImage2> self) __NE___
 	{
+		TRACY( ZoneScoped );
+
 		for (uint i = 0; i < _MaxCpuImages/2; ++i)
 		{
 			if ( self->_uploadStatus.load() != EUploadStatus::InProgress )

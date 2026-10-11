@@ -1,0 +1,173 @@
+// Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
+#ifdef __INTELLISENSE__
+#	include <pipeline_compiler.as>
+#	include <glsl.h>
+#endif
+//-----------------------------------------------------------------------------
+#ifdef SCRIPT
+
+	void ASmain ()
+	{
+		const string	pass = "pass-0";
+		{
+			RC<ShaderStructType>	st = ShaderStructType( pass+".io" );
+			st.Set( EStructLayout::InternalIO,
+					"flat uint	count;"
+					"float		viewDepth;" );
+		}{
+			RC<DescriptorSetLayout>	ds = DescriptorSetLayout( pass+".mtr.ds" );
+			ds.UniformBuffer( EShaderStages::Vertex,	"un_PerObject",	"UnifiedGeometryMaterialUB" );
+			ds.StorageBuffer( EShaderStages::Vertex,	"un_Geometry",	"GeometrySBlock",			EResourceState::ShaderStorage_Read );	// external
+			ds.StorageBuffer( EShaderStages::Vertex,	"un_Clusters",	"ClusterLightList_Array",	EResourceState::ShaderStorage_Read );	// external
+			ds.StorageBuffer( EShaderStages::Vertex ,	"un_Params",	"Params",					EResourceState::ShaderStorage_Read );	// external
+			ds.StorageBuffer( EShaderStages::Fragment,	"un_Counters",	"Counters",					EResourceState::ShaderStorage_Read );	// external
+		}{
+			RC<PipelineLayout>		pl = PipelineLayout( pass+".pl" );
+			pl.DSLayout( "pass",	 0, "pass.ds" );
+			pl.DSLayout( "material", 1, pass+".mtr.ds" );
+		}
+
+		RC<GraphicsPipeline>	ppln = GraphicsPipeline( pass+".tmpl" );
+		ppln.SetLayout( pass+".pl" );
+		ppln.SetFragmentOutputFromRenderTech( "rtech", pass );
+		ppln.SetShaderIO( EShader::Vertex, EShader::Fragment, pass+".io" );
+
+		{
+			RC<Shader>	vs = Shader();
+			vs.LoadSelf();
+			ppln.SetVertexShader( vs );
+		}{
+			RC<Shader>	fs = Shader();
+			fs.LoadSelf();
+			ppln.SetFragmentShader( fs );
+		}
+
+		// specialization
+		{
+			RC<GraphicsPipelineSpec>	spec = ppln.AddSpecialization( pass+".spec" );
+			spec.AddToRenderTech( "rtech", pass );
+
+			RenderState	rs;
+			{
+				RenderState_ColorBuffer		cb;
+				cb.SrcBlendFactor( EBlendFactor::One );
+				cb.DstBlendFactor( EBlendFactor::One );
+				cb.BlendOp( EBlendOp::Add );
+				rs.color.SetColorBuffer( 0, cb );
+			}{
+				RenderState_ColorBuffer		cb;
+				cb.SrcBlendFactor( EBlendFactor::Zero );
+				cb.DstBlendFactor( EBlendFactor::OneMinusSrcColor );
+				cb.BlendOp( EBlendOp::Add );
+				rs.color.SetColorBuffer( 1, cb );
+			}
+
+			rs.depth.test					= true;
+			rs.depth.write					= false;
+
+			rs.inputAssembly.topology		= EPrimitive::TriangleList;
+
+			rs.rasterization.frontFaceCCW	= true;
+			rs.rasterization.cullMode		= ECullMode::Back;
+
+			spec.SetRenderState( rs );
+		}
+	}
+
+#endif
+//-----------------------------------------------------------------------------
+#ifdef SH_VERT
+	#include "Transform.glsl"
+	#include "Frustum.glsl"
+	#include "LightClusters.glsl"
+
+	uint  ClusterBitCount (const uint clusterIdx)
+	{
+		const uint	word_n	= un_Clusters.elements[0].indices.length();
+		uint		n		= 0;
+
+		for (uint w = 0; w < word_n; ++w) {
+			n += BitCount( un_Clusters.elements[ clusterIdx ].indices[ w ] );
+		}
+		return n;
+	}
+
+	void Main ()
+	{
+		const uint		cluster_idx	= gl.InstanceIndex;
+		const bool		use_bits	= iListVersion >= 30;
+		const uint		count		= use_bits ?
+										ClusterBitCount( cluster_idx ) :
+										Min( un_Clusters.elements[ cluster_idx ].count, un_Clusters.elements[0].indices.length() );
+		const int3		cluster_cnt	= int3(iClusterCount);
+		const int3		cluster_id	= IndexToVec3( int(cluster_idx), cluster_cnt );
+		const int		z_slice		= Clamp( iZSlice, 0, cluster_cnt.z-1 );
+
+		if ( iZSlice != -1 and z_slice != cluster_id.z )
+		{
+			gl.Position = float4( float_nan );
+			return;
+		}
+
+		float2	uv0	= float2(cluster_id.xy + 0) / float2(cluster_cnt.xy);
+		float2	uv1	= float2(cluster_id.xy + 1) / float2(cluster_cnt.xy);
+		uv0.y = 1.0 - uv0.y;
+		uv1.y = 1.0 - uv1.y;
+
+		const float2	z_lerp		= Cluster_ZProjectionLerp_Log( float(cluster_id.z), float(cluster_cnt.z), un_Params.cameraClipPlanes );
+		float3			corners [8];
+		FrustumCornerPoints_Lerp( OUT corners, un_Params.cameraCornerPoints, uv0, uv1, z_lerp );
+
+		const float4	world_pos	= float4( corners[ gl.VertexIndex ] + un_Params.cameraPos - un_PerPass.camera.pos, 1.0 );
+		gl.Position		= WorldPosToClipSpace( world_pos );
+		Out.count		= count;
+		Out.viewDepth	= WorldPosToViewSpace( world_pos ).z;
+
+		if ( count == 0 )
+			gl.Position = float4( float_nan );
+	}
+
+#endif
+//-----------------------------------------------------------------------------
+#ifdef SH_FRAG
+	#include "Color.glsl"
+
+	float4  Shading ()
+	{
+		float	f		= float(In.count) / float(iMaxLightsPerCluster); //Max( float(un_Counters.assignedLights_maxLightsPerCluster[1]), 1.0 ));
+		float4	color	= Rainbow2( 1.0 - f );
+		color.a = Saturate( f + 0.2 );
+		return	color;
+	}
+
+	float  WeightingFn (const float4 color)
+	{
+		// from: https://github.com/nvpro-samples/vk_order_independent_transparency/blob/main/shaders/oitWeighted.frag.glsl#L58
+
+		const float	weight_scale = 0.7;
+
+		float	depth_z			= (In.viewDepth * 30.0 * (1.0 - weight_scale)) / 200.0;
+		float	dist_weight		= Clamp( 0.03 / (1.0e-5 + Pow(depth_z, 4.0)), 1.0e-2, 3.0e+3 );
+
+		// to prevent fragments with very tiny alpha/color from contributing too much or too little in unstable ways,
+		// while making normal visible fragments use the full depth based weight
+		float	alpha_weight	= Min( 1.0, Max(Max(color.r, color.g), Max(color.b, color.a)) * 40.0 + 0.01 );
+				alpha_weight	*= alpha_weight;
+
+		float	weight = alpha_weight * dist_weight;
+		return	weight;
+	}
+
+	void Main ()
+	{
+		float4	color = Shading();
+		color.rgb	*= color.a;
+
+		float	weight = WeightingFn( color );
+
+		out_Color		= color * weight;
+		out_Weights.r	= color.a;
+	}
+
+#endif
+//-----------------------------------------------------------------------------

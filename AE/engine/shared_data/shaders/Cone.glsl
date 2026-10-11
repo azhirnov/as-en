@@ -10,6 +10,7 @@
 	|___\ __ base radius
 	 \
 	 direction or axis
+	 base center
 */
 
 #ifdef __cplusplus

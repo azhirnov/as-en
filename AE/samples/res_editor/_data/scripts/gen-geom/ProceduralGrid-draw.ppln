@@ -21,7 +21,6 @@
 		}{
 			RC<Shader>	fs = Shader();
 			fs.LoadSelf();
-			fs.Define( define );
 			ppln.SetFragmentShader( fs );
 		}
 
@@ -47,7 +46,9 @@
 		{
 			RC<ShaderStructType>	st = ShaderStructType( "io" );
 			st.Set( EStructLayout::InternalIO,
-					"float2		uv;" );
+					"float2			uv;"
+					"flat float3	color;"
+				);
 		}{
 			RC<DescriptorSetLayout>	ds = DescriptorSetLayout( "mtr.ds" );
 			ds.UniformBuffer( EShaderStages::Vertex,	"un_PerObject", "UnifiedGeometryMaterialUB" );
@@ -57,8 +58,9 @@
 			pl.DSLayout( "material", 1, "mtr.ds" );
 		}
 
-		CreatePipeline( "WithInstancing",		"INSTANCING=1" );
-		CreatePipeline( "WithoutInstancing",	"INSTANCING=0" );
+		CreatePipeline( "WithInstancing",		"MODE=0" );
+		CreatePipeline( "WithoutInstancing",	"MODE=1" );
+		CreatePipeline( "Serpantine",			"MODE=2" );
 	}
 
 #endif
@@ -69,14 +71,22 @@
 
 	void Main ()
 	{
-	#if INSTANCING
+	#if MODE == 0
 		int2	ipos	= GenGridWithInstancingTriStrip();
-	#else
+		Out.color 		= float3(1.0, 0.4, 0.3);
+
+	#elif MODE == 1
 		int2	ipos	= GenGridTriStrip( iGridSize );
+		Out.color 		= float3(0.2, 1.0, 0.3);
+
+	#elif MODE == 2
+		int2	ipos	= GenGridSerpantineTriStrip( iGridSize );
+		Out.color 		= float3(0.0, 0.4, 1.0);
 	#endif
 
 		float3	vpos	= float3( ToSNorm(float2(ipos) / float2(iGridSize)), 0.f );
-	#if INSTANCING == 0
+
+	#if MODE == 1
 		if ( ipos.x > iGridSize )
 			vpos.x = float_qnan;
 	#endif
@@ -89,6 +99,7 @@
 //-----------------------------------------------------------------------------
 #ifdef SH_FRAG
 	#include "SDF.glsl"
+	#include "Color.glsl"
 	#include "CodeTemplates.glsl"
 
 	void Main ()
@@ -106,12 +117,13 @@
 				break;
 		}
 
-	#if INSTANCING
-		out_Color.rgb = float3(1.0, 0.4, 0.3) * wireframe;
-	#else
-		out_Color.rgb = float3(0.2, 1.0, 0.3) * wireframe;
-	#endif
+		out_Color.rgb = In.color;
 		out_Color.a = 1.0;
+
+		if ( iShowTris == 1 )
+			out_Color = Rainbow( float(gl.PrimitiveID) / float(iGridSize * iGridSize * 2) );
+
+		out_Color.rgb *= wireframe;
 	}
 
 #endif

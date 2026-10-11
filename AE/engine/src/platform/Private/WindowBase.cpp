@@ -10,7 +10,7 @@ namespace
 {
 /*
 =================================================
-	destructor
+	IsValidNewState
 =================================================
 */
 	ND_ static bool  IsValidNewState (IWindow::EState src, IWindow::EState dst) __NE___
@@ -23,15 +23,40 @@ namespace
 			case EState::Created :			return AnyEqual( dst, EState::Started,		EState::Destroyed	 );
 			case EState::Started :			return AnyEqual( dst, EState::InForeground,	EState::Stopped		 );
 			case EState::InForeground :		return AnyEqual( dst, EState::Focused,		EState::InBackground );
-			case EState::Focused :			return AnyEqual( dst, EState::InForeground						 );
-			case EState::InBackground :		return AnyEqual( dst, EState::InForeground,	EState::Stopped		 );
+			case EState::Focused :			return AnyEqual( dst, EState::InForeground,	EState::InBackground );
+			case EState::InBackground :		return AnyEqual( dst, EState::Focused, 		EState::InForeground,	EState::Stopped	);
 			case EState::Stopped :			return AnyEqual( dst, EState::Destroyed,	EState::InBackground );
-			case EState::Destroyed :		return false;
-
-			default :						return false;
+			case EState::Destroyed :
+			case EState::_Count :			break;
 		}
 		switch_end
+		return false;
 	}
+
+/*
+=================================================
+	GetNextState
+=================================================
+*/
+	ND_ static IWindow::EState  GetNextState (IWindow::EState src, int dir) __NE___
+	{
+		using EState = IWindow::EState;
+		switch_enum( src )
+		{
+			case EState::Unknown :			return dir > 0 ? EState::Created 		: EState::Destroyed;
+			case EState::Created :			return dir > 0 ? EState::Started 		: EState::Destroyed;
+			case EState::Started :			return dir > 0 ? EState::InForeground 	: EState::Stopped;
+			case EState::InForeground :		return dir > 0 ? EState::Focused 		: EState::InBackground;
+			case EState::Focused :			return dir > 0 ? EState::InBackground	: EState::InForeground;
+			case EState::InBackground :		return dir > 0 ? EState::Stopped		: EState::InForeground;
+			case EState::Stopped :			return dir > 0 ? EState::Destroyed		: EState::InBackground;
+			case EState::Destroyed :
+			case EState::_Count :			break;
+		}
+		switch_end
+		return EState::_Count;
+	}
+
 }
 //-----------------------------------------------------------------------------
 
@@ -71,16 +96,12 @@ namespace
 
 /*
 =================================================
-	_SetStateV2
+	_SetStateImpl
 =================================================
 */
-	void  WindowBase::_SetStateV2 (EState newState) __NE___
+	void  WindowBase::_SetStateImpl (EState newState) __NE___
 	{
-		if_unlikely( _wndState == newState )
-			return;
-
-		if_unlikely( not IsValidNewState( _wndState, newState ))
-			return;
+		ASSERT( IsValidNewState( _wndState, newState ));
 
 		_wndState = newState;
 
@@ -109,12 +130,69 @@ namespace
 				_listener->OnStateChanged( *this, _wndState );
 				break;
 
+			case EState::_Count :
 			case EState::Unknown :
 			default :
 				DBG_WARNING( "unknown state" );
 				break;
 		}
 		switch_end
+	}
+
+/*
+=================================================
+	_SetStateV2
+=================================================
+*/
+	void  WindowBase::_SetStateV2 (EState newState) __NE___
+	{
+		if_unlikely( _wndState == newState )
+			return;
+
+		if_unlikely( not IsValidNewState( _wndState, newState ))
+			return;
+
+		_SetStateImpl( newState );
+	}
+
+/*
+=================================================
+	_SetStateV3
+=================================================
+*/
+	void  WindowBase::_SetStateV3 (EState newState) __NE___
+	{
+		if_unlikely( _wndState == newState )
+			return;
+
+		// validate
+		{
+			ASSERT( newState > EState::Unknown and newState < EState::_Count );
+
+			if ( (_wndState == EState::InForeground and newState == EState::InBackground) or
+				 (_wndState == EState::InBackground and newState == EState::InForeground) )
+			{
+				// don't go through 'Focused' state
+				_wndState = EState::Focused;
+			}else
+			if ( _wndState > EState::Focused ){
+				ASSERT( newState >= EState::Focused );
+			}else
+			if ( _wndState < EState::Focused ){
+				ASSERT( newState <= EState::Focused );
+			}
+		}
+
+		const int	dir = Sign( int(newState) - int(_wndState) );
+
+		for (EState state = _wndState; state != newState;)
+		{
+			state = GetNextState( state, dir );
+			if ( state >= EState::_Count )
+				break;
+
+			_SetStateImpl( state );
+		}
 	}
 
 /*

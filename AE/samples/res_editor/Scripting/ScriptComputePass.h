@@ -93,10 +93,11 @@ namespace AE::ResEditor
 
 
 	private:
-		ND_ auto  _CompilePipeline ()																	C_Th___;
+		ND_ auto  _CompilePipeline (INOUT Iterations_t &)												C_Th___;
 			void  _CompilePipeline2 ()																	C_Th___;
 			void  _CompilePipeline3 (const String &cs, uint line, const String &pplnName,
 									 uint shaderOpts, EPipelineOpt pplnOpt)								C_Th___;
+			void  _UpdateDispatchCommands (Iterations_t &)												C_Th___;
 
 	// ScriptBasePass //
 		void  _OnAddArg (INOUT ScriptPassArgs::Argument &arg)											__Th_OV;

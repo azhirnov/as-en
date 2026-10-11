@@ -59,6 +59,7 @@ namespace {
 		const String	NearestClamp			{"NearestClamp"};
 		const String	NearestRepeat			{"NearestRepeat"};
 		const String	NearestMirrorRepeat		{"NearestMirrorRepeat"};
+
 		const String	LinearClamp				{"LinearClamp"};
 		const String	LinearRepeat			{"LinearRepeat"};
 		const String	LinearMirrorRepeat		{"LinearMirrorRepeat"};
@@ -66,12 +67,23 @@ namespace {
 		const String	LinearMipmapRepeat		{"LinearMipmapRepeat"};
 		const String	LinearMipmapMirrorRepeat{"LinearMipmapMirrorRepeat"};
 		const String	LinearMipmapMirrorClamp	{"LinearMipmapMirrorClamp"};
+
+		const String	Anisotropy2Repeat		{"Anisotropy2Repeat"};
+		const String	Anisotropy2MirrorRepeat	{"Anisotropy2MirrorRepeat"};
+		const String	Anisotropy2Clamp		{"Anisotropy2Clamp"};
+
+		const String	Anisotropy4Repeat		{"Anisotropy4Repeat"};
+		const String	Anisotropy4MirrorRepeat	{"Anisotropy4MirrorRepeat"};
+		const String	Anisotropy4Clamp		{"Anisotropy4Clamp"};
+
 		const String	Anisotropy8Repeat		{"Anisotropy8Repeat"};
 		const String	Anisotropy8MirrorRepeat	{"Anisotropy8MirrorRepeat"};
 		const String	Anisotropy8Clamp		{"Anisotropy8Clamp"};
+
 		const String	Anisotropy16Repeat		{"Anisotropy16Repeat"};
 		const String	Anisotropy16MirrorRepeat{"Anisotropy16MirrorRepeat"};
 		const String	Anisotropy16Clamp		{"Anisotropy16Clamp"};
+
 		const String	NearestClampSubsampled	{"NearestClampSubsampled"};
 		const String	MaxLinearClamp			{"MaxLinearClamp"};
 		const String	MinLinearClamp			{"MinLinearClamp"};
@@ -86,6 +98,7 @@ namespace {
 		_sampConsts{ new SamplerConsts{} },
 		_config{ RVRef(cfg) }
 	{
+		TRACY( ZoneScoped );
 		EXLOCK( _guard );
 
 		s_scriptExe = this;
@@ -315,8 +328,14 @@ namespace {
 
 			for (auto& script_pass : pg->GetPasses())
 			{
-				auto	pass = script_pass->ToPass();	// throw
-				CHECK_ERR( pass );
+				RC<IPass>	pass;
+				try {
+					pass = script_pass->ToPass();	// throw
+					CHECK_ERR( pass );
+				} catch(...){
+					AE_LOGW( "Failed to create pass '"s << script_pass->GetName() << "'" );
+					throw;
+				}
 
 				if ( auto cont = pass->GetController())
 					_tempData->renderer->SetController( RVRef(cont) );	// throw
@@ -348,12 +367,18 @@ namespace {
 			FileRStream		file {filePath};
 
 			if ( not file.IsOpen() )
-				RETURN_ERR( "Failed to open script file: '"s << ansi_path << "'" );
+			{
+				AE_LOGW( "Failed to open script file: '"s << ansi_path << "'" );
+				return false;
+			}
 
 			src.name = ToString( filePath.stem() );
 
 			if ( not file.Read( file.RemainingSize(), OUT src.script ))
-				RETURN_ERR( "Failed to read script file: '"s << ansi_path << "'" );
+			{
+				AE_LOGW( "Failed to read script file: '"s << ansi_path << "'" );
+				return false;
+			}
 		}
 
 		src.dbgLocation		= SourceLoc{ ansi_path.c_str(), 0 };
@@ -361,26 +386,41 @@ namespace {
 
 		ScriptModulePtr		module = _engine->CreateModule( {src}, {"SCRIPT"}, _config.scriptIncludeDirs );
 		if ( not module )
-			RETURN_ERR( "Failed to parse script file: '"s << ansi_path << "'" );
+		{
+			AE_LOGW( "Failed to parse script file: '"s << ansi_path << "'" );
+			return false;
+		}
 
 		if ( collection		or
 			 module->HasFunction< void (ScriptCollectionPtr) >( "ASmain" ))	// callable script can be used too
 		{
 			auto	fn = _engine->CreateScript< void (ScriptCollectionPtr) >( "ASmain", module );
 			if ( not fn )
-				RETURN_ERR( "Failed to create script context for file: '"s << ansi_path << "'" );
+			{
+				AE_LOGW( "Failed to create script context for file: '"s << ansi_path << "'" );
+				return false;
+			}
 
 			if ( not fn->Run( collection ))
-				RETURN_ERR( "Failed to run script '"s << ansi_path << "'" );
+			{
+				AE_LOGW( "Failed to run script '"s << ansi_path << "'" );
+				return false;
+			}
 		}
 		else
 		{
 			auto	fn = _engine->CreateScript< void () >( "ASmain", module );
 			if ( not fn )
-				RETURN_ERR( "Failed to create script context for file: '"s << ansi_path << "'" );
+			{
+				AE_LOGW( "Failed to create script context for file: '"s << ansi_path << "'" );
+				return false;
+			}
 
 			if ( not fn->Run() )
-				RETURN_ERR( "Failed to run script '"s << ansi_path << "'" );
+			{
+				AE_LOGW( "Failed to run script '"s << ansi_path << "'" );
+				return false;
+			}
 		}
 
 		_tempData->passGroupDepth--;
@@ -1457,11 +1497,11 @@ namespace {
 		{
 			EnumBinder<EColorSpace>	binder {se};
 			binder.Create();
-			binder.AddValue( "sRGB_nonlinear",			EColorSpace::sRGB_nonlinear );
-			binder.AddValue( "BT709_nonlinear",			EColorSpace::BT709_nonlinear );
-			binder.AddValue( "Extended_sRGB_linear",	EColorSpace::Extended_sRGB_linear );
-			binder.AddValue( "HDR10_ST2084",			EColorSpace::HDR10_ST2084 );
-			binder.AddValue( "BT2020_linear",			EColorSpace::BT2020_linear );
+			binder.AddValue< EColorSpace::sRGB_nonlinear >();
+			binder.AddValue< EColorSpace::BT709_nonlinear >();
+			binder.AddValue< EColorSpace::Extended_sRGB_linear >();
+			binder.AddValue< EColorSpace::HDR10_ST2084 >();
+			binder.AddValue< EColorSpace::BT2020_linear >();
 			StaticAssert( uint(EColorSpace::_Count) == 15 );
 			StaticAssert( uint(ESurfaceFormat::_Count) == 11 );
 
@@ -1773,17 +1813,28 @@ namespace {
 		se->AddConstProperty( _sampConsts->LinearMipmapRepeat,			"Sampler_" + _sampConsts->LinearMipmapRepeat );
 		se->AddConstProperty( _sampConsts->LinearMipmapMirrorRepeat,	"Sampler_" + _sampConsts->LinearMipmapMirrorRepeat );
 		se->AddConstProperty( _sampConsts->LinearMipmapMirrorClamp,		"Sampler_" + _sampConsts->LinearMipmapMirrorClamp );
+
+		se->AddConstProperty( _sampConsts->Anisotropy2Repeat,			"Sampler_" + _sampConsts->Anisotropy2Repeat );
+		se->AddConstProperty( _sampConsts->Anisotropy2MirrorRepeat,		"Sampler_" + _sampConsts->Anisotropy2MirrorRepeat );
+		se->AddConstProperty( _sampConsts->Anisotropy2Clamp,			"Sampler_" + _sampConsts->Anisotropy2Clamp );
+
+		se->AddConstProperty( _sampConsts->Anisotropy4Repeat,			"Sampler_" + _sampConsts->Anisotropy4Repeat );
+		se->AddConstProperty( _sampConsts->Anisotropy4MirrorRepeat,		"Sampler_" + _sampConsts->Anisotropy4MirrorRepeat );
+		se->AddConstProperty( _sampConsts->Anisotropy4Clamp,			"Sampler_" + _sampConsts->Anisotropy4Clamp );
+
 		se->AddConstProperty( _sampConsts->Anisotropy8Repeat,			"Sampler_" + _sampConsts->Anisotropy8Repeat );
 		se->AddConstProperty( _sampConsts->Anisotropy8MirrorRepeat,		"Sampler_" + _sampConsts->Anisotropy8MirrorRepeat );
 		se->AddConstProperty( _sampConsts->Anisotropy8Clamp,			"Sampler_" + _sampConsts->Anisotropy8Clamp );
+
 		se->AddConstProperty( _sampConsts->Anisotropy16Repeat,			"Sampler_" + _sampConsts->Anisotropy16Repeat );
 		se->AddConstProperty( _sampConsts->Anisotropy16MirrorRepeat,	"Sampler_" + _sampConsts->Anisotropy16MirrorRepeat );
 		se->AddConstProperty( _sampConsts->Anisotropy16Clamp,			"Sampler_" + _sampConsts->Anisotropy16Clamp );
+
 		se->AddConstProperty( _sampConsts->NearestClampSubsampled,		"Sampler_" + _sampConsts->NearestClampSubsampled );
 		se->AddConstProperty( _sampConsts->MaxLinearClamp,				"Sampler_" + _sampConsts->MaxLinearClamp );
 		se->AddConstProperty( _sampConsts->MinLinearClamp,				"Sampler_" + _sampConsts->MinLinearClamp );
 
-		StaticAssert( (sizeof(SamplerConsts) / sizeof(String)) == 19 );
+		StaticAssert( (sizeof(SamplerConsts) / sizeof(String)) == 25 );
 	}
 
 /*
@@ -2216,6 +2267,7 @@ namespace {
 */
 	void  ScriptExe::_RunWithPipelineCompiler (Function<void ()> fn, const Bool compileMSL, const Bool useSlang) __Th___
 	{
+		TRACY( ZoneScoped );
 		try
 		{
 			// init pipeline compiler
@@ -2322,6 +2374,7 @@ namespace {
 */
 	bool  ScriptExe::_CompilePipeline (const Path &pplnPath)
 	{
+		TRACY( ZoneScoped );
 		CHECK_ERR( _engine2 );
 
 		auto	obj_storage = ObjectStorage::Instance();
@@ -2338,6 +2391,7 @@ namespace {
 */
 	bool  ScriptExe::_CompilePipelineFromSource (const Path &pplnPath, StringView source)
 	{
+		TRACY( ZoneScoped );
 		CHECK_ERR( _engine2 );
 
 		auto	obj_storage = ObjectStorage::Instance();
@@ -2354,6 +2408,8 @@ namespace {
 */
 	RC<RStream>  ScriptExe::_ConvertAndLoad2 ()
 	{
+		TRACY( ZoneScoped );
+
 		auto	obj_storage = ObjectStorage::Instance();
 		CHECK_THROW( obj_storage != null );
 
@@ -2434,6 +2490,44 @@ namespace {
 
 		if ( fs.samplerAnisotropy == FeatureSet::EFeature::RequireTrue )
 		{
+			if ( fs.maxSamplerAnisotropy >= 2.0f )
+			{
+				{
+					ScriptSamplerPtr	samp = ScriptSampler::Create( _sampConsts->Anisotropy2Repeat );
+					samp->SetFilter( EFilter::Linear, EFilter::Linear, EMipmapFilter::Linear );
+					samp->SetAddressMode( EAddressMode::Repeat, EAddressMode::Repeat, EAddressMode::Repeat );
+					samp->SetAnisotropy( 2.0f );
+				}{
+					ScriptSamplerPtr	samp = ScriptSampler::Create( _sampConsts->Anisotropy2MirrorRepeat );
+					samp->SetFilter( EFilter::Linear, EFilter::Linear, EMipmapFilter::Linear );
+					samp->SetAddressMode( EAddressMode::MirrorRepeat, EAddressMode::MirrorRepeat, EAddressMode::MirrorRepeat );
+					samp->SetAnisotropy( 2.0f );
+				}{
+					ScriptSamplerPtr	samp = ScriptSampler::Create( _sampConsts->Anisotropy2Clamp );
+					samp->SetFilter( EFilter::Linear, EFilter::Linear, EMipmapFilter::Linear );
+					samp->SetAddressMode( EAddressMode::ClampToEdge, EAddressMode::ClampToEdge, EAddressMode::ClampToEdge );
+					samp->SetAnisotropy( 2.0f );
+				}
+			}
+			if ( fs.maxSamplerAnisotropy >= 4.0f )
+			{
+				{
+					ScriptSamplerPtr	samp = ScriptSampler::Create( _sampConsts->Anisotropy4Repeat );
+					samp->SetFilter( EFilter::Linear, EFilter::Linear, EMipmapFilter::Linear );
+					samp->SetAddressMode( EAddressMode::Repeat, EAddressMode::Repeat, EAddressMode::Repeat );
+					samp->SetAnisotropy( 4.0f );
+				}{
+					ScriptSamplerPtr	samp = ScriptSampler::Create( _sampConsts->Anisotropy4MirrorRepeat );
+					samp->SetFilter( EFilter::Linear, EFilter::Linear, EMipmapFilter::Linear );
+					samp->SetAddressMode( EAddressMode::MirrorRepeat, EAddressMode::MirrorRepeat, EAddressMode::MirrorRepeat );
+					samp->SetAnisotropy( 4.0f );
+				}{
+					ScriptSamplerPtr	samp = ScriptSampler::Create( _sampConsts->Anisotropy4Clamp );
+					samp->SetFilter( EFilter::Linear, EFilter::Linear, EMipmapFilter::Linear );
+					samp->SetAddressMode( EAddressMode::ClampToEdge, EAddressMode::ClampToEdge, EAddressMode::ClampToEdge );
+					samp->SetAnisotropy( 4.0f );
+				}
+			}
 			if ( fs.maxSamplerAnisotropy >= 8.0f )
 			{
 				{
@@ -2498,7 +2592,7 @@ namespace {
 			}
 		}
 
-		StaticAssert( (sizeof(SamplerConsts) / sizeof(String)) == 19 );
+		StaticAssert( (sizeof(SamplerConsts) / sizeof(String)) == 25 );
 		CHECK_THROW( obj_storage->Build() );
 	}
 
@@ -2523,7 +2617,7 @@ namespace {
 					float2		clipPlanes;
 					float2		fov;
 					float		zoom;
-					float4		frustum [6];	// world space
+					float4		wsFrustum [6];	// world space
 				)#");
 		}
 

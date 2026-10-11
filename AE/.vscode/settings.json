@@ -22,6 +22,10 @@
 	},
 	"editor.inlayHints.enabled": "off",
 	"editor.fontSize": 12,
+	
+    "editor.tabSize": 4,
+    "editor.insertSpaces": false,
+    "editor.detectIndentation": false,	// When opening a file, `editor.tabSize` and `editor.insertSpaces` will be detected based on the file contents.
     
     "clangd.arguments": [
         "--header-insertion=never"
@@ -57,4 +61,12 @@
             }
         }
     }
+
+    // for CodeLLDB, disable when used MSVC
+    /*"cmake.debugConfig": {
+        "type": "lldb",
+        "request": "launch",
+        "program": "${command:cmake.launchTargetPath}",
+        "cwd": "${workspaceFolder}"
+    }*/
 }

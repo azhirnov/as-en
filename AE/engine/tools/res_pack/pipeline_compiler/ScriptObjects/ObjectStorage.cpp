@@ -1103,24 +1103,24 @@ namespace {
 		binder.AddValue( "None",				EShaderOpt::Unknown );
 		// debug
 		binder.Comment( "Add debug information. Used in RenderDoc shader debugger." );
-		binder.AddValue( "DebugInfo",			EShaderOpt::DebugInfo );
+		binder.AddValue< EShaderOpt::DebugInfo >();
 		binder.Comment( "Insert shader trace recording. Shader will be very slow." );
-		binder.AddValue( "Trace",				EShaderOpt::Trace );
+		binder.AddValue< EShaderOpt::Trace >();
 		binder.Comment( "Insert shader function profiling. Shader will be very slow." );
-		binder.AddValue( "FnProfiling",			EShaderOpt::FnProfiling );
+		binder.AddValue< EShaderOpt::FnProfiling >();
 		binder.Comment( "Insert whole shader time measurement. Shader will be a bit slow." );
-		binder.AddValue( "TimeHeatMap",			EShaderOpt::TimeHeatMap );
+		binder.AddValue< EShaderOpt::TimeHeatMap >();
 		binder.Comment( "Enable asserts. Shader will be a bit slower." );
-		binder.AddValue( "Asserts",				EShaderOpt::Asserts );
+		binder.AddValue< EShaderOpt::Asserts >();
 		// optimize
 		binder.Comment( "Enable optimizations. Take a lot of CPU time at shader compilation." );
-		binder.AddValue( "Optimize",			EShaderOpt::Optimize );
+		binder.AddValue< EShaderOpt::Optimize >();
 		binder.Comment( "Enable bytecode size optimizations. Take a lot of CPU time at shader compilation." );
-		binder.AddValue( "OptimizeSize",		EShaderOpt::OptimizeSize );
+		binder.AddValue< EShaderOpt::OptimizeSize >();
 		binder.Comment( "Enable strong optimizations. Take a lot of CPU time at shader compilation." );
-		binder.AddValue( "StrongOptimization",	EShaderOpt::StrongOptimization );
+		binder.AddValue< EShaderOpt::StrongOptimization >();
 		// options
-		binder.AddValue( "WarnAsError",			EShaderOpt::WarnAsError );
+		binder.AddValue< EShaderOpt::WarnAsError >();
 		StaticAssert( uint(EShaderOpt::All) == 0x1FF );
 	}
 
@@ -1128,16 +1128,16 @@ namespace {
 	{
 		EnumBinder<EAccessType>	binder{ se };
 		binder.Create();
-		binder.AddValue( "Coherent",			EAccessType::Coherent );
-		binder.AddValue( "Volatile",			EAccessType::Volatile );
-		binder.AddValue( "Restrict",			EAccessType::Restrict );
+		binder.AddValue< EAccessType::Coherent >();
+		binder.AddValue< EAccessType::Volatile >();
+		binder.AddValue< EAccessType::Restrict >();
 		// memory model
 		binder.Comment( "Require 'vulkanMemoryModel' feature." );
-		binder.AddValue( "DeviceCoherent",		EAccessType::DeviceCoherent );
-		binder.AddValue( "QueueFamilyCoherent",	EAccessType::QueueFamilyCoherent );
-		binder.AddValue( "WorkgroupCoherent",	EAccessType::WorkgroupCoherent );
-		binder.AddValue( "SubgroupCoherent",	EAccessType::SubgroupCoherent );
-		binder.AddValue( "NonPrivate",			EAccessType::NonPrivate );
+		binder.AddValue< EAccessType::DeviceCoherent >();
+		binder.AddValue< EAccessType::QueueFamilyCoherent >();
+		binder.AddValue< EAccessType::WorkgroupCoherent >();
+		binder.AddValue< EAccessType::SubgroupCoherent >();
+		binder.AddValue< EAccessType::NonPrivate >();
 		StaticAssert( uint(EAccessType::_Count) == 10 );
 	}
 
@@ -1156,21 +1156,21 @@ namespace {
 		binder.AddValue( "3D",					EImageType::Dim3D );
 		binder.AddValue( "Buffer",				EImageType::Buffer );
 
-		binder.AddValue( "Float",				EImageType::Float );
-		binder.AddValue( "Half",				EImageType::Half );
-		binder.AddValue( "SNorm",				EImageType::SNorm );
-		binder.AddValue( "UNorm",				EImageType::UNorm );
-		binder.AddValue( "Int",					EImageType::Int );
-		binder.AddValue( "UInt",				EImageType::UInt );
-		binder.AddValue( "Depth",				EImageType::Depth );
-		binder.AddValue( "Stencil",				EImageType::Stencil );
-		binder.AddValue( "DepthStencil",		EImageType::DepthStencil );
-		binder.AddValue( "UFloat",				EImageType::UFloat );
+		binder.AddValue< EImageType::Float >();
+		binder.AddValue< EImageType::Half >();
+		binder.AddValue< EImageType::SNorm >();
+		binder.AddValue< EImageType::UNorm >();
+		binder.AddValue< EImageType::Int >();
+		binder.AddValue< EImageType::UInt >();
+		binder.AddValue< EImageType::Depth >();
+		binder.AddValue< EImageType::Stencil >();
+		binder.AddValue< EImageType::DepthStencil >();
+		binder.AddValue< EImageType::UFloat >();
 		binder.AddValue( "Long",				EImageType::SLong );
-		binder.AddValue( "ULong",				EImageType::ULong );
+		binder.AddValue< EImageType::ULong >();
 
-		binder.AddValue( "Shadow",				EImageType::Shadow );
-		binder.AddValue( "sRGB",				EImageType::sRGB );
+		binder.AddValue< EImageType::Shadow >();
+		binder.AddValue< EImageType::sRGB >();
 
 		// float
 		binder.AddValue( "Float_1D",			EImageType::Dim1D			| EImageType::Float );
@@ -1281,21 +1281,21 @@ namespace {
 		EnumBinder<EStructLayout>	binder{ se };
 		binder.Create();
 		binder.Comment( "Apply GLSL std140 rules but structure must be compatible with Metal and HLSL cbuffer, otherwise will throw exception." );
-		binder.AddValue( "Compatible_Std140",	EStructLayout::Compatible_Std140 );
+		binder.AddValue< EStructLayout::Compatible_Std140 >();
 		binder.Comment( "Apply GLSL std430 rules but structure must be compatible with Metal and HLSL StructBuffer, otherwise will throw exception." );
-		binder.AddValue( "Compatible_Std430",	EStructLayout::Compatible_Std430 );
+		binder.AddValue< EStructLayout::Compatible_Std430 >();
 		binder.Comment( "Apply MSL rules." );
-		binder.AddValue( "Metal",				EStructLayout::Metal );
+		binder.AddValue< EStructLayout::Metal >();
 		binder.Comment( "Apply GLSL std140 rules." );
-		binder.AddValue( "Std140",				EStructLayout::Std140 );
+		binder.AddValue< EStructLayout::Std140 >();
 		binder.Comment( "Apply GLSL std430 rules." );
-		binder.AddValue( "Std430",				EStructLayout::Std430 );
+		binder.AddValue< EStructLayout::Std430 >();
 		binder.Comment( "Platform depended layout." );
-		binder.AddValue( "InternalIO",			EStructLayout::InternalIO );
+		binder.AddValue< EStructLayout::InternalIO >();
 		binder.Comment( "Apply HLSL cbuffer rules." );
-		binder.AddValue( "HLSL_Const",			EStructLayout::HLSL_Const );
+		binder.AddValue< EStructLayout::HLSL_Const >();
 		binder.Comment( "Apply HLSL structured buffer rules." );
-		binder.AddValue( "HLSL_Struct",			EStructLayout::HLSL_Struct );
+		binder.AddValue< EStructLayout::HLSL_Struct >();
 		StaticAssert( uint(EStructLayout::_Count) == 8 );
 	}
 
@@ -1312,7 +1312,7 @@ namespace {
 		binder.Create();
 		binder.AddValue( "None",	EShaderPreprocessor::None );
 		binder.Comment( "Use <aestyle.glsl.h> for auto-complete in IDE." );
-		binder.AddValue( "AEStyle",	EShaderPreprocessor::AEStyle );
+		binder.AddValue< EShaderPreprocessor::AEStyle >();
 		StaticAssert( uint(EShaderPreprocessor::_Count) == 2 );
 	}
 

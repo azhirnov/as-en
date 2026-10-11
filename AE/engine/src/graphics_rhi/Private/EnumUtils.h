@@ -256,10 +256,12 @@ namespace AE::Graphics
 		ND_ bool	IsYcbcr ()						C_NE___	{ return AllBits( valueType, EType::Ycbcr ); }
 		ND_ bool	IsSRGB ()						C_NE___	{ return AllBits( valueType, EType::sRGB ); }
 		ND_ bool	IsMultiPlanar ()				C_NE___	{ return AnyBits( aspectMask, EImageAspect::_PlaneMask ); }
-		ND_ bool	IsNormalized ()					C_NE___;
-		ND_ bool	IsInteger ()					C_NE___;
-		ND_ bool	IsFloat ()						C_NE___;
-		ND_ bool	IsFloatOrNormalized ()			C_NE___;
+		ND_ bool	IsNormalized ()					C_NE___	{ return AnyBits( valueType, EType::UNorm | EType::SNorm ); }
+		ND_ bool	IsInteger ()					C_NE___	{ return AnyBits( valueType, EType::SInt | EType::UInt ); }
+		ND_ bool	IsSignedInteger ()				C_NE___	{ return AnyBits( valueType, EType::SInt ); }
+		ND_ bool	IsUnsignedInteger ()			C_NE___	{ return AnyBits( valueType, EType::UInt ); }
+		ND_ bool	IsFloat ()						C_NE___	{ return AnyBits( valueType, EType::SFloat | EType::UFloat ); }
+		ND_ bool	IsFloatOrNormalized ()			C_NE___	{ return AnyBits( valueType, EType::SFloat | EType::UFloat | EType::UNorm | EType::SNorm ); }
 
 		// only for color or depth
 		ND_ uint	BitsPerPixel ()					C_NE___	{ return uint(bitsPerBlock) / Area( TexBlockDim() ); }
@@ -274,11 +276,6 @@ namespace AE::Graphics
 
 
 	ND_ PixelFormatInfo const&  EPixelFormat_GetInfo (EPixelFormat value) __NE___;
-
-	inline bool  PixelFormatInfo::IsNormalized ()			C_NE___	{ return AnyBits( valueType, EType::UNorm | EType::SNorm ); }
-	inline bool  PixelFormatInfo::IsInteger ()				C_NE___	{ return AnyBits( valueType, EType::SInt | EType::UInt ); }
-	inline bool  PixelFormatInfo::IsFloat ()				C_NE___	{ return AnyBits( valueType, EType::SFloat | EType::UFloat ); }
-	inline bool  PixelFormatInfo::IsFloatOrNormalized ()	C_NE___	{ return AnyBits( valueType, EType::SFloat | EType::UFloat | EType::UNorm | EType::SNorm ); }
 
 /*
 =================================================

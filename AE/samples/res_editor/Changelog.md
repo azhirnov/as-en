@@ -1,4 +1,17 @@
-## 03.2026
+## v4.26
+- ability to load compressed image as blocks, when HW decoding is not supported
+- Script: add ZeroContentOfArgOut flag
+- Sample: LightList, LightListCompact (perf test)
+- Sample: TiledDeferred, ClusterForward
+- Sample: CachedSDF-2D, CashedSDF
+- Sample: 3CamerasToPanini
+- Sample: ETC/ASTC/BC format decoding
+- Sample: Weighted OIT, OpacityDepth OIT
+- Sample: basic virtual texturing, anisotropy footprint
+- Sample: ID deduplication
+
+
+## v3.26
 - fix: depth test + shader sample now has correct layout
 - add SceneRayQueryPass
 - add BufferView

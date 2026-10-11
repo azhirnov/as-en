@@ -5,8 +5,6 @@
 
 namespace AE::Graphics
 {
-	using namespace AE::AssetPacker;
-
 namespace {
 #	include "res_pack/asset_packer/Packer/ImagePacker.cpp.h"
 }
@@ -84,7 +82,7 @@ namespace {
 	{
 		using namespace AE::Threading;
 
-		ImagePacker::FileHeader		file_hdr;
+		AssetPacker::ImagePacker::FileHeader	file_hdr;
 		CHECK_ERR( ImagePacker_Deserialize( des, OUT file_hdr ));
 		CHECK_ERR( file_hdr.fileName.IsDefined() );
 
@@ -151,7 +149,7 @@ namespace {
 	{
 		CHECK_ERR( file );
 
-		ImagePacker::FileHeader		file_hdr;
+		AssetPacker::ImagePacker::FileHeader	file_hdr;
 		{
 			Threading::SyncRStreamOnAsyncDS		stream {file};
 			CHECK_ERR( ImagePacker_ReadHeader( stream, OUT file_hdr ));

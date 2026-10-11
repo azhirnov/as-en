@@ -131,6 +131,8 @@ namespace
 		if ( not (fileFormat == Default or fileFormat == EImageFormat::DDS) )
 			return false;
 
+		TRACY( ZoneScoped );
+
 		switch ( image.GetType() )
 		{
 			case EImage_1D :

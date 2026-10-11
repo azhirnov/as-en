@@ -39,7 +39,8 @@ namespace AE::ResEditor
 		for (; reader.ReadHeader( OUT hdr );)
 		{
 			StaticAssert( (IA.actionCount - BaseIA.actionCount) == 2 );
-			StaticAssert( IA.GLFW.actionCount == 4 );
+			StaticAssert( IA.GLFW.actionCount == 2 );
+			StaticAssert( IA.Mobile.actionCount == 2 );
 
 			switch ( uint{hdr.name} )
 			{
@@ -49,10 +50,10 @@ namespace AE::ResEditor
 				case IA.RmCamera_Reset :
 					reset = true;									break;
 
-				case IA.GLFW.RmCamera_Rotate :
+				case IA.Mobile.RmCamera_Rotate :
 					rot_quat = reader.DataCopy<Quat>( hdr.offset );	break;
 
-				case IA.GLFW.RmCamera_Gravity :
+				case IA.Mobile.RmCamera_Gravity :
 					gravity = reader.Data<float>( hdr.offset );		break;
 			}
 		}

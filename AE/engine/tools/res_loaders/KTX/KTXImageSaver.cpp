@@ -63,6 +63,7 @@ namespace
 		if ( not (fileFormat == Default or fileFormat == EImageFormat::KTX) )
 			return false;
 
+		TRACY( ZoneScoped );
 		Unused( &CreateKtxRStream, &VkFormatToEPixelFormat, &GLFormatToEPixelFormat );
 
 

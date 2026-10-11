@@ -1,5 +1,5 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
-
+// LLM generated
 
 ND_ float4  DecodeETC2Impl (uint2 block, int2 localTexel, bool has1BitAlpha)
 {
@@ -126,8 +126,8 @@ ND_ float4  DecodeETC2Impl (uint2 block, int2 localTexel, bool has1BitAlpha)
 	{
 		int RO = int((s0 >> 1u) & 63u);
 		int GO = int(((s0 & 1u) << 6u) | ((s1 >> 1u) & 63u));
-		int BO = int(((s1 & 1u) << 5u) | (((s2 >> 5u) & 3u) << 3u) | (s2 & 7u));
-		int RH = int((((s3 >> 2u) & 31u) << 1u) | (s3 & 1u));
+		int BO = int(((s1 & 1u) << 5u) | (s2 & 0x18u) | ((s2 & 3u) << 1u) | (s3 >> 7u));
+		int RH = int((((s3 >> 2u) & 31u) << 1u) | (s3 & 1u)); // already correct — do not use >> 3
 		int GH = int((s4 >> 1u) & 127u);
 		int BH = int(((s4 & 1u) << 5u) | (s5 >> 3u));
 		int RV = int(((s5 & 7u) << 3u) | (s6 >> 5u));
@@ -168,12 +168,12 @@ ND_ float4  DecodeETC2Impl (uint2 block, int2 localTexel, bool has1BitAlpha)
 	}
 }
 
-ND_ float4  DecodeETC2 (uint2 block, int2 localTexel)
+ND_ float4  DecodeETC2_v1 (uint2 block, int2 localTexel)
 {
 	return DecodeETC2Impl( block, localTexel, false );
 }
 
-ND_ float4  DecodeETC2A1 (uint2 block, int2 localTexel)
+ND_ float4  DecodeETC2A1_v1 (uint2 block, int2 localTexel)
 {
 	return DecodeETC2Impl( block, localTexel, true );
 }

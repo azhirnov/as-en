@@ -63,6 +63,7 @@ android {
 						   'lib/**/libPerfBase.so',			'lib/**/libPerfThreading.so',		'lib/**/libPerfGraphics.so',
 						   'lib/**/libNetworkStressTest.so' ]
 			pickFirsts += ['lib/**/libVkLayer_khronos_validation.so']
+        //	keepDebugSymbols += ['**/*.so']	// only for debugging
 		}
 		resources  {
 			excludes += '**/*.kotlin_*'
@@ -71,6 +72,5 @@ android {
 }
 
 dependencies {
-	implementation project(path: ':engine_java')
-	implementation 'androidx.appcompat:appcompat:1.6.1'
+	implementation project(path: ':engine_latest')
 }

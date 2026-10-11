@@ -1,6 +1,7 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
 #include "res_pack/pipeline_compiler/Compiler/SpirvCompiler.h"
+#include "graphics_rhi/Private/EnumUtils.h"
 
 // glslang includes
 #ifdef AE_COMPILER_MSVC
@@ -17,6 +18,7 @@
 #	pragma GCC diagnostic push
 #	pragma GCC diagnostic ignored "-Wundef"
 #	pragma GCC diagnostic ignored "-Wdouble-promotion"
+#	pragma GCC diagnostic ignored "-Wcast-qual"
 #endif
 
 #include "glslang/build_info.h"
@@ -57,8 +59,12 @@
 #	pragma GCC diagnostic pop
 #endif
 
-#include "res_pack/pipeline_compiler/ScriptObjects/ObjectStorage.h"
-
+#ifndef AE_WITH_OBJECT_STORAGE
+#	define AE_WITH_OBJECT_STORAGE	1
+#endif
+#if AE_WITH_OBJECT_STORAGE
+#	include "res_pack/pipeline_compiler/ScriptObjects/ObjectStorage.h"
+#endif
 
 #define PRIVATE_COMP_RETURN_ERR( _text_, _ret_ )				\
 		{if( not _quietWarnings ) {								\
@@ -384,6 +390,7 @@ namespace AE::PipelineCompiler
 */
 	bool  SpirvCompiler::BuildReflection (const Input &in, OUT ShaderReflection &outReflection, OUT String &log)
 	{
+		TRACY( ZoneScoped );
 		CHECK_ERR( in.shaderType != Default );
 
 		log.clear();
@@ -412,6 +419,7 @@ namespace AE::PipelineCompiler
 */
 	bool  SpirvCompiler::Compile (const Input &in, OUT Output &out)
 	{
+		TRACY( ZoneScoped );
 		CHECK_ERR( in.shaderType != Default );
 
 		_currentStage	= EShaderStages_FromShader( in.shaderType );
@@ -1135,7 +1143,9 @@ namespace AE::PipelineCompiler
 		ds.bindingIndex	= dsIndex;
 		ds.name			= DescriptorSetName( ds_name );
 
+	  #if AE_WITH_OBJECT_STORAGE
 		ObjectStorage::Instance()->AddName<DescriptorSetName>( ds_name );
+	  #endif
 
 		return ds;
 	}
@@ -1399,28 +1409,36 @@ namespace AE::PipelineCompiler
 	ND_ static UniformName  ExtractUniformID (TIntermNode* node)
 	{
 		String	name = ExtractNodeName( node );
+		#if AE_WITH_OBJECT_STORAGE
 		ObjectStorage::Instance()->AddName<UniformName>( name );
+		#endif
 		return UniformName{ name };
 	}
 
 	ND_ static ShaderIOName  ExtractShaderIOName (TIntermNode* node)
 	{
 		String	name = ExtractNodeName( node );
+		#if AE_WITH_OBJECT_STORAGE
 		ObjectStorage::Instance()->AddName<ShaderIOName>( name );
+		#endif
 		return ShaderIOName{ name };
 	}
 
 	ND_ static SpecializationName  ExtractSpecializationID (TIntermNode* node)
 	{
 		String	name = ExtractNodeName( node );
+		#if AE_WITH_OBJECT_STORAGE
 		ObjectStorage::Instance()->AddName<SpecializationName>( name );
+		#endif
 		return SpecializationName{ name };
 	}
 
 	ND_ static PushConstantName  ExtractPushConstant (TIntermNode* node)
 	{
 		String	name = ExtractNodeName( node );
+		#if AE_WITH_OBJECT_STORAGE
 		ObjectStorage::Instance()->AddName<PushConstantName>( name );
+		#endif
 		return PushConstantName{ name };
 	}
 

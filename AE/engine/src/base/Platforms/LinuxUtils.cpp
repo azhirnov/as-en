@@ -47,6 +47,7 @@ namespace AE::Base
 	void  LinuxUtils::SetCurrentThreadName (NtStringView name) __NE___
 	{
 		StaticLogger::SetCurrentThreadName( StringView{name} );
+		TRACY( tracy::SetThreadName( name.c_str() ));
 
 		ASSERT( name.length() <= 16 );
 		int	res = ::prctl( PR_SET_NAME, (unsigned long) name.c_str(), 0, 0, 0 );

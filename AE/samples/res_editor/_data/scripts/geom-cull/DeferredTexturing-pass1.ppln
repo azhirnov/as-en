@@ -130,17 +130,17 @@
 
 			switch ( iDUVPack )
 			{
-				case 0 :	// 8bit
+				case 0 :	// 2x 8bit
 					out_Packed.z = PackUShort( uint2( Saturate( out_RefDUV.rg / max_duv ) * 0xFF ));
 					out_Packed.w = PackUShort( uint2( Saturate( out_RefDUV.ba / max_duv ) * 0xFF ));
 					break;
 
-				case 1 :	// 12bit
+				case 1 :	// 2x 12bit
 					out_Packed.z = PackUShort( uint2( Saturate( out_RefDUV.rg / max_duv ) * 0xFFF ));
 					out_Packed.w = PackUShort( uint2( Saturate( out_RefDUV.ba / max_duv ) * 0xFFF ));
 					break;
 
-				case 2 :	// 16bit
+				case 2 :	// 4x 16bit
 					out_Packed.z = packHalf2x16( out_RefDUV.rg );
 					out_Packed.w = packHalf2x16( out_RefDUV.ba );
 					break;

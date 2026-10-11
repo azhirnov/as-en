@@ -1,12 +1,6 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
-#include "pch/Base.h"
-
-using namespace AE;
-using namespace AE::Base;
-
-
-extern bool  ConvertAEImage (RDataSource &src, WDataSource &dst);
+#include "Common.h"
 
 
 int main (const int argc, char const* argv[])
@@ -14,12 +8,18 @@ int main (const int argc, char const* argv[])
 	Unused( argc, argv );
 	StaticLogger::LoggerScope log{};
 
+	#if 0
 	{
 		FileRDataSource		src {Path{R"()"}};
 		FileWDataSource		dst {Path{R"()"}};
 
 		CHECK_FATAL( ConvertAEImage( src, dst ));
 	}
+	#endif
+
+	#if 0
+	{
+	#endif
 
 	return 0;
 }

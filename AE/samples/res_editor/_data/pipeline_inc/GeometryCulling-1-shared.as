@@ -31,17 +31,17 @@
 
 		RC<GraphicsPipeline>	ppln = GraphicsPipeline( name+".t" );
 
-		if ( pass == "pass-0" and HasDescriptorSetLayout( "subpass-0.ds" ))
+		if ( pass == "pass-0" and HasDescriptorSetLayout( "pass-0.ds" ))
 		{
 			RC<PipelineLayout>	pl = PipelineLayout( "pl-0" );
-			pl.DSLayout( "pass",	 0, "subpass-0.ds" );
+			pl.DSLayout( "pass",	 0, "pass-0.ds" );
 			pl.DSLayout( "material", 1, "mtr.ds" );
 			ppln.SetLayout( "pl-0" );
 		}else
-		if ( pass == "pass-1" and HasDescriptorSetLayout( "subpass-1.ds" ))
+		if ( pass == "pass-1" and HasDescriptorSetLayout( "pass-1.ds" ))
 		{
 			RC<PipelineLayout>	pl = PipelineLayout( "pl-1" );
-			pl.DSLayout( "pass",	 0, "subpass-1.ds" );
+			pl.DSLayout( "pass",	 0, "pass-1.ds" );
 			pl.DSLayout( "material", 1, "mtr.ds" );
 			ppln.SetLayout( "pl-1" );
 		}else

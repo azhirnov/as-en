@@ -135,12 +135,14 @@ main() {
   run_utility 'Tests.GraphicsRHI.PackRes'
   if run_test 'Tests.GraphicsRHI'; then
     cd "/sdcard/Code/AE-Data/tests/graphics_rhi/vulkan"
+	ehco "ls AE-Data/tests/graphics_rhi/vulkan:"
     ls
   fi
 	  
   run_test 'Tests.Scripting'
   run_test 'Tests.Networking'
   run_test 'Tests.CoopMat'
+  run_test 'Tests.BlockCompression'
 }
 
 ask_build_config

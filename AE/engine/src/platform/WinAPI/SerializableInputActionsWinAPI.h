@@ -21,7 +21,7 @@ namespace AE::App
 	public:
 		// from https://learn.microsoft.com/en-us/windows/win32/inputdev/about-keyboard-input#scan-codes
 		#define AE_WINAPI_KEY_CODES( _visitor_ ) \
-			_visitor_( Key_Back,			0x08,		"Backspace",		VK_BACK				)\
+			_visitor_( Key_Backspace,		0x08,		"Backspace",		VK_BACK				)\
 			_visitor_( Key_Tab,				0x09,		"Tab",				VK_TAB				)\
 			_visitor_( Key_Clear,			0x0C,		"Clear",			VK_CLEAR			)\
 			_visitor_( Key_Return,			0x0D,		"Enter",			VK_RETURN			)\

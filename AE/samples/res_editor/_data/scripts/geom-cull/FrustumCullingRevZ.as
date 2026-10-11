@@ -2,6 +2,7 @@
 /*
 	Frustum culling visualization.
 	Supported shapes: AABB, sphere, cone, line.
+	Test in world space.
 */
 #ifdef __INTELLISENSE__
 # 	include <res_editor.as>
@@ -274,9 +275,9 @@
 
 		frustum_buf.UseLayout(
 			"FrustumParams",
-			"	float4	frustum[6];"		// world space
+			"	float4	wsFrustum[6];"		// world space
 			"	float3	cameraPos;"
-			"	float3	cornerPoints[8];"
+			"	float3	cornerPoints[8];"	// world space
 		);
 
 		// setup camera
@@ -356,7 +357,7 @@
 
 		Frustum	fr = Frustum_FromMatrix( un_PerPass.camera.viewProj, iClipPlanes.yx );
 
-		un_Params.frustum	= fr.planes;
+		un_Params.wsFrustum	= fr.planes;
 		un_Params.cameraPos	= un_PerPass.camera.pos;
 
 		Frustum_ToCornerPoints( fr, OUT un_Params.cornerPoints );
@@ -373,11 +374,11 @@
 
 	void  TestSphere (const int idx)
 	{
-		const float3	sphere_pos	= un_DrawTasks.tasks[ idx ].xyz - un_Params.cameraPos;
+		const float3	sphere_wpos	= un_DrawTasks.tasks[ idx ].xyz - un_Params.cameraPos;
 		const float		radius		= un_DrawTasks.tasks[ idx ].w * iScale * cullError;
 
-		const Sphere	sphere		= Sphere_Create( sphere_pos, radius );
-		const Frustum	frustum		= Frustum_Create( un_Params.frustum );
+		const Sphere	sphere		= Sphere_Create( sphere_wpos, radius );		// world space
+		const Frustum	frustum		= Frustum_Create( un_Params.wsFrustum );	// world space
 		bool			is_visible	= Frustum_IsVisible( frustum, sphere );
 
 		un_DrawTasks.isVisible[ idx ]	= is_visible ? 1 : 0;
@@ -386,12 +387,12 @@
 
 	void  TestBox (const int idx)
 	{
-		const float3	box_pos		= un_DrawTasks.tasks[ idx ].xyz - un_Params.cameraPos;
+		const float3	box_wpos	= un_DrawTasks.tasks[ idx ].xyz - un_Params.cameraPos;
 		const float		scale		= un_DrawTasks.tasks[ idx ].w * iScale * cullError;
 
-		const AABB		box			= AABB_Create(	box_pos + float3(-1.0) * scale,
-													box_pos + float3( 1.0) * scale);
-		const Frustum	frustum		= Frustum_Create( un_Params.frustum );
+		const AABB		box			= AABB_Create(	box_wpos + float3(-1.0) * scale,	// world space
+													box_wpos + float3( 1.0) * scale);
+		const Frustum	frustum		= Frustum_Create( un_Params.wsFrustum );			// world space
 		bool			is_visible	= Frustum_IsVisible( frustum, box );
 
 		un_DrawTasks.isVisible[ idx ]	= is_visible ? 1 : 0;
@@ -400,13 +401,13 @@
 
 	void  TestLine (const int idx)
 	{
-		const float3	line_pos	= un_DrawTasks.tasks[ idx ].xyz;
+		const float3	line_wpos	= un_DrawTasks.tasks[ idx ].xyz;
 		const float		scale		= un_DrawTasks.tasks[ idx ].w * iScale * cullError;
-		const float3	dir			= Normalize( ToSNorm( DHash33( line_pos )));
+		const float3	dir			= Normalize( ToSNorm( DHash33( line_wpos )));
 
-		const float3	line_begin	= line_pos - un_Params.cameraPos - dir * scale;
-		const float3	line_end	= line_pos - un_Params.cameraPos + dir * scale;
-		const Frustum	frustum		= Frustum_Create( un_Params.frustum );
+		const float3	line_begin	= line_wpos - un_Params.cameraPos - dir * scale;	// world space
+		const float3	line_end	= line_wpos - un_Params.cameraPos + dir * scale;
+		const Frustum	frustum		= Frustum_Create( un_Params.wsFrustum );			// world space
 		bool			is_visible	= Frustum_IsLineVisible( frustum, line_begin, line_end );
 
 		un_DrawTasks.params[ idx ]		= float4( dir, 0.0 );
@@ -417,12 +418,12 @@
 	void  TestCone (const int idx)
 	{
 		const float		height		= un_DrawTasks.tasks[ idx ].w * iScale;
-		const float3	cone_pos	= un_DrawTasks.tasks[ idx ].xyz;
-		const float3	dir			= Normalize( ToSNorm( DHash33( cone_pos )));
-		const float		angle		= float_HalfPi * (DHash13( cone_pos * 0.9326 ) * 0.75 + 0.25);
+		const float3	cone_wpos	= un_DrawTasks.tasks[ idx ].xyz;
+		const float3	dir			= Normalize( ToSNorm( DHash33( cone_wpos )));
+		const float		angle		= float_HalfPi * (DHash13( cone_wpos * 0.9326 ) * 0.75 + 0.25);
 
-		const Cone		cone		= Cone_Create( cone_pos - un_Params.cameraPos, dir, angle * cullError, height * cullError );
-		const Frustum	frustum		= Frustum_Create( un_Params.frustum );
+		const Cone		cone		= Cone_Create( cone_wpos - un_Params.cameraPos, dir, angle * cullError, height * cullError );	// world space
+		const Frustum	frustum		= Frustum_Create( un_Params.wsFrustum );														// world space
 		bool			is_visible	= false;
 
 		switch ( iTestMode )

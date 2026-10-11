@@ -16,9 +16,10 @@ namespace AE::ResEditor
 	Add
 =================================================
 */
-	void  ResourceArray::Add (UniformName::Ref name, AnyResource_t res, EResourceState state)
+	void  ResourceArray::Add (UniformName::Ref name, AnyResource_t res, EResourceState state, bool clearContent)
 	{
-		_resources.emplace_back( name, RVRef(res), state );
+		_needClearContent |= clearContent;
+		_resources.emplace_back( name, RVRef(res), state, clearContent );
 	}
 
 /*
@@ -40,8 +41,17 @@ namespace AE::ResEditor
 	{
 		// TODO: detect same image with different states, RG can not handle this
 
+		if_unlikely( _needClearContent )
+		{
+			DirectCtx::Transfer		copy_ctx{ ctx.GetRenderTask(), ctx.ReleaseCommandBuffer() };
+
+			_ClearContent( copy_ctx );
+
+			Reconstruct<CtxType>( OUT ctx, copy_ctx.GetRenderTask(), copy_ctx.ReleaseCommandBuffer() );
+		}
+
 		const FrameUID	fid = ctx.GetFrameId();
-		for (auto& [un, res, in_state] : _resources)
+		for (auto& [_, res, in_state, __] : _resources)
 		{
 			const EResourceState	state = in_state | shaderStages;
 			Visit( res,
@@ -86,9 +96,8 @@ namespace AE::ResEditor
 */
 	bool  ResourceArray::Bind (FrameUID fid, DescriptorUpdater &updater) const
 	{
-		for (auto& [in_un, res, state] : _resources)
+		for (auto& [un, res, state, _] : _resources)
 		{
-			auto&	un	= in_un;
 			CHECK_ERR( Visit( res,
 				[&] (const RC<Buffer> &buf) {
 					return updater.BindBuffer( un, buf->GetBufferId( fid ));
@@ -130,7 +139,7 @@ namespace AE::ResEditor
 */
 	void  ResourceArray::GetResourcesToResize (INOUT Array<RC<IResource>> &result) const
 	{
-		for (auto& [un, res, state] : _resources)
+		for (auto& [_, res, __, ___] : _resources)
 		{
 			Visit( res,
 				[&] (const RC<Buffer> &buf) {
@@ -169,5 +178,92 @@ namespace AE::ResEditor
 		}
 	}
 
+/*
+=================================================
+	_ClearContent
+=================================================
+*/
+	void  ResourceArray::_ClearContent (DirectCtx::Transfer &ctx) const
+	{
+		const FrameUID	fid = ctx.GetFrameId();
+
+		// group barriers
+		for (auto& [_, res, in_state, clear] : _resources)
+		{
+			if ( not clear )
+				continue;
+
+			Visit( res,
+				[&] (const RC<Buffer> &buf) {
+					ctx.ResourceState( buf->GetBufferId( fid ), EResourceState::ClearDst );
+				},
+				[&] (const RC<BufferView> &bufView) {
+					ctx.ResourceState( bufView->GetViewId(), EResourceState::ClearDst );
+				},
+				[&] (const RC<RTScene> &) {
+					ASSERT( false );
+				},
+				[&] (const RC<Image> &img) {
+					ctx.ResourceState( img->GetImageId(), EResourceState::ClearDst );
+				},
+				[&] (const RC<VideoImage> &) {
+					ASSERT( false );
+				},
+				[&] (const RC<VideoImage2> &) {
+					ASSERT( false );
+				},
+				[&] (const Array<RC<Image>> &arr) {
+					for (auto& img : arr) {
+						ctx.ResourceState( img->GetImageId(), EResourceState::ClearDst );
+					}
+				},
+				[](NullUnion) {}
+			);
+		}
+		ctx.CommitBarriers();
+
+		// clear
+		for (auto& [_, res, in_state, clear] : _resources)
+		{
+			if ( not clear )
+				continue;
+
+			Visit( res,
+				[&] (const RC<Buffer> &buf)
+				{
+					ctx.FillBuffer( buf->GetBufferId( fid ), 0_b, UMax, 0 );
+				},
+				[&] (const RC<BufferView> &bufView)
+				{
+					BufferViewID	view_id	= bufView->GetViewId();
+					BufferID		buf_id	= Default;
+					BufferViewDesc	desc	= ctx.GetResourceManager().GetDescription( view_id, OUT &buf_id );
+
+					ctx.FillBuffer( buf_id, desc.offset, desc.size, 0 );
+				},
+				[&] (const RC<RTScene> &) {
+					ASSERT( false );
+				},
+				[&] (const RC<Image> &img)
+				{
+					ImageID	img_id = img->GetImageId();
+					ctx.ClearColorImage( img_id, RGBA32u{0u}, {} );				// TODO: Vulkan only
+				},
+				[&] (const RC<VideoImage> &) {
+					ASSERT( false );
+				},
+				[&] (const RC<VideoImage2> &) {
+					ASSERT( false );
+				},
+				[&] (const Array<RC<Image>> &arr) {
+					for (auto& img : arr) {
+						ImageID	img_id = img->GetImageId();
+						ctx.ClearColorImage( img_id, RGBA32u{0u}, {} );			// TODO: Vulkan only
+					}
+				},
+				[](NullUnion) {}
+			);
+		}
+	}
 
 } // AE::ResEditor

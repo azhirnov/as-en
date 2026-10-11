@@ -205,6 +205,8 @@ namespace AE::ResEditor
 		if ( auto stat = _uploadStatus.load();  stat != EUploadStatus::InProgress )
 			return stat;
 
+		TRACY( ZoneScoped );
+
 		bool	complete	= true;
 		bool	failed		= false;
 
@@ -541,6 +543,8 @@ namespace AE::ResEditor
 		if ( auto stat = _uploadStatus.load();  stat != EUploadStatus::InProgress )
 			return stat;
 
+		TRACY( ZoneScoped );
+
 		bool	complete	= true;
 		bool	failed		= false;
 
@@ -846,6 +850,8 @@ namespace AE::ResEditor
 	{
 		if ( auto stat = _uploadStatus.load();  stat != EUploadStatus::InProgress )
 			return stat;
+
+		TRACY( ZoneScoped );
 
 		bool	complete	= true;
 		bool	failed		= false;

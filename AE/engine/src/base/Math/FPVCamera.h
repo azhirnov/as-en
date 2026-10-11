@@ -41,7 +41,7 @@ namespace AE::Base
 	public:
 		TFPVCamera ()														__NE___	{}
 
-		ND_ Frustum_t const&	Frustum ()									C_NE___	{ return _frustum; }
+		ND_ Frustum_t const&	Frustum ()									C_NE___	{ return _frustum; }	// world space
 		ND_ Transform_t const&	Transform ()								C_NE___	{ return _camera.transform; }
 		ND_ Vec3_t const&		Position ()									C_NE___	{ return _camera.transform.position; }
 		ND_ Quat_t const&		Orientation ()								C_NE___	{ return _camera.transform.orientation; }

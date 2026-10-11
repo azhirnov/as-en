@@ -87,39 +87,39 @@ namespace
 			binder.AddValue( "None",					EPostprocess::Unknown );
 
 			binder.Comment( "Entry point: 'void mainImage (out float4 fragColor, in float2 fragCoord)'" );
-			binder.AddValue( "Shadertoy",				EPostprocess::Shadertoy );
+			binder.AddValue< EPostprocess::Shadertoy >();
 
 			binder.Comment( "Entry point: 'void mainCubemap (out float4 fragColor, in float2 fragCoord, in float3 rayOri, in float3 rayDir)'" );
-			binder.AddValue( "ShadertoyCubemap",		EPostprocess::ShadertoyCubemap );
+			binder.AddValue< EPostprocess::ShadertoyCubemap >();
 
 			binder.Comment( "For all enums below entry point is: 'void mainVR (out float4 fragColor, in float2 fragCoord, in float3 fragRayOri, in float3 fragRayDir)'\n" );
 
 			binder.Comment( "Single eye per pass. Use Postprocess::Set(IController*) to set camera params: projection and origin." );
-			binder.AddValue( "ShadertoyVR",				EPostprocess::ShadertoyVR );
+			binder.AddValue< EPostprocess::ShadertoyVR >();
 
 			binder.Comment( "Two eyes per pass. Created VR180 left/right stereographical projection." );
-			binder.AddValue( "ShadertoyVR_180",			EPostprocess::ShadertoyVR_180 );
+			binder.AddValue< EPostprocess::ShadertoyVR_180 >();
 
 			binder.Comment( "Two eyes per pass. Created VR360 top/bottom stereographical projection." );
-			binder.AddValue( "ShadertoyVR_360",			EPostprocess::ShadertoyVR_360 );
+			binder.AddValue< EPostprocess::ShadertoyVR_360 >();
 
 			binder.Comment( "Created 360° stereographical projection (spheremap). Equal to single eye VR360." );
-			binder.AddValue( "Shadertoy_360",			EPostprocess::Shadertoy_360 );
+			binder.AddValue< EPostprocess::Shadertoy_360 >();
 
 			binder.Comment( "Created 180° stereographical projection. Equal to single eye VR180 and hemisphere of 360°." );
-			binder.AddValue( "Shadertoy_180",			EPostprocess::Shadertoy_180 );
+			binder.AddValue< EPostprocess::Shadertoy_180 >();
 
 			binder.Comment( "Created 180° panini projection." );
-			binder.AddValue( "Shadertoy_Panini180",		EPostprocess::Shadertoy_Panini180 );
+			binder.AddValue< EPostprocess::Shadertoy_Panini180 >();
 
 			binder.Comment( "Created 180° fisheye (equidistant) projection. Equal to single eye FishEyeVR180 and hemisphere DualFishEye360." );
-			binder.AddValue( "Shadertoy_FishEye180",	EPostprocess::Shadertoy_FishEye180 );
+			binder.AddValue< EPostprocess::Shadertoy_FishEye180 >();
 
 			binder.Comment( "Created 360° fisheye (equidistant) projection. Left side - forward direction, right - backward." );
-			binder.AddValue( "Shadertoy_DualFishEye360",EPostprocess::Shadertoy_DualFishEye360 );
+			binder.AddValue< EPostprocess::Shadertoy_DualFishEye360 >();
 
 			binder.Comment( "Two eyes per pass. Created 180° fisheye (equidistant) projection." );
-			binder.AddValue( "Shadertoy_FishEyeVR180",	EPostprocess::Shadertoy_FishEyeVR180 );
+			binder.AddValue< EPostprocess::Shadertoy_FishEyeVR180 >();
 			StaticAssert( uint(EPostprocess::_Count) == 12 );
 		}
 		{
@@ -163,6 +163,8 @@ namespace
 */
 	RC<IPass>  ScriptPostprocess::ToPass () __Th___
 	{
+		TRACY( ZoneScoped );
+
 		auto		result		= MakeRC<Postprocess>();
 		auto&		res_mngr	= GraphicsScheduler().GetResourceManager();
 		const auto	max_frames	= GraphicsScheduler().GetMaxFrames();
@@ -204,7 +206,7 @@ namespace
 		{
 			CHECK_THROW( res_mngr.CreateDescriptorSets( OUT result->_dsIndex, OUT result->_descSets.data(), max_frames,
 														ppln, DescriptorSetName{"ds0"}, null, _dbgName ));
-			_args.InitResources( OUT result->_resources, result->_rtech.packId );  // throw
+			_args.InitResources( OUT result->_resources, result->_rtech.packId, AllBits( _baseFlags, EFlags::ZeroContentOfArgOut ));  // throw
 
 			for (auto [out, i] : WithIndex(_output))
 			{
@@ -256,7 +258,7 @@ namespace
 			// validate
 			if ( src.inName.empty() )
 			{
-				for (auto& [name, res, state] : result->_resources.Get())
+				for (auto& [name, res, state, _] : result->_resources.Get())
 				{
 					if ( auto* tex = UnionGet< RC<Image> >( res ))
 						CHECK_THROW_MSG( tex->get() != rt.get(), "Image '"s << rt->GetName() << "' used as input and output, use 'InOut()' instead." );

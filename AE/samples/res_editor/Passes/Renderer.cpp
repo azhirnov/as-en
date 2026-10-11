@@ -82,7 +82,7 @@ namespace AE::ResEditor
 				case ui_IA.UI_MousePos :
 					input->cursorPos = reader.Data<packed_float2>( hdr.offset );	break;
 
-				case ui_IA.UI_MouseRBDown :
+				case ui_IA.MousePosToShader :
 					input->pressed = true;											break;
 
 				// ui_IA.UI_ShowHide		- ignore
@@ -321,6 +321,9 @@ namespace AE::ResEditor
 					_ReadShaderTrace( GetRC<Renderer>(), pass_debugger.mode == IPass::EDebugMode::Asserts ),
 					{"Read shader debugger output"} )
 				.Run( Tuple{deps_ref} ) );
+
+			// TODO: only for DbgExport()
+			//_resExport.store( EExportState::Started );
 		}
 
 		return Scheduler().WaitAsync( ETaskQueue::Renderer, Tuple{ArrayView{out_deps}} );
@@ -650,8 +653,11 @@ namespace AE::ResEditor
 
 		if ( _controller )
 		{
+			float4x4	inv_vp	= _controller->GetInvViewProj();
+			float4		view	= inv_vp * float4(0.0f, 0.0f, 1.f, 1.f);
+
+			stats.viewDir	= Normalize( float3(view) / view.w );
 			stats.pos		= _controller->GetPosition();
-			stats.viewDir	= _controller->GetInvViewProj().AxisZ();
 		}
 
 		UIInteraction::Instance().cameraStats.Write( stats );

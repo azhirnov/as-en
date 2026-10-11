@@ -1621,6 +1621,8 @@ namespace AE::Graphics
 	bool  PPLNPACK::RenderTech::_CompilePipelines (ResourceManager &resMngr, PipelineCacheID cacheid,
 												   const PplnSpecIter_t beginIt, const PplnSpecIter_t endIt) __NE___
 	{
+		TRACY( ZoneScoped );
+
 		for (auto it = beginIt; it != endIt; ++it)
 		{
 		  #if AE_DBG_GRAPHICS
@@ -1702,6 +1704,8 @@ namespace AE::Graphics
 */
 	bool  PPLNPACK::RenderTech::_CreateSBTs (ResourceManager &resMngr) __NE___
 	{
+		TRACY( ZoneScoped );
+
 		for (auto& [name, info] : _rtSbtMap)
 		{
 			CHECK_ERR( info.uid < _pack._serRTSBTs.size() );
@@ -1727,6 +1731,8 @@ namespace AE::Graphics
 */
 	bool  PPLNPACK::RenderTech::_CreateExecSets (ResourceManager &resMngr) __NE___
 	{
+		TRACY( ZoneScoped );
+
 		for (auto& [name, info] : _execSetMap)
 		{
 			CHECK_ERR( uint(info.uid) < _pack._serExecSets.size() );
@@ -1848,6 +1854,8 @@ namespace AE::Graphics
 */
 	bool  PPLNPACK::RenderTech::_PreloadShaders (const ResourceManager &resMngr) __NE___
 	{
+		TRACY( ZoneScoped );
+
 		FlatHashSet< ShaderUID >	shaders;
 		shaders.reserve( _pipelines.size() * 2 );
 

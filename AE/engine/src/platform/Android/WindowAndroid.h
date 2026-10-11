@@ -80,14 +80,18 @@ namespace AE::App
 		static void  JNICALL  native_SurfaceChanged (JNIEnv*, jclass, WinID wndId, jobject surface)					__NE___;
 		static void  JNICALL  native_SurfaceDestroyed (JNIEnv*, jclass, WinID wndId)								__NE___;
 		static void  JNICALL  native_Update (JNIEnv*, jclass, WinID wndId)											__NE___;
-		static void  JNICALL  native_OnKey (JNIEnv*, jclass, WinID wndId, jint keycode, jint action, jint count)	__NE___;
+		static void  JNICALL  native_OnKey (JNIEnv*, jclass, WinID wndId, jint keycode, jint action,
+											jint count, jint unicodeChar)											__NE___;
+		static void  JNICALL  native_OnMouseBtn (JNIEnv*, jclass, WinID id, jint mouseBtn, jint action)				__NE___;
+		static void  JNICALL  native_OnMouseMove (JNIEnv*, jclass, WinID id, jfloat x, jfloat y)					__NE___;
+		static void  JNICALL  native_OnMouseWheel (JNIEnv*, jclass, WinID wndId, jfloat hor, jfloat ver)			__NE___;
 		static void  JNICALL  native_OnTouch (JNIEnv*, jclass, WinID wndId, jint action, jint changedIndex,
 											  jint touchCount, jfloatArray touchData)								__NE___;
 		static void  JNICALL  native_OnOrientationChanged (JNIEnv*, jclass, WinID wndId, jint newOrientation)		__NE___;
 		static void  JNICALL  native_UpdateSensor (JNIEnv*, jclass, WinID wndId, int sensor, jfloatArray values)	__NE___;
-		static void  JNICALL  native_SendBatteryStat1 (JNIEnv*, jclass, float current, float capacity, float)		__NE___;
-		static void  JNICALL  native_SendBatteryStat2 (JNIEnv*, jclass, float level, float temperature,
-														float voltage, jboolean isCharging)							__NE___;
+		static void  JNICALL  native_SendBatteryStat1 (JNIEnv*, jclass, jfloat current, jfloat capacity, jfloat)	__NE___;
+		static void  JNICALL  native_SendBatteryStat2 (JNIEnv*, jclass, jfloat level, jfloat temperature,
+														jfloat voltage, jboolean isCharging)						__NE___;
 	};
 
 

@@ -7,14 +7,16 @@
 
 #pragma once
 
-#include "profiler/Impl/GraphicsProfiler.h"
-#include "profiler/Impl/MemoryProfiler.h"
-#include "profiler/Impl/TaskProfiler.h"
-#include "profiler/Impl/HwpcProfiler.h"
+#include "profiler/Impl/ProfilerUtils.h"
 #include "profiler/Impl/LogWindow.h"
 
 namespace AE::Profiler
 {
+	class TaskProfiler;
+	class GraphicsProfiler;
+	class MemoryProfiler;
+	class HwpcProfiler;
+
 
 	//
 	// Profiler UI
@@ -26,6 +28,23 @@ namespace AE::Profiler
 	private:
 		using MsgProducer	= ProfilerUtils::MsgProducer;
 		using MsgConsumer	= ProfilerUtils::MsgConsumer;
+
+	public:
+		enum class EMask
+		{
+			Unknown			= 0,
+			Task			= 1 << 0,	// deprecated, use Tracy profiler
+			Graphics		= 1 << 1,
+			HardwareCPU		= 1 << 2,
+			HardwareGPU		= 1 << 3,	// PowerVR GPU requires this flag for GraphicsProfiler
+			OSMetrics		= 1 << 4,
+			Memory			= 1 << 5,
+			_Last,
+			All				= CT_AllBitMask2<EMask>,
+			_BITOPS_		= 0
+		};
+
+		static const EMask	c_DefaultMask = EMask::All & ~EMask::Task;
 
 
 	// variables
@@ -49,10 +68,10 @@ namespace AE::Profiler
 
 	// methods
 	public:
-		ProfilerUI () {}
+		ProfilerUI ();
 		~ProfilerUI ();
 
-		ND_ bool  Initialize (Ptr<Networking::ClientServerBase>);
+		ND_ bool  Initialize (Ptr<Networking::ClientServerBase>, EMask mask = c_DefaultMask);
 		ND_ bool  InitLogWindow ();
 			void  Deinitialize ();
 

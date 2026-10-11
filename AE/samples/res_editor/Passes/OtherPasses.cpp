@@ -1304,9 +1304,8 @@ namespace AE::ResEditor
 		readback.heapType	= EStagingHeapType::Static;
 
 		ctx.ReadbackBuffer( id, readback )
-			.IfFullyRead(	_dstValue,
-					[] (Promise<BufferMemView> readOp, AnyDynVecOrScalar_t dst)
-						-> InlineCoro< ETaskQueue::Background >
+			.IfFullyRead( _dstValue,
+					[] (Promise<BufferMemView> readOp, AnyDynVecOrScalar_t dst) -> InlineCoro< ETaskQueue::PerFrame >
 					{
 						BufferMemView  mem = co_await readOp;
 

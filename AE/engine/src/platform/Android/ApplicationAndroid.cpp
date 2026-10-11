@@ -51,7 +51,7 @@ namespace {
 	constructor
 =================================================
 */
-	ApplicationAndroid::ApplicationAndroid (Unique<IAppListener> listener) __NE___ :
+	ApplicationAndroid::ApplicationAndroid (AppListenerPtr listener) __NE___ :
 		ApplicationBase{ RVRef(listener) }
 	{
 		Unused( s_JNI_ptr );
@@ -444,11 +444,18 @@ namespace {
 		auto&	app = GetApp();
 		DRC_EXLOCK( app._drCheck );
 
-		app._paths->internalAppData	= Path{JavaString{ internalAppData }};
-		app._paths->internalCache	= Path{JavaString{ internalCache }};
-		app._paths->externalAppData	= Path{JavaString{ externalAppData }};
-		app._paths->externalCache	= Path{JavaString{ externalCache }};
-		app._paths->externalStorage	= Path{JavaString{ externalStorage }};
+		auto	paths = app._paths.WriteLock();
+		paths->internalAppData	= Path{JavaString{ internalAppData }};
+		paths->internalCache	= Path{JavaString{ internalCache }};
+		paths->externalAppData	= Path{JavaString{ externalAppData }};
+		paths->externalCache	= Path{JavaString{ externalCache }};
+		paths->externalStorage	= Path{JavaString{ externalStorage }};
+
+		// save log into external cache, so user can access it
+	  #if defined(AE_CI_BUILD_TEST) or defined(AE_CI_BUILD_PERF) or defined(AE_DEBUG)
+        Path    path = paths->externalCache / Date::Now().ToString( "log - dd.mm.yyyy - hh.mi.ss" );
+		StaticLogger::AddLogger( ILogger::CreateHtmlOutput( path.native() ));
+	  #endif
 	}
 
 /*
@@ -473,6 +480,7 @@ namespace {
 		disp.ppi				= dpi;
 		disp.physicalSize		= disp._CalculatePhysicalSize();
 		disp.freq				= refreshRate;
+		disp.uiScale			= 2.0f;	// TODO
 		app.SetRotation( orientation );
 
 		disp.hdr.luminance.avr	= HDRConfig::Luminance_t{ avrLum };
@@ -603,6 +611,9 @@ namespace {
 			wnd_class.RegisterStaticMethod( "native_SurfaceChanged",		&WindowAndroid::native_SurfaceChanged );
 			wnd_class.RegisterStaticMethod( "native_SurfaceDestroyed",		&WindowAndroid::native_SurfaceDestroyed );
 			wnd_class.RegisterStaticMethod( "native_Update",				&WindowAndroid::native_Update );
+			wnd_class.RegisterStaticMethod( "native_OnMouseBtn",			&WindowAndroid::native_OnMouseBtn );
+			wnd_class.RegisterStaticMethod( "native_OnMouseMove",			&WindowAndroid::native_OnMouseMove );
+			wnd_class.RegisterStaticMethod( "native_OnMouseWheel",			&WindowAndroid::native_OnMouseWheel );
 			wnd_class.RegisterStaticMethod( "native_OnKey",					&WindowAndroid::native_OnKey );
 			wnd_class.RegisterStaticMethod( "native_OnTouch",				&WindowAndroid::native_OnTouch );
 			wnd_class.RegisterStaticMethod( "native_OnOrientationChanged",	&WindowAndroid::native_OnOrientationChanged );

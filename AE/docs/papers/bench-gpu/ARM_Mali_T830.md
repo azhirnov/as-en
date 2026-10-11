@@ -45,6 +45,76 @@ Doesn't support quad and subgroups.
 	- fp32 FastASin is x1.6 faster than native ASin
 	- fp32 Pow uses MUL loop - performance depends on power
 
+* Shader instruction benchmark results: [[4](../GPU_Benchmarks.md#4-Shader-instruction-benchmark)]
+	- base rate: 10 GOp/s
+
+	- **float point**
+
+	| op \ type                            | fp32       | mediump |
+	|--------------------------------------|------------|---------|
+	| Add                                  | 1.6        | 1.3     |
+	| Mul                                  | 1.0        | 1.0     |
+	| FMA                                  | 7.5        | 7.6     |
+	| MulAdd                               | 1.9        | 1.9     |
+	| Lerp                                 | 3.3        | 3.8     |
+	| Length                               | 2.2        | 2.5     |
+	| Normalize                            | 3.5        | 3.2     |
+	| Distance                             | 3.5        | 3.2     |
+	| Dot                                  | 1.9        | 2.0     |
+	| Cross                                | 3.0        | 3.0     |
+	| Min/Max                              | 1.6        | 1.3     |
+	| Clamp(x,0,1)                         | 1.6        | 1.9     |
+	| Clamp(x,-1,1)                        | 1.6        | 1.9     |
+	| Clamp                                | 2.1        | 2.5     |
+	| Step                                 | 2.2        | 2.5     |
+	| SmoothStep                           | 2.8        | 3.2     |
+	| Abs                                  | 1.6        | 1.9     |
+	| FastSign                             | 1.6        | 2.5     |
+	| SignOrZero                          | 4.6        | 3.8     |
+	| BitCast                              | 2.2        | —       |
+	| FloatToInt                           | 1.6        | —       |
+	| IntToFloat                           | 1.6        | —       |
+	| Ceil, Floor, Trunc, Round, RoundEven  | 2.2        | 2.5     |
+	| Fract                                | 2.1        | 2.5     |
+	| Exp, Exp2                            | 4.0, 3.4   | —       |
+	| Log, Log2                            | 5.9, 5.9   | —       |
+	| InvSqrt                              | 3.4        | 4.4     |
+	| Sqrt                                 | 3.4        | 4.4     |
+	| Sin, Cos                             | 5.9, 5.9   | —       |
+	| Div                                  | 3.9        | 4.4     |
+	| Mod                                  | 5.7        | 5.1     |
+	| Pow                                  | 9.5        | —       |
+	| Tan                                  | 13.3       | —       |
+	| ASin, ACos                           | 16.7, 16.7 | —       |
+	| ATan                                 | 11.2       | —       |
+
+	- **integer**
+
+	| op \ type  | i32 | u32 | int mediump | uint mediump | i16 | u16 |
+	|------------|-----|-----|-------------|--------------|-----|-----|
+	| Add        | 1.0 | 1.0 | 1.2         | 1.2          | 0.9 | 0.9 |
+	| Mul        | 1.9 | 1.9 | 1.6         | 1.6          | 1.6 | 1.6 |
+	| MulAdd     | 2.6 | 2.6 | 4.5         | 4.5          | 2.6 | 2.6 |
+	| Div        | 21.5| 20.0| 11.1        | 11.1         | 9.1 | 9.1 |
+	| Mod        | 26.1| 22.7| 11.1        | 10.0         | 14.3| 10.0|
+	| Min/Max    | 1.0 | 1.0 | 1.2         | 1.2          | 0.9 | 0.9 |
+	| Clamp const| 2.8 | 1.6 | 2.0         | 2.0          | 2.3 | 1.7 |
+	| Clamp      | 1.6 | 1.6 | 2.7         | 2.7          | 1.7 | 1.7 |
+	| Abs        | 2.8 | —   | 2.7         | —            | 2.3 | —   |
+	| SignOrZero | —   | —   | —           | —            | —   | —   |
+	| Shift const| 2.0 | 2.0 | 2.3         | 2.3          | 1.6 | 1.6 |
+	| Shift      | 1.4 | 1.3 | 2.3         | 2.3          | 1.3 | 1.3 |
+	| And        | 1.6 | 1.6 | 2.6         | 2.6          | 1.7 | 1.7 |
+	| Or         | 1.6 | 1.6 | 2.6         | 2.6          | 1.7 | 1.7 |
+	| Xor        | 1.6 | 1.6 | 2.6         | 2.6          | 1.7 | 1.7 |
+	| BitCount   | 5.3 | 5.3 | 6.3         | 6.3          | —   | —   |
+	| FindLSB    | 5.0 | 5.0 | 4.5         | 4.5          | 3.8 | 3.8 |
+	| FindMSB    | 3.8 | 3.8 | 3.8         | 3.8          | —   | —   |
+	| AddCarry   | —   | 3.8 | —           | 5.0          | —   | —   |
+	| SubBorrow  | —   | 3.8 | —           | 3.8          | —   | —   |
+	| MulExtended| 8.3 | 8.3 | 7.7         | 7.7          | —   | —   |
+
+
 * FP32 instruction performance: [[2](../GPU_Benchmarks.md#2-fp32-instruction-performance)]
 
 	| GOp/s | ops | max GFLOPS |

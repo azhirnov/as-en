@@ -150,7 +150,7 @@ namespace AE::Graphics::_hidden_
 		using RenderCoroRef	= typename CtxImpl::RenderCoroRef;
 	private:
 		using RawCtx		= CtxImpl;
-		using AccumBar		= AccumBarriers< _VASBuildContextImpl< CtxImpl >>;
+		using AccumBar		= TAccumBarriers< _VASBuildContextImpl< CtxImpl >>;
 		using DeferredBar	= AccumDeferredBarriersForCtx< _VASBuildContextImpl< CtxImpl >>;
 		using Validator_t	= ASBuildContextValidation;
 

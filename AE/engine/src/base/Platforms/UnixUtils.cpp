@@ -208,6 +208,10 @@ namespace AE::Base
 */
 	void  UnixUtils::ThreadSleep_15ms () __NE___
 	{
+		TRACY(
+			ZoneScoped;
+			ZoneColor( 1 );
+		)
 		std::this_thread::sleep_for( milliseconds{15} );
 	}
 
@@ -252,7 +256,11 @@ namespace AE::Base
 */
 	bool  UnixUtils::SwitchToPendingThread () __NE___
 	{
-		return ::sched_yield() == 0;
+		::sched_yield();
+
+		// docs: "In the Linux implementation, sched_yield() always succeeds."
+		// always return 'false' to indicates that thread is not switched.
+		return false;
 	}
 
 /*

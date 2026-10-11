@@ -135,7 +135,7 @@ namespace AE::Graphics::_hidden_
 		using RenderCoroRef	= typename CtxImpl::RenderCoroRef;
 	private:
 		using RawCtx		= CtxImpl;
-		using AccumBar		= AccumBarriers< _VRayTracingContextImpl< CtxImpl >>;
+		using AccumBar		= TAccumBarriers< _VRayTracingContextImpl< CtxImpl >>;
 		using DeferredBar	= AccumDeferredBarriersForCtx< _VRayTracingContextImpl< CtxImpl >>;
 		using Validator_t	= RayTracingContextValidation;
 

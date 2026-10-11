@@ -5,25 +5,25 @@
 #include "../tests/shared/UnitTest_Shared.h"
 
 #if defined(AE_ENABLE_GLFW)
-#	define ENABLE_TEST
 #	include "platform/GLFW/ApplicationGLFW.h"
 	using Application_t = AE::App::ApplicationGLFW;
 
 #  ifdef AE_PLATFORM_WINDOWS
 #	include "platform/WinAPI/SerializableInputActionsWinAPI.h"
+#	define HAS_SEND_INPUT
 	using EInputType	= AE::App::SerializableInputActionsWinAPI::EInputType;
 #  endif
 
 #elif defined(AE_PLATFORM_WINDOWS)
-#	define ENABLE_TEST
 #	include "platform/WinAPI/ApplicationWinAPI.h"
 #	include "platform/WinAPI/SerializableInputActionsWinAPI.h"
+#	define HAS_SEND_INPUT
 	using Application_t = AE::App::ApplicationWinAPI;
 	using EInputType	= AE::App::SerializableInputActionsWinAPI::EInputType;
 #endif
 
 
-#ifdef ENABLE_TEST
+#ifdef HAS_SEND_INPUT
 
 using namespace AE::App;
 using namespace AE::Threading;
@@ -101,9 +101,15 @@ namespace
 
 extern void Test_SendInput ()
 {
-	Application_t::Run( MakeUnique<AppListener>() );
+	Application_t::Run( AppListenerPtr{new AppListener{}} );
 
 	TEST_PASSED();
 }
 
-#endif // ENABLE_TEST
+#else
+
+extern void Test_SendInput ()
+{
+}
+
+#endif // HAS_SEND_INPUT

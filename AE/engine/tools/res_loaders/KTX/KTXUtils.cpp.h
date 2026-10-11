@@ -76,7 +76,7 @@ namespace
 
 		static KTX_error_code  SetPos (ktxStream* str, const ktx_off_t offset) __NE___
 		{
-			return	_Cast(str).SeekSet( Bytes{offset} ) ?
+			return	_Cast(str).SeekSet( Bytes{ulong(offset)} ) ?
 						KTX_SUCCESS : KTX_FILE_SEEK_ERROR;
 		}
 

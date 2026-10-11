@@ -123,8 +123,7 @@ namespace {
 		if ( fileFormat == Default )
 			fileFormat = PathToImageFileFormat( filename );
 
-		CHECK_ERR( LoadImage( INOUT image, file, flipY, RVRef(allocator), fileFormat ));
-		return true;
+		return LoadImage( INOUT image, file, flipY, RVRef(allocator), fileFormat );
 	}
 
 /*

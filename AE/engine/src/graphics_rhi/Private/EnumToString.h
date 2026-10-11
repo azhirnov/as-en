@@ -191,6 +191,9 @@ namespace AE::Base
 
 		String	str {EnumToString<_EResState::EState>::ToString( ToEResState( value ))};
 
+		if ( str.empty() and value == Default )
+			return "Unknown";
+
 		if ( AnyBits( value, EResourceState::Invalidate ))
 			str << " | Invalidate";
 

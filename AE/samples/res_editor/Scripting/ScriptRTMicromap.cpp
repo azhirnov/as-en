@@ -217,6 +217,7 @@ namespace
 		if ( _resource )
 			return _resource;
 
+		TRACY( ZoneScoped );
 		CHECK_THROW_MSG( _dataBuffer, "data buffer is not defined, see 'SetData()'." );
 		CHECK_THROW_MSG( _triangleArray, "triangle array buffer is not defined, see 'SetTriangles()'." );
 

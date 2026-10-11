@@ -322,7 +322,7 @@
 		float3x3	light_view	= f3x3_RotateX( light_ang.x ) * f3x3_RotateY( light_ang.y ) * f3x3_RotateZ( light_ang.z );
 		float4x4	cam_proj	= un_PerPass.camera.proj;
 		float		tan_hfov	= Tan( MaxOf( un_PerPass.camera.fov ) * 0.5 );	// 'fov.x' for FPS camera, 'MaxOf(fov.xy)' for flight camera
-		Frustum		camera_fr	= Frustum_Create( un_PerPass.camera.frustum );
+		Frustum		camera_fr	= Frustum_Create( un_PerPass.camera.wsFrustum );
 
 		// divide on layers (cascades)
 		ViewProjZ	prev_vp;

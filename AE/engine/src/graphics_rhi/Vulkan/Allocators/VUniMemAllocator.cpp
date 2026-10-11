@@ -188,6 +188,7 @@ namespace {
 */
 	bool  VUniMemAllocator::AllocForImage (VkImage image, const ImageDesc &desc, OUT Storage_t &data) __NE___
 	{
+		TRACY( ZoneScoped );
 		CHECK_ERR( image != Default );
 		CHECK_ERR( desc.memType != Default );
 
@@ -234,6 +235,7 @@ namespace {
 */
 	bool  VUniMemAllocator::AllocForBuffer (VkBuffer buffer, const BufferDesc &desc, OUT Storage_t &data) __NE___
 	{
+		TRACY( ZoneScoped );
 		CHECK_ERR( buffer != Default );
 		CHECK_ERR( desc.memType != Default );
 
@@ -284,6 +286,8 @@ namespace {
 */
 	bool  VUniMemAllocator::Dealloc (INOUT Storage_t &data) __NE___
 	{
+		TRACY( ZoneScoped );
+
 		VmaAllocation&	mem = _CastStorage( data ).allocation;
 
 		if_likely( mem != null )

@@ -360,7 +360,7 @@ namespace AE::Scripting::_hidden_
 	struct FnWrap_ObjFirst< R (*) (Class, Args...) >
 	{
 		using C = RemoveAllQualifiers< Class >;
-		using type = R (C::*) (Args...);
+		using type = Conditional< IsAnyConst< Class >, R (C::*) (Args...) const, R (C::*) (Args...) >;
 
 		template < R (*fp) (Class, Args...) >
 		AE_FLATTEN_FN static void  Call (ScriptArgList args) __Th___
@@ -390,7 +390,7 @@ namespace AE::Scripting::_hidden_
 	struct FnWrap_ObjFirst< R (*) (Class, Args...) noexcept >
 	{
 		using C = RemoveAllQualifiers< Class >;
-		using type = R (C::*) (Args...);
+		using type = Conditional< IsAnyConst< Class >, R (C::*) (Args...) const, R (C::*) (Args...) >;
 
 		template < R (*fp) (Class, Args...) noexcept >
 		AE_FLATTEN_FN static void  Call (ScriptArgList args) __Th___
@@ -435,90 +435,102 @@ namespace AE::Scripting::_hidden_
 	#define AS_OP_BIN_ASSIGN( _binder_, _op_, _fn_ )																		\
 		(_binder_).AddGenericMethod< typename AE::Scripting::_hidden_::FnWrap_AssignOp< decltype(&_fn_) >::type >(			\
 			&AE::Scripting::_hidden_::FnWrap_AssignOp< decltype(&_fn_) >::template Call< (&_fn_) >,							\
-			Scripting::_hidden_::OperatorBinderHelper::_BinAssignToStr( _op_ ), {} )
+			Scripting::_hidden_::OperatorBinderHelper::_BinAssignToStr( _op_ ), {}, False{"don't gen C++ code"} )
 
 	#define AS_OP_BIN_ASSIGN_T( _binder_, _op_, _fn_ )																		\
 		(_binder_).template AddGenericMethod< typename AE::Scripting::_hidden_::FnWrap_AssignOp< decltype(&_fn_) >::type >(	\
 			&AE::Scripting::_hidden_::FnWrap_AssignOp< decltype(&_fn_) >::template Call< (&_fn_) >,							\
-			Scripting::_hidden_::OperatorBinderHelper::_BinAssignToStr( _op_ ), {} )
+			Scripting::_hidden_::OperatorBinderHelper::_BinAssignToStr( _op_ ), {}, False{"don't gen C++ code"} )
 
 	#define AS_OP_BINARY( _binder_, _op_, _fn_ )																			\
 		(_binder_).AddGenericMethod< typename AE::Scripting::_hidden_::FnWrap_BinOp< decltype(&_fn_) >::type >(				\
 			&AE::Scripting::_hidden_::FnWrap_BinOp< decltype(&_fn_) >::template Call< (&_fn_) >,							\
-			Scripting::_hidden_::OperatorBinderHelper::_BinToStr( _op_ ), {} )
+			Scripting::_hidden_::OperatorBinderHelper::_BinToStr( _op_ ), {}, False{"don't gen C++ code"} )
 
 	#define AS_OP_BINARY_T( _binder_, _op_, _fn_ )																			\
 		(_binder_).template AddGenericMethod< typename AE::Scripting::_hidden_::FnWrap_BinOp< decltype(&_fn_) >::type >(	\
 			&AE::Scripting::_hidden_::FnWrap_BinOp< decltype(&_fn_) >::template Call< (&_fn_) >,							\
-			Scripting::_hidden_::OperatorBinderHelper::_BinToStr( _op_ ), {} )
+			Scripting::_hidden_::OperatorBinderHelper::_BinToStr( _op_ ), {}, False{"don't gen C++ code"} )
 
 	#define AS_OP_BINARY_RH( _binder_, _op_, _fn_ )																			\
 		(_binder_).AddGenericMethod< typename AE::Scripting::_hidden_::FnWrap_BinRHOp< decltype(&_fn_) >::type >(			\
 			&AE::Scripting::_hidden_::FnWrap_BinRHOp< decltype(&_fn_) >::template Call< (&_fn_) >,							\
-			Scripting::_hidden_::OperatorBinderHelper::_BinRightToStr( _op_ ), {} )
+			Scripting::_hidden_::OperatorBinderHelper::_BinRightToStr( _op_ ), {}, False{"don't gen C++ code"} )
 
 	#define AS_OP_BINARY_RH_T( _binder_, _op_, _fn_ )																		\
 		(_binder_).template AddGenericMethod< typename AE::Scripting::_hidden_::FnWrap_BinRHOp< decltype(&_fn_) >::type >(	\
 			&AE::Scripting::_hidden_::FnWrap_BinRHOp< decltype(&_fn_) >::template Call< (&_fn_) >,							\
-			Scripting::_hidden_::OperatorBinderHelper::_BinRightToStr( _op_ ), {} )
+			Scripting::_hidden_::OperatorBinderHelper::_BinRightToStr( _op_ ), {}, False{"don't gen C++ code"} )
 
 	#define AS_OP_UNARY( _binder_, _op_, _fn_ )																				\
 		(_binder_).AddGenericMethod< typename AE::Scripting::_hidden_::FnWrap_UnaryOp< decltype(&_fn_) >::type >(			\
 			&AE::Scripting::_hidden_::FnWrap_UnaryOp< decltype(&_fn_) >::template Call< (&_fn_) >,							\
-			Scripting::_hidden_::OperatorBinderHelper::_UnaryToStr( _op_ ), {} )
+			Scripting::_hidden_::OperatorBinderHelper::_UnaryToStr( _op_ ), {}, False{"don't gen C++ code"} )
 
 	#define AS_OP_UNARY_T( _binder_, _op_, _fn_ )																			\
 		(_binder_).template AddGenericMethod< typename AE::Scripting::_hidden_::FnWrap_UnaryOp< decltype(&_fn_) >::type >(	\
 			&AE::Scripting::_hidden_::FnWrap_UnaryOp< decltype(&_fn_) >::template Call< (&_fn_) >,							\
-			Scripting::_hidden_::OperatorBinderHelper::_UnaryToStr( _op_ ), {} )
+			Scripting::_hidden_::OperatorBinderHelper::_UnaryToStr( _op_ ), {}, False{"don't gen C++ code"} )
 
 	#define AS_OP_EQUAL( _binder_, _fn_ )																					\
 		(_binder_).AddGenericMethod< typename AE::Scripting::_hidden_::FnWrap_BinConstOp< decltype(&_fn_) >::type >(		\
-			&AE::Scripting::_hidden_::FnWrap_BinConstOp< decltype(&_fn_) >::template Call< (&_fn_) >, "opEquals", {} )
+			&AE::Scripting::_hidden_::FnWrap_BinConstOp< decltype(&_fn_) >::template Call< (&_fn_) >, "opEquals", {}, 		\
+			False{"don't gen C++ code"} )
 
 	#define AS_OP_EQUAL_T( _binder_, _fn_ )																					\
 		(_binder_).template AddGenericMethod< typename AE::Scripting::_hidden_::FnWrap_BinConstOp< decltype(&_fn_) >::type >(\
-			&AE::Scripting::_hidden_::FnWrap_BinConstOp< decltype(&_fn_) >::template Call< (&_fn_) >, "opEquals", {} )
+			&AE::Scripting::_hidden_::FnWrap_BinConstOp< decltype(&_fn_) >::template Call< (&_fn_) >, "opEquals", {},		\
+			False{"don't gen C++ code"} )
 
 	#define AS_OP_CMP( _binder_, _fn_ )																						\
 		(_binder_).AddGenericMethod< typename AE::Scripting::_hidden_::FnWrap_BinConstOp< decltype(&_fn_) >::type >(		\
-			&AE::Scripting::_hidden_::FnWrap_BinConstOp< decltype(&_fn_) >::template Call< (&_fn_) >, "opCmp", {} )
+			&AE::Scripting::_hidden_::FnWrap_BinConstOp< decltype(&_fn_) >::template Call< (&_fn_) >, "opCmp", {}, 			\
+			False{"don't gen C++ code"} )
 
 	#define AS_OP_CMP_T( _binder_, _fn_ )																					\
 		(_binder_).template AddGenericMethod< typename AE::Scripting::_hidden_::FnWrap_BinConstOp< decltype(&_fn_) >::type >(\
-			&AE::Scripting::_hidden_::FnWrap_BinConstOp< decltype(&_fn_) >::template Call< (&_fn_) >, "opCmp", {} )
+			&AE::Scripting::_hidden_::FnWrap_BinConstOp< decltype(&_fn_) >::template Call< (&_fn_) >, "opCmp", {}, 			\
+			False{"don't gen C++ code"} )
 
 	#define AS_OP_CALL( _binder_, _fn_ )																					\
 		(_binder_).AddGenericMethod< typename AE::Scripting::_hidden_::FnWrap_ObjFirst< decltype(&_fn_) >::type >(			\
-			&AE::Scripting::_hidden_::FnWrap_ObjFirst< decltype(&_fn_) >::template Call< (&_fn_) >, "opCall", {} )
+			&AE::Scripting::_hidden_::FnWrap_ObjFirst< decltype(&_fn_) >::template Call< (&_fn_) >, "opCall", {}, 			\
+			False{"don't gen C++ code"} )
 
 	#define AS_OP_CALL_T( _binder_, _fn_ )																					\
 		(_binder_).template AddGenericMethod< typename AE::Scripting::_hidden_::FnWrap_ObjFirst< decltype(&_fn_) >::type >(	\
-			&AE::Scripting::_hidden_::FnWrap_ObjFirst< decltype(&_fn_) >::template Call< (&_fn_) >, "opCall", {} )
+			&AE::Scripting::_hidden_::FnWrap_ObjFirst< decltype(&_fn_) >::template Call< (&_fn_) >, "opCall", {}, 			\
+			False{"don't gen C++ code"} )
 
 	#define AS_EXPL_CAST( _binder_, _fn_ )																					\
 		(_binder_).AddGenericMethod< typename AE::Scripting::_hidden_::FnWrap_ObjFirst< decltype(&_fn_) >::type >(			\
-			&AE::Scripting::_hidden_::FnWrap_ObjFirst< decltype(&_fn_) >::template Call< (&_fn_) >, "opCast", {} )
+			&AE::Scripting::_hidden_::FnWrap_ObjFirst< decltype(&_fn_) >::template Call< (&_fn_) >, "opCast", {}, 			\
+			False{"don't gen C++ code"} )
 
 	#define AS_EXPL_CAST_T( _binder_, _fn_ )																				\
 		(_binder_).template AddGenericMethod< typename AE::Scripting::_hidden_::FnWrap_ObjFirst< decltype(&_fn_) >::type >(	\
-			&AE::Scripting::_hidden_::FnWrap_ObjFirst< decltype(&_fn_) >::template Call< (&_fn_) >, "opCast", {} )
+			&AE::Scripting::_hidden_::FnWrap_ObjFirst< decltype(&_fn_) >::template Call< (&_fn_) >, "opCast", {}, 			\
+			False{"don't gen C++ code"} )
 
 	#define AS_IMPL_CAST( _binder_, _fn_ )																					\
 		(_binder_).AddGenericMethod< typename AE::Scripting::_hidden_::FnWrap_ObjFirst< decltype(&_fn_) >::type >(			\
-			&AE::Scripting::_hidden_::FnWrap_ObjFirst< decltype(&_fn_) >::template Call< (&_fn_) >, "opImplCast", {} )
+			&AE::Scripting::_hidden_::FnWrap_ObjFirst< decltype(&_fn_) >::template Call< (&_fn_) >, "opImplCast", {}, 		\
+			False{"don't gen C++ code"} )
 
 	#define AS_IMPL_CAST_T( _binder_, _fn_ )																				\
 		(_binder_).template AddGenericMethod< typename AE::Scripting::_hidden_::FnWrap_ObjFirst< decltype(&_fn_) >::type >(	\
-			&AE::Scripting::_hidden_::FnWrap_ObjFirst< decltype(&_fn_) >::template Call< (&_fn_) >, "opImplCast", {} )
+			&AE::Scripting::_hidden_::FnWrap_ObjFirst< decltype(&_fn_) >::template Call< (&_fn_) >, "opImplCast", {}, 		\
+			False{"don't gen C++ code"} )
 
 	#define AS_OP_CONVERT( _binder_, _fn_ )																					\
 		(_binder_).AddGenericMethod< typename AE::Scripting::_hidden_::FnWrap_ObjFirst< decltype(&_fn_) >::type >(			\
-			&AE::Scripting::_hidden_::FnWrap_ObjFirst< decltype(&_fn_) >::template Call< (&_fn_) >, "opConv", {} )
+			&AE::Scripting::_hidden_::FnWrap_ObjFirst< decltype(&_fn_) >::template Call< (&_fn_) >, "opConv", {}, 			\
+			False{"don't gen C++ code"} )
 
 	#define AS_OP_CONVERT_T( _binder_, _fn_ )																				\
 		(_binder_).template AddGenericMethod< typename AE::Scripting::_hidden_::FnWrap_ObjFirst< decltype(&_fn_) >::type >(	\
-			&AE::Scripting::_hidden_::FnWrap_ObjFirst< decltype(&_fn_) >::template Call< (&_fn_) >, "opConv", {} )
+			&AE::Scripting::_hidden_::FnWrap_ObjFirst< decltype(&_fn_) >::template Call< (&_fn_) >, "opConv", {}, 			\
+			False{"don't gen C++ code"} )
 
 #else
 

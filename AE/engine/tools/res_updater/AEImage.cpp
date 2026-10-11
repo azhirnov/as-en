@@ -1,12 +1,9 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
 
-#include "pch/Base.h"
+#include "Common.h"
 #include "res_pack/asset_packer/Packer/ImagePacker.h"
 #include "graphics_rhi/Private/EnumUtils.h"
 
-using namespace AE;
-using namespace AE::Base;
-using namespace AE::Graphics;
 using namespace AE::AssetPacker;
 
 namespace {
@@ -145,7 +142,7 @@ extern bool  ConvertAEImage (RDataSource &src, WDataSource &dst)
 	CHECK_ERR( header.magic == ImagePacker::Magic );
 
 	if ( header.version == ImagePacker::Version )
-		return true;
+		return false;
 
 	switch ( header.version )
 	{

@@ -413,6 +413,7 @@ namespace
 			case AdrenoProfiler::EGPUSeries::A5xx :		return UnpackGroupAndSelector_A5xx( c );
 			case AdrenoProfiler::EGPUSeries::A6xx :		return UnpackGroupAndSelector_A6xx( c );
 			case AdrenoProfiler::EGPUSeries::A7xx :
+			case AdrenoProfiler::EGPUSeries::A8xx :		return UnpackGroupAndSelector_A6xx( c );	// TODO
 			case AdrenoProfiler::EGPUSeries::Unknown :	break;
 		}
 		switch_end
@@ -1764,6 +1765,7 @@ namespace
 			case AdrenoProfiler::EGPUSeries::A5xx :		return GetCounterName_A5xx( group, counter );
 			case AdrenoProfiler::EGPUSeries::A6xx :		return GetCounterName_A6xx( group, counter );
 			case AdrenoProfiler::EGPUSeries::A7xx :
+			case AdrenoProfiler::EGPUSeries::A8xx :		return GetCounterName_A6xx( group, counter );	// TODO
 			case AdrenoProfiler::EGPUSeries::Unknown :	break;
 		}
 		switch_end
@@ -1871,6 +1873,7 @@ namespace
 			case EGPUSeries::A5xx :		str << "A5xx";	break;
 			case EGPUSeries::A6xx :		str << "A6xx";	break;
 			case EGPUSeries::A7xx :		str << "A7xx";	break;
+			case EGPUSeries::A8xx :		str << "A8xx";	break;
 			case EGPUSeries::Unknown :
 			default :					str << "unknown"; break;
 		}
@@ -1959,6 +1962,9 @@ namespace
 		{
 			if ( (impl->_hwInfo.gpuId >= 600 and impl->_hwInfo.gpuId < 700) or impl->_hwInfo.gpuId == 702 )
 				impl->_hwInfo.series = EGPUSeries::A6xx;
+			else
+			if ( impl->_hwInfo.gpuId >= 800 )
+				impl->_hwInfo.series = EGPUSeries::A8xx;
 			else
 			if ( impl->_hwInfo.gpuId >= 700 )
 				impl->_hwInfo.series = EGPUSeries::A7xx;

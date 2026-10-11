@@ -50,7 +50,9 @@ namespace AE::ResLoader
 			ND_ bool	Empty ()														C_NE___	{ return _pixels == null; }
 			ND_ bool	IsPixelDataRef ()												C_NE___	{ return _pixels != null and _storage; }
 
-			ND_ ArrayView<ubyte>  Pixels ()												C_NE___;
+			ND_ ArrayView<ubyte>	Pixels ()											C_NE___;
+
+			ND_ ImageMemView		ToView ()											C_NE___;
 		};
 
 		using ArrayLayers_t		= Array< Level >;			// size == 1 for non-array images

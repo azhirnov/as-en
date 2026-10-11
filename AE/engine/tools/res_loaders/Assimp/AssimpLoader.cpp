@@ -751,6 +751,7 @@ namespace
 								   const Config		&config,
 								   EModelFormat		format) __NE___
 	{
+		TRACY( ZoneScoped );
 		CHECK_ERR( stream.IsOpen() );
 
 		Array<ubyte>	data;
@@ -787,6 +788,7 @@ namespace
 								   const Path		&scenePath,
 								   const Config		&config) __NE___
 	{
+		TRACY( ZoneScoped );
 		TRY{
 			AssimpInit();
 			Assimp::Importer	importer;

@@ -24,7 +24,7 @@
 			camera.UpDownScale( s );
 			camera.SideMovementScale( s );
 
-			camera.Position( float3( 0.f, 0.f, -2.2f ));
+			camera.Position( float3( 0.f, 0.f, -3.f ));
 
 			scene.Set( camera );
 		}
@@ -34,21 +34,30 @@
 			RC<UnifiedGeometry>		geometry = UnifiedGeometry();
 
 			UnifiedGeometry_Draw	cmd;
-			cmd.VertexCount( grid_size.Add( 1 ).Mul( 2 ));
+			cmd.VertexCount( grid_size.Add( 1 ).Mul( 2 ));	// equal to GenGridWithInstancingTriStrip_VertexCount()
 			cmd.InstanceCount( grid_size );
 			cmd.PipelineHint( "WithInstancing" );
 			geometry.Draw( cmd );
 
-			scene.Add( geometry, float3( -1.1f, 0.f, 0.f ));
+			scene.Add( geometry, float3( -1.1f, -1.f, 0.f ));
 		}{
 			RC<UnifiedGeometry>		geometry = UnifiedGeometry();
 
 			UnifiedGeometry_Draw	cmd;
-			cmd.VertexCount( grid_size.Add( 1 ).Pow( 2 ).Mul( 2 ).Sub( 4 ));
+			cmd.VertexCount( grid_size.Add( 1 ).Pow( 2 ).Mul( 2 ).Sub( 4 ));	// equal to GenGridTriStrip_VertexCount()
 			cmd.PipelineHint( "WithoutInstancing" );
 			geometry.Draw( cmd );
 
-			scene.Add( geometry, float3( 1.1f, 0.f, 0.f ));
+			scene.Add( geometry, float3( 1.1f, -1.f, 0.f ));
+		}{
+			RC<UnifiedGeometry>		geometry = UnifiedGeometry();
+
+			UnifiedGeometry_Draw	cmd;
+			cmd.VertexCount( grid_size.Mul( grid_size.Add(1) ).Mul( 2 ));	// equal to GenGridSerpantineTriStrip_VertexCount()
+			cmd.PipelineHint( "Serpantine" );
+			geometry.Draw( cmd );
+
+			scene.Add( geometry, float3( 0.f, 1.1f, 0.f ));
 		}
 
 		Slider( grid_size,	"GridSize",	 2,	64,	16 );
@@ -60,6 +69,7 @@
 			pass.Output(	"out_Color",	rt,		RGBA32f(0.3, 0.5, 1.0, 1.0) );
 			pass.Constant(	"iGridSize",	grid_size );
 			pass.Slider(	"iWireframe",	1,	2 );
+			pass.Slider(	"iShowTris",	0,	1 );
 		}
 
 		Present( rt );

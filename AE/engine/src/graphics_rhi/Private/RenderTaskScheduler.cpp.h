@@ -179,11 +179,13 @@
 		if_likely( auto* frame_p = dep.GetIf< OnFrameNextCycle >() )
 		{
 			auto&	f = _frames[ frame_p->frameId.Index() ];
-			EXLOCK( f.guard );
 
-			f.deps.emplace_back( task.GetRC() ).SetExtra( uint{defaultIsStrongDep} );
-
+			ASSERT( task.QueueType() != ETaskQueue::Background );
 			TaskApi::IncWaitCounter( task );
+			{
+				EXLOCK( f.guard );
+				f.deps.emplace_back( task.GetRC() ).SetExtra( uint{defaultIsStrongDep} );
+			}
 			return true;
 		}
 
@@ -245,6 +247,7 @@
 */
 	AsyncCoro  RenderTaskScheduler::_EndFrameRun (const FrameUID frameId) __NE___
 	{
+		TRACY( ZoneScoped );
 		auto&	rts = GraphicsScheduler();
 
 		if_unlikely( Coro_IsCanceled or not _EndFrame_Impl( rts, frameId ))
@@ -255,6 +258,8 @@
 		}
 
 		MemoryManager().GetGraphicsFrameAllocator().EndFrame( frameId );
+
+		TRACY( FrameMarkNamed( "Render" ));
 		co_return;
 	}
 
@@ -490,6 +495,10 @@
 */
 	bool  RenderTaskScheduler::WaitNextFrame (const EThreadArray &threads, nanoseconds timeout) __NE___
 	{
+		TRACY(
+			ZoneScoped;
+			ZoneColor( 1 );
+		)
 		ASSERT( timeout != Default );
 
 		const auto	end_time = TimePoint_t::clock::now() + timeout;
@@ -537,6 +546,7 @@
 */
 	bool  RenderTaskScheduler::BeginFrame (const BeginFrameConfig &cfg) __NE___
 	{
+		TRACY( ZoneScoped );
 		CHECK_ERR_MSG( _status.Set( EStatus::Idle, EStatus::BeginFrame ),
 			"incorrect render task scheduler state, must be 'Idle'." );
 
@@ -632,7 +642,10 @@
 			}
 
 			if_likely( dep )
+			{
+				ASSERT( dep->QueueType() != ETaskQueue::Background );
 				begin_deps->push_back( dep );
+			}
 		}
 	}
 
@@ -643,6 +656,8 @@
 */
 	bool  RenderTaskScheduler::_FlushQueue (const EQueueType queueType, const FrameUID frameId, const Bool forceFlush) __NE___
 	{
+		TRACY( ZoneScoped );
+
 		TempBatches_t	pending;
 
 		// lock queue and submit
@@ -850,6 +865,11 @@
 #ifndef AE_ENABLE_REMOTE_GRAPHICS
 	bool  RenderTaskScheduler::_WaitAll (const EThreadArray &threads, nanoseconds timeout) __NE___
 	{
+		TRACY(
+			ZoneScoped;
+			ZoneColor( 1 );
+		)
+
 		const auto	end_time	= TimePoint_t::clock::now() + timeout;
 		const auto	q_mask		= _device.GetAvailableQueues();
 		FrameUID	frame_id	= _frameId.load();

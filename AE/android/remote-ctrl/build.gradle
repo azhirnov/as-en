@@ -42,6 +42,7 @@ android {
 		jniLibs {
 			excludes   += ['lib/**/*.so']
 			pickFirsts += ['lib/**/libAndroidRemoteControl.so']
+        //	keepDebugSymbols += ['**/libAndroidRemoteControl.so']	// only for debugging
 		}
 		resources  {
 			excludes += '**/*.kotlin_*'

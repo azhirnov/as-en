@@ -118,7 +118,7 @@ namespace AE::Graphics::_hidden_
 		static constexpr uint	_LocalArraySize		= 16;
 
 		using RawCtx		= CtxImpl;
-		using AccumBar		= AccumBarriers< _VComputeContextImpl< CtxImpl >>;
+		using AccumBar		= TAccumBarriers< _VComputeContextImpl< CtxImpl >>;
 		using DeferredBar	= AccumDeferredBarriersForCtx< _VComputeContextImpl< CtxImpl >>;
 		using Validator_t	= ComputeContextValidation;
 

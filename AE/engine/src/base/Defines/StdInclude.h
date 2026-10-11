@@ -87,3 +87,9 @@
 
 #endif // AE_COMPILER_MSVC
 
+#if defined(AE_ENABLE_TRACY) and not defined(AE_CFG_RELEASE)
+# include <tracy/Tracy.hpp>
+# define TRACY( ... )	__VA_ARGS__
+#else
+# define TRACY( ... )
+#endif

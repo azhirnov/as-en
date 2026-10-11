@@ -10,9 +10,12 @@
 
 	void ASmain ()
 	{
-		RC<Image>	rt		= Image( EPixelFormat::RGBA8_UNorm, SurfaceSize() );	rt.Name( "RT-Color" );
-		RC<Image>	ds		= Image( EPixelFormat::Depth32F, SurfaceSize() );		ds.Name( "RT-Depth" );
-		RC<Image>	sr		= Image( EPixelFormat::R8U, SurfaceSize().DivCeil(16) );	sr.Name( "Fragment shading rate view" );
+		const uint 	tile	= 16;	// NV, AMD
+	//	const uint 	tile	= 8;	// Intel
+
+		RC<Image>	rt		= Image( EPixelFormat::RGBA8_UNorm,	SurfaceSize() );				rt.Name( "RT-Color" );
+		RC<Image>	ds		= Image( EPixelFormat::Depth32F, 	SurfaceSize() );				ds.Name( "RT-Depth" );
+		RC<Image>	sr		= Image( EPixelFormat::R8U, 		SurfaceSize().DivCeil(tile) );	sr.Name( "Fragment shading rate view" );
 		RC<Scene>	scene	= Scene();
 
 		// setup camera
@@ -43,7 +46,7 @@
 		RC<DynamicInt2>		prim_rate	= DynamicInt2();
 		RC<DynamicInt2>		tex_rate	= DynamicInt2();
 
-		Slider( mode,		"FromTex",	0,			2 );		// per-primitive rate, from image or both
+		Slider( mode,		"Mode",		0,			2 );		// per-primitive rate, from image or both
 		Slider( prim_rate,	"PrimRate",	int2(0),	int2(2) );
 		Slider( tex_rate,	"TexRate",	int2(0),	int2(2) );
 
@@ -51,8 +54,8 @@
 		{
 			RC<SceneGraphicsPass>	draw = scene.AddGraphicsPass( "main pass" );
 			draw.AddPipeline( "samples/ShadingRate.as" );	// [src](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/pipelines/samples/ShadingRate.as)
-			draw.Output( "out_Color", rt, RGBA32f(0.0) );
-			draw.Output( ds, DepthStencil(1.f, 0) );
+			draw.Output( "out_Color", 	rt, 	RGBA32f(0.0) );
+			draw.Output( 				ds, 	DepthStencil(1.f, 0) );
 
 			draw.FragmentShadingRate( EShadingRate::Size1x1, EShadingRateCombinerOp::Replace, EShadingRateCombinerOp::Keep );	// use primitive rate
 
@@ -66,8 +69,8 @@
 		}{
 			RC<SceneGraphicsPass>	draw = scene.AddGraphicsPass( "main pass" );
 			draw.AddPipeline( "samples/ShadingRate.as" );	// [src](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/pipelines/samples/ShadingRate.as)
-			draw.Output( "out_Color", rt, RGBA32f(0.0) );
-			draw.Output( ds, DepthStencil(1.f, 0) );
+			draw.Output( "out_Color", 	rt, 	RGBA32f(0.0) );
+			draw.Output( 				ds, 	DepthStencil(1.f, 0) );
 
 			draw.FragmentShadingRate( sr );
 			draw.FragmentShadingRate( EShadingRate::Size1x1, EShadingRateCombinerOp::Keep, EShadingRateCombinerOp::Replace );	// use texture rate
@@ -76,8 +79,8 @@
 		}{
 			RC<SceneGraphicsPass>	draw = scene.AddGraphicsPass( "main pass" );
 			draw.AddPipeline( "samples/ShadingRate.as" );	// [src](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/pipelines/samples/ShadingRate.as)
-			draw.Output( "out_Color", rt, RGBA32f(0.0) );
-			draw.Output( ds, DepthStencil(1.f, 0) );
+			draw.Output( "out_Color", 	rt, 	RGBA32f(0.0) );
+			draw.Output( 				ds, 	DepthStencil(1.f, 0) );
 
 			draw.FragmentShadingRate( sr );
 			draw.FragmentShadingRate( EShadingRate::Size1x1, EShadingRateCombinerOp::Max, EShadingRateCombinerOp::Max );

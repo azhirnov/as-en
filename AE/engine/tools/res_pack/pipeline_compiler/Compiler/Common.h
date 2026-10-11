@@ -6,7 +6,7 @@
 
 namespace AE::PipelineCompiler
 {
-	
+
 	//
 	// Shader Version
 	//

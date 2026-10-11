@@ -56,16 +56,17 @@ namespace AE::Base
 			StringView	name = signature.substr( value_begin, value_end - value_begin );
 		#endif
 
-			if ( name.empty()									or
-				 name.find( "static_cast<" ) != StringView::npos )
-			{
+			if ( name.empty() )
 				return {};
-			}
 
 			// remove namespace and enum-class qualification
 			const usize	scope = name.rfind( "::" );
 			if ( scope != StringView::npos )
 				name.remove_prefix( scope + 2 );
+
+			// skip '(enum)value'
+			if ( name.contains( ')' ))
+				return {};
 
 			// skip hidden values
 			if ( name.front() == '_' )

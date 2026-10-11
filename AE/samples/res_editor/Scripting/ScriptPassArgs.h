@@ -76,7 +76,8 @@ namespace AE::ResEditor
 
 		template <typename DSL, typename AS>
 		void  ArgsToDescSet (EShaderStages stages, DSL &dsLayout, AS arraySize)								C_Th___;
-		void  InitResources (OUT ResourceArray &resources, PipelinePackID packId)							C_Th___;
+		void  InitResources (OUT ResourceArray &resources, PipelinePackID packId,
+							 bool clearContentOfArgOut = false)												C_Th___;
 		void  ValidateArgs ()																				C_Th___;
 		void  AddLayoutReflection ()																		C_Th___;
 

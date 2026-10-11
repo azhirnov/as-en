@@ -11,18 +11,19 @@
 
 	ND_ float  SDFScene (float3 pos)
 	{
-		pos.y -= 0.1;
+		pos.x += 0.25;
+		pos.y -= 0.05;
 
 		float	d0 = SDF_Sphere( pos, 0.5 );
 		float	d1 = SDF_Sphere( SDF_Move( pos, float3(0.1, -0.5, -0.3) ), 0.5 );
-		float	d2 = SDF_Box( SDF_Move( pos, float3(0.7, 0.5, -0.2) ), float3(0.5) );
+		float	d2 = SDF_Box(	 SDF_Move( pos, float3(0.7,  0.4, -0.2) ), float3(0.5) );
 		float	d02 = SDF_OpUnite( d0, d2, 0.5 );
-		return	-Min( d02, d1 );
+		return	Min( d02, d1 ) + iMinDensity;
 	}
 
 	ND_ float  Density (const float3 pos)
 	{
-		return Clamp( SDFScene( pos ), -1.0, 1.0 );
+		return Clamp( -SDFScene( pos ), -1.0, 1.0 );
 	}
 
 	float  Density (const int3 coord, const int3 size, const float3 invSize)
@@ -39,6 +40,7 @@
 #endif
 //-----------------------------------------------------------------------------
 #ifdef RAYMARCH
+	#include "Matrix.glsl"
 	#include "Intersectors.glsl"
 
 	const float3	c_VolumePos		= float3(0.0, 0.0, 4.0);
@@ -47,7 +49,7 @@
 	const float3	c_VolumeColor	= float3(0.0, 1.0, 0.0);
 
 
-	ND_ float3  RayTrace (in Ray ray)
+	ND_ float3  VolumeTrace (in Ray ray)
 	{
 		float2	t_min_max;
 		if ( ! AABB_Ray_Intersect( c_VolumeAABB, ray, OUT t_min_max ))
@@ -71,7 +73,7 @@
 			float	density		= Density( local_pos );
 
 			// simple volumetric
-			if ( density > iMinDensity )
+			if ( density > 0.0 )
 			{
 				float	scattering	= density;
 				float	powder		= 1.0 - Exp( -scattering * 122.0 );
@@ -92,10 +94,47 @@
 	}
 
 
+	GEN_SDF_NORMAL_6sp_FN( SDFSceneNormal, SDFScene )
+
+	ND_ float3  SphereTrace (in Ray ray)
+	{
+		float2	t_min_max;
+		if ( ! AABB_Ray_Intersect( c_VolumeAABB, ray, OUT t_min_max ))
+			return float3(0.0);
+
+		const float		max_depth	= Distance( c_VolumeAABB.min, c_VolumeAABB.max );
+		const float3	center		= AABB_Center( c_VolumeAABB );
+		const float3	box_size	= AABB_Size( c_VolumeAABB );
+		const float		min_dist	= 0.00625;
+
+		// camera may be inside cube
+		Ray_SetLength( INOUT ray, Max( t_min_max.x, ray.t ));
+
+		for (uint i = 0; i < c_MaxSteps; ++i)
+		{
+			float3	local_pos	= ray.pos - center;
+			float	dist		= SDFScene( local_pos );
+
+			Ray_Move( INOUT ray, dist );
+
+			if ( Abs(dist) < min_dist )
+				break;
+
+			if ( ray.t > t_min_max.y )
+				return float3(0.0);
+		}
+
+		float3	norm = SDFSceneNormal( ray.pos );
+		return ToUNorm( norm );
+	}
+
+
 	void  Main ()
 	{
-		Ray		ray = Ray_Perspective( un_PerPass.camera.invViewProj, un_PerPass.camera.pos, 0.1, gl.FragCoord.xy * un_PerPass.invResolution );
-		out_Color.rgb = RayTrace( ray );
+		Ray	ray = Ray_Perspective( un_PerPass.camera.invViewProj, un_PerPass.camera.pos, 0.01, gl.FragCoord.xy * un_PerPass.invResolution );
+
+		out_Color.rgb = SphereTrace( ray );
+	//	out_Color.rgb = VolumeTrace( ray );
 		out_Color.a   = 1.0;
 	}
 

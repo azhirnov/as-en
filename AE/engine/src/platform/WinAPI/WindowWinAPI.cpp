@@ -226,10 +226,7 @@ namespace AE::App
 
 		// can call 'Close()' and '_wnd' will be null
 
-		_SetStateV2( EState::Created );
-		_SetStateV2( EState::Started );
-		_SetStateV2( EState::InForeground );
-
+		_SetStateV3( EState::InForeground );
 		_ShowWindow( EVisibility::VisibleFocused );
 
 		return true;
@@ -376,9 +373,9 @@ namespace AE::App
 		{
 			switch ( uMsg )
 			{
-				case WM_KILLFOCUS :		_SetStateV2( EState::InForeground );							break;
-				case WM_ACTIVATEAPP :	_SetStateV2( wParam ? EState::Focused : EState::InBackground );	break;
-				case WM_SETFOCUS :		_SetStateV2( EState::Focused );									break;
+				case WM_KILLFOCUS :		_SetStateV3( EState::InForeground );							break;
+				case WM_ACTIVATEAPP :	_SetStateV3( wParam ? EState::Focused : EState::InBackground );	break;
+				case WM_SETFOCUS :		_SetStateV3( EState::Focused );									break;
 
 				case WM_DISPLAYCHANGE :
 				{

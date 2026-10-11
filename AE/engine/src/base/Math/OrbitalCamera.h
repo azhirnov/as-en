@@ -40,7 +40,7 @@ namespace AE::Base
 	public:
 		TOrbitalCamera ()													__NE___	{}
 
-		ND_ Frustum_t const&	Frustum ()									C_NE___	{ return _frustum; }
+		ND_ Frustum_t const&	Frustum ()									C_NE___	{ return _frustum; }	// world space
 		ND_ Vec3_t				Position ()									C_NE___	{ return CameraPosition() + CameraOffset(); }
 		ND_ Quat_t const&		Orientation ()								C_NE___	{ return _camera.transform.orientation; }
 		ND_ Mat4_t const&		Projection ()								C_NE___	{ return _camera.projection; }

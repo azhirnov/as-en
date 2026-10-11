@@ -92,7 +92,7 @@ namespace
 
 extern void Test_Input ()
 {
-	Application_t::Run( MakeUnique<AppListener>() );
+	Application_t::Run( AppListenerPtr{new AppListener{}} );
 
 	TEST_PASSED();
 }

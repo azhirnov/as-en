@@ -504,10 +504,7 @@ namespace AE::App
 
 		// can call 'Close()' and '_window' will be null
 
-		_SetStateV2( EState::Created );
-		_SetStateV2( EState::Started );
-		_SetStateV2( EState::InForeground );
-		_SetStateV2( EState::Focused );
+		_SetStateV3( EState::Focused );
 
 		return true;
 	}
@@ -698,7 +695,7 @@ namespace AE::App
 		auto*	self = Cast<WindowGLFW>( glfwGetWindowUserPointer( wnd ));
 		DRC_EXLOCK( self->_drCheck );
 
-		self->_SetStateV2( iconified == GLFW_TRUE ? EState::InBackground : EState::InForeground );
+		self->_SetStateV3( iconified == GLFW_TRUE ? EState::InBackground : EState::InForeground );
 	}
 
 /*
@@ -711,7 +708,12 @@ namespace AE::App
 		auto*	self = Cast<WindowGLFW>( glfwGetWindowUserPointer( wnd ));
 		DRC_EXLOCK( self->_drCheck );
 
-		self->_SetStateV2( focused == GLFW_TRUE ? EState::Focused : EState::InForeground );
+		auto 	cur_state = self->GetState();
+		ASSERT( cur_state >= EState::InForeground and cur_state <= EState::InBackground );
+
+		self->_SetStateV3( focused == GLFW_TRUE ? EState::Focused :
+						   (cur_state == EState::InBackground ? EState::InBackground :	// keep in background
+																EState::InForeground) );
 	}
 
 /*

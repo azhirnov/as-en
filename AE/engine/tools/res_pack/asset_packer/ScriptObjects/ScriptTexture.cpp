@@ -204,7 +204,8 @@ namespace {
 			RWImageMemView	dst{ _imgData->ToView() };
 			const auto		sw  = RWImageMemView::Swizzle{ ImageSwizzle::FromString( srcSwizzle ), ImageSwizzle::FromString( dstSwizzle )};
 
-			CHECK_THROW_MSG( dst.Blit( src, sw ));
+			RWImageMemView::BlitOp	op{ src, dst, sw };
+			CHECK_THROW_MSG( RWImageMemView::Blit( op ));
 		}
 	}
 
@@ -410,7 +411,8 @@ namespace {
 				RWImageMemView	dst_view{ dstImage.ToView( MipmapLevel{mip}, ImageLayer{layer} )};
 				RWImageMemView	src_view{ _imgData->ToView( MipmapLevel{mip}, ImageLayer{layer} )};
 
-				CHECK_ERR( dst_view.Blit( src_view ));
+				RWImageMemView::BlitOp	op{ src_view, dst_view };
+				CHECK_ERR( RWImageMemView::Blit( op ));
 			}
 		}
 		return true;

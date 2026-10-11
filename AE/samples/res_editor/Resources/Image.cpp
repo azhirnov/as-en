@@ -22,7 +22,30 @@ namespace {
 #	define AE_BUILD_ASSET_PACKER
 #	include "res_pack/asset_packer/Packer/ImagePacker.cpp.h"
 #	undef AE_BUILD_ASSET_PACKER
-}
+
+/*
+=================================================
+	UpdateDimensionForBlockView
+=================================================
+*/
+	ND_ static bool  UpdateDimensionForBlockView (INOUT ImageDim_t &dim, OUT EPixelFormat &dstFormat, EPixelFormat srcFormat)
+	{
+		auto&	fmt_info = EPixelFormat_GetInfo( srcFormat );
+		CHECK_ERR( fmt_info.IsCompressed() );
+
+		switch ( fmt_info.bitsPerBlock )
+		{
+			case 64 :	dstFormat = EPixelFormat::RG32U; break;
+			case 128 :	dstFormat = EPixelFormat::RGBA32U; break;
+			default :	RETURN_ERR( "unsupported block size" );
+		}
+
+		dim = CheckCast{uint3{ Max( uint2{dim} / fmt_info.TexBlockDim(), 1u ), dim.z }};
+		return true;
+	}
+
+} // namespace
+
 
 /*
 =================================================
@@ -89,6 +112,9 @@ namespace {
 
 			for (auto& op : _loadOps)
 			{
+				if ( not IsNullUnion( op.clearValue ))
+					continue;
+
 				CHECK_THROW( GetVFS().Open( OUT op.file, op.filename ));
 
 				auto	req = op.file->ReadRemaining( 0_b );	// TODO: read by blocks
@@ -131,7 +157,7 @@ namespace {
 							  RC<DynamicDim>		inDynSize,
 							  RC<DynamicDim>		outDynSize,
 							  EImageFlags			flags,
-							  StringView			dbgName) __NE___
+							  StringView			dbgName) __Th___
 	{
 		RC<Image>	res{ new Image{ RVRef(id), RVRef(view), RVRef(loadOps), renderer, isDummy, desc, viewDesc,
 									RVRef(inDynSize), RVRef(outDynSize), flags, dbgName }};
@@ -182,6 +208,7 @@ namespace {
 	{
 		ImageDesc	desc;
 		desc.imageDim	= EImageDim_2D;
+		desc.format		= EPixelFormat::RGBA8_UNorm;
 
 		auto&		res_mngr	 = GraphicsScheduler().GetResourceManager();
 		auto		img_and_view = renderer.GetDummyImage( desc );
@@ -393,6 +420,7 @@ namespace {
 		if ( auto stat = _uploadStatus.load();  stat != EUploadStatus::InProgress )
 			return stat;
 
+		TRACY( ZoneScoped );
 		ASSERT( not _loadOps.empty() );
 
 		bool	all_complete	= true;
@@ -402,6 +430,13 @@ namespace {
 		{
 			if ( op.IsUploadComplete() )
 				continue;
+
+			if ( not IsNullUnion( op.clearValue ))
+			{
+				_ClearImage( ctx, op.clearValue );
+				all_complete = true;
+				break;
+			}
 
 			ASSERT( op.loaded->IsInQueue() or op.loaded->IsFinished() );
 
@@ -417,17 +452,19 @@ namespace {
 
 					if_unlikely( _isDummy.load() )
 					{
-						CHECK_THROW( _CreateImage( *imageData, op.mipmap, op.layer, AllBits( op.flags, ELoadOpFlags::GenMipmaps ), ctx ));
+						CHECK_THROW( _CreateImage( *imageData, op.mipmap, op.layer, op.flags, ctx ));
 					}
 
 					for (;;)
 					{
-						ImageMemView	src_mem = imageData->ToView( op.curMipmap, op.curLayer );
+						ImageMemView	src_mem			= imageData->ToView( op.curMipmap, op.curLayer );
 						ImageMemView	dst_mem;
+
+						const bool		is_block_view	= AllBits( op.flags, ELoadOpFlags::BlockTexelView );
+						auto&			fmt_info		= EPixelFormat_GetInfo( src_mem.Format() );
 
 						if_unlikely( not op.stream.IsInitialized() )
 						{
-							auto&	fmt_info	= EPixelFormat_GetInfo( src_mem.Format() );
 
 							UploadImageDesc		upload;
 							upload.imageDim		= ImageDim_t{ImageUtils::MipmapDimension( imageData->Dimension(), op.curMipmap.Get(), fmt_info.TexBlockDim() )};
@@ -435,6 +472,13 @@ namespace {
 							upload.mipLevel		= op.mipmap + op.curMipmap;
 							upload.heapType		= EStagingHeapType::Dynamic;
 							upload.aspectMask	= src_mem.Aspect();
+
+							// compressed format to raw block format
+							if ( is_block_view )
+							{
+								EPixelFormat	dst_fmt;
+								CHECK_THROW( UpdateDimensionForBlockView( INOUT upload.imageDim, OUT dst_fmt, src_mem.Format() ));
+							}
 							op.stream			= ImageStream{ _id, upload };
 						}
 
@@ -444,7 +488,13 @@ namespace {
 						if ( dst_mem.Empty() )
 							break;
 
-						CHECK( dst_mem.CopyFrom( uint3{}, dst_mem.Offset(), src_mem, dst_mem.Dimension() ));
+						// image may be divided by parts
+						uint3	src_dim = dst_mem.Dimension();
+
+						if ( is_block_view )
+							src_dim = uint3{ uint2{src_dim} * fmt_info.TexBlockDim(), 1u };
+
+						CHECK( dst_mem.CopyFrom( uint3{}, dst_mem.Offset(), dst_mem.Dimension(), src_dim, src_mem ));
 
 						if ( op.stream.IsCompleted() )
 						{
@@ -491,7 +541,7 @@ namespace {
 	_GenMipmaps
 =================================================
 */
-	void  Image::_GenMipmaps (TransferCtx_t &ctx) const
+	void  Image::_GenMipmaps (TransferCtx_t &ctx) C_NE___
 	{
 		const auto	desc		= GetImageDesc();
 		uint		num_layers	= 0;
@@ -511,15 +561,17 @@ namespace {
 			return;
 		}
 
+		const ImageID	id = _id.Get();
+
 		if ( num_layers == desc.arrayLayers.Get() and
 			 num_layers == _loadOps.size() )
 		{
-			ctx.GenerateMipmaps( _id );
+			ctx.GenerateMipmaps( id );
 			return;
 		}
 
 		// RenderGraph doesn't track specific image layers, so we need to put explicit barriers
-		ctx.ResourceState( _id, EResourceState::BlitSrc );
+		ctx.ResourceState( id, EResourceState::BlitSrc );
 		ctx.CommitBarriers();
 
 		for (auto& op : _loadOps)
@@ -536,9 +588,35 @@ namespace {
 				range.mipmapCount	= MipmapCount_t(desc.mipLevels.Get() - op.mipmap.Get());
 
 				if ( range.mipmapCount > 1 )
-					ctx.GetBaseContext().GenerateMipmaps( _id, {range}, EResourceState::BlitSrc );
+					ctx.GetBaseContext().GenerateMipmaps( id, {range}, EResourceState::BlitSrc );
 			}
 		}
+	}
+
+/*
+=================================================
+	_ClearImage
+=================================================
+*/
+	void  Image::_ClearImage (TransferCtx_t &ctx, const ClearValue_t &clearValue) C_NE___
+	{
+		const ImageID	id		= _id.Get();
+		const auto		desc	= GetViewDesc();
+
+		ImageSubresourceRange	range;
+		range.aspectMask	= EImageAspect::Color;
+		range.baseMipLevel	= desc.baseMipmap;
+		range.mipmapCount	= desc.mipmapCount;
+		range.baseLayer		= desc.baseLayer;
+		range.layerCount	= desc.layerCount;
+
+		Visit( clearValue,
+				[&](const RGBA32f &col)		{ ctx.ClearColorImage( id, col, {range} ); },
+				[&](const RGBA32u &col)		{ ctx.ClearColorImage( id, col, {range} ); },
+				[&](const RGBA32i &col)		{ ctx.ClearColorImage( id, col, {range} ); },
+				[&](const DepthStencil &ds)	{ range.aspectMask = EImageAspect::Depth;  ctx.ClearDepthStencilImage( id, ds, {range} ); },
+				[](NullUnion)				{}
+			);
 	}
 
 /*
@@ -603,6 +681,7 @@ namespace {
 		if ( auto stat = _uploadStatus.load();  stat != EUploadStatus::InProgress )
 			return stat;
 
+		TRACY( ZoneScoped );
 		ASSERT( not _storeOps.empty() );
 
 		bool	all_complete	= true;
@@ -801,9 +880,9 @@ namespace {
 	_CreateImage
 =================================================
 */
-	template <typename CtxType>
-	bool  Image::_CreateImage (const ResLoader::IntermImage &intermImg, MipmapLevel baseMipmap, ImageLayer baseLayer, bool allMipmaps, CtxType &ctx)
+	bool  Image::_CreateImage (const ResLoader::IntermImage &intermImg, MipmapLevel baseMipmap, ImageLayer baseLayer, ELoadOpFlags flags, TransferCtx_t &ctx)
 	{
+		TRACY( ZoneScoped );
 		ASSERT( _isDummy.load() );
 		ASSERT( not intermImg.IsEmpty() );
 
@@ -813,7 +892,10 @@ namespace {
 		{{
 			ImageDesc		desc		= _requiredImageDesc;
 			ImageViewDesc	view_desc	= _requiredViewDesc;
-			CHECK_ERR( CompareImageTypes( desc, intermImg ));
+			const bool		block_view	= AllBits( flags, ELoadOpFlags::BlockTexelView );
+
+			if ( not block_view )
+				CHECK_ERR( CompareImageTypes( desc, intermImg ));
 
 			desc.dimension		= CheckCast{ intermImg.Dimension() << baseMipmap.Get() };
 			desc.arrayLayers	= ImageLayer{ intermImg.ArrayLayers() + baseLayer.Get() };
@@ -824,7 +906,12 @@ namespace {
 			desc.format			= intermImg.PixelFormat();
 			// keep: desc.samples
 
-			if ( allMipmaps )
+			if ( block_view )
+			{
+				CHECK_ERR( UpdateDimensionForBlockView( INOUT desc.dimension, OUT desc.format, intermImg.PixelFormat() ));
+			}
+
+			if ( AllBits( flags, ELoadOpFlags::GenMipmaps ))
 			{
 				desc.mipLevels			= MipmapLevel::Max();
 				view_desc.mipmapCount	= UMax;

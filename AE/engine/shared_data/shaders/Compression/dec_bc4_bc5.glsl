@@ -2,6 +2,8 @@
 #ifdef AE_LICENSE_MIT
 
 	// based on code from https://github.com/Themaister/Granite/blob/master/assets/shaders/decode/rgtc.h (MIT License)
+	// LLM patched
+
 	float  decode_alpha_rgtc (uint2 payload, int bit_offset)
 	{
 		float	ep0			= float(payload.x & 0xFFu) / float(255.0);

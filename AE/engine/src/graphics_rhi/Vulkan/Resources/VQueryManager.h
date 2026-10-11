@@ -102,10 +102,12 @@ namespace AE::Graphics
 
 		ND_ bool  SupportsCalibratedTimestamps ()																	C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _calibratedTs; }
 
+			// result in GPU time domain
 			bool  GetTimestamp (const IQuery &, OUT ulong* result, Bytes resultSize)								C_NE_OV;	// raw
 			bool  GetTimestamp (const IQuery &, OUT double* result, Bytes resultSize)								C_NE_OV;	// nanoseconds on GPU-space
 			bool  GetTimestamp (const IQuery &, OUT nanosecondsd* result, Bytes resultSize)							C_NE_OV;	// nanoseconds on GPU-space
 
+			// result in CPU time domain
 			bool  GetTimestampCalibrated (const IQuery &, OUT ulong* result, OUT ulong* maxDeviation, Bytes resultSize)					C_NE_OV;	// nanoseconds on CPU-space
 			bool  GetTimestampCalibrated (const IQuery &, OUT double* result, OUT double* maxDeviation, Bytes resultSize)				C_NE_OV;	// nanoseconds on CPU-space
 			bool  GetTimestampCalibrated (const IQuery &, OUT nanosecondsd* result, OUT nanosecondsd* maxDeviation, Bytes resultSize)	C_NE_OV;	// nanoseconds on CPU-space
@@ -115,6 +117,10 @@ namespace AE::Graphics
 			bool  GetPipelineStatistic (const IQuery &, OUT ComputePipelineStatistic* result, Bytes resultSize)			C_NE_OV;
 			bool  GetPipelineStatistic (const IQuery &, OUT MeshPipelineStatistic* result, Bytes resultSize)			C_NE_OV;
 			bool  GetRTASProperty (const Query &q, OUT Bytes64u* result, Bytes resultSize)								C_NE___;
+
+			// result in GPU time domain similar to 'GetTimestamp()'
+			bool  GetCurrentTimestamp (OUT ulong &timeInNs,OUT ulong *maxDeviationINs = null)						C_NE___;
+			bool  GetCurrentTimestamp (OUT nanosecondsd &time, OUT nanosecondsd *maxDeviation = null)				C_NE___;
 
 	private:
 		static void  _ResetPoolOnHost (const VDevice &, uint idx, QueryPool &pool, uint count)						__NE___;

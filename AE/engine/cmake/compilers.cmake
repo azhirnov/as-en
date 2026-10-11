@@ -274,6 +274,7 @@ if ( (${TARGET_CPU_ARCH} STREQUAL "X64") OR (${TARGET_CPU_ARCH} STREQUAL "X86") 
 elseif ( (${TARGET_CPU_ARCH} STREQUAL "ARM64") OR (${TARGET_CPU_ARCH} STREQUAL "ARM32") )
 	# AE_SIMD_NEON defined in source
 	set( AE_SIMD_NEON_HALF	"0"  CACHE STRING "enable NEON FP16: 0 or 1" )
+	set( AE_SIMD_NEON_BF16	"0"  CACHE STRING "enable NEON BF16: 0 or 1" )
 	set( AE_SIMD_SVE		"0"  CACHE STRING "SVE version: 0, 1(SVE), 2(SVE2)" )
 	set( AE_SIMD_SME		"0"  CACHE STRING "SME version: 0, 1" )
 	set( AE_ARM_ARCH		"82" CACHE STRING "Arch version: 70, 80, 81, 82, 83, 84, 85, 86, 87, 90, 92, ..." )
@@ -307,6 +308,9 @@ elseif ( (${TARGET_CPU_ARCH} STREQUAL "ARM64") OR (${TARGET_CPU_ARCH} STREQUAL "
 		if (AE_SIMD_NEON_HALF)
 			string( APPEND _march "+fp16" )
 		endif()
+		if (AE_SIMD_NEON_BF16)
+			string( APPEND _march "+bf16" )
+		endif()
 
 		if (AE_SIMD_SVE EQUAL 2)
 			string( APPEND _march "+sve2" )		# implies +sve
@@ -326,6 +330,9 @@ elseif ( (${TARGET_CPU_ARCH} STREQUAL "ARM64") OR (${TARGET_CPU_ARCH} STREQUAL "
 		if (AE_SIMD_NEON_HALF AND AE_ARM_ARCH LESS 82)
 			message( FATAL_ERROR "FEAT_FP16 is architecturally valid only from armv8.2-a" )
 		endif()
+		if (AE_SIMD_NEON_BF16 AND AE_ARM_ARCH LESS 82)
+			message( FATAL_ERROR "FEAT_BF16 is architecturally valid only from armv8.2-a" )
+		endif()
 		if (AE_SIMD_SVE GREATER_EQUAL 1 AND AE_ARM_ARCH LESS 82)
 			message( FATAL_ERROR "SVE is architecturally valid only from armv8.2-a" )
 		endif()
@@ -343,6 +350,7 @@ elseif ( (${TARGET_CPU_ARCH} STREQUAL "ARM64") OR (${TARGET_CPU_ARCH} STREQUAL "
 	endif()
 
 	message( STATUS "AE_SIMD_NEON_HALF: ${AE_SIMD_NEON_HALF}" )
+	message( STATUS "AE_SIMD_NEON_BF16: ${AE_SIMD_NEON_BF16}" )
 	message( STATUS "AE_SIMD_SVE:       ${AE_SIMD_SVE}" )
 	message( STATUS "AE_SIMD_SME:       ${AE_SIMD_SME}" )
 	message( STATUS "AE_ARM_ARCH:       ${AE_ARM_ARCH}" )
@@ -661,7 +669,7 @@ if ( COMPILER_GCC AND NOT COMPILER_LCC )
 	set( AE_CONFIGURATION_DEPENDENT_PATH OFF CACHE INTERNAL "" FORCE )
 
 	# -Wno-shadow -Wno-enum-compare -Wno-narrowing -Wno-attributes
-	set( GCC_SHARED_OPTS         ${COMPILER_FLAGS} -Wmaybe-uninitialized -Wfree-nonheap-object -Wcast-align -Wlogical-op -Waddress -Wno-non-template-friend -Werror=return-local-addr -Werror=placement-new -Werror=sign-compare -Werror=literal-suffix -Werror=shadow=local -Werror=delete-incomplete -Werror=odr -Werror=subobject-linkage -Werror=multichar -Winvalid-offsetof -Werror=terminate -Werror=noexcept -Wno-interference-size ${GCC_CLANG_SHARED_LOCAL_WARNING_LIST_CXX} )
+	set( GCC_SHARED_OPTS         ${COMPILER_FLAGS} -Wmaybe-uninitialized -Wfree-nonheap-object -Wcast-align -Wlogical-op -Waddress -Wno-non-template-friend -Werror=return-local-addr -Werror=placement-new -Werror=sign-compare -Werror=literal-suffix -Werror=shadow=local -Werror=delete-incomplete -Werror=odr -Werror=subobject-linkage -Werror=multichar -Winvalid-offsetof -Werror=terminate -Wno-noexcept -Wno-interference-size ${GCC_CLANG_SHARED_LOCAL_WARNING_LIST_CXX} )
 	set( PROJECTS_SHARED_DEFINES ${PROJECTS_SHARED_DEFINES} "AE_COMPILER_GCC" )
 
 	# Release  TODO: -Ofast ?
@@ -963,12 +971,13 @@ if ( COMPILER_CLANG_ANDROID )
 
 	if (${AE_USE_SANITIZER})
 		set( CLANG_SHARED_OPTS ${CLANG_SHARED_OPTS} -fsanitize=address )
+		#set( CLANG_SHARED_OPTS ${CLANG_SHARED_OPTS} -fsanitize=hwaddress )
 		#set( CLANG_SHARED_OPTS ${CLANG_SHARED_OPTS} -fsanitize=thread )
 		#set( CLANG_SHARED_OPTS ${CLANG_SHARED_OPTS} -fsanitize=undefined )
 	endif()
 
 	# compatibility with older DWARF: -gdwarf-4
-	set( CLANG_SHARED_OPTS_DBG ${CLANG_SHARED_OPTS} -fno-omit-frame-pointer -funwind-tables -g -glldb )
+	set( CLANG_SHARED_OPTS_DBG ${CLANG_SHARED_OPTS} -fno-omit-frame-pointer -funwind-tables -fstack-protector-all -fno-optimize-sibling-calls -D_FORTIFY_SOURCE=2 -g -glldb )
 
 	# Release
 	set_property( DIRECTORY APPEND PROPERTY COMPILE_DEFINITIONS $<$<CONFIG:Release>: > )

@@ -112,6 +112,7 @@ namespace AE::ResEditor
 */
 	RC<IPass>  ScriptSceneRayTracingPass::ToPass () __Th___
 	{
+		TRACY( ZoneScoped );
 		CHECK_THROW_MSG( not _iterations.empty(), "add at least one Dispatch() call" );
 		CHECK_THROW_MSG( not _args.Empty(), "empty argument list" );
 		CHECK_THROW_MSG( not _pipeline.empty(), "pipeline is not defined" );

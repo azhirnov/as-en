@@ -113,7 +113,7 @@ extern void Test_Application ()
 {
 	events.Create();
 
-	Application_t::Run( MakeUnique<AppListener>() );
+	Application_t::Run( AppListenerPtr{new AppListener{}} );
 
 	TEST( ArrayView<int>{*events}.section( 0, 6 ) == Array<int>{ 1, 2, 3, 4, 5, 6 });
 

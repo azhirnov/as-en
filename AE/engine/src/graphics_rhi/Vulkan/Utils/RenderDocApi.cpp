@@ -114,7 +114,11 @@ namespace
 			_wndHandle.store( wndHandle.nativeWindow );
 
 		#elif defined(AE_PLATFORM_LINUX)
-			_wndHandle.store( wndHandle.x11Window );
+			Visit( wndHandle.impl,
+				   [this](const NativeWindow::X11 &x11)		{ _wndHandle.store(x11.window); },
+				   [this](const NativeWindow::Wayland &wl)	{ _wndHandle.store(wl.surface); },
+				   []	 (const NullUnion &)				{}
+				);
 		#else
 		#	error Unsupported platform!
 		#endif

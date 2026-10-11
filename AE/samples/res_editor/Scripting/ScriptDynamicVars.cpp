@@ -22,6 +22,14 @@ namespace
 	}
 
 	template <typename Dst, typename Src>
+	static Dst  DynamicVecT_Cast (EnableRCBase* base) __NE___
+	{
+		StaticAssert( VecSize<Dst> == VecSize<Src> );
+		Src	x = Cast<TDynamicVec< VecToScalarType<Src>, VecSize<Src> >>(base)->Get();
+		return Dst(x);
+	}
+
+	template <typename Dst, typename Src>
 	static Dst  DynamicT_BitCast (EnableRCBase* base) __NE___
 	{
 		Src	x = Cast<TDynamicScalar<Src>>(base)->Get();
@@ -29,10 +37,9 @@ namespace
 	}
 
 } // namespace
-
-
 //-----------------------------------------------------------------------------
-// ScriptDynamicDim
+
+
 
 /*
 =================================================
@@ -269,7 +276,7 @@ namespace
 
 /*
 =================================================
-	ScriptDynamicUInt::Mul
+	Mul
 =================================================
 */
 	ScriptDynamicUInt*  ScriptDynamicUInt::Mul (uint value) __Th___
@@ -283,7 +290,7 @@ namespace
 
 /*
 =================================================
-	ScriptDynamicUInt::Div
+	Div
 =================================================
 */
 	ScriptDynamicUInt*  ScriptDynamicUInt::Div (uint value) __Th___
@@ -315,7 +322,7 @@ namespace
 
 /*
 =================================================
-	ScriptDynamicUInt::Add / Sub
+	Add / Sub
 =================================================
 */
 	ScriptDynamicUInt*  ScriptDynamicUInt::Add (uint value) __Th___
@@ -338,7 +345,7 @@ namespace
 
 /*
 =================================================
-	ScriptDynamicUInt::Pow
+	Pow
 =================================================
 */
 	ScriptDynamicUInt*  ScriptDynamicUInt::Pow (uint value) __Th___
@@ -352,7 +359,7 @@ namespace
 
 /*
 =================================================
-	ScriptDynamicUInt::Exp2
+	Exp2
 =================================================
 */
 	ScriptDynamicUInt*  ScriptDynamicUInt::Exp2 () __Th___
@@ -371,7 +378,7 @@ namespace
 
 /*
 =================================================
-	ScriptDynamicUInt::FloorPOT
+	FloorPOT
 =================================================
 */
 	ScriptDynamicUInt*  ScriptDynamicUInt::FloorPOT () __Th___
@@ -385,7 +392,7 @@ namespace
 
 /*
 =================================================
-	ScriptDynamicUInt::CeilPOT
+	CeilPOT
 =================================================
 */
 	ScriptDynamicUInt*  ScriptDynamicUInt::CeilPOT () __Th___
@@ -399,7 +406,7 @@ namespace
 
 /*
 =================================================
-	ScriptDynamicUInt::NearPOT
+	NearPOT
 =================================================
 */
 	ScriptDynamicUInt*  ScriptDynamicUInt::NearPOT () __Th___
@@ -413,7 +420,7 @@ namespace
 
 /*
 =================================================
-	ScriptDynamicDim::ToDim*
+	ToDim*
 =================================================
 */
 	ScriptDynamicDim*  ScriptDynamicUInt::ToDim2 () __Th___
@@ -432,7 +439,7 @@ namespace
 
 /*
 =================================================
-	ScriptDynamicUInt::Min
+	Min
 =================================================
 */
 	ScriptDynamicUInt*  ScriptDynamicUInt::Min (uint value) __Th___
@@ -446,7 +453,7 @@ namespace
 
 /*
 =================================================
-	ScriptDynamicUInt::Max
+	Max
 =================================================
 */
 	ScriptDynamicUInt*  ScriptDynamicUInt::Max (uint value) __Th___
@@ -460,7 +467,7 @@ namespace
 
 /*
 =================================================
-	ScriptDynamicUInt::Add1
+	Add1
 =================================================
 */
 	ScriptDynamicUInt*  ScriptDynamicUInt::Add1 (const ScriptDynamicUIntPtr &rhs) __Th___
@@ -476,7 +483,7 @@ namespace
 
 /*
 =================================================
-	ScriptDynamicUInt::Sub1
+	Sub1
 =================================================
 */
 	ScriptDynamicUInt*  ScriptDynamicUInt::Sub1 (const ScriptDynamicUIntPtr &rhs) __Th___
@@ -492,7 +499,7 @@ namespace
 
 /*
 =================================================
-	ScriptDynamicUInt::Mul1
+	Mul1
 =================================================
 */
 	ScriptDynamicUInt*  ScriptDynamicUInt::Mul1 (const ScriptDynamicUIntPtr &rhs) __Th___
@@ -508,7 +515,7 @@ namespace
 
 /*
 =================================================
-	ScriptDynamicUInt::Div1
+	Div1
 =================================================
 */
 	ScriptDynamicUInt*  ScriptDynamicUInt::Div1 (const ScriptDynamicUIntPtr &rhs) __Th___
@@ -524,7 +531,7 @@ namespace
 
 /*
 =================================================
-	ScriptDynamicUInt::Min1
+	Min1
 =================================================
 */
 	ScriptDynamicUInt*  ScriptDynamicUInt::Min1 (const ScriptDynamicUIntPtr &rhs) __Th___
@@ -540,7 +547,7 @@ namespace
 
 /*
 =================================================
-	ScriptDynamicUInt::Max1
+	Max1
 =================================================
 */
 	ScriptDynamicUInt*  ScriptDynamicUInt::Max1 (const ScriptDynamicUIntPtr &rhs) __Th___
@@ -556,7 +563,7 @@ namespace
 
 /*
 =================================================
-	ScriptDynamicUInt::ToFloat
+	ToFloat
 =================================================
 */
 	ScriptDynamicFloat*  ScriptDynamicUInt::ToFloat () __Th___
@@ -569,7 +576,7 @@ namespace
 
 /*
 =================================================
-	ScriptDynamicUInt::AsFloat
+	AsFloat
 =================================================
 */
 	ScriptDynamicFloat*  ScriptDynamicUInt::AsFloat () __Th___
@@ -582,7 +589,7 @@ namespace
 
 /*
 =================================================
-	ScriptDynamicUInt::Percent
+	Percent
 =================================================
 */
 	ScriptDynamicFloat*  ScriptDynamicUInt::Percent (const ScriptDynamicUIntPtr &rhs) __Th___
@@ -604,7 +611,7 @@ namespace
 
 /*
 =================================================
-	ScriptDynamicUInt::X1
+	X*
 =================================================
 */
 	ScriptDynamicUInt2*  ScriptDynamicUInt::X1 () __Th___
@@ -759,7 +766,7 @@ namespace
 
 /*
 =================================================
-	ScriptDynamicUInt2::FloorPOT
+	FloorPOT
 =================================================
 */
 	ScriptDynamicUInt2*  ScriptDynamicUInt2::FloorPOT () __Th___
@@ -773,7 +780,7 @@ namespace
 
 /*
 =================================================
-	ScriptDynamicUInt2::CeilPOT
+	CeilPOT
 =================================================
 */
 	ScriptDynamicUInt2*  ScriptDynamicUInt2::CeilPOT () __Th___
@@ -787,7 +794,7 @@ namespace
 
 /*
 =================================================
-	ScriptDynamicUInt2::NearPOT
+	NearPOT
 =================================================
 */
 	ScriptDynamicUInt2*  ScriptDynamicUInt2::NearPOT () __Th___
@@ -1033,6 +1040,19 @@ namespace
 
 /*
 =================================================
+	ToFloat
+=================================================
+*/
+	ScriptDynamicFloat2*  ScriptDynamicUInt2::ToFloat () __Th___
+	{
+		auto	du = MakeRC<DynamicFloat2>( _value, &DynamicVecT_Cast< float2, uint2 >);
+
+		ScriptDynamicFloat2Ptr	result{ new ScriptDynamicFloat2{ RVRef(du) }};
+		return result.Detach();
+	}
+
+/*
+=================================================
 	ScriptDynamicUInt2::Bind
 =================================================
 */
@@ -1075,6 +1095,8 @@ namespace
 			AS_METHOD( binder, ScriptDynamicUInt::X1,			"X1",			{} );
 			AS_METHOD( binder, ScriptDynamicUInt::XX,			"XX",			{} );
 		}
+
+		// ToFloat defined in ScriptDynamicFloat2 binding
 	}
 //-----------------------------------------------------------------------------
 
@@ -1255,7 +1277,7 @@ namespace
 
 /*
 =================================================
-	ScriptDynamicUInt3::FloorPOT
+	FloorPOT
 =================================================
 */
 	ScriptDynamicUInt3*  ScriptDynamicUInt3::FloorPOT () __Th___
@@ -1269,7 +1291,7 @@ namespace
 
 /*
 =================================================
-	ScriptDynamicUInt3::CeilPOT
+	CeilPOT
 =================================================
 */
 	ScriptDynamicUInt3*  ScriptDynamicUInt3::CeilPOT () __Th___
@@ -1283,13 +1305,27 @@ namespace
 
 /*
 =================================================
-	ScriptDynamicUInt3::NearPOT
+	NearPOT
 =================================================
 */
 	ScriptDynamicUInt3*  ScriptDynamicUInt3::NearPOT () __Th___
 	{
 		auto	du = _value->Clone();
 		du->SetOp( 0, EDynamicVarOperator::NearPOT );
+
+		ScriptDynamicUInt3Ptr	result{ new ScriptDynamicUInt3{ RVRef(du) }};
+		return result.Detach();
+	}
+
+/*
+=================================================
+	Exp2
+=================================================
+*/
+	ScriptDynamicUInt3*  ScriptDynamicUInt3::Exp2 () __Th___
+	{
+		auto	du = _value->Clone();
+		du->SetOp( uint3{1}, EDynamicVarOperator::Exp2 );
 
 		ScriptDynamicUInt3Ptr	result{ new ScriptDynamicUInt3{ RVRef(du) }};
 		return result.Detach();
@@ -1415,6 +1451,19 @@ namespace
 
 /*
 =================================================
+	ToFloat
+=================================================
+*/
+	ScriptDynamicFloat3*  ScriptDynamicUInt3::ToFloat () __Th___
+	{
+		auto	du = MakeRC<DynamicFloat3>( _value, &DynamicVecT_Cast< float3, uint3 >);
+
+		ScriptDynamicFloat3Ptr	result{ new ScriptDynamicFloat3{ RVRef(du) }};
+		return result.Detach();
+	}
+
+/*
+=================================================
 	ScriptDynamicUInt3::Bind
 =================================================
 */
@@ -1440,6 +1489,7 @@ namespace
 			AS_METHOD( binder, ScriptDynamicUInt3::FloorPOT,	"FloorPOT",	{} );
 			AS_METHOD( binder, ScriptDynamicUInt3::CeilPOT,		"CeilPOT",	{} );
 			AS_METHOD( binder, ScriptDynamicUInt3::NearPOT,		"NearPOT",	{} );
+			AS_METHOD( binder, ScriptDynamicUInt3::Exp2,		"Exp2",		{} );
 
 			AS_METHOD( binder, ScriptDynamicUInt3::Mul1,		"Mul",		{} );
 			AS_METHOD( binder, ScriptDynamicUInt3::Div1,		"Div",		{} );
@@ -1455,6 +1505,8 @@ namespace
 			AS_METHOD( binder, ScriptDynamicUInt::X11,			"X11",		{} );
 			AS_METHOD( binder, ScriptDynamicUInt::XXX,			"XXX",		{} );
 		}
+
+		// ToFloat defined in ScriptDynamicFloat3 binding
 	}
 //-----------------------------------------------------------------------------
 
@@ -1506,6 +1558,19 @@ namespace
 
 /*
 =================================================
+	ToFloat
+=================================================
+*/
+	ScriptDynamicFloat4*  ScriptDynamicUInt4::ToFloat () __Th___
+	{
+		auto	du = MakeRC<DynamicFloat4>( _value, &DynamicVecT_Cast< float4, uint4 >);
+
+		ScriptDynamicFloat4Ptr	result{ new ScriptDynamicFloat4{ RVRef(du) }};
+		return result.Detach();
+	}
+
+/*
+=================================================
 	ScriptDynamicUInt4::Bind
 =================================================
 */
@@ -1518,10 +1583,25 @@ namespace
 		AS_METHOD( binder, ScriptDynamicUInt4::Y,	"Y",	{} );
 		AS_METHOD( binder, ScriptDynamicUInt4::Z,	"Z",	{} );
 		AS_METHOD( binder, ScriptDynamicUInt4::W,	"W",	{} );
+
+		// ToFloat defined in ScriptDynamicFloat4 binding
 	}
 //-----------------------------------------------------------------------------
 
 
+
+/*
+=================================================
+	ToFloat
+=================================================
+*/
+	ScriptDynamicFloat*  ScriptDynamicInt::ToFloat () __Th___
+	{
+		auto	du = MakeRC<DynamicFloat>( _value, &DynamicT_Cast<float,int> );
+
+		ScriptDynamicFloatPtr	result{ new ScriptDynamicFloat{ RVRef(du) }};
+		return result.Detach();
+	}
 
 /*
 =================================================
@@ -1533,6 +1613,8 @@ namespace
 		ClassBinder<ScriptDynamicInt>		binder{ se };
 		binder.CreateRef();
 		binder.AddFactoryCtor( &ScriptDynamicT_Ctor< ScriptDynamicInt, DynamicInt, int >, {} );
+
+		// ToFloat, AsFloat defined in ScriptDynamicFloat binding
 	}
 //-----------------------------------------------------------------------------
 
@@ -1562,6 +1644,19 @@ namespace
 
 /*
 =================================================
+	ToFloat
+=================================================
+*/
+	ScriptDynamicFloat2*  ScriptDynamicInt2::ToFloat () __Th___
+	{
+		auto	du = MakeRC<DynamicFloat2>( _value, &DynamicVecT_Cast< float2, int2 >);
+
+		ScriptDynamicFloat2Ptr	result{ new ScriptDynamicFloat2{ RVRef(du) }};
+		return result.Detach();
+	}
+
+/*
+=================================================
 	ScriptDynamicInt2::Bind
 =================================================
 */
@@ -1572,6 +1667,8 @@ namespace
 		binder.AddFactoryCtor( &ScriptDynamicT_Ctor< ScriptDynamicInt2, DynamicInt2, const packed_int2& >, {} );
 		AS_METHOD( binder, ScriptDynamicInt2::X,	"X",	{} );
 		AS_METHOD( binder, ScriptDynamicInt2::Y,	"Y",	{} );
+
+		// ToFloat defined in ScriptDynamicFloat4 binding
 	}
 //-----------------------------------------------------------------------------
 
@@ -1612,6 +1709,19 @@ namespace
 
 /*
 =================================================
+	ToFloat
+=================================================
+*/
+	ScriptDynamicFloat3*  ScriptDynamicInt3::ToFloat () __Th___
+	{
+		auto	du = MakeRC<DynamicFloat3>( _value, &DynamicVecT_Cast< float3, int3 >);
+
+		ScriptDynamicFloat3Ptr	result{ new ScriptDynamicFloat3{ RVRef(du) }};
+		return result.Detach();
+	}
+
+/*
+=================================================
 	ScriptDynamicInt3::Bind
 =================================================
 */
@@ -1623,6 +1733,8 @@ namespace
 		AS_METHOD( binder, ScriptDynamicInt3::X,	"X",	{} );
 		AS_METHOD( binder, ScriptDynamicInt3::Y,	"Y",	{} );
 		AS_METHOD( binder, ScriptDynamicInt3::Z,	"Z",	{} );
+
+		// ToFloat defined in ScriptDynamicFloat3 binding
 	}
 //-----------------------------------------------------------------------------
 
@@ -1674,6 +1786,19 @@ namespace
 
 /*
 =================================================
+	ToFloat
+=================================================
+*/
+	ScriptDynamicFloat4*  ScriptDynamicInt4::ToFloat () __Th___
+	{
+		auto	du = MakeRC<DynamicFloat4>( _value, &DynamicVecT_Cast< float4, int4 >);
+
+		ScriptDynamicFloat4Ptr	result{ new ScriptDynamicFloat4{ RVRef(du) }};
+		return result.Detach();
+	}
+
+/*
+=================================================
 	ScriptDynamicInt4::Bind
 =================================================
 */
@@ -1686,6 +1811,8 @@ namespace
 		AS_METHOD( binder, ScriptDynamicInt4::Y,	"Y",	{} );
 		AS_METHOD( binder, ScriptDynamicInt4::Z,	"Z",	{} );
 		AS_METHOD( binder, ScriptDynamicInt4::W,	"W",	{} );
+
+		// ToFloat defined in ScriptDynamicFloat3 binding
 	}
 //-----------------------------------------------------------------------------
 
@@ -1693,7 +1820,7 @@ namespace
 
 /*
 =================================================
-	ScriptDynamicFloat::Mul
+	Mul
 =================================================
 */
 	ScriptDynamicFloat*  ScriptDynamicFloat::Mul (float value) __Th___
@@ -1707,7 +1834,7 @@ namespace
 
 /*
 =================================================
-	ScriptDynamicFloat::Div
+	Div
 =================================================
 */
 	ScriptDynamicFloat*  ScriptDynamicFloat::Div (float value) __Th___
@@ -1739,7 +1866,7 @@ namespace
 
 /*
 =================================================
-	ScriptDynamicFloat::Add / Sub
+	Add / Sub
 =================================================
 */
 	ScriptDynamicFloat*  ScriptDynamicFloat::Add (float value) __Th___
@@ -1762,7 +1889,7 @@ namespace
 
 /*
 =================================================
-	ScriptDynamicFloat::Pow
+	Pow
 =================================================
 */
 	ScriptDynamicFloat*  ScriptDynamicFloat::Pow (float value) __Th___
@@ -1776,7 +1903,7 @@ namespace
 
 /*
 =================================================
-	ScriptDynamicFloat::Exp2
+	Exp2
 =================================================
 */
 	ScriptDynamicFloat*  ScriptDynamicFloat::Exp2 () __Th___
@@ -1795,7 +1922,7 @@ namespace
 
 /*
 =================================================
-	ScriptDynamicFloat::Log2
+	Log2
 =================================================
 */
 	ScriptDynamicFloat*  ScriptDynamicFloat::Log2 () __Th___
@@ -1809,7 +1936,77 @@ namespace
 
 /*
 =================================================
-	ScriptDynamicFloat::Min
+	Rcp
+=================================================
+*/
+	ScriptDynamicFloat*  ScriptDynamicFloat::Rcp () __Th___
+	{
+		auto	du = _value->Clone();
+		du->SetOp( 1.f, EDynamicVarOperator::Rcp );
+
+		ScriptDynamicFloatPtr	result{ new ScriptDynamicFloat{ RVRef(du) }};
+		return result.Detach();
+	}
+
+/*
+=================================================
+	Abs
+=================================================
+*/
+	ScriptDynamicFloat*  ScriptDynamicFloat::Abs () __Th___
+	{
+		auto	du = _value->Clone();
+		du->SetOp( 1.f, EDynamicVarOperator::Abs );
+
+		ScriptDynamicFloatPtr	result{ new ScriptDynamicFloat{ RVRef(du) }};
+		return result.Detach();
+	}
+
+/*
+=================================================
+	ACos
+=================================================
+*/
+	ScriptDynamicFloat*  ScriptDynamicFloat::ACos () __Th___
+	{
+		auto	du = _value->Clone();
+		du->SetOp( 1.f, EDynamicVarOperator::ACos );
+
+		ScriptDynamicFloatPtr	result{ new ScriptDynamicFloat{ RVRef(du) }};
+		return result.Detach();
+	}
+
+/*
+=================================================
+	ToRad
+=================================================
+*/
+	ScriptDynamicFloat*  ScriptDynamicFloat::ToRad () __Th___
+	{
+		auto	du = _value->Clone();
+		du->SetOp( 1.f, EDynamicVarOperator::ToRad );
+
+		ScriptDynamicFloatPtr	result{ new ScriptDynamicFloat{ RVRef(du) }};
+		return result.Detach();
+	}
+
+/*
+=================================================
+	ToDeg
+=================================================
+*/
+	ScriptDynamicFloat*  ScriptDynamicFloat::ToDeg () __Th___
+	{
+		auto	du = _value->Clone();
+		du->SetOp( 1.f, EDynamicVarOperator::ToDeg );
+
+		ScriptDynamicFloatPtr	result{ new ScriptDynamicFloat{ RVRef(du) }};
+		return result.Detach();
+	}
+
+/*
+=================================================
+	Min
 =================================================
 */
 	ScriptDynamicFloat*  ScriptDynamicFloat::Min (float value) __Th___
@@ -1823,7 +2020,7 @@ namespace
 
 /*
 =================================================
-	ScriptDynamicFloat::Max
+	Max
 =================================================
 */
 	ScriptDynamicFloat*  ScriptDynamicFloat::Max (float value) __Th___
@@ -1837,7 +2034,7 @@ namespace
 
 /*
 =================================================
-	ScriptDynamicFloat::Add1
+	Add1
 =================================================
 */
 	ScriptDynamicFloat*  ScriptDynamicFloat::Add1 (const ScriptDynamicFloatPtr &rhs) __Th___
@@ -1853,7 +2050,7 @@ namespace
 
 /*
 =================================================
-	ScriptDynamicFloat::Sub1
+	Sub1
 =================================================
 */
 	ScriptDynamicFloat*  ScriptDynamicFloat::Sub1 (const ScriptDynamicFloatPtr &rhs) __Th___
@@ -1869,7 +2066,7 @@ namespace
 
 /*
 =================================================
-	ScriptDynamicFloat::Mul1
+	Mul1
 =================================================
 */
 	ScriptDynamicFloat*  ScriptDynamicFloat::Mul1 (const ScriptDynamicFloatPtr &rhs) __Th___
@@ -1885,7 +2082,7 @@ namespace
 
 /*
 =================================================
-	ScriptDynamicFloat::Div1
+	Div1
 =================================================
 */
 	ScriptDynamicFloat*  ScriptDynamicFloat::Div1 (const ScriptDynamicFloatPtr &rhs) __Th___
@@ -1901,7 +2098,7 @@ namespace
 
 /*
 =================================================
-	ScriptDynamicFloat::Min1
+	Min1
 =================================================
 */
 	ScriptDynamicFloat*  ScriptDynamicFloat::Min1 (const ScriptDynamicFloatPtr &rhs) __Th___
@@ -1917,7 +2114,7 @@ namespace
 
 /*
 =================================================
-	ScriptDynamicFloat::Max1
+	Max1
 =================================================
 */
 	ScriptDynamicFloat*  ScriptDynamicFloat::Max1 (const ScriptDynamicFloatPtr &rhs) __Th___
@@ -1933,7 +2130,7 @@ namespace
 
 /*
 =================================================
-	ScriptDynamicFloat::AsUInt
+	AsUInt
 =================================================
 */
 	ScriptDynamicUInt*  ScriptDynamicFloat::AsUInt () __Th___
@@ -1946,7 +2143,7 @@ namespace
 
 /*
 =================================================
-	ScriptDynamicFloat::ToUInt
+	ToUInt
 =================================================
 */
 	ScriptDynamicUInt*  ScriptDynamicFloat::ToUInt () __Th___
@@ -1959,7 +2156,7 @@ namespace
 
 /*
 =================================================
-	ScriptDynamicFloat::ToInt
+	ToInt
 =================================================
 */
 	ScriptDynamicInt*  ScriptDynamicFloat::ToInt () __Th___
@@ -1981,34 +2178,42 @@ namespace
 			ClassBinder<ScriptDynamicFloat>		binder{ se };
 			binder.CreateRef();
 			binder.AddFactoryCtor( &ScriptDynamicT_Ctor< ScriptDynamicFloat, DynamicFloat, float >, {} );
-			AS_METHOD( binder, ScriptDynamicFloat::Mul,		"Mul",			{} );
-			AS_METHOD( binder, ScriptDynamicFloat::Div,		"Div",			{} );
-			AS_METHOD( binder, ScriptDynamicFloat::DivNear,	"DivNear",		{} );
-			AS_METHOD( binder, ScriptDynamicFloat::DivCeil,	"DivCeil",		{} );
-			AS_METHOD( binder, ScriptDynamicFloat::Add,		"Add",			{} );
-			AS_METHOD( binder, ScriptDynamicFloat::Sub,		"Sub",			{} );
-			AS_METHOD( binder, ScriptDynamicFloat::Pow,		"Pow",			{} );
-			AS_METHOD( binder, ScriptDynamicFloat::Exp2,	"Exp2",			{} );
-			AS_METHOD( binder, ScriptDynamicFloat::Exp2Mul,	"Exp2",			{"scale"} );
-			AS_METHOD( binder, ScriptDynamicFloat::Log2,	"Log2",			{} );
-			AS_METHOD( binder, ScriptDynamicFloat::Min,		"Min",			{} );
-			AS_METHOD( binder, ScriptDynamicFloat::Max,		"Max",			{} );
+			AS_METHOD( binder, ScriptDynamicFloat::Mul,			"Mul",			{} );
+			AS_METHOD( binder, ScriptDynamicFloat::Div,			"Div",			{} );
+			AS_METHOD( binder, ScriptDynamicFloat::DivNear,		"DivNear",		{} );
+			AS_METHOD( binder, ScriptDynamicFloat::DivCeil,		"DivCeil",		{} );
+			AS_METHOD( binder, ScriptDynamicFloat::Add,			"Add",			{} );
+			AS_METHOD( binder, ScriptDynamicFloat::Sub,			"Sub",			{} );
+			AS_METHOD( binder, ScriptDynamicFloat::Pow,			"Pow",			{} );
+			AS_METHOD( binder, ScriptDynamicFloat::Exp2,		"Exp2",			{} );
+			AS_METHOD( binder, ScriptDynamicFloat::Exp2Mul,		"Exp2",			{"scale"} );
+			AS_METHOD( binder, ScriptDynamicFloat::Log2,		"Log2",			{} );
+			AS_METHOD( binder, ScriptDynamicFloat::Rcp,			"Rcp",			{} );
+			AS_METHOD( binder, ScriptDynamicFloat::Abs,			"Abs",			{} );
+			AS_METHOD( binder, ScriptDynamicFloat::Min,			"Min",			{} );
+			AS_METHOD( binder, ScriptDynamicFloat::Max,			"Max",			{} );
+			AS_METHOD( binder, ScriptDynamicFloat::ACos,		"ACos",			{} );
+			AS_METHOD( binder, ScriptDynamicFloat::ToRad,		"ToRad",		{} );
+			AS_METHOD( binder, ScriptDynamicFloat::ToDeg,		"ToDeg",		{} );
 
-			AS_METHOD( binder, ScriptDynamicFloat::Mul1,	"Mul",			{} );
-			AS_METHOD( binder, ScriptDynamicFloat::Div1,	"Div",			{} );
-			AS_METHOD( binder, ScriptDynamicFloat::Add1,	"Add",			{} );
-			AS_METHOD( binder, ScriptDynamicFloat::Sub1,	"Sub",			{} );
-			AS_METHOD( binder, ScriptDynamicFloat::Min1,	"Min",			{} );
-			AS_METHOD( binder, ScriptDynamicFloat::Max1,	"Max",			{} );
+			AS_METHOD( binder, ScriptDynamicFloat::Mul1,		"Mul",			{} );
+			AS_METHOD( binder, ScriptDynamicFloat::Div1,		"Div",			{} );
+			AS_METHOD( binder, ScriptDynamicFloat::Add1,		"Add",			{} );
+			AS_METHOD( binder, ScriptDynamicFloat::Sub1,		"Sub",			{} );
+			AS_METHOD( binder, ScriptDynamicFloat::Min1,		"Min",			{} );
+			AS_METHOD( binder, ScriptDynamicFloat::Max1,		"Max",			{} );
 
-			AS_METHOD( binder, ScriptDynamicFloat::AsUInt,	"AsUInt",		{} );
-			AS_METHOD( binder, ScriptDynamicFloat::ToUInt,	"ToUInt",		{} );
-			AS_METHOD( binder, ScriptDynamicFloat::ToInt,	"ToInt",		{} );
+			AS_METHOD( binder, ScriptDynamicFloat::AsUInt,		"AsUInt",		{} );
+			AS_METHOD( binder, ScriptDynamicFloat::ToUInt,		"ToUInt",		{} );
+			AS_METHOD( binder, ScriptDynamicFloat::ToInt,		"ToInt",		{} );
 		}{
 			ClassBinder<ScriptDynamicUInt>		binder{ se };
 			AS_METHOD( binder, ScriptDynamicUInt::ToFloat,		"ToFloat",		{} );
 			AS_METHOD( binder, ScriptDynamicUInt::AsFloat,		"AsFloat",		{} );
 			AS_METHOD( binder, ScriptDynamicUInt::Percent,		"Percent",		{} );
+		}{
+			ClassBinder<ScriptDynamicInt>		binder{ se };
+			AS_METHOD( binder, ScriptDynamicInt::ToFloat,		"ToFloat",		{} );
 		}
 	}
 //-----------------------------------------------------------------------------
@@ -2039,16 +2244,100 @@ namespace
 
 /*
 =================================================
+	ToUInt
+=================================================
+*/
+	ScriptDynamicUInt2*  ScriptDynamicFloat2::ToUInt () __Th___
+	{
+		auto	du = MakeRC<DynamicUInt2>( _value, &DynamicVecT_Cast< uint2, float2 >);
+
+		ScriptDynamicUInt2Ptr	result{ new ScriptDynamicUInt2{ RVRef(du) }};
+		return result.Detach();
+	}
+
+/*
+=================================================
+	ToInt
+=================================================
+*/
+	ScriptDynamicInt2*  ScriptDynamicFloat2::ToInt () __Th___
+	{
+		auto	di = MakeRC<DynamicInt2>( _value, &DynamicVecT_Cast< int2, float2 >);
+
+		ScriptDynamicInt2Ptr	result{ new ScriptDynamicInt2{ RVRef(di) }};
+		return result.Detach();
+	}
+
+/*
+=================================================
+	Add
+=================================================
+*/
+	ScriptDynamicFloat2*  ScriptDynamicFloat2::Add (const packed_float2 &value) __Th___
+	{
+		auto	du = _value->Clone();
+		du->SetOp( value, EDynamicVarOperator::Add );
+
+		ScriptDynamicFloat2Ptr	result{ new ScriptDynamicFloat2{ RVRef(du) }};
+		return result.Detach();
+	}
+
+	ScriptDynamicFloat2*  ScriptDynamicFloat2::Add1 (const ScriptDynamicFloat2Ptr &rhs) __Th___
+	{
+		CHECK_THROW( rhs and rhs->Get() );
+
+		auto	du = _value->Clone();
+		du->SetOp( rhs->Get(), EDynamicVarOperator::Add );
+
+		ScriptDynamicFloat2Ptr	result{ new ScriptDynamicFloat2{ RVRef(du) }};
+		return result.Detach();
+	}
+
+/*
+=================================================
+	Exp2
+=================================================
+*/
+	ScriptDynamicFloat2*  ScriptDynamicFloat2::Exp2 () __Th___
+	{
+		return Exp2Mul(packed_float2{ 1.f });
+	}
+
+	ScriptDynamicFloat2*  ScriptDynamicFloat2::Exp2Mul (const packed_float2 &value) __Th___
+	{
+		auto	du = _value->Clone();
+		du->SetOp( value, EDynamicVarOperator::Exp2 );
+
+		ScriptDynamicFloat2Ptr	result{ new ScriptDynamicFloat2{ RVRef(du) }};
+		return result.Detach();
+	}
+
+/*
+=================================================
 	ScriptDynamicFloat2::Bind
 =================================================
 */
 	void  ScriptDynamicFloat2::Bind (const ScriptEnginePtr &se) __Th___
 	{
-		ClassBinder<ScriptDynamicFloat2>	binder{ se };
-		binder.CreateRef();
-		binder.AddFactoryCtor( &ScriptDynamicT_Ctor< ScriptDynamicFloat2, DynamicFloat2, const packed_float2& >, {} );
-		AS_METHOD( binder, ScriptDynamicFloat2::X,	"X",	{} );
-		AS_METHOD( binder, ScriptDynamicFloat2::Y,	"Y",	{} );
+		{
+			ClassBinder<ScriptDynamicFloat2>	binder{ se };
+			binder.CreateRef();
+			binder.AddFactoryCtor( &ScriptDynamicT_Ctor< ScriptDynamicFloat2, DynamicFloat2, const packed_float2& >, {} );
+			AS_METHOD( binder, ScriptDynamicFloat2::X,			"X",			{} );
+			AS_METHOD( binder, ScriptDynamicFloat2::Y,			"Y",			{} );
+			AS_METHOD( binder, ScriptDynamicFloat2::ToUInt,		"ToUInt",		{} );
+			AS_METHOD( binder, ScriptDynamicFloat2::ToInt,		"ToInt",		{} );
+			AS_METHOD( binder, ScriptDynamicFloat2::Exp2,		"Exp2",			{} );
+			AS_METHOD( binder, ScriptDynamicFloat2::Exp2Mul,	"Exp2",			{"scale"} );
+			AS_METHOD( binder, ScriptDynamicFloat2::Add,		"Add",			{} );
+			AS_METHOD( binder, ScriptDynamicFloat2::Add1,		"Add",			{} );
+		}{
+			ClassBinder<ScriptDynamicUInt2>		binder{ se };
+			AS_METHOD( binder, ScriptDynamicUInt2::ToFloat,		"ToFloat",		{} );
+		}{
+			ClassBinder<ScriptDynamicInt2>		binder{ se };
+			AS_METHOD( binder, ScriptDynamicInt2::ToFloat,		"ToFloat",		{} );
+		}
 	}
 //-----------------------------------------------------------------------------
 
@@ -2089,17 +2378,74 @@ namespace
 
 /*
 =================================================
+	ToUInt
+=================================================
+*/
+	ScriptDynamicUInt3*  ScriptDynamicFloat3::ToUInt () __Th___
+	{
+		auto	du = MakeRC<DynamicUInt3>( _value, &DynamicVecT_Cast< uint3, float3 >);
+
+		ScriptDynamicUInt3Ptr	result{ new ScriptDynamicUInt3{ RVRef(du) }};
+		return result.Detach();
+	}
+
+/*
+=================================================
+	ToInt
+=================================================
+*/
+	ScriptDynamicInt3*  ScriptDynamicFloat3::ToInt () __Th___
+	{
+		auto	di = MakeRC<DynamicInt3>( _value, &DynamicVecT_Cast< int3, float3 >);
+
+		ScriptDynamicInt3Ptr	result{ new ScriptDynamicInt3{ RVRef(di) }};
+		return result.Detach();
+	}
+
+/*
+=================================================
+	Exp2
+=================================================
+*/
+	ScriptDynamicFloat3*  ScriptDynamicFloat3::Exp2 () __Th___
+	{
+		return Exp2Mul(packed_float3{ 1.f });
+	}
+
+	ScriptDynamicFloat3*  ScriptDynamicFloat3::Exp2Mul (const packed_float3 &value) __Th___
+	{
+		auto	du = _value->Clone();
+		du->SetOp( value, EDynamicVarOperator::Exp2 );
+
+		ScriptDynamicFloat3Ptr	result{ new ScriptDynamicFloat3{ RVRef(du) }};
+		return result.Detach();
+	}
+
+/*
+=================================================
 	ScriptDynamicFloat3::Bind
 =================================================
 */
 	void  ScriptDynamicFloat3::Bind (const ScriptEnginePtr &se) __Th___
 	{
-		ClassBinder<ScriptDynamicFloat3>	binder{ se };
-		binder.CreateRef();
-		binder.AddFactoryCtor( &ScriptDynamicT_Ctor< ScriptDynamicFloat3, DynamicFloat3, const packed_float3& >, {} );
-		AS_METHOD( binder, ScriptDynamicFloat3::X,	"X",	{} );
-		AS_METHOD( binder, ScriptDynamicFloat3::Y,	"Y",	{} );
-		AS_METHOD( binder, ScriptDynamicFloat3::Z,	"Z",	{} );
+		{
+			ClassBinder<ScriptDynamicFloat3>	binder{ se };
+			binder.CreateRef();
+			binder.AddFactoryCtor( &ScriptDynamicT_Ctor< ScriptDynamicFloat3, DynamicFloat3, const packed_float3& >, {} );
+			AS_METHOD( binder, ScriptDynamicFloat3::X,			"X",			{} );
+			AS_METHOD( binder, ScriptDynamicFloat3::Y,			"Y",			{} );
+			AS_METHOD( binder, ScriptDynamicFloat3::Z,			"Z",			{} );
+			AS_METHOD( binder, ScriptDynamicFloat3::ToUInt,		"ToUInt",		{} );
+			AS_METHOD( binder, ScriptDynamicFloat3::ToInt,		"ToInt",		{} );
+			AS_METHOD( binder, ScriptDynamicFloat3::Exp2,		"Exp2",			{} );
+			AS_METHOD( binder, ScriptDynamicFloat3::Exp2Mul,	"Exp2",			{"scale"} );
+		}{
+			ClassBinder<ScriptDynamicUInt3>		binder{ se };
+			AS_METHOD( binder, ScriptDynamicUInt3::ToFloat,		"ToFloat",		{} );
+		}{
+			ClassBinder<ScriptDynamicInt3>		binder{ se };
+			AS_METHOD( binder, ScriptDynamicInt3::ToFloat,		"ToFloat",		{} );
+		}
 	}
 //-----------------------------------------------------------------------------
 
@@ -2151,18 +2497,75 @@ namespace
 
 /*
 =================================================
+	ToUInt
+=================================================
+*/
+	ScriptDynamicUInt4*  ScriptDynamicFloat4::ToUInt () __Th___
+	{
+		auto	du = MakeRC<DynamicUInt4>( _value, &DynamicVecT_Cast< uint4, float4 >);
+
+		ScriptDynamicUInt4Ptr	result{ new ScriptDynamicUInt4{ RVRef(du) }};
+		return result.Detach();
+	}
+
+/*
+=================================================
+	ToInt
+=================================================
+*/
+	ScriptDynamicInt4*  ScriptDynamicFloat4::ToInt () __Th___
+	{
+		auto	di = MakeRC<DynamicInt4>( _value, &DynamicVecT_Cast< int4, float4 >);
+
+		ScriptDynamicInt4Ptr	result{ new ScriptDynamicInt4{ RVRef(di) }};
+		return result.Detach();
+	}
+
+/*
+=================================================
+	Exp2
+=================================================
+*/
+	ScriptDynamicFloat4*  ScriptDynamicFloat4::Exp2 () __Th___
+	{
+		return Exp2Mul(packed_float4{ 1.f });
+	}
+
+	ScriptDynamicFloat4*  ScriptDynamicFloat4::Exp2Mul (const packed_float4 &value) __Th___
+	{
+		auto	du = _value->Clone();
+		du->SetOp( value, EDynamicVarOperator::Exp2 );
+
+		ScriptDynamicFloat4Ptr	result{ new ScriptDynamicFloat4{ RVRef(du) }};
+		return result.Detach();
+	}
+
+/*
+=================================================
 	ScriptDynamicFloat4::Bind
 =================================================
 */
 	void  ScriptDynamicFloat4::Bind (const ScriptEnginePtr &se) __Th___
 	{
-		ClassBinder<ScriptDynamicFloat4>	binder{ se };
-		binder.CreateRef();
-		binder.AddFactoryCtor( &ScriptDynamicT_Ctor< ScriptDynamicFloat4, DynamicFloat4, const packed_float4& >, {} );
-		AS_METHOD( binder, ScriptDynamicFloat4::X,	"X",	{} );
-		AS_METHOD( binder, ScriptDynamicFloat4::Y,	"Y",	{} );
-		AS_METHOD( binder, ScriptDynamicFloat4::Z,	"Z",	{} );
-		AS_METHOD( binder, ScriptDynamicFloat4::W,	"W",	{} );
+		{
+			ClassBinder<ScriptDynamicFloat4>	binder{ se };
+			binder.CreateRef();
+			binder.AddFactoryCtor( &ScriptDynamicT_Ctor< ScriptDynamicFloat4, DynamicFloat4, const packed_float4& >, {} );
+			AS_METHOD( binder, ScriptDynamicFloat4::X,			"X",			{} );
+			AS_METHOD( binder, ScriptDynamicFloat4::Y,			"Y",			{} );
+			AS_METHOD( binder, ScriptDynamicFloat4::Z,			"Z",			{} );
+			AS_METHOD( binder, ScriptDynamicFloat4::W,			"W",			{} );
+			AS_METHOD( binder, ScriptDynamicFloat4::ToUInt,		"ToUInt",		{} );
+			AS_METHOD( binder, ScriptDynamicFloat4::ToInt,		"ToInt",		{} );
+			AS_METHOD( binder, ScriptDynamicFloat4::Exp2,		"Exp2",			{} );
+			AS_METHOD( binder, ScriptDynamicFloat4::Exp2Mul,	"Exp2",			{"scale"} );
+		}{
+			ClassBinder<ScriptDynamicUInt4>		binder{ se };
+			AS_METHOD( binder, ScriptDynamicUInt4::ToFloat,		"ToFloat",		{} );
+		}{
+			ClassBinder<ScriptDynamicInt4>		binder{ se };
+			AS_METHOD( binder, ScriptDynamicInt4::ToFloat,		"ToFloat",		{} );
+		}
 	}
 //-----------------------------------------------------------------------------
 

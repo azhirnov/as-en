@@ -37,7 +37,7 @@ namespace {
 	constructor
 =================================================
 */
-	GameAppAndroid::GameAppAndroid (Unique<IAppListener> listener) __NE___ :
+	GameAppAndroid::GameAppAndroid (AppListenerPtr listener) __NE___ :
 		ApplicationBase{ RVRef(listener) }
 	{
 	}

@@ -166,7 +166,7 @@ namespace
 
 extern void  Test_ScreenCapture ()
 {
-	Application_t::Run( MakeUnique<AppListener>() );
+	Application_t::Run( AppListenerPtr{new AppListener{}} );
 
 	// when tests end folder will be deleted
 	ThreadUtils::MilliSleep( seconds{10} );

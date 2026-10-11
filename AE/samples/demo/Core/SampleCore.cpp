@@ -431,14 +431,14 @@ using namespace AE::Samples::Demo;
 	AE_OnAppCreated / AE_OnAppDestroyed
 =================================================
 */
-Unique<IApplication::IAppListener>  AE_OnAppCreated (const int argc, char const* argv[])
+AppListenerPtr  AE_OnAppCreated (const int argc, char const* argv[])
 {
 	Unused( argc, argv );
 	StaticLogger::InitDefault();
 
 	//AE_LOG_DBG( "License: "s << AE_LICENSE );
 
-	return MakeUnique<SampleApplication>();
+	return AppListenerPtr{new SampleApplication{}};
 }
 
 void  AE_OnAppDestroyed ()

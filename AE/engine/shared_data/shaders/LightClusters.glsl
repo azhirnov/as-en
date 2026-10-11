@@ -10,12 +10,12 @@
 ND_ RectI	NdcToTile (Rect ndc, const float2 tileCount);
 
 ND_ float2	Cluster_ZProjection_Log     (const float clusterZ, const float clusterCount, const float2 clipPlanes);
-ND_ int		Cluster_InvZProjection_Log  (const float viewZ,    const float clusterCount, const float2 clipPlanes);
+ND_ float	Cluster_InvZProjection_Log  (const float viewZ,    const float clusterCount, const float2 clipPlanes);
 ND_ float2	Cluster_ZProjectionLerp_Log (const float clusterZ, const float clusterCount, const float2 clipPlanes);
 
 // optimized
 ND_ float2	Cluster_ZProjection2_Log    (const float clusterZ, const float clusterCount, const float zNear,    const float zFarDivNear);
-ND_ int		Cluster_InvZProjection2_Log (const float viewZ,    const float clusterCount, const float invZNear, const float lnZFarDivNear);
+ND_ float	Cluster_InvZProjection2_Log (const float viewZ,    const float clusterCount, const float invZNear, const float lnZFarDivNear);
 //-----------------------------------------------------------------------------
 
 
@@ -28,8 +28,8 @@ ND_ int		Cluster_InvZProjection2_Log (const float viewZ,    const float clusterC
 */
 RectI  NdcToTile (Rect ndc, const float2 tileCount)
 {
-	ndc = Rect_ToUNorm( ndc );
-	ndc.v *= tileCount;
+	ndc = ToUNorm( ndc );
+	ndc.v *= tileCount.xyxy;
 
 	return Rect_Create( int2(		Rect_Min( ndc )),
 						int2( Ceil(	Rect_Max( ndc ))) );
@@ -79,14 +79,14 @@ float2  Cluster_ZProjectionLerp_Log (const float clusterZ, const float clusterCo
 	depth to cluster
 =================================================
 */
-int	Cluster_InvZProjection_Log (const float viewZ, const float clusterCount, const float2 clipPlanes)
+float  Cluster_InvZProjection_Log (const float viewZ, const float clusterCount, const float2 clipPlanes)
 {
 	float	z_near	= clipPlanes.x;
 	float	z_far	= clipPlanes.y;
 	return clusterCount * Ln( viewZ / z_near ) / Ln( z_far / z_near );
 }
 
-int  Cluster_InvZProjection2_Log (const float viewZ, const float clusterCount, const float invZNear, const float lnZFarDivNear)
+float  Cluster_InvZProjection2_Log (const float viewZ, const float clusterCount, const float invZNear, const float lnZFarDivNear)
 {
 	return clusterCount * Ln( viewZ * invZNear ) / lnZFarDivNear;
 }

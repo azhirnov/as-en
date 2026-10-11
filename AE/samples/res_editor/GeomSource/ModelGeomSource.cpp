@@ -127,6 +127,8 @@ namespace AE::ResEditor
 		if ( auto stat = _uploadStatus.load();  stat != EUploadStatus::InProgress )
 			return stat;
 
+		TRACY( ZoneScoped );
+
 		const Bytes	pos_end		= SizeOf<decltype(MeshDataInRAM::positions)::Value_t> * _meshVertexCount;
 		const Bytes	norm_end	= SizeOf<decltype(MeshDataInRAM::normals  )::Value_t> * _meshVertexCount + pos_end;
 		const Bytes	tex0_end	= SizeOf<decltype(MeshDataInRAM::texcoord0)::Value_t> * _meshVertexCount + norm_end;
@@ -683,9 +685,9 @@ namespace AE::ResEditor
 */
 	bool  ModelGeomSource::Mesh::BindForGraphics (DescriptorUpdater &updater) C_NE___
 	{
-		CHECK_ERR( updater.BindBuffer( UniformName{"un_Nodes"},		_nodeBuffer ));
-		CHECK_ERR( updater.BindBuffer( UniformName{"un_Materials"},	_materials ));
-		CHECK_ERR( updater.BindBuffer( UniformName{"un_Lights"},	_lights ));
+		CHECK_ERR( updater.BindBuffer( UniformName{"un_Nodes"},			_nodeBuffer ));
+		CHECK_ERR( updater.BindBuffer( UniformName{"un_Materials"},		_materials ));
+		CHECK_ERR( updater.BindBuffer( UniformName{"un_SceneLights"},	_lights ));
 		return true;
 	}
 
@@ -693,7 +695,7 @@ namespace AE::ResEditor
 	{
 		CHECK_ERR( updater.BindBuffer( UniformName{"un_Materials"},		_materials ));
 		CHECK_ERR( updater.BindBuffer( UniformName{"un_RTInstances"},	_rtInstances ));
-		CHECK_ERR( updater.BindBuffer( UniformName{"un_Lights"},		_lights ));
+		CHECK_ERR( updater.BindBuffer( UniformName{"un_SceneLights"},	_lights ));
 		return true;
 	}
 

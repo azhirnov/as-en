@@ -327,6 +327,8 @@ namespace {
 */
 	void  ResourceManager::Deinitialize () __NE___
 	{
+		TRACY( ZoneScoped );
+
 		_stagingMngr.Deinitialize();
 		_queryMngr.Deinitialize();
 
@@ -438,6 +440,8 @@ namespace {
 */
 	RenderTechPipelinesPtr  ResourceManager::LoadRenderTech (PipelinePackID packId, RenderTechName::Ref name, const RenderTechDesc &desc, PipelineCacheID cache) __NE___
 	{
+		TRACY( ZoneScoped );
+
 		auto*	pack = GetResource( packId ? packId : _defaultPack.Get() );
 		CHECK_ERR( pack != null );
 
@@ -464,6 +468,8 @@ namespace {
 */
 	Strong<GraphicsPipelineID>  ResourceManager::CreateGraphicsPipeline (PipelinePackID packId, PipelineTmplName::Ref name, const GraphicsPipelineDesc &desc, PipelineCacheID cache) __NE___
 	{
+		TRACY( ZoneScoped );
+
 		auto*	pack = GetResource( packId ? packId : _defaultPack.Get() );
 		CHECK_ERR( pack != null );
 
@@ -477,6 +483,8 @@ namespace {
 */
 	Strong<MeshPipelineID>  ResourceManager::CreateMeshPipeline (PipelinePackID packId, PipelineTmplName::Ref name, const MeshPipelineDesc &desc, PipelineCacheID cache) __NE___
 	{
+		TRACY( ZoneScoped );
+
 		auto*	pack = GetResource( packId ? packId : _defaultPack.Get() );
 		CHECK_ERR( pack != null );
 
@@ -490,6 +498,8 @@ namespace {
 */
 	Strong<ComputePipelineID>  ResourceManager::CreateComputePipeline (PipelinePackID packId, PipelineTmplName::Ref name, const ComputePipelineDesc &desc, PipelineCacheID cache) __NE___
 	{
+		TRACY( ZoneScoped );
+
 		auto*	pack = GetResource( packId ? packId : _defaultPack.Get() );
 		CHECK_ERR( pack != null );
 
@@ -503,6 +513,8 @@ namespace {
 */
 	Strong<RayTracingPipelineID>  ResourceManager::CreateRayTracingPipeline (PipelinePackID packId, PipelineTmplName::Ref name, const RayTracingPipelineDesc &desc, PipelineCacheID cache) __NE___
 	{
+		TRACY( ZoneScoped );
+
 		auto*	pack = GetResource( packId ? packId : _defaultPack.Get() );
 		CHECK_ERR( pack != null );
 
@@ -516,6 +528,8 @@ namespace {
 */
 	Strong<TilePipelineID>  ResourceManager::CreateTilePipeline (PipelinePackID packId, PipelineTmplName::Ref name, const TilePipelineDesc &desc, PipelineCacheID cache) __NE___
 	{
+		TRACY( ZoneScoped );
+
 		auto*	pack = GetResource( packId ? packId : _defaultPack.Get() );
 		CHECK_ERR( pack != null );
 
@@ -632,6 +646,8 @@ namespace {
 */
 	Strong<PipelinePackID>  ResourceManager::LoadPipelinePack (const PipelinePackDesc &desc) __NE___
 	{
+		TRACY( ZoneScoped );
+
 		PipelinePackID	id;
 		CHECK_ERR( _Assign( OUT id ));
 
@@ -888,6 +904,63 @@ namespace {
 	{
 		auto*	res = GetResource( id, False{"don't inc ref"}, True{"quiet"} );
 		return res != null ? res->GetDeviceAddress() : Default;
+	}
+
+/*
+=================================================
+	GetDescription
+=================================================
+*/
+	template <typename ID>
+	auto const&  ResourceManager::_GetDescription (ID id) C_NE___
+	{
+		auto*	res = GetResource( id );
+
+		using T = RemoveAllQualifiers< decltype(*res) >;
+		static const typename FunctionInfo< decltype(&T::Description) >::result	defaultDesc{};
+
+		return res ? res->Description() : defaultDesc;
+	}
+
+	BufferDesc const&			ResourceManager::GetDescription (BufferID			id) C_NE___ { return _GetDescription( id ); }
+	ImageDesc const&			ResourceManager::GetDescription (ImageID			id)	C_NE___ { return _GetDescription( id ); }
+	RTShaderBindingDesc const&	ResourceManager::GetDescription (RTShaderBindingID	id) C_NE___ { return _GetDescription( id ); }
+	RTGeometryDesc const&		ResourceManager::GetDescription (RTGeometryID		id) C_NE___ { return _GetDescription( id ); }
+	RTSceneDesc const&			ResourceManager::GetDescription (RTSceneID			id) C_NE___ { return _GetDescription( id ); }
+	VideoImageDesc const&		ResourceManager::GetDescription (VideoImageID		id) C_NE___ { return _GetDescription( id ); }
+	VideoBufferDesc const&		ResourceManager::GetDescription (VideoBufferID		id) C_NE___ { return _GetDescription( id ); }
+	VideoSessionDesc const&		ResourceManager::GetDescription (VideoSessionID		id) C_NE___ { return _GetDescription( id ); }
+
+	BufferViewDesc const&  ResourceManager::GetDescription (BufferViewID id, OUT BufferID* baseBuf) C_NE___
+	{
+		auto*	res = GetResource( id );
+		if ( res != null )
+		{
+			if ( baseBuf != null )
+				*baseBuf = res->BufferId();
+
+			return res->Description();
+		}
+
+		using T = RemoveAllQualifiers< decltype(*res) >;
+		static typename FunctionInfo< decltype(&T::Description) >::result	defaultDesc{};
+		return defaultDesc;
+	}
+
+	ImageViewDesc const&  ResourceManager::GetDescription (ImageViewID id, OUT ImageID* baseImg) C_NE___
+	{
+		auto*	res = GetResource( id );
+		if ( res != null )
+		{
+			if ( baseImg != null )
+				*baseImg = res->ImageId();
+
+			return res->Description();
+		}
+
+		using T = RemoveAllQualifiers< decltype(*res) >;
+		static typename FunctionInfo< decltype(&T::Description) >::result	defaultDesc{};
+		return defaultDesc;
 	}
 //-----------------------------------------------------------------------------
 

@@ -3,6 +3,9 @@
 #ifdef AE_ENABLE_IMGUI
 # include "imgui.h"
 #endif
+#ifdef AE_ENABLE_TRACY
+# include <tracy/TracyC.h>
+#endif
 #include "profiler/Impl/GraphicsProfiler.h"
 
 namespace AE::Profiler
@@ -26,6 +29,17 @@ namespace
 	static constexpr GraphName	Stat_Primitives				{"Stat_Primitives"};
 	static constexpr GraphName	Stat_VS_FS_CS_Invoc			{"Stat_VS_FS_CS_Invoc"};
 	static constexpr GraphName	Stat_TS_MS_Invoc			{"Stat_TS_MS_Invoc"};
+
+#ifdef AE_ENABLE_TRACY
+	static constexpr char		Tracy_DeviceMemUsage []			= "device mem usage";
+	static constexpr char		Tracy_HostMemUsage []			= "host mem usage";
+	static constexpr char		Tracy_UnifiedMemUsage []		= "unified mem usage";
+
+	static constexpr char		Tracy_MemTrafficToDevPerSec []	= "memory traffic to device (per second)";
+	static constexpr char		Tracy_MemTrafficToDevPerFr []	= "memory traffic to device (per frame)";
+	static constexpr char		Tracy_MemTrafficToHostPerSec []	= "memory traffic to host (per second)";
+	static constexpr char		Tracy_MemTrafficToHostPerFr []	= "memory traffic to host (per frame)";
+#endif
 
 /*
 =================================================
@@ -66,7 +80,31 @@ namespace
 		return style1;
 	}
 
+/*
+=================================================
+	GetPowerVRProfilerPassName
+=================================================
+*/
+	ND_ static Tuple<StringView, RGBA8u>  GetPowerVRProfilerPassName (PowerVRProfiler::EPass pass)
+	{
+		switch_enum( pass )
+		{
+			using enum PowerVRProfiler::EPass;
+			case Compute :		return Tuple{ "Compute",	HtmlColor::Yellow	};
+			case Tiler :		return Tuple{ "Tiler",		HtmlColor::Blue		};
+			case Renderer :		return Tuple{ "Renderer",	HtmlColor::Lime		};
+			case Transfer :		return Tuple{ "Transfer",	HtmlColor::Red		};
+			case RayTracing :	return Tuple{ "RayTracing",	HtmlColor::Violet	};
+			case RTASBuild :	return Tuple{ "RTASBuild",	HtmlColor::Pink		};
+			case Unknown :		break;
+		}
+		switch_end
+		return {};
+	}
+
 } // namespace
+//-----------------------------------------------------------------------------
+
 
 	using namespace AE::Graphics;
 	using EContextType = IGraphicsProfiler::EContextType;
@@ -112,6 +150,34 @@ namespace
 	  #endif
 		_pplnStats.graphics	= {};
 		_pplnStats.compute	= {};
+
+		if ( _pvrProfiler != null )
+			_InitPVRProfiler();
+
+		_InitTracy();
+	}
+
+/*
+=================================================
+	_InitTracy
+=================================================
+*/
+	void  GraphicsProfiler::_InitTracy ()
+	{
+	#ifdef AE_ENABLE_TRACY
+		bool	step = true;
+		bool	fill = true;
+
+		TracyPlotConfig( Tracy_DeviceMemUsage,	tracy::PlotFormatType::Memory, step, fill, 0x00ffcc );
+		TracyPlotConfig( Tracy_HostMemUsage,	tracy::PlotFormatType::Memory, step, fill, 0x00ffcc );
+		TracyPlotConfig( Tracy_UnifiedMemUsage, tracy::PlotFormatType::Memory, step, fill, 0x00ffcc );
+
+		TracyPlotConfig( Tracy_MemTrafficToDevPerSec,  tracy::PlotFormatType::Memory, step, fill, 0x00ffcc );
+		TracyPlotConfig( Tracy_MemTrafficToHostPerSec, tracy::PlotFormatType::Memory, step, fill, 0x00ffcc );
+
+		TracyPlotConfig( Tracy_MemTrafficToDevPerFr,  tracy::PlotFormatType::Memory, step, fill, 0x00ffcc );
+		TracyPlotConfig( Tracy_MemTrafficToHostPerFr, tracy::PlotFormatType::Memory, step, fill, 0x00ffcc );
+	#endif
 	}
 
 /*
@@ -365,6 +431,12 @@ namespace
 
 			if ( auto graph = _graphTable.Get( GPU_UniMemUsage ))
 				graph->AddNonScaled( List{ double(ulong(mem_usage->unifiedUsage)) });
+
+			TRACY(
+				TracyPlot( Tracy_DeviceMemUsage,	double(ulong(mem_usage->deviceUsage)) );
+				TracyPlot( Tracy_HostMemUsage,		double(ulong(mem_usage->hostUsage)) );
+				TracyPlot( Tracy_UnifiedMemUsage,	double(ulong(mem_usage->unifiedUsage)) );
+			)
 		}
 
 		// mem traffic
@@ -383,6 +455,13 @@ namespace
 
 			if ( auto graph = _graphTable.Get( GPU_MemTrafficToHost2 ))
 				graph->AddNonScaled( List{ read / double(dt.count()) });
+
+			TRACY(
+				TracyPlot( Tracy_MemTrafficToDevPerSec,		write / double(dt.count()) );
+				TracyPlot( Tracy_MemTrafficToHostPerSec,	read / double(dt.count()) );
+				TracyPlot( Tracy_MemTrafficToDevPerFr,		write / double(frame_count) );
+				TracyPlot( Tracy_MemTrafficToHostPerFr,		read / double(frame_count) );
+			)
 		}
 
 		// pipeline statistic
@@ -422,6 +501,27 @@ namespace
 	void  GraphicsProfiler::SetQueue (EQueueType type, StringView name) __NE___
 	{
 		Unused( type, name );
+
+		TRACY({
+			auto&	qm = GraphicsScheduler().GetQueryManager();
+
+			ulong	cur_time = 0;
+			qm.GetCurrentTimestamp( OUT cur_time );
+
+			___tracy_gpu_new_context_data	data;
+			data.gpuTime	= cur_time;
+			data.period		= 1.f;	// 1ns
+			data.context	= ubyte(type);
+			data.flags		= 0;
+			data.type		= 2;	// Vulkan
+			___tracy_emit_gpu_new_context_serial( data );
+		}{
+			___tracy_gpu_context_name_data	data;
+			data.context	= ubyte(type);
+			data.name		= name.data();
+			data.len		= ushort(name.size());
+			___tracy_emit_gpu_context_name_serial( data );
+		})
 	}
 
 /*
@@ -529,8 +629,9 @@ namespace
 
 		auto&	qm		= GraphicsScheduler().GetQueryManager();
 
-		MeshPipelineStatistic		g_stat = {};
-		ComputePipelineStatistic	c_stat = {};
+		MeshPipelineStatistic		g_stat		= {};
+		ComputePipelineStatistic	c_stat		= {};
+		ushort						query_id	= 0;	// for tracy
 
 		_imGPUTimeHistory.Begin();
 
@@ -550,6 +651,18 @@ namespace
 					_gpuTime.max = Max( _gpuTime.max, time[1] );
 
 					_imGPUTimeHistory.Add( pass.name, pass.color, time[0], time[1] );
+
+					TRACY(
+						ulong	loc			= ___tracy_alloc_srcloc_name( 0, "", 0, "", 0, pass.name.c_str(), pass.name.length(), BitCast<uint>(pass.color) );
+						slong	time_ns[2]	= { slong(time[0].count()), slong(time[1].count()) };
+						ubyte	context_id	= ubyte(pass.timestamp.queue);
+
+						___tracy_emit_gpu_zone_begin_alloc_serial({ loc, query_id, context_id });
+						___tracy_emit_gpu_time_serial({ time_ns[0], query_id, context_id });
+						___tracy_emit_gpu_zone_end_serial({ query_id, context_id });
+						___tracy_emit_gpu_time_serial({ time_ns[1], query_id, context_id });
+						++query_id;
+					)
 				}
 
 				if ( pass.pplnStat )
@@ -583,6 +696,7 @@ namespace
 				}
 			}
 		}
+		Unused( query_id );
 
 		_gpuTime.min = Min( _gpuTime.min, _gpuTime.max );
 
@@ -679,36 +793,81 @@ namespace
 
 	#endif
 
+		ushort	query_id = 0;  // for tracy
 
 		// add to graph
 		_imGPUTimeHistory.Begin();
 
 		for (auto& t : timings_view)
 		{
-			StringView	name;
-			RGBA8u		color;
-
-			using EPass = PowerVRProfiler::EPass;
-			switch_enum( t.pass )
-			{
-				case EPass::Compute :		name = "Compute";		color = HtmlColor::Yellow;	break;
-				case EPass::Tiler :			name = "Tiler";			color = HtmlColor::Blue;	break;
-				case EPass::Renderer :		name = "Renderer";		color = HtmlColor::Lime;	break;
-				case EPass::Transfer :		name = "Transfer";		color = HtmlColor::Red;		break;
-				case EPass::RayTracing :	name = "RayTracing";	color = HtmlColor::Violet;	break;
-				case EPass::RTASBuild :		name = "RTASBuild";		color = HtmlColor::Pink;	break;
-				case EPass::Unknown :		break;
-			}
-			switch_end
+			auto	[name, color] = GetPowerVRProfilerPassName( t.pass );
 
 			_imGPUTimeHistory.Add( name, color, t.begin, t.end );
+
+			TRACY(
+				ulong	loc			= ___tracy_alloc_srcloc_name( 0, "", 0, "", 0, name.data(), name.length(), BitCast<uint>(color) );
+				slong	time_ns[2]	= { slong(t.begin.count()), slong(t.end.count()) };
+				ubyte	context_id	= ubyte(t.pass) + ubyte(EQueueType::_Count);
+
+				___tracy_emit_gpu_zone_begin_alloc_serial({ loc, query_id, context_id });
+				___tracy_emit_gpu_time_serial({ time_ns[0], query_id, context_id });
+				___tracy_emit_gpu_zone_end_serial({ query_id, context_id });
+				___tracy_emit_gpu_time_serial({ time_ns[1], query_id, context_id });
+				++query_id;
+			)
 		}
+		Unused( query_id );
 
 		_gpuTime.min = Min( _gpuTime.min, _gpuTime.max );
 
 		_imGPUTimeHistory.End( _gpuTime.min, _gpuTime.max );
 
 		_fps.accumFrameTime.fetch_add( (_gpuTime.max - _gpuTime.min).count() );
+	}
+
+/*
+=================================================
+	_InitPVRProfiler
+=================================================
+*/
+	void  GraphicsProfiler::_InitPVRProfiler ()
+	{
+	  #ifdef AE_ENABLE_TRACY
+		using EPass = PowerVRProfiler::EPass;
+
+		const auto	InitPass = [] (EPass pass)
+		{{
+			auto	[name, color]	= GetPowerVRProfilerPassName( pass );
+			ubyte	context_id		= ubyte(pass) + ubyte(EQueueType::_Count);
+			{
+				___tracy_gpu_new_context_data	data;
+				data.gpuTime	= 0;
+				data.period		= 1.f;	// 1ns
+				data.context	= context_id;
+				data.flags		= 0;
+				data.type		= 2;	// Vulkan
+				___tracy_emit_gpu_new_context_serial( data );
+			}{
+				___tracy_gpu_context_name_data	data;
+				data.context = context_id;
+				data.name	 = name.data();
+				data.len	 = ushort(name.size());
+				___tracy_emit_gpu_context_name_serial( data );
+			}
+		}};
+
+		switch_enum( EPass::Unknown )
+		{
+			case EPass::Unknown :
+			case EPass::Compute :		InitPass( EPass::Compute );
+			case EPass::Tiler :			InitPass( EPass::Tiler );
+			case EPass::Renderer :		InitPass( EPass::Renderer );
+			case EPass::Transfer :		InitPass( EPass::Transfer );
+			case EPass::RayTracing :	InitPass( EPass::RayTracing );
+			case EPass::RTASBuild :		InitPass( EPass::RTASBuild );
+		}
+		switch_end
+	  #endif
 	}
 //-----------------------------------------------------------------------------
 
@@ -842,7 +1001,7 @@ namespace
 		if ( not (pass.pplnStat or pass.timestamp) )
 			return;	// failed to allocate
 
-		pass.name	= String{taskName};
+		pass.name	= taskName;
 		pass.color	= color;
 
 		auto&	f = _perFrame[ _writeIndex ];
@@ -1022,7 +1181,7 @@ namespace
 		if ( not (pass.pplnStat or pass.timestamp) )
 			return;	// failed to allocate
 
-		pass.name	= String{taskName};
+		pass.name	= taskName;
 		pass.color	= color;
 
 		auto&	f = _perFrame[ _writeIndex ];

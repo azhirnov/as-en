@@ -167,6 +167,28 @@ namespace AE::PipelineCompiler
 	TestFeature_Supported
 =================================================
 */
+	ND_ inline EShaderStages  FeatureSet_GetSupportedStages (ArrayView<ScriptFeatureSetPtr> features) __Th___
+	{
+		const auto		True		= FeatureSet::EFeature::RequireTrue;
+		EShaderStages	all_stages	= EShaderStages::Fragment | EShaderStages::Vertex;
+		for (auto& feat : features)
+		{
+			if ( feat->fs.computeShader		 == True )	all_stages |= EShaderStages::Compute;
+			if ( feat->fs.geometryShader	 == True )	all_stages |= EShaderStages::Geometry;
+			if ( feat->fs.tessellationShader ==	True )	all_stages |= EShaderStages::TessControl | EShaderStages::TessEvaluation;
+			if ( feat->fs.tileShader		 ==	True )	all_stages |= EShaderStages::Tile;
+			if ( feat->fs.taskShader		 ==	True )	all_stages |= EShaderStages::MeshTask;
+			if ( feat->fs.meshShader		 ==	True )	all_stages |= EShaderStages::Mesh;
+			if ( feat->fs.rayTracingPipeline ==	True )	all_stages |= EShaderStages::AllRayTracing;
+		}
+		return all_stages;
+	}
+
+/*
+=================================================
+	TestFeature_Supported
+=================================================
+*/
 	inline void  TestFeature_Supported (ArrayView<ScriptFeatureSetPtr> features, const EResourceState state) __Th___
 	{
 		CHECK_THROW_MSG( not features.empty(), "empty FeatureSet array" );

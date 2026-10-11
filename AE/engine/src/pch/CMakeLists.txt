@@ -22,9 +22,11 @@ function( EngineDeps_Base projName )
 	if (TARGET "Brotli-lib")
 		target_link_libraries( ${projName} PUBLIC "Brotli-lib" )
 	endif()
+
 	if (TARGET "zstd-lib")
 		target_link_libraries( ${projName} PUBLIC "zstd-lib" )
 	endif()
+
 	if (TARGET "lz4-lib")
 		target_link_libraries( ${projName} PUBLIC "lz4-lib" )
 	endif()
@@ -39,6 +41,10 @@ function( EngineDeps_Base projName )
 
 	if (TARGET "xxHash-lib")
 		target_link_libraries( ${projName} PUBLIC "xxHash-lib" )
+	endif()
+
+	if (TARGET "Tracy-lib")
+		target_link_libraries( ${projName} PUBLIC "Tracy-lib" )
 	endif()
 
 	target_link_libraries( ${projName} PUBLIC "FametaCounter-lib" )

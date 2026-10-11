@@ -68,6 +68,7 @@ namespace AE::PipelineCompiler
 #ifdef AE_BUILD_PIPELINE_COMPILER
 	bool  FeatureSetPacker::Serialize (Serializing::Serializer &ser) __NE___
 	{
+		TRACY( ZoneScoped );
 		const auto&	feat_sets = ObjectStorage::Instance()->featureSets;
 
 		CHECK_ERR( not feat_sets.empty() );

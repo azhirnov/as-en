@@ -113,6 +113,8 @@ namespace AE::Profiler
 #else
 # include "profiler/Profilers/GeneralProfiler.h"
 # include "profiler/Remote/RemoteGeneralProfiler.h"
+# include <fstream>
+# include <cstdio>
 
 namespace AE::Profiler
 {
@@ -128,6 +130,69 @@ namespace
 												.insert( GeneralProfiler::ECounter::KernelTime )
 												.insert( GeneralProfiler::ECounter::FSInput )
 												.insert( GeneralProfiler::ECounter::FSOutput );
+
+	ND_ static bool  _ReadFileUint (const char *path, OUT uint &value)
+	{
+		std::ifstream	file{ path };
+		if ( not file.is_open() )
+			return false;
+		file >> value;
+		return not file.fail();
+	}
+
+	ND_ static bool  _FindCoretempPath (OUT char *result, usize resultSize)
+	{
+		for (uint i = 0; i < 32; ++i)
+		{
+			char	namePath [256];
+			snprintf( namePath, sizeof(namePath), "/sys/class/hwmon/hwmon%u/name", i );
+
+			char	name [64] = {};
+			{
+				std::ifstream	f{ namePath };
+				if ( not f.is_open() )
+					continue;
+				f.getline( name, sizeof(name) );
+			}
+
+			if ( StringView{ name } == "coretemp" )
+			{
+				snprintf( result, resultSize, "/sys/class/hwmon/hwmon%u/", i );
+				return true;
+			}
+		}
+		return false;
+	}
+
+	ND_ static bool  _ReadCoretempPackage (const char *hwmonPath, OUT float &tempC)
+	{
+		char	path [256];
+		uint	milliDeg = 0;
+
+		for (uint i = 1; i <= 64; ++i)
+		{
+			snprintf( path, sizeof(path), "%stemp%u_label", hwmonPath, i );
+			char	label [64] = {};
+			{
+				std::ifstream	f{ path };
+				if ( not f.is_open() )
+					continue;
+				f.getline( label, sizeof(label) );
+			}
+
+			if ( StringView{ label } == "Package id 0" )
+			{
+				snprintf( path, sizeof(path), "%stemp%u_input", hwmonPath, i );
+				if ( _ReadFileUint( path, OUT milliDeg ))
+				{
+					tempC = float(milliDeg) * 0.001f;
+					return true;
+				}
+				return false;
+			}
+		}
+		return false;
+	}
 }
 
 /*
@@ -153,6 +218,8 @@ namespace
 		Timer									levelUpdateTimer;
 		PerformanceStat::Power_t				batteryPower;
 		PerformanceStat::Energy_t				batteryEnergyLost;
+
+		char									coretempPath [256]	= {};
 
 
 	// methods
@@ -184,6 +251,9 @@ namespace
 				dst.logicalCores	= core.logicalBits;
 			}
 		}
+
+		Unused( _FindCoretempPath( OUT coretempPath, sizeof(coretempPath) ));
+
 		return true;
 	}
 //-----------------------------------------------------------------------------
@@ -353,6 +423,14 @@ namespace
 
 				prev_cap = stat.capacity;
 			}
+		}
+
+		// CPU temperature
+		if ( _impl->coretempPath[0] != '\0' )
+		{
+			float	tempC = 0.f;
+			if ( _ReadCoretempPackage( _impl->coretempPath, OUT tempC ))
+				outCounters.emplace( ECounter::CpuTemperature, double(tempC) );
 		}
 	}
 

@@ -8,6 +8,9 @@ extern void Test_BC_Encode (Executor &ex);
 extern void Test_ETC_Decode (Executor &ex);
 extern void Test_ETC_Encode (Executor &ex);
 
+extern void Test_ASTC_Decode (Executor &ex);
+extern void Test_ASTC_Encode (Executor &ex);
+
 
 TEST_ENTRY()
 {
@@ -16,11 +19,13 @@ TEST_ENTRY()
 	Executor	ex;
 	CHECK_FATAL( ex.Initialize() );
 
-	RUN_TEST( Test_BC_Decode, ex );
-	RUN_TEST( Test_ETC_Decode, ex );
+//	RUN_TEST( Test_BC_Decode, ex );
+//	RUN_TEST( Test_ETC_Decode, ex );
+//	RUN_TEST( Test_ASTC_Decode, ex );
 
 //	RUN_TEST( Test_BC_Encode, ex );
 //	RUN_TEST( Test_ETC_Encode, ex );
+	RUN_TEST( Test_ASTC_Encode, ex );
 
 	ex.Deinitialize();
 

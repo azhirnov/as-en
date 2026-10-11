@@ -324,6 +324,7 @@ void  Frustum_ToCornerPoints (const Frustum fr, out float3 points[8])
 	//  | / |-near   | \ |-far   |
 	//  0 - 1        4 - 5      \|/ Y
 
+#if 0
 	float4	near  = fr.planes[0];
 	float4	far   = fr.planes[1];
 
@@ -336,6 +337,45 @@ void  Frustum_ToCornerPoints (const Frustum fr, out float3 points[8])
 	points[5] = Plane_IntersectionPoint( fr.planes[3], fr.planes[4], far );		// right x top
 	points[6] = Plane_IntersectionPoint( fr.planes[2], fr.planes[5], far );		// left  x bottom
 	points[7] = Plane_IntersectionPoint( fr.planes[3], fr.planes[5], far );		// right x bottom
+
+#else // optimized
+	float3	nN	= fr.planes[0].xyz;
+	float3	nF	= fr.planes[1].xyz;
+	float3	nL	= fr.planes[2].xyz;
+	float3	nR	= fr.planes[3].xyz;
+	float3	nT	= fr.planes[4].xyz;
+	float3	nB	= fr.planes[5].xyz;
+
+	float	dN	= -fr.planes[0].w;
+	float	dF	= -fr.planes[1].w;
+	float	dL	= -fr.planes[2].w;
+	float	dR	= -fr.planes[3].w;
+	float	dT	= -fr.planes[4].w;
+	float	dB	= -fr.planes[5].w;
+
+	// 12 unique crosses instead of 24
+	float3	TxN	= Cross( nT, nN );
+	float3	BxN	= Cross( nB, nN );
+	float3	TxF	= Cross( nT, nF );
+	float3	BxF	= Cross( nB, nF );
+	float3	NxL	= Cross( nN, nL );
+	float3	NxR	= Cross( nN, nR );
+	float3	FxL	= Cross( nF, nL );
+	float3	FxR	= Cross( nF, nR );
+	float3	LxT	= Cross( nL, nT );
+	float3	RxT	= Cross( nR, nT );
+	float3	LxB	= Cross( nL, nB );
+	float3	RxB	= Cross( nR, nB );
+
+	points[0] = (dL * TxN + dT * NxL + dN * LxT) * SafeRcp( Dot( nL, TxN ));	// left  x top  x near
+	points[1] = (dR * TxN + dT * NxR + dN * RxT) * SafeRcp( Dot( nR, TxN ));	// right x top  x near
+	points[2] = (dL * BxN + dB * NxL + dN * LxB) * SafeRcp( Dot( nL, BxN ));	// left  x bot  x near
+	points[3] = (dR * BxN + dB * NxR + dN * RxB) * SafeRcp( Dot( nR, BxN ));	// right x bot  x near
+	points[4] = (dL * TxF + dT * FxL + dF * LxT) * SafeRcp( Dot( nL, TxF ));	// left  x top  x far
+	points[5] = (dR * TxF + dT * FxR + dF * RxT) * SafeRcp( Dot( nR, TxF ));	// right x top  x far
+	points[6] = (dL * BxF + dB * FxL + dF * LxB) * SafeRcp( Dot( nL, BxF ));	// left  x bot  x far
+	points[7] = (dR * BxF + dB * FxR + dF * RxB) * SafeRcp( Dot( nR, BxF ));	// right x bot  x far
+#endif
 }
 
 /*
@@ -386,6 +426,8 @@ void  Frustum_ZSlicePoints (const Frustum fr, float zLerp, out float3 points[4])
 /*
 =================================================
 	Frustum_ZSliceOuterRadius
+----
+	outer radius of XY space quad
 =================================================
 */
 float  Frustum_ZSliceOuterRadius (const Frustum fr, float zLerp)
@@ -513,12 +555,10 @@ Frustum  Frustum_ToTile (const Frustum mainFrustum, const int2 tileIdx, const in
 	float3	corners [8];
 	Frustum_ToCornerPoints( mainFrustum, OUT corners );
 
-	float2	uv0	= float2(tileIdx.xy + 0) / float2(tileCount.xy);
-	float2	uv1	= float2(tileIdx.xy + 1) / float2(tileCount.xy);
+	float2	uv0	= float2(tileIdx + 0) / float2(tileCount);
+	float2	uv1	= float2(tileIdx + 1) / float2(tileCount);
 
-	uv0.y = 1.0 - uv0.y;
-	uv1.y = 1.0 - uv1.y;
-
+#if 0
 	float3	n0	= BiLerp( corners[2], corners[3], corners[0], corners[1], uv0 );
 	float3	n1	= BiLerp( corners[2], corners[3], corners[0], corners[1], uv1 );
 
@@ -530,17 +570,58 @@ Frustum  Frustum_ToTile (const Frustum mainFrustum, const int2 tileIdx, const in
 	//  0 - 1        4 - 5      \|/ Y
 
 	float3	tile_corners [8];
-	tile_corners[0]	= float3( n0.x, n0.y, n0.z );
-	tile_corners[1] = float3( n1.x, n0.y, n0.z );
-	tile_corners[2] = float3( n0.x, n1.y, n0.z );
-	tile_corners[3] = float3( n1.x, n1.y, n0.z );
+	tile_corners[0] = float3( n0.x, n1.y, n0.z );	// bottom-left
+	tile_corners[1] = float3( n1.x, n1.y, n0.z );	// bottom-right
+	tile_corners[2] = float3( n0.x, n0.y, n0.z );	// top-left
+	tile_corners[3] = float3( n1.x, n0.y, n0.z );	// top-right
 
-	tile_corners[4]	= float3( f0.x, f0.y, f0.z );
-	tile_corners[5] = float3( f1.x, f0.y, f0.z );
-	tile_corners[6] = float3( f0.x, f1.y, f0.z );
-	tile_corners[7] = float3( f1.x, f1.y, f0.z );
+	tile_corners[4] = float3( f0.x, f1.y, f0.z );
+	tile_corners[5] = float3( f1.x, f1.y, f0.z );
+	tile_corners[6] = float3( f0.x, f0.y, f0.z );
+	tile_corners[7] = float3( f1.x, f0.y, f0.z );
 
 	return Frustum_FromCornerPoints( tile_corners );
+
+#else // optimized
+
+	float	u0v0	= uv0.x * uv0.y;
+	float	u1v1	= uv1.x * uv1.y;
+
+	// Shared bilinear basis (two samples of BiLerp(c2,c3,c0,c1,uv))
+	float3	nab		= corners[3] - corners[2];
+	float3	nac		= corners[0] - corners[2];
+	float3	nq		= (corners[1] - corners[0]) - nab;
+	float3	n0		= corners[2] + nab * uv0.x + nac * uv0.y + nq * u0v0;
+	float3	n1		= corners[2] + nab * uv1.x + nac * uv1.y + nq * u1v1;
+
+	float3	fab		= corners[7] - corners[6];
+	float3	fac		= corners[4] - corners[6];
+	float3	fq		= (corners[5] - corners[4]) - fab;
+	float3	f0		= corners[6] + fab * uv0.x + fac * uv0.y + fq * u0v0;
+	float3	f1		= corners[6] + fab * uv1.x + fac * uv1.y + fq * u1v1;
+
+	// Tile near/far are z-planes; side planes lie in XZ or YZ.
+	// Equivalent to Frustum_FromCornerPoints() on the mixed x/y corners.
+	float	dxn		= n1.x - n0.x;
+	float	dyn		= n0.y - n1.y;
+	float	dxf		= f1.x - f0.x;
+	float	dyf		= f0.y - f1.y;
+	float	dz		= f0.z - n0.z;
+
+	float3	nBL		= float3( n0.x, n1.y, n0.z );
+	float3	nBR		= float3( n1.x, n1.y, n0.z );
+	float3	nTL		= float3( n0.x, n0.y, n0.z );
+	float3	fBL		= float3( f0.x, f1.y, f0.z );
+
+	Frustum	res;
+	res.planes[0] = Plane_FromNormalAndPoint( float3( 0.0,       0.0,      -dyn * dxn ), 			nBL );	// near
+	res.planes[1] = Plane_FromNormalAndPoint( float3( 0.0,       0.0,       dxf * dyf ), 			fBL );	// far
+	res.planes[2] = Plane_FromNormalAndPoint( float3( -dz * dyn, 0.0,      (f0.x - n0.x) * dyn ), 	nBL );	// left
+	res.planes[3] = Plane_FromNormalAndPoint( float3(  dz * dyn, 0.0,      (n1.x - f1.x) * dyn ), 	nBR );	// right
+	res.planes[4] = Plane_FromNormalAndPoint( float3( 0.0,      -dz * dxf, (f1.y - n1.y) * dxf ), 	nBL );	// top
+	res.planes[5] = Plane_FromNormalAndPoint( float3( 0.0,       dz * dxn, (n0.y - f0.y) * dxn ), 	nTL );	// bottom
+	return res;
+#endif
 }
 
 /*

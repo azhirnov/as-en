@@ -1949,6 +1949,8 @@ namespace
 #ifdef AE_BUILD_PIPELINE_COMPILER
 	bool  RenderPassPacker::Serialize (Serializing::Serializer &ser) __NE___
 	{
+		TRACY( ZoneScoped );
+
 		auto&		storage			= *ObjectStorage::Instance();
 		const auto&	compatible_rp	= storage.compatibleRPs;
 		CHECK_ERR( not compatible_rp.empty() );

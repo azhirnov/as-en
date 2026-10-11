@@ -47,25 +47,28 @@ namespace
 								"It is very useful to debug shaders. In UI select 'Debugging' menu, select pass,"
 								"'Trace' and shader stage then click 'G' key to record trace for pixel under cursor.\n"
 								"Reference to the last recorded trace will be added to console and IDE log, click on it to open file." );
-				binder.AddValue( "Enable_ShaderTrace",		EFlags::Enable_ShaderTrace );
+				binder.AddValue< EFlags::Enable_ShaderTrace >();
 
 				binder.Comment( "ShaderFunctionProfiling - same as Trace but record time of user function calls, then sort results and save to file.\n" );
-				binder.AddValue( "Enable_ShaderFnProf",		EFlags::Enable_ShaderFnProf );
+				binder.AddValue< EFlags::Enable_ShaderFnProf >();
 
 				binder.Comment( "Enable asserts in shader, add some performance loss, but much faster than Trace.\n"
 								"It applied to default shader, so you don't need to press 'G' like for Trace.\n"
 								"Result is written to 'ShaderErrors' tab." );
-				binder.AddValue( "Enable_ShaderAsserts",	EFlags::Enable_ShaderAsserts );
+				binder.AddValue< EFlags::Enable_ShaderAsserts >();
 
 				//binder.AddValue( "Enable_ShaderTmProf",	EFlags::Enable_ShaderTmProf );	// not supported yet
 
 				binder.Comment( "Enable all debug features." );
-				binder.AddValue( "Enable_AllShaderDbg",		EFlags::Enable_AllShaderDbg );
+				binder.AddValue< EFlags::Enable_AllShaderDbg >();
 
 				binder.Comment( "Compile shader using Slang compiler." );
-				binder.AddValue( "UseSLang",				EFlags::UseSLang );
+				binder.AddValue< EFlags::UseSLang >();
 
-				StaticAssert( uint(EFlags::All) == 0x1F );
+				binder.Comment( "Clear to zero resource content that is added with ArgOut(). Clear happens between repeated calls too, which may affect performance." );
+				binder.AddValue< EFlags::ZeroContentOfArgOut >();
+
+				StaticAssert( uint(EFlags::All) == 0x3F );
 			}
 		}
 

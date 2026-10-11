@@ -33,10 +33,10 @@ namespace AE::RemoteGraphics::Msg
 
 	StaticAssert( sizeof(Viewport) == 24 );
 
-	StaticAssert64( sizeof(SwapchainDesc) == 16 );
+	StaticAssert64( sizeof(SwapchainDesc) == 20 );
 	#define Ser_SwapchainDesc( _desc_ )\
 		_desc_.colorFormat, _desc_.colorSpace, _desc_.presentMode, _desc_.minImageCount, \
-		_desc_.usePreTransform, _desc_.scaling, _desc_.usage, _desc_.options, _desc_.scale
+		_desc_.usePreTransform, _desc_.scaling, _desc_.usage, _desc_.options, _desc_.scale, _desc_.stallingResize
 
   #ifdef AE_ENABLE_REMOTE_GRAPHICS
 	StaticAssert64( sizeof(GraphicsCreateInfo) == 184 );

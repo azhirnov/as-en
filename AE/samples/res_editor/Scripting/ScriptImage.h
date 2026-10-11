@@ -64,6 +64,13 @@ namespace AE::ResEditor
 		void  LoadLayer2 (const String &filename, uint layer, ELoadOpFlags flags)	__Th___;
 		void  LoadLayer3 (const String &filename, uint layer, uint flags)			__Th___;
 
+		void  GetMipmaps (OUT ScriptArray<ScriptImagePtr> &)						__Th___;
+
+		void  InitialValue1 (const RGBA32f &)										__Th___;
+		void  InitialValue2 (const RGBA32u &)										__Th___;
+		void  InitialValue3 (const RGBA32i &)										__Th___;
+		void  InitialValue4 (const DepthStencil &)									__Th___;
+
 		ND_ packed_uint2		Dimension2 ()										C_Th___	{ return packed_uint2(Dimension3()); }
 		ND_ packed_uint3		Dimension2_Layers ()								C_Th___	{ return packed_uint3{Dimension2(), ArrayLayers()}; }
 		ND_ packed_uint3		Dimension3 ()										C_Th___;

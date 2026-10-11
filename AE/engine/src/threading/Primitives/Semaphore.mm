@@ -40,6 +40,7 @@ namespace AE::Threading::_hidden_
 */
 	void  AppleSemaphore::Acquire () __NE___
 	{
+		TRACY( ZoneScoped );
 		NonNull( _sem );
 
 		auto ret = ::dispatch_semaphore_wait( (__bridge dispatch_semaphore_t)_sem, DISPATCH_TIME_FOREVER );

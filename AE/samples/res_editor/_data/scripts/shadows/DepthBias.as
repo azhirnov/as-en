@@ -361,7 +361,7 @@
 		un_Params.lightDir = Normalize( -GetAxisZ( light_view ));
 
 		un_Params.cameraPos = un_PerPass.camera.pos;
-		Frustum_ToCornerPoints( Frustum_Create(un_PerPass.camera.frustum), OUT un_Params.cornerPoints );
+		Frustum_ToCornerPoints( Frustum_Create(un_PerPass.camera.wsFrustum), OUT un_Params.cornerPoints );
 
 		un_Params.shadowSizeWS = max_size;
 	}

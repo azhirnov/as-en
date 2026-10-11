@@ -54,6 +54,7 @@ namespace
 */
 	bool  DevILSaver::SaveImage (WStream &stream, const IntermImage &image, EImageFormat fileFormat, Bool flipY) __NE___
 	{
+		TRACY( ZoneScoped );
 		CHECK_ERR( image.IsValid() );
 		CHECK_ERR( stream.IsOpen() );
 

@@ -432,8 +432,8 @@ namespace AE::Graphics
 		// Returned reference is valid until resource is alive
 		ND_ virtual BufferDesc const&			GetDescription (BufferID id)										C_NE___ = 0;
 		ND_ virtual ImageDesc const&			GetDescription (ImageID id)											C_NE___ = 0;
-		ND_ virtual BufferViewDesc const&		GetDescription (BufferViewID id)									C_NE___ = 0;
-		ND_ virtual ImageViewDesc const&		GetDescription (ImageViewID id)										C_NE___ = 0;
+		ND_ virtual BufferViewDesc const&		GetDescription (BufferViewID id, OUT BufferID* baseBuf = null)		C_NE___ = 0;
+		ND_ virtual ImageViewDesc const&		GetDescription (ImageViewID id, OUT ImageID* baseImg = null)		C_NE___ = 0;
 		ND_ virtual RTShaderBindingDesc const&	GetDescription (RTShaderBindingID id)								C_NE___	= 0;
 		ND_ virtual RTGeometryDesc const&		GetDescription (RTGeometryID id)									C_NE___ = 0;
 		ND_ virtual RTSceneDesc const&			GetDescription (RTSceneID id)										C_NE___ = 0;

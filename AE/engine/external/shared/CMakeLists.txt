@@ -41,8 +41,10 @@ set( AE_ENABLE_SPIRV_CROSS 			ON  CACHE BOOL "use SPIRV-Cross" )
 set( AE_ENABLE_STB 					ON  CACHE BOOL "use STB" )
 set( AE_ENABLE_SLANG				ON  CACHE BOOL "use SLang" )
 set( AE_ENABLE_STABLE_DIFFUSION		ON  CACHE BOOL "use stable-diffusion.cpp" )
+set( AE_ENABLE_SPIRV				ON  CACHE BOOL "use SPIRV-Headers" )
 
 set( AE_ENABLE_TINYGLTF 			ON  CACHE BOOL "use tinygltf" )
+set( AE_ENABLE_TRACY	 			ON  CACHE BOOL "use Tracy profiler" )
 
 set( AE_ENABLE_VULKAN 				OFF CACHE BOOL "enable Vulkan API" )
 set( AE_ENABLE_VMA 					ON  CACHE BOOL "use Vulkan Memory Allocator" )
@@ -144,7 +146,6 @@ if (${AE_ENABLE_LZ4})
 	add_subdirectory( "lz4" )
 endif()
 
-
 if (${AE_ENABLE_LLAMA})
 	add_subdirectory( "llama" )
 endif()
@@ -181,6 +182,10 @@ if (${AE_ENABLE_TINYGLTF})
 	add_subdirectory( "tinygltf" )
 endif()
 
+if (${AE_ENABLE_TRACY})
+	add_subdirectory( "tracy" )
+endif()
+
 if (${AE_ENABLE_XXHASH})
 	add_subdirectory( "xxHash" )
 endif()
@@ -191,6 +196,10 @@ endif()
 
 if (${AE_ENABLE_SLANG})
 	add_subdirectory( "slang" )
+endif()
+
+if (${AE_ENABLE_SPIRV})
+	add_subdirectory( "spirv" )
 endif()
 
 if (${AE_ENABLE_STABLE_DIFFUSION})

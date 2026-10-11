@@ -104,7 +104,7 @@ namespace AE::Graphics::_hidden_
 		EResourceState_ToStageAccess( srcState, OUT barrier.srcStageMask, OUT barrier.srcAccessMask );
 		EResourceState_ToStageAccess( dstState, OUT barrier.dstStageMask, OUT barrier.dstAccessMask );
 
-		DbgCheckBarrier( srcState, dstState, srcSupportedStages, srcSupportedAccess, dstSupportedStages, dstSupportedAccess, isAcquireRelease, barrier );
+		DEBUG_ONLY( DbgCheckBarrier( srcState, dstState, srcSupportedStages, srcSupportedAccess, dstSupportedStages, dstSupportedAccess, isAcquireRelease, barrier ));
 
 		// TODO: set MEMORY_READ | MEMORY_WRITE
 
@@ -131,7 +131,7 @@ namespace AE::Graphics::_hidden_
 		EResourceState_ToSrcStageAccessLayout( srcState, OUT barrier.srcStageMask, OUT barrier.srcAccessMask, OUT barrier.oldLayout );
 		EResourceState_ToDstStageAccessLayout( dstState, OUT barrier.dstStageMask, OUT barrier.dstAccessMask, OUT barrier.newLayout );
 
-		DbgCheckBarrier( srcState, dstState, srcSupportedStages, srcSupportedAccess, dstSupportedStages, dstSupportedAccess, isAcquireRelease, barrier );
+		DEBUG_ONLY( DbgCheckBarrier( srcState, dstState, srcSupportedStages, srcSupportedAccess, dstSupportedStages, dstSupportedAccess, isAcquireRelease, barrier ));
 
 		// transition 'Unknown' -> '...' must be in the same stage
 		if ( barrier.srcStageMask == 0 )

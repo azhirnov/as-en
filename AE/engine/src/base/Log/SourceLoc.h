@@ -92,7 +92,7 @@ namespace AE::Base
 		StringView	fn = _ExtractFnName2( fnSign );
 		for (; fn.size() and fn.back() == ')'; )
 		{
-			usize	pos = usize(fn.data() - fnSign.data())-1;
+			usize	pos = usize(fn.data() - fnSign.data());
 			pos = fnSign.rfind( '(', pos );
 			if ( pos < fnSign.size() )
 				fn = _ExtractFnName2( StringView{ fnSign.data(), pos });

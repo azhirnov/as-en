@@ -691,6 +691,7 @@ namespace AE::AppV2
 			case EState::Started :
 				break;
 
+			case EState::_Count :
 			default :
 				DBG_WARNING( "unsupported window state" );
 				break;

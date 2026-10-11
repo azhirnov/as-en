@@ -38,6 +38,7 @@ namespace AE::Graphics
 		EImageUsage		usage			= EImageUsage::ColorAttachment | EImageUsage::Sampled | EImageUsage::TransferDst;	// TODO: keep ColorAttachment only
 		EImageOpt		options			= EImageOpt::BlitDst;
 		float			scale			= 1.f;							// if 'scaling = Stretch*'
+		bool			stallingResize	= false;						// wait for GPU and flush resources during resize (prevents memory accumulation)
 
 		SwapchainDesc () __NE___ : SurfaceFormat{ Default, EColorSpace::sRGB_nonlinear } {}
 	};

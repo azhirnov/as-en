@@ -42,6 +42,8 @@ namespace AE::Base
 
 	inline void  FrameLimiter::FrameEnd (TimePoint_t tp) __NE___
 	{
+		TRACY( ZoneScoped );
+
 		Duration_t	dt = tp - _frameStart;
 
 		if ( dt > _targetDuration )

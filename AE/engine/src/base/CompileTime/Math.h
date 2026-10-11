@@ -142,14 +142,14 @@ namespace _hidden_
 
 		static constexpr U	last_pot = U(T::_Last) - 1;
 		StaticAssert( CT_IsPowerOfTwo< last_pot >);
-		
+
 		static constexpr U	mask2	 = (last_pot << 1) - 1;
 		static constexpr T	mask	 = T(mask2);
 	};
 }
 	template <typename T>
 	static constexpr T		CT_AllBitMask = Base::_hidden_::_AllBitMask<T>::mask;
-	
+
 	template <typename T>
 	static constexpr auto	CT_AllBitMask2 = Base::_hidden_::_AllBitMask<T>::mask2;	// use it inside enum to fix error in GCC/clang
 

@@ -62,8 +62,8 @@ Content:
 
 * [Binary tree with buffer reference](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/scripts/compute/BufferReference.as)<br/>
 ![](img/BufferReferenceBinaryTree.png)
-* [Prefix Scan](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/scripts/compute/PrefixScan-1.as), [v2](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/scripts/compute/PrefixScan-2.as), [v3](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/scripts/compute/PrefixScan-3.as)
-* [Unique IDs](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/scripts/compute/UniqueIDs-1.as)
+* [Prefix Scan](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/scripts/compute/PrefixScan-sg-1.as), [v2](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/scripts/compute/PrefixScan-sg-2.as), [v3](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/scripts/compute/PrefixScan-wg.as)
+* [Unique IDs](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/scripts/compute/UniqueIDs-sg-1.as)
 
 
 ## Geometry Culling
@@ -214,6 +214,16 @@ Spherical cube to fix cubemap distortion
 **Performance tests:**
 * [Cooperative matrix fp16](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/scripts/neural-shader/perf-CoopMatrix-fp16.as), [i8](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/scripts/neural-shader/perf-CoopMatrix-i8.as)
 * [Cooperative vector](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/scripts/neural-shader/perf-CoopVec.as)
+
+
+## Voxels
+
+* [Cubes](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/scripts/voxels/Cubes.as)
+* [Marching Cubes](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/scripts/voxels/MarchingCubes.as)
+* [Surface Nets](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/scripts/voxels/SurfaceNets.as) - simplified dual contouring
+* [Dual Contouring](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/scripts/voxels/DualContouring.as)
+* [Cached SDF 2D](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/scripts/voxels/CachedSDF-2D.as) - simple version before moving to 3D
+* [Cached SDF 3D](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/scripts/voxels/CachedSDF.as)
 
 
 ## GBuffer

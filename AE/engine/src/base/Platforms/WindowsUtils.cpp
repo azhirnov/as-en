@@ -302,6 +302,7 @@ namespace
 	void  WindowsUtils::SetCurrentThreadName (NtStringView name) __NE___
 	{
 		StaticLogger::SetCurrentThreadName( StringView{name} );
+		TRACY( tracy::SetThreadName( name.c_str() ));
 
 		if ( SetCurrentThreadName10( name ))
 			return;
@@ -586,6 +587,10 @@ namespace
 */
 	void  WindowsUtils::ThreadSleep_15ms () __NE___
 	{
+		TRACY(
+			ZoneScoped;
+			ZoneColor( 1 );
+		)
 		::Sleep( 14 );
 	}
 

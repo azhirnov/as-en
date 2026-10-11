@@ -8,6 +8,7 @@
 #include "profiler/Profilers/AdrenoProfiler.h"
 #include "profiler/Profilers/PowerVRProfiler.h"
 #include "profiler/Profilers/NVidiaProfiler.h"
+#include "profiler/Profilers/IntelProfiler.h"
 #include "profiler/Profilers/GeneralProfiler.h"
 
 namespace AE::Profiler
@@ -80,6 +81,16 @@ namespace AE::Profiler
 		  #endif
 		}								_nvProf;
 
+		struct {
+			IntelProfiler					profiler;
+			IntelProfiler::Counters_t		counters;
+			IntelProfiler::ECounterSet		requiredCounters;
+			float							invTimeDelta	= 0.0f;
+		  #ifdef AE_ENABLE_IMGUI
+			ImLineGraphTable				graphTable;
+		  #endif
+		}								_intelProf;
+
 		struct
 		{
 			GeneralProfiler					profiler;
@@ -115,6 +126,7 @@ namespace AE::Profiler
 
 	private:
 		ND_ bool  _InitNvProf (ClientServer_t, MsgProducer_t);
+		ND_ bool  _InitIntelProf (ClientServer_t, MsgProducer_t);
 		ND_ bool  _InitArmProf (ClientServer_t, MsgProducer_t);
 		ND_ bool  _InitAdrenoProf (ClientServer_t, MsgProducer_t);
 		ND_ bool  _InitMaliProf (ClientServer_t, MsgProducer_t);
@@ -130,15 +142,15 @@ namespace AE::Profiler
 		void  _InitMaliCountersImGui (bool perFrame, const ImLineGraph::ColorStyle &, const ImLineGraph::ColorStyle &);
 		void  _InitAdrenoCountersImGui (bool perFrame, const ImLineGraph::ColorStyle &, const ImLineGraph::ColorStyle &);
 		void  _InitNVidiaCountersImGui (bool perFrame, const ImLineGraph::ColorStyle &, const ImLineGraph::ColorStyle &);
+		void  _InitIntelCountersImGui (bool perFrame, const ImLineGraph::ColorStyle &, const ImLineGraph::ColorStyle &);
 		void  _InitPowerVRCountersImGui (bool perFrame, const ImLineGraph::ColorStyle &, const ImLineGraph::ColorStyle &);
 
-		// 'scale' - 1/frame or 1/dt
-		// 'invDT' - 1/dt
 		void  _UpdateGeneralPerfImGui (bool perFrame, float invFC);
 		void  _UpdateArmCountersImGui (bool perFrame, float invFC);
 		void  _UpdateMaliCountersImGui (bool perFrame, float invFC);
 		void  _UpdateAdrenoCountersImGui (bool perFrame, float invFC);
 		void  _UpdateNVidiaCountersImGui (bool perFrame, float invFC);
+		void  _UpdateIntelCountersImGui (bool perFrame, float invFC);
 		void  _UpdatePowerVRCountersImGui (bool perFrame, float invFC);
 
 		void  _DrawGeneralPerfImGui ();
@@ -146,7 +158,25 @@ namespace AE::Profiler
 		void  _DrawProfilerMaliImGui ();
 		void  _DrawProfilerAdrenoImGui ();
 		void  _DrawProfilerNVidiaImGui ();
+		void  _DrawProfilerIntelImGui ();
 		void  _DrawProfilerPowerVRImGui ();
+	  #endif
+
+	  #ifdef AE_ENABLE_TRACY
+		void  _InitTracy ();
+		void  _InitArmCountersTracy (bool perFrame);
+		void  _InitMaliCountersTracy (bool perFrame);
+		void  _InitAdrenoCountersTracy (bool perFrame);
+		void  _InitNVidiaCountersTracy (bool perFrame);
+		void  _InitIntelCountersTracy (bool perFrame);
+		void  _InitPowerVRCountersTracy (bool perFrame);
+
+		void  _UpdateArmCountersTracy (bool perFrame, float invFC);
+		void  _UpdateMaliCountersTracy (bool perFrame, float invFC);
+		void  _UpdateAdrenoCountersTracy (bool perFrame, float invFC);
+		void  _UpdateNVidiaCountersTracy (bool perFrame, float invFC);
+		void  _UpdateIntelCountersTracy (bool perFrame, float invFC);
+		void  _UpdatePowerVRCountersTracy (bool perFrame, float invFC);
 	  #endif
 	};
 

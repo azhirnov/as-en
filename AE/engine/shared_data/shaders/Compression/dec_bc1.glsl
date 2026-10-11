@@ -1,9 +1,8 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'AE/LICENSE.md'
+// LLM generated
 
-
-ND_ uint  EncodeRGB565 (float3 color)
+ND_ uint  EncodeRGB565u (uint3 rgb)
 {
-	uint3	rgb = uint3( Saturate( color ) * 255.0 );
 	uint	r	= rgb.r >> 3u;
 	uint	g	= rgb.g >> 2u;
 	uint	b	= rgb.b >> 3u;
@@ -11,20 +10,44 @@ ND_ uint  EncodeRGB565 (float3 color)
 	return (r << 11u) | (g << 5u) | b;
 }
 
-ND_ float3  DecodeRGB565 (uint c)
-{
-	uint r = (c >> 11) & 0x1Fu;
-	uint g = (c >>  5) & 0x3Fu;
-	uint b =  c        & 0x1Fu;
+#if 0
+	ND_ uint  EncodeRGB565 (float3 color)
+	{
+		uint3	rgb = uint3(Floor( Saturate( color ) * float2(31.0, 63.0).rgr + 0.5 ));
+		return (rgb.r << 11u) | (rgb.g << 5u) | rgb.b;
+	}
 
-	uint3 rgb8 = uint3(
-		(r << 3) | (r >> 2),
-		(g << 2) | (g >> 4),
-		(b << 3) | (b >> 2)
-	);
+	float3  DecodeRGB565 (uint pack)
+	{
+		float3	rgb = float3( (pack >> 11u) & 31u,
+							  (pack >>  5u) & 63u,
+							   pack         & 31u );
+		rgb *= float2( 1.0 / 31.0, 1.0 / 63.0 ).rgr;
+		return rgb;
+	}
+#else
 
-	return float3(rgb8) / float(255.0);
-}
+	ND_ uint  EncodeRGB565 (float3 color)
+	{
+		uint3	rgb = uint3( Saturate( color ) * 255.0 );
+		return EncodeRGB565u( rgb );
+	}
+
+	ND_ float3  DecodeRGB565 (uint pack)
+	{
+		uint r = (pack >> 11) & 0x1Fu;
+		uint g = (pack >>  5) & 0x3Fu;
+		uint b =  pack        & 0x1Fu;
+
+		uint3 rgb8 = uint3(
+			(r << 3) | (r >> 2),
+			(g << 2) | (g >> 4),
+			(b << 3) | (b >> 2)
+		);
+
+		return float3(rgb8) / float(255.0);
+	}
+#endif
 
 ND_ float4  DecodeBC1 (uint2 block, int2 localTexel)
 {

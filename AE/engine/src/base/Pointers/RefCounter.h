@@ -376,14 +376,20 @@ namespace AE::Base
 
 		ND_ RC_t	load ()											__NE___;
 
-			void	store (T* ptr)									__NE___	{ _Inc( ptr );  _Dec( _Exchange( ptr )); }
-			void	store (RC_t ptr)								__NE___	{ _Dec( _Exchange( ptr.release() )); }
+		// store new pointer if current is null,
+		// write current pointer to 'ptr' if not null.
+		ND_ bool	StoreIfNull (INOUT RC_t &ptr)					__NE___;
+
+			void	store (T* ptr)									__NE___;
+			void	store (RC_t ptr)								__NE___;
+			void	store (std::nullptr_t)							__NE___	{ _ResetDec(); }
 
 			void	reset ()										__NE___	{ _ResetDec(); }
 
 		ND_ RC_t	exchange (T* desired)							__NE___;
 		ND_ RC_t	exchange (RC_t desired)							__NE___;
 
+		// without memory barrier
 		ND_ bool	CAS (INOUT RC_t& expected, RC_t desired)		__NE___	{ return _CAS<false>( INOUT expected, RVRef(desired) ); }
 		ND_ bool	CAS_Loop (INOUT RC_t& expected, RC_t desired)	__NE___	{ return _CAS<true>( INOUT expected, RVRef(desired) ); }
 
@@ -393,7 +399,7 @@ namespace AE::Base
 			void	_ResetDec ()									__NE___	{ _Dec( _Exchange( null )); }
 
 		ND_ T*		_Lock (T* exp)									__NE___;
-			void	_Unlock ()										__NE___;
+			void	_Unlock (T* ptr)								__NE___;
 		ND_ T*		_Exchange (T* ptr)								__NE___;
 
 		template <bool IsStrong>
@@ -573,7 +579,7 @@ namespace AE::Base
 	template <typename T>
 	void  RC<T>::_Dec () __NE___
 	{
-		StaticAssert( IsBaseOf< EnableRCBase, T >);
+		//StaticAssert( IsBaseOf< EnableRCBase, T >);
 
 	  #ifdef AE_RC_TRACK_ALL_REFS
 		RefCounterUtils::DecRefAndRelease( INOUT _ptr, _uid );
@@ -697,6 +703,9 @@ namespace AE::Base
 		RC_t	ptr;
 		ptr.attach( old );
 
+		// make changes in other threads visible for current thread
+		MemoryBarrier( std::memory_order_acquire );
+
 		return ptr;
 	}
 
@@ -713,7 +722,11 @@ namespace AE::Base
 			return {};
 
 		RC_t	res{ _Lock( exp )};
-		_Unlock();
+		_Unlock( res.get() );
+
+		// make changes in other threads visible for current thread
+		MemoryBarrier( std::memory_order_acquire );
+
 		return res;
 	}
 
@@ -725,19 +738,31 @@ namespace AE::Base
 	template <typename T>
 	RC<T>  AtomicRC<T>::exchange (T* desired) __NE___
 	{
+		// make changes in current thread visible for other threads
+		MemoryBarrier( std::memory_order_release );
+
 		_Inc( desired );
 
 		T*	old = _Exchange( desired );
 
-		return RC_t{ old, DontIncRef(0) };
+		// make changes in other threads visible for current thread
+		MemoryBarrier( std::memory_order_acquire );
+
+		return RC_t{ old, DontIncRef{} };
 	}
 
 	template <typename T>
 	RC<T>  AtomicRC<T>::exchange (RC_t desired) __NE___
 	{
+		// make changes in current thread visible for other threads
+		MemoryBarrier( std::memory_order_release );
+
 		T*	old = _Exchange( desired.release() );
 
-		return RC_t{ old, DontIncRef(0) };
+		// make changes in other threads visible for current thread
+		MemoryBarrier( std::memory_order_acquire );
+
+		return RC_t{ old, DontIncRef{} };
 	}
 
 /*
@@ -802,6 +827,83 @@ namespace AE::Base
 
 /*
 =================================================
+	store
+=================================================
+*/
+	template <typename T>
+	void  AtomicRC<T>::store (T* ptr) __NE___
+	{
+		// make changes in current thread visible for other threads
+		MemoryBarrier( std::memory_order_release );
+
+		_Inc( ptr );
+		_Dec( _Exchange( ptr ));
+	}
+
+	template <typename T>
+	void  AtomicRC<T>::store (RC_t ptr) __NE___
+	{
+		// make changes in current thread visible for other threads
+		MemoryBarrier( std::memory_order_release );
+
+		_Dec( _Exchange( ptr.release() ));
+	}
+
+/*
+=================================================
+	StoreIfNull
+=================================================
+*/
+	template <typename T>
+	bool  AtomicRC<T>::StoreIfNull (INOUT RC_t &ptr) __NE___
+	{
+		ASSERT( ptr );
+
+		const auto	Lock = [this] (INOUT T* &exp, T* const newPtr)
+		{{
+			for (;;)
+			{
+				for (uint i = 0; i < ThreadUtils::SpinBeforeLock(); ++i)
+				{
+					exp = _RemoveLockBit( exp );
+
+					T*	desired = (exp == null ? newPtr : _SetLockBit( exp ));
+
+					if ( _ptr.CAS( INOUT exp, desired ))
+						return;
+
+					ThreadUtils::Pause();
+				}
+				ThreadUtils::Sleep_1us();
+			}
+		}};
+
+		// make changes in current thread visible for other threads
+		MemoryBarrier( std::memory_order_release );
+
+		T*	exp = null;
+		Lock( INOUT exp, ptr.get() );
+
+		ASSERT( not _HasLockBit( exp ));
+
+		if ( exp == null )
+		{
+			// now '_ptr' hold reference
+			Unused( ptr.release() );
+			return true;  // stored
+		}
+
+		ptr.reset( exp );
+		_Unlock( exp );
+
+		// make changes in other threads visible for current thread
+		MemoryBarrier( std::memory_order_acquire );
+
+		return false; // not stored
+	}
+
+/*
+=================================================
 	_Lock
 =================================================
 */
@@ -834,12 +936,16 @@ namespace AE::Base
 =================================================
 */
 	template <typename T>
-	void  AtomicRC<T>::_Unlock () __NE___
+	void  AtomicRC<T>::_Unlock (T* exp) __NE___
 	{
-		T*	exp		= _RemoveLockBit( _ptr.load() );
-		T*	prev	= _ptr.exchange( exp );
+	#ifdef AE_DEBUG
+		ASSERT( not _HasLockBit( exp ));
+		T*	prev = _ptr.exchange( exp );
 		Unused( prev );
 		ASSERT( prev == _SetLockBit( exp ));
+	#else
+		_ptr.store( exp );
+	#endif
 	}
 //-----------------------------------------------------------------------------
 

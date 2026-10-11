@@ -37,6 +37,7 @@ namespace AE::Graphics
 			void  Destroy (ResourceManager &)																	__NE___;
 
 		ND_ VkMicromapEXT				Handle ()																C_NE___	{ return _micromap; }
+		ND_ VkBuffer					Storage ()																C_NE___	{ return _storage; }
 		ND_ MemoryID					MemoryId ()																C_NE___	{ return _memoryId; }
 		ND_ RTMicromapDesc const&		Description ()															C_NE___	{ return _desc; }
 		ND_ bool						IsExclusiveSharing ()													C_NE___	{ return true; }

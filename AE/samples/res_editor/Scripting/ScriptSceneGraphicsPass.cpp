@@ -158,6 +158,8 @@ namespace AE::ResEditor
 */
 	RC<IPass>  ScriptSceneGraphicsPass::ToPass () __Th___
 	{
+		TRACY( ZoneScoped );
+
 		// add last subpass
 		{
 			auto&	dst = _subpasses.emplace_back();
@@ -522,8 +524,8 @@ namespace AE::ResEditor
 					{
 						ASSERT( is_input_att or is_rw_att );
 						state = is_rw_att ?
-								(is_ds ? EResourceState::InputDepthStencilAttachment_RW : EResourceState::InputColorAttachment_RW) :
-								(is_ds ? EResourceState::InputDepthStencilAttachment : EResourceState::InputColorAttachment);
+								(is_ds ? EResourceState::InputDepthStencilAttachment_RW	: EResourceState::InputColorAttachment_RW) :
+								(is_ds ? EResourceState::InputDepthStencilAttachment	: EResourceState::InputColorAttachment);
 						state |= EResourceState::FragmentShader;
 					}
 
@@ -606,13 +608,15 @@ namespace AE::ResEditor
 					break;
 				}
 			}
+
+			// subpass uses default per-pass descriptor set layout
 			if ( skip )
 			{
 				subpass->_dslName = "pass.ds";
 				continue;
 			}
 
-			subpass->_dslName = "subpass-"s << ToString( std::distance( subpasses.data(), &subpass )) << ".ds";
+			subpass->_dslName = "pass-"s << ToString( std::distance( subpasses.data(), &subpass )) << ".ds";
 
 			DescriptorSetLayoutPtr	ds_layout	= DescriptorSetLayout::Create( subpass->_dslName );
 			const auto				stage		= EShaderStages::AllGraphics;

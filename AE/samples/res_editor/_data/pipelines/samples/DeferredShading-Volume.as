@@ -128,7 +128,7 @@
 		float3		norm		= ToSNorm( gl.texture.Fetch( un_Normal, int2(gl.FragCoord.xy), 0 ).rgb );	// world space
 		float		depth		= gl.texture.Fetch( un_Depth, int2(gl.FragCoord.xy), 0 ).r;					// non-linear
 
-		// if not used stencil test
+		// if not used stencil test, reverse Z
 		if ( depth < 0.0001 )
 			gl.Discard;
 
@@ -150,7 +150,7 @@
 		float		n_dot_l		= Max( Dot( norm, In.lightDir ), 0.0 );
 		float3		view_dir	= ViewDir( un_PerPass.camera.invViewProj, uv );
 
-		LightingResult	res		= CookTorrance( albedo, albedo, In.lightDir, view_dir, norm, 0.5, 0.8 );
+		LightingResult	res		= CookTorrance( albedo, albedo, dir_to_l, view_dir, norm, 0.5, 0.8 );
 
 		out_Color.rgb = (res.diffuse + res.specular) * In.color * atten;
 		out_Color.a = 1.0;

@@ -29,7 +29,8 @@ namespace AE::Profiler
 			Unknown,
 			A5xx,
 			A6xx,
-			A7xx,	// TODO
+			A7xx,
+			A8xx,
 		};
 
 		enum class ECounter : ubyte

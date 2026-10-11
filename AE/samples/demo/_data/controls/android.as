@@ -11,8 +11,12 @@ void ASmain (Android_ActionBindings& bindings)
 	// Canvas2D bindings
 	{
 		RC<Android_BindingsMode>	bind = bindings.CreateMode( "Canvas2D" );
+
 		bind.Add( Android_Input::TouchPos,
 				  ActionInfo( "Enter", EGestureType::DoubleClick ));
+		bind.Add( Android_Input::Enter,
+				  ActionInfo( "Enter", EGestureType::Down ));
+
 		bind.Add( Android_Input::TouchPos,
 				  ActionInfo( "Cursor", EValueType::Float2, EGestureType::Move ));
 	}
@@ -21,13 +25,20 @@ void ASmain (Android_ActionBindings& bindings)
 	{
 		RC<Android_BindingsMode>	bind = bindings.CreateMode( "imGUI" );
 
+		bind.Add( Android_Input::CursorPos,
+				  ActionInfo( "MousePos", EValueType::Float2, EGestureType::Move ));
+		bind.Add( Android_Input::MouseLeft,
+				  ActionInfo( "MouseLBDown", EGestureType::Hold ));
+		bind.Add( Android_Input::MouseWheel,
+				  ActionInfo( "MouseWheel", EValueType::Float2, EGestureType::Move ));
+
 		bind.Add( Android_Input::TouchPos,
 				  ActionInfo( "Touch.Click", EValueType::Float2, EGestureType::Click ));
 		bind.Add( Android_Input::TouchPos,
 				  ActionInfo( "Touch.Move", EValueType::Float2, EGestureType::Move ));
 
-	//	bind.Add( Android_Input::RawChar,
-	//			  ActionInfo( "UI.Char", EValueType::Chars ));
+		bind.Add( Android_Input::RawChar,
+				  ActionInfo( "UI.Char", EValueType::Chars ));
 	}
 
 	// Camera3D bindings

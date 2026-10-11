@@ -4,25 +4,25 @@
 
 namespace
 {
-	static void  BCDecode (Executor &ex, ImageMemView input, INOUT Executor::CmpResult &res)
+	static void  BCDecode (Executor &ex, ImageMemView compressedInput, ECompFormat compFmt, INOUT Executor::CmpResult &res)
 	{
 		Executor::Images	imgs;
-		TEST( ex.Decode( input, OUT imgs ));
-		res += ex.Compare( imgs.swDecompressedImg, imgs.hwDecompressedImg, input.Format() );
+		TEST( ex.Decode( compressedInput, OUT imgs ));
+		res += ex.Compare( imgs.swDecompressedImg, imgs.hwDecompressedImg, compFmt, &compressedInput );
 	}
 
 
 	static void  BCDecode_Test1 (Executor &ex)
 	{
-		const EPixelFormat	formats [] = {
-			EPixelFormat::BC1_RGB8_UNorm,
-			EPixelFormat::BC4_R8_SNorm,
-			EPixelFormat::BC4_R8_UNorm,
-			EPixelFormat::BC5_RG8_SNorm,
-			EPixelFormat::BC5_RG8_UNorm,
-			EPixelFormat::BC6H_RGB16F,
-			EPixelFormat::BC6H_RGB16UF,
-			EPixelFormat::BC7_RGBA8_UNorm,
+		const ECompFormat	formats [] = {
+			ECompFormat::BC1_RGB8_UNorm,
+			ECompFormat::BC4_R8_SNorm,
+			ECompFormat::BC4_R8_UNorm,
+			ECompFormat::BC5_RG8_SNorm,
+			ECompFormat::BC5_RG8_UNorm,
+			ECompFormat::BC6H_RGB16F,
+			ECompFormat::BC6H_RGB16UF,
+			ECompFormat::BC7_RGBA8_UNorm,
 
 		/*	//EPixelFormat::BC1_sRGB8,
 			EPixelFormat::BC1_RGB8_A1_UNorm.
@@ -34,10 +34,12 @@ namespace
 			//EPixelFormat::BC7_sRGB8_A8
 			*/
 		};
-		const uint	max_iter = 1000;
+		const uint	max_iter	= 10;
+		const uint2	block_cnt	{100};
 
-		for (const auto comp_fmt : formats)
+		for (const auto comp_fmt2 : formats)
 		{
+			const auto			comp_fmt	= ToPixFmt( comp_fmt2 );
 			const auto&			fmt_info	= Graphics::EPixelFormat_GetInfo( comp_fmt );
 			Executor::CmpResult	res;
 
@@ -46,19 +48,20 @@ namespace
 
 			const uint2		block_dim	= fmt_info.TexBlockDim();
 			const Bytes		block_size	= fmt_info.BytesPerBlock();
+			const Bytes		total_size	= block_size * Area( block_cnt );
 
 			for (uint i = 0; i < max_iter; ++i)
 			{
-				Array<ubyte>	comp_data	= RandomByteArray( block_size, i );
-				ImageMemView	comp_img	{ comp_data.data(), block_size, uint3{}, uint3{block_dim,1}, 0_b, 0_b, comp_fmt, EImageAspect::Color };
+				Array<ubyte>	comp_data	= RandomByteArray( total_size, i );
+				ImageMemView	comp_img	{ comp_data.data(), total_size, uint3{}, uint3{block_dim * block_cnt, 1}, 0_b, 0_b, comp_fmt, EImageAspect::Color };
 
-				BCDecode( ex, comp_img, INOUT res );
+				BCDecode( ex, comp_img, comp_fmt2, INOUT res );
 
 				if ( res.maxError > 100.0 )
 					break;
 			}
 
-			AE_LOGW( String{ToString(comp_fmt)} << " decode: " << res.ToString() );
+			AE_LOGW( String{ToString(comp_fmt2)} << " decode: " << res.ToString() );
 		}
 	}
 

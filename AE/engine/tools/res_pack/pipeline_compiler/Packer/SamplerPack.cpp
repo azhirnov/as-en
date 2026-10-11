@@ -224,6 +224,8 @@ namespace AE::PipelineCompiler
 #ifdef AE_BUILD_PIPELINE_COMPILER
 	bool  SamplerPacker::Serialize (Serializing::Serializer &ser) __NE___
 	{
+		TRACY( ZoneScoped );
+
 		using SamplerMap_t		= HashMultiMap< HashVal, SamplerUID >;
 		using SamplerArr_t		= Array< SamplerSerializer >;
 		using SamplerNameMap_t	= HashMap< SamplerName, SamplerUID >;

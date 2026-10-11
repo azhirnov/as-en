@@ -127,7 +127,7 @@ namespace AE::ResEditor
 		camera.fov			= GetFOV();
 
 		for (uint i = 0; i < 6; ++i) {
-			camera.frustum[i] = float4{frustum.GetPlane( i )};
+			camera.wsFrustum[i] = float4{frustum.GetPlane( i )};
 		}
 	}
 

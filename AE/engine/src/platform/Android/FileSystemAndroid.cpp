@@ -2,6 +2,7 @@
 
 #ifdef AE_PLATFORM_ANDROID
 # include "platform/Android/FileSystemAndroid.h"
+# include "platform/Public/AppEnums.h"
 
 namespace AE::App
 {
@@ -39,16 +40,17 @@ namespace
 =================================================
 */
 	template <typename Alloc>
-	ND_ static bool  Convert (OUT const char* &result, StringView filename, Alloc &allocator) __NE___
+	ND_ static bool  Convert (OUT const char* &result, StringView prefix, StringView filename, Alloc &allocator) __NE___
 	{
-		CHECK_ERR( filename.length() <= FileName::MaxStringLength() );
+		CHECK_ERR( prefix.length() + filename.length() <= FileName::MaxStringLength() );
 		CHECK_ERR( not filename.empty() );
 
-		char*	str = allocator.template Allocate<char>( filename.length()+1 );
+		char*	str = allocator.template Allocate<char>( prefix.length() + filename.length() + 1 );
 		CHECK_ERR( str != null );
 
-		MemCopy( OUT str, filename.data(), filename.length() );
-		str[filename.length()] = 0;
+		MemCopy( OUT str,					prefix.data(),	 prefix.length() );
+		MemCopy( OUT str + prefix.length(),	filename.data(), filename.length() );
+		str[ prefix.length() + filename.length() ] = 0;
 
 		result = str;
 		return true;
@@ -230,7 +232,7 @@ namespace
 					if ( filename != null )
 					{
 						const char*	str;
-						CHECK_ERR( Convert( OUT str, filename, _allocator ));
+						CHECK_ERR( Convert( OUT str, StoragePrefix_Builtin, filename, _allocator ));
 						DEBUG_ONLY( _hashCollisionCheck.Add( FileName{str} ));	// throw
 
 						CHECK_ERR( _map.emplace( FileName::Optimized_t{str}, str ).second );
@@ -349,7 +351,7 @@ namespace
 		)
 		Unused( name );
 
-		AAsset*	asset = AAssetManager_open( _assetMngr, Cast<char>(ref), mode );
+		AAsset*	asset = AAssetManager_open( _assetMngr, Cast<char>(ref) + StoragePrefix_Builtin.size(), mode );
 		CHECK_ERR( asset != null );
 
 		result = MakeRC<ImplType>( asset, Cast<char>(ref) );

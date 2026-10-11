@@ -220,31 +220,32 @@
 */
 #ifdef AE_LICENSE_CC_BY_NC_SA_3
 
-	#define _PERLINNOISE( hash )													\
-	{																				\
-		float3 pi = Floor(pos);														\
-		float3 pf = pos - pi;														\
-																					\
-		float3 w = pf * pf * (3.0 - 2.0 * pf);										\
-																					\
-		return 	Lerp(																\
-					Lerp(															\
-						Lerp(Dot(pf - float3(0, 0, 0), hash(pi + float3(0, 0, 0))),	\
-							 Dot(pf - float3(1, 0, 0), hash(pi + float3(1, 0, 0))),	\
-							 w.x),													\
-						Lerp(Dot(pf - float3(0, 0, 1), hash(pi + float3(0, 0, 1))),	\
-							 Dot(pf - float3(1, 0, 1), hash(pi + float3(1, 0, 1))),	\
-							 w.x),													\
-						w.z),														\
-					Lerp(															\
-						Lerp(Dot(pf - float3(0, 1, 0), hash(pi + float3(0, 1, 0))),	\
-							 Dot(pf - float3(1, 1, 0), hash(pi + float3(1, 1, 0))),	\
-							 w.x),													\
-						Lerp(Dot(pf - float3(0, 1, 1), hash(pi + float3(0, 1, 1))),	\
-							 Dot(pf - float3(1, 1, 1), hash(pi + float3(1, 1, 1))),	\
-							 w.x),													\
-						w.z),														\
-					w.y) * 2.0;														\
+	#define _PERLINNOISE( hash )												\
+	{																			\
+		float3 pi = Floor(pos);													\
+		float3 pf = pos - pi;													\
+																				\
+		/*float3 w = pf * pf * (3.0 - 2.0 * pf);*/								\
+		float3 w = pf * pf * pf * (pf * (pf * 6.0 - 15.0) + 10.0);				\
+																				\
+		float n000 = Dot( pf - float3(0, 0, 0), hash( pi + float3(0, 0, 0) ));	\
+		float n100 = Dot( pf - float3(1, 0, 0), hash( pi + float3(1, 0, 0) ));	\
+		float n010 = Dot( pf - float3(0, 1, 0), hash( pi + float3(0, 1, 0) ));	\
+		float n110 = Dot( pf - float3(1, 1, 0), hash( pi + float3(1, 1, 0) ));	\
+		float n001 = Dot( pf - float3(0, 0, 1), hash( pi + float3(0, 0, 1) ));	\
+		float n101 = Dot( pf - float3(1, 0, 1), hash( pi + float3(1, 0, 1) ));	\
+		float n011 = Dot( pf - float3(0, 1, 1), hash( pi + float3(0, 1, 1) ));	\
+		float n111 = Dot( pf - float3(1, 1, 1), hash( pi + float3(1, 1, 1) ));	\
+																				\
+		float nx00 = Lerp( n000, n100, w.x );									\
+		float nx10 = Lerp( n010, n110, w.x );									\
+		float nx01 = Lerp( n001, n101, w.x );									\
+		float nx11 = Lerp( n011, n111, w.x );									\
+																				\
+		float nxy0 = Lerp( nx00, nx10, w.y );									\
+		float nxy1 = Lerp( nx01, nx11, w.y );									\
+																				\
+		return Lerp( nxy0, nxy1, w.z ) * 2.0;									\
 	}
 
 	float  PerlinNoise (gl::CombinedTex2D<float> rgbaNoise, const float3 pos, const NoiseParams params)	{ _PERLINNOISE( _RGBTexSHash33 )}
@@ -663,6 +664,97 @@
 
 	#undef _VORONOI_CONTOUR2
 	#undef _VORONOI_CONTOUR3
+#endif // AE_LICENSE_MIT
+
+/*
+=================================================
+	VoronoiContourR2
+----
+	range [0..inf]
+
+	based on VoronoiContour
+=================================================
+*/
+#ifdef AE_LICENSE_MIT
+
+	VoronoiResult22 VoronoiContourR2(const float2 pos, const NoiseParams params)
+	{
+		#define hash(_p_) (_UHash22(_p_) * params.custom.x)
+
+		float2 ipoint = Floor(pos);
+		float2 fpoint = Fract(pos);
+
+		VoronoiResult22 result;
+
+		result.minDist	= float_max;
+		result.edgeDist	= float_max;
+		float md2		= float_max;
+
+		float2 mr; // vector from current position to nearest feature point
+
+		// Find nearest feature point.
+		// Tracking second nearest here is optional, but can still be useful.
+		UNROLL for (int y = -1; y <= 1; ++y)
+		UNROLL for (int x = -1; x <= 1; ++x)
+		{
+			float2	ioffset	= float2(x, y);
+			float2	offset	= hash(ipoint + ioffset);
+			float2	vec		= ioffset + offset - fpoint;
+			float	d		= LengthSq(vec);
+
+			if ( d < result.minDist )
+			{
+				md2 = result.minDist;
+
+				result.minDist	= d;
+				result.icenter	= ioffset;
+				result.offset	= offset;
+
+				mr = vec;
+			}
+			else
+			if ( d < md2 )
+				md2 = d;
+		}
+
+		UNROLL for (int y = -2; y <= 2; ++y)
+		UNROLL for (int x = -2; x <= 2; ++x)
+		{
+			if ( x == 0 and y == 0 )
+				continue;
+
+			float2	ioffset	= result.icenter + float2(x, y);
+			float2	offset	= hash(ipoint + ioffset);
+			float2	vec		= ioffset + offset - fpoint;
+			float2	delta	= vec - mr;
+			float	deltaSq	= LengthSq(delta);
+
+			if ( deltaSq > 0.00001 )
+			{
+				float edgeDist = Dot(0.5 * (mr + vec), Normalize(delta));
+				if ( edgeDist < result.edgeDist )
+				{
+					result.edgeDist	= edgeDist;
+					result.icenter2	= ioffset;
+					result.offset2	= offset;
+				}
+			}
+		}
+
+		result.icenter  += ipoint;
+		result.icenter2 += ipoint;
+
+		#undef hash
+		return result;
+	}
+
+	VoronoiResult22  VoronoiContourR2 (const float2 pos)
+	{
+		NoiseParams	p = CreateNoiseParams();
+		p.custom.x	= 1.0;	// maxCeilOffset
+		return VoronoiContourR2( pos, p );
+	}
+
 #endif // AE_LICENSE_MIT
 
 /*

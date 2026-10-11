@@ -95,6 +95,16 @@ namespace
 			_dynamicDim = dynDim;
 		}
 	}
+
+/*
+=================================================
+	_Validate
+=================================================
+*/
+	void  ScriptBaseController::_Validate () __Th___
+	{
+		CHECK_THROW_MSG( _dynamicDim, "Dimension is not set. Add 'camera.Dimension( rt.Dimension() );' to fix that." );
+	}
 //-----------------------------------------------------------------------------
 
 
@@ -118,10 +128,10 @@ namespace
 */
 	RC<IController>  ScriptControllerScaleBias::ToController () __Th___
 	{
-		CHECK_THROW_MSG( _dynamicDim, "Dimension is not set" );
-
 		if ( _controller )
 			return _controller;
+
+		_Validate();
 
 		_controller = MakeRCTh<ScaleBiasCamera>( _dynamicDim->Get() );
 		return _controller;
@@ -200,10 +210,10 @@ namespace
 */
 	RC<IController>  ScriptControllerTopDown::ToController () __Th___
 	{
-		CHECK_THROW_MSG( _dynamicDim, "Dimension is not set" );
-
 		if ( _controller )
 			return _controller;
+
+		_Validate();
 
 		_controller = MakeRCTh<TopDownCamera>( _dynamicDim->Get(), _movingScale, _rotationScale, _initialPos );
 		return _controller;
@@ -299,10 +309,10 @@ namespace
 */
 	RC<IController>  ScriptControllerOrbitalCamera::ToController () __Th___
 	{
-		CHECK_THROW_MSG( _dynamicDim, "Dimension is not set" );
-
 		if ( _controller )
 			return _controller;
+
+		_Validate();
 
 		_controller = MakeRCTh<OrbitalCamera>( _dynamicDim->Get(), _clipPlanes, Rad::FromDeg( _fovY ),
 											   _rotationScale, _offsetScale, _initialPos, _initialOffset,
@@ -423,6 +433,9 @@ namespace
 		binder.Comment( "Set initial position." );
 		AS_METHOD_T( binder, ScriptControllerCamera3D::SetPosition,			"Position",			{} );
 
+		binder.Comment( "Set initial position." );
+		AS_METHOD_T( binder, ScriptControllerCamera3D::SetViewDir,			"ViewDir",			{} );
+
 		_BindBase( binder );
 	}
 //-----------------------------------------------------------------------------
@@ -470,13 +483,14 @@ namespace
 */
 	RC<IController>  ScriptControllerFlightCamera::ToController () __Th___
 	{
-		CHECK_THROW_MSG( _dynamicDim, "Dimension is not set" );
-
 		if ( _controller )
 			return _controller;
 
+		_Validate();
+
 		_controller = MakeRCTh<FlightCamera>( _dynamicDim->Get(), _clipPlanes, Rad::FromDeg( _fovY ),
-											  _engineThrustRange, _rotationScale, _initialPos, _reverseZ );
+											  _engineThrustRange, _rotationScale, _initialPos, _initialViewDir,
+											  _reverseZ );
 		return _controller;
 	}
 //-----------------------------------------------------------------------------
@@ -518,13 +532,13 @@ namespace
 */
 	RC<IController>  ScriptControllerFPVCamera::ToController () __Th___
 	{
-		CHECK_THROW_MSG( _dynamicDim, "Dimension is not set" );
-
 		if ( _controller )
 			return _controller;
 
+		_Validate();
+
 		_controller = MakeRCTh<FPSCamera>( _dynamicDim->Get(), _clipPlanes, Rad::FromDeg( _fovY ), _movingScale,
-										   float2{_rotationScale}, _initialPos, _reverseZ );
+										   float2{_rotationScale}, _initialPos, _initialViewDir, _reverseZ );
 		return _controller;
 	}
 //-----------------------------------------------------------------------------
@@ -562,10 +576,10 @@ namespace
 */
 	RC<IController>  ScriptControllerRemoteCamera::ToController () __Th___
 	{
-		CHECK_THROW_MSG( _dynamicDim, "Dimension is not set" );
-
 		if ( _controller )
 			return _controller;
+
+		_Validate();
 
 		_controller = MakeRCTh<RemoteCamera>( _dynamicDim->Get(), _clipPlanes, Rad::FromDeg( _fovY ), _movingScale,
 											  _initialPos, _reverseZ );
@@ -610,13 +624,13 @@ namespace
 */
 	RC<IController>  ScriptControllerFreeCamera::ToController () __Th___
 	{
-		CHECK_THROW_MSG( _dynamicDim, "Dimension is not set" );
-
 		if ( _controller )
 			return _controller;
 
+		_Validate();
+
 		_controller = MakeRCTh<FPVCamera>( _dynamicDim->Get(), _clipPlanes, Rad::FromDeg( _fovY ), _movingScale,
-										   float2{_rotationScale}, _initialPos, _reverseZ );
+										   float2{_rotationScale}, _initialPos, _initialViewDir, _reverseZ );
 		return _controller;
 	}
 

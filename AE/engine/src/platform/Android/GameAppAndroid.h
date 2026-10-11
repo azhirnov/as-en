@@ -83,7 +83,7 @@ namespace AE::App
 		ArrayView<const char*>	GetVulkanInstanceExtensions ()									__NE_OV;
 
 	private:
-		explicit GameAppAndroid (Unique<IAppListener>)											__NE___;
+		explicit GameAppAndroid (AppListenerPtr)												__NE___;
 
 		void  _OnDestroy ()																		__NE___;
 		void  _MainLoop (void*)																	__NE___;

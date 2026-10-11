@@ -1,3 +1,13 @@
+## 26.04.xxx
+
+- Platform|Android: add engine with API28 for storage access
+- Threading: add EmulatedAsyncRDataSource
+- Threading: fix high CPU load on Linux
+- fix RenderDoc integration on Linux
+- Profiling: add Tracy profiler
+- Vulkan: fix swapchain recreation
+
+
 ## 26.03.316
 
 - Threading: improve data race checks

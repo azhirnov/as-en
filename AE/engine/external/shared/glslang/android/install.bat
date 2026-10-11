@@ -83,9 +83,8 @@ robocopy "temp\glslang\Include" "..\..\..\..\..\AE-Bin\external\android-clang\gl
 robocopy "temp\glslang\MachineIndependent" "..\..\..\..\..\AE-Bin\external\android-clang\glslang\include\glslang\MachineIndependent" /S 
 robocopy "temp\glslang\OSDependent" "..\..\..\..\..\AE-Bin\external\android-clang\glslang\include\glslang\OSDependent" /S 
 robocopy "temp\glslang\Public" "..\..\..\..\..\AE-Bin\external\android-clang\glslang\include\glslang\Public" /S 
-robocopy "temp\SPIRV" "..\..\..\..\..\AE-Bin\external\android-clang\glslang\include\glslang\SPIRV" *.h /S 
+robocopy "temp\SPIRV" "..\..\..\..\..\AE-Bin\external\android-clang\glslang\include\glslang\SPIRV" *.h *.hpp11 /S 
 robocopy "temp\External\spirv-tools\include\spirv-tools" "..\..\..\..\..\AE-Bin\external\android-clang\glslang\include\spirv-tools" /S 
-copy /Y "temp\SPIRV\spirv.hpp11" "..\..\..\..\..\AE-Bin\external\android-clang\glslang\SPIRV\spirv.hpp11"
 copy /Y "temp\LICENSE.txt" "..\..\..\..\..\AE-Bin\external\android-clang\glslang\glslang-LICENSE.txt"
 copy /Y "temp\External\spirv-tools\LICENSE" "..\..\..\..\..\AE-Bin\external\android-clang\glslang\SPIRV-Headers-LICENSE.txt"
 copy /Y "temp\External\spirv-tools\external\spirv-headers\LICENSE" "..\..\..\..\..\AE-Bin\external\android-clang\glslang\SPIRV-Tools-LICENSE.txt"

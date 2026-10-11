@@ -74,14 +74,16 @@ RGTest::RGTest (StringView testName, ArrayView<const char*> args) :
 	RUN_TEST( Test_RayTracing3 );
 	//RUN_TEST( Test_RayTracingCluster1 );
 	//RUN_TEST( Test_RayTracingPartitioned1 );
-	RUN_TEST( Test_OpacityMicromap1 );
 	RUN_TEST( Test_ShadingRate1 );
 	RUN_TEST( Test_Ycbcr1 );
 	RUN_TEST( Test_MultiView );
 	RUN_TEST( Test_ViewportArray );
+	//RUN_TEST( Test_VideoEncoder1 );
+  #endif
+  #ifndef AE_ENABLE_REMOTE_GRAPHICS
+	RUN_TEST( Test_OpacityMicromap1 );
 	RUN_TEST( Test_IndirectCommandBuffer1 );
 	RUN_TEST( Test_IndirectCommandBuffer2 );
-	//RUN_TEST( Test_VideoEncoder1 );
   #endif
   #ifdef AE_TEST_SHADER_DEBUGGER
 	RUN_TEST( Test_Debugger1 );
